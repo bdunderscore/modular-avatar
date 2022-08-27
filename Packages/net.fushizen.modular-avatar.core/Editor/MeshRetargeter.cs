@@ -37,7 +37,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
         internal static Transform GetRetargetedBone(Transform bone)
         {
-            if (!IsRetargetable.ContainsKey(bone)) return null;
+            if (bone == null || !IsRetargetable.ContainsKey(bone)) return null;
 
             while (bone != null && IsRetargetable.ContainsKey(bone) && IsRetargetable[bone]) bone = bone.parent;
 
@@ -50,6 +50,13 @@ namespace net.fushizen.modular_avatar.core.editor
             return IsRetargetable.Where((kvp) => kvp.Value)
                 .Select(kvp => new KeyValuePair<Transform, Transform>(kvp.Key, GetRetargetedBone(kvp.Key)))
                 .Where(kvp => kvp.Value != null);
+        }
+
+        public static Transform GetRetargetedBone(Transform bone, bool fallbackToOriginal)
+        {
+            Transform retargeted = GetRetargetedBone(bone);
+
+            return retargeted ? retargeted : (fallbackToOriginal ? bone : null);
         }
     }
     
@@ -77,19 +84,30 @@ namespace net.fushizen.modular_avatar.core.editor
             }
             
             // Now remove retargeted bones
-            foreach (var bonePair in BoneDatabase.GetRetargetedBones())
+            if (true)
             {
-                var sourceBone = bonePair.Key;
-                var destBone = bonePair.Value;
-
-                foreach (Transform child in sourceBone)
+                foreach (var bonePair in BoneDatabase.GetRetargetedBones())
                 {
-                    child.SetParent(destBone, true);
+                    if (BoneDatabase.GetRetargetedBone(bonePair.Key) == null) continue;
+
+                    var sourceBone = bonePair.Key;
+                    var destBone = bonePair.Value;
+
+                    var children = new List<Transform>();
+                    foreach (Transform child in sourceBone)
+                    {
+                        children.Add(child);
+                    }
+                    
+                    foreach (Transform child in children) {
+                        child.SetParent(destBone, true);
+                    }
+
+                    UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
                 }
-                
-                UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
+
             }
-            
+
             return true;
         }
     }
@@ -171,6 +189,8 @@ namespace net.fushizen.modular_avatar.core.editor
             dst.bindposes = newBindPoses;
             renderer.bones = newBones;
             renderer.sharedMesh = dst;
+            renderer.rootBone = BoneDatabase.GetRetargetedBone(renderer.rootBone, true);
+            renderer.probeAnchor = BoneDatabase.GetRetargetedBone(renderer.probeAnchor, true);
         }
     }
 }

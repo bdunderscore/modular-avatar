@@ -26,10 +26,18 @@ namespace net.fushizen.modular_avatar.core.editor
                         -999999,
                         (Action<VRCAvatarDescriptor>)(av => VRCBuildPipelineCallbacks.OnPreprocessAvatar(av.gameObject))
                     });
-                    //EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+                    EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
                     break;
                 }
+            }
+        }
+        
+        private static void OnPlayModeStateChanged(PlayModeStateChange obj)
+        {
+            if (obj == PlayModeStateChange.ExitingPlayMode)
+            {
+                Util.DeleteTemporaryAssets();
             }
         }
     }

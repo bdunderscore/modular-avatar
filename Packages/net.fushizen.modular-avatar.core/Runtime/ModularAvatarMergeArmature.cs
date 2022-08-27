@@ -13,6 +13,7 @@ namespace net.fushizen.modular_avatar.core
         public string prefix;
         public string suffix;
         
+#if UNITY_EDITOR
         void OnValidate()
         {
             EditorApplication.delayCall += () =>
@@ -37,5 +38,6 @@ namespace net.fushizen.modular_avatar.core
                 }
             };
         }
+#endif
     }
 }

@@ -1,8 +1,18 @@
 ﻿using UnityEditor;
 using UnityEditor.Animations;
+using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
+    internal class CleanupTempAssets : IVRCSDKPostprocessAvatarCallback
+    {
+        public int callbackOrder => 99999;
+        public void OnPostprocessAvatar()
+        {
+            Util.DeleteTemporaryAssets();
+        }
+    }
+    
     public static class Util
     {
         internal const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
