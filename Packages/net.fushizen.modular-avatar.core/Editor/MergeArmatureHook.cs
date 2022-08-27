@@ -7,11 +7,11 @@ namespace net.fushizen.modular_avatar.core.editor
 {
     public class MergeArmatureHook : IVRCSDKPreprocessAvatarCallback
     {
-        public int callbackOrder => -3000;
+        public int callbackOrder => HookSequence.SEQ_MERGE_ARMATURE;
         
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
-            var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>();
+            var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
             
             foreach (var mergeArmature in mergeArmatures)
             {
@@ -32,6 +32,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private void RecursiveMerge(ModularAvatarMergeArmature config, GameObject src, GameObject target)
         {
+            BoneDatabase.AddMergedBone(src.transform);
             src.transform.SetParent(target.transform, true);
             List<Transform> children = new List<Transform>();
             foreach (Transform child in src.transform)
