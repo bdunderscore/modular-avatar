@@ -1,0 +1,19 @@
+{
+  "name" : "net.fushizen.modular-avatar.core",
+  "displayName" : "Modular Avatar - Core",
+  "version" : "0.0.1",
+  "unity" : "2019.4",
+  "description" : "",
+  "author" : {
+    "name" : "bd_",
+    "email" : "bd@fushizen.net",
+    "url" : "https://github.com/bdunderscore/modular-avatar"
+  },
+  "url" : "",
+  "dependencies" : {
+  },
+  "vpmDependencies" : {
+    "com.vrchat.base": "3.1.x",
+    "com.vrchat.avatars": "3.1.x"
+  }
+}
