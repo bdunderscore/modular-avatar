@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -44,6 +45,15 @@ namespace net.fushizen.modular_avatar.core
             }
 
             return null;
+        }
+
+        public static void MarkDirty(UnityEngine.Object obj)
+        {
+            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+            {
+                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
+            }
+            EditorUtility.SetDirty(obj);
         }
     }
 }

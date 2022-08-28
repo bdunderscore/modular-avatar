@@ -38,7 +38,7 @@ namespace net.fushizen.modular_avatar.core.editor
             foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 var bones = renderer.bones;
-                for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i]);
+                for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], false);
                 renderer.bones = bones;
                 renderer.rootBone = MapBoneReference(renderer.rootBone);
                 renderer.probeAnchor = MapBoneReference(renderer.probeAnchor);
@@ -93,11 +93,11 @@ namespace net.fushizen.modular_avatar.core.editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private Transform MapBoneReference(Transform bone)
+        private Transform MapBoneReference(Transform bone, bool markNonRetargetable = true)
         {
             if (bone != null && BoneRemappings.TryGetValue(bone, out var newBone))
             {
-                BoneDatabase.MarkNonRetargetable(newBone);
+                if (markNonRetargetable) BoneDatabase.MarkNonRetargetable(newBone);
                 bone = newBone;
             }
             return bone;

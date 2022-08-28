@@ -3,7 +3,9 @@
     internal static class HookSequence
     {
         public const int SEQ_RESETTERS = -90000;
-        public const int SEQ_MERGE_ARMATURE = -80001;
-        public const int SEQ_RETARGET_MESH = -80000;
+        public const int SEQ_MERGE_ARMATURE = SEQ_RESETTERS + 1;
+        public const int SEQ_RETARGET_MESH = SEQ_MERGE_ARMATURE + 1;
+        public const int SEQ_BONE_PROXY = SEQ_RETARGET_MESH + 1;
+        public const int SEQ_MERGE_ANIMATORS = SEQ_BONE_PROXY + 1;
     }
 }
