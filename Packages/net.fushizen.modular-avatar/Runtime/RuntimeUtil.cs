@@ -49,11 +49,13 @@ namespace net.fushizen.modular_avatar.core
 
         public static void MarkDirty(UnityEngine.Object obj)
         {
+            #if UNITY_EDITOR
             if (PrefabUtility.IsPartOfPrefabInstance(obj))
             {
                 PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
             }
             EditorUtility.SetDirty(obj);
+            #endif
         }
     }
 }
