@@ -67,23 +67,6 @@ namespace net.fushizen.modular_avatar.core.editor
             };
         }
 
-        private static void Poll()
-        {
-            if (Request.IsCompleted)
-            {
-                if (Request.Status == StatusCode.Success)
-                {
-                    Debug.Log("Installed modular avatar framework");
-                }
-                else
-                {
-                    Debug.LogError(Request.Error.message);
-                }
-
-                EditorApplication.update -= Poll;
-            }
-        }
-
         private static SemanticVersioning.Version GetInstalledVersion()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
