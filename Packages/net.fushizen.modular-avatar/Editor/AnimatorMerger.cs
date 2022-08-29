@@ -170,7 +170,7 @@ namespace net.fushizen.modular_avatar.core.editor
             }
 
             var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
-            if (ctor == null || obj is ScriptableObject)
+            if (ctor == null || original is ScriptableObject)
             {
                 obj = Object.Instantiate(original);                
             }
