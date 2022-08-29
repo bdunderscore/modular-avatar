@@ -18,12 +18,16 @@ namespace net.fushizen.modular_avatar.core
         {
             EditorApplication.delayCall += () =>
             {
+                if (this == null) return;
                 if (mergeTarget == null && !string.IsNullOrWhiteSpace(mergeTargetPath))
                 {
                     var avatar = RuntimeUtil.FindAvatarInParents(transform);
                     if (avatar != null)
                     {
                         mergeTarget = avatar.transform.Find(mergeTargetPath)?.gameObject;
+                    }
+                    if (mergeTarget != null) {
+                        RuntimeUtil.MarkDirty(this);
                     }
                 }
                 else if (mergeTarget != null && mergeTargetPath != RuntimeUtil.AvatarRootPath(mergeTarget))
