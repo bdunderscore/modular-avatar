@@ -66,6 +66,7 @@ crashlytics-build.properties
 !/Assets/.gitkeep
 !/Assets/bd_/
 !/Assets/bd_/ModularAvatar/
+!/Assets/bd_/ModularAvatar/.gitkeep
 !/Assets/bd_/ModularAvatar.meta
 !/Assets/bd_.meta
 

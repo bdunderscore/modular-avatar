@@ -1,0 +1,91 @@
+name: Build release artifacts
+
+on: push
+
+jobs:
+  build-unitypackage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Misc setup
+        run: |
+          cp COPYING.md Assets/bd_/ModularAvatar/COPYING.txt
+          cp COPYING.md Packages/net.fushizen.modular-avatar/COPYING.txt
+          mkdir output
+          cp COPYING.md output/COPYING.txt
+      - name: Generate VPM package
+        run: |
+          cd Packages/net.fushizen.modular-avatar && zip ../../output/ModularAvatar.vpm.zip -r . 
+      - name: Convert to unity package layout
+        run: |
+          mv Packages/net.fushizen.modular-avatar/{Editor,Runtime}* Assets/bd_/ModularAvatar
+      - name: Generate filelists
+        run: |
+          echo "Assets/bd_.meta" >> metaList
+          echo "Assets/bd_/ModularAvatar.meta" >> metaList
+          find Assets/bd_/ModularAvatar -name '*.meta' >> metaList
+          
+          cat metaList
+      - name: Build unitypackage
+        uses: pCYSl5EDgo/create-unitypackage@2f4ac82dabd3a1029f7a6771f30dc796e4217551
+        with:
+          package-path: 'output/modular-avatar-dev.unitypackage'
+          include-files: metaList
+      - name: Upload commit artifacts (dev .zip package)
+        uses: actions/upload-artifact@master
+        with:
+          path: output
+          name: modular-avatar-dev
+      - name: Set version based on tag
+        id: version
+        if: startsWith(github.event.ref, 'refs/tags/')
+        run: |
+          echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+      - name: Rename and zip artifacts
+        if: startsWith(github.event.ref, 'refs/tags/')
+        run: |
+          mv output/modular-avatar-dev.unitypackage output/modular-avatar-${{ steps.version.outputs.version }}.unitypackage
+          mv output/ModularAvatar.vpm.zip output/modular-avatar-${{ steps.version.outputs.version }}.vpm.zip
+          (cd output; zip ../modular-avatar-dev.zip *)
+      - name: Create draft release
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload VPM release artifact
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: output/modular-avatar-${{ steps.version.outputs.version }}.vpm.zip
+          asset_name: modular-avatar-${{ steps.version.outputs.version }}.vpm.zip
+          asset_content_type: application/octet-stream
+      - name: Upload unitypackage release artifact
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: output/modular-avatar-${{ steps.version.outputs.version }}.unitypackage
+          asset_name: modular-avatar-${{ steps.version.outputs.version }}.unitypackage
+          asset_content_type: application/octet-stream
+      - name: Upload zip release artifact
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: modular-avatar-dev.zip
+          asset_name: avrc-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip
