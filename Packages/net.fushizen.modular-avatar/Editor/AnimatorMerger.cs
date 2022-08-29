@@ -93,6 +93,18 @@ namespace net.fushizen.modular_avatar.core.editor
             return asm;
         }
 
+        private static string MapPath(EditorCurveBinding binding, string basePath)
+        {
+            if (binding.type == typeof(Animator) && binding.path == "")
+            {
+                return "";
+            }
+            else
+            {
+                return PathMappings.MapPath(basePath + binding.path);
+            }
+        }
+        
         private Object customClone(Object o, string basePath)
         {
             if (basePath == "") return null;
@@ -106,7 +118,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 foreach (var binding in AnimationUtility.GetCurveBindings(clip))
                 {
                     var newBinding = binding;
-                    newBinding.path = PathMappings.MapPath(basePath + binding.path);
+                    newBinding.path = MapPath(binding, basePath);
                     newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
                         AnimationUtility.GetEditorCurve(clip, binding));
                 }
@@ -114,7 +126,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
                 {
                     var newBinding = objBinding;
-                    newBinding.path = PathMappings.MapPath(basePath + objBinding.path);
+                    newBinding.path = MapPath(objBinding, basePath);
                     AnimationUtility.SetObjectReferenceCurve(newClip, newBinding,
                         AnimationUtility.GetObjectReferenceCurve(clip, objBinding));
                 }
