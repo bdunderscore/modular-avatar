@@ -9,7 +9,7 @@ namespace net.fushizen.modular_avatar.core.editor
 {
     public class MergeAnimatorHook : IVRCSDKPreprocessAvatarCallback
     {
-        private const string SAMPLE_PATH_PACKAGE = "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation";
+        private const string SAMPLE_PATH_PACKAGE = "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
         private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
         
         public int callbackOrder => HookSequence.SEQ_MERGE_ANIMATORS;
@@ -24,7 +24,7 @@ namespace net.fushizen.modular_avatar.core.editor
             InitSessions(descriptor.baseAnimationLayers);
             InitSessions(descriptor.specialAnimationLayers);
             
-            var toMerge = avatarGameObject.transform.GetComponentsInChildren<MergeAnimator>(true);
+            var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
 
             foreach (var merge in toMerge)
             {
@@ -124,9 +124,9 @@ namespace net.fushizen.modular_avatar.core.editor
                         break;
                 }
 
-                if (name == null)
+                if (name != null)
                 {
-                    name = "/vrc_AvatarV3" + name + "Layer";
+                    name = "/vrc_AvatarV3" + name + "Layer.controller";
 
                     controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(SAMPLE_PATH_PACKAGE + name);
                     if (controller == null)
