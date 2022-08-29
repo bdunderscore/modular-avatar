@@ -114,6 +114,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     case Transform _: break;
                     case ModularAvatarMergeArmature _: break;
+                    case MAInternalOffsetMarker _: break;
                     case VRCPhysBone _: case VRCPhysBoneCollider _: hasComponents = true;
                         break;
                     default:
@@ -146,7 +147,16 @@ namespace net.fushizen.modular_avatar.core.editor
             mergedSrcBone.transform.localRotation = src.transform.localRotation;
             mergedSrcBone.transform.localScale = src.transform.localScale;
 
-            if (zipMerge) BoneDatabase.AddMergedBone(mergedSrcBone.transform);
+            if (zipMerge)
+            {
+                BoneDatabase.AddMergedBone(mergedSrcBone.transform);
+                var srcPath = RuntimeUtil.AvatarRootPath(src);
+                PathMappings.Remap(srcPath, new PathMappings.MappingEntry()
+                {
+                    transformPath = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : srcPath,
+                    path = srcPath
+                });
+            }
             mergedSrcBone.transform.SetParent(newParent.transform, true);
             BoneRemappings[src.transform] = mergedSrcBone.transform;
 
@@ -192,6 +202,8 @@ namespace net.fushizen.modular_avatar.core.editor
                         shouldZip = false;
                     }
                 }
+                
+                
 
                 var retainChild = RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 retain = retain || retainChild;

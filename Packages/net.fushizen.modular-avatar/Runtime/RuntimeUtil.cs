@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -49,13 +49,59 @@ namespace net.fushizen.modular_avatar.core
 
         public static void MarkDirty(UnityEngine.Object obj)
         {
-            #if UNITY_EDITOR
-            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+#if UNITY_EDITOR
+            if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj))
             {
-                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
+                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
             }
-            EditorUtility.SetDirty(obj);
+            UnityEditor.EditorUtility.SetDirty(obj);
             #endif
         }
+
+#if UNITY_EDITOR
+        private static UnityEngine.Object cachedAnimationWindowState;
+        private static readonly Type animationWindowStateType 
+            = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditorInternal.AnimationWindowState");
+        private static readonly PropertyInfo recordingProp = animationWindowStateType.GetProperty(
+            "recording",
+            BindingFlags.Instance | BindingFlags.Public
+        );
+        private static readonly PropertyInfo previewingProp = animationWindowStateType.GetProperty(
+            "previewing",
+            BindingFlags.Instance | BindingFlags.Public
+        );
+        private static readonly PropertyInfo playingProp = animationWindowStateType.GetProperty(
+            "playing",
+            BindingFlags.Instance | BindingFlags.Public
+        );
+#endif
+        
+        public static bool IsAnimationEditMode()
+        {
+#if !UNITY_EDITOR
+            return false;
+#else
+
+            if (cachedAnimationWindowState == null)
+            {
+                foreach (var obj in Resources.FindObjectsOfTypeAll(animationWindowStateType))
+                {
+                    cachedAnimationWindowState = obj;
+                }
+            }
+
+            if (cachedAnimationWindowState == null) return false;
+
+            return (bool) recordingProp.GetValue(cachedAnimationWindowState, null)
+                || (bool) previewingProp.GetValue(cachedAnimationWindowState, null)
+                || (bool) playingProp.GetValue(cachedAnimationWindowState, null);
+#endif
+        }
+        
+#if UNITY_EDITOR
+        public static bool isPlaying => UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
+#else
+        public static bool isPlaying => true;
+#endif
     }
 }

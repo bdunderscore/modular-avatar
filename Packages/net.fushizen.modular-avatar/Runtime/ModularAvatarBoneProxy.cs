@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 using Object = System.Object;
@@ -15,13 +14,13 @@ namespace net.fushizen.modular_avatar.core
         public string subPath;
 
         [SerializeField] [HideInInspector] public ParentConstraint constraint;
-        
-        #if UNITY_EDITOR
+
+#if UNITY_EDITOR
         void OnValidate()
         {
-            EditorApplication.delayCall += CheckReferences;
+            UnityEditor.EditorApplication.delayCall += CheckReferences;
         }
-        
+
         void CheckReferences() {
             if (this == null) return; // post-destroy
             
@@ -48,29 +47,11 @@ namespace net.fushizen.modular_avatar.core
 
         private void CheckConstraint()
         {
-            if (target != null)
+            if (constraint != null)
             {
-                if (constraint == null)
+                if (!UnityEditor.PrefabUtility.IsPartOfPrefabAsset(constraint))
                 {
-                    constraint = gameObject.AddComponent<ParentConstraint>();
-                    constraint.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
-                    constraint.AddSource(new ConstraintSource()
-                    {
-                        weight = 1,
-                        sourceTransform = target
-                    });
-                    constraint.translationOffsets = new Vector3[] {Vector3.zero};
-                    constraint.rotationOffsets = new Vector3[] {Vector3.zero};
-                    constraint.locked = true;
-                    constraint.constraintActive = true;
-                }
-                else
-                {
-                    constraint.SetSource(0, new ConstraintSource()
-                    {
-                        weight = 1,
-                        sourceTransform = target
-                    });
+                    UnityEngine.Object.DestroyImmediate(constraint);
                 }
             }
         }

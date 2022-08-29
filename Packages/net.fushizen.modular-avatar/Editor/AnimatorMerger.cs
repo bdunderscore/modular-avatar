@@ -101,7 +101,7 @@ namespace net.fushizen.modular_avatar.core.editor
             }
             else
             {
-                return PathMappings.MapPath(basePath + binding.path);
+                return PathMappings.MapPath(basePath + binding.path, binding.type == typeof(Transform));
             }
         }
         
