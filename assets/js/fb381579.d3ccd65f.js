@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkmodular_avatar_docs=self.webpackChunkmodular_avatar_docs||[]).push([[866],{3769:a=>{a.exports=JSON.parse('{"name":"docusaurus-plugin-content-docs","id":"default"}')}}]);
