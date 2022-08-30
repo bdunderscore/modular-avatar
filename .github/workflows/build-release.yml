@@ -16,14 +16,9 @@ jobs:
       - name: Generate VPM package
         run: |
           cd Packages/net.fushizen.modular-avatar && zip ../../output/ModularAvatar.vpm.zip -r . 
-      - name: Convert to unity package layout
-        run: |
-          mv Packages/net.fushizen.modular-avatar/{Editor,Runtime}* Assets/bd_/ModularAvatar
       - name: Generate filelists
         run: |
-          echo "Assets/bd_.meta" >> metaList
-          echo "Assets/bd_/ModularAvatar.meta" >> metaList
-          find Assets/bd_/ModularAvatar -name '*.meta' >> metaList
+          find Packages/net.fushizen.modular-avatar -name '*.meta' >> metaList
           
           cat metaList
       - name: Build unitypackage
