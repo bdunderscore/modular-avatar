@@ -76,7 +76,7 @@ namespace net.fushizen.modular_avatar.core
 
         private void OnDestroy()
         {
-            if (constraint != null) DestroyImmediate(constraint);
+            UnityEditor.EditorApplication.delayCall += () => { if (constraint != null) DestroyImmediate(constraint); };
         }
 
         private void UpdateDynamicMapping()
