@@ -32,7 +32,6 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             _combined.parameters = _parameters.Values.ToArray();
             _combined.layers = _layers.ToArray();
-            AssetDatabase.SaveAssets();
             return _combined;
         }
 
