@@ -47,11 +47,29 @@ namespace net.fushizen.modular_avatar.core
 
         private void CheckConstraint()
         {
-            if (constraint != null)
+            if (target != null)
             {
-                if (!UnityEditor.PrefabUtility.IsPartOfPrefabAsset(constraint))
+                if (constraint == null)
                 {
-                    UnityEngine.Object.DestroyImmediate(constraint);
+                    constraint = gameObject.AddComponent<ParentConstraint>();
+                    constraint.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+                    constraint.AddSource(new ConstraintSource()
+                    {
+                        weight = 1,
+                        sourceTransform = target
+                    });
+                    constraint.translationOffsets = new Vector3[] {Vector3.zero};
+                    constraint.rotationOffsets = new Vector3[] {Vector3.zero};
+                    constraint.locked = true;
+                    constraint.constraintActive = true;
+                }
+                else
+                {
+                    constraint.SetSource(0, new ConstraintSource()
+                    {
+                        weight = 1,
+                        sourceTransform = target
+                    });
                 }
             }
         }
