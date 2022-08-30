@@ -13,6 +13,9 @@ namespace net.fushizen.modular_avatar.core.editor
         private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
         
         public int callbackOrder => HookSequence.SEQ_MERGE_ANIMATORS;
+
+        private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
+            new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController>();
         
         Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner> mergeSessions =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner>();
@@ -28,8 +31,16 @@ namespace net.fushizen.modular_avatar.core.editor
 
             foreach (var merge in toMerge)
             {
-                if (merge.animator != null && mergeSessions.TryGetValue(merge.layerType, out var session))
+                if (merge.animator == null) continue;
+
+                if (!mergeSessions.TryGetValue(merge.layerType, out var session))
                 {
+                    session = new AnimatorCombiner();
+                    mergeSessions[merge.layerType] = session;
+                    if (defaultControllers_.ContainsKey(merge.layerType))
+                    {
+                        session.AddController("", defaultControllers_[merge.layerType]);
+                    }
                     var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
                     mergeSessions[merge.layerType].AddController(
                         relativePath != "" ? relativePath + "/" : "",
@@ -58,8 +69,11 @@ namespace net.fushizen.modular_avatar.core.editor
 
             for (int i = 0; i < layers.Length; i++)
             {
-                layers[i].isDefault = false;
-                layers[i].animatorController = mergeSessions[layers[i].type].Finish();
+                if (mergeSessions.TryGetValue(layers[i].type, out var session))
+                {
+                    layers[i].isDefault = false;
+                    layers[i].animatorController = session.Finish();                    
+                }
             }
 
             return layers;
@@ -71,11 +85,8 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 var controller = ResolveLayerController(layer);
                 if (controller == null) controller = new AnimatorController();
-
-                var session = new AnimatorCombiner();
-                session.AddController("", controller);
                 
-                mergeSessions[layer.type] = session;
+                defaultControllers_[layer.type] = controller;
             }
         }
         
