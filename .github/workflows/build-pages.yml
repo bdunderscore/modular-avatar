@@ -1,0 +1,70 @@
+name: Build documentation
+on:
+  push:
+    branches:
+      - test
+
+env:
+  listPublishDirectory: docs/build
+  vpmSubDirectory: vpm
+  pathToCi: ci
+
+jobs:
+  build-listing:
+    name: build-listing
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - uses: actions/checkout@v3 # check out this repo
+      - uses: actions/checkout@v3 # check out automation repo
+        with:
+          repository: vrchat-community/package-list-action
+          path: ${{env.pathToCi}}
+          clean: false # otherwise the local repo will no longer be checked out
+
+      - name: Build docs
+        run: |
+          cd docs
+          npm install
+          npm build
+
+      - name: Restore Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{env.pathToCi}}/.nuke/temp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
+
+      - name: Build Package Version Listing
+        run: ${{env.pathToCi}}/build.cmd BuildRepoListing --root ${{env.pathToCi}} --list-publish-directory $GITHUB_WORKSPACE/${{env.listPublishDirectory}}/${{env.vpmSubDirectory}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ${{env.listPublishDirectory}}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+  build_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docusaurus BuildDeploy Action
+        uses: redkubes/docusaurus-deploy-action@v1.2
+        with:
+          source-folder: docs
+          git-user: docusaurus
+          git-password: ${{ secrets.GITHUB_TOKEN }}
+          deployment-branch: gh-pages
