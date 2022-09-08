@@ -9,13 +9,13 @@
   },
   "locked": {
     "com.vrchat.avatars": {
-      "version": "3.1.5",
+      "version": "3.1.6",
       "dependencies": {
         "com.vrchat.base": "3.1.x"
       }
     },
     "com.vrchat.base": {
-      "version": "3.1.5"
+      "version": "3.1.6"
     },
     "com.vrchat.core.vpm-resolver": {
       "version": "0.1.13"
