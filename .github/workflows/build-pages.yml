@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
-  build-listing:
-    name: build-listing
+  build-docs:
+    name: build-docs
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
