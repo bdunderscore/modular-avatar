@@ -4,8 +4,8 @@ on:
   pull_request: 
 
 jobs:
-  build-listing:
-    name: build-listing
+  test-docs:
+    name: Test documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3
