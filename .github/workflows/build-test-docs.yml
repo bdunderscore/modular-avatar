@@ -1,0 +1,20 @@
+﻿name: Test documentation
+
+on:
+  pull_request: 
+
+jobs:
+  build-listing:
+    name: build-listing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - uses: actions/checkout@v3 # check out this repo
+
+      - name: Build docs
+        run: |
+          cd docs
+          npm install
+          npm run build
