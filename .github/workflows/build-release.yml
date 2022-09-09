@@ -3,8 +3,10 @@ name: Build Release
 on:
   workflow_dispatch:
   push:
-    branches: main
-    paths: Packages/net.fushizen.modular-avatar/**
+    branches:
+      - main
+    tags:
+      - '**'
 
 env:
   packageName: "net.fushizen.modular-avatar"
@@ -23,6 +25,14 @@ jobs:
         with:
           path: "Packages/${{env.packageName}}/package.json"
           prop_path: "version"
+          
+      - name: Check tag consistency
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [ "${{ steps.version.outputs.prop }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.prop }} != ${GITHUB_REF##*/}"
+            exit 1
+          fi
 
       - run: echo ${{steps.version.outputs.prop}}
 
@@ -46,10 +56,12 @@ jobs:
           package-path: ${{ env.unityPackage }}
           include-files: metaList
 
-
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/tags/')
         with:
+          draft: true
+          generate_release_notes: true
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
