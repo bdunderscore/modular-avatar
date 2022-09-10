@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
@@ -37,7 +38,10 @@ namespace net.fushizen.modular_avatar.core.editor
 
             foreach (var proxy in boneProxies)
             {
-                if (proxy.constraint != null) UnityEngine.Object.DestroyImmediate(proxy.constraint);
+                if (proxy.constraint != null && proxy.constraint.gameObject == proxy.gameObject)
+                {
+                    UnityEngine.Object.DestroyImmediate(proxy.constraint);
+                }
                 if (proxy.target != null)
                 {
                     var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
