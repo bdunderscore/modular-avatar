@@ -52,7 +52,7 @@ For gimmicks involving animators, Modular Avatar has a `Merge Animator` componen
 ![img_4.png](img_4.png)
 
 This component will merge the specified animator controller into the corresponding Avatar 3.0 playable layer.
-If `Delete Attached Avatar` is enabled, any animator on the same gameobject will also be deleted (having such an
+If `Delete Attached Animator` is enabled, any animator on the same gameobject will also be deleted (having such an
 animator around can be handy for editing animations).
 
 In order to ease editing, animations on a merged animator should have their clips created based off of the location of

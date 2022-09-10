@@ -53,7 +53,7 @@ const config = {
       navbar: {
         title: 'Modular Avatar documentation',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'Logo',
           src: 'img/logo.svg',
         },
         items: [
