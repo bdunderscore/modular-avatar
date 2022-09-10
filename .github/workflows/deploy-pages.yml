@@ -19,6 +19,7 @@ jobs:
     name: Build documentation
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   deploy-docs:
+    name: Deploy documentation
     needs: build-docs
     environment:
       name: github-pages
