@@ -30,10 +30,10 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    internal class MeshRetargeterResetHook : IVRCSDKPreprocessAvatarCallback
+    internal class MeshRetargeterResetHook : HookBase
     {
-        public int callbackOrder => HookSequence.SEQ_RESETTERS;
-        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        public override int callbackOrder => HookSequence.SEQ_RESETTERS;
+        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
         {
             BoneDatabase.ResetBones();
             return true;
@@ -84,10 +84,10 @@ namespace net.fushizen.modular_avatar.core.editor
         }
     }
     
-    internal class RetargetMeshes : IVRCSDKPreprocessAvatarCallback
+    internal class RetargetMeshes : HookBase
     {
-        public int callbackOrder => HookSequence.SEQ_RETARGET_MESH;
-        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        public override int callbackOrder => HookSequence.SEQ_RETARGET_MESH;
+        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
         {
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {

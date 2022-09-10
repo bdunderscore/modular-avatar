@@ -31,12 +31,12 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    public class MergeAnimatorHook : IVRCSDKPreprocessAvatarCallback
+    public class MergeAnimatorHook : HookBase
     {
         private const string SAMPLE_PATH_PACKAGE = "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
         private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
         
-        public int callbackOrder => HookSequence.SEQ_MERGE_ANIMATORS;
+        public override int callbackOrder => HookSequence.SEQ_MERGE_ANIMATORS;
 
         private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController>();
@@ -44,7 +44,7 @@ namespace net.fushizen.modular_avatar.core.editor
         Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner> mergeSessions =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner>();
         
-        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
         {
             var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
 

@@ -30,11 +30,11 @@ namespace net.fushizen.modular_avatar.core.editor
     /**
      * Ensure that any AvatarTagComponents are purged just before upload.
      */
-    public class LastResortTagComponentCleaner : IVRCSDKPreprocessAvatarCallback
+    public class LastResortTagComponentCleaner : HookBase
     {
-        public int callbackOrder => 0;
+        public override int callbackOrder => 0;
         
-        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
         {
             foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
             {
