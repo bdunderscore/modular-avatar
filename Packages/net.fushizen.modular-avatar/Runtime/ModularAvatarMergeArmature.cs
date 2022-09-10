@@ -23,9 +23,6 @@
  */
 
 using System;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 
 namespace net.fushizen.modular_avatar.core
@@ -40,10 +37,9 @@ namespace net.fushizen.modular_avatar.core
         public bool locked;
 
         private bool wasLocked;
-#if UNITY_EDITOR
         void OnValidate()
         {
-            EditorApplication.delayCall += () =>
+            RuntimeUtil.delayCall(() =>
             {
                 if (this == null) return;
                 if (mergeTarget == null && !string.IsNullOrWhiteSpace(mergeTargetPath))
@@ -53,7 +49,9 @@ namespace net.fushizen.modular_avatar.core
                     {
                         mergeTarget = avatar.transform.Find(mergeTargetPath)?.gameObject;
                     }
-                    if (mergeTarget != null) {
+
+                    if (mergeTarget != null)
+                    {
                         RuntimeUtil.MarkDirty(this);
                     }
                 }
@@ -69,9 +67,8 @@ namespace net.fushizen.modular_avatar.core
                 }
 
                 CheckLock();
-            };
+            });
         }
-#endif
 
         void CheckLock()
         {
@@ -94,11 +91,23 @@ namespace net.fushizen.modular_avatar.core
                     foreach (var xform in GetComponentsInChildren<Transform>(true))
                     {
                         Transform baseObject = FindCorresponding(xform);
-                        if (baseObject != null && xform.gameObject.GetComponent<MAInternalOffsetMarker>() == null)
+                        var marker = xform.gameObject.GetComponent<MAInternalOffsetMarker>();
+
+                        if (baseObject == null)
                         {
-                            var comp = xform.gameObject.AddComponent<MAInternalOffsetMarker>();
-                            comp.correspondingObject = baseObject;
-                            comp.lockBasePosition = baseObject.gameObject == mergeTarget;
+                            if (marker != null)
+                            {
+                                DestroyImmediate(marker);
+                            }
+                        }
+                        else
+                        {
+                            if (marker == null)
+                            {
+                                marker = xform.gameObject.AddComponent<MAInternalOffsetMarker>();
+                            }
+                            marker.correspondingObject = baseObject;
+                            marker.lockBasePosition = baseObject.gameObject == mergeTarget;
                         }
                     }
 

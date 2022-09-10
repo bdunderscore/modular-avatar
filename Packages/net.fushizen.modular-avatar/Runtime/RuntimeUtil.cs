@@ -33,6 +33,11 @@ namespace net.fushizen.modular_avatar.core
 {
     public static class RuntimeUtil
     {
+        public delegate void NullCallback();
+
+        // Initialized in Util
+        public static Action<NullCallback> delayCall = (_) => { };
+        
         [CanBeNull]
         public static string RelativePath(GameObject root, GameObject child)
         {

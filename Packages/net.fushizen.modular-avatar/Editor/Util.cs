@@ -37,10 +37,16 @@ namespace net.fushizen.modular_avatar.core.editor
         }
     }
     
+    [InitializeOnLoad]
     public static class Util
     {
         internal const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
         internal const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;
+
+        static Util()
+        {
+            RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
+        }
 
         static internal AnimatorController CreateContainer()
         {
@@ -74,7 +80,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 var subdir = generatedAssetsPath;
 
                 AssetDatabase.DeleteAsset(subdir);
-                //FileUtil.DeleteFileOrDirectory(subdir);
+                FileUtil.DeleteFileOrDirectory(subdir);
             };
         }
     }
