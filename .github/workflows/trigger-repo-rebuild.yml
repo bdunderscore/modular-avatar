@@ -1,0 +1,18 @@
+﻿on:
+  release:
+  workflow_dispatch: 
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.VPM_REPO_TOKEN }}
+          script: |
+            github.repos.createDispatchEvent({
+              owner: 'bdunderscore',
+              repo: 'vpm-repo',
+              workflow_id: 'publish.yml',
+              ref: 'main',
+            })
