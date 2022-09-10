@@ -43,6 +43,9 @@ namespace net.fushizen.modular_avatar.core.editor
 
         protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
         {
+            BoneRemappings.Clear();
+            ToDelete.Clear();
+            
             var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
             
             BoneRemappings.Clear();
