@@ -17,8 +17,8 @@ jobs:
       - name: Build docs
         run: |
           cd docs
-          npm install
-          npm run build
+          yarn install
+          yarn build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
