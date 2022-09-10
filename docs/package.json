@@ -28,6 +28,10 @@
     "@tsconfig/docusaurus": "^1.0.5",
     "typescript": "^4.8.3"
   },
+  "resolutions": {
+    "trim": "1.0.1",
+    "package-json": "8.1.0"
+  },
   "browserslist": {
     "production": [
       ">0.5%",
