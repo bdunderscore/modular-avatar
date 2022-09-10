@@ -23,6 +23,7 @@
  */
 
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
@@ -58,9 +59,25 @@ namespace net.fushizen.modular_avatar.core.editor
                     {
                         if (avatar.GetComponentsInChildren<AvatarTagComponent>(true).Length > 0)
                         {
+                            UnpackPrefabsCompletely(avatar.gameObject);
                             VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
                         }
                     }
+                }
+            }
+        }
+
+        private static void UnpackPrefabsCompletely(GameObject obj)
+        {
+            if (PrefabUtility.IsAnyPrefabInstanceRoot(obj))
+            {
+                PrefabUtility.UnpackPrefabInstance(obj, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            }
+            else
+            {
+                foreach (Transform child in obj.transform)
+                {
+                    UnpackPrefabsCompletely(child.gameObject);
                 }
             }
         }
