@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
+import Translate, {translate as t} from '@docusaurus/Translate';
 
 type FeatureItem = {
   title: string;
@@ -10,32 +11,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Drag and Drop assembly',
+    title: t({message: 'Drag and Drop assembly'}),
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
-      <>
+      <Translate>
         Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall'
         when editing your avatar!  
-      </>
+      </Translate>
     ),
   },
   {
-    title: 'Organize your animators',
+    title: t({message:'Organize your animators'}),
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
-      <>
+      <Translate>
         Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit
         dropdown tidy!
-      </>
+      </Translate>
     ),
   },
   {
-    title: 'Perfect for prefabs',
+    title: t({message: 'Perfect for prefabs'}),
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
-      <>
+      <Translate>
         Embed modular avatar components in your prefabs to make installation a breeze!
-      </>
+      </Translate>
     ),
   },
 ];
