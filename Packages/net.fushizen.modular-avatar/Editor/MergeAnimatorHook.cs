@@ -46,6 +46,9 @@ namespace net.fushizen.modular_avatar.core.editor
         
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
+            defaultControllers_.Clear();
+            mergeSessions.Clear();
+            
             var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
 
             InitSessions(descriptor.baseAnimationLayers);
