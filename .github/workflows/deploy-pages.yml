@@ -1,4 +1,4 @@
-name: Build documentation
+name: Deploy documentation
 on:
   push:
     branches:
@@ -16,22 +16,21 @@ concurrency:
   
 jobs:
   build-docs:
-    name: build-docs
+    name: Build documentation
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+  deploy-docs:
+    needs: build-docs
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - uses: actions/checkout@v3 # check out this repo
 
-      - name: Build docs
-        run: |
-          cd docs
-          npm install
-          npm run build
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: docs
+          path: docs/build
 
       - name: Setup Pages
         uses: actions/configure-pages@v2

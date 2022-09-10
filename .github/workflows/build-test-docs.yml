@@ -1,11 +1,12 @@
-﻿name: Test documentation
+﻿name: Build documentation
 
 on:
-  pull_request: 
+  pull_request:
+  workflow_call:
 
 jobs:
-  test-docs:
-    name: Test documentation
+  build-docs:
+    name: Build documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3
@@ -18,3 +19,9 @@ jobs:
           cd docs
           npm install
           npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: docs
+          path: docs/build
