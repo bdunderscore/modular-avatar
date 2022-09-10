@@ -10,6 +10,7 @@
     "url" : "https://github.com/bdunderscore/modular-avatar"
   },
   "url" : "",
+  "repo": "https://vpm.fushizen.net/vpm.json",
   "dependencies" : {
   },
   "vpmDependencies" : {
