@@ -16,9 +16,14 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
+            className={`button button--secondary button--lg ${styles.button}`}
             to="/docs/intro">
             Documentation
+          </Link>
+          <Link
+              className={`button button--secondary button--lg ${styles.button}`}
+              to="https://github.com/bdunderscore/modular-avatar/releases">
+              Download
           </Link>
         </div>
       </div>
