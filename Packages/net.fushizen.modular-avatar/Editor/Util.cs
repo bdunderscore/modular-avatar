@@ -24,6 +24,7 @@
 
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
@@ -31,37 +32,46 @@ namespace net.fushizen.modular_avatar.core.editor
     internal class CleanupTempAssets : IVRCSDKPostprocessAvatarCallback
     {
         public int callbackOrder => 99999;
+
         public void OnPostprocessAvatar()
         {
             Util.DeleteTemporaryAssets();
         }
     }
-    
+
     [InitializeOnLoad]
     public static class Util
     {
-        internal const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
-        internal const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;
+        private const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
+        private const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;
 
         static Util()
         {
             RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
         }
 
-        static internal AnimatorController CreateContainer()
+        public static AnimatorController CreateAnimator(AnimatorController toClone = null)
         {
-            var container = new AnimatorController();
-            AssetDatabase.CreateAsset(container, GenerateAssetPath());
+            AnimatorController controller;
+            if (toClone != null)
+            {
+                controller = Object.Instantiate(toClone);
+            }
+            else
+            {
+                controller = new AnimatorController();
+            }
+            AssetDatabase.CreateAsset(controller, GenerateAssetPath());
 
-            return container;
+            return controller;
         }
 
-        internal static string GenerateAssetPath()
+        public static string GenerateAssetPath()
         {
             return GetGeneratedAssetsFolder() + "/" + GUID.Generate() + ".asset";
         }
 
-        internal static string GetGeneratedAssetsFolder()
+        private static string GetGeneratedAssetsFolder()
         {
             if (!AssetDatabase.IsValidFolder(generatedAssetsPath))
             {
@@ -71,12 +81,12 @@ namespace net.fushizen.modular_avatar.core.editor
             return generatedAssetsPath;
         }
 
-        static internal void DeleteTemporaryAssets()
+        internal static void DeleteTemporaryAssets()
         {
             EditorApplication.delayCall += () =>
             {
                 AssetDatabase.SaveAssets();
-                
+
                 var subdir = generatedAssetsPath;
 
                 AssetDatabase.DeleteAsset(subdir);
