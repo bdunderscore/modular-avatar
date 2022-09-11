@@ -37,7 +37,17 @@ namespace net.fushizen.modular_avatar.core
 
         // Initialized in Util
         public static Action<NullCallback> delayCall = (_) => { };
-        
+
+        public enum OnDemandSource
+        {
+            Awake,
+            Start
+        }
+
+        public delegate void OnDemandProcessAvatarDelegate(OnDemandSource source, AvatarTagComponent component);
+
+        public static OnDemandProcessAvatarDelegate OnDemandProcessAvatar = (_m, _c) => { };
+
         [CanBeNull]
         public static string RelativePath(GameObject root, GameObject child)
         {
