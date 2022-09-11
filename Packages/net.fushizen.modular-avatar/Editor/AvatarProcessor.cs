@@ -23,22 +23,24 @@
  */
 
 using System;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
     [InitializeOnLoad]
-    internal class AvatarProcessor : IVRCSDKPreprocessAvatarCallback, IVRCSDKPostprocessAvatarCallback
+    public class AvatarProcessor : IVRCSDKPreprocessAvatarCallback, IVRCSDKPostprocessAvatarCallback
     {
+        public delegate void AvatarProcessorCallback(GameObject obj);
+
+        public static event AvatarProcessorCallback AfterProcessing;
+
         static AvatarProcessor()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
-        
+
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
             if (obj == PlayModeStateChange.EnteredEditMode)
@@ -48,7 +50,7 @@ namespace net.fushizen.modular_avatar.core.editor
         }
 
         public int callbackOrder => -9000;
-        
+
         public void OnPostprocessAvatar()
         {
             Util.DeleteTemporaryAssets();
@@ -77,11 +79,13 @@ namespace net.fushizen.modular_avatar.core.editor
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
             new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
             new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
-            
+
             foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
             {
                 UnityEngine.Object.DestroyImmediate(component);
             }
+
+            AfterProcessing?.Invoke(avatarGameObject);
         }
     }
 }

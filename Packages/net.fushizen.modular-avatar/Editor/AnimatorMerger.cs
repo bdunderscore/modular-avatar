@@ -37,7 +37,7 @@ namespace net.fushizen.modular_avatar.core.editor
         private readonly AnimatorController _combined;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
-        
+
         private Dictionary<String, AnimatorControllerParameter> _parameters =
             new Dictionary<string, AnimatorControllerParameter>();
 
@@ -49,7 +49,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public AnimatorCombiner()
         {
-            _combined = Util.CreateContainer();
+            _combined = Util.CreateAnimator();
         }
 
         public AnimatorController Finish()
@@ -67,12 +67,13 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     if (acp.type != param.type)
                     {
-                        throw new Exception($"Parameter {param.name} has different types in {basePath} and {controller.name}");
+                        throw new Exception(
+                            $"Parameter {param.name} has different types in {basePath} and {controller.name}");
                     }
 
                     continue;
                 }
-                
+
                 _parameters.Add(param.name, param);
             }
 
@@ -109,7 +110,7 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 return asm;
             }
-            
+
             asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath));
 
             _stateMachines[cacheKey] = asm;
@@ -127,11 +128,11 @@ namespace net.fushizen.modular_avatar.core.editor
                 return PathMappings.MapPath(basePath + binding.path, binding.type == typeof(Transform));
             }
         }
-        
+
         private Object customClone(Object o, string basePath)
         {
             if (basePath == "") return null;
-            
+
             if (o is AnimationClip clip)
             {
                 AnimationClip newClip = new AnimationClip();
@@ -145,7 +146,7 @@ namespace net.fushizen.modular_avatar.core.editor
                     newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
                         AnimationUtility.GetEditorCurve(clip, binding));
                 }
-                
+
                 foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
                 {
                     var newBinding = objBinding;
@@ -161,7 +162,8 @@ namespace net.fushizen.modular_avatar.core.editor
                 AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(clip));
 
                 return newClip;
-            } else if (o is Texture)
+            }
+            else if (o is Texture)
             {
                 return o;
             }
@@ -174,12 +176,12 @@ namespace net.fushizen.modular_avatar.core.editor
         private T deepClone<T>(T original,
             Func<Object, Object> visitor,
             Dictionary<Object, Object> cloneMap = null
-            ) where T : Object
+        ) where T : Object
         {
             if (original == null) return null;
-            
+
             if (cloneMap == null) cloneMap = new Dictionary<Object, Object>();
-            
+
             if (cloneMap.ContainsKey(original))
             {
                 return (T) cloneMap[original];
@@ -195,13 +197,14 @@ namespace net.fushizen.modular_avatar.core.editor
             var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
             if (ctor == null || original is ScriptableObject)
             {
-                obj = Object.Instantiate(original);                
+                obj = Object.Instantiate(original);
             }
             else
             {
                 obj = (T) ctor.Invoke(Array.Empty<object>());
                 EditorUtility.CopySerialized(original, obj);
             }
+
             cloneMap[original] = obj;
 
             AssetDatabase.AddObjectToAsset(obj, _combined);
