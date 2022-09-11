@@ -73,14 +73,4 @@ namespace net.fushizen.modular_avatar.core.editor
             return path;
         }
     }
-
-    internal class ClearPathMappings : HookBase
-    {
-        public override int callbackOrder => HookSequence.SEQ_RESETTERS;
-        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
-        {
-            PathMappings.Clear();
-            return true;
-        }
-    }
 }

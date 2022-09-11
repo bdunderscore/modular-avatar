@@ -34,11 +34,32 @@ namespace net.fushizen.modular_avatar.core.editor
     public static class ApplyOnPlay
     {
         private const string MENU_NAME = "Tools/Modular Avatar/Apply on Play";
-
+        
+        /**
+         * We need to process avatars before lyuma's av3 emulator wakes up and processes avatars; it does this in Awake,
+         * so we have to do our processing in Awake as well. This seems to work fine when first entering play mode, but
+         * if you subsequently enable an initially-disabled avatar, processing from within Awake causes an editor crash.
+         *
+         * To workaround this, we initially process in awake; then, after OnPlayModeStateChanged is invoked (ie, after
+         * all initially-enabled components have Awake called), we switch to processing from Start instead.
+         */
+        private static RuntimeUtil.OnDemandSource armedSource = RuntimeUtil.OnDemandSource.Awake;
+        
         static ApplyOnPlay()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            RuntimeUtil.OnDemandProcessAvatar = MaybeProcessAvatar;
             Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
+        }
+
+        private static void MaybeProcessAvatar(RuntimeUtil.OnDemandSource source, AvatarTagComponent component)
+        {
+            if (ModularAvatarSettings.applyOnPlay && source == armedSource && component != null)
+            {
+                var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
+                if (avatar == null) return;
+                AvatarProcessor.ProcessAvatar(avatar.gameObject);
+            }
         }
 
         [MenuItem(MENU_NAME)]
@@ -50,35 +71,9 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
-            if (obj == PlayModeStateChange.EnteredPlayMode && ModularAvatarSettings.applyOnPlay)
+            if (obj == PlayModeStateChange.EnteredPlayMode)
             {
-                // TODO - only apply modular avatar changes?
-                foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
-                {
-                    foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>(true))
-                    {
-                        if (avatar.GetComponentsInChildren<AvatarTagComponent>(true).Length > 0)
-                        {
-                            UnpackPrefabsCompletely(avatar.gameObject);
-                            VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void UnpackPrefabsCompletely(GameObject obj)
-        {
-            if (PrefabUtility.IsAnyPrefabInstanceRoot(obj))
-            {
-                PrefabUtility.UnpackPrefabInstance(obj, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-            }
-            else
-            {
-                foreach (Transform child in obj.transform)
-                {
-                    UnpackPrefabsCompletely(child.gameObject);
-                }
+                armedSource = RuntimeUtil.OnDemandSource.Start;
             }
         }
     }

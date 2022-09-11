@@ -25,35 +25,17 @@
 using System;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
     [InitializeOnLoad]
-    internal class Av3EmuHook
+    internal class AvatarProcessor : IVRCSDKPreprocessAvatarCallback, IVRCSDKPostprocessAvatarCallback
     {
-        static Av3EmuHook()
+        static AvatarProcessor()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    var runtime = assembly.GetType("LyumaAv3Runtime");
-                    if (runtime == null) continue;
-
-                    var addHook = runtime.GetMethod("AddInitAvatarHook", BindingFlags.Static | BindingFlags.Public);
-                    if (addHook == null) continue;
-
-                    addHook.Invoke(null, new object[]
-                    {
-                        -999999,
-                        (Action<VRCAvatarDescriptor>)(av => VRCBuildPipelineCallbacks.OnPreprocessAvatar(av.gameObject))
-                    });
-
-                    break;
-                }
-            }
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
         
@@ -62,6 +44,43 @@ namespace net.fushizen.modular_avatar.core.editor
             if (obj == PlayModeStateChange.EnteredEditMode)
             {
                 Util.DeleteTemporaryAssets();
+            }
+        }
+
+        public int callbackOrder => -9000;
+        
+        public void OnPostprocessAvatar()
+        {
+            Util.DeleteTemporaryAssets();
+        }
+
+        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        {
+            try
+            {
+                ProcessAvatar(avatarGameObject);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                return false;
+            }
+        }
+
+        public static void ProcessAvatar(GameObject avatarGameObject)
+        {
+            BoneDatabase.ResetBones();
+            PathMappings.Clear();
+
+            new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
+            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
+            new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
+            new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
+            
+            foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
+            {
+                UnityEngine.Object.DestroyImmediate(component);
             }
         }
     }

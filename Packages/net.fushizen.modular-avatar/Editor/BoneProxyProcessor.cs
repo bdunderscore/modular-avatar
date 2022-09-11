@@ -28,11 +28,9 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    public class BoneProxyHook : HookBase
+    internal class BoneProxyProcessor
     {
-        public override int callbackOrder => HookSequence.SEQ_BONE_PROXY;
-        
-        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
+        internal void OnPreprocessAvatar(GameObject avatarGameObject)
         {
             var boneProxies = avatarGameObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true);
 
@@ -56,8 +54,6 @@ namespace net.fushizen.modular_avatar.core.editor
                 }
                 Object.DestroyImmediate(proxy);
             }
-
-            return true;
         }
     }
 }

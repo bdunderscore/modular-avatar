@@ -34,14 +34,12 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    public class MergeArmatureHook : HookBase
+    public class MergeArmatureHook
     {
-        public override int callbackOrder => HookSequence.SEQ_MERGE_ARMATURE;
-
         private Dictionary<Transform, Transform> BoneRemappings = new Dictionary<Transform, Transform>();
         private List<GameObject> ToDelete = new List<GameObject>();
 
-        protected override bool OnPreprocessAvatarWrapped(GameObject avatarGameObject)
+        internal bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
             BoneRemappings.Clear();
             ToDelete.Clear();

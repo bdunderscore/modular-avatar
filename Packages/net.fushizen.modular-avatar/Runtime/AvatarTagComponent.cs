@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using System;
 using UnityEngine;
 
 namespace net.fushizen.modular_avatar.core
@@ -29,7 +30,19 @@ namespace net.fushizen.modular_avatar.core
     /**
      * This abstract base class is injected into the VRCSDK avatar component allowlist to avoid
      */
+    [DefaultExecutionOrder(-9999)] // run before av3emu
     public abstract class AvatarTagComponent : MonoBehaviour
     {
+        private void Awake()
+        {
+            if (!RuntimeUtil.isPlaying || this == null) return;
+            RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Awake, this);
+        }
+
+        private void Start()
+        {
+            if (!RuntimeUtil.isPlaying || this == null) return;
+            RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Start, this);
+        }
     }
 }
