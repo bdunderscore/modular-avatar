@@ -134,7 +134,6 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     case Transform _: break;
                     case ModularAvatarMergeArmature _: break;
-                    case MAInternalOffsetMarker _: break;
                     case VRCPhysBone _: case VRCPhysBoneCollider _: hasComponents = true;
                         break;
                     default:
