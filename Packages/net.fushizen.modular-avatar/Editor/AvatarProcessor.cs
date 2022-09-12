@@ -80,12 +80,12 @@ namespace net.fushizen.modular_avatar.core.editor
             new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
             new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
 
+            AfterProcessing?.Invoke(avatarGameObject);
+
             foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
             {
                 UnityEngine.Object.DestroyImmediate(component);
             }
-
-            AfterProcessing?.Invoke(avatarGameObject);
         }
     }
 }
