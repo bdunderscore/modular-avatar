@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
-using VRC.SDK3.Validation;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -34,7 +34,22 @@ namespace net.fushizen.modular_avatar.core.editor
     {
         static ComponentAllowlistPatch()
         {
-            var listField = typeof(AvatarValidation).GetField(nameof(AvatarValidation.ComponentTypeWhiteListCommon),
+            // When running on non-VCC versions of the SDK, we can't reference AvatarValidation directly as it's not in
+            // an assembly definition. So just search all of the assemblies for the type.
+            string typeName = "VRC.SDK3.Validation.AvatarValidation";
+            Type avatarValidationType = null;
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                avatarValidationType = assembly.GetType(typeName);
+                if (avatarValidationType != null)
+                {
+                    break;
+                }
+            }
+
+            if (avatarValidationType == null) return;
+
+            var listField = avatarValidationType.GetField("ComponentTypeWhiteListCommon",
                 BindingFlags.Static | BindingFlags.Public);
             var currentList = new List<string>(listField.GetValue(null) as string[]);
             currentList.Add(typeof(AvatarTagComponent).FullName);
