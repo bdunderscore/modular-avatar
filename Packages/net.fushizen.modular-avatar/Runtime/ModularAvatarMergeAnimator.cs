@@ -27,10 +27,17 @@ using VRC.SDK3.Avatars.Components;
 
 namespace net.fushizen.modular_avatar.core
 {
+    public enum MergeAnimatorPathMode
+    {
+        Relative,
+        Absolute
+    }
+
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
         public RuntimeAnimatorController animator;
         public VRCAvatarDescriptor.AnimLayerType layerType;
         public bool deleteAttachedAnimator;
+        public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
     }
 }
