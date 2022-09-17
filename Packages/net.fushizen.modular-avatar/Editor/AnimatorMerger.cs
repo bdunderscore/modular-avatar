@@ -125,7 +125,13 @@ namespace net.fushizen.modular_avatar.core.editor
             }
             else
             {
-                return PathMappings.MapPath(basePath + binding.path, binding.type == typeof(Transform));
+                var newPath = binding.path == "" ? basePath : basePath + binding.path;
+                if (newPath.EndsWith("/"))
+                {
+                    newPath = newPath.Substring(0, newPath.Length - 1);
+                }
+
+                return PathMappings.MapPath(newPath, binding.type == typeof(Transform));
             }
         }
 
