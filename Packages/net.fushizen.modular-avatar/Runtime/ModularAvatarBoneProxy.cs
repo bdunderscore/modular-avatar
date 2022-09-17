@@ -29,24 +29,28 @@ using UnityEngine.Animations;
 
 namespace net.fushizen.modular_avatar.core
 {
+    [ExecuteInEditMode]
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
         public Transform target;
-        
+
         public HumanBodyBones boneReference = HumanBodyBones.LastBone;
         public string subPath;
 
         [SerializeField] [HideInInspector] public ParentConstraint constraint;
 
-#if UNITY_EDITOR
+
         void OnValidate()
         {
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.delayCall += CheckReferences;
+#endif
         }
 
-        void CheckReferences() {
+        void CheckReferences()
+        {
             if (this == null) return; // post-destroy
-            
+
             if (target == null && (boneReference != HumanBodyBones.LastBone || !string.IsNullOrWhiteSpace(subPath)))
             {
                 UpdateDynamicMapping();
@@ -54,7 +58,8 @@ namespace net.fushizen.modular_avatar.core
                 {
                     RuntimeUtil.MarkDirty(this);
                 }
-            } else if (target != null)
+            }
+            else if (target != null)
             {
                 var origBoneReference = boneReference;
                 var origSubpath = subPath;
@@ -64,42 +69,37 @@ namespace net.fushizen.modular_avatar.core
                     RuntimeUtil.MarkDirty(this);
                 }
             }
-            
+
             CheckConstraint();
         }
 
         private void CheckConstraint()
         {
-            if (target != null)
+            if (constraint != null)
             {
-                if (constraint == null)
-                {
-                    constraint = gameObject.AddComponent<ParentConstraint>();
-                    constraint.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
-                    constraint.AddSource(new ConstraintSource()
-                    {
-                        weight = 1,
-                        sourceTransform = target
-                    });
-                    constraint.translationOffsets = new Vector3[] {Vector3.zero};
-                    constraint.rotationOffsets = new Vector3[] {Vector3.zero};
-                    constraint.locked = true;
-                    constraint.constraintActive = true;
-                }
-                else
-                {
-                    constraint.SetSource(0, new ConstraintSource()
-                    {
-                        weight = 1,
-                        sourceTransform = target
-                    });
-                }
+                DestroyImmediate(constraint, true);
+            }
+        }
+
+        private void Update()
+        {
+            if (!RuntimeUtil.isPlaying && target != null)
+            {
+                var targetTransform = target.transform;
+                var myTransform = transform;
+                myTransform.position = targetTransform.position;
+                myTransform.rotation = targetTransform.rotation;
             }
         }
 
         private void OnDestroy()
         {
-            UnityEditor.EditorApplication.delayCall += () => { if (constraint != null) DestroyImmediate(constraint); };
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                if (constraint != null) DestroyImmediate(constraint);
+            };
+#endif
         }
 
         private void UpdateDynamicMapping()
@@ -171,6 +171,5 @@ namespace net.fushizen.modular_avatar.core
 
             subPath = RuntimeUtil.RelativePath(iter.gameObject, target.gameObject);
         }
-#endif
     }
 }
