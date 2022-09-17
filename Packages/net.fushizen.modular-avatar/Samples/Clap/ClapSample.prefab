@@ -4988,7 +4988,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8484779175115796484}
   - component: {fileID: 8484779175115796486}
-  - component: {fileID: 8484779175115796485}
   m_Layer: 0
   m_Name: Proxy_Hand_Left
   m_TagString: Untagged
@@ -5026,33 +5025,7 @@ MonoBehaviour:
   target: {fileID: 0}
   boneReference: 17
   subPath: 
-  constraint: {fileID: 8484779175115796485}
---- !u!1773428102 &8484779175115796485
-ParentConstraint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8484779175115796483}
-  m_Enabled: 1
-  m_Weight: 1
-  m_TranslationAtRest: {x: -0.45912412, y: 1.04774, z: -0.0050687576}
-  m_RotationAtRest: {x: 0, y: 0, z: 90.00001}
-  m_TranslationOffsets:
-  - {x: 0, y: 0, z: 0}
-  m_RotationOffsets:
-  - {x: 0, y: 0, z: 0}
-  m_AffectTranslationX: 1
-  m_AffectTranslationY: 1
-  m_AffectTranslationZ: 1
-  m_AffectRotationX: 1
-  m_AffectRotationY: 1
-  m_AffectRotationZ: 1
-  m_IsContraintActive: 1
-  m_IsLocked: 1
-  m_Sources:
-  - sourceTransform: {fileID: 0}
-    weight: 1
+  constraint: {fileID: 0}
 --- !u!1 &8484779175182551488
 GameObject:
   m_ObjectHideFlags: 0
@@ -10048,7 +10021,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8484779175388350923}
   - component: {fileID: 8484779175388350925}
-  - component: {fileID: 8484779175388350924}
   m_Layer: 0
   m_Name: Proxy_Hand_Right
   m_TagString: Untagged
@@ -10086,33 +10058,7 @@ MonoBehaviour:
   target: {fileID: 0}
   boneReference: 18
   subPath: 
-  constraint: {fileID: 8484779175388350924}
---- !u!1773428102 &8484779175388350924
-ParentConstraint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8484779175388350922}
-  m_Enabled: 1
-  m_Weight: 1
-  m_TranslationAtRest: {x: 0.45912412, y: 1.04774, z: -0.0050687576}
-  m_RotationAtRest: {x: 0, y: 0, z: -90.00001}
-  m_TranslationOffsets:
-  - {x: 0, y: 0, z: 0}
-  m_RotationOffsets:
-  - {x: 0, y: 0, z: 0}
-  m_AffectTranslationX: 1
-  m_AffectTranslationY: 1
-  m_AffectTranslationZ: 1
-  m_AffectRotationX: 1
-  m_AffectRotationY: 1
-  m_AffectRotationZ: 1
-  m_IsContraintActive: 1
-  m_IsLocked: 1
-  m_Sources:
-  - sourceTransform: {fileID: 0}
-    weight: 1
+  constraint: {fileID: 0}
 --- !u!1 &8484779175587995429
 GameObject:
   m_ObjectHideFlags: 0
