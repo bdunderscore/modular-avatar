@@ -27,36 +27,48 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
-using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
     internal class MergeAnimatorProcessor
     {
-        private const string SAMPLE_PATH_PACKAGE = "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
+        private const string SAMPLE_PATH_PACKAGE =
+            "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
+
         private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
-        
+
         private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController>();
-        
+
         Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner> mergeSessions =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner>();
-        
+
         internal void OnPreprocessAvatar(GameObject avatarGameObject)
         {
             defaultControllers_.Clear();
             mergeSessions.Clear();
-            
+
             var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
 
             InitSessions(descriptor.baseAnimationLayers);
             InitSessions(descriptor.specialAnimationLayers);
-            
+
             var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
 
             foreach (var merge in toMerge)
             {
                 if (merge.animator == null) continue;
+
+                string basePath;
+                if (merge.pathMode == MergeAnimatorPathMode.Relative)
+                {
+                    var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
+                    basePath = relativePath != "" ? relativePath + "/" : "";
+                }
+                else
+                {
+                    basePath = "";
+                }
 
                 if (!mergeSessions.TryGetValue(merge.layerType, out var session))
                 {
@@ -66,12 +78,9 @@ namespace net.fushizen.modular_avatar.core.editor
                     {
                         session.AddController("", defaultControllers_[merge.layerType]);
                     }
-                    var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
-                    mergeSessions[merge.layerType].AddController(
-                        relativePath != "" ? relativePath + "/" : "",
-                        (AnimatorController) merge.animator
-                    );
                 }
+
+                mergeSessions[merge.layerType].AddController(basePath, (AnimatorController) merge.animator);
 
                 if (merge.deleteAttachedAnimator)
                 {
@@ -95,7 +104,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (mergeSessions.TryGetValue(layers[i].type, out var session))
                 {
                     layers[i].isDefault = false;
-                    layers[i].animatorController = session.Finish();                    
+                    layers[i].animatorController = session.Finish();
                 }
             }
 
@@ -108,12 +117,11 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 var controller = ResolveLayerController(layer);
                 if (controller == null) controller = new AnimatorController();
-                
+
                 defaultControllers_[layer.type] = controller;
             }
         }
-        
-        
+
 
         private static AnimatorController ResolveLayerController(VRCAvatarDescriptor.CustomAnimLayer layer)
         {
