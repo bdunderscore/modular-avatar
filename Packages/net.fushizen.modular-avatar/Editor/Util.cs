@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -45,6 +46,8 @@ namespace net.fushizen.modular_avatar.core.editor
         private const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
         private const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;
 
+        [CanBeNull] public static string OverridePath;
+
         static Util()
         {
             RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
@@ -61,6 +64,7 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 controller = new AnimatorController();
             }
+
             AssetDatabase.CreateAsset(controller, GenerateAssetPath());
 
             return controller;
@@ -73,12 +77,20 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private static string GetGeneratedAssetsFolder()
         {
-            if (!AssetDatabase.IsValidFolder(generatedAssetsPath))
+            var path = OverridePath ?? generatedAssetsPath;
+
+            var pathParts = path.Split('/');
+
+            for (int i = 1; i < pathParts.Length; i++)
             {
-                AssetDatabase.CreateFolder("Assets", generatedAssetsSubdirectory);
+                var subPath = string.Join("/", pathParts, 0, i + 1);
+                if (!AssetDatabase.IsValidFolder(subPath))
+                {
+                    AssetDatabase.CreateFolder(string.Join("/", pathParts, 0, i), pathParts[i]);
+                }
             }
 
-            return generatedAssetsPath;
+            return path;
         }
 
         internal static void DeleteTemporaryAssets()

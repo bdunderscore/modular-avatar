@@ -23,9 +23,12 @@
  */
 
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
+using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -39,6 +42,34 @@ namespace net.fushizen.modular_avatar.core.editor
         static AvatarProcessor()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+
+        [MenuItem("Tools/Modular Avatar/Apply to current avatar", false)]
+        private static void ApplyToCurrentAvatar()
+        {
+            var avatar = Selection.activeGameObject;
+            if (avatar == null || avatar.GetComponent<VRCAvatarDescriptor>() == null) return;
+            var savePath = "Assets/ModularAvatarOutput/" + avatar.name;
+
+            int extension = 0;
+
+            while (File.Exists(savePath) || Directory.Exists(savePath))
+            {
+                savePath = savePath + " " + (++extension);
+            }
+
+            try
+            {
+                Util.OverridePath = savePath;
+
+                avatar = Object.Instantiate(avatar);
+                avatar.transform.position += Vector3.forward * 2;
+                ProcessAvatar(avatar);
+            }
+            finally
+            {
+                Util.OverridePath = null;
+            }
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
