@@ -14,6 +14,14 @@ Modular Avatar currently supports:
   that are created in this process, reusing existing bones where possible.
 * Merging subcomponent animators into the parent avatar, for use with various types of avatar gimmicks.
 
+:::caution
+
+Modular Avatar is still in development, and is not yet ready for production use. Backwards-incompatible changes may
+be made prior to version 1.0. As such, it is not recommended to distribute prefabs based on Modular Avatar until the
+1.0 release.
+
+:::
+
 ## Merging outfits (and similar things)
 
 ![img_1.png](img_1.png)
