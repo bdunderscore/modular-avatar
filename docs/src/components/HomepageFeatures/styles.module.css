@@ -5,7 +5,12 @@
   width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+div.featureImage {
+    height: 200px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+div.featureImage img {
 }

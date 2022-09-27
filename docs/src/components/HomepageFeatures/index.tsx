@@ -5,14 +5,14 @@ import Translate, {translate as t} from '@docusaurus/Translate';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  image: string;
   description: JSX.Element;
 };
 
 const FeatureList: FeatureItem[] = [
   {
     title: t({message: 'Drag and Drop assembly'}),
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    image: require('@site/static/img/irasutoya/prefab-drag.png').default,
     description: (
       <Translate>
         Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall'
@@ -22,7 +22,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: t({message:'Organize your animators'}),
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    image: require('@site/static/img/irasutoya/tana_seiriseiton_yes.png').default,
     description: (
       <Translate>
         Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit
@@ -32,7 +32,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: t({message: 'Perfect for prefabs'}),
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    image: require('@site/static/img/irasutoya/pack-prefab.png').default,
     description: (
       <Translate>
         Embed modular avatar components in your prefabs to make installation a breeze!
@@ -41,11 +41,13 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, image, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+        <div className={styles.featureImage}>
+          <img src={image} role="img" />
+        </div>
       </div>
       <div className="text--center padding-horiz--md">
         <h3>{title}</h3>
