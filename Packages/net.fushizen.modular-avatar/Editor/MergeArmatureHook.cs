@@ -22,15 +22,13 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
-using VRC.SDKBase.Editor.BuildPipeline;
-using Matrix4x4 = UnityEngine.Matrix4x4;
-using Vector3 = UnityEngine.Vector3;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -43,12 +41,12 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             BoneRemappings.Clear();
             ToDelete.Clear();
-            
+
             var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
-            
+
             BoneRemappings.Clear();
             ToDelete.Clear();
-            
+
             foreach (var mergeArmature in mergeArmatures)
             {
                 MergeArmature(mergeArmature);
@@ -69,7 +67,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 UpdateBoneReferences(c);
             }
-            
+
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneCollider>())
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
@@ -81,7 +79,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 UpdateBoneReferences(c);
             }
-            
+
             foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
 
             return true;
@@ -98,7 +96,8 @@ namespace net.fushizen.modular_avatar.core.editor
                 enterChildren = true;
                 switch (iter.propertyType)
                 {
-                    case SerializedPropertyType.String: enterChildren = false;
+                    case SerializedPropertyType.String:
+                        enterChildren = false;
                         break;
                     case SerializedPropertyType.ObjectReference:
                         if (iter.objectReferenceValue is Transform t)
@@ -120,21 +119,43 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (markNonRetargetable) BoneDatabase.MarkNonRetargetable(newBone);
                 bone = newBone;
             }
+
             return bone;
         }
 
-        private bool HasAdditionalComponents(GameObject go, out bool needsConstraint)
+        private bool HasAdditionalComponents(GameObject go, out Type constraintType)
         {
             bool hasComponents = false;
-            needsConstraint = false;
-            
+            bool needsConstraint = false;
+            bool hasPositionConstraint = false;
+            bool hasRotationConstraint = false;
+
             foreach (Component c in go.GetComponents<Component>())
             {
                 switch (c)
                 {
                     case Transform _: break;
                     case ModularAvatarMergeArmature _: break;
-                    case VRCPhysBone _: case VRCPhysBoneCollider _: hasComponents = true;
+                    case VRCPhysBone _:
+                    case VRCPhysBoneCollider _:
+                        hasComponents = true;
+                        break;
+                    case AimConstraint _:
+                    case LookAtConstraint _:
+                    case RotationConstraint _:
+                        hasRotationConstraint = true;
+                        needsConstraint = true;
+                        hasComponents = true;
+                        break;
+                    case PositionConstraint _:
+                        hasPositionConstraint = true;
+                        needsConstraint = true;
+                        hasComponents = true;
+                        break;
+                    case ParentConstraint _:
+                        needsConstraint = false;
+                        hasPositionConstraint = hasRotationConstraint = true;
+                        hasComponents = true;
                         break;
                     default:
                         hasComponents = true;
@@ -143,9 +164,26 @@ namespace net.fushizen.modular_avatar.core.editor
                 }
             }
 
+            if (!needsConstraint || (hasPositionConstraint && hasRotationConstraint))
+            {
+                constraintType = null;
+            }
+            else if (hasPositionConstraint)
+            {
+                constraintType = typeof(RotationConstraint);
+            }
+            else if (hasRotationConstraint)
+            {
+                constraintType = typeof(PositionConstraint);
+            }
+            else
+            {
+                constraintType = typeof(ParentConstraint);
+            }
+
             return hasComponents;
         }
-        
+
         private void MergeArmature(ModularAvatarMergeArmature mergeArmature)
         {
             // TODO: error reporting framework?
@@ -158,7 +196,8 @@ namespace net.fushizen.modular_avatar.core.editor
          * (Attempts to) merge the source gameobject into the target gameobject. Returns true if the merged source
          * object must be retained.
          */
-        private bool RecursiveMerge(ModularAvatarMergeArmature config, GameObject src, GameObject newParent, bool zipMerge)
+        private bool RecursiveMerge(ModularAvatarMergeArmature config, GameObject src, GameObject newParent,
+            bool zipMerge)
         {
             GameObject mergedSrcBone = new GameObject(src.name + "@" + GUID.Generate());
             mergedSrcBone.transform.SetParent(src.transform.parent);
@@ -172,34 +211,55 @@ namespace net.fushizen.modular_avatar.core.editor
                 var srcPath = RuntimeUtil.AvatarRootPath(src);
                 PathMappings.Remap(srcPath, new PathMappings.MappingEntry()
                 {
-                    transformPath = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : srcPath,
+                    transformPath = RuntimeUtil.AvatarRootPath(newParent),
                     path = srcPath
                 });
             }
+
             mergedSrcBone.transform.SetParent(newParent.transform, true);
             BoneRemappings[src.transform] = mergedSrcBone.transform;
 
-            bool retain = HasAdditionalComponents(src, out bool needsConstraint);
-            if (needsConstraint)
+            bool retain = HasAdditionalComponents(src, out var constraintType);
+            if (constraintType != null)
             {
-                ParentConstraint constraint = src.AddComponent<ParentConstraint>();
+                IConstraint constraint = (IConstraint) src.AddComponent(constraintType);
                 constraint.AddSource(new ConstraintSource()
                 {
                     weight = 1,
                     sourceTransform = mergedSrcBone.transform
                 });
-                Matrix4x4 targetToSrc = src.transform.worldToLocalMatrix * newParent.transform.localToWorldMatrix;  
-                constraint.translationOffsets = new Vector3[] {targetToSrc.MultiplyPoint(Vector3.zero)};
-                constraint.rotationOffsets = new Vector3[] {targetToSrc.rotation.eulerAngles};
+                Matrix4x4 targetToSrc = src.transform.worldToLocalMatrix * newParent.transform.localToWorldMatrix;
+                if (constraint is ParentConstraint pc)
+                {
+                    pc.translationOffsets = new Vector3[] {targetToSrc.MultiplyPoint(Vector3.zero)};
+                    pc.rotationOffsets = new Vector3[] {targetToSrc.rotation.eulerAngles};
+                }
+                else if (constraint is PositionConstraint pos)
+                {
+                    pos.translationOffset = targetToSrc.MultiplyPoint(Vector3.zero);
+                }
+                else if (constraint is RotationConstraint rot)
+                {
+                    rot.rotationOffset = targetToSrc.rotation.eulerAngles;
+                }
+
                 constraint.locked = true;
                 constraint.constraintActive = true;
             }
-            
+
+            if ((constraintType != null && constraintType != typeof(ParentConstraint))
+                || (constraintType == null && src.GetComponent<IConstraint>() != null))
+            {
+                // We shouldn't merge any children as they'll potentially get out of sync with our constraint
+                return true;
+            }
+
             List<Transform> children = new List<Transform>();
             foreach (Transform child in src.transform)
             {
                 children.Add(child);
             }
+
             foreach (Transform child in children)
             {
                 var childGameObject = child.gameObject;
@@ -221,8 +281,6 @@ namespace net.fushizen.modular_avatar.core.editor
                         shouldZip = false;
                     }
                 }
-                
-                
 
                 var retainChild = RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 retain = retain || retainChild;
