@@ -51,6 +51,8 @@ namespace net.fushizen.modular_avatar.core.editor
         static Util()
         {
             RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
+
+            EditorApplication.hierarchyChanged += () => { RuntimeUtil.InvokeHierarchyChanged(); };
         }
 
         public static AnimatorController CreateAnimator(AnimatorController toClone = null)

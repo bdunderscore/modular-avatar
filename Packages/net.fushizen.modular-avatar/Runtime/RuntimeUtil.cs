@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -37,6 +36,7 @@ namespace net.fushizen.modular_avatar.core
 
         // Initialized in Util
         public static Action<NullCallback> delayCall = (_) => { };
+        public static event NullCallback OnHierarchyChanged;
 
         public enum OnDemandSource
         {
@@ -52,16 +52,16 @@ namespace net.fushizen.modular_avatar.core
         public static string RelativePath(GameObject root, GameObject child)
         {
             if (root == child) return "";
-            
+
             List<string> pathSegments = new List<string>();
             while (child != root && child != null)
             {
                 pathSegments.Add(child.name);
-                child = child.transform.parent.gameObject;
+                child = child.transform.parent?.gameObject;
             }
 
             if (child == null) return null;
-            
+
             pathSegments.Reverse();
             return String.Join("/", pathSegments);
         }
@@ -93,34 +93,38 @@ namespace net.fushizen.modular_avatar.core
             {
                 UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
             }
+
             UnityEditor.EditorUtility.SetDirty(obj);
-            #endif
+#endif
         }
 
 #if UNITY_EDITOR
         private static UnityEngine.Object cachedAnimationWindowState;
-        private static readonly Type animationWindowStateType 
+
+        private static readonly Type animationWindowStateType
             = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditorInternal.AnimationWindowState");
+
         private static readonly PropertyInfo recordingProp = animationWindowStateType.GetProperty(
             "recording",
             BindingFlags.Instance | BindingFlags.Public
         );
+
         private static readonly PropertyInfo previewingProp = animationWindowStateType.GetProperty(
             "previewing",
             BindingFlags.Instance | BindingFlags.Public
         );
+
         private static readonly PropertyInfo playingProp = animationWindowStateType.GetProperty(
             "playing",
             BindingFlags.Instance | BindingFlags.Public
         );
 #endif
-        
+
         public static bool IsAnimationEditMode()
         {
 #if !UNITY_EDITOR
             return false;
 #else
-
             if (cachedAnimationWindowState == null)
             {
                 foreach (var obj in Resources.FindObjectsOfTypeAll(animationWindowStateType))
@@ -132,15 +136,19 @@ namespace net.fushizen.modular_avatar.core
             if (cachedAnimationWindowState == null) return false;
 
             return (bool) recordingProp.GetValue(cachedAnimationWindowState, null)
-                || (bool) previewingProp.GetValue(cachedAnimationWindowState, null)
-                || (bool) playingProp.GetValue(cachedAnimationWindowState, null);
+                   || (bool) previewingProp.GetValue(cachedAnimationWindowState, null)
+                   || (bool) playingProp.GetValue(cachedAnimationWindowState, null);
 #endif
         }
-        
+
 #if UNITY_EDITOR
         public static bool isPlaying => UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
 #else
         public static bool isPlaying => true;
 #endif
+        public static void InvokeHierarchyChanged()
+        {
+            OnHierarchyChanged?.Invoke();
+        }
     }
 }
