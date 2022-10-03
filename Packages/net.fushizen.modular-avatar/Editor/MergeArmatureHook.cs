@@ -61,7 +61,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 var bones = renderer.bones;
                 for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], Retargetable.Ignore);
                 renderer.bones = bones;
-                renderer.rootBone = MapBoneReference(renderer.rootBone);
+                renderer.rootBone = MapBoneReference(renderer.rootBone, Retargetable.Ignore);
                 renderer.probeAnchor = MapBoneReference(renderer.probeAnchor);
             }
 
@@ -317,14 +317,6 @@ namespace net.fushizen.modular_avatar.core.editor
                     pc.translationOffsets = new Vector3[] {targetToSrc.MultiplyPoint(Vector3.zero)};
                     pc.rotationOffsets = new Vector3[] {targetToSrc.rotation.eulerAngles};
                 }
-                else if (constraint is PositionConstraint pos)
-                {
-                    pos.translationOffset = targetToSrc.MultiplyPoint(Vector3.zero);
-                }
-                else if (constraint is RotationConstraint rot)
-                {
-                    rot.rotationOffset = targetToSrc.rotation.eulerAngles;
-                }
 
                 constraint.locked = true;
                 constraint.constraintActive = true;
@@ -333,7 +325,10 @@ namespace net.fushizen.modular_avatar.core.editor
             if ((constraintType != null && constraintType != typeof(ParentConstraint))
                 || (constraintType == null && src.GetComponent<IConstraint>() != null))
             {
-                zipMerge = false;
+                Debug.LogWarning(
+                    $"Retaining: {RuntimeUtil.RelativePath(RuntimeUtil.FindAvatarInParents(src.transform).gameObject, src.gameObject)}" +
+                    $"with constraintType {constraintType} and constraint {src.GetComponent<IConstraint>()}");
+                return true;
             }
 
             List<Transform> children = new List<Transform>();
