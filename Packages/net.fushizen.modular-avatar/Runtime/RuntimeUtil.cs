@@ -27,6 +27,9 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+#if UNITY_EDITOR
+using System.Reflection;
+#endif
 
 namespace net.fushizen.modular_avatar.core
 {

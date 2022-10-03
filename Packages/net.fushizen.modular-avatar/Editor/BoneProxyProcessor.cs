@@ -22,9 +22,7 @@
  * SOFTWARE.
  */
 
-using UnityEditor;
 using UnityEngine;
-using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -36,10 +34,6 @@ namespace net.fushizen.modular_avatar.core.editor
 
             foreach (var proxy in boneProxies)
             {
-                if (proxy.constraint != null && proxy.constraint.gameObject == proxy.gameObject)
-                {
-                    UnityEngine.Object.DestroyImmediate(proxy.constraint);
-                }
                 if (proxy.target != null)
                 {
                     var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
@@ -47,11 +41,13 @@ namespace net.fushizen.modular_avatar.core.editor
                     transform.SetParent(proxy.target, false);
                     transform.localPosition = Vector3.zero;
                     transform.localRotation = Quaternion.identity;
-                    PathMappings.Remap(oldPath, new PathMappings.MappingEntry() {
+                    PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
+                    {
                         path = RuntimeUtil.AvatarRootPath(proxy.gameObject),
                         transformPath = RuntimeUtil.AvatarRootPath(proxy.gameObject)
                     });
                 }
+
                 Object.DestroyImmediate(proxy);
             }
         }
