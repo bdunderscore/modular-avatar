@@ -29,18 +29,21 @@ using UnityEngine;
 using UnityEngine.Animations;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
     public class MergeArmatureHook
     {
         private Dictionary<Transform, Transform> BoneRemappings = new Dictionary<Transform, Transform>();
-        private List<GameObject> ToDelete = new List<GameObject>();
+        private HashSet<GameObject> ToDelete = new HashSet<GameObject>();
+        private HashSet<IConstraint> AddedConstraints = new HashSet<IConstraint>();
 
         internal bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
             BoneRemappings.Clear();
             ToDelete.Clear();
+            AddedConstraints.Clear();
 
             var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
 
@@ -56,7 +59,7 @@ namespace net.fushizen.modular_avatar.core.editor
             foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 var bones = renderer.bones;
-                for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], false);
+                for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], Retargetable.Ignore);
                 renderer.bones = bones;
                 renderer.rootBone = MapBoneReference(renderer.rootBone);
                 renderer.probeAnchor = MapBoneReference(renderer.probeAnchor);
@@ -80,12 +83,43 @@ namespace net.fushizen.modular_avatar.core.editor
                 UpdateBoneReferences(c);
             }
 
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>())
+            {
+                if (!AddedConstraints.Contains(c))
+                {
+                    FixupConstraint(c);
+                }
+            }
+
             foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
 
             return true;
         }
 
-        private void UpdateBoneReferences(Component c)
+        private void FixupConstraint(IConstraint constraint)
+        {
+            int nSources = constraint.sourceCount;
+            for (int i = 0; i < nSources; i++)
+            {
+                var source = constraint.GetSource(i);
+                if (source.sourceTransform == null) continue;
+                if (!BoneRemappings.TryGetValue(source.sourceTransform, out var remap)) continue;
+                var retarget = BoneDatabase.GetRetargetedBone(remap);
+
+                if (retarget != null)
+                {
+                    source.sourceTransform = retarget;
+                }
+                else
+                {
+                    source.sourceTransform = remap;
+                }
+
+                constraint.SetSource(i, source);
+            }
+        }
+
+        private void UpdateBoneReferences(Component c, Retargetable retargetable = Retargetable.Disable)
         {
             SerializedObject so = new SerializedObject(c);
             SerializedProperty iter = so.GetIterator();
@@ -100,9 +134,31 @@ namespace net.fushizen.modular_avatar.core.editor
                         enterChildren = false;
                         break;
                     case SerializedPropertyType.ObjectReference:
+                        if (iter.name == "m_GameObject") break;
+
                         if (iter.objectReferenceValue is Transform t)
                         {
-                            iter.objectReferenceValue = MapBoneReference(t);
+                            var mapped = MapBoneReference(t, retargetable);
+                            if (mapped != iter.objectReferenceValue)
+                            {
+                                Debug.LogWarning(
+                                    $"Remapping property path {iter.propertyPath} from {iter.objectReferenceValue} to {mapped} on {c}");
+                            }
+
+                            iter.objectReferenceValue = mapped;
+                            ClearToDeleteFlag(mapped);
+                        }
+                        else if (iter.objectReferenceValue is GameObject go)
+                        {
+                            var mapped = MapBoneReference(go.transform, retargetable);
+                            if (mapped?.gameObject != iter.objectReferenceValue)
+                            {
+                                Debug.LogWarning(
+                                    $"Remapping property path {iter.propertyPath} from {iter.objectReferenceValue} to {mapped} on {c}");
+                            }
+
+                            iter.objectReferenceValue = mapped?.gameObject;
+                            ClearToDeleteFlag(mapped);
                         }
 
                         break;
@@ -112,12 +168,34 @@ namespace net.fushizen.modular_avatar.core.editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private Transform MapBoneReference(Transform bone, bool markNonRetargetable = true)
+        private void ClearToDeleteFlag(Transform t)
+        {
+            while (t != null && ToDelete.Contains(t.gameObject))
+            {
+                ToDelete.Remove(t.gameObject);
+                t = t.parent;
+            }
+        }
+
+        enum Retargetable
+        {
+            Disable,
+            Ignore,
+            Use
+        }
+
+        private Transform MapBoneReference(Transform bone, Retargetable retargetable = Retargetable.Disable)
         {
             if (bone != null && BoneRemappings.TryGetValue(bone, out var newBone))
             {
-                if (markNonRetargetable) BoneDatabase.MarkNonRetargetable(newBone);
+                if (retargetable == Retargetable.Disable) BoneDatabase.MarkNonRetargetable(newBone);
                 bone = newBone;
+            }
+
+            if (bone != null && retargetable == Retargetable.Use)
+            {
+                var retargeted = BoneDatabase.GetRetargetedBone(bone);
+                if (retargeted != null) bone = retargeted;
             }
 
             return bone;
@@ -196,8 +274,12 @@ namespace net.fushizen.modular_avatar.core.editor
          * (Attempts to) merge the source gameobject into the target gameobject. Returns true if the merged source
          * object must be retained.
          */
-        private bool RecursiveMerge(ModularAvatarMergeArmature config, GameObject src, GameObject newParent,
-            bool zipMerge)
+        private bool RecursiveMerge(
+            ModularAvatarMergeArmature config,
+            GameObject src,
+            GameObject newParent,
+            bool zipMerge
+        )
         {
             GameObject mergedSrcBone = new GameObject(src.name + "@" + GUID.Generate());
             mergedSrcBone.transform.SetParent(src.transform.parent);
@@ -223,6 +305,7 @@ namespace net.fushizen.modular_avatar.core.editor
             if (constraintType != null)
             {
                 IConstraint constraint = (IConstraint) src.AddComponent(constraintType);
+                AddedConstraints.Add(constraint);
                 constraint.AddSource(new ConstraintSource()
                 {
                     weight = 1,
@@ -250,8 +333,7 @@ namespace net.fushizen.modular_avatar.core.editor
             if ((constraintType != null && constraintType != typeof(ParentConstraint))
                 || (constraintType == null && src.GetComponent<IConstraint>() != null))
             {
-                // We shouldn't merge any children as they'll potentially get out of sync with our constraint
-                return true;
+                zipMerge = false;
             }
 
             List<Transform> children = new List<Transform>();
