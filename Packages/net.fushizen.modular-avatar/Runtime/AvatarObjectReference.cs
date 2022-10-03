@@ -6,7 +6,7 @@ namespace net.fushizen.modular_avatar.core
     [Serializable]
     public struct AvatarObjectReference
     {
-        public bool isNull;
+        public static string AVATAR_ROOT = "$$$AVATAR_ROOT$$$";
         public string referencePath;
 
         private bool _cacheValid;
@@ -15,12 +15,12 @@ namespace net.fushizen.modular_avatar.core
 
         public GameObject Get(Component container)
         {
-            if (_cacheValid && _cachedPath == referencePath && !isNull) return _cachedReference;
+            if (_cacheValid && _cachedPath == referencePath) return _cachedReference;
 
             _cacheValid = true;
             _cachedPath = referencePath;
 
-            if (isNull)
+            if (referencePath == "")
             {
                 _cachedReference = null;
                 return _cachedReference;
@@ -31,6 +31,12 @@ namespace net.fushizen.modular_avatar.core
 
             var avatar = RuntimeUtil.FindAvatarInParents(container.transform);
             if (avatar == null) return (_cachedReference = null);
+
+            if (referencePath == AVATAR_ROOT)
+            {
+                _cachedReference = avatar.gameObject;
+                return _cachedReference;
+            }
 
             return (_cachedReference = avatar.transform.Find(referencePath)?.gameObject);
         }
