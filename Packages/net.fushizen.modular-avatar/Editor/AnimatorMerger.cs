@@ -59,7 +59,7 @@ namespace net.fushizen.modular_avatar.core.editor
             return _combined;
         }
 
-        public void AddController(String basePath, AnimatorController controller)
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
         {
             foreach (var param in controller.parameters)
             {
@@ -80,12 +80,12 @@ namespace net.fushizen.modular_avatar.core.editor
             bool first = true;
             foreach (var layer in controller.layers)
             {
-                insertLayer(basePath, layer, first);
+                insertLayer(basePath, layer, first, writeDefaults);
                 first = false;
             }
         }
 
-        private void insertLayer(string basePath, AnimatorControllerLayer layer, bool first)
+        private void insertLayer(string basePath, AnimatorControllerLayer layer, bool first, bool? writeDefaults)
         {
             var newLayer = new AnimatorControllerLayer()
             {
@@ -99,7 +99,30 @@ namespace net.fushizen.modular_avatar.core.editor
                 stateMachine = mapStateMachine(basePath, layer.stateMachine),
             };
 
+            UpdateWriteDefaults(newLayer.stateMachine, writeDefaults);
+
             _layers.Add(newLayer);
+        }
+
+        private void UpdateWriteDefaults(AnimatorStateMachine stateMachine, bool? writeDefaults)
+        {
+            if (!writeDefaults.HasValue) return;
+
+            var queue = new Queue<AnimatorStateMachine>();
+            queue.Enqueue(stateMachine);
+            while (queue.Count > 0)
+            {
+                var sm = queue.Dequeue();
+                foreach (var state in sm.states)
+                {
+                    state.state.writeDefaultValues = writeDefaults.Value;
+                }
+
+                foreach (var child in sm.stateMachines)
+                {
+                    queue.Enqueue(child.stateMachine);
+                }
+            }
         }
 
         private AnimatorStateMachine mapStateMachine(string basePath, AnimatorStateMachine layerStateMachine)

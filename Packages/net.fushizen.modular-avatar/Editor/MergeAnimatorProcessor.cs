@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -39,6 +41,9 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController>();
+
+        private Dictionary<VRCAvatarDescriptor.AnimLayerType, bool?> writeDefaults_ =
+            new Dictionary<VRCAvatarDescriptor.AnimLayerType, bool?>();
 
         Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner> mergeSessions =
             new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner>();
@@ -76,11 +81,13 @@ namespace net.fushizen.modular_avatar.core.editor
                     mergeSessions[merge.layerType] = session;
                     if (defaultControllers_.ContainsKey(merge.layerType))
                     {
-                        session.AddController("", defaultControllers_[merge.layerType]);
+                        session.AddController("", defaultControllers_[merge.layerType], null);
                     }
                 }
 
-                mergeSessions[merge.layerType].AddController(basePath, (AnimatorController) merge.animator);
+                bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
+                mergeSessions[merge.layerType]
+                    .AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
 
                 if (merge.deleteAttachedAnimator)
                 {
@@ -119,7 +126,38 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (controller == null) controller = new AnimatorController();
 
                 defaultControllers_[layer.type] = controller;
+                writeDefaults_[layer.type] = ProbeWriteDefaults(controller);
             }
+        }
+
+        private bool? ProbeWriteDefaults(AnimatorController controller)
+        {
+            bool hasWDOn = false;
+            bool hasWDOff = false;
+
+            var stateMachineQueue = new Queue<AnimatorStateMachine>();
+            foreach (var layer in controller.layers)
+            {
+                stateMachineQueue.Enqueue(layer.stateMachine);
+            }
+
+            while (stateMachineQueue.Count > 0)
+            {
+                var stateMachine = stateMachineQueue.Dequeue();
+                foreach (var state in stateMachine.states)
+                {
+                    if (state.state.writeDefaultValues) hasWDOn = true;
+                    else hasWDOff = true;
+                }
+
+                foreach (var child in stateMachine.stateMachines)
+                {
+                    stateMachineQueue.Enqueue(child.stateMachine);
+                }
+            }
+
+            if (hasWDOn == hasWDOff) return null;
+            return hasWDOn;
         }
 
 
