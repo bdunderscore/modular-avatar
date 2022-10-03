@@ -4,13 +4,13 @@ using UnityEngine;
 namespace net.fushizen.modular_avatar.core
 {
     [Serializable]
-    public class AvatarObjectReference
+    public struct AvatarObjectReference
     {
-        public bool isNull = true;
-        public string referencePath = "";
+        public bool isNull;
+        public string referencePath;
 
-        private bool _cacheValid = false;
-        private string _cachedPath = "";
+        private bool _cacheValid;
+        private string _cachedPath;
         private GameObject _cachedReference;
 
         public GameObject Get(Component container)

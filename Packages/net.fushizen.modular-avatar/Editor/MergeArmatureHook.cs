@@ -187,9 +187,9 @@ namespace net.fushizen.modular_avatar.core.editor
         private void MergeArmature(ModularAvatarMergeArmature mergeArmature)
         {
             // TODO: error reporting framework?
-            if (mergeArmature.mergeTarget == null) return;
+            if (mergeArmature.mergeTargetObject == null) return;
 
-            RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeArmature.mergeTarget.gameObject, true);
+            RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeArmature.mergeTargetObject.gameObject, true);
         }
 
         /**
