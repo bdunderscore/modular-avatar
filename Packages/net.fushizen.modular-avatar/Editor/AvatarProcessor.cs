@@ -49,13 +49,14 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             var avatar = Selection.activeGameObject;
             if (avatar == null || avatar.GetComponent<VRCAvatarDescriptor>() == null) return;
-            var savePath = "Assets/ModularAvatarOutput/" + avatar.name;
+            var basePath = "Assets/ModularAvatarOutput/" + avatar.name;
+            var savePath = basePath;
 
             int extension = 0;
 
             while (File.Exists(savePath) || Directory.Exists(savePath))
             {
-                savePath = savePath + " " + (++extension);
+                savePath = basePath + " " + (++extension);
             }
 
             try
