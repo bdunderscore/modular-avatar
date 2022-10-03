@@ -39,5 +39,6 @@ namespace net.fushizen.modular_avatar.core
         public VRCAvatarDescriptor.AnimLayerType layerType;
         public bool deleteAttachedAnimator;
         public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
+        public bool matchAvatarWriteDefaults;
     }
 }
