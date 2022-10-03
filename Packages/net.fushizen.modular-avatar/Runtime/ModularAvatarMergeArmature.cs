@@ -22,9 +22,7 @@
  * SOFTWARE.
  */
 
-using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace net.fushizen.modular_avatar.core
@@ -35,8 +33,9 @@ namespace net.fushizen.modular_avatar.core
         private const float POS_EPSILON = 0.01f;
         private const float ROT_EPSILON = 0.01f;
 
-        public GameObject mergeTarget;
-        public string mergeTargetPath;
+        public AvatarObjectReference mergeTarget;
+        public GameObject mergeTargetObject => mergeTarget.Get(this);
+
         public string prefix;
         public string suffix;
         public bool locked;
@@ -45,41 +44,19 @@ namespace net.fushizen.modular_avatar.core
         {
             public Transform baseBone;
             public Transform mergeBone;
-            
+
             public Vector3 lastLocalPos;
             public Vector3 lastLocalScale;
             public Quaternion lastLocalRot;
         }
 
         private List<BoneBinding> lockedBones;
+
         void OnValidate()
         {
             RuntimeUtil.delayCall(() =>
             {
                 if (this == null) return;
-                if (mergeTarget == null && !string.IsNullOrWhiteSpace(mergeTargetPath))
-                {
-                    var avatar = RuntimeUtil.FindAvatarInParents(transform);
-                    if (avatar != null)
-                    {
-                        mergeTarget = avatar.transform.Find(mergeTargetPath)?.gameObject;
-                    }
-
-                    if (mergeTarget != null)
-                    {
-                        RuntimeUtil.MarkDirty(this);
-                    }
-                }
-                else if (mergeTarget != null && mergeTargetPath != RuntimeUtil.AvatarRootPath(mergeTarget))
-                {
-                    mergeTargetPath = RuntimeUtil.AvatarRootPath(mergeTarget);
-                    int insetPos = gameObject.name.IndexOf(mergeTarget.name, StringComparison.Ordinal);
-                    if (insetPos != -1)
-                    {
-                        prefix = gameObject.name.Substring(0, insetPos);
-                        suffix = gameObject.name.Substring(insetPos + mergeTarget.name.Length);
-                    }
-                }
 
                 CheckLock();
             });
@@ -121,11 +98,11 @@ namespace net.fushizen.modular_avatar.core
                         lockedBones = null;
                         break;
                     }
-                    
+
                     var mergeBone = bone.mergeBone;
                     var correspondingObject = bone.baseBone;
-                    bool lockBasePosition = bone.baseBone == mergeTarget.transform;
-                    
+                    bool lockBasePosition = bone.baseBone == mergeTargetObject.transform;
+
                     if ((mergeBone.localPosition - bone.lastLocalPos).sqrMagnitude > POS_EPSILON
                         || (mergeBone.localScale - bone.lastLocalScale).sqrMagnitude > POS_EPSILON
                         || Quaternion.Angle(bone.lastLocalRot, mergeBone.localRotation) > ROT_EPSILON)
@@ -154,10 +131,10 @@ namespace net.fushizen.modular_avatar.core
         void CheckLock()
         {
             if (RuntimeUtil.isPlaying) return;
-            
-            #if UNITY_EDITOR
+
+#if UNITY_EDITOR
             EditorApplication.update -= EditorUpdate;
-            #endif
+#endif
 
             bool shouldLock = locked && isActiveAndEnabled;
             bool wasLocked = lockedBones != null;
@@ -169,13 +146,13 @@ namespace net.fushizen.modular_avatar.core
                 }
                 else
                 {
-                    if (mergeTarget == null) return;
+                    if (mergeTargetObject == null) return;
                     lockedBones = new List<BoneBinding>();
-                    
+
                     foreach (var xform in GetComponentsInChildren<Transform>(true))
                     {
                         Transform baseObject = FindCorresponding(xform);
-                        
+
                         lockedBones.Add(new BoneBinding()
                         {
                             baseBone = baseObject,
@@ -187,7 +164,7 @@ namespace net.fushizen.modular_avatar.core
                     }
                 }
             }
-            
+
 #if UNITY_EDITOR
             if (locked)
             {
@@ -199,11 +176,11 @@ namespace net.fushizen.modular_avatar.core
         private Transform FindCorresponding(Transform xform)
         {
             if (xform == null) return null;
-            if (xform == transform) return mergeTarget.transform;
+            if (xform == transform) return mergeTargetObject.transform;
 
             var correspondingParent = FindCorresponding(xform.parent);
             if (correspondingParent == null) return null;
-            
+
             return correspondingParent.Find(prefix + xform.name + suffix);
         }
     }
