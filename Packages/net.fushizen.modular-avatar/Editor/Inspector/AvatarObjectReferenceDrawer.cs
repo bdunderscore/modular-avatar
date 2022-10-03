@@ -14,12 +14,12 @@ namespace net.fushizen.modular_avatar.core.editor
                 var xButtonRect = new Rect(position.xMax - xButtonSize.x, position.y, xButtonSize.x, position.height);
                 position = new Rect(position.x, position.y, position.width - xButtonSize.x, position.height);
 
-                var isNull = property.FindPropertyRelative(nameof(AvatarObjectReference.isNull));
                 property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
 
                 position = EditorGUI.PrefixLabel(position, label);
 
-                EditorGUI.LabelField(position, isNull.boolValue ? "(null)" : property.stringValue);
+                EditorGUI.LabelField(position,
+                    string.IsNullOrEmpty(property.stringValue) ? "(null)" : property.stringValue);
             }
         }
 
@@ -28,7 +28,6 @@ namespace net.fushizen.modular_avatar.core.editor
             var indentLevel = EditorGUI.indentLevel;
             var color = GUI.contentColor;
 
-            var isNull = property.FindPropertyRelative(nameof(AvatarObjectReference.isNull));
             property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
 
             try
@@ -44,7 +43,12 @@ namespace net.fushizen.modular_avatar.core.editor
                 var avatar = RuntimeUtil.FindAvatarInParents(transform);
                 if (avatar == null) return false;
 
-                var target = isNull.boolValue ? null : avatar.transform.Find(property.stringValue);
+                bool isRoot = property.stringValue == AvatarObjectReference.AVATAR_ROOT;
+                bool isNull = string.IsNullOrEmpty(property.stringValue);
+                Transform target;
+                if (isNull) target = null;
+                else if (isRoot) target = avatar.transform;
+                else target = avatar.transform.Find(property.stringValue);
 
                 var labelRect = position;
                 position = EditorGUI.PrefixLabel(position, label);
@@ -52,7 +56,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
                 var nullContent = GUIContent.none;
 
-                if (target != null || isNull.boolValue)
+                if (target != null || isNull)
                 {
                     EditorGUI.BeginChangeCheck();
                     var newTarget = EditorGUI.ObjectField(position, nullContent, target, typeof(Transform), true);
@@ -61,7 +65,10 @@ namespace net.fushizen.modular_avatar.core.editor
                         if (newTarget == null)
                         {
                             property.stringValue = "";
-                            isNull.boolValue = true;
+                        }
+                        else if (newTarget == avatar.transform)
+                        {
+                            property.stringValue = AvatarObjectReference.AVATAR_ROOT;
                         }
                         else
                         {
@@ -70,7 +77,6 @@ namespace net.fushizen.modular_avatar.core.editor
                             if (relPath == null) return true;
 
                             property.stringValue = relPath;
-                            isNull.boolValue = false;
                         }
                     }
                 }
@@ -90,7 +96,10 @@ namespace net.fushizen.modular_avatar.core.editor
                         if (newTarget == null)
                         {
                             property.stringValue = "";
-                            isNull.boolValue = true;
+                        }
+                        else if (newTarget == avatar.transform)
+                        {
+                            property.stringValue = AvatarObjectReference.AVATAR_ROOT;
                         }
                         else
                         {
@@ -99,7 +108,6 @@ namespace net.fushizen.modular_avatar.core.editor
                             if (relPath == null) return true;
 
                             property.stringValue = relPath;
-                            isNull.boolValue = false;
                         }
                     }
                     else
