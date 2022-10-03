@@ -25,60 +25,51 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Animations;
 
 namespace net.fushizen.modular_avatar.core
 {
     [ExecuteInEditMode]
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
-        public Transform target;
+        private Transform _targetCache;
 
-        public HumanBodyBones boneReference = HumanBodyBones.LastBone;
-        public string subPath;
-
-        [SerializeField] [HideInInspector] public ParentConstraint constraint;
-
-
-        void OnValidate()
+        public Transform target
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += CheckReferences;
-#endif
-        }
-
-        void CheckReferences()
-        {
-            if (this == null) return; // post-destroy
-
-            if (target == null && (boneReference != HumanBodyBones.LastBone || !string.IsNullOrWhiteSpace(subPath)))
+            get
             {
+                if (_targetCache != null) return _targetCache;
                 UpdateDynamicMapping();
-                if (target != null)
-                {
-                    RuntimeUtil.MarkDirty(this);
-                }
+                RuntimeUtil.OnHierarchyChanged -= ClearCache;
+                RuntimeUtil.OnHierarchyChanged += ClearCache;
+                return _targetCache;
             }
-            else if (target != null)
+            set
             {
                 var origBoneReference = boneReference;
                 var origSubpath = subPath;
-                UpdateStaticMapping();
+                UpdateStaticMapping(value);
                 if (origSubpath != subPath || origBoneReference != boneReference)
                 {
                     RuntimeUtil.MarkDirty(this);
                 }
-            }
 
-            CheckConstraint();
+                RuntimeUtil.OnHierarchyChanged -= ClearCache;
+                RuntimeUtil.OnHierarchyChanged += ClearCache;
+            }
         }
 
-        private void CheckConstraint()
+        public HumanBodyBones boneReference = HumanBodyBones.LastBone;
+        public string subPath;
+
+        void OnValidate()
         {
-            if (constraint != null)
-            {
-                DestroyImmediate(constraint, true);
-            }
+            ClearCache();
+        }
+
+        void ClearCache()
+        {
+            _targetCache = null;
+            RuntimeUtil.OnHierarchyChanged -= ClearCache;
         }
 
         private void Update()
@@ -94,16 +85,16 @@ namespace net.fushizen.modular_avatar.core
 
         private void OnDestroy()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += () =>
-            {
-                if (constraint != null) DestroyImmediate(constraint);
-            };
-#endif
+            RuntimeUtil.OnHierarchyChanged -= ClearCache;
         }
 
         private void UpdateDynamicMapping()
         {
+            if (boneReference == HumanBodyBones.LastBone)
+            {
+                return;
+            }
+
             var avatar = RuntimeUtil.FindAvatarInParents(transform);
             if (avatar == null) return;
 
@@ -123,11 +114,11 @@ namespace net.fushizen.modular_avatar.core
             if (animator == null) return;
             var bone = animator.GetBoneTransform(boneReference);
             if (bone == null) return;
-            if (string.IsNullOrWhiteSpace(subPath)) target = bone;
-            else target = bone.Find(subPath);
+            if (string.IsNullOrWhiteSpace(subPath)) _targetCache = bone;
+            else _targetCache = bone.Find(subPath);
         }
 
-        private void UpdateStaticMapping()
+        private void UpdateStaticMapping(Transform newTarget)
         {
             var avatar = RuntimeUtil.FindAvatarInParents(transform);
             var humanBones = new Dictionary<Transform, HumanBodyBones>();
@@ -145,10 +136,10 @@ namespace net.fushizen.modular_avatar.core
                 if (bone != null) humanBones[bone] = boneType;
             }
 
-            Transform iter = target;
+            Transform iter = newTarget;
             Transform avatarTransform = avatar.transform;
 
-            if (target == avatarTransform)
+            if (newTarget == avatarTransform)
             {
                 boneReference = HumanBodyBones.LastBone;
                 subPath = "$$AVATAR";
@@ -169,7 +160,8 @@ namespace net.fushizen.modular_avatar.core
                 boneReference = humanBones[iter];
             }
 
-            subPath = RuntimeUtil.RelativePath(iter.gameObject, target.gameObject);
+            subPath = RuntimeUtil.RelativePath(iter.gameObject, newTarget.gameObject);
+            _targetCache = newTarget;
         }
     }
 }
