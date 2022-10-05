@@ -286,20 +286,7 @@ namespace net.fushizen.modular_avatar.core.editor
             mergedSrcBone.transform.localPosition = src.transform.localPosition;
             mergedSrcBone.transform.localRotation = src.transform.localRotation;
             mergedSrcBone.transform.localScale = src.transform.localScale;
-
-            if (zipMerge)
-            {
-                BoneDatabase.AddMergedBone(mergedSrcBone.transform);
-                var srcPath = RuntimeUtil.AvatarRootPath(src);
-                PathMappings.Remap(srcPath, new PathMappings.MappingEntry()
-                {
-                    transformPath = RuntimeUtil.AvatarRootPath(newParent),
-                    path = srcPath
-                });
-            }
-
             mergedSrcBone.transform.SetParent(newParent.transform, true);
-            BoneRemappings[src.transform] = mergedSrcBone.transform;
 
             bool retain = HasAdditionalComponents(src, out var constraintType);
             if (constraintType != null)
@@ -330,6 +317,19 @@ namespace net.fushizen.modular_avatar.core.editor
                     $"with constraintType {constraintType} and constraint {src.GetComponent<IConstraint>()}");
                 return true;
             }
+
+            if (zipMerge)
+            {
+                BoneDatabase.AddMergedBone(mergedSrcBone.transform);
+                var srcPath = RuntimeUtil.AvatarRootPath(src);
+                PathMappings.Remap(srcPath, new PathMappings.MappingEntry()
+                {
+                    transformPath = RuntimeUtil.AvatarRootPath(newParent),
+                    path = srcPath
+                });
+            }
+
+            BoneRemappings[src.transform] = mergedSrcBone.transform;
 
             List<Transform> children = new List<Transform>();
             foreach (Transform child in src.transform)
