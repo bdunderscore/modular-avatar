@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -185,6 +186,37 @@ namespace net.fushizen.modular_avatar.core
             if (correspondingParent == null) return null;
 
             return correspondingParent.Find(prefix + xform.name + suffix);
+        }
+
+        public void InferPrefixSuffix()
+        {
+            // We only infer if targeting the armature (below the Hips bone)
+            var rootAnimator = RuntimeUtil.FindAvatarInParents(transform)?.GetComponent<Animator>();
+            if (rootAnimator == null) return;
+
+            var hips = rootAnimator.GetBoneTransform(HumanBodyBones.Hips);
+            if (hips == null || hips.transform.parent != mergeTargetObject.transform) return;
+
+            // We also require that the attached object has exactly one child (presumably the hips)
+            if (transform.childCount != 1) return;
+
+            // Infer the prefix and suffix by comparing the names of the mergeTargetObject's hips with the child of the
+            // GameObject we're attached to.
+            var baseName = hips.name;
+            var mergeName = transform.GetChild(0).name;
+
+            var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
+            if (prefixLength < 0) return;
+
+            var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+
+            prefix = mergeName.Substring(0, prefixLength);
+            suffix = mergeName.Substring(mergeName.Length - suffixLength);
+
+            if (!string.IsNullOrEmpty(prefix) || !string.IsNullOrEmpty(suffix))
+            {
+                RuntimeUtil.MarkDirty(this);
+            }
         }
     }
 }
