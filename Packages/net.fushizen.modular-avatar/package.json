@@ -1,17 +1,17 @@
 {
-  "name" : "net.fushizen.modular-avatar",
-  "displayName" : "Modular Avatar",
-  "version" : "0.4.1",
-  "unity" : "2019.4",
-  "description" : "",
-  "author" : {
-    "name" : "bd_",
-    "email" : "bd@fushizen.net",
-    "url" : "https://github.com/bdunderscore/modular-avatar"
+  "name": "net.fushizen.modular-avatar",
+  "displayName": "Modular Avatar",
+  "version": "0.4.2",
+  "unity": "2019.4",
+  "description": "",
+  "author": {
+    "name": "bd_",
+    "email": "bd@fushizen.net",
+    "url": "https://github.com/bdunderscore/modular-avatar"
   },
-  "url" : "",
+  "url": "",
   "repo": "https://vpm.fushizen.net/vpm.json",
-  "dependencies" : {
+  "dependencies": {
   },
   "vpmDependencies" : {
     "com.vrchat.base": "3.1.x",
