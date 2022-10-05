@@ -20,7 +20,7 @@ namespace net.fushizen.modular_avatar.core
             _cacheValid = true;
             _cachedPath = referencePath;
 
-            if (referencePath == "")
+            if (string.IsNullOrEmpty(referencePath))
             {
                 _cachedReference = null;
                 return _cachedReference;
