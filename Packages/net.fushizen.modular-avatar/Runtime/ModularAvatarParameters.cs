@@ -12,6 +12,7 @@ namespace net.fushizen.modular_avatar.core
         public bool internalParameter, isPrefix;
     }
 
+    [DisallowMultipleComponent]
     public class ModularAvatarParameters : AvatarTagComponent
     {
         public List<ParameterConfig> parameters = new List<ParameterConfig>();

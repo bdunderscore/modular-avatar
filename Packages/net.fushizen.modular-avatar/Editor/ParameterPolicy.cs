@@ -123,6 +123,12 @@ namespace net.fushizen.modular_avatar.core.editor
                         WalkMenu(parameters, installer.menuToAppend, new HashSet<VRCExpressionsMenu>());
                         break;
                     }
+
+                    case ModularAvatarMergeAnimator merger:
+                    {
+                        WalkAnimator(parameters, merger.animator as AnimatorController);
+                        break;
+                    }
                 }
             }
 

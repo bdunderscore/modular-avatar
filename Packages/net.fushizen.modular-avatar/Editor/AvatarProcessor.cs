@@ -107,6 +107,8 @@ namespace net.fushizen.modular_avatar.core.editor
             BoneDatabase.ResetBones();
             PathMappings.Clear();
 
+            new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
+
             new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
             new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
