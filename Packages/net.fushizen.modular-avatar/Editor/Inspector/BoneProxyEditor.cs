@@ -34,7 +34,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 var t = (ModularAvatarBoneProxy) targets[i];
                 var av = RuntimeUtil.FindAvatarInParents(t.transform);
 
-                if (parentAvatar == null) parentAvatar = av.gameObject;
+                if (av != null && parentAvatar == null) parentAvatar = av.gameObject;
                 if (av == null || parentAvatar != av.gameObject)
                 {
                     base.OnInspectorGUI();
