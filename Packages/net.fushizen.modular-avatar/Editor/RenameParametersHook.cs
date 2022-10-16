@@ -366,7 +366,7 @@ namespace net.fushizen.modular_avatar.core.editor
                     }
                 }
 
-                if (!param.internalParameter && !param.isPrefix && param.syncType != ParameterSyncType.NotSynced)
+                if (!param.isPrefix && param.syncType != ParameterSyncType.NotSynced)
                 {
                     AddSyncParam(param, remapTo);
                 }

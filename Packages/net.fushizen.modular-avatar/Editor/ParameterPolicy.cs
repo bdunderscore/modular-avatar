@@ -232,6 +232,9 @@ namespace net.fushizen.modular_avatar.core.editor
                 var dictKey = map.nameOrPrefix + (map.isPrefix ? "*" : "");
                 if (!parameters.ContainsKey(dictKey))
                 {
+                    // We're trying to remap a parameter that's not actually used by this subtree.
+                    // If it's synced, we'll propagate it (as it could be used by a menu as a no-op?)
+                    // but otherwise disregard it.
                     if (map.internalParameter || map.syncType == ParameterSyncType.NotSynced) continue;
                     var param = new DetectedParameter()
                     {
