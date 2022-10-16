@@ -416,7 +416,12 @@ namespace net.fushizen.modular_avatar.core.editor
             _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();
             Debug.Assert(_reorderableList != null, nameof(_reorderableList) + " != null");
-            _reorderableList.DoLayoutList();
+
+            if (_devMode || _selectedIndices.Count > 0)
+            {
+                _reorderableList.DoLayoutList();
+            }
+
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
