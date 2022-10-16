@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -7,16 +9,71 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
     public class RenameParametersHook
     {
+        private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
+
         private int internalParamIndex = 0;
+
+        private Dictionary<string, VRCExpressionParameters.Parameter> _syncedParams =
+            new Dictionary<string, VRCExpressionParameters.Parameter>();
 
         public void OnPreprocessAvatar(GameObject avatar)
         {
+            _syncedParams.Clear();
+
             WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
+
+            SetExpressionParameters(avatar);
+        }
+
+        private void SetExpressionParameters(GameObject avatarRoot)
+        {
+            var avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
+            var expParams = avatar.expressionParameters;
+
+            if (expParams == null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(DEFAULT_EXP_PARAMS_ASSET_GUID);
+                expParams = AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(path);
+            }
+
+            if (expParams == null)
+            {
+                // Can't find the defaults???
+                expParams = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+            }
+
+            expParams = Object.Instantiate(expParams);
+            AssetDatabase.CreateAsset(expParams, Util.GenerateAssetPath());
+
+            var knownParams = expParams.parameters.Select(p => p.name).ToImmutableHashSet();
+            var parameters = expParams.parameters.ToList();
+
+            foreach (var kvp in _syncedParams)
+            {
+                var name = kvp.Key;
+                var param = kvp.Value;
+                if (!knownParams.Contains(name))
+                {
+                    parameters.Add(param);
+                }
+            }
+
+            expParams.parameters = parameters.ToArray();
+            if (expParams.CalcTotalCost() > VRCExpressionParameters.MAX_PARAMETER_COST)
+            {
+                throw new Exception("Too many synced parameters: " +
+                                    "Cost " + expParams.CalcTotalCost() + " > "
+                                    + VRCExpressionParameters.MAX_PARAMETER_COST
+                );
+            }
+
+            avatar.expressionParameters = expParams;
         }
 
         private void WalkTree(
@@ -261,20 +318,25 @@ namespace net.fushizen.modular_avatar.core.editor
             t.conditions = conditions;
         }
 
-        private void ApplyRemappings(
-            ModularAvatarParameters p,
+        private void ApplyRemappings(ModularAvatarParameters p,
             ref ImmutableDictionary<string, string> remaps,
             ref ImmutableDictionary<string, string> prefixRemaps
         )
         {
             foreach (var param in p.parameters)
             {
+                bool doRemap = true;
+
                 var remapTo = param.remapTo;
                 if (param.internalParameter)
                 {
                     remapTo = param.nameOrPrefix + "$$Internal_" + internalParamIndex++;
                 }
-                else if (string.IsNullOrWhiteSpace(remapTo)) continue;
+                else if (string.IsNullOrWhiteSpace(remapTo))
+                {
+                    doRemap = false;
+                    remapTo = param.nameOrPrefix;
+                }
                 // Apply outer scope remaps (only if not an internal parameter)
                 // Note that this continues the else chain above.
                 else if (param.isPrefix && prefixRemaps.TryGetValue(remapTo, out var outerScope))
@@ -286,21 +348,60 @@ namespace net.fushizen.modular_avatar.core.editor
                     remapTo = outerScope;
                 }
 
-                if (param.isPrefix)
+                if (doRemap)
                 {
-                    prefixRemaps = prefixRemaps.Add(param.nameOrPrefix, remapTo);
-                    foreach (var suffix in ParameterPolicy.PhysBoneSuffixes)
+                    if (param.isPrefix)
                     {
-                        var suffixKey = param.nameOrPrefix + suffix;
-                        var suffixValue = remapTo + suffix;
-                        remaps = remaps.Add(suffixKey, suffixValue);
+                        prefixRemaps = prefixRemaps.Add(param.nameOrPrefix, remapTo);
+                        foreach (var suffix in ParameterPolicy.PhysBoneSuffixes)
+                        {
+                            var suffixKey = param.nameOrPrefix + suffix;
+                            var suffixValue = remapTo + suffix;
+                            remaps = remaps.Add(suffixKey, suffixValue);
+                        }
+                    }
+                    else
+                    {
+                        remaps = remaps.Add(param.nameOrPrefix, remapTo);
                     }
                 }
-                else
+
+                if (!param.internalParameter && !param.isPrefix && param.syncType != ParameterSyncType.NotSynced)
                 {
-                    remaps = remaps.Add(param.nameOrPrefix, remapTo);
+                    AddSyncParam(param, remapTo);
                 }
             }
+        }
+
+        private void AddSyncParam(
+            ParameterConfig parameterConfig,
+            string remapTo
+        )
+        {
+            if (_syncedParams.ContainsKey(remapTo)) return;
+
+            VRCExpressionParameters.ValueType type;
+            switch (parameterConfig.syncType)
+            {
+                case ParameterSyncType.Bool:
+                    type = VRCExpressionParameters.ValueType.Bool;
+                    break;
+                case ParameterSyncType.Float:
+                    type = VRCExpressionParameters.ValueType.Float;
+                    break;
+                case ParameterSyncType.Int:
+                    type = VRCExpressionParameters.ValueType.Int;
+                    break;
+                default: throw new Exception("Unknown sync type " + parameterConfig.syncType);
+            }
+
+            _syncedParams[remapTo] = new VRCExpressionParameters.Parameter
+            {
+                name = remapTo,
+                valueType = type,
+                defaultValue = parameterConfig.defaultValue,
+                saved = parameterConfig.saved,
+            };
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.
