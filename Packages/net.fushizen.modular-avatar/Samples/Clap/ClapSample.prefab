@@ -10122,10 +10122,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8484779176005096009}
+  - component: {fileID: 1950333307926010754}
+  - component: {fileID: 3174898267815582933}
   - component: {fileID: 8484779176005096011}
   - component: {fileID: 8484779176005096010}
-  - component: {fileID: 3174898267815582933}
-  - component: {fileID: 1950333307926010754}
   m_Layer: 0
   m_Name: ClapSample
   m_TagString: Untagged
@@ -10153,26 +10153,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &8484779176005096011
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8484779176005096008}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c5ebfa99229e64f4986175c32f717990, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &8484779176005096010
+--- !u!114 &1950333307926010754
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10181,14 +10162,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8484779176005096008}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bb122659f724ebf85fe095ac02dc339, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ef83cb0c23d4d7c9d41021e544a1978, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 9100000, guid: c5ebfa99229e64f4986175c32f717990, type: 2}
-  layerType: 5
-  deleteAttachedAnimator: 1
-  pathMode: 0
-  matchAvatarWriteDefaults: 0
+  menuToAppend: {fileID: 11400000, guid: 9ace57384de9f5a4d8add2b79bf1115f, type: 2}
+  installTargetMenu: {fileID: 0}
 --- !u!114 &3174898267815582933
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10230,7 +10208,26 @@ MonoBehaviour:
     syncType: 3
     defaultValue: 0
     saved: 0
---- !u!114 &1950333307926010754
+--- !u!95 &8484779176005096011
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8484779176005096008}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c5ebfa99229e64f4986175c32f717990, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &8484779176005096010
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10239,11 +10236,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 8484779176005096008}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ef83cb0c23d4d7c9d41021e544a1978, type: 3}
+  m_Script: {fileID: 11500000, guid: 1bb122659f724ebf85fe095ac02dc339, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuToAppend: {fileID: 11400000, guid: 9ace57384de9f5a4d8add2b79bf1115f, type: 2}
-  installTargetMenu: {fileID: 0}
+  animator: {fileID: 9100000, guid: c5ebfa99229e64f4986175c32f717990, type: 2}
+  layerType: 5
+  deleteAttachedAnimator: 1
+  pathMode: 0
+  matchAvatarWriteDefaults: 0
 --- !u!1 &8484779176112939649
 GameObject:
   m_ObjectHideFlags: 0
