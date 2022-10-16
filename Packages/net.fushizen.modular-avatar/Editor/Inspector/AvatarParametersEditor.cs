@@ -6,6 +6,8 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Serialization;
+using static net.fushizen.modular_avatar.core.editor.Localization;
+using Debug = System.Diagnostics.Debug;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -205,7 +207,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
             var style = new GUIStyle(EditorStyles.label);
             style.fontStyle = FontStyle.Italic;
-            var content = new GUIContent("   Autodetected Parameters   ");
+            var content = new GUIContent(G("params.autodetect_header"));
             var size = style.CalcSize(content);
 
             var centeredRect = new Rect(
@@ -258,20 +260,21 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     EditorGUI.PropertyField(leftHalf, nameOrPrefix, GUIContent.none);
 
-                    var toggleInternalWidth = EditorStyles.toggle.CalcSize(new GUIContent("Internal")).x;
+                    var internalGuiContent = G("params.internal");
+                    var toggleInternalWidth = EditorStyles.toggle.CalcSize(internalGuiContent).x;
                     var toggleInternalRect = new Rect(rightHalfTop.x, rightHalfTop.y, toggleInternalWidth,
                         rightHalfTop.height);
 
                     internalParameter.boolValue =
-                        EditorGUI.ToggleLeft(toggleInternalRect, "Internal", internalParameter.boolValue);
+                        EditorGUI.ToggleLeft(toggleInternalRect, internalGuiContent, internalParameter.boolValue);
 
                     var isPrefixRect = new Rect(rightHalfTop.x + toggleInternalWidth + halfMargin, rightHalfTop.y,
                         rightHalfTop.width - toggleInternalWidth - halfMargin, rightHalfTop.height);
-                    isPrefix.boolValue = EditorGUI.ToggleLeft(isPrefixRect, "PhysBones Prefix", isPrefix.boolValue);
+                    isPrefix.boolValue = EditorGUI.ToggleLeft(isPrefixRect, G("params.pb_prefix"), isPrefix.boolValue);
 
-                    var syncedContent = new GUIContent("Sync mode ");
+                    var syncedContent = new GUIContent(G("params.syncmode"));
                     var labelSize = EditorStyles.label.CalcSize(syncedContent);
-                    var syncedWidth = labelSize.x;
+                    var syncedWidth = labelSize.x + EditorStyles.label.margin.right;
 
                     var syncedRect = new Rect(rightHalfSyncControlField.x, rightHalfSyncControlField.y, syncedWidth,
                         rightHalfSyncControlField.height);
@@ -308,7 +311,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     var saved = elem.FindPropertyRelative(nameof(ParameterConfig.saved));
 
-                    var savedContents = new GUIContent("Saved");
+                    var savedContents = new GUIContent(G("params.saved"));
                     var savedStyle = EditorStyles.toggle;
                     var savedSize = savedStyle.CalcSize(savedContents);
                     var savedLabelWidth = EditorStyles.label.CalcSize(savedContents).x;
@@ -327,9 +330,9 @@ namespace net.fushizen.modular_avatar.core.editor
                     saved.boolValue = EditorGUI.Toggle(savedPos, saved.boolValue);
 
                     var defaultValueProp = elem.FindPropertyRelative(nameof(ParameterConfig.defaultValue));
-                    var label = new GUIContent("Default value ");
+                    var label = new GUIContent(G("params.default"));
                     var labelSize = EditorStyles.label.CalcSize(label);
-                    var labelWidth = labelSize.x;
+                    var labelWidth = labelSize.x + EditorStyles.label.margin.right;
 
                     var labelRect = new Rect(rightHalfDefaultValue.x, rightHalfDefaultValue.y, labelWidth,
                         rightHalfDefaultValue.height);
@@ -403,17 +406,20 @@ namespace net.fushizen.modular_avatar.core.editor
             var leftHalf = new Rect(rect.x, rect.y, rect.width / 2, rect.height);
             var rightHalf = new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, rect.height);
 
-            EditorGUI.LabelField(leftHalf, "Field name");
-            if (!_devMode) EditorGUI.LabelField(rightHalf, "Remap to");
+            EditorGUI.LabelField(leftHalf, G("params.fieldname"));
+            if (!_devMode) EditorGUI.LabelField(rightHalf, G("params.remapto"));
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
-            _devMode = EditorGUILayout.Toggle("Developer mode", _devMode);
+            _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();
+            Debug.Assert(_reorderableList != null, nameof(_reorderableList) + " != null");
             _reorderableList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
+
+            Localization.ShowLanguageUI();
         }
     }
 }

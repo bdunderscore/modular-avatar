@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using static net.fushizen.modular_avatar.core.editor.Localization;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -50,7 +51,7 @@ namespace net.fushizen.modular_avatar.core.editor
             var currentTarget = targets.Length != 1 ? null : ((ModularAvatarBoneProxy) targets[0]).target;
             EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(virtProp);
+            EditorGUILayout.PropertyField(virtProp, G("boneproxy.target"));
             if (EditorGUI.EndChangeCheck())
             {
                 virtObj.ApplyModifiedPropertiesWithoutUndo();
@@ -62,13 +63,15 @@ namespace net.fushizen.modular_avatar.core.editor
                 }
             }
 
-            foldout = EditorGUILayout.Foldout(foldout, "Advanced");
+            foldout = EditorGUILayout.Foldout(foldout, G("boneproxy.foldout.advanced"));
             if (foldout)
             {
                 EditorGUI.indentLevel++;
                 base.OnInspectorGUI();
                 EditorGUI.indentLevel--;
             }
+
+            Localization.ShowLanguageUI();
         }
     }
 }

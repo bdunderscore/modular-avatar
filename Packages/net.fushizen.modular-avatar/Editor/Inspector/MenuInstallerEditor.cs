@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using static net.fushizen.modular_avatar.core.editor.Localization;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -56,23 +57,19 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 if (installTo.objectReferenceValue == null)
                 {
-                    EditorGUILayout.HelpBox(
-                        "Select one of your avatar's menus below to automatically install controls for this prefab."
-                        , MessageType.Info);
+                    EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
                 }
                 else if (!IsMenuReachable(RuntimeUtil.FindAvatarInParents(((Component) target).transform),
                              (VRCExpressionsMenu) installTo.objectReferenceValue))
                 {
-                    EditorGUILayout.HelpBox(
-                        "Selected menu asset is not part of your avatar."
-                        , MessageType.Error);
+                    EditorGUILayout.HelpBox(S("menuinstall.help.hint_bad_menu"), MessageType.Error);
                 }
             }
 
-            EditorGUILayout.PropertyField(installTo, new GUIContent("Install To"));
+            EditorGUILayout.PropertyField(installTo, G("menuinstall.installto"));
 
             var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
-            if (avatar != null && GUILayout.Button("Select menu"))
+            if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
             {
                 AvMenuTreeViewWindow.Show(avatar, menu =>
                 {
@@ -83,32 +80,34 @@ namespace net.fushizen.modular_avatar.core.editor
 
             if (targets.Length == 1)
             {
-                _menuFoldout = EditorGUILayout.Foldout(_menuFoldout, "Show menu contents");
+                _menuFoldout = EditorGUILayout.Foldout(_menuFoldout, G("menuinstall.showcontents"));
                 if (_menuFoldout)
                 {
                     EditorGUI.indentLevel++;
                     using (var disabled = new EditorGUI.DisabledScope(true))
                     {
                         if (_innerMenuEditor != null) _innerMenuEditor.OnInspectorGUI();
-                        else EditorGUILayout.HelpBox("No menu selected", MessageType.Info);
+                        else EditorGUILayout.HelpBox(S("menuinstall.showcontents.notselected"), MessageType.Info);
                     }
 
                     EditorGUI.indentLevel--;
                 }
             }
 
-            _devFoldout = EditorGUILayout.Foldout(_devFoldout, "Developer Options");
+            _devFoldout = EditorGUILayout.Foldout(_devFoldout, G("menuinstall.devoptions"));
             if (_devFoldout)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(
                     serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend)),
-                    new GUIContent("Menu to install")
+                    new GUIContent(G("menuinstall.srcmenu"))
                 );
                 EditorGUI.indentLevel--;
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            Localization.ShowLanguageUI();
         }
 
         private void FindMenus()
