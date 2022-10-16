@@ -108,6 +108,7 @@ namespace net.fushizen.modular_avatar.core.editor
             PathMappings.Clear();
 
             new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
+            new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
 
             new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);

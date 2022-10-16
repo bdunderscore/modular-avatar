@@ -5002,7 +5002,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8484779175115796483}
-  m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0.000000010510536, y: -0.000000010044875, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: -0.45912412, y: 1.04774, z: -0.0050687576}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -5022,10 +5022,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42581d8044b64899834d3d515ab3a144, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
   boneReference: 17
   subPath: 
-  constraint: {fileID: 0}
 --- !u!1 &8484779175182551488
 GameObject:
   m_ObjectHideFlags: 0
@@ -10035,7 +10033,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8484779175388350922}
-  m_LocalRotation: {x: -0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0.000000010510536, y: 0.000000010976198, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0.45912412, y: 1.04774, z: -0.0050687576}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -10055,10 +10053,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42581d8044b64899834d3d515ab3a144, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
   boneReference: 18
   subPath: 
-  constraint: {fileID: 0}
 --- !u!1 &8484779175587995429
 GameObject:
   m_ObjectHideFlags: 0
@@ -10128,6 +10124,8 @@ GameObject:
   - component: {fileID: 8484779176005096009}
   - component: {fileID: 8484779176005096011}
   - component: {fileID: 8484779176005096010}
+  - component: {fileID: 3174898267815582933}
+  - component: {fileID: 1950333307926010754}
   m_Layer: 0
   m_Name: ClapSample
   m_TagString: Untagged
@@ -10189,6 +10187,63 @@ MonoBehaviour:
   animator: {fileID: 9100000, guid: c5ebfa99229e64f4986175c32f717990, type: 2}
   layerType: 5
   deleteAttachedAnimator: 1
+  pathMode: 0
+  matchAvatarWriteDefaults: 0
+--- !u!114 &3174898267815582933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8484779176005096008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parameters:
+  - nameOrPrefix: ClapSensorSelf
+    remapTo: 
+    internalParameter: 1
+    isPrefix: 0
+    syncType: 0
+    defaultValue: 0
+    saved: 0
+  - nameOrPrefix: ClapSensorOtherR
+    remapTo: 
+    internalParameter: 1
+    isPrefix: 0
+    syncType: 0
+    defaultValue: 0
+    saved: 0
+  - nameOrPrefix: ClapSensorOtherL
+    remapTo: 
+    internalParameter: 1
+    isPrefix: 0
+    syncType: 0
+    defaultValue: 0
+    saved: 0
+  - nameOrPrefix: ClapEnable
+    remapTo: 
+    internalParameter: 0
+    isPrefix: 0
+    syncType: 3
+    defaultValue: 0
+    saved: 0
+--- !u!114 &1950333307926010754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8484779176005096008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef83cb0c23d4d7c9d41021e544a1978, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menuToAppend: {fileID: 11400000, guid: 9ace57384de9f5a4d8add2b79bf1115f, type: 2}
+  installTargetMenu: {fileID: 0}
 --- !u!1 &8484779176112939649
 GameObject:
   m_ObjectHideFlags: 0
