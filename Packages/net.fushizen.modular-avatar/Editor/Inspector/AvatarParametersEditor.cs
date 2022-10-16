@@ -77,6 +77,9 @@ namespace net.fushizen.modular_avatar.core.editor
                     internalParameter = false,
                     isPrefix = param.IsPrefix,
                     nameOrPrefix = param.OriginalName,
+                    syncType = param.syncType,
+                    defaultValue = param.defaultValue,
+                    saved = param.saved,
                     remapTo = "",
                 };
 
@@ -172,20 +175,29 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private float ElementHeight(int index)
         {
+            float baseHeight = _devMode ? elemHeight * 2 : elemHeight;
+
+            var param = GetParamByIndex(_selectedIndices[index]);
+            var syncMode = param.FindPropertyRelative(nameof(ParameterConfig.syncType));
+            if (syncMode.enumValueIndex != (int) ParameterSyncType.NotSynced)
+            {
+                baseHeight += elemHeight;
+            }
+
             if (_selectedIndices[index] == -1)
             {
-                return elemHeight * 2;
+                return elemHeight + baseHeight;
             }
             else
             {
-                return elemHeight;
+                return baseHeight;
             }
         }
 
         private void DrawAutodetectHeader(ref Rect rect)
         {
             Rect top = rect;
-            top.height /= 2;
+            top.height = elemHeight;
             Rect bottom = rect;
             bottom.y += top.height;
             bottom.height -= top.height;
@@ -217,15 +229,24 @@ namespace net.fushizen.modular_avatar.core.editor
                 DrawAutodetectHeader(ref rect);
             }
 
-            var margin = 20;
-            var halfMargin = margin / 2;
-            var leftHalf = new Rect(rect.x, rect.y, rect.width / 2 - halfMargin, rect.height);
-            var rightHalf = new Rect(rect.x + leftHalf.width + halfMargin, rect.y, leftHalf.width, rect.height);
-
             var nameOrPrefix = elem.FindPropertyRelative(nameof(ParameterConfig.nameOrPrefix));
             var remapTo = elem.FindPropertyRelative(nameof(ParameterConfig.remapTo));
             var internalParameter = elem.FindPropertyRelative(nameof(ParameterConfig.internalParameter));
             var isPrefix = elem.FindPropertyRelative(nameof(ParameterConfig.isPrefix));
+            var syncType = elem.FindPropertyRelative(nameof(ParameterConfig.syncType));
+
+            var isSynced = syncType.enumValueIndex != (int) ParameterSyncType.NotSynced;
+
+            var margin = 20;
+            var halfMargin = margin / 2;
+            var leftHalf = new Rect(rect.x, rect.y, rect.width / 2 - halfMargin, elemHeight);
+            var rightHalf = new Rect(rect.x + leftHalf.width + halfMargin, rect.y, leftHalf.width, elemHeight);
+            var rightHalfTop = new Rect(rect.x + leftHalf.width + halfMargin, rect.y, leftHalf.width, elemHeight);
+            var rightHalfSyncControlField = rightHalfTop;
+            rightHalfSyncControlField.y += _devMode ? elemHeight : 0;
+
+            var rightHalfDefaultValue = rightHalfSyncControlField;
+            rightHalfDefaultValue.y += elemHeight;
 
             var indentLevel = EditorGUI.indentLevel;
             try
@@ -238,14 +259,29 @@ namespace net.fushizen.modular_avatar.core.editor
                     EditorGUI.PropertyField(leftHalf, nameOrPrefix, GUIContent.none);
 
                     var toggleInternalWidth = EditorStyles.toggle.CalcSize(new GUIContent("Internal")).x;
-                    var toggleInternalRect = new Rect(rightHalf.x, rightHalf.y, toggleInternalWidth, rightHalf.height);
+                    var toggleInternalRect = new Rect(rightHalfTop.x, rightHalfTop.y, toggleInternalWidth,
+                        rightHalfTop.height);
 
                     internalParameter.boolValue =
                         EditorGUI.ToggleLeft(toggleInternalRect, "Internal", internalParameter.boolValue);
 
-                    var isPrefixRect = new Rect(rightHalf.x + toggleInternalWidth + halfMargin, rightHalf.y,
-                        rightHalf.width - toggleInternalWidth - halfMargin, rightHalf.height);
+                    var isPrefixRect = new Rect(rightHalfTop.x + toggleInternalWidth + halfMargin, rightHalfTop.y,
+                        rightHalfTop.width - toggleInternalWidth - halfMargin, rightHalfTop.height);
                     isPrefix.boolValue = EditorGUI.ToggleLeft(isPrefixRect, "PhysBones Prefix", isPrefix.boolValue);
+
+                    var syncedContent = new GUIContent("Sync mode ");
+                    var labelSize = EditorStyles.label.CalcSize(syncedContent);
+                    var syncedWidth = labelSize.x;
+
+                    var syncedRect = new Rect(rightHalfSyncControlField.x, rightHalfSyncControlField.y, syncedWidth,
+                        rightHalfSyncControlField.height);
+
+                    EditorGUI.LabelField(syncedRect, syncedContent);
+
+                    rightHalfSyncControlField.x += syncedWidth;
+                    rightHalfSyncControlField.width -= syncedWidth;
+
+                    EditorGUI.PropertyField(rightHalfSyncControlField, syncType, GUIContent.none);
                 }
                 else
                 {
@@ -265,6 +301,72 @@ namespace net.fushizen.modular_avatar.core.editor
                         EditorGUI.LabelField(rightHalf, nameOrPrefix.stringValue, style);
 
                         GUI.color = oldColor;
+                    }
+                }
+
+                if (isSynced)
+                {
+                    var saved = elem.FindPropertyRelative(nameof(ParameterConfig.saved));
+
+                    var savedContents = new GUIContent("Saved");
+                    var savedStyle = EditorStyles.toggle;
+                    var savedSize = savedStyle.CalcSize(savedContents);
+                    var savedLabelWidth = EditorStyles.label.CalcSize(savedContents).x;
+                    var checkboxPad = EditorStyles.toggle.margin.right;
+
+                    var savedPos = rightHalfDefaultValue;
+                    savedPos.width = savedSize.x + checkboxPad * 2;
+                    rightHalfDefaultValue.x += savedPos.width;
+                    rightHalfDefaultValue.width -= savedPos.width;
+                    //savedPos.x -= savedSize.x + checkboxPad * 2;
+
+
+                    EditorGUI.LabelField(savedPos, savedContents);
+                    savedPos.x += savedLabelWidth + checkboxPad;
+                    savedPos.width -= savedLabelWidth - checkboxPad * 2;
+                    saved.boolValue = EditorGUI.Toggle(savedPos, saved.boolValue);
+
+                    var defaultValueProp = elem.FindPropertyRelative(nameof(ParameterConfig.defaultValue));
+                    var label = new GUIContent("Default value ");
+                    var labelSize = EditorStyles.label.CalcSize(label);
+                    var labelWidth = labelSize.x;
+
+                    var labelRect = new Rect(rightHalfDefaultValue.x, rightHalfDefaultValue.y, labelWidth,
+                        rightHalfDefaultValue.height);
+
+                    EditorGUI.LabelField(labelRect, label);
+
+                    rightHalfDefaultValue.x += labelWidth;
+                    rightHalfDefaultValue.width -= labelWidth;
+
+                    switch ((ParameterSyncType) syncType.enumValueIndex)
+                    {
+                        case ParameterSyncType.Int:
+                        {
+                            int val = Mathf.RoundToInt(defaultValueProp.floatValue);
+                            val = EditorGUI.IntField(rightHalfDefaultValue, val);
+                            defaultValueProp.floatValue = val;
+                            break;
+                        }
+                        case ParameterSyncType.Float:
+                        {
+                            float val = defaultValueProp.floatValue;
+                            val = EditorGUI.FloatField(rightHalfDefaultValue, val);
+                            defaultValueProp.floatValue = val;
+                            break;
+                        }
+
+                        case ParameterSyncType.Bool:
+                        {
+                            bool val = defaultValueProp.floatValue > 0.1f;
+                            val = EditorGUI.Toggle(rightHalfDefaultValue, val);
+                            defaultValueProp.floatValue = val ? 1.0f : 0.0f;
+                            break;
+                        }
+
+                        default:
+                            // Maybe we just changed sync mode?
+                            break;
                     }
                 }
 

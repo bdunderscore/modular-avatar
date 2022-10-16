@@ -14,6 +14,9 @@ namespace net.fushizen.modular_avatar.core.editor
     {
         public string OriginalName;
         public bool IsPrefix;
+        public ParameterSyncType syncType;
+        public float defaultValue;
+        public bool saved;
 
         public string MapKey => IsPrefix ? OriginalName + "*" : OriginalName;
     }
@@ -229,6 +232,16 @@ namespace net.fushizen.modular_avatar.core.editor
                 var dictKey = map.nameOrPrefix + (map.isPrefix ? "*" : "");
                 if (!parameters.ContainsKey(dictKey))
                 {
+                    if (map.internalParameter || map.syncType == ParameterSyncType.NotSynced) continue;
+                    var param = new DetectedParameter()
+                    {
+                        OriginalName = map.remapTo,
+                        IsPrefix = map.isPrefix,
+                        syncType = map.syncType,
+                        defaultValue = map.defaultValue,
+                        saved = map.saved,
+                    };
+                    newParams[param.MapKey] = param;
                     continue;
                 }
 
@@ -236,10 +249,14 @@ namespace net.fushizen.modular_avatar.core.editor
                 {
                     parameters.Remove(dictKey);
                 }
-                else if (!string.IsNullOrWhiteSpace(map.remapTo))
+                else
                 {
+                    var exposedName = !string.IsNullOrWhiteSpace(map.remapTo) ? map.remapTo : map.nameOrPrefix;
                     var param = parameters[dictKey];
-                    param.OriginalName = map.remapTo;
+                    param.OriginalName = exposedName;
+                    param.syncType = map.syncType;
+                    param.defaultValue = map.defaultValue;
+                    param.saved = map.saved;
                     newParams[param.MapKey] = param;
                     parameters.Remove(dictKey);
                 }
