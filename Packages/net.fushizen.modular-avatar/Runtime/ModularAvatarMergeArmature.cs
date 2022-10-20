@@ -32,6 +32,7 @@ using UnityEditor;
 namespace net.fushizen.modular_avatar.core
 {
     [ExecuteInEditMode]
+    [DisallowMultipleComponent]
     public class ModularAvatarMergeArmature : AvatarTagComponent
     {
         private const float POS_EPSILON = 0.01f;

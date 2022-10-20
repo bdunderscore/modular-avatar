@@ -4,7 +4,7 @@ using UnityEngine;
 namespace net.fushizen.modular_avatar.core
 {
     [Serializable]
-    public struct AvatarObjectReference
+    public class AvatarObjectReference
     {
         public static string AVATAR_ROOT = "$$$AVATAR_ROOT$$$";
         public string referencePath;
@@ -45,6 +45,24 @@ namespace net.fushizen.modular_avatar.core
         {
             RuntimeUtil.OnHierarchyChanged -= InvalidateCache;
             _cacheValid = false;
+        }
+
+        protected bool Equals(AvatarObjectReference other)
+        {
+            return referencePath == other.referencePath;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((AvatarObjectReference) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (referencePath != null ? referencePath.GetHashCode() : 0);
         }
     }
 }

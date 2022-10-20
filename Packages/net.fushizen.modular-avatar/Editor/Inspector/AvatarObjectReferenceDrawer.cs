@@ -18,14 +18,16 @@ namespace net.fushizen.modular_avatar.core.editor
 
                 position = EditorGUI.PrefixLabel(position, label);
 
-                EditorGUI.LabelField(position,
-                    string.IsNullOrEmpty(property.stringValue) ? "(null)" : property.stringValue);
+                using (var scope = new ZeroIndentScope())
+                {
+                    EditorGUI.LabelField(position,
+                        string.IsNullOrEmpty(property.stringValue) ? "(null)" : property.stringValue);
+                }
             }
         }
 
         private bool CustomGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var indentLevel = EditorGUI.indentLevel;
             var color = GUI.contentColor;
 
             property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
@@ -56,73 +58,75 @@ namespace net.fushizen.modular_avatar.core.editor
 
                 var nullContent = GUIContent.none;
 
-                if (target != null || isNull)
+                using (var scope = new ZeroIndentScope())
                 {
-                    EditorGUI.BeginChangeCheck();
-                    var newTarget = EditorGUI.ObjectField(position, nullContent, target, typeof(Transform), true);
-                    if (EditorGUI.EndChangeCheck())
+                    if (target != null || isNull)
                     {
-                        if (newTarget == null)
+                        EditorGUI.BeginChangeCheck();
+                        var newTarget = EditorGUI.ObjectField(position, nullContent, target, typeof(Transform), true);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            property.stringValue = "";
-                        }
-                        else if (newTarget == avatar.transform)
-                        {
-                            property.stringValue = AvatarObjectReference.AVATAR_ROOT;
-                        }
-                        else
-                        {
-                            var relPath =
-                                RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
-                            if (relPath == null) return true;
+                            if (newTarget == null)
+                            {
+                                property.stringValue = "";
+                            }
+                            else if (newTarget == avatar.transform)
+                            {
+                                property.stringValue = AvatarObjectReference.AVATAR_ROOT;
+                            }
+                            else
+                            {
+                                var relPath =
+                                    RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
+                                if (relPath == null) return true;
 
-                            property.stringValue = relPath;
-                        }
-                    }
-                }
-                else
-                {
-                    // For some reason, this color change retroactively affects the prefix label above, so draw our own
-                    // label as well (we still want the prefix label for highlights, etc).
-                    EditorGUI.LabelField(labelRect, label);
-
-                    GUI.contentColor = new Color(0, 0, 0, 0);
-                    EditorGUI.BeginChangeCheck();
-                    var newTarget = EditorGUI.ObjectField(position, nullContent, target, typeof(Transform), true);
-                    GUI.contentColor = color;
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (newTarget == null)
-                        {
-                            property.stringValue = "";
-                        }
-                        else if (newTarget == avatar.transform)
-                        {
-                            property.stringValue = AvatarObjectReference.AVATAR_ROOT;
-                        }
-                        else
-                        {
-                            var relPath =
-                                RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
-                            if (relPath == null) return true;
-
-                            property.stringValue = relPath;
+                                property.stringValue = relPath;
+                            }
                         }
                     }
                     else
                     {
-                        GUI.contentColor = Color.red;
-                        EditorGUI.LabelField(position, property.stringValue);
-                    }
-                }
+                        // For some reason, this color change retroactively affects the prefix label above, so draw our own
+                        // label as well (we still want the prefix label for highlights, etc).
+                        EditorGUI.LabelField(labelRect, label);
 
-                return true;
+                        GUI.contentColor = new Color(0, 0, 0, 0);
+                        EditorGUI.BeginChangeCheck();
+                        var newTarget = EditorGUI.ObjectField(position, nullContent, target, typeof(Transform), true);
+                        GUI.contentColor = color;
+
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (newTarget == null)
+                            {
+                                property.stringValue = "";
+                            }
+                            else if (newTarget == avatar.transform)
+                            {
+                                property.stringValue = AvatarObjectReference.AVATAR_ROOT;
+                            }
+                            else
+                            {
+                                var relPath =
+                                    RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
+                                if (relPath == null) return true;
+
+                                property.stringValue = relPath;
+                            }
+                        }
+                        else
+                        {
+                            GUI.contentColor = Color.red;
+                            EditorGUI.LabelField(position, property.stringValue);
+                        }
+                    }
+
+                    return true;
+                }
             }
             finally
             {
                 GUI.contentColor = color;
-                EditorGUI.indentLevel = indentLevel;
             }
         }
     }

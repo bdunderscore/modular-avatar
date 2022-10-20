@@ -29,6 +29,7 @@ using UnityEngine;
 namespace net.fushizen.modular_avatar.core
 {
     [ExecuteInEditMode]
+    [DisallowMultipleComponent]
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
         private Transform _targetCache;

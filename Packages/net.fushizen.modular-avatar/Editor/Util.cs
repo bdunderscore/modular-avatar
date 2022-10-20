@@ -107,5 +107,19 @@ namespace net.fushizen.modular_avatar.core.editor
                 FileUtil.DeleteFileOrDirectory(subdir);
             };
         }
+
+        public static AnimatorController DeepCloneAnimator(AnimatorController controller)
+        {
+            var merger = new AnimatorCombiner();
+            merger.AddController("", controller, null);
+            return merger.Finish();
+        }
+
+        public static bool IsTemporaryAsset(Object obj)
+        {
+            var path = AssetDatabase.GetAssetPath(obj);
+
+            return path != null && path.StartsWith(GetGeneratedAssetsFolder() + "/");
+        }
     }
 }

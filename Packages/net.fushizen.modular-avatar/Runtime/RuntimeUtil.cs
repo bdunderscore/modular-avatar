@@ -35,11 +35,9 @@ namespace net.fushizen.modular_avatar.core
 {
     public static class RuntimeUtil
     {
-        public delegate void NullCallback();
-
         // Initialized in Util
-        public static Action<NullCallback> delayCall = (_) => { };
-        public static event NullCallback OnHierarchyChanged;
+        public static Action<Action> delayCall = (_) => { };
+        public static event Action OnHierarchyChanged;
 
         public enum OnDemandSource
         {

@@ -205,9 +205,7 @@ namespace net.fushizen.modular_avatar.core.editor
             var queue = new Queue<AnimatorStateMachine>();
 
             // Deep clone the animator
-            var merger = new AnimatorCombiner();
-            merger.AddController("", controller, null);
-            controller = merger.Finish();
+            controller = Util.DeepCloneAnimator(controller);
 
             var parameters = controller.parameters;
             for (int i = 0; i < parameters.Length; i++)
