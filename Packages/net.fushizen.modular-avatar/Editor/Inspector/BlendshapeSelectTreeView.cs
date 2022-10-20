@@ -14,6 +14,7 @@ namespace net.fushizen.modular_avatar.core.editor
         internal GameObject AvatarRoot;
         private BlendshapeTree _tree;
 
+        internal SearchField _searchField;
         internal Action<BlendshapeBinding> OfferBinding;
 
         private void Awake()
@@ -23,8 +24,11 @@ namespace net.fushizen.modular_avatar.core.editor
 
         void OnGUI()
         {
+            var rect = new Rect(0, 0, position.width, position.height);
+
             if (_tree == null)
             {
+                _searchField = new SearchField();
                 _tree = new BlendshapeTree(AvatarRoot, new TreeViewState());
                 _tree.OfferBinding = (binding) => OfferBinding?.Invoke(binding);
                 _tree.Reload();
@@ -32,12 +36,23 @@ namespace net.fushizen.modular_avatar.core.editor
                 _tree.SetExpanded(0, true);
             }
 
-            _tree.OnGUI(new Rect(0, 0, position.width, position.height));
+            var sfRect = GUILayoutUtility.GetRect(1, 99999, EditorGUIUtility.singleLineHeight,
+                EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
+            _tree.searchString = _searchField.OnGUI(sfRect, _tree.searchString);
+
+            var remaining = GUILayoutUtility.GetRect(1, 99999, EditorGUIUtility.singleLineHeight * 2, 99999999,
+                GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            _tree.OnGUI(remaining);
         }
     }
 
     internal class BlendshapeTree : TreeView
     {
+        internal class OfferItem : TreeViewItem
+        {
+            public BlendshapeBinding binding;
+        }
+
         private readonly GameObject _avatarRoot;
         private List<BlendshapeBinding?> _candidateBindings;
 
@@ -52,6 +67,45 @@ namespace net.fushizen.modular_avatar.core.editor
             state, multiColumnHeader)
         {
             this._avatarRoot = avatarRoot;
+        }
+
+        protected override void RowGUI(RowGUIArgs args)
+        {
+            if (!string.IsNullOrEmpty(searchString) && args.item is OfferItem offer)
+            {
+                var rect = args.rowRect;
+
+                var binding = offer.binding;
+                var objName = binding.ReferenceMesh.referencePath;
+                var index = objName.LastIndexOf('/');
+                if (index >= 0) objName = objName.Substring(index + 1);
+
+                objName += " / ";
+                var content = new GUIContent(objName);
+
+                var width = EditorStyles.label.CalcSize(content).x;
+                var color = GUI.color;
+
+                var grey = color;
+                grey.a *= 0.7f;
+                GUI.color = grey;
+
+                EditorGUI.LabelField(rect, content);
+
+                GUI.color = color;
+
+                rect.x += width;
+                rect.width -= width;
+
+                if (rect.width >= 0)
+                {
+                    EditorGUI.LabelField(rect, binding.Blendshape);
+                }
+            }
+            else
+            {
+                base.RowGUI(args);
+            }
         }
 
         protected override void DoubleClickedItem(int id)
@@ -138,8 +192,11 @@ namespace net.fushizen.modular_avatar.core.editor
 
             foreach (var binding in bindings)
             {
-                items.Add(new TreeViewItem
-                    {id = _candidateBindings.Count, depth = createdDepth, displayName = binding.Blendshape});
+                items.Add(new OfferItem
+                {
+                    id = _candidateBindings.Count, depth = createdDepth, displayName = binding.Blendshape,
+                    binding = binding
+                });
                 _candidateBindings.Add(binding);
             }
 
