@@ -50,6 +50,7 @@ namespace net.fushizen.modular_avatar.core
 
         private void OnValidate()
         {
+            if (RuntimeUtil.isPlaying) return;
             RuntimeUtil.delayCall(Rebind);
             RuntimeUtil.OnHierarchyChanged -= Rebind;
             RuntimeUtil.OnHierarchyChanged += Rebind;
@@ -62,6 +63,8 @@ namespace net.fushizen.modular_avatar.core
 
         private void Rebind()
         {
+            if (this == null) return;
+
             _editorBindings = new List<EditorBlendshapeBinding>();
 
             var localRenderer = GetComponent<SkinnedMeshRenderer>();

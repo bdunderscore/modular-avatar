@@ -139,11 +139,6 @@ namespace net.fushizen.modular_avatar.core.editor
                         if (iter.objectReferenceValue is Transform t)
                         {
                             var mapped = MapBoneReference(t, retargetable);
-                            if (mapped != iter.objectReferenceValue)
-                            {
-                                Debug.LogWarning(
-                                    $"Remapping property path {iter.propertyPath} from {iter.objectReferenceValue} to {mapped} on {c}");
-                            }
 
                             iter.objectReferenceValue = mapped;
                             ClearToDeleteFlag(mapped);
@@ -151,11 +146,6 @@ namespace net.fushizen.modular_avatar.core.editor
                         else if (iter.objectReferenceValue is GameObject go)
                         {
                             var mapped = MapBoneReference(go.transform, retargetable);
-                            if (mapped?.gameObject != iter.objectReferenceValue)
-                            {
-                                Debug.LogWarning(
-                                    $"Remapping property path {iter.propertyPath} from {iter.objectReferenceValue} to {mapped} on {c}");
-                            }
 
                             iter.objectReferenceValue = mapped?.gameObject;
                             ClearToDeleteFlag(mapped);
@@ -312,9 +302,6 @@ namespace net.fushizen.modular_avatar.core.editor
             if ((constraintType != null && constraintType != typeof(ParentConstraint))
                 || (constraintType == null && src.GetComponent<IConstraint>() != null))
             {
-                Debug.LogWarning(
-                    $"Retaining: {RuntimeUtil.RelativePath(RuntimeUtil.FindAvatarInParents(src.transform).gameObject, src.gameObject)}" +
-                    $"with constraintType {constraintType} and constraint {src.GetComponent<IConstraint>()}");
                 return true;
             }
 
