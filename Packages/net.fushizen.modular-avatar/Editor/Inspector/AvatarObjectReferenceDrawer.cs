@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -34,15 +35,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
             try
             {
-                // Find containing object, and from that the avatar
-                if (property.serializedObject == null || property.serializedObject.targetObjects.Length != 1)
-                    return false;
-
-                var obj = property.serializedObject.targetObject as Component;
-                if (obj == null) return false;
-
-                var transform = obj.transform;
-                var avatar = RuntimeUtil.FindAvatarInParents(transform);
+                var avatar = findContainingAvatar(property);
                 if (avatar == null) return false;
 
                 bool isRoot = property.stringValue == AvatarObjectReference.AVATAR_ROOT;
@@ -128,6 +121,32 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 GUI.contentColor = color;
             }
+        }
+
+        private static VRCAvatarDescriptor findContainingAvatar(SerializedProperty property)
+        {
+            // Find containing object, and from that the avatar
+            if (property.serializedObject == null) return null;
+
+            VRCAvatarDescriptor commonAvatar = null;
+            var targets = property.serializedObject.targetObjects;
+            for (int i = 0; i < targets.Length; i++)
+            {
+                var obj = targets[i] as Component;
+                if (obj == null) return null;
+
+                var transform = obj.transform;
+                var avatar = RuntimeUtil.FindAvatarInParents(transform);
+
+                if (i == 0)
+                {
+                    if (avatar == null) return null;
+                    commonAvatar = avatar;
+                }
+                else if (commonAvatar != avatar) return null;
+            }
+
+            return commonAvatar;
         }
     }
 }
