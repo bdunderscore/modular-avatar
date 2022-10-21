@@ -1,8 +1,4 @@
-﻿---
-sidebar_position: 1
----
-
-# Merge Armature
+﻿# Merge Armature
 
 The Merge Armature component merges a tree of GameObjects onto the armature of the avatar.
 
@@ -41,3 +37,8 @@ Where necessary, PhysBone objects will have their targets updated, and ParentCon
 If the locked option is enabled, the position and rotation of the merged bones will be locked to their parents in the editor. This is a two-way relationship; if you move the merged bone, the avatar's bone will move, and vice versa.
 
 This is intended for use when animating non-humanoid bones. For example, you could use this to build an animator which can animate cat-ear movements.
+
+## Object references
+
+Although the editor UI allows you to drag in a target object for the merge armature component, internally this is saved as a path reference.
+This allows the merge armature component to automatically restore its Merge Target after it is saved in a prefab.
