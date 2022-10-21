@@ -3,7 +3,7 @@
 ![Bone Proxy](bone-proxy-compare.png)
 
 The Bone Proxy allows you to place objects from your prefab inside of objects that are part of the original avatar.
-For example, in the Clap sample, this is used to place contacts inside the avatar's hands.
+For example, in the [Clap sample](../samples/#clap), this is used to place contacts inside the avatar's hands.
 
 Bone Proxy will also adjust any animators referencing the old location of the objects so that they reference the
 new paths after the objects are moved.

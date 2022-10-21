@@ -4,7 +4,7 @@
 
 The merge animator component will add the provided animator to a specified layer of the avatar it is added to. This can be used to make complex AV3 gimmicks that install themselves just by dragging and dropping onto an avatar.
 
-Two samples are included that use this component: A hand-clap effect, and a finger-pen gimmick.
+[Two samples](../samples/) are included that use this component: A hand-clap effect, and a finger-pen gimmick.
 
 ## When should I use it?
 
