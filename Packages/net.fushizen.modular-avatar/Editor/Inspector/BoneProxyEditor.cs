@@ -11,7 +11,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
     [CustomEditor(typeof(ModularAvatarBoneProxy))]
     [CanEditMultipleObjects]
-    public class BoneProxyEditor : Editor
+    internal class BoneProxyEditor : Editor
     {
         private bool foldout = false;
 
@@ -22,7 +22,7 @@ namespace net.fushizen.modular_avatar.core.editor
             objRefs = new Object[targets.Length];
             for (int i = 0; i < targets.Length; i++)
             {
-                objRefs[i] = ScriptableObject.CreateInstance<TempObjRef>();
+                objRefs[i] = CreateInstance<TempObjRef>();
             }
         }
 
@@ -30,6 +30,7 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             GameObject parentAvatar = null;
 
+            bool suppressTarget = false;
             for (int i = 0; i < targets.Length; i++)
             {
                 var t = (ModularAvatarBoneProxy) targets[i];
@@ -38,17 +39,23 @@ namespace net.fushizen.modular_avatar.core.editor
                 if (av != null && parentAvatar == null) parentAvatar = av.gameObject;
                 if (av == null || parentAvatar != av.gameObject)
                 {
-                    base.OnInspectorGUI();
-                    return;
+                    suppressTarget = true;
+                    break;
                 }
 
                 ((TempObjRef) objRefs[i]).target = t.target;
             }
 
-            var virtObj = new SerializedObject(objRefs);
-            var virtProp = virtObj.FindProperty(nameof(TempObjRef.target));
+            if (suppressTarget)
+            {
+                foldout = true;
+            }
+            else
+            {
+                var virtObj = new SerializedObject(objRefs);
+                var virtProp = virtObj.FindProperty(nameof(TempObjRef.target));
+            }
 
-            var currentTarget = targets.Length != 1 ? null : ((ModularAvatarBoneProxy) targets[0]).target;
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(virtProp, G("boneproxy.target"));
