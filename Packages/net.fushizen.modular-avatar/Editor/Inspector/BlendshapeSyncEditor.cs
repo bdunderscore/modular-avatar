@@ -98,6 +98,8 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public override void OnInspectorGUI()
         {
+            LogoDisplay.DisplayLogo();
+
             serializedObject.Update();
 
             _list.DoLayoutList();

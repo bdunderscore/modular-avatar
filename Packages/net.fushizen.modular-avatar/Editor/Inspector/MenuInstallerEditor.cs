@@ -49,6 +49,8 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public override void OnInspectorGUI()
         {
+            LogoDisplay.DisplayLogo();
+
             SetupMenuEditor();
 
             var installTo = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.installTargetMenu));
