@@ -9,21 +9,20 @@ namespace net.fushizen.modular_avatar.core.editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (!CustomGUI(position, property, label))
+            if (CustomGUI(position, property, label)) return;
+            
+            var xButtonSize = EditorStyles.miniButtonRight.CalcSize(new GUIContent("x"));
+            var xButtonRect = new Rect(position.xMax - xButtonSize.x, position.y, xButtonSize.x, position.height);
+            position = new Rect(position.x, position.y, position.width - xButtonSize.x, position.height);
+
+            property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
+
+            position = EditorGUI.PrefixLabel(position, label);
+
+            using (var scope = new ZeroIndentScope())
             {
-                var xButtonSize = EditorStyles.miniButtonRight.CalcSize(new GUIContent("x"));
-                var xButtonRect = new Rect(position.xMax - xButtonSize.x, position.y, xButtonSize.x, position.height);
-                position = new Rect(position.x, position.y, position.width - xButtonSize.x, position.height);
-
-                property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
-
-                position = EditorGUI.PrefixLabel(position, label);
-
-                using (var scope = new ZeroIndentScope())
-                {
-                    EditorGUI.LabelField(position,
-                        string.IsNullOrEmpty(property.stringValue) ? "(null)" : property.stringValue);
-                }
+                EditorGUI.LabelField(position,
+                    string.IsNullOrEmpty(property.stringValue) ? "(null)" : property.stringValue);
             }
         }
 
