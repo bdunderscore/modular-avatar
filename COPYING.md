@@ -4,8 +4,8 @@ Source code is licensed under the MIT license, as reproduced below, with some ex
   See [the associated License.md file](Packages/com.vrchat.core.vpm-resolver/License.md) for details.
 * Images under docs/static/img/irasutoya are Copyrighted by, and/or a derivative work of works copyrighted by
   いらすとや (irasutoya.com). See [their license page](https://www.irasutoya.com/p/terms.html) for license details.
-* Images under docs/static/img/logo are Copyright (c) 2022 Pumo. See the associated COPYING file for details.
-
+* The github source code distribution contains placeholder logo assets. The actual logo assets are Copyright (c) Pumo,
+  and for use as part of packaged official modular avatar distributions only.
 ---
 
 MIT License

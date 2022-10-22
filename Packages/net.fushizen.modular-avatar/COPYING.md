@@ -1,3 +1,11 @@
+Files under Editor/images are licensed for redistribution as part of an official
+modular avatar package only. Please replace them with other images (or delete them)
+if you are making modifications.
+
+All other files are under the MIT license.
+
+---
+
 MIT License
 
 Copyright (c) 2022 bd_
