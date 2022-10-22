@@ -54,19 +54,19 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 var virtObj = new SerializedObject(objRefs);
                 var virtProp = virtObj.FindProperty(nameof(TempObjRef.target));
-            }
 
-            EditorGUI.BeginChangeCheck();
+                EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.PropertyField(virtProp, G("boneproxy.target"));
-            if (EditorGUI.EndChangeCheck())
-            {
-                virtObj.ApplyModifiedPropertiesWithoutUndo();
-                for (int i = 0; i < targets.Length; i++)
+                EditorGUILayout.PropertyField(virtProp, G("boneproxy.target"));
+                if (EditorGUI.EndChangeCheck())
                 {
-                    var t = (ModularAvatarBoneProxy) targets[i];
-                    Undo.RecordObjects(targets, "Set targets");
-                    t.target = ((TempObjRef) objRefs[i]).target;
+                    virtObj.ApplyModifiedPropertiesWithoutUndo();
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        var t = (ModularAvatarBoneProxy) targets[i];
+                        Undo.RecordObjects(targets, "Set targets");
+                        t.target = ((TempObjRef) objRefs[i]).target;
+                    }
                 }
             }
 
