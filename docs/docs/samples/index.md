@@ -19,7 +19,7 @@ The fingerpen prefab demonstrates:
 * Installing animators using [Merge Animator](../reference/merge-animator.md)
 * Automatically configuring [synced parameters](../reference/parameters.md)
 * Setting up [menus](../reference/menu-installer.md).
-* Using the [Bone Proxy](bone-proxy.md) component to place objects inside of the avatar's bones, in an avatar-agnostic way
+* Using the [Bone Proxy](../reference/bone-proxy.md) component to place objects inside of the avatar's bones, in an avatar-agnostic way
 
 ## Clap
 

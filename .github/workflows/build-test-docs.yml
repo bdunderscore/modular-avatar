@@ -13,6 +13,13 @@ jobs:
         with:
           node-version: 18
       - uses: actions/checkout@v3 # check out this repo
+      - uses: actions/checkout@v3
+        with:
+          repository: bdunderscore/modular-avatar-images
+          path: modular-avatar-images
+      - name: Install logo assets
+        run: |
+          cp -Rv modular-avatar-images/img/* docs/static/img
 
       - name: Build docs
         run: |
