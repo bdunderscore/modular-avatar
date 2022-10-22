@@ -1,0 +1,16 @@
+﻿.unity-box {
+    margin: 10px;
+    padding:10px;
+}
+
+.unity-box #description {
+    margin: 10px 0 10px 0;
+    white-space: normal;
+}
+
+#action-button {
+    font-size: 20px;
+    -unity-font-style: bold;
+    padding: 10px;
+    margin:10px;
+}

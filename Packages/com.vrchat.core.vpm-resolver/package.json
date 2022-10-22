@@ -1,0 +1,17 @@
+{
+  "name": "com.vrchat.core.vpm-resolver",
+  "displayName": "VRChat Package Resolver Tool",
+  "version": "0.1.15",
+  "unity": "2019.4",
+  "description": "Tool to Download VPM Packages",
+  "vrchatVersion": "2022.1.1",
+  "author": {
+    "name": "VRChat",
+    "email": "developer@vrchat.com",
+    "url": "https://github.com/vrchat/packages"
+  },
+  "url": "",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "2.0.2"
+  }
+}
