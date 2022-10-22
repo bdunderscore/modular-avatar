@@ -1,3 +1,13 @@
+Source code is licensed under the MIT license, as reproduced below, with some exceptions:
+
+* Packages/com.vrchat.core.vpm-resolver is distributed under the VRChat Distro license.
+  See [the associated License.md file](Packages/com.vrchat.core.vpm-resolver/License.md) for details.
+* Images under docs/static/img/irasutoya are Copyrighted by, and/or a derivative work of works copyrighted by
+  いらすとや (irasutoya.com). See [their license page](https://www.irasutoya.com/p/terms.html) for license details.
+* Images under docs/static/img/logo are Copyright (c) 2022 Pumo. See the associated COPYING file for details.
+
+---
+
 MIT License
 
 Copyright (c) 2022 bd_
