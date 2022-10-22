@@ -48,6 +48,8 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public override void OnInspectorGUI()
         {
+            LogoDisplay.DisplayLogo();
+
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(prop_animator, G("merge_animator.animator"));
