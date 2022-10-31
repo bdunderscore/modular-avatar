@@ -26,6 +26,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.PackageManager.Requests;
+using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
@@ -34,26 +37,73 @@ namespace net.fushizen.modular_avatar.core.editor
     {
         static ComponentAllowlistPatch()
         {
+            try
+            {
+                PatchAllowlist();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        static void PatchAllowlist()
+        {
             // When running on non-VCC versions of the SDK, we can't reference AvatarValidation directly as it's not in
             // an assembly definition. So just search all of the assemblies for the type.
-            string typeName = "VRC.SDK3.Validation.AvatarValidation";
-            Type avatarValidationType = null;
+            var avatarValidation = FindType("VRC.SDK3.Validation.AvatarValidation");
+            var validationUtils = FindType("VRC.SDKBase.Validation.ValidationUtils");
+            if (avatarValidation == null)
+            {
+                Debug.LogError("Failed to find AvatarValidation type");
+                return;
+            }
+
+            if (validationUtils == null)
+            {
+                Debug.LogError("Failed to find ValidationUtils type");
+                return;
+            }
+
+            var getWhitelistForSDK =
+                avatarValidation.GetMethod("GetComponentWhitelist", BindingFlags.Static | BindingFlags.NonPublic);
+            var addDerivedClasses =
+                validationUtils.GetMethod("AddDerivedClasses", BindingFlags.Static | BindingFlags.NonPublic);
+
+            if (getWhitelistForSDK == null)
+            {
+                Debug.LogError("Failed to find GetWhitelistForSDK method");
+                return;
+            }
+
+            if (addDerivedClasses == null)
+            {
+                Debug.LogError("Failed to find AddDerivedClasses method");
+                return;
+            }
+
+            if (getWhitelistForSDK.Invoke(null, new object[] { }) is HashSet<Type> allowlist)
+            {
+                // The allowlist is cached, so we can inject our own type into the cached hashset (and then invoke the
+                // AddDerivedClasses method to find all derived types from the AvatarTagComponent automatically).
+                allowlist.Add(typeof(AvatarTagComponent));
+                addDerivedClasses.Invoke(null, new object[] {allowlist});
+            }
+        }
+
+        private static Type FindType(string typeName)
+        {
+            Type avatarValidation = null;
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                avatarValidationType = assembly.GetType(typeName);
-                if (avatarValidationType != null)
+                avatarValidation = assembly.GetType(typeName);
+                if (avatarValidation != null)
                 {
                     break;
                 }
             }
 
-            if (avatarValidationType == null) return;
-
-            var listField = avatarValidationType.GetField("ComponentTypeWhiteListCommon",
-                BindingFlags.Static | BindingFlags.Public);
-            var currentList = new List<string>(listField.GetValue(null) as string[]);
-            currentList.Add(typeof(AvatarTagComponent).FullName);
-            listField.SetValue(null, currentList.ToArray());
+            return avatarValidation;
         }
     }
 }

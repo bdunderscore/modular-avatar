@@ -14,7 +14,7 @@
   "dependencies": {
   },
   "vpmDependencies" : {
-    "com.vrchat.base": "3.1.x",
-    "com.vrchat.avatars": "3.1.x"
+    "com.vrchat.base": "3.1.9",
+    "com.vrchat.avatars": "3.1.9"
   }
 }
