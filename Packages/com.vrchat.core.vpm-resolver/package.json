@@ -1,7 +1,7 @@
 {
   "name": "com.vrchat.core.vpm-resolver",
   "displayName": "VRChat Package Resolver Tool",
-  "version": "0.1.15",
+  "version": "0.1.17",
   "unity": "2019.4",
   "description": "Tool to Download VPM Packages",
   "vrchatVersion": "2022.1.1",
