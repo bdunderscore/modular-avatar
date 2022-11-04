@@ -56,7 +56,7 @@ namespace net.fushizen.modular_avatar.core.editor
                 UnityEngine.Object.DestroyImmediate(mergeArmature);
             }
 
-            foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>())
+            foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var bones = renderer.bones;
                 for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], Retargetable.Ignore);
@@ -65,25 +65,25 @@ namespace net.fushizen.modular_avatar.core.editor
                 renderer.probeAnchor = MapBoneReference(renderer.probeAnchor);
             }
 
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>())
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 UpdateBoneReferences(c);
             }
 
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneCollider>())
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneCollider>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 UpdateBoneReferences(c);
             }
 
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ContactBase>())
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ContactBase>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 UpdateBoneReferences(c);
             }
 
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>())
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>(true))
             {
                 if (!AddedConstraints.Contains(c))
                 {
