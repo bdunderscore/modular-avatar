@@ -18,6 +18,7 @@ namespace net.fushizen.modular_avatar.core.editor
             var outfitArmature = outfitHips.transform.parent;
 
             var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+            merge.mergeTarget = new AvatarObjectReference();
             merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
             merge.InferPrefixSuffix();
         }
