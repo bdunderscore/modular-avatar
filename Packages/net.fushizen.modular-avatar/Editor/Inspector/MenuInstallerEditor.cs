@@ -55,11 +55,16 @@ namespace net.fushizen.modular_avatar.core.editor
 
             var installTo = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.installTargetMenu));
 
+            var isEnabled = targets.Length != 1 || ((ModularAvatarMenuInstaller) target).enabled;
+
             if (!installTo.hasMultipleDifferentValues)
             {
                 if (installTo.objectReferenceValue == null)
                 {
-                    EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+                    if (isEnabled)
+                    {
+                        EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+                    }
                 }
                 else if (!IsMenuReachable(RuntimeUtil.FindAvatarInParents(((Component) target).transform),
                              (VRCExpressionsMenu) installTo.objectReferenceValue))

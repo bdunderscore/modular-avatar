@@ -1,7 +1,7 @@
 ﻿{
   "boneproxy.foldout.advanced": "詳細設定",
   "boneproxy.target": "ターゲット",
-  "menuinstall.help.hint_set_menu": "アバターのメニューを指定すれば、このプレハブの設定を自動的に該当メニューに導入します。",
+  "menuinstall.help.hint_set_menu": "このプレハブは自動的にアバターの一番上のメニューに導入されます。不要な場合は別のメニューを指定するか、コンポーネントの有効状態を切ってください。",
   "menuinstall.help.hint_bad_menu": "選択されたメニューがアバターに紐づけされていません。",
   "menuinstall.installto": "インストール先",
   "menuinstall.installto.tooltip": "このプレハブのメニュー項目がこのメニューに追加されます。",

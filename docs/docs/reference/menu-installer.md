@@ -13,9 +13,12 @@ When you have a menu item to add!
 
 ### End-users
 
-Click "Select Menu" and double-click the menu you want to install the prefab's controls to. Done!
+By default, the prefab's menu will be installed at the top level of your avatar's action menu.
+If that's what you want, you're done! Otherwise, click "Select Menu" and double-click the menu you want to install the prefab's controls to.
 
 If the selected menu gets full, it will be automatically split into multiple pages (submenus).
+
+If you want to disable the menu installation entirely, click the disable checkbox in the upper-left of the menu installer inspector.
 
 ### Prefab developers
 

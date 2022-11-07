@@ -1,7 +1,7 @@
 ﻿{
   "boneproxy.foldout.advanced": "Advanced",
   "boneproxy.target": "Target",
-  "menuinstall.help.hint_set_menu": "Select one of your avatar's menus to automatically install controls for this prefab.",
+  "menuinstall.help.hint_set_menu": "This prefab will be installed to the root menu of your avatar by default. Select a different menu or uncheck the component's enabled checkbox to prevent this.",
   "menuinstall.help.hint_bad_menu": "Selected menu asset is not part of your avatar.",
   "menuinstall.installto": "Install To",
   "menuinstall.installto.tooltip": "The controls for this prefab will be appended to this menu",

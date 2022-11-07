@@ -150,7 +150,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
                     case ModularAvatarMenuInstaller installer:
                     {
-                        if (installer.menuToAppend != null && installer.installTargetMenu != null)
+                        if (installer.menuToAppend != null && installer.enabled)
                         {
                             ProcessMenu(ref installer.menuToAppend, remaps);
                         }
