@@ -37,5 +37,9 @@
   "merge_animator.path_mode": "Path Mode",
   "merge_animator.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_animator.match_avatar_write_defaults": "Match Avatar Write Defaults",
-  "merge_animator.match_avatar_write_defaults.tooltip": "Match the write defaults setting used on the avatar's animator. If the avatar's write defaults settings are inconsistent, the settings on the animator will be left alone."
+  "merge_animator.match_avatar_write_defaults.tooltip": "Match the write defaults setting used on the avatar's animator. If the avatar's write defaults settings are inconsistent, the settings on the animator will be left alone.",
+  "fpvisible.normal": "This object will be visible in your first person view.",
+  "fpvisible.NotUnderHead": "This component has no effect when not placed under the head bone.",
+  "fpvisible.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
+  "fpvisible.InPhysBoneChain": "This object is controlled by a Physics Bone chain and cannot be made visible in first person safely. Select the start of the chain instead."
 }
