@@ -22,7 +22,8 @@ namespace net.fushizen.modular_avatar.core.editor
         private HashSet<Transform> _activeBones = new HashSet<Transform>();
         private Transform _headBone;
 
-        private Dictionary<Transform, Transform> _proxyBones = new Dictionary<Transform, Transform>();
+        private HashSet<Transform> _visibleBones = new HashSet<Transform>();
+        private Transform _proxyHead;
 
         public FirstPersonVisibleProcessor(VRCAvatarDescriptor avatar)
         {
@@ -56,17 +57,31 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public void Process()
         {
+            bool didWork = false;
+
             foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarFirstPersonVisible>(true))
             {
-                Process(target);
+                var w = Process(target);
+                didWork = didWork || w;
+            }
+
+            if (didWork)
+            {
+                // Process meshes
+                foreach (var smr in _avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    new FirstPersonVisibleMeshProcessor(smr, _visibleBones, _proxyHead).Retarget();
+                }
             }
         }
 
-        void Process(ModularAvatarFirstPersonVisible target)
+        bool Process(ModularAvatarFirstPersonVisible target)
         {
+            bool didWork = false;
+
             if (Validate(target) == ReadyStatus.Ready)
             {
-                var proxy = CreateProxy(_headBone);
+                var proxy = CreateProxy();
 
                 var xform = target.transform;
 
@@ -75,14 +90,28 @@ namespace net.fushizen.modular_avatar.core.editor
                 xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
 
                 target.transform.SetParent(proxy, true);
+
+                didWork = true;
+            }
+
+            if (didWork)
+            {
+                foreach (var xform in target.GetComponentsInChildren<Transform>(true))
+                {
+                    _visibleBones.Add(xform);
+                }
             }
 
             Object.DestroyImmediate(target);
+
+            return didWork;
         }
 
-        private Transform CreateProxy(Transform src)
+        private Transform CreateProxy()
         {
-            if (_proxyBones.TryGetValue(src, out var proxy)) return proxy;
+            if (_proxyHead != null) return _proxyHead;
+
+            var src = _headBone;
             GameObject obj = new GameObject(src.name + " (FirstPersonVisible)");
 
             Transform parent = _headBone.parent;
@@ -103,7 +132,7 @@ namespace net.fushizen.modular_avatar.core.editor
             constraint.rotationOffsets = new[] {Vector3.zero};
             constraint.translationOffsets = new[] {Vector3.zero};
 
-            _proxyBones.Add(src, obj.transform);
+            _proxyHead = obj.transform;
 
             return obj.transform;
         }
