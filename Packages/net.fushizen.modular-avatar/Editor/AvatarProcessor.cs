@@ -109,12 +109,12 @@ namespace net.fushizen.modular_avatar.core.editor
 
             new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
             new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
-
             new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
             new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
             new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
             new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
+            new FirstPersonVisibleProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
 
             AfterProcessing?.Invoke(avatarGameObject);
 

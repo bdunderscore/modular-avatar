@@ -37,5 +37,9 @@
   "merge_animator.path_mode": "パースモード",
   "merge_animator.path_mode.tooltip": "アニメーション内のパースを解釈するモード。相対的にすると、このオブジェクトについているアニメーターでアニメーション編集できます",
   "merge_animator.match_avatar_write_defaults": "アバターのWrite Defaults設定に合わせる",
-  "merge_animator.match_avatar_write_defaults.tooltip": "アバターの該当アニメーターのWrite Defaults設定に合わせます。アバター側の設定が矛盾する場合は、統合されるアニメーターのWD値がそのまま採用されます。"
+  "merge_animator.match_avatar_write_defaults.tooltip": "アバターの該当アニメーターのWrite Defaults設定に合わせます。アバター側の設定が矛盾する場合は、統合されるアニメーターのWD値がそのまま採用されます。",
+  "fpvisible.normal": "このオブジェクトは一人視点で表示されます。",
+  "fpvisible.quest": "このコンポーネントはクエスト単体非対応のため無効化となっています。",
+  "fpvisible.NotUnderHead": "このコンポーネントはヘッドボーン外では効果がありません。",
+  "fpvisible.InPhysBoneChain": "このオブジェクトはPhysBoneに制御されているため、一人視点で表示できません。PhysBoneの始点を指定してください。"
 }
