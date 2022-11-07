@@ -12,15 +12,27 @@ namespace net.fushizen.modular_avatar.core.editor
         private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _clonedMenus;
         private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _installTargets;
 
+        private VRCExpressionsMenu _rootMenu;
+
         public void OnPreprocessAvatar(GameObject avatarRoot)
         {
-            var menuInstallers = avatarRoot.GetComponentsInChildren<ModularAvatarMenuInstaller>(true);
+            var menuInstallers = avatarRoot.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
+                .Where(c => c.enabled)
+                .ToArray();
             if (menuInstallers.Length == 0) return;
 
             _clonedMenus = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
 
             var avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
 
+            if (avatar.expressionsMenu == null)
+            {
+                var menu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                AssetDatabase.CreateAsset(menu, Util.GenerateAssetPath());
+                avatar.expressionsMenu = menu;
+            }
+
+            _rootMenu = avatar.expressionsMenu;
             avatar.expressionsMenu = CloneMenu(avatar.expressionsMenu);
             _installTargets = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>(_clonedMenus);
 
@@ -32,6 +44,13 @@ namespace net.fushizen.modular_avatar.core.editor
 
         private void InstallMenu(ModularAvatarMenuInstaller installer)
         {
+            if (!installer.enabled) return;
+
+            if (installer.installTargetMenu == null)
+            {
+                installer.installTargetMenu = _rootMenu;
+            }
+
             if (installer.installTargetMenu == null || installer.menuToAppend == null) return;
             if (!_installTargets.TryGetValue(installer.installTargetMenu, out var targetMenu)) return;
             if (_installTargets.ContainsKey(installer.menuToAppend)) return;

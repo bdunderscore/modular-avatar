@@ -1,4 +1,6 @@
-﻿using VRC.SDK3.Avatars.ScriptableObjects;
+﻿using UnityEngine;
+using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace net.fushizen.modular_avatar.core
 {
@@ -6,5 +8,12 @@ namespace net.fushizen.modular_avatar.core
     {
         public VRCExpressionsMenu menuToAppend;
         public VRCExpressionsMenu installTargetMenu;
+
+
+        // ReSharper disable once Unity.RedundantEventFunction
+        void Start()
+        {
+            // Ensure that unity generates an enable checkbox
+        }
     }
 }
