@@ -32,7 +32,7 @@ namespace net.fushizen.modular_avatar.core
 
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     [DisallowMultipleComponent]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ModularAvatarBlendshapeSync : AvatarTagComponent
     {
         public List<BlendshapeBinding> Bindings = new List<BlendshapeBinding>();
@@ -94,6 +94,8 @@ namespace net.fushizen.modular_avatar.core
                     LocalBlendshapeIndex = localIndex
                 });
             }
+
+            Update();
         }
 
         private void Update()
