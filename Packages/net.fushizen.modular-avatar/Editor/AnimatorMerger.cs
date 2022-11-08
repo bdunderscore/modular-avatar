@@ -28,6 +28,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
@@ -47,6 +48,8 @@ namespace net.fushizen.modular_avatar.core.editor
         private Dictionary<KeyValuePair<String, AnimatorStateMachine>, AnimatorStateMachine> _stateMachines =
             new Dictionary<KeyValuePair<string, AnimatorStateMachine>, AnimatorStateMachine>();
 
+        private int controllerBaseLayer = 0;
+
         public AnimatorCombiner()
         {
             _combined = Util.CreateAnimator();
@@ -61,6 +64,8 @@ namespace net.fushizen.modular_avatar.core.editor
 
         public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
         {
+            controllerBaseLayer = _layers.Count;
+
             foreach (var param in controller.parameters)
             {
                 if (_parameters.TryGetValue(param.name, out var acp))
@@ -135,6 +140,23 @@ namespace net.fushizen.modular_avatar.core.editor
             }
 
             asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath));
+
+            foreach (var state in asm.states)
+            {
+                foreach (var behavior in state.state.behaviours)
+                {
+                    switch (behavior)
+                    {
+                        case VRCAnimatorLayerControl layerControl:
+                        {
+                            // TODO - need to figure out how to handle cross-layer references. For now this will handle
+                            // intra-animator cases.
+                            layerControl.layer += controllerBaseLayer;
+                            break;
+                        }
+                    }
+                }
+            }
 
             _stateMachines[cacheKey] = asm;
             return asm;
