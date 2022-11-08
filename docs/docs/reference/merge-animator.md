@@ -41,3 +41,11 @@ This means you will need to record your animations using the avatar's root anima
 
 By default, the write defaults state of your animator will not be changed. If you want to ensure that the WD settings of your animator states always matches the avatar's animator, click "Match Avatar Write Defaults".
 This will detect whether the avatar is using write defaults ON or OFF states consistently, and if so your animator will be adjusted to match. If the avatar is inconsistent in its use of write defaults, your animator will be unchanged.
+
+## Limitations
+
+### VRCAnimatorLayerControl
+
+Currently, Merge Animator only supports VRCAnimatorLayerControl state behaviors which reference layers within the same animator.
+If you intend to use this support, ensure the `Playable` field matches the layer set on the Merge Animator component, and set the `Layer`
+field to be the index of the layer within your animator.
