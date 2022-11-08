@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
@@ -212,10 +213,48 @@ namespace net.fushizen.modular_avatar.core.editor
 
             foreach (var parameter in controller.parameters)
             {
-                if (VRCSDKParameters.Contains(parameter.name)) continue;
+                AddDetectedParameter(parameter.name);
+            }
+
+            HashSet<AnimatorStateMachine> visitedStateMachines = new HashSet<AnimatorStateMachine>();
+            Queue<AnimatorStateMachine> stateMachines =
+                new Queue<AnimatorStateMachine>(controller.layers.Select(l => l.stateMachine));
+
+            while (stateMachines.Count > 0)
+            {
+                var sm = stateMachines.Dequeue();
+                if (visitedStateMachines.Contains(sm)) continue;
+                visitedStateMachines.Add(sm);
+
+                foreach (var subStateMachine in sm.stateMachines)
+                {
+                    stateMachines.Enqueue(subStateMachine.stateMachine);
+                }
+
+                foreach (var state in sm.states)
+                {
+                    foreach (var behavior in state.state.behaviours)
+                    {
+                        if (behavior is VRCAvatarParameterDriver driver)
+                        {
+                            foreach (var p in driver.parameters)
+                            {
+                                AddDetectedParameter(p.name);
+                                AddDetectedParameter(p.source);
+                                AddDetectedParameter(p.destParam as string);
+                                AddDetectedParameter(p.sourceParam as string);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void AddDetectedParameter(string parameterName)
+            {
+                if (string.IsNullOrEmpty(parameterName) || VRCSDKParameters.Contains(parameterName)) return;
                 var param = new DetectedParameter()
                 {
-                    OriginalName = parameter.name,
+                    OriginalName = parameterName,
                     IsPrefix = false
                 };
                 parameters[param.MapKey] = param;
