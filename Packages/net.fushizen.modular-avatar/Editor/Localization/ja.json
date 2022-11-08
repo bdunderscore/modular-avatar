@@ -41,5 +41,8 @@
   "fpvisible.normal": "このオブジェクトは一人視点で表示されます。",
   "fpvisible.quest": "このコンポーネントはクエスト単体非対応のため無効化となっています。",
   "fpvisible.NotUnderHead": "このコンポーネントはヘッドボーン外では効果がありません。",
-  "fpvisible.InPhysBoneChain": "このオブジェクトはPhysBoneに制御されているため、一人視点で表示できません。PhysBoneの始点を指定してください。"
+  "fpvisible.InPhysBoneChain": "このオブジェクトはPhysBoneに制御されているため、一人視点で表示できません。PhysBoneの始点を指定してください。",
+  "blendshape.mesh": "メッシュ",
+  "blendshape.source": "元メッシュのブレンドシェープ",
+  "blendshape.target": "このメッシュのブレンドシェープ"
 }

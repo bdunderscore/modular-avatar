@@ -9,6 +9,7 @@ namespace net.fushizen.modular_avatar.core
     {
         public AvatarObjectReference ReferenceMesh;
         public string Blendshape;
+        public string LocalBlendshape;
 
         public bool Equals(BlendshapeBinding other)
         {
@@ -82,7 +83,10 @@ namespace net.fushizen.modular_avatar.core
                 if (mesh == null)
                     continue;
 
-                var localIndex = localMesh.GetBlendShapeIndex(binding.Blendshape);
+                var localShape = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
+                    ? binding.Blendshape
+                    : binding.LocalBlendshape;
+                var localIndex = localMesh.GetBlendShapeIndex(localShape);
                 var refIndex = mesh.GetBlendShapeIndex(binding.Blendshape);
                 if (localIndex == -1 || refIndex == -1)
                     continue;

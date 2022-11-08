@@ -41,5 +41,8 @@
   "fpvisible.normal": "This object will be visible in your first person view.",
   "fpvisible.NotUnderHead": "This component has no effect when not placed under the head bone.",
   "fpvisible.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
-  "fpvisible.InPhysBoneChain": "This object is controlled by a Physics Bone chain and cannot be made visible in first person safely. Select the start of the chain instead."
+  "fpvisible.InPhysBoneChain": "This object is controlled by a Physics Bone chain and cannot be made visible in first person safely. Select the start of the chain instead.",
+  "blendshape.mesh": "Mesh",
+  "blendshape.source": "Source blendshape",
+  "blendshape.target": "Target blendshape"
 }
