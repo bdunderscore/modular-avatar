@@ -35,8 +35,8 @@ namespace net.fushizen.modular_avatar.core
     [DisallowMultipleComponent]
     public class ModularAvatarMergeArmature : AvatarTagComponent
     {
-        private const float POS_EPSILON = 0.01f;
-        private const float ROT_EPSILON = 0.01f;
+        private const float POS_EPSILON = 0.001f * 0.001f;
+        private const float ROT_EPSILON = 0.001f * 0.001f;
 
         public AvatarObjectReference mergeTarget;
         public GameObject mergeTargetObject => mergeTarget.Get(this);
@@ -86,12 +86,17 @@ namespace net.fushizen.modular_avatar.core
 
         void EditorUpdate()
         {
-            if (this == null || lockedBones == null)
+            if (this == null)
             {
 #if UNITY_EDITOR
                 EditorApplication.update -= EditorUpdate;
 #endif
                 return;
+            }
+
+            if (!locked || lockedBones == null)
+            {
+                CheckLock();
             }
 
             if (lockedBones != null)
@@ -158,6 +163,8 @@ namespace net.fushizen.modular_avatar.core
                     {
                         Transform baseObject = FindCorresponding(xform);
 
+                        if (baseObject == null) continue;
+
                         lockedBones.Add(new BoneBinding()
                         {
                             baseBone = baseObject,
@@ -171,7 +178,7 @@ namespace net.fushizen.modular_avatar.core
             }
 
 #if UNITY_EDITOR
-            if (locked)
+            if (shouldLock)
             {
                 EditorApplication.update += EditorUpdate;
             }
