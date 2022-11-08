@@ -30,8 +30,7 @@ namespace net.fushizen.modular_avatar.core.editor
 {
     public static class PathMappings
     {
-        private static SortedDictionary<string, MappingEntry> Mappings = new SortedDictionary<string, MappingEntry>();
-        private static List<string> CachedMappingKeys = null;
+        private static List<(string, MappingEntry)> Mappings = new List<(string, MappingEntry)>();
 
         public struct MappingEntry
         {
@@ -43,33 +42,30 @@ namespace net.fushizen.modular_avatar.core.editor
                 return isTransformMapping ? transformPath : path;
             }
         }
-        
+
         internal static void Clear()
         {
             Mappings.Clear();
-            CachedMappingKeys = null;
         }
 
         internal static void Remap(string from, MappingEntry to)
         {
-            Mappings[from] = to;
-            CachedMappingKeys = null;
+            Mappings.Add((from, to));
         }
 
         internal static string MapPath(string path, bool isTransformMapping = false)
         {
-            if (CachedMappingKeys == null) CachedMappingKeys = new List<string>(Mappings.Keys);
-            var bsResult = CachedMappingKeys.BinarySearch(path);
-            if (bsResult >= 0) return Mappings[path].Get(isTransformMapping);
-
-            int index = ~bsResult;
-            if (index == 0) return path;
-
-            var priorKey = CachedMappingKeys[index - 1];
-            if (path.StartsWith(priorKey + "/"))
+            foreach (var (src, mapping) in Mappings)
             {
-                return Mappings[priorKey].Get(isTransformMapping) + path.Substring(priorKey.Length);
+                if (path == src || path.StartsWith(src + "/"))
+                {
+                    var suffix = path.Substring(src.Length);
+                    path = mapping.Get(isTransformMapping) + suffix;
+
+                    // Continue processing subsequent remappings
+                }
             }
+
             return path;
         }
     }
