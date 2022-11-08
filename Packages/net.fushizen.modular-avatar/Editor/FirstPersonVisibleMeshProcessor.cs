@@ -56,15 +56,7 @@ namespace net.fushizen.modular_avatar.core.editor
             AnalyzeManifolds();
             // Bail out early if the bones are unused
             if (!anyVisible) return;
-/*
-            var vcol = new List<Color>();
-            for (int v = 0; v < vertexCount; v++)
-            {
-                var n = nodes[v].Find();
-                //vcol.Add(new Color((byte) (nodes[v].HasRetargetedBone ? 1 : 0), (byte) (nodes[v].HasVisibleBone ? 1 : 0), nodes[v].b, 1));
-                vcol.Add(new Color(n.HasRetargetedBone ? 1 : 0, n.HasVisibleBone ? 1 : 0, 0, 1));
-            }
-*/
+
             // Now construct a new bone weight array
             var bindposes = new List<Matrix4x4>();
             originalMesh.GetBindposes(bindposes);
@@ -98,7 +90,6 @@ namespace net.fushizen.modular_avatar.core.editor
                         int newIndex = RemapBone(weight.boneIndex);
                         weight.boneIndex = newIndex;
                         newWeights.Add(weight);
-                        //vcol[v] = vcol[v] + Color.blue;
                     }
                 }
 
@@ -187,23 +178,6 @@ namespace net.fushizen.modular_avatar.core.editor
                         nodes[indices[t]].Union(nodes[indices[t + 1]]);
                         nodes[indices[t]].Union(nodes[indices[t + 2]]);
                     }
-                }
-
-                HashSet<ManifoldNode> roots = new HashSet<ManifoldNode>();
-
-                for (int i = 0; i < vertexCount; i++)
-                {
-                    var root = nodes[i].Find();
-                    roots.Add(root);
-                }
-
-                Debug.Log("=== " + originalMesh.name + " ===");
-                int index = 0;
-                foreach (var r in roots.OrderByDescending(r => r.Rank))
-                {
-                    Debug.Log("Root: " + r.Rank + " rank" + (r.HasVisibleBone ? " visible" : "") +
-                              (r.HasRetargetedBone ? " retargeted" : ""));
-                    r.b = index++ / (float) roots.Count;
                 }
             }
         }
