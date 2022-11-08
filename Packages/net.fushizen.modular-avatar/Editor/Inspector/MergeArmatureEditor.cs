@@ -33,6 +33,7 @@ namespace net.fushizen.modular_avatar.core.editor
         public override void OnInspectorGUI()
         {
             LogoDisplay.DisplayLogo();
+            InspectorCommon.DisplayOutOfAvatarWarning(targets);
 
             var target = (ModularAvatarMergeArmature) this.target;
             var priorMergeTarget = target.mergeTargetObject;

@@ -21,6 +21,10 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             var target = (ModularAvatarFirstPersonVisible) this.target;
 
+            LogoDisplay.DisplayLogo();
+
+            InspectorCommon.DisplayOutOfAvatarWarning(targets);
+
 #if UNITY_ANDROID
             EditorGUILayout.HelpBox(Localization.S("fpvisible.quest"), MessageType.Warning);
 

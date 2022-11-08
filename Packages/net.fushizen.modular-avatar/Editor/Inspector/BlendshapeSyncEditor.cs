@@ -246,6 +246,8 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             LogoDisplay.DisplayLogo();
 
+            InspectorCommon.DisplayOutOfAvatarWarning(targets);
+
             serializedObject.Update();
 
             _list.DoLayoutList();

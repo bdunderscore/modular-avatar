@@ -413,7 +413,8 @@ namespace net.fushizen.modular_avatar.core.editor
         public override void OnInspectorGUI()
         {
             LogoDisplay.DisplayLogo();
-            
+            InspectorCommon.DisplayOutOfAvatarWarning(targets);
+
             EditorGUI.BeginChangeCheck();
             _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();

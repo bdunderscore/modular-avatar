@@ -29,7 +29,8 @@ namespace net.fushizen.modular_avatar.core.editor
         public override void OnInspectorGUI()
         {
             LogoDisplay.DisplayLogo();
-            
+            InspectorCommon.DisplayOutOfAvatarWarning(targets);
+
             GameObject parentAvatar = null;
 
             bool suppressTarget = false;

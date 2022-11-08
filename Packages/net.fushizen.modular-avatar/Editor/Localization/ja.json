@@ -44,5 +44,6 @@
   "fpvisible.InPhysBoneChain": "このオブジェクトはPhysBoneに制御されているため、一人視点で表示できません。PhysBoneの始点を指定してください。",
   "blendshape.mesh": "メッシュ",
   "blendshape.source": "元メッシュのブレンドシェープ",
-  "blendshape.target": "このメッシュのブレンドシェープ"
+  "blendshape.target": "このメッシュのブレンドシェープ",
+  "hint.not_in_avatar": "このコンポーネントが正しく動作するには、アバター内に配置する必要があります。"
 }

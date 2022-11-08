@@ -44,5 +44,6 @@
   "fpvisible.InPhysBoneChain": "This object is controlled by a Physics Bone chain and cannot be made visible in first person safely. Select the start of the chain instead.",
   "blendshape.mesh": "Mesh",
   "blendshape.source": "Source blendshape",
-  "blendshape.target": "Target blendshape"
+  "blendshape.target": "Target blendshape",
+  "hint.not_in_avatar": "This component needs to be placed inside your avatar to work properly."
 }
