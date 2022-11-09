@@ -12,7 +12,7 @@ const config = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo/ma_logo.png',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -54,7 +54,7 @@ const config = {
         title: 'Modular Avatar documentation',
         logo: {
           alt: 'Logo',
-          src: 'img/logo.svg',
+          src: 'img/logo/ma_logo.png',
         },
         items: [
           {
