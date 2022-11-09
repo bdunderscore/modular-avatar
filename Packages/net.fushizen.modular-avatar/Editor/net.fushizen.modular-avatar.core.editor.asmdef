@@ -1,8 +1,10 @@
 {
     "name": "net.fushizen.modular-avatar.core.editor",
     "references": [
-        "GUID:fc900867c0f47cd49b6e2ae4ef907300",
-        "GUID:5718fb738711cd34ea54e9553040911d"
+      "GUID:fc900867c0f47cd49b6e2ae4ef907300",
+      "GUID:5718fb738711cd34ea54e9553040911d",
+      "GUID:6e9c6119ac4eb334284fb7b4bc6d1f05",
+      "GUID:b906909fcc54f634db50f2cad0f988d9"
     ],
     "includePlatforms": [
         "Editor"

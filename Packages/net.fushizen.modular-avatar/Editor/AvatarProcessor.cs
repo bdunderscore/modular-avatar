@@ -27,7 +27,9 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Editor;
 using VRC.SDKBase.Editor.BuildPipeline;
+using VRC.SDKBase.Validation.Performance.Stats;
 using Object = UnityEngine.Object;
 
 namespace net.fushizen.modular_avatar.core.editor
@@ -122,6 +124,15 @@ namespace net.fushizen.modular_avatar.core.editor
             {
                 UnityEngine.Object.DestroyImmediate(component);
             }
+
+            // The VRCSDK captures some debug information about animators as part of the build process, prior to invoking
+            // hooks. For some reason this happens in the ValidateFeatures call on the SDK builder. Reinvoke it to
+            // refresh this debug info.
+            var avatar = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+            var animator = avatarGameObject.GetComponent<Animator>();
+            var builder = new VRCSdkControlPanelAvatarBuilder3A();
+            builder.RegisterBuilder(ScriptableObject.CreateInstance<VRCSdkControlPanel>());
+            builder.ValidateFeatures(avatar, animator, new AvatarPerformanceStats(false));
         }
     }
 }
