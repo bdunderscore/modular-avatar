@@ -4,26 +4,23 @@ sidebar_position: 1
 
 # Modular Avatar
 
-Modular Avatar is a suite of **non-destructive** tools for modularizing your avatars, and for distributing avatar
-components.
-With Modular Avatar, adding a new outfit or gimmick to your avatar is as easy as drag-and-drop!
+Modular Avatar（モデュラーアバター）は、**非破壊的な**アバター製作用、そしてアバター部品の配布補助ツールの集まりです。
+Modular Avatarを使えば、ドラッグアンドドロップだけでアバターに新しい衣装やギミックを導入できます！
 
-Modular Avatar's features are packaged as individual components, which can be added as needed. You can opt-in to just the features
-you want to use. It can automatically merge outfits onto your avatar, build an animator out of multiple components, and much more.
+Modular Avatarの機能はそれぞれコンポーネントとして提供され、必要に応じて必要な機能だけ追加できます。自動的に衣装を統合したり、複数のアセットからアニメーターを構築したり、様々な面で製作を補助します。
 
 :::caution
 
-Modular Avatar is still in development, and is not yet ready for production use. Backwards-incompatible changes may
-be made prior to version 1.0. As such, it is not recommended to distribute prefabs based on Modular Avatar until the
-1.0 release.
+Modular Avatarは開発途中であり、まだ本格運用が非推奨です。1.0までは互換性が補助されない変更が入る可能性があります。Modular Avatarを応用したプレハブの配布は
+1.0まで待つことをお勧めします。
 
 :::
 
-To install Modular Avatar, download and import the `unitypackage` file from the "Assets" section on [the latest release](https://github.com/bdunderscore/modular-avatar/releases).
+Modular Avatarをインストールするには、[最新リリース]のAssets項目から`unitypackage`ファイルをダウンロードして、インポートしてください。
 
-Then, check out one of the tutorials below:
-* [Simple clothing setup](tutorials/clothing)
+その後の手順に関しては以下のチュートリアルを見てください
+* [簡単な衣装セットアップ](tutorials/clothing)
 
-You can also check out some of the [detailed reference documentation](reference) on individual components.
+コンポーネントごとの[詳細ドキュメンテーション](reference)もあります。
 
-Finally, if you are developing your own prefabs using Modular Avatar, check out the [page on prefab distribution](distributing-prefabs).
+また、Modular Avatarを応用したアセットを開発する場合は、[アセット配布のアドバイス](distributing-prefabs)もご確認ください。

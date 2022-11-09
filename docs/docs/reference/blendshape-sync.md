@@ -18,7 +18,7 @@ This can also be useful in base avatars as well - to sync up blendshapes between
 
 Blendshape Sync always copies the same value from one renderer's blendshape to another. If the scale or animation curves need to be different, then it will not work properly.
 
-Blendshape Sync does not support copying values where the blendshape name isn't exactly the same on both renderers.
+Blendshape Sync cannot be chained - that is, you can copy from A to B and A to C, but you can't copy from A to B and B to C.
 
 ## Setting up Blendshape Sync
 
