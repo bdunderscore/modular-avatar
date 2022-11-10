@@ -11,13 +11,13 @@ namespace net.fushizen.modular_avatar.core.editor
     /// want to make visible in the first-person view. To handle this case, we must retarget those meshes to use our
     /// proxy head bone instead.
     /// </summary>
-    internal class FirstPersonVisibleMeshProcessor
+    internal class VisibleHeadAccessoryMeshProcessor
     {
         private SkinnedMeshRenderer _renderer;
         private HashSet<Transform> _visibleBones;
         private Transform _proxyHead;
 
-        public FirstPersonVisibleMeshProcessor(
+        public VisibleHeadAccessoryMeshProcessor(
             SkinnedMeshRenderer renderer,
             HashSet<Transform> visibleBones,
             Transform proxyHead

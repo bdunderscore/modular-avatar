@@ -1,6 +1,6 @@
-# First Person Visible
+# Visible Head Accessory
 
-![First person visible component](first-person-visible.png)
+![Visible Head Accessory component](visible-head-accessory.png)
 
 This component can be used to make a GameObject placed under the Head bone visible in first-person view.
 
@@ -16,9 +16,9 @@ Using this component on _all_ children of the Head can be distracting, as your b
 
 Finally, the processing involved in this component is somewhat heavyweight, and may result in slower build times.
 
-## Setting up First Person Visible
+## Setting up Visible Head Accessory
 
-Just attach a First Person Visible component under a child of the Head bone. There are no configuration options to set.
+Just attach a Visible Head Accessory component under a child of the Head bone. There are no configuration options to set.
 
 The component will automatically generate a clone of the Head bone, which is connected to the real head bone using a parent constraint.
 Only one constraint will be generated, even if multiple First Person Visible components are used. As such, the performance impact of this component is the same whether you use one or dozens.

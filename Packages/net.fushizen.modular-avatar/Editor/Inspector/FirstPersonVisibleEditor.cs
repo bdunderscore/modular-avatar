@@ -4,22 +4,22 @@ using UnityEngine;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    [CustomEditor(typeof(ModularAvatarFirstPersonVisible))]
+    [CustomEditor(typeof(ModularAvatarVisibleHeadAccessory))]
     public class FirstPersonVisibleEditor : Editor
     {
-        private FirstPersonVisibleProcessor _processor;
+        private VisibleHeadAccessoryProcessor _processor;
 
         private void OnEnable()
         {
-            var target = (ModularAvatarFirstPersonVisible) this.target;
+            var target = (ModularAvatarVisibleHeadAccessory) this.target;
             var avatar = RuntimeUtil.FindAvatarInParents(target.transform);
 
-            if (avatar != null) _processor = new FirstPersonVisibleProcessor(avatar);
+            if (avatar != null) _processor = new VisibleHeadAccessoryProcessor(avatar);
         }
 
         public override void OnInspectorGUI()
         {
-            var target = (ModularAvatarFirstPersonVisible) this.target;
+            var target = (ModularAvatarVisibleHeadAccessory) this.target;
 
             LogoDisplay.DisplayLogo();
 
@@ -36,8 +36,8 @@ namespace net.fushizen.modular_avatar.core.editor
 
                 switch (status)
                 {
-                    case FirstPersonVisibleProcessor.ReadyStatus.Ready:
-                    case FirstPersonVisibleProcessor.ReadyStatus.ParentMarked:
+                    case VisibleHeadAccessoryProcessor.ReadyStatus.Ready:
+                    case VisibleHeadAccessoryProcessor.ReadyStatus.ParentMarked:
                         EditorGUILayout.HelpBox(Localization.S("fpvisible.normal"), MessageType.Info);
                         break;
                     default:

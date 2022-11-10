@@ -6,7 +6,7 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace net.fushizen.modular_avatar.core.editor
 {
-    internal class FirstPersonVisibleProcessor
+    internal class VisibleHeadAccessoryProcessor
     {
         private const double EPSILON = 0.01;
 
@@ -25,7 +25,7 @@ namespace net.fushizen.modular_avatar.core.editor
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
         private Transform _proxyHead;
 
-        public FirstPersonVisibleProcessor(VRCAvatarDescriptor avatar)
+        public VisibleHeadAccessoryProcessor(VRCAvatarDescriptor avatar)
         {
             _avatar = avatar;
 
@@ -59,7 +59,7 @@ namespace net.fushizen.modular_avatar.core.editor
         {
             bool didWork = false;
 
-            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarFirstPersonVisible>(true))
+            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
             {
                 var w = Process(target);
                 didWork = didWork || w;
@@ -70,12 +70,12 @@ namespace net.fushizen.modular_avatar.core.editor
                 // Process meshes
                 foreach (var smr in _avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
-                    new FirstPersonVisibleMeshProcessor(smr, _visibleBones, _proxyHead).Retarget();
+                    new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget();
                 }
             }
         }
 
-        bool Process(ModularAvatarFirstPersonVisible target)
+        bool Process(ModularAvatarVisibleHeadAccessory target)
         {
             bool didWork = false;
 
@@ -144,7 +144,7 @@ namespace net.fushizen.modular_avatar.core.editor
             return obj.transform;
         }
 
-        internal ReadyStatus Validate(ModularAvatarFirstPersonVisible target)
+        internal ReadyStatus Validate(ModularAvatarVisibleHeadAccessory target)
         {
             ReadyStatus status = ReadyStatus.NotUnderHead;
             Transform node = target.transform.parent;
@@ -153,7 +153,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
             while (node != null)
             {
-                if (node.GetComponent<ModularAvatarFirstPersonVisible>()) return ReadyStatus.ParentMarked;
+                if (node.GetComponent<ModularAvatarVisibleHeadAccessory>()) return ReadyStatus.ParentMarked;
                 if (_activeBones.Contains(node)) return ReadyStatus.InPhysBoneChain;
 
                 if (node == _headBone)

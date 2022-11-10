@@ -1,4 +1,4 @@
-# First Person Visible
+# Visible Head Accessory
 
 ![First person visible component](first-person-visible.png)
 

@@ -114,7 +114,7 @@ namespace net.fushizen.modular_avatar.core.editor
             new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
             new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-            new FirstPersonVisibleProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
+            new VisibleHeadAccessoryProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
             new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
             new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
 
