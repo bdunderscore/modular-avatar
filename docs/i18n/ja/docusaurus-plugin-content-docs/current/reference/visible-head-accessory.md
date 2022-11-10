@@ -1,26 +1,26 @@
 # Visible Head Accessory
 
-![First person visible component](first-person-visible.png)
+![Visible Head Accessory component](visible-head-accessory.png)
 
-This component can be used to make a GameObject placed under the Head bone visible in first-person view.
+このコンポーネントを付けることで、Head以下のGameObjectが一人視点で表示されるようにできます。
 
-## When should I use it?
+## いつ使うもの？
 
-When you want to see your own hair, or other accessories attached to your head, without needing to look in a mirror.
+自分の髪の毛や、その他頭に追従するアクセサリーをミラー等を使わなくても見れるように死体とき。
 
-## When shouldn't I use it?
+## 非推奨の場合
 
-This component cannot be used as the child of a PhysBone chain (you can add it in the parent instead).
+このコンポーネントはPhysBonesで操作されたオブジェクトの子では使えません（ルートには使えます）
 
-Using this component on _all_ children of the Head can be distracting, as your bangs continually get in the way.
+Head以下のすべての子で使うと、前髪が邪魔になることがあるので要注意。
 
-Finally, the processing involved in this component is somewhat heavyweight, and may result in slower build times.
+また、このコンポーネントは処理が若干重いので、ビルド処理が数秒伸びることがあります。
 
-## Setting up First Person Visible
+## セットアップ方法
 
-Just attach a First Person Visible component under a child of the Head bone. There are no configuration options to set.
+Headボーンの子にVisible Head Accessoryコンポーネントを付けるだけです。設定はありません。
 
-The component will automatically generate a clone of the Head bone, which is connected to the real head bone using a parent constraint.
-Only one constraint will be generated, even if multiple First Person Visible components are used. As such, the performance impact of this component is the same whether you use one or dozens.
+このコンポーネントは自動的にHeadボーンを複製し、Parent Constraintで本物のHeadボーンに追従させます。
+複数のVisible Head Accessoryコンポーネントを使っても、Constraintは一つだけです。なので、複数のボーンを指定しても、その分重くなることはありません。
 
-Due to technical limitations on the Quest, this component has no effect when building for Quest standalone.
+技術的な制約により、Quest単体では動作できません。Quest向けのビルドはつけたままにしてもいいが、効果は発揮しません。

@@ -2,28 +2,27 @@
 
 ![Bone Proxy](bone-proxy-compare.png)
 
-The Bone Proxy allows you to place objects from your prefab inside of objects that are part of the original avatar.
-For example, in the [Clap sample](../samples/#clap), this is used to place contacts inside the avatar's hands.
+Bone Proxyを使うことで、プレハブ化したオブジェクトを元のアバターのボーンの中に配置することができます。
+たとえば、[Clapサンプル](../samples/#clap)では、アバターの手の中にオブジェクトを配置するために使います。
 
-Bone Proxy will also adjust any animators referencing the old location of the objects so that they reference the
-new paths after the objects are moved.
+Bone Proxyは同時に元の位置を指定するアニメーターを調整し、移動先のパスを指定するように変更します。
 
-## When should I use it?
+## いつ使うもの？
 
-Bone Proxy should be used when you have objects that you want to place inside of existing objects inside the avatar.
+アバターの既存オブジェクトの中に物を配置したい時に使います。
 
-## When shouldn't I use it?
+## 非推奨の場合
 
-Bone Proxy isn't intended to be used to configure clothing. Try using [Merge Armature](merge-armature.md) instead.
+Bone Proxyは衣装向けのものではありません。代わりに[Merge Armature](merge-armature.md)を使いましょう。
 
-## Setting up Bone Proxy
+## セットアップ方法
 
-Add the Bone Proxy component to an object in your prefab, and drag the destination of this object to the "Target" field.
-The Bone Proxy-annotated object will then be placed inside the target object.
+Bone Proxyコンポーネントをプレハブの中のオブジェクトに追加して、移動先オブジェクトをターゲットにドラッグアンドドロップ。
+指定した移動先オブジェクトに移動させられます。
 
-### Usage in prefabs
+### プレハブでの仕様
 
-The Bone Proxy component automatically translates the object you specify into a humanoid bone and relative path reference.
-This ensures that it can restore this reference automatically after it is saved in a prefab.
+指定したオブジェクトを元に、自動的にヒューマノイドボーンとその先の相対パスに変換するため、
+プレハブとして保存してもオブジェクトの引用を復元できます。
 
-If you want to adjust the internal references, you can see them in the Advanced foldout.
+内部設定を直接いじりたい場合は詳細設定を開いてください。

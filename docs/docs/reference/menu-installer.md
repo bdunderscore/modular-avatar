@@ -1,7 +1,6 @@
 ﻿# Menu Installer
 
 The Modular Avatar Menu Installer allows you to easily add menu items to the avatar's expressions menu.
-Unlike the other components, it is not fully automatic, and requires the end-user to select which menu to install to.
 
 ![Menu Installer](menu-installer.png)
 

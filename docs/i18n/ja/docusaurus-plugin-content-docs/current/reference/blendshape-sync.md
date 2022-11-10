@@ -8,7 +8,7 @@ Blendshape Syncコンポーネントは、指定したレンダラーのBlendsha
 
 <ReactPlayer controls muted loop playsinline url='/img/blendshape-sync.mp4' />
 
-## いつ使うものですか？
+## いつ使うもの？
 
 アバターに体格を変えるブレンドシェープがある場合が多いです。そのようなアバターの衣装を製作、または導入していて、衣装にも同じ体格調整Blendshapeがある場合はBlendshape Syncの導入をお勧めします。
 

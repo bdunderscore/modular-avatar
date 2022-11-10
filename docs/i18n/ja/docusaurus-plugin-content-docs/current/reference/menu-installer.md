@@ -1,29 +1,28 @@
 ﻿# Menu Installer
 
-The Modular Avatar Menu Installer allows you to easily add menu items to the avatar's expressions menu.
-Unlike the other components, it is not fully automatic, and requires the end-user to select which menu to install to.
+Menu Installerコンポーネントを使えば、アバターのエクスプレッションメニューに自動的に項目を追加することができます。
 
 ![Menu Installer](menu-installer.png)
 
-## When should I use it?
+## いつ使うか
 
-When you have a menu item to add!
+メニューに何かを追加したいとき！
 
-## How do I use it?
+## 使い方
 
-### End-users
+### アセットユーザー
 
-By default, the prefab's menu will be installed at the top level of your avatar's action menu.
-If that's what you want, you're done! Otherwise, click "Select Menu" and double-click the menu you want to install the prefab's controls to.
+何もしなくても、プレハブのメニューがアバターのアクションメニューの一番上に導入されます。
+それでいいなら、何もしなくても大丈夫です！場所を変えたい場合は「メニューを選択」を押して、インストールしたい場所をダブルクリック。
 
-If the selected menu gets full, it will be automatically split into multiple pages (submenus).
+メニューがいっぱいになった場合は、自動的にサブメニューが生成されます。
 
-If you want to disable the menu installation entirely, click the disable checkbox in the upper-left of the menu installer inspector.
+インストールしないでほしい場合は、左上のチェックを外せば、インストールされなくなります。
 
-### Prefab developers
+### プレハブ開発者向け
 
-First, create an expressions menu with the controls you want to add. This menu will be _appended_ to a selected submenu of the avatar's Expressions Menu tree.
-As such, if you want a submenu of your own, you will need to create two menu assets: One for the submenu control, and one for the inner menu itself.
+まずは、追加したいコントロールを含んだExpressions Menuアセットを生成してください。インストール先のメニューに**統合**されます。
+なので、サブメニューとして入れたいなら、そのサブメニューのほかに、サブメニューコントロールだけが入った追加用メニューアセットも作ってください。
 
-Add a Menu Installer component to your prefab, at the same level as your [Parameters](parameters.md) component.
-Then, open the Prefab Developer Options tag, and add the desired menu to "Menu to install". Done!
+プレハブに、[Parameters](parameters.md)コンポーネントと同じオブジェクトにMenu Installerを追加してください。
+プレハブ開発者向け設定を開き、「インストールされるメニュー」に追加したいメニューを追加してください。
