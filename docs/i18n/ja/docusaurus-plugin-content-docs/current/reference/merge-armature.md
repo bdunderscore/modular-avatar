@@ -1,44 +1,47 @@
 ﻿# Merge Armature
 
-The Merge Armature component merges a tree of GameObjects onto the armature of the avatar.
+Merge Armatureコンポーネントは、GameObjectのツリーをアバターのアーマチュアに統合するコンポーネントです。
 
 ![Merge Armature](merge-armature.png)
 
-## When should I use it?
+## いつ使うもの？
 
-The Merge Armature component is designed specifically for clothing prefabs, and includes special logic for updating existing Skinned Mesh Renderer references and minimizing the number of generated bones. You should use it if you intend to create a skinned mesh which tracks the avatar's armature.
+Merge Armatureは衣装アセット専用のもので、Skinned Mesh Rendererの調整や追加されるボーンを最小限にする特殊処理が入っています。
+アバターのアーマチュアに追従するスキンメッシュを追加するときに使いましょう。
 
-## When shouldn't I use it?
+## 非推奨の場合
 
-The Merge Armature component is not designed for use in prefabs that are intended to be able to apply generically to many different avatars. It would not be a good fit for a finger-pen prefab, for example.
+様々なアバターに対応する、汎用アセットには不向きです。例えば汎用型指ペンアセットは推奨できません（その代わりに[Bone Proxy](bone-proxy.md)を使いましょう）
+元々想定したアバター以外には対応できないアセットとなります。
 
-Because the Merge Armature component assumes that the bones you are binding to do not move, it is not able to generalize to avatars other than the one it was set up with.
+## セットアップ方法
 
-## Setting up Merge Armature
+統合させるヒエラルキーのルートにMerge Armatureコンポーネントを追加して、アバターの方の該当ボーン（統合先）を「統合先」に置きましょう。
+「前置詞」「後置詞」は自動的に設定されます。
 
-After adding the Merge Armature component to the root of the source hierarchy, drag the avatar's corresponding bone (where these should be merged to) onto Merge Target. Prefix and Suffix will normally be set automatically.
+## 細かい仕様
 
-## How does it work?
+追加されたGameObject以下のツリーをたどり、統合先の所から該当ボーンを名前で探します。
+既存アセットの互換性を上げるため、統合先を探すときにはがされる前・後置詞も指定できます。
 
-Merge Armature will walk the tree of GameObjects under the GameObject it is attached to, and search for the corresponding bone in the base avatar by name. For better compatibility with existing avatars, you can optionally specify a prefix and/or suffix which will be removed from the merged bones when looking for a match.
-If a match is found, Merge Armature will attempt to rewrite references to the merged bone to instead point to the base avatar's corresponding bone. In some cases this is not possible, and a child bone will be created instead.
-If a match is not found, a child bone will be created under the corresponding parent bone.
+該当ボーンが見つかった場合は、統合元ボーンへの引用を統合先ボーンへ書き換えようとします。できない場合は、子にボーンが追加されます。
+また、該当ボーンがない場合も、子にボーンが追加されます。
 
-Merge Armature goes to a lot of trouble to ensure that components configured on the source hierarchy, or pointing to it, Just Work (tm). In particular, it will:
-* Update animator references to point to the appropriate position, depending on what properties are being animated (e.g. transform animations will point to the post-merge bone, GameObject active animations will point to the source heirarchy)
-* PhysBones and contacts will have their target field updated to point to the new merged bones. This will happen even if the PhysBone is not located under the Merge Armature component.
-* Other components will remain on the source hierarchy, but constraints will be generated to track the merged hierarchy.
+元々のヒエラルキーに設定されたコンポーネントがそのまま動作できるようにいろいろと工夫しています。特に、
+* アニメーター引用が自動的に必要に応じて統合先に書き換えられます。Transformアニメーションは統合先に向かれたり、GameObjectのON/OFFがもともとの位置だったり。
+* PhysBonesやContactはTarget欄が統合先のボーンに書き換えられます。PhysBone自体がMerge Armatureの外でもこの処理が施されます。 
+* 他のコンポーネントは元々の位置のままで、コンストレイントで統合先の動きに追従します。
 
-Merge Armature will leave portions of the original hierarchy behind - specifically, if they contain any components other than Transforms, they will be retained, and otherwise will generally be deleted.
-Where necessary, PhysBone objects will have their targets updated, and ParentConstraints may be created as necessary to make things Just Work (tm).
+Transform以外のコンポーネントが入っているボーンがある場合、そのボーンが残ります。そのほかのボーンは原則として統合後に削除されます。
+必要に応じてPhysBoneのターゲットが調整されたり、ParentConstraintが生成されることで、なんとなく動くようになります。
 
-## Locked mode
+## 位置を固定
 
-If the locked option is enabled, the position and rotation of the merged bones will be locked to their parents in the editor. This is a two-way relationship; if you move the merged bone, the avatar's bone will move, and vice versa.
+位置を固定を設定すると、統合先のボーンがエディタ上で元のボーンと同じ位置になります。これは総合的な関係で、どちらかのボーンが
+動けばもう片方が動きます。
 
-This is intended for use when animating non-humanoid bones. For example, you could use this to build an animator which can animate cat-ear movements.
+非・ヒューマノイドボーンのアニメーションを作る想定の機能です。たとえば、これでケモミミを動かすアニメーションを作ることができます。
 
-## Object references
+## オブジェクト引用
 
-Although the editor UI allows you to drag in a target object for the merge armature component, internally this is saved as a path reference.
-This allows the merge armature component to automatically restore its Merge Target after it is saved in a prefab.
+エディタ上では統合先をドラッグアンドドロップで指定しますが、内部ではパスで保存されます。プレハブ化してもちゃんと統合先を保存できるということです。

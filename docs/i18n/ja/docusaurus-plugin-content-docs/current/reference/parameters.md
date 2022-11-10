@@ -1,42 +1,41 @@
 ﻿# Parameters
 
-The Modular Avatar Parameters component allows you to define the animator parameters your prefab uses either internally, or to communicate with other components.
-It allows the end-user to easily rename parameters to avoid conflicts, or to wire up multiple prefabs without having to alter animators directly.
-It also allows for automatic configuration of synced parameters.
+Parametersコンポーネントでは、アセットが内部で使っている、あるいはほかのアセットとの総合通信に使うアニメーターパラメーターを設定することができます。
+ユーザーが名前かぶりを避けるためにパラメーター名を簡単に変更することができたり、アニメーターを触らずとも二つのアセットを連携できたりします。
+また、同期パラメーターの自動設定もできます。
 
-The Parameters component has two display modes: One for end-users of prefabs, and one for prefab developers.
-End-users can rename fields, and configure their AV3 parameters settings (saved state and default value).
-Developers can adjust the sync type and set parameters to be internal/hidden from end-users.
+Parametersコンポーネントに表示モードが二つあります。一つはアセットユーザー向けで、もう一つはアセット作者向けです。
+ユーザーがパラメーターの名前を変えたり、同期パラメーターの保存状態やデフォルト値を設定できます。
+開発者モードでは、同期モードを設定したり、ユーザーが見えないように内部パラメーターとして設定できます。
 
 ![End-user display](parameters-enduser.png) ![Developer display](parameters-devmode.png)
 
-## When should I use it?
+## いつ使うもの？
 
-The Parameters component should be used when you're building a prefab which makes use of animator parameters other than VRChat builtins.
+VRChatの標準パラメーター以外のパラメーターを使ったアセットを作り時は使いましょう。
 
-## How do I use it?
+## 使い方
 
-### End-users
+### ユーザー向け
 
-The parameters component on prefabs can be used to rename parameters to avoid conflicts, and to adjust whether synced parameters are saved across avatar reloads (and their default value).
-By renaming multiple prefab parameters to be the same, you can make them all share the same state and animate at the same time.
-Alternately, by changing conflicting names to be different, you can resolve prefab conflicts.
+Parametersコンポーネントで名前かぶりを避けるためにパラメーター名を変えたり、アバター読み込みでパラメーターの値が保存されるかを設定できます。
+複数のアセットのパラメーターを同じにすることで、同じ値を共有させて、同時にアニメーションさせることができます。
+また、被る名前を変えることで干渉を避けることもできます。
 
-### Prefab developers
+### プレハブ開発者向け
 
-Add the parameters component to the root of your prefab, and click "Show Prefab Developer Options". You'll see a list of all parameters used in your prefab.
+自分のアセットのルートにParametersを追加し、「プレハブ開発者向け設定を表示」をクリック。アセットで使われるパラメーターのリストが表示されます。
 
-Each parameter can be configured with the following options:
+パラメーターには以下の設定があります。
+* 内部値 - パラメーターを非表示にし、ユニークな名前に自動変更します
+* PhysBones前置詞 - この値がPhysBoneのparameter欄に設定されるもので、いくつかのサブパラメーターのくくりであることを示します。
+* 同期モード - 同期されるかどうかと、同期される値の種別を指定します
 
-* Internal - Hides the parameter, and automatically renames the parameter with a unique name.
-* PhysBones Prefix - Indicates this is a parameter passed to a PhysBone "parameter" field (and thus it really references a number of sub-parameters)
-* Sync Mode - Indicates if a parameter is synced, and if so what its type is
+Parametersコンポーネントは、入れ子式（ネスト状）で使うことができます。複雑なアセットをサブプレハブから構築し、名前かぶりを避けつつ同じプレハブを複数回使ったりすることもできます。
 
-Parameters components can be nested. This lets you build up a complex prefab out of sub-prefabs, some which may be added multiple times, and while avoiding parameter name conflicts.
-
-Parameter renaming will be applied to the following components underneath (or on the same GameObject as) the Parameters component:
+パラメーターの名前変更は、Parametersコンポーネントと同じオブジェクトとその子に付いている、以下のコンポーネントに適用されます
 * [Modular Avatar Merge Animator](merge-animator.md)
 * [Modular Avatar Menu Installer](menu-installer.md)
 * VRC Physics Bone
 * VRC Contact Receiver
-* Animator (although this is unlikely to be very useful)
+* Animator (あまり役に立たないかもしれませんが・・・)
