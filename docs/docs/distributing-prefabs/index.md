@@ -1,41 +1,39 @@
 ﻿---
 sidebar_position: 5
-sidebar_label: アセット配布に関して
+sidebar_label: Distributing Prefabs
 ---
 import ReactPlayer from 'react-player'
 
 # Distributing Prefabs
 
-Modular Avatarはアセット製作者の補助として、ドラッグアンドドロップだけでインストールできるアセットを製作できるように設計しています。
-このページには、Modular Avatarを使ったアセットの配布に関するお勧めな手順などを纏めています。
+Modular Avatar is designed to make things easier for prefab authors, by allowing them to distribute prefabs which can be installed by simply dragging and dropping onto the avatar.
+Here are some recommendations for how to best structure prefabs based on Modular Avatar.
 
-## ユーザーをModular Avatarの正式配布ページに誘導してください
+## Guide your users to the official distribution point for Modular Avatar
 
-ライセンス上、アセットにModular Avatarを同封することは許可されています。しかし、古いバージョンをインストールしたり、
-場合によってダウングレードさせて他のアセットの誤作動につながる場合があります。[Modular Avatarの公式配布ページ](https://github.com/bdunderscore/modular-avatar/releases)から
-DLするように手引きすることを強くお勧めします。
+Including a copy of Modular Avatar in your prefab's distribution is permitted by the license. However, this could result in users installing a very old version, or even accidentally downgrading and breaking their other prefabs.
+I strongly recommend guiding users to the official distribution point for Modular Avatar, which is the [Modular Avatar GitHub repository](https://github.com/bdunderscore/modular-avatar/releases).
 
-今後、VCCを応用した簡易インストール方法を実装する予定です。VCC自体の改善・機能追加待ちですが、導入がかなり楽になると思います。
+In the future, I intend to provide a VCC-based installation method, which should make things even easier. This is waiting on improvements to VCC itself, however.
 
-## ModularAvatarなしの環境にも対応するなら、ネスト状のプレハブを使いこなしましょう
+## Use nested prefabs for compatibility with non-ModularAvatar setups
 
-プレハブにModular Avatarコンポーネントを追加すると、原則としてModular Avatarを導入せずに使うことができません。
-一部のユーザーは何らかの理由でModular Avatarを拒むかもしれませんので、その環境にも対応するなら、衣装自体の設定とModular Avatarの設定を
-ネスト状のプレハブで分けることができます。
+If you add a Modular Avatar component to a prefab, users will be unable to use that prefab without installing Modular Avatar.
+Some users might prefer not to use Modular Avatar for whatever reason. If you wish to support this, you can use nested prefabs to separate out the core of your outfits from the Modular Avatar configuration.
 
-使ったことがないなら、簡単に開設すると
+If you've not worked with nested prefabs before, here's how to do this:
 
-1. まずは衣装のプレハブを作ります
-2. プレハブモードでプレハブを開く（プロジェクトからダブルクリック） 
-![Prefab mode](prefab-mode.png)
-3. プレハブのルートオブジェクトをプロジェクトウィンドウにドラッグアンドドロップ。確認画面が開いたら、「Create Base」を押してください。作られたファイルの名前を分かりやすく変更しましょう（例えば「衣装＿MAなし」）
-<ReactPlayer playing muted loop playsinline url='/img/creating-base.mp4' />
+1. Create your outfit prefab as normal.
+2. Open your prefab in prefab mode (double-click it in the project view).
+   ![Prefab mode](prefab-mode.png)
+3. Drag the root of your prefab to the project window. When a window pops up, click Create Base. Rename the file to something you'll remember (e.g. `Outfit without Modular Avatar`)
+   <ReactPlayer playing muted loop playsinline url='/img/creating-base.mp4' />
 
-これが終わったら、もともとのプレハブにModular Avatarコンポーネントを設定し、その他の設定を新しく作られたベースプレハブに設定できます。Prefab overridesメニューを使えば、シーン上で行った調整を設定を簡単にどちらかのプレハブに適用させることもできます。
-テストシーンにひとまず調整を行って、あとから各プレハブに割り振ることもできます。
+Once you've done this, you can set up modular avatar components on the original prefab, and set any non-modular avatar settings on the base prefab you just created.
+An easy way of applying such settings is using the prefab overrides menu - you can make changes in a test scene, then select which prefab to apply those changes to afterward.
 
 ![Apply as override](apply-as-override.png)
 
-## アニメーターを使ったアセットに内部パラメーターを使いましょう。
+## Use internal parameters on your animator gimmicks
 
-[内部パラメーター](../reference/parameters.md)を使うことで、他のアセットと干渉することを避けましょう。内部パラメーターは自動的にユニークな名前に変更されることで、名前かぶりが起きなくなります。
+Using [internal parameters](../reference/parameters.md) can help avoid clashing with other prefabs. Internal parameters are automatically renamed to a unique name at build time, ensuring you won't have any name clashes.
