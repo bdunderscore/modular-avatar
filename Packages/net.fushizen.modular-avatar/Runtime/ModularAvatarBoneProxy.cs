@@ -30,6 +30,7 @@ namespace net.fushizen.modular_avatar.core
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
+    [AddComponentMenu("Modular Avatar/MA Bone Proxy")]
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
         private Transform _targetCache;

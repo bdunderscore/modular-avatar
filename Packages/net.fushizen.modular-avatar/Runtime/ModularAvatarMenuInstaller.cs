@@ -4,6 +4,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace net.fushizen.modular_avatar.core
 {
+    [AddComponentMenu("Modular Avatar/MA Menu Installer")]
     public class ModularAvatarMenuInstaller : AvatarTagComponent
     {
         public VRCExpressionsMenu menuToAppend;

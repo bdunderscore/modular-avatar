@@ -34,6 +34,7 @@ namespace net.fushizen.modular_avatar.core
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     [DisallowMultipleComponent]
     [ExecuteAlways]
+    [AddComponentMenu("Modular Avatar/MA Blendshape Sync")]
     public class ModularAvatarBlendshapeSync : AvatarTagComponent
     {
         public List<BlendshapeBinding> Bindings = new List<BlendshapeBinding>();

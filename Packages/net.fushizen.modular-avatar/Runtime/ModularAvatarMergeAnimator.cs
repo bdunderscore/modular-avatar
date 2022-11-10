@@ -33,6 +33,7 @@ namespace net.fushizen.modular_avatar.core
         Absolute
     }
 
+    [AddComponentMenu("Modular Avatar/MA Merge Animator")]
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
         public RuntimeAnimatorController animator;

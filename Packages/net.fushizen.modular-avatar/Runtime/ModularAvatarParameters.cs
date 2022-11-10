@@ -25,6 +25,7 @@ namespace net.fushizen.modular_avatar.core
     }
 
     [DisallowMultipleComponent]
+    [AddComponentMenu("Modular Avatar/MA Parameters")]
     public class ModularAvatarParameters : AvatarTagComponent
     {
         public List<ParameterConfig> parameters = new List<ParameterConfig>();
