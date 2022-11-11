@@ -10,7 +10,7 @@ on:
       - '**'
 
 env:
-  packageName: "net.fushizen.modular-avatar"
+  packageName: "nadena.dev.modular-avatar"
 
 jobs:
   build:

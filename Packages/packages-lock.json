@@ -141,8 +141,8 @@
         "com.unity.nuget.newtonsoft-json": "2.0.2"
       }
     },
-    "net.fushizen.modular-avatar": {
-      "version": "file:net.fushizen.modular-avatar",
+    "nadena.dev.modular-avatar": {
+      "version": "file:nadena.dev.modular-avatar",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

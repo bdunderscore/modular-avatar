@@ -1,0 +1,20 @@
+{
+  "name": "nadena.dev.modular-avatar",
+  "displayName": "Modular Avatar",
+  "version": "0.7.1",
+  "unity": "2019.4",
+  "description": "",
+  "author": {
+    "name": "bd_",
+    "email": "bd@fushizen.net",
+    "url": "https://github.com/bdunderscore/modular-avatar"
+  },
+  "url": "",
+  "repo": "https://vpm.nadena.dev/vpm.json",
+  "dependencies": {
+  },
+  "vpmDependencies": {
+    "com.vrchat.base": "3.1.9",
+    "com.vrchat.avatars": "3.1.9"
+  }
+}
