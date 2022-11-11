@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static net.fushizen.modular_avatar.core.editor.Localization;
 
 namespace net.fushizen.modular_avatar.core.editor
@@ -27,7 +28,7 @@ namespace net.fushizen.modular_avatar.core.editor
     }
 
     [CustomEditor(typeof(ModularAvatarMergeAnimator))]
-    class MergeAnimationEditor : Editor
+    class MergeAnimationEditor : MAEditorBase
     {
         private SerializedProperty prop_animator,
             prop_layerType,
@@ -46,11 +47,8 @@ namespace net.fushizen.modular_avatar.core.editor
                 serializedObject.FindProperty(nameof(ModularAvatarMergeAnimator.matchAvatarWriteDefaults));
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(prop_animator, G("merge_animator.animator"));

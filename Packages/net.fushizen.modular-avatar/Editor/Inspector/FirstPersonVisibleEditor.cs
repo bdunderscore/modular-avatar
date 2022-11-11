@@ -5,7 +5,7 @@ using UnityEngine;
 namespace net.fushizen.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarVisibleHeadAccessory))]
-    public class FirstPersonVisibleEditor : Editor
+    internal class FirstPersonVisibleEditor : MAEditorBase
     {
         private VisibleHeadAccessoryProcessor _processor;
 
@@ -17,13 +17,10 @@ namespace net.fushizen.modular_avatar.core.editor
             if (avatar != null) _processor = new VisibleHeadAccessoryProcessor(avatar);
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
             var target = (ModularAvatarVisibleHeadAccessory) this.target;
 
-            LogoDisplay.DisplayLogo();
-
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
 
 #if UNITY_ANDROID
             EditorGUILayout.HelpBox(Localization.S("fpvisible.quest"), MessageType.Warning);

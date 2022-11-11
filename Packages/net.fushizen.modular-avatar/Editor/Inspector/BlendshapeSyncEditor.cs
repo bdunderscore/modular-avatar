@@ -14,7 +14,7 @@ namespace net.fushizen.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarBlendshapeSync))]
     [CanEditMultipleObjects]
-    internal class BlendshapeSyncEditor : Editor
+    internal class BlendshapeSyncEditor : MAEditorBase
     {
         private static FieldInfo f_m_SerializedObject;
         private BlendshapeSelectWindow _window;
@@ -242,12 +242,8 @@ namespace net.fushizen.modular_avatar.core.editor
             return selections;
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             serializedObject.Update();
 
             _list.DoLayoutList();

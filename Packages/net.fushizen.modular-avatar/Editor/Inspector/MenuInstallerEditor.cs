@@ -10,7 +10,7 @@ namespace net.fushizen.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarMenuInstaller))]
     [CanEditMultipleObjects]
-    public class MenuInstallerEditor : Editor
+    internal class MenuInstallerEditor : MAEditorBase
     {
         private ModularAvatarMenuInstaller _installer;
         private Editor _innerMenuEditor;
@@ -47,11 +47,8 @@ namespace net.fushizen.modular_avatar.core.editor
             }
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             SetupMenuEditor();
 
             var installTo = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.installTargetMenu));

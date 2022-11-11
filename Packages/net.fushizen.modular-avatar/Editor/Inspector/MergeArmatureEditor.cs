@@ -6,7 +6,7 @@ using static net.fushizen.modular_avatar.core.editor.Localization;
 namespace net.fushizen.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarMergeArmature))]
-    public class MergeArmatureEditor : Editor
+    internal class MergeArmatureEditor : MAEditorBase
     {
         private SerializedProperty prop_mergeTarget, prop_prefix, prop_suffix, prop_locked;
 
@@ -30,11 +30,8 @@ namespace net.fushizen.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             var target = (ModularAvatarMergeArmature) this.target;
             var priorMergeTarget = target.mergeTargetObject;
 

@@ -12,7 +12,7 @@ using Debug = System.Diagnostics.Debug;
 namespace net.fushizen.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarParameters))]
-    public class AvatarParametersEditor : Editor
+    internal class AvatarParametersEditor : MAEditorBase
     {
         /**********************************************************************
          * | Field name | Remap to / config  |
@@ -410,11 +410,8 @@ namespace net.fushizen.modular_avatar.core.editor
             if (!_devMode) EditorGUI.LabelField(rightHalf, G("params.remapto"));
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             EditorGUI.BeginChangeCheck();
             _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();

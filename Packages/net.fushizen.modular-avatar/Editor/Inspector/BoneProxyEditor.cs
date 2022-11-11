@@ -11,7 +11,7 @@ namespace net.fushizen.modular_avatar.core.editor
 
     [CustomEditor(typeof(ModularAvatarBoneProxy))]
     [CanEditMultipleObjects]
-    internal class BoneProxyEditor : Editor
+    internal class BoneProxyEditor : MAEditorBase
     {
         private bool foldout = false;
 
@@ -26,11 +26,8 @@ namespace net.fushizen.modular_avatar.core.editor
             }
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInnerInspectorGUI()
         {
-            LogoDisplay.DisplayLogo();
-            InspectorCommon.DisplayOutOfAvatarWarning(targets);
-
             GameObject parentAvatar = null;
 
             bool suppressTarget = false;

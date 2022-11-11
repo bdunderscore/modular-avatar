@@ -12,7 +12,7 @@ namespace net.fushizen.modular_avatar.core.editor
         private static GUIStyle STYLE => new GUIStyle()
         {
             fixedHeight = TARGET_HEIGHT,
-            fixedWidth = TARGET_HEIGHT * (LOGO_ASSET.width / (float)LOGO_ASSET.height),
+            fixedWidth = TARGET_HEIGHT * (LOGO_ASSET.width / (float) LOGO_ASSET.height),
             stretchHeight = false,
             stretchWidth = false,
             imagePosition = ImagePosition.ImageOnly
@@ -21,7 +21,7 @@ namespace net.fushizen.modular_avatar.core.editor
         static LogoDisplay()
         {
             var placeholderPath = AssetDatabase.GUIDToAssetPath("2a2bb4e0b8e906743890ef10c778e65c");
-            
+
             var path = placeholderPath.Substring(0, placeholderPath.LastIndexOf("/", StringComparison.Ordinal));
             path += "/ma_logo.png";
 
@@ -35,10 +35,11 @@ namespace net.fushizen.modular_avatar.core.editor
             if (LOGO_ASSET == null) return;
 
             var height = TARGET_HEIGHT;
-            var width = (height / (float)LOGO_ASSET.height) * LOGO_ASSET.width;
+            var width = (height / (float) LOGO_ASSET.height) * LOGO_ASSET.width;
             var rect = GUILayoutUtility.GetRect(width, height);
-            
+
             GUI.DrawTexture(rect, LOGO_ASSET, ScaleMode.ScaleToFit);
+            GUILayoutUtility.GetRect(width, EditorStyles.label.lineHeight / 2);
         }
     }
 }
