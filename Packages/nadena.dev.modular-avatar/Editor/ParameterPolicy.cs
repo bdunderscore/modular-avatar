@@ -189,7 +189,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private static void CleanPhysBoneParams(Dictionary<string, DetectedParameter> parameters)
         {
             var physBonePrefixes = parameters.Values.Where(p => p.IsPrefix)
-                .Select(p => p.OriginalName);
+                .Select(p => p.OriginalName)
+                .ToArray();
 
             foreach (var prefix in physBonePrefixes)
             {
