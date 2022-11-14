@@ -102,7 +102,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!Util.IsTemporaryAsset(controller))
             {
                 controller = Util.DeepCloneAnimator(controller);
-                AssetDatabase.CreateAsset(controller, Util.GenerateAssetPath());
                 layers[fxIndex].animatorController = controller;
                 avatarDescriptor.baseAnimationLayers = layers;
             }
