@@ -74,7 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (foldout)
             {
                 EditorGUI.indentLevel++;
-                base.OnInspectorGUI();
+                DrawDefaultInspector();
                 EditorGUI.indentLevel--;
             }
 
