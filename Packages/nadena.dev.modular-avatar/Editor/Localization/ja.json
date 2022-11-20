@@ -45,5 +45,7 @@
   "blendshape.mesh": "メッシュ",
   "blendshape.source": "元メッシュのブレンドシェープ",
   "blendshape.target": "このメッシュのブレンドシェープ",
-  "hint.not_in_avatar": "このコンポーネントが正しく動作するには、アバター内に配置する必要があります。"
+  "hint.not_in_avatar": "このコンポーネントが正しく動作するには、アバター内に配置する必要があります。",
+  "boneproxy.err.MovingTarget": "他のモジュラーアバターコンポーネントで移動されるオブジェクトを指定できません。",
+  "boneproxy.err.NotInAvatar": "アバター内のオブジェクトを指定してください。"
 }

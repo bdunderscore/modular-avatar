@@ -45,5 +45,7 @@
   "blendshape.mesh": "Mesh",
   "blendshape.source": "Source blendshape",
   "blendshape.target": "Target blendshape",
-  "hint.not_in_avatar": "This component needs to be placed inside your avatar to work properly."
+  "hint.not_in_avatar": "This component needs to be placed inside your avatar to work properly.",
+  "boneproxy.err.MovingTarget": "You cannot specify a target object that will be moved by other Modular Avatar components",
+  "boneproxy.err.NotInAvatar": "You must specify an object that is in the avatar"
 }

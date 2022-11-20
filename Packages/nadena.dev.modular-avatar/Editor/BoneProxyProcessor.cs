@@ -28,13 +28,20 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class BoneProxyProcessor
     {
+        internal enum ValidationResult
+        {
+            OK,
+            MovingTarget,
+            NotInAvatar
+        }
+
         internal void OnPreprocessAvatar(GameObject avatarGameObject)
         {
             var boneProxies = avatarGameObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true);
 
             foreach (var proxy in boneProxies)
             {
-                if (proxy.target != null)
+                if (proxy.target != null && ValidateTarget(avatarGameObject, proxy.target) == ValidationResult.OK)
                 {
                     var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
                     Transform transform = proxy.transform;
@@ -50,6 +57,26 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 Object.DestroyImmediate(proxy);
             }
+        }
+
+        internal static ValidationResult ValidateTarget(GameObject avatarGameObject, Transform proxyTarget)
+        {
+            var avatar = avatarGameObject.transform;
+            var node = proxyTarget;
+
+            while (node != null && node != avatar)
+            {
+                if (node.GetComponent<ModularAvatarMergeArmature>() != null ||
+                    node.GetComponent<ModularAvatarBoneProxy>() != null)
+                {
+                    return ValidationResult.MovingTarget;
+                }
+
+                node = node.parent;
+            }
+
+            if (node == null) return ValidationResult.NotInAvatar;
+            else return ValidationResult.OK;
         }
     }
 }

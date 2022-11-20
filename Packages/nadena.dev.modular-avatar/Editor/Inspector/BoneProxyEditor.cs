@@ -55,6 +55,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 var virtObj = new SerializedObject(objRefs);
                 var virtProp = virtObj.FindProperty(nameof(TempObjRef.target));
 
+                if (virtProp.objectReferenceValue is Transform targetTransform)
+                {
+                    var validationResult = BoneProxyProcessor.ValidateTarget(parentAvatar, targetTransform);
+                    if (validationResult != BoneProxyProcessor.ValidationResult.OK)
+                    {
+                        EditorGUILayout.HelpBox(S("boneproxy.err." + validationResult), MessageType.Error);
+                    }
+                }
+
                 EditorGUI.BeginChangeCheck();
 
                 EditorGUILayout.PropertyField(virtProp, G("boneproxy.target"));
@@ -65,7 +74,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var t = (ModularAvatarBoneProxy) targets[i];
                         Undo.RecordObjects(targets, "Set targets");
-                        t.target = ((TempObjRef) objRefs[i]).target;
+                        var xform = ((TempObjRef) objRefs[i]).target;
+                        if (RuntimeUtil.FindAvatarInParents(xform)?.gameObject != parentAvatar) continue;
+                        t.target = xform;
                     }
                 }
             }
