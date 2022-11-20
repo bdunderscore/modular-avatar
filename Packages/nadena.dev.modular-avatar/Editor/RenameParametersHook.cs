@@ -273,6 +273,25 @@ namespace nadena.dev.modular_avatar.core.editor
                     ProcessDriver(driver, remaps);
                 }
             }
+
+            if (state.motion is BlendTree blendTree)
+            {
+                ProcessBlendtree(blendTree, remaps);
+            }
+        }
+
+        private void ProcessBlendtree(BlendTree blendTree, ImmutableDictionary<string, string> remaps)
+        {
+            blendTree.blendParameter = remap(remaps, blendTree.blendParameter);
+            blendTree.blendParameterY = remap(remaps, blendTree.blendParameterY);
+
+            foreach (var childMotion in blendTree.children)
+            {
+                if (childMotion.motion is BlendTree subTree)
+                {
+                    ProcessBlendtree(subTree, remaps);
+                }
+            }
         }
 
         private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<string, string> remaps)
