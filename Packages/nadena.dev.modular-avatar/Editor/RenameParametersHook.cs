@@ -245,6 +245,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var sub in sm.stateMachines)
                 {
                     queue.Enqueue(sub.stateMachine);
+
+
+                    foreach (var t in sm.GetStateMachineTransitions(sub.stateMachine))
+                    {
+                        ProcessTransition(t, remaps);
+                    }
                 }
 
                 foreach (var st in sm.states)
