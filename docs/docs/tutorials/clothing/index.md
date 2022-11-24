@@ -47,3 +47,22 @@ If we open up the avatar in play mode, we can see what it looks like after mergi
 ![Play mode armature](play_mode_armature.png)
 
 As you can see, the bones unique to the new outfit have been merged into the avatar's armature, while for bones that are shared between the outfit and the avatar, the outfit will reference the original avatar's bones instead.
+
+## Linking blend shapes
+
+You can also configure blendshapes on the outfit to sync automatically with the base avatar. To do this, add the MA Blendshape Sync component to the objects which have blendshapes that need to match the base avatar:
+
+![Adding the blendshape sync component](blendshape_1.png)
+
+Now, click the + button. A new window will open to select a blendshape. Open up the collapsed sections to find the original avatar's
+mesh and blendshapes of interest.
+
+![Blendshape picker](blendshape_2.png)
+
+Double click the blendshapes of interest to add them to the Blendshape sync component. Optionally, you can rename them by filling out the "Target blendshape" field; if left blank,
+modular avatar will use the name of the original blendshape.
+
+![Completed setup](blendshape_3.png)
+
+Once you do this, modular avatar will sync the blendshape values from the original mesh to the new outfit. This will be done
+both in the editor/inspector, and when uploaded (if you use animations to animate these blendshapes).
