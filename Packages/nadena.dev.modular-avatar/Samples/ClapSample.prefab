@@ -96,6 +96,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boneReference: 17
   subPath: 
+  attachmentMode: 1
 --- !u!1 &8484779175182551488
 GameObject:
   m_ObjectHideFlags: 0
@@ -5099,6 +5100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boneReference: 18
   subPath: 
+  attachmentMode: 1
 --- !u!1 &8484779175587995429
 GameObject:
   m_ObjectHideFlags: 0
