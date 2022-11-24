@@ -29,7 +29,9 @@ them at once. Under "Target", drag-and-drop the Hips object from the original av
 
 Note that "Attachment Mode" will automatically update to "As child; keep position" when you do this.
 
-Go ahead and do the same for the other bones/colliers as well.
+Go ahead and do the same for the other bones/colliers as well.　With that, the cloth colliders should work:
+
+![Cloth colliders looking good!](colliders_work.png)
 
 Finally, set up blendshape sync components for Skirt and Tops:
 
