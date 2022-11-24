@@ -84,7 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private static string GetSelectedLocalization()
+        public static string GetSelectedLocalization()
         {
             return EditorPrefs.GetString("nadena.dev.modularavatar.lang", "en");
         }

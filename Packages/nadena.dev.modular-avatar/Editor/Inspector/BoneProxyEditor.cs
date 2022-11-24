@@ -1,12 +1,23 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class TempObjRef : ScriptableObject
     {
         public Transform target;
+    }
+
+    [CustomPropertyDrawer(typeof(BoneProxyAttachmentMode))]
+    internal class BoneProxyAttachmentModeDrawer : EnumDrawer<BoneProxyAttachmentMode>
+    {
+        protected override string localizationPrefix => "boneproxy.attachment";
+
+        protected override Array enumValues => new object[]
+            {BoneProxyAttachmentMode.AsChildAtRoot, BoneProxyAttachmentMode.AsChildKeepWorldPosition};
     }
 
     [CustomEditor(typeof(ModularAvatarBoneProxy))]
@@ -81,15 +92,51 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            for (int i = 0; i < targets.Length; i++)
+            {
+                CheckAttachmentMode(targets[i] as ModularAvatarBoneProxy);
+            }
+
+            serializedObject.UpdateIfRequiredOrScript();
+            var p_attachmentMode = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.attachmentMode));
+            EditorGUILayout.PropertyField(p_attachmentMode, G("boneproxy.attachment"));
+
             foldout = EditorGUILayout.Foldout(foldout, G("boneproxy.foldout.advanced"));
             if (foldout)
             {
                 EditorGUI.indentLevel++;
-                DrawDefaultInspector();
+
+                var p_boneReference = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.boneReference));
+                var p_subPath = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.subPath));
+
+                EditorGUILayout.PropertyField(p_boneReference, new GUIContent("Bone reference"));
+                EditorGUILayout.PropertyField(p_subPath, new GUIContent("Sub path"));
+
                 EditorGUI.indentLevel--;
             }
 
+            serializedObject.ApplyModifiedProperties();
+
             Localization.ShowLanguageUI();
+        }
+
+        private void CheckAttachmentMode(ModularAvatarBoneProxy boneProxy)
+        {
+            if (boneProxy.attachmentMode == BoneProxyAttachmentMode.Unset && boneProxy.target != null)
+            {
+                float posDelta = Vector3.Distance(boneProxy.transform.position, boneProxy.target.position);
+                float rotDelta = Quaternion.Angle(boneProxy.transform.rotation, boneProxy.target.rotation);
+
+                Undo.RecordObject(boneProxy, "Configuring bone proxy attachment mode");
+                if (posDelta > 0.001f || rotDelta > 0.001f)
+                {
+                    boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPosition;
+                }
+                else
+                {
+                    boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+                }
+            }
         }
     }
 }

@@ -47,5 +47,8 @@
   "blendshape.target": "このメッシュのブレンドシェープ",
   "hint.not_in_avatar": "このコンポーネントが正しく動作するには、アバター内に配置する必要があります。",
   "boneproxy.err.MovingTarget": "他のモジュラーアバターコンポーネントで移動されるオブジェクトを指定できません。",
-  "boneproxy.err.NotInAvatar": "アバター内のオブジェクトを指定してください。"
+  "boneproxy.err.NotInAvatar": "アバター内のオブジェクトを指定してください。",
+  "boneproxy.attachment": "配置モード",
+  "boneproxy.attachment.AsChildAtRoot": "子として・ルートに配置",
+  "boneproxy.attachment.AsChildKeepWorldPosition": "子として・ワールド位置を維持"
 }

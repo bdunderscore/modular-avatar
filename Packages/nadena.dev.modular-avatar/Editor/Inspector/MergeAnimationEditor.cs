@@ -1,30 +1,13 @@
 ﻿using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomPropertyDrawer(typeof(MergeAnimatorPathMode))]
-    class PathModeDrawer : PropertyDrawer
+    class PathModeDrawer : EnumDrawer<MergeAnimatorPathMode>
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.BeginProperty(position, label, property);
-            EditorGUI.BeginChangeCheck();
-
-            var value = EditorGUI.Popup(position, label, property.enumValueIndex, new GUIContent[]
-            {
-                G("path_mode.Relative"), G("path_mode.Absolute")
-            });
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                property.enumValueIndex = value;
-            }
-
-            EditorGUI.EndProperty();
-        }
+        protected override string localizationPrefix => "path_mode";
     }
 
     [CustomEditor(typeof(ModularAvatarMergeAnimator))]

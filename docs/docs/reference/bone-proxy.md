@@ -2,26 +2,43 @@
 
 ![Bone Proxy](bone-proxy-compare.png)
 
-Bone Proxyは、プレハブのオブジェクトを元アバターのオブジェクトの中に配置させるためのコンポーネントです。
-たとえば、[Clapのサンプル](../samples/#clap)では、コンタクトをアバターの手の中に仕込むために使われます。
+The Bone Proxy allows you to place objects from your prefab inside of objects that are part of the original avatar.
+For example, in the [Clap sample](../samples/#clap), this is used to place contacts inside the avatar's hands.
 
-オブジェクトの元の位置を参照するアニメーションも新しいパスを引用するように修正されます。
+Bone Proxy will also adjust any animators referencing the old location of the objects so that they reference the
+new paths after the objects are moved.
 
-## いつ使うのか
+## When should I use it?
 
-アバターの既存オブジェクトの中にオブジェクトを配置したいときに使います。
+Bone Proxy should be used when you have objects that you want to place inside of existing objects inside the avatar.
 
-## 非推奨の使い方
+## When shouldn't I use it?
 
-衣装の導入には向いていません。代わりに[Merge Armature](merge-armature.md)を使いましょう。
+Bone Proxy isn't intended to be used to configure clothing. Try using [Merge Armature](merge-armature.md) instead.
 
-## 使い方
+## Setting up Bone Proxy
 
-Bone Proxyコンポーネントをオブジェクトに追加して、移動先をターゲット欄で指定します。
-追加されたオブジェクトがターゲットオブジェクトの中に移動されます。
+Add the Bone Proxy component to an object in your prefab, and drag the destination of this object to the "Target" field.
+The Bone Proxy-annotated object will then be placed inside the target object.
 
-### プレハブ内の使い方
+### Usage in prefabs
 
-指定されたオブジェクトがヒューマノイドボーンとその下のパスとして保存されるので、プレハブ化してもターゲットの引用を復元できます。
+The Bone Proxy component automatically translates the object you specify into a humanoid bone and relative path reference.
+This ensures that it can restore this reference automatically after it is saved in a prefab.
 
-内部設定を見たい場合は、詳細設定の中で見れます。
+If you want to adjust the internal references, you can see them in the Advanced foldout.
+
+### Attachment mode
+
+Bone proxy can be attached in two different ways, depending on use case.
+
+In the "As child at root" attachment mode, the object that the bone proxy is attached to will be reparented to the target object, and
+its local position and orientation will be zeroed out. This will place it at the same position and orientation as the target object.
+This mode is recommended for prefabs that are not avatar-specific.
+
+In the "As child keep world position" attachment mode, the object that the bone proxy is attached to will be reparented to the target object,
+but its world position and orientation will be preserved. This is usually only useful for avatar-specific prefabs, where you want to
+place an object at a precise position relative to the parent bone. For example, it can be used to place colliders for cloth components.
+
+When you set the target for a bone proxy component, the attachment mode will be automatically set based on whether the object is
+currently at the target bone's position and orientation.

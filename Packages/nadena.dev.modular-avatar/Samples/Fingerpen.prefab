@@ -120,6 +120,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boneReference: 44
   subPath: 
+  attachmentMode: 1
 --- !u!1 &2929086333716922431
 GameObject:
   m_ObjectHideFlags: 0

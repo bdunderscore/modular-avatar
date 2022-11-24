@@ -45,9 +45,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
                     Transform transform = proxy.transform;
-                    transform.SetParent(proxy.target, false);
-                    transform.localPosition = Vector3.zero;
-                    transform.localRotation = Quaternion.identity;
+                    transform.SetParent(proxy.target, true);
+                    if (proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepWorldPosition)
+                    {
+                        transform.localPosition = Vector3.zero;
+                        transform.localRotation = Quaternion.identity;
+                    }
+
                     PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
                     {
                         path = RuntimeUtil.AvatarRootPath(proxy.gameObject),

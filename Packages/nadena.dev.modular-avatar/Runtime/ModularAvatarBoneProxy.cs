@@ -28,6 +28,27 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
 {
+    public enum BoneProxyAttachmentMode
+    {
+        /// <summary>
+        /// Initial state - this will be updated automatically by the bone proxy inspector, based on checking whether
+        /// the proxy is located near the base bone.
+        ///
+        /// If somehow we run a build with this still on default, we'll use AsChildAtRoot.
+        /// </summary>
+        Unset,
+
+        /// <summary>
+        /// Places the bone proxy object at the target, with localPosition and localRotation zeroed.
+        /// </summary>
+        AsChildAtRoot,
+
+        /// <summary>
+        /// Places the bone proxy object at the target, preserving world position and orientation.
+        /// </summary>
+        AsChildKeepWorldPosition,
+    }
+
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Bone Proxy")]
@@ -62,6 +83,7 @@ namespace nadena.dev.modular_avatar.core
 
         public HumanBodyBones boneReference = HumanBodyBones.LastBone;
         public string subPath;
+        public BoneProxyAttachmentMode attachmentMode = BoneProxyAttachmentMode.Unset;
 
         void OnValidate()
         {
@@ -76,7 +98,7 @@ namespace nadena.dev.modular_avatar.core
 
         private void Update()
         {
-            if (!RuntimeUtil.isPlaying && target != null)
+            if (!RuntimeUtil.isPlaying && target != null && attachmentMode == BoneProxyAttachmentMode.AsChildAtRoot)
             {
                 var targetTransform = target.transform;
                 var myTransform = transform;
