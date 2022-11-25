@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -72,7 +74,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     name = "More",
                     type = VRCExpressionsMenu.Control.ControlType.SubMenu,
-                    subMenu = newMenu
+                    subMenu = newMenu,
+                    parameter = new VRCExpressionsMenu.Control.Parameter()
+                    {
+                        name = ""
+                    },
+                    subParameters = Array.Empty<VRCExpressionsMenu.Control.Parameter>(),
+                    labels = Array.Empty<VRCExpressionsMenu.Control.Label>(),
                 });
 
                 _installTargets[installer.installTargetMenu] = newMenu;
