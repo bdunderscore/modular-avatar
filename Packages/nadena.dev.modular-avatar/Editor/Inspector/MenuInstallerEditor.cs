@@ -55,6 +55,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var isEnabled = targets.Length != 1 || ((ModularAvatarMenuInstaller) target).enabled;
 
+            VRCAvatarDescriptor commonAvatar = FindCommonAvatar();
+
             if (!installTo.hasMultipleDifferentValues)
             {
                 if (installTo.objectReferenceValue == null)
@@ -71,7 +73,23 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            EditorGUILayout.PropertyField(installTo, G("menuinstall.installto"));
+            if (installTo.hasMultipleDifferentValues || commonAvatar == null)
+            {
+                EditorGUILayout.PropertyField(installTo, G("menuinstall.installto"));
+            }
+            else
+            {
+                var displayValue = installTo.objectReferenceValue;
+                if (displayValue == null) displayValue = commonAvatar.expressionsMenu;
+
+                EditorGUI.BeginChangeCheck();
+                var newValue = EditorGUILayout.ObjectField(G("menuinstall.installto"), displayValue,
+                    typeof(VRCExpressionsMenu), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    installTo.objectReferenceValue = newValue;
+                }
+            }
 
             var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
             if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
@@ -113,6 +131,29 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
+        }
+
+        private VRCAvatarDescriptor FindCommonAvatar()
+        {
+            VRCAvatarDescriptor commonAvatar = null;
+
+            foreach (var target in targets)
+            {
+                var component = (ModularAvatarMenuInstaller) target;
+                var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
+                if (avatar == null) return null;
+
+                if (commonAvatar == null)
+                {
+                    commonAvatar = avatar;
+                }
+                else if (commonAvatar != avatar)
+                {
+                    return null;
+                }
+            }
+
+            return commonAvatar;
         }
 
         private void FindMenus()
