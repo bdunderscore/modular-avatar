@@ -46,7 +46,14 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        [MenuItem("Tools/Modular Avatar/Apply to current avatar", false)]
+        [MenuItem("Tools/Modular Avatar/Manual bake avatar", true)]
+        private static bool ValidateApplyToCurrentAvatar()
+        {
+            var avatar = Selection.activeGameObject;
+            return (avatar != null && avatar.GetComponent<VRCAvatarDescriptor>() != null);
+        }
+
+        [MenuItem("Tools/Modular Avatar/Manual bake avatar", false)]
         private static void ApplyToCurrentAvatar()
         {
             var avatar = Selection.activeGameObject;
