@@ -37,7 +37,7 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
         public RuntimeAnimatorController animator;
-        public VRCAvatarDescriptor.AnimLayerType layerType;
+        public VRCAvatarDescriptor.AnimLayerType layerType = VRCAvatarDescriptor.AnimLayerType.FX;
         public bool deleteAttachedAnimator;
         public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
         public bool matchAvatarWriteDefaults;
