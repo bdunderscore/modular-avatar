@@ -1,6 +1,6 @@
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/bdunderscore/modular-avatar?include_prereleases&label=prerelease)
 ![GitHub issues](https://img.shields.io/github/issues/bdunderscore/modular-avatar)
-![Github stars](https://img.shields.io/github/stars/bdunderscore/modular-avatar?style=social)
+![Github stars](https://img.shields.io/github/stars/bdunderscore/modular-avatar)
 
 Modular Avatar is a suite of **non-destructive** tools for modularizing your avatars, and for distributing avatar
 components.
