@@ -380,12 +380,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             var suffixKey = param.nameOrPrefix + suffix;
                             var suffixValue = remapTo + suffix;
-                            remaps = remaps.Add(suffixKey, suffixValue);
+                            remaps = remaps.SetItem(suffixKey, suffixValue);
                         }
                     }
                     else
                     {
-                        remaps = remaps.Add(param.nameOrPrefix, remapTo);
+                        remaps = remaps.SetItem(param.nameOrPrefix, remapTo);
                     }
                 }
 
