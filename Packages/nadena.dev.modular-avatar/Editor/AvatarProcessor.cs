@@ -109,20 +109,27 @@ namespace nadena.dev.modular_avatar.core.editor
             BoneDatabase.ResetBones();
             PathMappings.Clear();
 
-            new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
-            new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
-            new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
-            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
-            new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-            new VisibleHeadAccessoryProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
-            new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
-            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
-
-            AfterProcessing?.Invoke(avatarGameObject);
-
-            foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
+            try
             {
-                UnityEngine.Object.DestroyImmediate(component);
+                new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
+                new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
+                new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
+                new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
+                new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
+                new VisibleHeadAccessoryProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
+                new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
+                new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
+
+                AfterProcessing?.Invoke(avatarGameObject);
+            }
+            finally
+            {
+                // Ensure that we clean up AvatarTagComponents after failed processing. This ensures we don't re-enter
+                // processing from the Awake method on the unprocessed AvatarTagComponents
+                foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(component);
+                }
             }
 
             // The VRCSDK captures some debug information about animators as part of the build process, prior to invoking
