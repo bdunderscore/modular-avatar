@@ -261,7 +261,7 @@
     "message": "ダウンロード"
   },
   "Modular Avatar": {
-    "message": "モデュラーアバター"
+    "message": "モジュラーアバター"
   },
   "Drag-and-Drop Avatar Assembly": {
     "message": "ドラッグアンドドロップでアバター組み立て"
@@ -276,12 +276,12 @@
     "message": "プレハブに最適"
   },
   "Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall' when editing your avatar!": {
-    "message": "モデュラーアバターはビルド時にコンポーネントを統合します。「インスタンス」や「アンインストール」のクリック忘れはもうありません！"
+    "message": "モジュラーアバターはビルド時にコンポーネントを統合します。「インスタンス」や「アンインストール」のクリック忘れはもうありません！"
   },
   "Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit dropdown tidy!": {
     "message": "アバターのFXアニメーター等を分割し、実行時に統合しよう。アニメーションウィンドウの選択ドロップダウンを綺麗にしましょう！"
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
-    "message": "モデュラーアバターのコンポーネントをプレハブに入れればインストールが楽ちん！"
+    "message": "モジュラーアバターのコンポーネントをプレハブに入れればインストールが楽ちん！"
   }
 }
