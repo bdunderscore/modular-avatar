@@ -26,9 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -49,45 +47,81 @@ namespace nadena.dev.modular_avatar.core.editor
 
         static void PatchAllowlist()
         {
-            // When running on non-VCC versions of the SDK, we can't reference AvatarValidation directly as it's not in
-            // an assembly definition. So just search all of the assemblies for the type.
+            // The below APIs are all public, but undocumented and likely to change in the future.
+            // As such, we use reflection to access them (allowing us to catch exceptions instead of just breaking the
+            // build - and allowing the user to manually bake as a workaround).
+
+            // The basic idea is to retrieve the HashSet of whitelisted components, and add all components extending
+            // from AvatarTagComponent to it. This HashSet is cached on first access, but the lists of allowed
+            // components used to initially populate it are private. So, we'll start off by making a call that (as a
+            // side-effect) causes the list to be initially cached. This call will throw a NPE because we're passing
+            // a null GameObject, but that's okay.
+
             var avatarValidation = FindType("VRC.SDK3.Validation.AvatarValidation");
+            var findIllegalComponents =
+                avatarValidation?.GetMethod("FindIllegalComponents", BindingFlags.Public | BindingFlags.Static);
+
+            if (findIllegalComponents == null)
+            {
+                Debug.LogError(
+                    "[ModularAvatar] Unsupported VRCSDK version: Failed to find AvatarValidation.FindIllegalComponents");
+                return;
+            }
+
+            try
+            {
+                findIllegalComponents.Invoke(null, new[] {(object) null});
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException is NullReferenceException)
+                {
+                    // ok!
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(e.InnerException != null, "e.InnerException != null");
+                    throw e.InnerException;
+                }
+            }
+
+            // Now fetch the cached allowlist and add our components to it.
             var validationUtils = FindType("VRC.SDKBase.Validation.ValidationUtils");
-            if (avatarValidation == null)
+            var whitelistedTypes = validationUtils?.GetMethod(
+                "WhitelistedTypes",
+                BindingFlags.Public | BindingFlags.Static,
+                null,
+                new[] {typeof(string), typeof(IEnumerable<Type>)},
+                null
+            );
+
+            if (whitelistedTypes == null)
             {
-                Debug.LogError("Failed to find AvatarValidation type");
+                Debug.LogError(
+                    "[ModularAvatar] Unsupported VRCSDK version: Failed to find ValidationUtils.WhitelistedTypes");
                 return;
             }
 
-            if (validationUtils == null)
+            var allowlist = whitelistedTypes.Invoke(null, new object[] {"avatar-sdk3", null}) as HashSet<Type>;
+            if (allowlist == null)
             {
-                Debug.LogError("Failed to find ValidationUtils type");
+                Debug.LogError("[ModularAvatar] Unsupported VRCSDK version: Failed to retrieve component whitelist");
                 return;
             }
 
-            var getWhitelistForSDK =
-                avatarValidation.GetMethod("GetComponentWhitelist", BindingFlags.Static | BindingFlags.NonPublic);
-            var addDerivedClasses =
-                validationUtils.GetMethod("AddDerivedClasses", BindingFlags.Static | BindingFlags.NonPublic);
+            allowlist.Add(typeof(AvatarTagComponent));
 
-            if (getWhitelistForSDK == null)
+            // We'll need to find all types which derive from AvatarTagComponent and inject them into the allowlist
+            // as well.
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                Debug.LogError("Failed to find GetWhitelistForSDK method");
-                return;
-            }
-
-            if (addDerivedClasses == null)
-            {
-                Debug.LogError("Failed to find AddDerivedClasses method");
-                return;
-            }
-
-            if (getWhitelistForSDK.Invoke(null, new object[] { }) is HashSet<Type> allowlist)
-            {
-                // The allowlist is cached, so we can inject our own type into the cached hashset (and then invoke the
-                // AddDerivedClasses method to find all derived types from the AvatarTagComponent automatically).
-                allowlist.Add(typeof(AvatarTagComponent));
-                addDerivedClasses.Invoke(null, new object[] {allowlist});
+                foreach (var ty in assembly.GetTypes())
+                {
+                    if (typeof(AvatarTagComponent).IsAssignableFrom(ty))
+                    {
+                        allowlist.Add(ty);
+                    }
+                }
             }
         }
 
