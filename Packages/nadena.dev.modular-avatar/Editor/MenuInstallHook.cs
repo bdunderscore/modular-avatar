@@ -11,6 +11,10 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     public class MenuInstallHook
     {
+        private static Texture2D _moreIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(
+            "Packages/nadena.dev.modular-avatar/Runtime/Icons/Icon_More_A.png"
+        );
+
         private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _clonedMenus;
         private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _installTargets;
 
@@ -80,7 +84,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         name = ""
                     },
                     subParameters = Array.Empty<VRCExpressionsMenu.Control.Parameter>(),
-                    labels = Array.Empty<VRCExpressionsMenu.Control.Label>(),
+                    icon = _moreIcon,
+                    labels = Array.Empty<VRCExpressionsMenu.Control.Label>()
                 });
 
                 _installTargets[installer.installTargetMenu] = newMenu;
