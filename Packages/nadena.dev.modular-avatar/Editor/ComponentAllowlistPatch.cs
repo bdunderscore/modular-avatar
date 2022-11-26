@@ -57,7 +57,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // side-effect) causes the list to be initially cached. This call will throw a NPE because we're passing
             // a null GameObject, but that's okay.
 
-            var avatarValidation = FindType("VRC.SDK3.Validation.AvatarValidation");
+            var avatarValidation = Util.FindType("VRC.SDK3.Validation.AvatarValidation");
             var findIllegalComponents =
                 avatarValidation?.GetMethod("FindIllegalComponents", BindingFlags.Public | BindingFlags.Static);
 
@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             // Now fetch the cached allowlist and add our components to it.
-            var validationUtils = FindType("VRC.SDKBase.Validation.ValidationUtils");
+            var validationUtils = Util.FindType("VRC.SDKBase.Validation.ValidationUtils");
             var whitelistedTypes = validationUtils?.GetMethod(
                 "WhitelistedTypes",
                 BindingFlags.Public | BindingFlags.Static,
@@ -123,21 +123,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
-        }
-
-        private static Type FindType(string typeName)
-        {
-            Type avatarValidation = null;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                avatarValidation = assembly.GetType(typeName);
-                if (avatarValidation != null)
-                {
-                    break;
-                }
-            }
-
-            return avatarValidation;
         }
     }
 }

@@ -12,6 +12,7 @@
   "url": "",
   "repo": "https://vpm.nadena.dev/vpm.json",
   "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "2.0.0"
   },
   "vpmDependencies": {
     "com.vrchat.base": "3.1.9",

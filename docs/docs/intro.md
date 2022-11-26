@@ -19,12 +19,6 @@ be made prior to version 1.0. As such, it is not recommended to distribute prefa
 
 :::
 
-:::caution
-
-Modular Avatar is currently only compatible with installations of the VRCSDK that use the VRChat Creator Companion.
-
-:::
-
 To install Modular Avatar, download and import the `unitypackage` file from the "Assets" section on [the latest release](https://github.com/bdunderscore/modular-avatar/releases).
 
 Then, check out one of the tutorials below:

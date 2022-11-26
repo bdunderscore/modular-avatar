@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
+using System;
+using System.Reflection;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
-using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -120,6 +122,21 @@ namespace nadena.dev.modular_avatar.core.editor
             var path = AssetDatabase.GetAssetPath(obj);
 
             return path != null && path.StartsWith(GetGeneratedAssetsFolder() + "/");
+        }
+
+        public static Type FindType(string typeName)
+        {
+            Type avatarValidation = null;
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                avatarValidation = assembly.GetType(typeName);
+                if (avatarValidation != null)
+                {
+                    break;
+                }
+            }
+
+            return avatarValidation;
         }
     }
 }

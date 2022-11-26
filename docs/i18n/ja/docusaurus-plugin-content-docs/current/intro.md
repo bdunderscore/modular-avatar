@@ -16,12 +16,6 @@ Modular Avatarは開発途中であり、まだ本格運用が非推奨です。
 
 :::
 
-:::caution
-
-現在、Modular AvatarはVRChat Creator Companionを使ったVRCSDKのインストールのみに対応しています。
-
-:::
-
 Modular Avatarをインストールするには、[最新リリース]のAssets項目から`unitypackage`ファイルをダウンロードして、インポートしてください。
 
 その後の手順に関しては以下のチュートリアルを見てください

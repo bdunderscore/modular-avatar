@@ -23,13 +23,13 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
-using VRC.SDK3.Editor;
 using VRC.SDKBase.Editor.BuildPipeline;
-using VRC.SDKBase.Validation.Performance.Stats;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -139,14 +139,57 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            // The VRCSDK captures some debug information about animators as part of the build process, prior to invoking
-            // hooks. For some reason this happens in the ValidateFeatures call on the SDK builder. Reinvoke it to
-            // refresh this debug info.
-            var avatar = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
-            var animator = avatarGameObject.GetComponent<Animator>();
-            var builder = new VRCSdkControlPanelAvatarBuilder3A();
-            builder.RegisterBuilder(ScriptableObject.CreateInstance<VRCSdkControlPanel>());
-            builder.ValidateFeatures(avatar, animator, new AvatarPerformanceStats(false));
+            FixupAnimatorDebugData(avatarGameObject);
+        }
+
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
+        private static void FixupAnimatorDebugData(GameObject avatarGameObject)
+        {
+            Object tempControlPanel = null;
+            try
+            {
+                // The VRCSDK captures some debug information about animators as part of the build process, prior to invoking
+                // hooks. For some reason this happens in the ValidateFeatures call on the SDK builder. Reinvoke it to
+                // refresh this debug info.
+                //
+                // All of these methods are public, but for compatibility with unitypackage-based SDKs, we need to use
+                // reflection to invoke everything here, as the asmdef structure is different between the two SDK variants.
+                // Bleh.
+                //
+                // Canny filed requesting that this processing move after build hooks:
+                // https://feedback.vrchat.com/sdk-bug-reports/p/animator-debug-information-needs-to-be-captured-after-invoking-preprocess-avatar
+                var ty_VRCSdkControlPanelAvatarBuilder3A = Util.FindType(
+                    "VRC.SDK3.Editor.VRCSdkControlPanelAvatarBuilder3A"
+                );
+                var ty_AvatarPerformanceStats = Util.FindType(
+                    "VRC.SDKBase.Validation.Performance.Stats.AvatarPerformanceStats"
+                );
+                var ty_VRCSdkControlPanel = Util.FindType("VRCSdkControlPanel");
+                tempControlPanel = ScriptableObject.CreateInstance(ty_VRCSdkControlPanel) as Object;
+
+                var avatar = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+                var animator = avatarGameObject.GetComponent<Animator>();
+                var builder = ty_VRCSdkControlPanelAvatarBuilder3A.GetConstructor(Type.EmptyTypes)
+                    .Invoke(Array.Empty<object>());
+                var perfStats = ty_AvatarPerformanceStats.GetConstructor(new[] {typeof(bool)})
+                    .Invoke(new object[] {false});
+                ty_VRCSdkControlPanelAvatarBuilder3A
+                    .GetMethod("RegisterBuilder", BindingFlags.Public | BindingFlags.Instance)
+                    .Invoke(builder, new object[] {tempControlPanel});
+                ty_VRCSdkControlPanelAvatarBuilder3A.GetMethod("ValidateFeatures").Invoke(
+                    builder, new object[] {avatar, animator, perfStats}
+                );
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(
+                    "[ModularAvatar] Incompatible VRCSDK version; failed to regenerate animator debug data");
+                Debug.LogException(e);
+            }
+            finally
+            {
+                if (tempControlPanel != null) Object.DestroyImmediate(tempControlPanel);
+            }
         }
     }
 }
