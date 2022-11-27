@@ -27,7 +27,7 @@ using JetBrains.Annotations;
 namespace nadena.dev.modular_avatar.core.editor
 {
     [UsedImplicitly]
-    public static class Version
+    internal static class Version
     {
         [UsedImplicitly] public const string VERSION = "0.0.1";
     }

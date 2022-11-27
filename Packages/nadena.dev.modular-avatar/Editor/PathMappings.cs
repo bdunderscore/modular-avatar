@@ -28,11 +28,11 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public static class PathMappings
+    internal static class PathMappings
     {
         private static List<(string, MappingEntry)> Mappings = new List<(string, MappingEntry)>();
 
-        public struct MappingEntry
+        internal struct MappingEntry
         {
             public string path;
             public string transformPath;

@@ -127,7 +127,7 @@ namespace nadena.dev.modular_avatar.core.editor
      * This class processes a given mesh, adjusting the bind poses for any bones that are to be merged to instead match
      * the bind pose of the original avatar's bone.
      */
-    public class MeshRetargeter
+    internal class MeshRetargeter
     {
         private readonly SkinnedMeshRenderer renderer;
         private Mesh src, dst;

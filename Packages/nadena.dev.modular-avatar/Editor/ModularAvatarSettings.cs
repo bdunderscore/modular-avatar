@@ -27,7 +27,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public static class ModularAvatarSettings
+    internal static class ModularAvatarSettings
     {
         private const string PREFKEY_APPLY_ON_PLAY = "nadena.dev.modular-avatar.applyOnPlay";
 #if UNITY_EDITOR

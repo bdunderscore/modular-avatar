@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class ZeroIndentScope : IDisposable
+    internal class ZeroIndentScope : IDisposable
     {
         private int oldIndentLevel;
 

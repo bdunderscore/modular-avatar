@@ -39,6 +39,9 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         public delegate void AvatarProcessorCallback(GameObject obj);
 
+        /// <summary>
+        /// This API is NOT stable. Do not use it yet.
+        /// </summary>
         public static event AvatarProcessorCallback AfterProcessing;
 
         static AvatarProcessor()

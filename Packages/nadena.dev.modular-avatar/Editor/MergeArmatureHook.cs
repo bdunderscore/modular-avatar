@@ -33,7 +33,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class MergeArmatureHook
+    internal class MergeArmatureHook
     {
         private Dictionary<Transform, Transform> BoneRemappings = new Dictionary<Transform, Transform>();
         private HashSet<GameObject> ToDelete = new HashSet<GameObject>();

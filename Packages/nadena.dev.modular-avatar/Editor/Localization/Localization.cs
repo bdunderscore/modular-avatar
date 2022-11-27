@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public static class Localization
+    internal static class Localization
     {
         private const string localizationPathGuid = "488c994003974b3ab2796371cf627bca";
         private static string localizationPathRoot = AssetDatabase.GUIDToAssetPath(localizationPathGuid);

@@ -5,7 +5,7 @@ using VRC.SDK3.Avatars.Components;
 namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomPropertyDrawer(typeof(AvatarObjectReference))]
-    public class AvatarObjectReferenceDrawer : PropertyDrawer
+    internal class AvatarObjectReferenceDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

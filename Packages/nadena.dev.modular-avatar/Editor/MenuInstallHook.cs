@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class MenuInstallHook
+    internal class MenuInstallHook
     {
         private static Texture2D _moreIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(
             "Packages/nadena.dev.modular-avatar/Runtime/Icons/Icon_More_A.png"

@@ -43,7 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor
     }
 
     [InitializeOnLoad]
-    public static class Util
+    internal static class Util
     {
         private const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
         private const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;

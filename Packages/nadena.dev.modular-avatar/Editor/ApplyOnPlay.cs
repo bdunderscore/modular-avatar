@@ -23,15 +23,11 @@
  */
 
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using VRC.SDK3.Avatars.Components;
-using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     [InitializeOnLoad]
-    public static class ApplyOnPlay
+    internal static class ApplyOnPlay
     {
         private const string MENU_NAME = "Tools/Modular Avatar/Apply on Play";
 

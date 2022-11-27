@@ -33,7 +33,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class AnimatorCombiner
+    internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
 

@@ -33,6 +33,10 @@ using System.Reflection;
 
 namespace nadena.dev.modular_avatar.core
 {
+    /**
+     * This class is public for the benefit of the Editor namespace classes, but is not a stable API and may change
+     * on patch releases.
+     */
     public static class RuntimeUtil
     {
         // Initialized in Util

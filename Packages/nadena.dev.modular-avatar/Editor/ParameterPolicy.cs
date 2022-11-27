@@ -11,7 +11,7 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public struct DetectedParameter
+    internal struct DetectedParameter
     {
         public string OriginalName;
         public bool IsPrefix;
@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public string MapKey => IsPrefix ? OriginalName + "*" : OriginalName;
     }
 
-    public static class ParameterPolicy
+    internal static class ParameterPolicy
     {
         /// <summary>
         /// Parameters predefined by the VRChat SDK which should not be offered as remappable.
