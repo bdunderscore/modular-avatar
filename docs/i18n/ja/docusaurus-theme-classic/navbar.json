@@ -1,10 +1,10 @@
 {
   "title": {
-    "message": "モジュラーアバタードキュメンテーション",
+    "message": "Modular Avatar",
     "description": "The title in the navbar"
   },
   "item.label.Docs": {
-    "message": "Docs",
+    "message": "説明書",
     "description": "Navbar item with label Docs"
   },
   "item.label.GitHub": {

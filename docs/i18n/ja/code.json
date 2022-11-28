@@ -255,7 +255,7 @@
     "description": "The title of the tag list page"
   },
   "Documentation": {
-    "message": "ドキュメンテーション"
+    "message": "説明書"
   },
   "Download": {
     "message": "ダウンロード"
@@ -264,24 +264,24 @@
     "message": "モジュラーアバター"
   },
   "Drag-and-Drop Avatar Assembly": {
-    "message": "ドラッグアンドドロップでアバター組み立て"
+    "message": "D&Dでアバター組み立て"
   },
   "Drag and Drop assembly": {
-    "message": "ドラッグアンドドロップでアバター組み立て"
+    "message": "D&Dでアバター組み立て"
   },
   "Organize your animators": {
     "message": "アニメーターを整理整頓に"
   },
   "Perfect for prefabs": {
-    "message": "プレハブに最適"
+    "message": "配布アセットに最適"
   },
   "Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall' when editing your avatar!": {
-    "message": "モジュラーアバターはビルド時にコンポーネントを統合します。「インスタンス」や「アンインストール」のクリック忘れはもうありません！"
+    "message": "モジュラーアバターはアップロード時にアセットを自動的に導入や統合を行います。インストールのクリック忘れはもう心配しなくてもヨシッ！"
   },
   "Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit dropdown tidy!": {
     "message": "アバターのFXアニメーター等を分割し、実行時に統合しよう。アニメーションウィンドウの選択ドロップダウンを綺麗にしましょう！"
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
-    "message": "モジュラーアバターのコンポーネントをプレハブに入れればインストールが楽ちん！"
+    "message": "モジュラーアバターの設定を予めアセットに埋め込めば導入が楽ちん！"
   }
 }

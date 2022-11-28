@@ -1,9 +1,9 @@
 ﻿---
 sidebar_position: 2
-sidebar_label: チュートリアル
+sidebar_label: かんたんな使い方
 ---
 
-# チュートリアル
+# かんたんな使い方
 
 Modular Avatarを使ったセットアップ方法を紹介するチュートリアルがいくつかあります。
 

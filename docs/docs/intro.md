@@ -15,6 +15,7 @@ To install Modular Avatar, download and import the `unitypackage` file from the 
 
 Then, check out one of the tutorials below:
 * [Simple clothing setup](tutorials/clothing)
+* [Advanced clothing setup](tutorials/adv_clothing)
 
 You can also check out some of the [detailed reference documentation](reference) on individual components.
 
