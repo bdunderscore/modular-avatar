@@ -1,4 +1,4 @@
-![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/bdunderscore/modular-avatar?include_prereleases&label=prerelease)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/bdunderscore/modular-avatar?label=release)
 ![GitHub issues](https://img.shields.io/github/issues/bdunderscore/modular-avatar)
 ![Github stars](https://img.shields.io/github/stars/bdunderscore/modular-avatar)
 
