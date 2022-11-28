@@ -38,6 +38,11 @@ function HomepageHeader() {
               to="https://github.com/bdunderscore/modular-avatar/releases">
               <Translate>Download</Translate>
           </Link>
+          <Link
+            className={`button button--secondary button--lg ${styles.button}`}
+            to="/docs/tutorials">
+            <Translate>Tutorials</Translate>
+          </Link>
         </div>
       </div>
     </header>

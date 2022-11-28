@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: Configuring a complex (cloth) outfit
 ---
 
+# Configuring a complex (cloth) outfit
+
 In some cases the automatic setup is not quite enough to set up a complex outfit.
 Let's look at Lachexia's [Dress Lumi](https://lachexia.booth.pm/items/3763311) as an example.
 

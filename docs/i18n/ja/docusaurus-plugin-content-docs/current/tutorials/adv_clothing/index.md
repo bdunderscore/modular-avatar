@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: 複雑なCloth衣装セットアップ
 ---
 
+# 複雑なCloth衣装セットアップ
+
 自動セットアップでは対処しきれない衣装もあります。ラケシアさんの[ドレス・ルミー](https://lachexia.booth.pm/items/3763311)
 を例に見てみましょう。
 

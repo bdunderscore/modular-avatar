@@ -7,5 +7,5 @@ sidebar_label: Tutorials
 
 Here are some step-by-step guides on how to set up things using Modular Avatar.
 
-* [Configuring a simple outfit](clothing) - in most cases, you can set up an outfit with just a few clicks. Check out this tutorial for details.
-* [Configuring a complex (cloth) outfit](adv_clothing) - this tutorial shows an example of an outfit that requires just a little bit more setup
+* [Configuring a simple outfit](clothing/) - in most cases, you can set up an outfit with just a few clicks. Check out this tutorial for details.
+* [Configuring a complex (cloth) outfit](adv_clothing/) - this tutorial shows an example of an outfit that requires just a little bit more setup

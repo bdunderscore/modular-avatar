@@ -283,5 +283,8 @@
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
     "message": "モジュラーアバターの設定を予めアセットに埋め込めば導入が楽ちん！"
+  },
+  "Tutorials": {
+    "message": "チュートリアル"
   }
 }
