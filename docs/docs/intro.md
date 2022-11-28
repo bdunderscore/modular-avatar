@@ -14,8 +14,9 @@ you want to use. It can automatically merge outfits onto your avatar, build an a
 To install Modular Avatar, download and import the `unitypackage` file from the "Assets" section on [the latest release](https://github.com/bdunderscore/modular-avatar/releases).
 
 Then, check out one of the tutorials below:
-* [Simple clothing setup](tutorials/clothing)
-* [Advanced clothing setup](tutorials/adv_clothing)
+* [Simple clothing setup](tutorials/clothing/)
+* [Advanced clothing setup](tutorials/adv_clothing/)
+* [Toggling an object](tutorials/object_toggle/)
 
 You can also check out some of the [detailed reference documentation](reference) on individual components.
 
