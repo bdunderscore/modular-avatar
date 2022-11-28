@@ -1,6 +1,6 @@
 {
   "link.item.label.Documentation": {
-    "message": "説明賞",
+    "message": "説明書",
     "description": "The label of footer link with label=Documentation linking to /docs/intro"
   },
   "link.item.label.GitHub": {
