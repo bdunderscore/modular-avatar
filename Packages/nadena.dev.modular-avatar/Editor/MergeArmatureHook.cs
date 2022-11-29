@@ -271,6 +271,11 @@ namespace nadena.dev.modular_avatar.core.editor
             bool zipMerge
         )
         {
+            if (src == newParent)
+            {
+                throw new Exception("[ModularAvatar] Attempted to merge an armature into itself! Aborting build...");
+            }
+
             GameObject mergedSrcBone = new GameObject(src.name + "@" + GUID.Generate());
             mergedSrcBone.transform.SetParent(src.transform.parent);
             mergedSrcBone.transform.localPosition = src.transform.localPosition;

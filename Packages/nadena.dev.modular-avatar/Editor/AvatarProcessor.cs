@@ -121,6 +121,22 @@ namespace nadena.dev.modular_avatar.core.editor
 
             try
             {
+                // Sometimes people like to nest one avatar in another, when transplanting clothing. To avoid issues
+                // with inconsistently determining the avatar root, we'll go ahead and remove the extra sub-avatars
+                // here.
+                foreach (Transform directChild in avatarGameObject.transform)
+                {
+                    foreach (var component in directChild.GetComponentsInChildren<VRCAvatarDescriptor>(true))
+                    {
+                        Object.DestroyImmediate(component);
+                    }
+
+                    foreach (var component in directChild.GetComponentsInChildren<PipelineSaver>(true))
+                    {
+                        Object.DestroyImmediate(component);
+                    }
+                }
+
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
