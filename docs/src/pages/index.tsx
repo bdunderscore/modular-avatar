@@ -40,7 +40,7 @@ function HomepageHeader() {
           </Link>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}
-            to="/docs/tutorials">
+            to="/docs/tutorials/">
             <Translate>Tutorials</Translate>
           </Link>
         </div>
