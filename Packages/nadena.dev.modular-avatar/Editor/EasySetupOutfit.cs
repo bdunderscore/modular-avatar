@@ -65,11 +65,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Heuristic search - usually there'll be root -> Armature -> (single child) Hips
                 foreach (Transform child in outfitRoot.transform)
                 {
-                    if (child.childCount == 1)
+                    foreach (Transform tempHip in child)
                     {
-                        if (child.GetChild(0).name.Contains(avatarHips.name))
+                        if (tempHip.name.Contains(avatarHips.name))
                         {
-                            outfitHips = child.GetChild(0).gameObject;
+                            outfitHips = tempHip.gameObject;
                         }
                     }
                 }
