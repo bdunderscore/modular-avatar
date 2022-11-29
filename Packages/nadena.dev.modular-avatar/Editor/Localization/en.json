@@ -50,5 +50,6 @@
   "boneproxy.err.NotInAvatar": "You must specify an object that is in the avatar",
   "boneproxy.attachment": "Attachment mode",
   "boneproxy.attachment.AsChildAtRoot": "As child; at root",
-  "boneproxy.attachment.AsChildKeepWorldPosition": "As child; keep position"
+  "boneproxy.attachment.AsChildKeepWorldPosition": "As child; keep position",
+  "pb_blocker.help": "This object will not be affected by PhysBones attached to parents."
 }

@@ -50,5 +50,6 @@
   "boneproxy.err.NotInAvatar": "アバター内のオブジェクトを指定してください。",
   "boneproxy.attachment": "配置モード",
   "boneproxy.attachment.AsChildAtRoot": "子として・ルートに配置",
-  "boneproxy.attachment.AsChildKeepWorldPosition": "子として・ワールド位置を維持"
+  "boneproxy.attachment.AsChildKeepWorldPosition": "子として・ワールド位置を維持",
+  "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。"
 }
