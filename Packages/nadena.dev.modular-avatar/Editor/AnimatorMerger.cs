@@ -231,6 +231,13 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (original == null) return null;
 
+            switch (original)
+            {
+                case Texture _:
+                case Material _:
+                    return original;
+            }
+
             if (cloneMap == null) cloneMap = new Dictionary<Object, Object>();
 
             if (cloneMap.ContainsKey(original))
