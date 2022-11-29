@@ -12,10 +12,10 @@ Modular Avatarの機能はそれぞれコンポーネントとして提供され
 Modular Avatarをインストールするには、[最新リリース](https://github.com/bdunderscore/modular-avatar/releases)のAssets項目から`unitypackage`ファイルをダウンロードして、インポートしてください。
 
 その後の手順に関しては以下のチュートリアルを見てください
-* [簡単な衣装セットアップ](tutorials/clothing/)
-* [複雑なCloth衣装セットアップ](tutorials/adv_clothing/)
-* [オブジェクトを出し入れしよう](tutorials/object_toggle/)
+* [簡単な衣装セットアップ](/docs/tutorials/clothing)
+* [複雑なCloth衣装セットアップ](/docs/tutorials/adv_clothing)
+* [オブジェクトを出し入れしよう](/docs/tutorials/object_toggle/)
 
-コンポーネントごとの[詳細ドキュメンテーション](reference)もあります。
+コンポーネントごとの[詳細ドキュメンテーション](/docs/reference)もあります。
 
-また、Modular Avatarを応用したアセットを開発する場合は、[アセット配布のアドバイス](distributing-prefabs)もご確認ください。
+また、Modular Avatarを応用したアセットを開発する場合は、[アセット配布のアドバイス](/docs/distributing-prefabs)もご確認ください。
