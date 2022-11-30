@@ -21,7 +21,12 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             titleContent = new GUIContent("Select blendshapes");
         }
-
+        
+        private void OnLostFocus() 
+        {
+            Close();
+        }
+        
         void OnGUI()
         {
             var rect = new Rect(0, 0, position.width, position.height);
