@@ -231,11 +231,32 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (original == null) return null;
 
+            // We want to avoid trying to copy assets not part of the animation system (eg - textures, meshes,
+            // MonoScripts...), so check for the types we care about here
             switch (original)
             {
-                case Texture _:
-                case Material _:
+                // Any object referenced by an animator that we intend to mutate needs to be listed here.
+                case Motion _:
+                case AnimatorController _:
+                case AnimatorState _:
+                case AnimatorStateMachine _:
+                case AnimatorStateTransition _:
+                case StateMachineBehaviour _:
+                    break; // We want to clone these types
+
+                // Leave textures and script definitions alone
+                case Texture2D _:
+                case MonoScript _:
                     return original;
+
+                // Also avoid copying unknown scriptable objects.
+                // This ensures compatibility with e.g. avatar remote, which stores state information in a state
+                // behaviour referencing a custom ScriptableObject
+                case ScriptableObject _:
+                    return original;
+
+                default:
+                    throw new Exception($"Unknown type referenced from animator: {original.GetType()}");
             }
 
             if (cloneMap == null) cloneMap = new Dictionary<Object, Object>();
