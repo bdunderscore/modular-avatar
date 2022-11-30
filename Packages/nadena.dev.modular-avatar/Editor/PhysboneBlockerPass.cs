@@ -55,7 +55,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     parent.Add(tip.transform);
-                    node = node.parent;
                 }
             }
 
