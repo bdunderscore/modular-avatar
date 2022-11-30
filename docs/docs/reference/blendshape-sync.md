@@ -20,6 +20,8 @@ Blendshape Sync always copies the same value from one renderer's blendshape to a
 
 Blendshape Sync cannot be chained - that is, you can copy from A to B and A to C, but you can't copy from A to B and B to C.
 
+At runtime, Blendshape Sync only supports syncing blendshapes that are controlled by animators. Blendshapes controlled by VRChat's builtin eyelook or viseme systems cannot be synced accurately. 
+
 ## Setting up Blendshape Sync
 
 Add the Blendshape Sync component to an object in your prefab. Then click the + button to open a selection window.

@@ -21,6 +21,10 @@ Blendshape Syncは一つのレンダラーのBlendshapeを別のレンダラー�
 
 Blendshape Syncは連鎖的に使うことができません。A→BとA→Cなら大丈夫ですが、A→BとB→Cは正しく動作しません。
 
+At runtime, Blendshape Sync only supports syncing blendshapes that are controlled by animators. Blendshapes controlled by VRChat's builtin eyelook or viseme systems cannot be synced accurately.
+
+プレイ中は、Blendshape Syncはアニメーターにより制御されるブレンドシェープのみを同期できます。VRChat内包の目線・口パクシステムで直接操作されるブレンドシェープが正しく同期されませんので注意。
+
 ## 設定方法
 
 レンダラー付きオブジェクトにBlendshape Syncを追加してください。そして、+ボタンを押して選択ウィンドウを開きます。
