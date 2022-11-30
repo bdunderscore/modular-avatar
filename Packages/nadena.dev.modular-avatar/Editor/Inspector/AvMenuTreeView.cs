@@ -30,6 +30,11 @@ namespace nadena.dev.modular_avatar.core.editor
             _treeView.OnDoubleclickSelect = Close;
         }
 
+        private void OnLostFocus() 
+        {
+            Close();
+        }
+
         private void OnDisable()
         {
             OnMenuSelected = (menu) => { };
