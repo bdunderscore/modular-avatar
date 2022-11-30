@@ -200,7 +200,26 @@ namespace nadena.dev.modular_avatar.core.editor
             dst.bindposes = newBindPoses;
             renderer.bones = newBones;
             renderer.sharedMesh = dst;
-            renderer.rootBone = BoneDatabase.GetRetargetedBone(renderer.rootBone, true);
+
+            var newRootBone = BoneDatabase.GetRetargetedBone(renderer.rootBone, true);
+
+            var oldLossyScale = renderer.rootBone.transform.lossyScale;
+            var newLossyScale = newRootBone.transform.lossyScale;
+
+            var bounds = renderer.localBounds;
+            bounds.extents = new Vector3(
+                bounds.extents.x * oldLossyScale.x / newLossyScale.x,
+                bounds.extents.y * oldLossyScale.y / newLossyScale.y,
+                bounds.extents.z * oldLossyScale.z / newLossyScale.z
+            );
+            bounds.center = new Vector3(
+                bounds.center.x * oldLossyScale.x / newLossyScale.x,
+                bounds.center.y * oldLossyScale.y / newLossyScale.y,
+                bounds.center.z * oldLossyScale.z / newLossyScale.z
+            );
+            renderer.localBounds = bounds;
+
+            renderer.rootBone = newRootBone;
             renderer.probeAnchor = BoneDatabase.GetRetargetedBone(renderer.probeAnchor, true);
         }
     }
