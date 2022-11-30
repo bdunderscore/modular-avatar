@@ -1,11 +1,5 @@
 # PhysBone Blocker
 
-:::caution
-
-This component is planned to be added in 1.1.0, and is not available in the 1.0.x series.
-
-:::
-
 ![PhysBone Blocker](physbone-blocker.png)
 
 The PhysBone Blocker prevents physbones rooted in parent objects from affecting a child object.

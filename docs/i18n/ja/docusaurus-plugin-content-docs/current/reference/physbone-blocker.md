@@ -1,11 +1,5 @@
 # PhysBone Blocker
 
-:::caution 注意
-
-このコンポーネントは1.1.0で追加される予定であり、1.0.xでは利用できません。
-
-:::
-
 ![PhysBone Blocker](physbone-blocker.png)
 
 PhysBone Blockerは、子オブジェクトから親オブジェクトをルートとするPhysBoneの影響を防ぎます。
