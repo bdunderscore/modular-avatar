@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -28,11 +29,24 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             foreach (var obj in Selection.objects)
             {
+                if (!(obj is GameObject gameObj)) return false;
+                var xform = gameObj.transform;
+
                 if (!FindBones(obj, out var _, out var _, out var outfitHips)
                     || outfitHips.transform.parent.GetComponent<ModularAvatarMergeArmature>() != null)
                 {
                     return false;
                 }
+
+                // Some users have been accidentally running Setup Outfit on the avatar itself, and/or nesting avatar
+                // descriptors when transplanting outfits. Block this (and require that there be only one avdesc) by
+                // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
+                // the avdesc object itself)
+                var nearestAvatar = RuntimeUtil.FindAvatarInParents(xform);
+                if (nearestAvatar == null || nearestAvatar.transform == xform) return false;
+
+                var parent = nearestAvatar.transform.parent;
+                if (parent != null && RuntimeUtil.FindAvatarInParents(parent) != null) return false;
             }
 
             return true;
