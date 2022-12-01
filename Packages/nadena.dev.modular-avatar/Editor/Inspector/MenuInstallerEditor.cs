@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using static nadena.dev.modular_avatar.core.editor.Util;
+using static nadena.dev.modular_avatar.core.ModularAvatarMenuFolderCreator;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -21,12 +24,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool _devFoldout;
 
         private HashSet<VRCExpressionsMenu> _avatarMenus;
+        private HashSet<ModularAvatarMenuFolderCreator> _menuFolderCreators;
 
         private void OnEnable()
         {
             _installer = (ModularAvatarMenuInstaller) target;
 
             FindMenus();
+            FindMenuFolderCreators();
         }
 
         private void SetupMenuEditor()
@@ -47,59 +52,54 @@ namespace nadena.dev.modular_avatar.core.editor
                 _menuToAppend = _installer.menuToAppend;
             }
         }
-
         protected override void OnInnerInspectorGUI()
         {
             SetupMenuEditor();
-
-            var installTo = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.installTargetMenu));
-
-            var isEnabled = targets.Length != 1 || ((ModularAvatarMenuInstaller) target).enabled;
-
+            
             VRCAvatarDescriptor commonAvatar = FindCommonAvatar();
 
-            if (!installTo.hasMultipleDifferentValues)
+            SerializedProperty installTargetTypeProperty = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.InstallTargetType));
+            EditorGUILayout.PropertyField(installTargetTypeProperty, new GUIContent("Install Target Type"));
+            InstallTargetType installTargetType = (InstallTargetType)Enum.ToObject(typeof(InstallTargetType), installTargetTypeProperty.enumValueIndex);
+
+            if (!installTargetTypeProperty.hasMultipleDifferentValues) 
             {
-                if (installTo.objectReferenceValue == null)
+                string installTargetMenuPropertyName;
+                Type installTargetObjectType;
+                if (installTargetType == InstallTargetType.VRCExpressionMenu) 
                 {
-                    if (isEnabled)
+                    installTargetMenuPropertyName = nameof(ModularAvatarMenuFolderCreator.installTargetMenu);
+                    installTargetObjectType = typeof(VRCExpressionsMenu);
+                } else 
+                {
+                    installTargetMenuPropertyName = nameof(ModularAvatarMenuFolderCreator.installTargetFolderCreator);
+                    installTargetObjectType = typeof(ModularAvatarMenuFolderCreator);
+                    commonAvatar = null;
+                }
+
+                SerializedProperty installTargetProperty = this.serializedObject.FindProperty(installTargetMenuPropertyName);
+                this.ShowMenuInstallerHelpBox(installTargetProperty, installTargetType);
+                this.ShowInstallTargetPropertyField(installTargetProperty, commonAvatar, installTargetObjectType);
+
+                var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
+                if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
+                {
+                    if (installTargetType == InstallTargetType.VRCExpressionMenu) 
                     {
-                        EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+                        AvMenuTreeViewWindow.Show(avatar, menu => 
+                        {
+                            installTargetProperty.objectReferenceValue = menu;
+                            serializedObject.ApplyModifiedProperties();
+                        });
+                    } else {
+                        AvMenuFolderCreatorTreeViewWindow.Show(avatar, null, creator => 
+                        {
+                            installTargetProperty.objectReferenceValue = creator;
+                            serializedObject.ApplyModifiedProperties();
+                        });
                     }
                 }
-                else if (!IsMenuReachable(RuntimeUtil.FindAvatarInParents(((Component) target).transform),
-                             (VRCExpressionsMenu) installTo.objectReferenceValue))
-                {
-                    EditorGUILayout.HelpBox(S("menuinstall.help.hint_bad_menu"), MessageType.Error);
-                }
-            }
-
-            if (installTo.hasMultipleDifferentValues || commonAvatar == null)
-            {
-                EditorGUILayout.PropertyField(installTo, G("menuinstall.installto"));
-            }
-            else
-            {
-                var displayValue = installTo.objectReferenceValue;
-                if (displayValue == null) displayValue = commonAvatar.expressionsMenu;
-
-                EditorGUI.BeginChangeCheck();
-                var newValue = EditorGUILayout.ObjectField(G("menuinstall.installto"), displayValue,
-                    typeof(VRCExpressionsMenu), false);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    installTo.objectReferenceValue = newValue;
-                }
-            }
-
-            var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
-            if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
-            {
-                AvMenuTreeViewWindow.Show(avatar, menu =>
-                {
-                    installTo.objectReferenceValue = menu;
-                    serializedObject.ApplyModifiedProperties();
-                });
+            
             }
 
             if (targets.Length == 1)
@@ -145,6 +145,56 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
+        }
+        
+        private void ShowMenuInstallerHelpBox(SerializedProperty installTargetProperty, InstallTargetType installTargetType)
+        {
+            if (installTargetProperty.hasMultipleDifferentValues) return;
+            bool isEnabled = targets.Length != 1 || this._installer.enabled;
+
+            if (installTargetProperty.objectReferenceValue == null)
+            {
+                if (!isEnabled) return;
+                EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+            } 
+            else 
+            {
+                VRCAvatarDescriptor avatar = RuntimeUtil.FindAvatarInParents(this._installer.transform);
+                switch (installTargetType) 
+                {
+                    case InstallTargetType.VRCExpressionMenu:
+                        if (!this.IsMenuReachable(avatar, (VRCExpressionsMenu)installTargetProperty.objectReferenceValue)) 
+                        {
+                            EditorGUILayout.HelpBox(Localization.S("menuinstall.help.hint_bad_menu"), MessageType.Error);
+                        }
+                        break;
+                    case InstallTargetType.FolderCreator:
+                        if (!this.IsMenuReachable(avatar, (ModularAvatarMenuFolderCreator)installTargetProperty.objectReferenceValue, new HashSet<ModularAvatarMenuFolderCreator>())) 
+                        {
+                            EditorGUILayout.HelpBox("選択されたメニューフォルダからアバターまでのパスが見つかりません。", MessageType.Error);
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(installTargetType), installTargetType, null);
+                }
+            }
+        }
+
+        private void ShowInstallTargetPropertyField(SerializedProperty installTargetProperty, VRCAvatarDescriptor avatar, Type propertyType) 
+        {
+            Object displayValue = installTargetProperty.objectReferenceValue;
+            if (!installTargetProperty.hasMultipleDifferentValues && avatar != null) 
+            {
+                if (displayValue == null) displayValue = avatar.expressionsMenu;
+            }
+            
+            EditorGUI.BeginChangeCheck();
+            Object newValue = EditorGUILayout.ObjectField(G("menuinstall.installto"), displayValue, propertyType, 
+                propertyType == typeof(ModularAvatarMenuFolderCreator));
+            if (EditorGUI.EndChangeCheck()) 
+            {
+                installTargetProperty.objectReferenceValue = newValue;
+            }
         }
 
         private VRCAvatarDescriptor FindCommonAvatar()
@@ -200,9 +250,47 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private void FindMenuFolderCreators() 
+        {
+            if (this.targets.Length > 1) 
+            {
+                this._menuFolderCreators = null;
+                return;
+            }
+
+            this._menuFolderCreators = new HashSet<ModularAvatarMenuFolderCreator>();
+            VRCAvatarDescriptor avatar = RuntimeUtil.FindAvatarInParents(this._installer.transform);
+            if (avatar == null) return;
+            foreach (ModularAvatarMenuFolderCreator creator in avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuFolderCreator>()) 
+            {
+                this._menuFolderCreators.Add(creator);
+            }
+        }
+
         private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu)
         {
             return _avatarMenus == null || _avatarMenus.Contains(menu);
+        }
+
+        private bool IsMenuReachable(VRCAvatarDescriptor avatar, ModularAvatarMenuFolderCreator creator, HashSet<ModularAvatarMenuFolderCreator> session) 
+        {
+            if (avatar == null) return true;
+            if (this._menuFolderCreators == null) return true;
+
+            if (session.Contains(creator)) return false;
+            if (!this._menuFolderCreators.Contains(creator)) return false;
+
+            if (!creator.enabled) return false;
+            session.Add(creator);
+            switch (creator.installTargetType) 
+            {
+                case InstallTargetType.VRCExpressionMenu:
+                    return creator.installTargetMenu == null || this.IsMenuReachable(avatar, creator.installTargetMenu);
+                case InstallTargetType.FolderCreator:
+                    return creator.installTargetFolderCreator == null || this.IsMenuReachable(avatar, creator.installTargetFolderCreator, session);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) 
@@ -229,6 +317,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             return ValidateExpressionMenuIconResult.Success;
-        }
+        
+
     }
 }
