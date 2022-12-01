@@ -240,7 +240,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 case AnimatorController _:
                 case AnimatorState _:
                 case AnimatorStateMachine _:
-                case AnimatorStateTransition _:
+                case AnimatorTransitionBase _:
                 case StateMachineBehaviour _:
                     break; // We want to clone these types
 
