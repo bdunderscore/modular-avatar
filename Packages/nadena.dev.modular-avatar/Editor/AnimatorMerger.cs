@@ -244,9 +244,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 case StateMachineBehaviour _:
                     break; // We want to clone these types
 
-                // Leave textures and script definitions alone
+                // Leave textures, materials, and script definitions alone
                 case Texture2D _:
                 case MonoScript _:
+                case Material _:
                     return original;
 
                 // Also avoid copying unknown scriptable objects.
