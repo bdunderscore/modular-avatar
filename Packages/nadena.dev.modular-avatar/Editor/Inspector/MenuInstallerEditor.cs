@@ -119,7 +119,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             _devFoldout = EditorGUILayout.Foldout(_devFoldout, G("menuinstall.devoptions"));
-            if (_devFoldout) {
+            if (_devFoldout) 
+            {
                 SerializedProperty menuToAppendProperty = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend));
                 switch (ValidateExpressionMenuIcon((VRCExpressionsMenu)menuToAppendProperty.objectReferenceValue)) 
                 {
@@ -207,13 +208,15 @@ namespace nadena.dev.modular_avatar.core.editor
         private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) {
             if (menu == null) return ValidateExpressionMenuIconResult.Success;
             
-            foreach (VRCExpressionsMenu.Control control in menu.controls) {
+            foreach (VRCExpressionsMenu.Control control in menu.controls) 
+            {
                 // Control
                 ValidateExpressionMenuIconResult result = Util.ValidateExpressionMenuIcon(control.icon);
                 if (result != ValidateExpressionMenuIconResult.Success) return result;
                 
                 // Labels
-                foreach (VRCExpressionsMenu.Control.Label label in control.labels) {
+                foreach (VRCExpressionsMenu.Control.Label label in control.labels) 
+                {
                     ValidateExpressionMenuIconResult labelResult = Util.ValidateExpressionMenuIcon(label.icon);
                     if (labelResult != ValidateExpressionMenuIconResult.Success) return labelResult;
                 }
