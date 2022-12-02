@@ -9,6 +9,8 @@
   "menuinstall.showcontents": "Show menu contents",
   "menuinstall.showcontents.notselected": "No menu selected",
   "menuinstall.devoptions": "Prefab Developer Options",
+  "menuinstall.menu_icon_too_large" : "The icon set in the menu is too large than 256 pixels.",
+  "menuinstall.menu_icon_uncompressed" : "The icon set in the menu is not set for compression.",
   "menuinstall.srcmenu": "Menu to Install",
   "params.autodetect_header": "   Autodetected Parameters   ",
   "params.internal": "Internal",

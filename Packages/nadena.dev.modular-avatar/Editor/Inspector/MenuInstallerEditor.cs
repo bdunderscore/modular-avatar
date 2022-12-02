@@ -5,6 +5,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using static nadena.dev.modular_avatar.core.editor.Util;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -118,13 +119,25 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             _devFoldout = EditorGUILayout.Foldout(_devFoldout, G("menuinstall.devoptions"));
-            if (_devFoldout)
-            {
+            if (_devFoldout) {
+                SerializedProperty menuToAppendProperty = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend));
+                switch (ValidateExpressionMenuIcon((VRCExpressionsMenu)menuToAppendProperty.objectReferenceValue)) 
+                {
+                    case ValidateExpressionMenuIconResult.Success:
+                        break;
+                    case ValidateExpressionMenuIconResult.TooLarge:
+                        EditorGUILayout.HelpBox(S("menuinstall.menu_icon_too_large"), MessageType.Error);
+                        break;
+                    case ValidateExpressionMenuIconResult.Uncompressed:
+                        EditorGUILayout.HelpBox(S("menuinstall.menu_icon_uncompressed"), MessageType.Error);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(
-                    serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend)),
-                    new GUIContent(G("menuinstall.srcmenu"))
-                );
+                    menuToAppendProperty, new GUIContent(G("menuinstall.srcmenu")));
                 EditorGUI.indentLevel--;
             }
 
@@ -189,6 +202,29 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu)
         {
             return _avatarMenus == null || _avatarMenus.Contains(menu);
+        }
+
+        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) {
+            if (menu == null) return ValidateExpressionMenuIconResult.Success;
+            
+            foreach (VRCExpressionsMenu.Control control in menu.controls) {
+                // Control
+                ValidateExpressionMenuIconResult result = Util.ValidateExpressionMenuIcon(control.icon);
+                if (result != ValidateExpressionMenuIconResult.Success) return result;
+                
+                // Labels
+                foreach (VRCExpressionsMenu.Control.Label label in control.labels) {
+                    ValidateExpressionMenuIconResult labelResult = Util.ValidateExpressionMenuIcon(label.icon);
+                    if (labelResult != ValidateExpressionMenuIconResult.Success) return labelResult;
+                }
+                
+                // SubMenu
+                if (control.type != VRCExpressionsMenu.Control.ControlType.SubMenu) continue;
+                ValidateExpressionMenuIconResult subMenuResult = ValidateExpressionMenuIcon(control.subMenu);
+                if (subMenuResult != ValidateExpressionMenuIconResult.Success) return subMenuResult;
+            }
+            
+            return ValidateExpressionMenuIconResult.Success;
         }
     }
 }
