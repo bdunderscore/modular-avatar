@@ -8,6 +8,7 @@ namespace nadena.dev.modular_avatar.core {
 		public VRCExpressionsMenu installTargetMenu;
 		public ModularAvatarMenuFolderCreator installTargetFolderCreator;
 		public string folderName;
+		public Texture2D icon;
 
 		
 		public enum InstallTargetType {

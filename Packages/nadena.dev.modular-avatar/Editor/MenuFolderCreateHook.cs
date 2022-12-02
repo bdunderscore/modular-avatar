@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 					this._creatFolders[rootCreator] = folderMenu;
 				}
 
-				AddSubMenuElement(targetMenu, rootCreator.folderName, folderMenu); // TODO: Support Custom Icon
+				AddSubMenuElement(targetMenu, rootCreator.folderName, folderMenu, rootCreator.icon);
 				if (!this._childMap.TryGetValue(rootCreator, out List<ModularAvatarMenuFolderCreator> children)) continue;
 				foreach (ModularAvatarMenuFolderCreator child in children) {
 					this.CreateChildFolder(child);
@@ -81,7 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 				this._creatFolders[creator] = folderMenu;
 			}
 
-			AddSubMenuElement(targetMenu, creator.folderName, folderMenu); // TODO: Support Custom Icon
+			AddSubMenuElement(targetMenu, creator.folderName, folderMenu, creator.icon);
 			if (!this._childMap.TryGetValue(creator, out List<ModularAvatarMenuFolderCreator> children)) return;
 			foreach (ModularAvatarMenuFolderCreator child in children) {
 				this.CreateChildFolder(child);

@@ -64,6 +64,9 @@ namespace nadena.dev.modular_avatar.core.editor {
 			SerializedProperty folderNameProperty = this.serializedObject.FindProperty(nameof(ModularAvatarMenuFolderCreator.folderName));
 			EditorGUILayout.PropertyField(folderNameProperty, new GUIContent("Folder Name"));
 
+			SerializedProperty iconProperty = this.serializedObject.FindProperty(nameof(ModularAvatarMenuFolderCreator.icon));
+			EditorGUILayout.PropertyField(iconProperty, new GUIContent("Folder Icon"));
+
 			serializedObject.ApplyModifiedProperties();
 			Localization.ShowLanguageUI();
 		}
