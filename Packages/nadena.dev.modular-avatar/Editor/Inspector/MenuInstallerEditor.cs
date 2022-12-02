@@ -205,7 +205,8 @@ namespace nadena.dev.modular_avatar.core.editor
             return _avatarMenus == null || _avatarMenus.Contains(menu);
         }
 
-        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) {
+        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) 
+        {
             if (menu == null) return ValidateExpressionMenuIconResult.Success;
             
             foreach (VRCExpressionsMenu.Control control in menu.controls) 
