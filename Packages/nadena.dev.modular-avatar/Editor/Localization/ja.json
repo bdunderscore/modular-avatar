@@ -9,6 +9,8 @@
   "menuinstall.showcontents": "メニュー内容を表示",
   "menuinstall.showcontents.notselected": "メニューが選択されていません",
   "menuinstall.devoptions": "プレハブ開発者向け設定",
+  "menuinstall.menu_icon_too_large" : "メニューに設定されているアイコンが256ピクセルより大きすぎます。",
+  "menuinstall.menu_icon_uncompressed" : "メニューに設定されているアイコンが圧縮設定されていません。",
   "menuinstall.srcmenu": "インストールされるメニュー",
   "params.autodetect_header": "   自動検出されたパラメーター   ",
   "params.internal": "内部値",

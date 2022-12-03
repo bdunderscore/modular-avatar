@@ -27,6 +27,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Object = UnityEngine.Object;
 
@@ -138,5 +139,33 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return avatarValidation;
         }
+
+        private const int MAX_EXPRESSION_TEXTURE_SIZE = 256;
+
+        public enum ValidateExpressionMenuIconResult 
+        {
+            Success,
+            TooLarge,
+            Uncompressed
+        }
+
+        public static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(Texture2D icon) 
+        {
+            string path = AssetDatabase.GetAssetPath(icon);
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) return ValidateExpressionMenuIconResult.Success;
+            TextureImporterPlatformSettings settings = importer.GetDefaultPlatformTextureSettings();
+            
+            // Max texture size;
+            if ((icon.width > MAX_EXPRESSION_TEXTURE_SIZE || icon.height > MAX_EXPRESSION_TEXTURE_SIZE) &&
+                settings.maxTextureSize > MAX_EXPRESSION_TEXTURE_SIZE) return ValidateExpressionMenuIconResult.TooLarge;
+            
+            // Compression
+            if (settings.textureCompression == TextureImporterCompression.Uncompressed) return ValidateExpressionMenuIconResult.Uncompressed;
+            return ValidateExpressionMenuIconResult.Success;
+        }
+        
+        
+        
     }
 }
