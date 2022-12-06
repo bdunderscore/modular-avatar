@@ -118,6 +118,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return merger.Finish();
         }
 
+        public static AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController) 
+        {
+            var merger = new AnimatorCombiner();
+            merger.AddOverrideController("", overrideController, null);
+            return merger.Finish();
+        }
+
         public static bool IsTemporaryAsset(Object obj)
         {
             var path = AssetDatabase.GetAssetPath(obj);
