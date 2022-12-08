@@ -14,11 +14,11 @@ namespace nadena.dev.modular_avatar.core.editor {
 			set => this._treeView.Avatar = value;
 		}
 
-		private ModularAvatarMenuFolderCreator Creator {
+		private ModularAvatarSubMenuCreator Creator {
 			set => this._treeView.Creator = value;
 		}
 
-		private Action<ModularAvatarMenuFolderCreator> OnMenuSelected = (creator) => { };
+		private Action<ModularAvatarSubMenuCreator> OnMenuSelected = (creator) => { };
 
 		private void Awake() {
 			this._treeView = new AvMenuFolderCreatorTreeView(new TreeViewState()) {
@@ -44,7 +44,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			this._treeView.OnGUI(new Rect(0, 0, this.position.width, this.position.height));
 		}
 
-		internal static void Show(VRCAvatarDescriptor avatar, ModularAvatarMenuFolderCreator creator, Action<ModularAvatarMenuFolderCreator> OnSelect) {
+		internal static void Show(VRCAvatarDescriptor avatar, ModularAvatarSubMenuCreator creator, Action<ModularAvatarSubMenuCreator> OnSelect) {
 			AvMenuFolderCreatorTreeViewWindow window = GetWindow<AvMenuFolderCreatorTreeViewWindow>();
 			window.titleContent = new GUIContent("Select menu folder creator");
 
@@ -66,8 +66,8 @@ namespace nadena.dev.modular_avatar.core.editor {
 			}
 		}
 
-		private ModularAvatarMenuFolderCreator _creator;
-		public ModularAvatarMenuFolderCreator Creator {
+		private ModularAvatarSubMenuCreator _creator;
+		public ModularAvatarSubMenuCreator Creator {
 			get => this._creator;
 			set {
 				this._creator = value;
@@ -78,14 +78,14 @@ namespace nadena.dev.modular_avatar.core.editor {
 		private int _currentCreatorIndex;
 		private readonly Texture2D _currentBackgroundTexture;
 
-		internal Action<ModularAvatarMenuFolderCreator> OnSelect = (creator) => { };
+		internal Action<ModularAvatarSubMenuCreator> OnSelect = (creator) => { };
 		internal Action onDoubleClickSelect = () => { };
 
-		private readonly List<ModularAvatarMenuFolderCreator> _creatorItems = new List<ModularAvatarMenuFolderCreator>();
-		private readonly HashSet<ModularAvatarMenuFolderCreator> _visitedCreators = new HashSet<ModularAvatarMenuFolderCreator>();
+		private readonly List<ModularAvatarSubMenuCreator> _creatorItems = new List<ModularAvatarSubMenuCreator>();
+		private readonly HashSet<ModularAvatarSubMenuCreator> _visitedCreators = new HashSet<ModularAvatarSubMenuCreator>();
 
-		private Dictionary<ModularAvatarMenuFolderCreator, List<ModularAvatarMenuFolderCreator>> _childMap;
-		private List<ModularAvatarMenuFolderCreator> _rootCreators;
+		private Dictionary<ModularAvatarSubMenuCreator, List<ModularAvatarSubMenuCreator>> _childMap;
+		private List<ModularAvatarSubMenuCreator> _rootCreators;
 
 		public AvMenuFolderCreatorTreeView(TreeViewState state) : base(state) {
 			this._currentBackgroundTexture = new Texture2D(1, 1);
@@ -120,7 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			});
 			this._creatorItems.Add(null);
 
-			foreach (ModularAvatarMenuFolderCreator rootCreator in this._rootCreators) {
+			foreach (ModularAvatarSubMenuCreator rootCreator in this._rootCreators) {
 				bool isCurrent = rootCreator == this.Creator;
 				if (isCurrent) {
 					this._currentCreatorIndex = treeItems.Count;
@@ -140,9 +140,9 @@ namespace nadena.dev.modular_avatar.core.editor {
 			return root;
 		}
 
-		private void TraverseCreator(int depth, List<TreeViewItem> items, ModularAvatarMenuFolderCreator creator) {
-			if (!this._childMap.TryGetValue(creator, out List<ModularAvatarMenuFolderCreator> children)) return;
-			foreach (ModularAvatarMenuFolderCreator child in children.Where(child => !this._visitedCreators.Contains(child))) {
+		private void TraverseCreator(int depth, List<TreeViewItem> items, ModularAvatarSubMenuCreator creator) {
+			if (!this._childMap.TryGetValue(creator, out List<ModularAvatarSubMenuCreator> children)) return;
+			foreach (ModularAvatarSubMenuCreator child in children.Where(child => !this._visitedCreators.Contains(child))) {
 				bool isCurrent = child == this.Creator;
 				if (isCurrent) {
 					this._currentCreatorIndex = items.Count;
@@ -172,20 +172,20 @@ namespace nadena.dev.modular_avatar.core.editor {
 
 
 		private void MappingFolderCreator() {
-			this._childMap = new Dictionary<ModularAvatarMenuFolderCreator, List<ModularAvatarMenuFolderCreator>>();
-			this._rootCreators = new List<ModularAvatarMenuFolderCreator>();
+			this._childMap = new Dictionary<ModularAvatarSubMenuCreator, List<ModularAvatarSubMenuCreator>>();
+			this._rootCreators = new List<ModularAvatarSubMenuCreator>();
 
-			foreach (ModularAvatarMenuFolderCreator creator in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuFolderCreator>()) {
+			foreach (ModularAvatarSubMenuCreator creator in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarSubMenuCreator>()) {
 				if (!creator.enabled) continue;
-				if (creator.installTargetType == ModularAvatarMenuFolderCreator.InstallTargetType.VRCExpressionMenu) {
+				if (creator.installTargetType == ModularAvatarSubMenuCreator.InstallTargetType.VRCExpressionMenu) {
 					this._rootCreators.Add(creator);
 				} else {
-					if (creator.installTargetFolderCreator == null) {
+					if (creator.installTargetCreator == null) {
 						this._rootCreators.Add(creator);
 					} else {
-						if (!this._childMap.TryGetValue(creator.installTargetFolderCreator, out List<ModularAvatarMenuFolderCreator> children)) {
-							children = new List<ModularAvatarMenuFolderCreator>();
-							this._childMap[creator.installTargetFolderCreator] = children;
+						if (!this._childMap.TryGetValue(creator.installTargetCreator, out List<ModularAvatarSubMenuCreator> children)) {
+							children = new List<ModularAvatarSubMenuCreator>();
+							this._childMap[creator.installTargetCreator] = children;
 						}
 
 						children.Add(creator);

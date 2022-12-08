@@ -2,11 +2,11 @@
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core {
-	[AddComponentMenu("Modular Avatar/MA Menu Folder Creator")]
-	public class ModularAvatarMenuFolderCreator : AvatarTagComponent {
+	[AddComponentMenu("Modular Avatar/MA SubMenu Creator")]
+	public class ModularAvatarSubMenuCreator : AvatarTagComponent {
 		public InstallTargetType installTargetType;
 		public VRCExpressionsMenu installTargetMenu;
-		public ModularAvatarMenuFolderCreator installTargetFolderCreator;
+		public ModularAvatarSubMenuCreator installTargetCreator;
 		public string folderName;
 		public Texture2D icon;
 

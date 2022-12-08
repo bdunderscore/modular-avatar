@@ -5,29 +5,29 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using static nadena.dev.modular_avatar.core.ModularAvatarMenuFolderCreator;
+using static nadena.dev.modular_avatar.core.ModularAvatarSubMenuCreator;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor {
-	internal class MenuFolderCreateHook {
-		private static Texture2D _MORE_ICON = AssetDatabase.LoadAssetAtPath<Texture2D>(
+	internal class SubMenuCreateHook {
+		private static readonly Texture2D _MORE_ICON = AssetDatabase.LoadAssetAtPath<Texture2D>(
 			"Packages/nadena.dev.modular-avatar/Runtime/Icons/Icon_More_A.png"
 		);
 
-		private readonly Dictionary<ModularAvatarMenuFolderCreator, List<ModularAvatarMenuFolderCreator>> _childMap;
-		private readonly List<ModularAvatarMenuFolderCreator> _rootCreators;
+		private readonly Dictionary<ModularAvatarSubMenuCreator, List<ModularAvatarSubMenuCreator>> _childMap;
+		private readonly List<ModularAvatarSubMenuCreator> _rootCreators;
 
 		private readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _clonedMenus;
-		private readonly Dictionary<ModularAvatarMenuFolderCreator, VRCExpressionsMenu> _creatFolders;
+		private readonly Dictionary<ModularAvatarSubMenuCreator, VRCExpressionsMenu> _creatFolders;
 		private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _installTargets;
 
 		private VRCExpressionsMenu _rootMenu;
 
-		public MenuFolderCreateHook() {
-			this._childMap = new Dictionary<ModularAvatarMenuFolderCreator, List<ModularAvatarMenuFolderCreator>>();
-			this._rootCreators = new List<ModularAvatarMenuFolderCreator>();
+		public SubMenuCreateHook() {
+			this._childMap = new Dictionary<ModularAvatarSubMenuCreator, List<ModularAvatarSubMenuCreator>>();
+			this._rootCreators = new List<ModularAvatarSubMenuCreator>();
 			this._clonedMenus = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
-			this._creatFolders = new Dictionary<ModularAvatarMenuFolderCreator, VRCExpressionsMenu>();
+			this._creatFolders = new Dictionary<ModularAvatarSubMenuCreator, VRCExpressionsMenu>();
 		}
 
 		public void OnPreprocessAvatar(GameObject avatarRoot) {
@@ -45,7 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			avatar.expressionsMenu = this.CloneMenu(avatar.expressionsMenu);
 			this._installTargets = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>(this._clonedMenus);
 
-			foreach (ModularAvatarMenuFolderCreator rootCreator in this._rootCreators.Where(rootCreator => rootCreator.enabled)) {
+			foreach (ModularAvatarSubMenuCreator rootCreator in this._rootCreators.Where(rootCreator => rootCreator.enabled)) {
 				if (rootCreator.installTargetMenu == null) {
 					rootCreator.installTargetMenu = this._rootMenu;
 				}
@@ -59,8 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor {
 				}
 
 				AddSubMenuElement(targetMenu, rootCreator.folderName, folderMenu, rootCreator.icon);
-				if (!this._childMap.TryGetValue(rootCreator, out List<ModularAvatarMenuFolderCreator> children)) continue;
-				foreach (ModularAvatarMenuFolderCreator child in children) {
+				if (!this._childMap.TryGetValue(rootCreator, out List<ModularAvatarSubMenuCreator> children)) continue;
+				foreach (ModularAvatarSubMenuCreator child in children) {
 					this.CreateChildFolder(child);
 				}
 				this.SplitMenu(rootCreator);
@@ -72,8 +72,8 @@ namespace nadena.dev.modular_avatar.core.editor {
 		}
 
 
-		private void CreateChildFolder(ModularAvatarMenuFolderCreator creator) {
-			if (!this._creatFolders.TryGetValue(creator.installTargetFolderCreator, out VRCExpressionsMenu targetMenu)) return;
+		private void CreateChildFolder(ModularAvatarSubMenuCreator creator) {
+			if (!this._creatFolders.TryGetValue(creator.installTargetCreator, out VRCExpressionsMenu targetMenu)) return;
 			if (!this._creatFolders.TryGetValue(creator, out VRCExpressionsMenu folderMenu)) {
 				// 子が1つの親を参照する関係なので、同じ要素が複数現れることはありえない。
 				// 同様に循環参照等にもたどり付けないので考慮に入れなくてよい。
@@ -82,15 +82,15 @@ namespace nadena.dev.modular_avatar.core.editor {
 			}
 
 			AddSubMenuElement(targetMenu, creator.folderName, folderMenu, creator.icon);
-			if (!this._childMap.TryGetValue(creator, out List<ModularAvatarMenuFolderCreator> children)) return;
-			foreach (ModularAvatarMenuFolderCreator child in children) {
+			if (!this._childMap.TryGetValue(creator, out List<ModularAvatarSubMenuCreator> children)) return;
+			foreach (ModularAvatarSubMenuCreator child in children) {
 				this.CreateChildFolder(child);
 			}
 
 			this.SplitMenu(creator);
 		}
 
-		private void SplitMenu(ModularAvatarMenuFolderCreator creator) {
+		private void SplitMenu(ModularAvatarSubMenuCreator creator) {
 			VRCExpressionsMenu targetMenu = this._creatFolders[creator];
 			while (targetMenu.controls.Count > VRCExpressionsMenu.MAX_CONTROLS) {
 				VRCExpressionsMenu newMenu = CreateMenuAsset();
@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			}
 		}
 
-		private void SplitParentMenu(VRCExpressionsMenu targetMenu, ModularAvatarMenuFolderCreator rootCreator) {
+		private void SplitParentMenu(VRCExpressionsMenu targetMenu, ModularAvatarSubMenuCreator rootCreator) {
 			while (targetMenu.controls.Count > VRCExpressionsMenu.MAX_CONTROLS) {
 				VRCExpressionsMenu newMenu = CreateMenuAsset();
 				const int keepCount = VRCExpressionsMenu.MAX_CONTROLS - 1;
@@ -124,10 +124,10 @@ namespace nadena.dev.modular_avatar.core.editor {
 					installer.installTargetMenu = this._rootMenu;
 				}
 
-				if (installer.InstallTargetType == InstallTargetType.VRCExpressionMenu || installer.installTargetFolderCreator == null) {
+				if (installer.InstallTargetType == InstallTargetType.VRCExpressionMenu || installer.installTargetCreator == null) {
 					installer.installTargetMenu = this._installTargets[installer.installTargetMenu];
 				} else {
-					installer.installTargetMenu = this._creatFolders[installer.installTargetFolderCreator];
+					installer.installTargetMenu = this._creatFolders[installer.installTargetCreator];
 				}
 			}
 		}
@@ -147,17 +147,17 @@ namespace nadena.dev.modular_avatar.core.editor {
 		}
 
 		private void MappingFolderCreator(GameObject avatarRoot) {
-			foreach (ModularAvatarMenuFolderCreator creator in avatarRoot.GetComponentsInChildren<ModularAvatarMenuFolderCreator>(true)) {
+			foreach (ModularAvatarSubMenuCreator creator in avatarRoot.GetComponentsInChildren<ModularAvatarSubMenuCreator>(true)) {
 				if (!creator.enabled) continue;
 				if (creator.installTargetType == InstallTargetType.VRCExpressionMenu) {
 					this._rootCreators.Add(creator);
 				} else {
-					if (creator.installTargetFolderCreator == null) {
+					if (creator.installTargetCreator == null) {
 						this._rootCreators.Add(creator);
 					} else {
-						if (!this._childMap.TryGetValue(creator.installTargetFolderCreator, out List<ModularAvatarMenuFolderCreator> children)) {
-							children = new List<ModularAvatarMenuFolderCreator>();
-							this._childMap[creator.installTargetFolderCreator] = children;
+						if (!this._childMap.TryGetValue(creator.installTargetCreator, out List<ModularAvatarSubMenuCreator> children)) {
+							children = new List<ModularAvatarSubMenuCreator>();
+							this._childMap[creator.installTargetCreator] = children;
 						}
 
 						children.Add(creator);
@@ -166,7 +166,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			}
 		}
 
-		public static void AddSubMenuElement(VRCExpressionsMenu targetMenu, string elementName, VRCExpressionsMenu subMenu, Texture2D icon = null) {
+		private static void AddSubMenuElement(VRCExpressionsMenu targetMenu, string elementName, VRCExpressionsMenu subMenu, Texture2D icon = null) {
 			targetMenu.controls.Add(new VRCExpressionsMenu.Control() {
 				name = elementName,
 				type = VRCExpressionsMenu.Control.ControlType.SubMenu,

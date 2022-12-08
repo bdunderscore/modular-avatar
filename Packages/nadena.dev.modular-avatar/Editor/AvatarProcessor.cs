@@ -39,10 +39,14 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         public delegate void AvatarProcessorCallback(GameObject obj);
 
+        public static event AvatarProcessorCallback BeforeProcessing;
+
         /// <summary>
         /// This API is NOT stable. Do not use it yet.
         /// </summary>
         public static event AvatarProcessorCallback AfterProcessing;
+
+        public static event AvatarProcessorCallback CleanedUpProcessing;
 
         static AvatarProcessor()
         {
@@ -136,9 +140,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         Object.DestroyImmediate(component);
                     }
                 }
+                BeforeProcessing?.Invoke(avatarGameObject);
 
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
-                new MenuFolderCreateHook().OnPreprocessAvatar(avatarGameObject);
+                new SubMenuCreateHook().OnPreprocessAvatar(avatarGameObject);
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
                 new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
@@ -158,6 +163,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
+                CleanedUpProcessing?.Invoke(avatarGameObject);
             }
 
             FixupAnimatorDebugData(avatarGameObject);

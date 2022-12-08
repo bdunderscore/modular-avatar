@@ -5,19 +5,19 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using static nadena.dev.modular_avatar.core.ModularAvatarMenuFolderCreator;
+using static nadena.dev.modular_avatar.core.ModularAvatarSubMenuCreator;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor {
-	[CustomEditor(typeof(ModularAvatarMenuFolderCreator))]
+	[CustomEditor(typeof(ModularAvatarSubMenuCreator))]
 	[CanEditMultipleObjects]
-	internal class MenuFolderCreatorEditor : MAEditorBase {
-		private ModularAvatarMenuFolderCreator _creator;
+	internal class SubMenuCreatorEditor : MAEditorBase {
+		private ModularAvatarSubMenuCreator _creator;
 		private HashSet<VRCExpressionsMenu> _avatarMenus;
-		private HashSet<ModularAvatarMenuFolderCreator> _menuFolderCreators;
+		private HashSet<ModularAvatarSubMenuCreator> _menuFolderCreators;
 
 		private void OnEnable() {
-			this._creator = (ModularAvatarMenuFolderCreator)this.target;
+			this._creator = (ModularAvatarSubMenuCreator)this.target;
 			this.FindMenus();
 			this.FindMenuFolderCreators();
 		}
@@ -25,7 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 		protected override void OnInnerInspectorGUI() {
 			VRCAvatarDescriptor commonAvatar = this.FindCommonAvatar();
 
-			SerializedProperty installTargetTypeProperty = this.serializedObject.FindProperty(nameof(ModularAvatarMenuFolderCreator.installTargetType));
+			SerializedProperty installTargetTypeProperty = this.serializedObject.FindProperty(nameof(ModularAvatarSubMenuCreator.installTargetType));
 			EditorGUILayout.PropertyField(installTargetTypeProperty, new GUIContent("Install Target Type"));
 			InstallTargetType installTargetType = (InstallTargetType)Enum.ToObject(typeof(InstallTargetType), installTargetTypeProperty.enumValueIndex);
 
@@ -33,11 +33,11 @@ namespace nadena.dev.modular_avatar.core.editor {
 				string installTargetMenuPropertyName;
 				Type installTargetObjectType;
 				if (installTargetType == InstallTargetType.VRCExpressionMenu) {
-					installTargetMenuPropertyName = nameof(ModularAvatarMenuFolderCreator.installTargetMenu);
+					installTargetMenuPropertyName = nameof(ModularAvatarSubMenuCreator.installTargetMenu);
 					installTargetObjectType = typeof(VRCExpressionsMenu);
 				} else {
-					installTargetMenuPropertyName = nameof(ModularAvatarMenuFolderCreator.installTargetFolderCreator);
-					installTargetObjectType = typeof(ModularAvatarMenuFolderCreator);
+					installTargetMenuPropertyName = nameof(ModularAvatarSubMenuCreator.installTargetCreator);
+					installTargetObjectType = typeof(ModularAvatarSubMenuCreator);
 					commonAvatar = null;
 				}
 
@@ -61,10 +61,10 @@ namespace nadena.dev.modular_avatar.core.editor {
 				}
 			}
 
-			SerializedProperty folderNameProperty = this.serializedObject.FindProperty(nameof(ModularAvatarMenuFolderCreator.folderName));
+			SerializedProperty folderNameProperty = this.serializedObject.FindProperty(nameof(ModularAvatarSubMenuCreator.folderName));
 			EditorGUILayout.PropertyField(folderNameProperty, new GUIContent("Folder Name"));
 
-			SerializedProperty iconProperty = this.serializedObject.FindProperty(nameof(ModularAvatarMenuFolderCreator.icon));
+			SerializedProperty iconProperty = this.serializedObject.FindProperty(nameof(ModularAvatarSubMenuCreator.icon));
 			EditorGUILayout.PropertyField(iconProperty, new GUIContent("Folder Icon"));
 
 			serializedObject.ApplyModifiedProperties();
@@ -88,8 +88,8 @@ namespace nadena.dev.modular_avatar.core.editor {
 
 						break;
 					case InstallTargetType.FolderCreator:
-						if (!this.IsMenuReachable(avatar, (ModularAvatarMenuFolderCreator)installTargetProperty.objectReferenceValue, 
-							    new HashSet<ModularAvatarMenuFolderCreator>())) {
+						if (!this.IsMenuReachable(avatar, (ModularAvatarSubMenuCreator)installTargetProperty.objectReferenceValue, 
+							    new HashSet<ModularAvatarSubMenuCreator>())) {
 							EditorGUILayout.HelpBox("選択されたメニューフォルダからアバターまでのパスが見つかりません。", MessageType.Error);
 						}
 
@@ -108,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 
 			EditorGUI.BeginChangeCheck();
 			Object newValue = EditorGUILayout.ObjectField(Localization.G("menuinstall.installto"), displayValue, propertyType,
-				propertyType == typeof(ModularAvatarMenuFolderCreator));
+				propertyType == typeof(ModularAvatarSubMenuCreator));
 			if (newValue == this._creator) newValue = displayValue;
 			if (EditorGUI.EndChangeCheck()) {
 				installTargetProperty.objectReferenceValue = newValue;
@@ -118,7 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 		private VRCAvatarDescriptor FindCommonAvatar() {
 			VRCAvatarDescriptor commonAvatar = null;
 			foreach (Object targetObject in targets) {
-				ModularAvatarMenuFolderCreator component = (ModularAvatarMenuFolderCreator)targetObject;
+				ModularAvatarSubMenuCreator component = (ModularAvatarSubMenuCreator)targetObject;
 				VRCAvatarDescriptor avatar = RuntimeUtil.FindAvatarInParents(component.transform);
 				if (avatar == null) return null;
 
@@ -165,11 +165,11 @@ namespace nadena.dev.modular_avatar.core.editor {
 				return;
 			}
 
-			this._menuFolderCreators = new HashSet<ModularAvatarMenuFolderCreator>();
+			this._menuFolderCreators = new HashSet<ModularAvatarSubMenuCreator>();
 			VRCAvatarDescriptor avatar = RuntimeUtil.FindAvatarInParents(this._creator.transform);
 			if (avatar == null) return;
-			foreach (ModularAvatarMenuFolderCreator creator in avatar.gameObject
-				         .GetComponentsInChildren<ModularAvatarMenuFolderCreator>()
+			foreach (ModularAvatarSubMenuCreator creator in avatar.gameObject
+				         .GetComponentsInChildren<ModularAvatarSubMenuCreator>()
 				         .Where(creator => creator != this._creator)) {
 				this._menuFolderCreators.Add(creator);
 			}
@@ -179,7 +179,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 			return this._avatarMenus == null || this._avatarMenus.Contains(menu);
 		}
 
-		private bool IsMenuReachable(VRCAvatarDescriptor avatar, ModularAvatarMenuFolderCreator creator, HashSet<ModularAvatarMenuFolderCreator> session) {
+		private bool IsMenuReachable(VRCAvatarDescriptor avatar, ModularAvatarSubMenuCreator creator, HashSet<ModularAvatarSubMenuCreator> session) {
 			if (avatar == null) return true;
 			if (this._menuFolderCreators == null) return true;
 
@@ -192,7 +192,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 				case InstallTargetType.VRCExpressionMenu:
 					return creator.installTargetMenu == null || this.IsMenuReachable(avatar, creator.installTargetMenu);
 				case InstallTargetType.FolderCreator:
-					return creator.installTargetFolderCreator == null || this.IsMenuReachable(avatar, creator.installTargetFolderCreator, session);
+					return creator.installTargetCreator == null || this.IsMenuReachable(avatar, creator.installTargetCreator, session);
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
