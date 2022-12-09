@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -18,6 +19,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 EditorGUILayout.HelpBox(Localization.S("hint.not_in_avatar"), MessageType.Warning);
             }
+        }
+
+        public static void DisplayVRCSDKVersionWarning()
+        {
+            EditorGUILayout.HelpBox(Localization.S("hint.bad_vrcsdk"), MessageType.Error);
         }
     }
 }
