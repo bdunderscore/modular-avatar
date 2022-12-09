@@ -197,14 +197,24 @@ namespace nadena.dev.modular_avatar.core.editor
                 newBindPoses[i] = Bp;
             }
 
+            var rootBone = renderer.rootBone;
+            var scaleBone = rootBone;
+            if (rootBone == null)
+            {
+                // Sometimes meshes have no root bone set. This is usually not ideal, but let's make sure we don't
+                // choke on the scale computation below.
+                scaleBone = renderer.bones[0];
+            }
+
             dst.bindposes = newBindPoses;
             renderer.bones = newBones;
             renderer.sharedMesh = dst;
 
-            var newRootBone = BoneDatabase.GetRetargetedBone(renderer.rootBone, true);
+            var newRootBone = BoneDatabase.GetRetargetedBone(rootBone, true);
+            var newScaleBone = BoneDatabase.GetRetargetedBone(scaleBone, true);
 
-            var oldLossyScale = renderer.rootBone.transform.lossyScale;
-            var newLossyScale = newRootBone.transform.lossyScale;
+            var oldLossyScale = scaleBone.transform.lossyScale;
+            var newLossyScale = newScaleBone.transform.lossyScale;
 
             var bounds = renderer.localBounds;
             bounds.extents = new Vector3(
