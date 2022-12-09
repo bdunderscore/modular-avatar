@@ -53,5 +53,6 @@
   "boneproxy.attachment": "配置モード",
   "boneproxy.attachment.AsChildAtRoot": "子として・ルートに配置",
   "boneproxy.attachment.AsChildKeepWorldPosition": "子として・ワールド位置を維持",
-  "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。"
+  "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。",
+  "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。"
 }

@@ -33,15 +33,19 @@ namespace nadena.dev.modular_avatar.core.editor
     [InitializeOnLoad]
     internal static class ComponentAllowlistPatch
     {
+        internal static readonly bool PATCH_OK;
+
         static ComponentAllowlistPatch()
         {
             try
             {
                 PatchAllowlist();
+                PATCH_OK = true;
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
+                PATCH_OK = false;
             }
         }
 
