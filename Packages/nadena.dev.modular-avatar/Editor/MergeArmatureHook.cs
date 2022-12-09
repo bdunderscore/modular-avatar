@@ -283,6 +283,8 @@ namespace nadena.dev.modular_avatar.core.editor
             mergedSrcBone.transform.localScale = src.transform.localScale;
             mergedSrcBone.transform.SetParent(newParent.transform, true);
 
+            if (zipMerge) PruneDuplicatePhysBones(newParent, src);
+
             bool retain = HasAdditionalComponents(src, out var constraintType);
             if (constraintType != null)
             {
@@ -358,6 +360,41 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!retain) ToDelete.Add(src);
 
             return retain;
+        }
+
+        /**
+         * Sometimes outfit authors copy the entire armature, including PhysBones components. If we merge these and
+         * end up with multiple PB components referencing the same target, PB refuses to animate the bone. So detect
+         * and prune this case.
+         *
+         * For simplicity - we currently only detect the case where the physbone references the component it's on.
+         * TODO - detect duplicate colliders, contacts, et - these can cause perf issues but usually not quite as large
+         * of a correctness issue.
+         */
+        private void PruneDuplicatePhysBones(GameObject baseBone, GameObject mergeBone)
+        {
+            bool hasSelfReferencePB = false;
+
+            foreach (var pb in baseBone.GetComponents<VRCPhysBone>())
+            {
+                var target = pb.rootTransform;
+                if (target == null || target == baseBone.transform)
+                {
+                    hasSelfReferencePB = true;
+                    break;
+                }
+            }
+
+            if (!hasSelfReferencePB) return;
+
+            foreach (var pb in mergeBone.GetComponents<VRCPhysBone>())
+            {
+                var target = pb.rootTransform;
+                if (target == null || target == baseBone.transform)
+                {
+                    Object.DestroyImmediate(pb);
+                }
+            }
         }
     }
 }
