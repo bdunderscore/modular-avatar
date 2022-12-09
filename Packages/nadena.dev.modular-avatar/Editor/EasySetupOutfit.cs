@@ -18,6 +18,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
 
+            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() != null) return;
+
             var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
             merge.mergeTarget = new AvatarObjectReference();
             merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
@@ -27,13 +29,14 @@ namespace nadena.dev.modular_avatar.core.editor
         [MenuItem("GameObject/[ModularAvatar] Setup Outfit", true, PRIORITY)]
         static bool ValidateSetupOutfit()
         {
+            if (Selection.objects.Length == 0) return false;
+
             foreach (var obj in Selection.objects)
             {
                 if (!(obj is GameObject gameObj)) return false;
                 var xform = gameObj.transform;
 
-                if (!FindBones(obj, out var _, out var _, out var outfitHips)
-                    || outfitHips.transform.parent.GetComponent<ModularAvatarMergeArmature>() != null)
+                if (!FindBones(obj, out var _, out var _, out var outfitHips))
                 {
                     return false;
                 }
