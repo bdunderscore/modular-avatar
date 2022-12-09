@@ -91,6 +91,22 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<AimConstraint>(true))
+            {
+                if (!AddedConstraints.Contains(c))
+                {
+                    FixupAimConstraint(c);
+                }
+            }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<LookAtConstraint>(true))
+            {
+                if (!AddedConstraints.Contains(c))
+                {
+                    FixupLookAtConstraint(c);
+                }
+            }
+
             foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
 
             return true;
@@ -116,6 +132,38 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 constraint.SetSource(i, source);
+            }
+        }
+
+        private void FixupAimConstraint(AimConstraint constraint)
+        {
+            if (constraint.worldUpObject == null) return;
+            if (!BoneRemappings.TryGetValue(constraint.worldUpObject, out var remap)) return;
+            var retarget = BoneDatabase.GetRetargetedBone(remap);
+
+            if (retarget != null)
+            {
+                constraint.worldUpObject = retarget;
+            }
+            else
+            {
+                constraint.worldUpObject = remap;
+            }
+        }
+
+        private void FixupLookAtConstraint(LookAtConstraint constraint)
+        {
+            if (constraint.worldUpObject == null) return;
+            if (!BoneRemappings.TryGetValue(constraint.worldUpObject, out var remap)) return;
+            var retarget = BoneDatabase.GetRetargetedBone(remap);
+
+            if (retarget != null)
+            {
+                constraint.worldUpObject = retarget;
+            }
+            else
+            {
+                constraint.worldUpObject = remap;
             }
         }
 
