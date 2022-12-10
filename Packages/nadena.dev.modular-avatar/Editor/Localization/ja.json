@@ -30,6 +30,8 @@
   "merge_armature.suffix.tooltip": "このオブジェクトの子に付く後置詞",
   "merge_armature.locked": "位置を固定",
   "merge_armature.locked.tooltip": "このオブジェクトのボーンを統合先のボーンに常に相互的に位置を合わせる。アニメーション制作向け",
+  "merge_armature.adjust_names": "ボーン名を統合先に合わせる",
+  "merge_armature.adjust_names.tooltip": "統合先のボーン名に合わせて、衣装のボーン名を合わせて変更します。統合先アバターに非対応の衣装導入向け機能です。",
   "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
   "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
   "merge_animator.animator": "統合されるアニメーター",

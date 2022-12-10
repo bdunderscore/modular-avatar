@@ -24,6 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
             merge.mergeTarget = new AvatarObjectReference();
             merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
             merge.InferPrefixSuffix();
+            HeuristicBoneMapper.RenameBonesByHeuristic(merge);
         }
 
         [MenuItem("GameObject/[ModularAvatar] Setup Outfit", true, PRIORITY)]
