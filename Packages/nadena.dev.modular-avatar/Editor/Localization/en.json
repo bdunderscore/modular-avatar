@@ -30,6 +30,8 @@
   "merge_armature.suffix.tooltip": "Suffix expected on bones in this merged armature",
   "merge_armature.locked": "Lock position",
   "merge_armature.locked.tooltip": "Lock the position of this armature's bones to the target armature (and vice versa). Useful for creating animations.",
+  "merge_armature.adjust_names": "Adjust bone names to match target",
+  "merge_armature.adjust_names.tooltip": "Changes bone names to match the target avatar. Useful for porting outfits from one avatar to another.",
   "path_mode.Relative": "Relative to this object",
   "path_mode.Absolute": "Absolute (based on avatar root)",
   "merge_animator.animator": "Animator to merge",
