@@ -118,53 +118,27 @@ namespace nadena.dev.modular_avatar.core.editor
             for (int i = 0; i < nSources; i++)
             {
                 var source = constraint.GetSource(i);
-                if (source.sourceTransform == null) continue;
-                if (!BoneRemappings.TryGetValue(source.sourceTransform, out var remap)) continue;
-                var retarget = BoneDatabase.GetRetargetedBone(remap);
-
-                if (retarget != null)
-                {
-                    source.sourceTransform = retarget;
-                }
-                else
-                {
-                    source.sourceTransform = remap;
-                }
-
+                source.sourceTransform = MapConstraintSource(source.sourceTransform);
                 constraint.SetSource(i, source);
             }
         }
 
         private void FixupAimConstraint(AimConstraint constraint)
         {
-            if (constraint.worldUpObject == null) return;
-            if (!BoneRemappings.TryGetValue(constraint.worldUpObject, out var remap)) return;
-            var retarget = BoneDatabase.GetRetargetedBone(remap);
-
-            if (retarget != null)
-            {
-                constraint.worldUpObject = retarget;
-            }
-            else
-            {
-                constraint.worldUpObject = remap;
-            }
+            constraint.worldUpObject = MapConstraintSource(constraint.worldUpObject);
         }
 
         private void FixupLookAtConstraint(LookAtConstraint constraint)
         {
-            if (constraint.worldUpObject == null) return;
-            if (!BoneRemappings.TryGetValue(constraint.worldUpObject, out var remap)) return;
-            var retarget = BoneDatabase.GetRetargetedBone(remap);
+            constraint.worldUpObject = MapConstraintSource(constraint.worldUpObject);
+        }
 
-            if (retarget != null)
-            {
-                constraint.worldUpObject = retarget;
-            }
-            else
-            {
-                constraint.worldUpObject = remap;
-            }
+        private Transform MapConstraintSource(Transform transform)
+        {
+            if (transform == null) return null;
+            if (!BoneRemappings.TryGetValue(transform, out var remap)) return transform;
+            var retarget = BoneDatabase.GetRetargetedBone(remap);
+            return retarget != null ? retarget : remap;
         }
 
         private void UpdateBoneReferences(Component c, Retargetable retargetable = Retargetable.Disable)
