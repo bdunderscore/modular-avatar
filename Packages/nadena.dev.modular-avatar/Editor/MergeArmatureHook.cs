@@ -91,22 +91,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<AimConstraint>(true))
-            {
-                if (!AddedConstraints.Contains(c))
-                {
-                    FixupAimConstraint(c);
-                }
-            }
-
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<LookAtConstraint>(true))
-            {
-                if (!AddedConstraints.Contains(c))
-                {
-                    FixupLookAtConstraint(c);
-                }
-            }
-
             foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
 
             return true;
@@ -121,16 +105,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 source.sourceTransform = MapConstraintSource(source.sourceTransform);
                 constraint.SetSource(i, source);
             }
-        }
 
-        private void FixupAimConstraint(AimConstraint constraint)
-        {
-            constraint.worldUpObject = MapConstraintSource(constraint.worldUpObject);
-        }
+            if (constraint is AimConstraint aimConstraint)
+            {
+                aimConstraint.worldUpObject = MapConstraintSource(aimConstraint.worldUpObject);
+            }
 
-        private void FixupLookAtConstraint(LookAtConstraint constraint)
-        {
-            constraint.worldUpObject = MapConstraintSource(constraint.worldUpObject);
+            if (constraint is LookAtConstraint lookAtConstraint)
+            {
+                lookAtConstraint.worldUpObject = MapConstraintSource(lookAtConstraint.worldUpObject);
+            }
         }
 
         private Transform MapConstraintSource(Transform transform)
