@@ -37,6 +37,9 @@ namespace nadena.dev.modular_avatar.core.editor
     [InitializeOnLoad]
     public class AvatarProcessor : IVRCSDKPreprocessAvatarCallback, IVRCSDKPostprocessAvatarCallback
     {
+        // Place after EditorOnly processing (which runs at -1024) but hopefully before most other user callbacks
+        public int callbackOrder => -25;
+
         public delegate void AvatarProcessorCallback(GameObject obj);
 
         /// <summary>
@@ -92,8 +95,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 Util.DeleteTemporaryAssets();
             }
         }
-
-        public int callbackOrder => -9000;
 
         public void OnPostprocessAvatar()
         {

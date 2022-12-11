@@ -126,6 +126,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         if (willPurgeAnimators) break; // animator will be deleted in subsequent processing
 
+                        // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
+                        if (anim.runtimeAnimatorController is AnimatorOverrideController overrideController) 
+                        {
+                            anim.runtimeAnimatorController = Util.ConvertAnimatorController(overrideController);
+                        }
+
                         var controller = anim.runtimeAnimatorController as AnimatorController;
                         if (controller != null)
                         {
@@ -138,6 +144,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     case ModularAvatarMergeAnimator merger:
                     {
+                        
+                        // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
+                        if (merger.animator is AnimatorOverrideController overrideController) 
+                        {
+                            merger.animator = Util.ConvertAnimatorController(overrideController);
+                        }
                         var controller = merger.animator as AnimatorController;
                         if (controller != null)
                         {

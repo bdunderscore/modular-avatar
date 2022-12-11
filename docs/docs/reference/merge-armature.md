@@ -42,3 +42,9 @@ This is intended for use when animating non-humanoid bones. For example, you cou
 
 Although the editor UI allows you to drag in a target object for the merge armature component, internally this is saved as a path reference.
 This allows the merge armature component to automatically restore its Merge Target after it is saved in a prefab.
+
+## Matching bone names
+
+Since Merge Animator will attempt to match bones by name, just attaching it won't always work to make an outfit designed for one avatar work with another avatar.
+You can click the "Adjust bone names to match target" button to attempt to rename bones in the outfit to match the base avatar it's currently attached to.
+This will be done automatically if you added the Merge Armature component using the "Setup Outfit" menu item.

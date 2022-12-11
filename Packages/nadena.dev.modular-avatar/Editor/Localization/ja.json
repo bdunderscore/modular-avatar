@@ -30,14 +30,16 @@
   "merge_armature.suffix.tooltip": "このオブジェクトの子に付く後置詞",
   "merge_armature.locked": "位置を固定",
   "merge_armature.locked.tooltip": "このオブジェクトのボーンを統合先のボーンに常に相互的に位置を合わせる。アニメーション制作向け",
-  "path_mode.Relative": "相対的（このオブジェクトからのパースを使用）",
-  "path_mode.Absolute": "絶対的（アバタールートからのパースを使用）",
+  "merge_armature.adjust_names": "ボーン名を統合先に合わせる",
+  "merge_armature.adjust_names.tooltip": "統合先のボーン名に合わせて、衣装のボーン名を合わせて変更します。統合先アバターに非対応の衣装導入向け機能です。",
+  "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
+  "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
   "merge_animator.animator": "統合されるアニメーター",
   "merge_animator.layer_type": "レイヤー種別",
   "merge_animator.delete_attached_animator": "付属アニメーターを削除",
   "merge_animator.delete_attached_animator.tooltip": "統合後、このオブジェクトについているアニメーターを削除します",
-  "merge_animator.path_mode": "パースモード",
-  "merge_animator.path_mode.tooltip": "アニメーション内のパースを解釈するモード。相対的にすると、このオブジェクトについているアニメーターでアニメーション編集できます",
+  "merge_animator.path_mode": "パスモード",
+  "merge_animator.path_mode.tooltip": "アニメーション内のパスを解釈するモード。相対的にすると、このオブジェクトについているアニメーターでアニメーション編集できます",
   "merge_animator.match_avatar_write_defaults": "アバターのWrite Defaults設定に合わせる",
   "merge_animator.match_avatar_write_defaults.tooltip": "アバターの該当アニメーターのWrite Defaults設定に合わせます。アバター側の設定が矛盾する場合は、統合されるアニメーターのWD値がそのまま採用されます。",
   "fpvisible.normal": "このオブジェクトは一人視点で表示されます。",
@@ -53,5 +55,6 @@
   "boneproxy.attachment": "配置モード",
   "boneproxy.attachment.AsChildAtRoot": "子として・ルートに配置",
   "boneproxy.attachment.AsChildKeepWorldPosition": "子として・ワールド位置を維持",
-  "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。"
+  "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。",
+  "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。"
 }

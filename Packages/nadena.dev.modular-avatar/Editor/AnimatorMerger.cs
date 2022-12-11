@@ -36,6 +36,8 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
+        
+        private AnimatorOverrideController _overrideController;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
 
@@ -87,6 +89,20 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 insertLayer(basePath, layer, first, writeDefaults);
                 first = false;
+            }
+        }
+
+        public void AddOverrideController(string basePath, AnimatorOverrideController overrideController, bool? writeDefaults) 
+        {
+            AnimatorController controller = overrideController.runtimeAnimatorController as AnimatorController;
+            if (controller == null) return;
+            _overrideController = overrideController;
+            try 
+            {
+                this.AddController(basePath, controller, writeDefaults);
+            } finally 
+            {
+                _overrideController = null;
             }
         }
 
@@ -258,6 +274,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 default:
                     throw new Exception($"Unknown type referenced from animator: {original.GetType()}");
+            }
+
+            // When using AnimatorOverrideController, replace the original AnimationClip based on AnimatorOverrideController.
+            if (_overrideController != null && original is AnimationClip srcClip) 
+            {
+                T overrideClip = _overrideController[srcClip] as T;
+                if (overrideClip != null) 
+                {
+                    original = overrideClip;
+                }
             }
 
             if (cloneMap == null) cloneMap = new Dictionary<Object, Object>();

@@ -61,7 +61,8 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!_installTargets.TryGetValue(installer.installTargetMenu, out var targetMenu)) return;
             if (_installTargets.ContainsKey(installer.menuToAppend)) return;
 
-            targetMenu.controls.AddRange(installer.menuToAppend.controls);
+            // Clone before appending to sanitize menu icons
+            targetMenu.controls.AddRange(CloneMenu(installer.menuToAppend).controls);
 
             while (targetMenu.controls.Count > VRCExpressionsMenu.MAX_CONTROLS)
             {
@@ -100,9 +101,23 @@ namespace nadena.dev.modular_avatar.core.editor
             newMenu = Object.Instantiate(menu);
             AssetDatabase.CreateAsset(newMenu, Util.GenerateAssetPath());
             _clonedMenus[menu] = newMenu;
-
+            
             foreach (var control in newMenu.controls)
             {
+                if (Util.ValidateExpressionMenuIcon(control.icon) != Util.ValidateExpressionMenuIconResult.Success)
+                    control.icon = null;
+                
+                for (int i = 0; i < control.labels.Length; i++)
+                {
+                    var label = control.labels[i];
+                    var labelResult = Util.ValidateExpressionMenuIcon(label.icon);
+                    if (labelResult != Util.ValidateExpressionMenuIconResult.Success)
+                    {
+                        label.icon = null;
+                        control.labels[i] = label;
+                    }
+                }
+                
                 if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
                 {
                     control.subMenu = CloneMenu(control.subMenu);

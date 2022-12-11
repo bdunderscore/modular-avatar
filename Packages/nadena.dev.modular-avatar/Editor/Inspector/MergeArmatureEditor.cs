@@ -49,6 +49,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            var enable_name_assignment =
+                target.mergeTarget.Get(RuntimeUtil.FindAvatarInParents(target.transform)) != null;
+            using (var scope = new EditorGUI.DisabledScope(!enable_name_assignment))
+            {
+                if (GUILayout.Button(G("merge_armature.adjust_names")))
+                {
+                    HeuristicBoneMapper.RenameBonesByHeuristic(target);
+                }
+            }
+
             Localization.ShowLanguageUI();
         }
     }
