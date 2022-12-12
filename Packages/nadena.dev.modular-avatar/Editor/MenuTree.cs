@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using static VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu;
 using static VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control;
 
 // ReSharper disable once CheckNamespace
 namespace nadena.dev.modular_avatar.core.editor {
 	public class MenuTree {
-		private VRCAvatarDescriptor _descriptor;
 		private readonly VRCExpressionsMenu _rootMenu;
 		private readonly HashSet<VRCExpressionsMenu> _included;
 		private readonly Dictionary<VRCExpressionsMenu, List<VRCExpressionsMenu>> _childrenMap;
 
+		private readonly Dictionary<VRCExpressionsMenu, ImmutableArray<VRCExpressionsMenu>> _flashedChildrenMap;
+
 		public MenuTree(VRCAvatarDescriptor descriptor) {
-			this._descriptor = descriptor;
 			this._rootMenu = descriptor.expressionsMenu;
 			this._included = new HashSet<VRCExpressionsMenu>();
 			this._childrenMap = new Dictionary<VRCExpressionsMenu, List<VRCExpressionsMenu>>();
@@ -38,6 +37,12 @@ namespace nadena.dev.modular_avatar.core.editor {
 			VRCExpressionsMenu parent = installer.installTargetMenu;
 			if (parent == null) parent = this._rootMenu;
 			this.MappingMenu(installer.menuToAppend, parent);
+		}
+
+		public IEnumerable<VRCExpressionsMenu> GetChildren(VRCExpressionsMenu parent) {
+			// TODO: ライブラリとするのであれば、複製したリスト or ImmutableArray,を返すのが好ましい
+			if (parent == null) parent = this._rootMenu;
+			return this._childrenMap.TryGetValue(parent, out List<VRCExpressionsMenu> children) ? children : Enumerable.Empty<VRCExpressionsMenu>();
 		}
 
 		private void MappingMenu(VRCExpressionsMenu root, VRCExpressionsMenu customParent = null) {
