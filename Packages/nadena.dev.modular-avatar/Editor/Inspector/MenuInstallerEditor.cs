@@ -300,8 +300,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (visitedMenus.Contains(menu)) return ValidateExpressionMenuIconResult.Success;
             visitedMenus.Add(menu);
             
-            foreach (VRCExpressionsMenu.Control control in menu.controls) 
-
             foreach (VRCExpressionsMenu.Control control in menu.controls) {
                 // Control
                 ValidateExpressionMenuIconResult result = Util.ValidateExpressionMenuIcon(control.icon);
