@@ -150,19 +150,22 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) {
-            IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> children = this._menuTree.GetChildren(menu)
-                .Where(child => !this._visitedMenuStack.Contains(child.Value));
-            foreach (KeyValuePair<string, VRCExpressionsMenu> child in children) {
+            IEnumerable<MenuTree.ChildElement> children = this._menuTree.GetChildren(menu)
+                .Where(child => !this._visitedMenuStack.Contains(child.menu));
+            foreach (MenuTree.ChildElement child in children) {
+                string displayName = child.installer == null ? 
+                    $"{child.menuName} ({child.menu.name})" : 
+                    $"{child.menuName} ({child.menu.name}) InstallerObject : {child.installer.name}";
                 items.Add(
                     new TreeViewItem {
                         id = items.Count,
                         depth = depth,
-                        displayName = $"{child.Key} ({child.Value.name})"
+                        displayName = displayName
                     }
                 );
-                this._menuItems.Add(child.Value);
-                this._visitedMenuStack.Push(child.Value);
-                this.TraverseMenu(depth + 1, items, child.Value);
+                this._menuItems.Add(child.menu);
+                this._visitedMenuStack.Push(child.menu);
+                this.TraverseMenu(depth + 1, items, child.menu);
                 this._visitedMenuStack.Pop();
             }
         }
