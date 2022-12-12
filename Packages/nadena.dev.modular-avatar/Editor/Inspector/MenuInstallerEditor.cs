@@ -293,8 +293,14 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu) {
+        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu, HashSet<VRCExpressionsMenu> visitedMenus = null) 
+        {
             if (menu == null) return ValidateExpressionMenuIconResult.Success;
+            if (visitedMenus == null) visitedMenus = new HashSet<VRCExpressionsMenu>();
+            if (visitedMenus.Contains(menu)) return ValidateExpressionMenuIconResult.Success;
+            visitedMenus.Add(menu);
+            
+            foreach (VRCExpressionsMenu.Control control in menu.controls) 
 
             foreach (VRCExpressionsMenu.Control control in menu.controls) {
                 // Control
@@ -309,7 +315,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // SubMenu
                 if (control.type != VRCExpressionsMenu.Control.ControlType.SubMenu) continue;
-                ValidateExpressionMenuIconResult subMenuResult = ValidateExpressionMenuIcon(control.subMenu);
+                ValidateExpressionMenuIconResult subMenuResult = ValidateExpressionMenuIcon(control.subMenu, visitedMenus);
                 if (subMenuResult != ValidateExpressionMenuIconResult.Success) return subMenuResult;
             }
 
