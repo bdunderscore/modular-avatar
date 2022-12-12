@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (installTargetType == InstallTargetType.VRCExpressionMenu) 
                     {
-                        AvMenuTreeViewWindow.Show(avatar, menu => 
+                        AvMenuTreeViewWindow.Show(avatar, _installer, menu => 
                         {
                             installTargetProperty.objectReferenceValue = menu;
                             serializedObject.ApplyModifiedProperties();

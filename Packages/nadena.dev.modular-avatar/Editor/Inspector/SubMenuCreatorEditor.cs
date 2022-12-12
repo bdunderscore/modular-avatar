@@ -48,7 +48,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 				VRCAvatarDescriptor avatar = RuntimeUtil.FindAvatarInParents(this._creator.transform);
 				if (avatar != null && GUILayout.Button(Localization.G("menuinstall.selectmenu"))) {
 					if (installTargetType == InstallTargetType.VRCExpressionMenu) {
-						AvMenuTreeViewWindow.Show(avatar, menu => {
+						AvMenuTreeViewWindow.Show(avatar, null, menu => {
 							installTargetProperty.objectReferenceValue = menu;
 							serializedObject.ApplyModifiedProperties();
 						});

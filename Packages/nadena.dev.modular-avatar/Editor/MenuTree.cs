@@ -11,14 +11,14 @@ namespace nadena.dev.modular_avatar.core.editor {
 	public class MenuTree {
 		private readonly VRCExpressionsMenu _rootMenu;
 		private readonly HashSet<VRCExpressionsMenu> _included;
-		private readonly Dictionary<VRCExpressionsMenu, List<VRCExpressionsMenu>> _childrenMap;
+		private readonly Dictionary<VRCExpressionsMenu, List<KeyValuePair<string, VRCExpressionsMenu>>> _childrenMap;
 
 		private readonly Dictionary<VRCExpressionsMenu, ImmutableArray<VRCExpressionsMenu>> _flashedChildrenMap;
 
 		public MenuTree(VRCAvatarDescriptor descriptor) {
 			this._rootMenu = descriptor.expressionsMenu;
 			this._included = new HashSet<VRCExpressionsMenu>();
-			this._childrenMap = new Dictionary<VRCExpressionsMenu, List<VRCExpressionsMenu>>();
+			this._childrenMap = new Dictionary<VRCExpressionsMenu, List<KeyValuePair<string, VRCExpressionsMenu>>>();
 
 			if (this._rootMenu == null) {
 				this._rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
@@ -32,17 +32,19 @@ namespace nadena.dev.modular_avatar.core.editor {
 			this.MappingMenu(this._rootMenu);
 		}
 
-		public void AddMenuInstaller(ModularAvatarMenuInstaller installer) {
+		public void MappingMenuInstaller(ModularAvatarMenuInstaller installer) {
 			if (installer.menuToAppend == null) return;
 			VRCExpressionsMenu parent = installer.installTargetMenu;
 			if (parent == null) parent = this._rootMenu;
 			this.MappingMenu(installer.menuToAppend, parent);
 		}
 
-		public IEnumerable<VRCExpressionsMenu> GetChildren(VRCExpressionsMenu parent) {
+		public IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> GetChildren(VRCExpressionsMenu parent) {
 			// TODO: ライブラリとするのであれば、複製したリスト or ImmutableArray,を返すのが好ましい
 			if (parent == null) parent = this._rootMenu;
-			return this._childrenMap.TryGetValue(parent, out List<VRCExpressionsMenu> children) ? children : Enumerable.Empty<VRCExpressionsMenu>();
+			return this._childrenMap.TryGetValue(parent, out List<KeyValuePair<string, VRCExpressionsMenu>> children)
+				? children
+				: Enumerable.Empty<KeyValuePair<string, VRCExpressionsMenu>>();
 		}
 
 		private void MappingMenu(VRCExpressionsMenu root, VRCExpressionsMenu customParent = null) {
@@ -51,29 +53,30 @@ namespace nadena.dev.modular_avatar.core.editor {
 
 			while (queue.Count > 0) {
 				VRCExpressionsMenu parent = queue.Dequeue();
-				IEnumerable<VRCExpressionsMenu> subMenus = GetSubMenus(parent);
+				IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> subMenus = GetSubMenus(parent);
 				if (customParent != null) {
 					parent = customParent;
 					customParent = null;
 				}
-				foreach (VRCExpressionsMenu subMenu in subMenus) {
-					if (!this._childrenMap.TryGetValue(parent, out List<VRCExpressionsMenu> children)) {
-						children = new List<VRCExpressionsMenu>();
+
+				foreach (KeyValuePair<string, VRCExpressionsMenu> subMenu in subMenus) {
+					if (!this._childrenMap.TryGetValue(parent, out List<KeyValuePair<string, VRCExpressionsMenu>> children)) {
+						children = new List<KeyValuePair<string, VRCExpressionsMenu>>();
 						this._childrenMap[parent] = children;
 					}
 
 					children.Add(subMenu);
-					if (this._included.Contains(subMenu)) continue;
-					queue.Enqueue(subMenu);
-					this._included.Add(subMenu);
+					if (this._included.Contains(subMenu.Value)) continue;
+					queue.Enqueue(subMenu.Value);
+					this._included.Add(subMenu.Value);
 				}
 			}
 		}
 
-		private static IEnumerable<VRCExpressionsMenu> GetSubMenus(VRCExpressionsMenu expressionsMenu) {
+		private static IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> GetSubMenus(VRCExpressionsMenu expressionsMenu) {
 			return expressionsMenu.controls
 				.Where(control => control.type == ControlType.SubMenu && control.subMenu != null)
-				.Select(control => control.subMenu);
+				.Select(control => new KeyValuePair<string, VRCExpressionsMenu>(control.name, control.subMenu));
 		}
 	}
 }

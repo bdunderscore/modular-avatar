@@ -23,6 +23,12 @@ namespace nadena.dev.modular_avatar.core.editor
             set => _treeView.Avatar = value;
         }
 
+        public ModularAvatarMenuInstaller Installer 
+        {
+            get => _treeView.Installer;
+            set => _treeView.Installer = value;
+        }
+
         public Action<VRCExpressionsMenu> OnMenuSelected = (menu) => { };
 
         private void Awake()
@@ -53,12 +59,13 @@ namespace nadena.dev.modular_avatar.core.editor
             _treeView.OnGUI(new Rect(0, 0, position.width, position.height));
         }
 
-        internal static void Show(VRCAvatarDescriptor Avatar, Action<VRCExpressionsMenu> OnSelect)
+        internal static void Show(VRCAvatarDescriptor Avatar, ModularAvatarMenuInstaller Installer, Action<VRCExpressionsMenu> OnSelect)
         {
             var window = GetWindow<AvMenuTreeViewWindow>();
             window.titleContent = new GUIContent("Select menu");
 
             window.Avatar = Avatar;
+            window.Installer = Installer;
             window.OnMenuSelected = OnSelect;
 
             window.Show();
@@ -75,6 +82,18 @@ namespace nadena.dev.modular_avatar.core.editor
             set
             {
                 _avatar = value;
+                Reload();
+            }
+        }
+
+        private ModularAvatarMenuInstaller _installer;
+
+        public ModularAvatarMenuInstaller Installer 
+        {
+            get => _installer;
+            set 
+            {
+                _installer = value;
                 Reload();
             }
         }
@@ -106,21 +125,20 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override TreeViewItem BuildRoot() {
             this._menuItems.Clear();
             this._visitedMenuStack.Clear();
-            
-            if (Avatar.expressionsMenu == null) {
-                // TODO: nullの場合もツリーを表示できるように(Installerがあれば子もあるので)
-                return new TreeViewItem(0, -1, "No menu");
-            }
 
             _menuTree = new MenuTree(Avatar);
             _menuTree.AvatarsMenuMapping();
+            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>()) {
+                if (installer == Installer) continue;
+                this._menuTree.MappingMenuInstaller(installer);
+            }
             
             var root = new TreeViewItem(-1, -1, "<root>");
             List<TreeViewItem> treeItems = new List<TreeViewItem> {
                 new TreeViewItem {
                     id = 0,
                     depth = 0,
-                    displayName = $"{Avatar.gameObject.name} ({Avatar.expressionsMenu.name})"
+                    displayName = $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
                 }
             };
             this._menuItems.Add(Avatar.expressionsMenu);
@@ -132,19 +150,19 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) {
-            IEnumerable<VRCExpressionsMenu> children = this._menuTree.GetChildren(menu)
-                .Where(child => !this._visitedMenuStack.Contains(child));
-            foreach (VRCExpressionsMenu child in children) {
+            IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> children = this._menuTree.GetChildren(menu)
+                .Where(child => !this._visitedMenuStack.Contains(child.Value));
+            foreach (KeyValuePair<string, VRCExpressionsMenu> child in children) {
                 items.Add(
                     new TreeViewItem {
                         id = items.Count,
                         depth = depth,
-                        displayName = $"{ /*control.name*/null} ({child.name})" // TODO: サブメニュー名を取ってこれるように
+                        displayName = $"{child.Key} ({child.Value.name})"
                     }
                 );
-                this._menuItems.Add(child);
-                this._visitedMenuStack.Push(child);
-                this.TraverseMenu(depth + 1, items, child);
+                this._menuItems.Add(child.Value);
+                this._visitedMenuStack.Push(child.Value);
+                this.TraverseMenu(depth + 1, items, child.Value);
                 this._visitedMenuStack.Pop();
             }
         }
