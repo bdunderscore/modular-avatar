@@ -26,11 +26,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private HashSet<VRCExpressionsMenu> _avatarMenus;
         private HashSet<ModularAvatarSubMenuCreator> _menuFolderCreators;
 
+        private Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>> _menuInstallersMap;
+
         private void OnEnable()
         {
             _installer = (ModularAvatarMenuInstaller) target;
 
             FindMenus();
+            FindMenuInstallers();
             FindMenuFolderCreators();
         }
 
@@ -250,6 +253,48 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private void FindMenuInstallers() 
+        {
+            if (targets.Length > 1) 
+            {
+                _menuInstallersMap = null;
+                return;
+            }
+
+            _menuInstallersMap = new Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>>();
+            var avatar = RuntimeUtil.FindAvatarInParents(((Component)target).transform);
+            if (avatar == null) return;
+            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>();
+            foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers) 
+            {
+                if (menuInstaller == target) continue;
+                if (menuInstaller.menuToAppend == null) continue;
+                var visitedMenus = new HashSet<VRCExpressionsMenu>();
+                var queue = new Queue<VRCExpressionsMenu>();
+                queue.Enqueue(menuInstaller.menuToAppend);
+
+                while (queue.Count > 0) 
+                {
+                    VRCExpressionsMenu parent = queue.Dequeue();
+                    var controls = parent.controls.Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu && control.subMenu != null);
+                    foreach (VRCExpressionsMenu.Control control in controls) 
+                    {
+                        // Do not filter in LINQ to avoid closure allocation
+                        if (visitedMenus.Contains(control.subMenu)) continue;
+                        if (!_menuInstallersMap.TryGetValue(control.subMenu, out List<ModularAvatarMenuInstaller> fromInstallers)) 
+                        {
+                            fromInstallers = new List<ModularAvatarMenuInstaller>();
+                            _menuInstallersMap[control.subMenu] = fromInstallers;
+                        }
+
+                        fromInstallers.Add(menuInstaller);
+                        visitedMenus.Add(control.subMenu);
+                        queue.Enqueue(control.subMenu);
+                    }
+                }
+            }
+        }
+
         private void FindMenuFolderCreators() 
         {
             if (this.targets.Length > 1) 
@@ -267,9 +312,28 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu)
+        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu, HashSet<ModularAvatarMenuInstaller> visitedInstaller = null)
         {
-            return _avatarMenus == null || _avatarMenus.Contains(menu);
+            if (_avatarMenus == null || _avatarMenus.Contains(menu)) return true;
+
+            if (_menuInstallersMap == null) return true;
+            if (visitedInstaller == null) visitedInstaller = new HashSet<ModularAvatarMenuInstaller> { (ModularAvatarMenuInstaller)target };
+
+            if (!_menuInstallersMap.TryGetValue(menu, out List<ModularAvatarMenuInstaller> installers)) return false;
+            foreach (ModularAvatarMenuInstaller installer in installers) 
+            {
+                // Root is always reachable if installTargetMenu is null
+                if (installer.installTargetMenu == null) return true;
+                // Even in a circular structure, it may be possible to reach root by another path.
+                if (visitedInstaller.Contains(installer)) continue;
+                visitedInstaller.Add(installer);
+                if (IsMenuReachable(avatar, installer.installTargetMenu, visitedInstaller)) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         
         private bool IsMenuReachable(VRCAvatarDescriptor avatar, ModularAvatarSubMenuCreator creator, HashSet<ModularAvatarSubMenuCreator> session) 
