@@ -264,11 +264,11 @@ namespace nadena.dev.modular_avatar.core.editor
             _menuInstallersMap = new Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>>();
             var avatar = RuntimeUtil.FindAvatarInParents(((Component)target).transform);
             if (avatar == null) return;
-            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>();
+            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>()
+                .Where(menuInstaller => menuInstaller.enabled && menuInstaller.menuToAppend != null);
             foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers) 
             {
                 if (menuInstaller == target) continue;
-                if (menuInstaller.menuToAppend == null) continue;
                 var visitedMenus = new HashSet<VRCExpressionsMenu>();
                 var queue = new Queue<VRCExpressionsMenu>();
                 queue.Enqueue(menuInstaller.menuToAppend);
