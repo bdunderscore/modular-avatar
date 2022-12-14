@@ -39,6 +39,7 @@ namespace nadena.dev.modular_avatar.core.editor {
 		}
 
 		public void MappingMenuInstaller(ModularAvatarMenuInstaller installer) {
+			if (!installer.enabled) return;
 			if (installer.menuToAppend == null) return;
 			this.MappingMenu(installer.menuToAppend, installer);
 		}
