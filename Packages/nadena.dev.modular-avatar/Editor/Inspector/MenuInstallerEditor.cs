@@ -264,7 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _menuInstallersMap = new Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>>();
             var avatar = RuntimeUtil.FindAvatarInParents(((Component)target).transform);
             if (avatar == null) return;
-            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>()
+            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
                 .Where(menuInstaller => menuInstaller.enabled && menuInstaller.menuToAppend != null);
             foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers) 
             {

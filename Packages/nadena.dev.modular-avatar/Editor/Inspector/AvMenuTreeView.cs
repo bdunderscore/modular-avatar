@@ -128,7 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _menuTree = new MenuTree(Avatar);
             _menuTree.AvatarsMenuMapping();
-            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>()) {
+            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) {
                 if (installer == Installer) continue;
                 this._menuTree.MappingMenuInstaller(installer);
             }
