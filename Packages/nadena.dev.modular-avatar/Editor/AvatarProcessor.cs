@@ -119,6 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             BoneDatabase.ResetBones();
             PathMappings.Clear();
+            ClonedMenuMappings.Clear();
 
             try
             {
@@ -159,6 +160,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
+                ClonedMenuMappings.Clear();
             }
 
             FixupAnimatorDebugData(avatarGameObject);

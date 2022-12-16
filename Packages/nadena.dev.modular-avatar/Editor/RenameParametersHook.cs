@@ -192,6 +192,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 newMenu = Object.Instantiate(menu);
                 AssetDatabase.CreateAsset(newMenu, Util.GenerateAssetPath());
                 remapped[menu] = newMenu;
+                ClonedMenuMappings.Add(menu, newMenu);
 
                 foreach (var control in newMenu.controls)
                 {
