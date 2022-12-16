@@ -12,19 +12,20 @@ namespace nadena.dev.modular_avatar.core.editor {
 		public struct ChildElement {
 			public string menuName;
 			public VRCExpressionsMenu menu;
+			public VRCExpressionsMenu parent;
 			public ModularAvatarMenuInstaller installer;
+			public bool isInstallerRoot;
 		}
-		
-		private readonly VRCExpressionsMenu _rootMenu;
-		private readonly HashSet<VRCExpressionsMenu> _included;
-		private readonly Dictionary<VRCExpressionsMenu, List<ChildElement>> _childrenMap;
 
-		private readonly Dictionary<VRCExpressionsMenu, ImmutableArray<VRCExpressionsMenu>> _flashedChildrenMap;
+		private readonly HashSet<VRCExpressionsMenu> _included;
+
+		private readonly VRCExpressionsMenu _rootMenu;
+		private readonly Dictionary<VRCExpressionsMenu, List<ChildElement>> _menuChildrenMap;
 
 		public MenuTree(VRCAvatarDescriptor descriptor) {
 			this._rootMenu = descriptor.expressionsMenu;
 			this._included = new HashSet<VRCExpressionsMenu>();
-			this._childrenMap = new Dictionary<VRCExpressionsMenu, List<ChildElement>>();
+			this._menuChildrenMap = new Dictionary<VRCExpressionsMenu, List<ChildElement>>();
 
 			if (this._rootMenu == null) {
 				this._rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
@@ -41,45 +42,97 @@ namespace nadena.dev.modular_avatar.core.editor {
 		public void MappingMenuInstaller(ModularAvatarMenuInstaller installer) {
 			if (!installer.enabled) return;
 			if (installer.menuToAppend == null) return;
-			this.MappingMenu(installer.menuToAppend, installer);
+			this.MappingMenu(installer);
 		}
 
 		public IEnumerable<ChildElement> GetChildren(VRCExpressionsMenu parent) {
 			// TODO: ライブラリとするのであれば、複製したリスト or ImmutableArray,を返すのが好ましい
 			if (parent == null) parent = this._rootMenu;
-			return this._childrenMap.TryGetValue(parent, out List<ChildElement> children)
+			return this._menuChildrenMap.TryGetValue(parent, out List<ChildElement> children)
 				? children
 				: Enumerable.Empty<ChildElement>();
 		}
 
-		private void MappingMenu(VRCExpressionsMenu root, ModularAvatarMenuInstaller installer = null) {
+		public IEnumerable<ChildElement> GetChildInstallers(ModularAvatarMenuInstaller parentInstaller) {
+			HashSet<VRCExpressionsMenu> visitedMenus = new HashSet<VRCExpressionsMenu>();
 			Queue<VRCExpressionsMenu> queue = new Queue<VRCExpressionsMenu>();
-			queue.Enqueue(root);
-			bool first = true;
-
-			while (queue.Count > 0) {
-				VRCExpressionsMenu parent = queue.Dequeue();
-				IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> childMenus = GetChildMenus(parent);
-				
-				if (first && installer != null) {
-					parent = installer.installTargetMenu != null ? installer.installTargetMenu : _rootMenu;
-					
+			if (parentInstaller != null && parentInstaller.menuToAppend == null) yield break;
+			if (parentInstaller == null) {
+				queue.Enqueue(this._rootMenu);
+			} else {
+				if (parentInstaller.menuToAppend == null) yield break;
+				foreach (KeyValuePair<string,VRCExpressionsMenu> childMenu in GetChildMenus(parentInstaller.menuToAppend)) {
+					queue.Enqueue(childMenu.Value);
 				}
-
-				foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in childMenus) {
-					if (!this._childrenMap.TryGetValue(parent, out List<ChildElement> children)) {
-						children = new List<ChildElement>();
-						this._childrenMap[parent] = children;
+			}
+			while (queue.Count > 0) {
+				VRCExpressionsMenu parentMenu = queue.Dequeue();
+				if (visitedMenus.Contains(parentMenu)) continue;
+				visitedMenus.Add(parentMenu);
+				HashSet<ModularAvatarMenuInstaller> returnedInstallers = new HashSet<ModularAvatarMenuInstaller>();
+				foreach (ChildElement childElement in this.GetChildren(parentMenu)) {
+					if (!childElement.isInstallerRoot) {
+						queue.Enqueue(childElement.menu);
+						continue;
 					}
 
-					ChildElement childElement = new ChildElement { menuName = childMenu.Key, menu = childMenu.Value, installer = installer };
-					children.Add(childElement);
-					if (this._included.Contains(childElement.menu)) continue;
-					queue.Enqueue(childElement.menu);
-					this._included.Add(childElement.menu);
+					if (returnedInstallers.Contains(childElement.installer)) continue;
+					returnedInstallers.Add(childElement.installer);
+					yield return childElement;
 				}
+			}
+		}
 
-				first = false;
+
+		private void MappingMenu(VRCExpressionsMenu root) {
+			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in GetChildMenus(root)) {
+				this.MappingMenu(root, new ChildElement {
+					menuName = childMenu.Key,
+					menu = childMenu.Value
+				});
+			}
+		}
+
+		private void MappingMenu(ModularAvatarMenuInstaller installer) {
+			IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> childMenus = GetChildMenus(installer.menuToAppend);
+			IEnumerable<VRCExpressionsMenu> parents = Enumerable.Empty<VRCExpressionsMenu>();
+			if (installer.installTargetMenu != null &&
+			    ClonedMenuMappings.TryGetClonedMenus(installer.installTargetMenu, out ImmutableArray<VRCExpressionsMenu> parentMenus)) {
+				parents = parentMenus;
+			}
+
+			VRCExpressionsMenu[] parentsMenus = parents.DefaultIfEmpty(installer.installTargetMenu).ToArray();
+
+			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in childMenus) {
+				ChildElement childElement = new ChildElement {
+					menuName = childMenu.Key,
+					menu = childMenu.Value,
+					installer = installer,
+					isInstallerRoot = true
+				};
+				foreach (VRCExpressionsMenu parentMenu in parentsMenus) {
+					this.MappingMenu(parentMenu, childElement);
+				}
+			}
+		}
+
+		private void MappingMenu(VRCExpressionsMenu parent, ChildElement childElement) {
+			if (parent == null) parent = this._rootMenu;
+			childElement.parent = parent;
+			if (!this._menuChildrenMap.TryGetValue(parent, out List<ChildElement> children)) {
+				children = new List<ChildElement>();
+				this._menuChildrenMap[parent] = children;
+			}
+
+			children.Add(childElement);
+			if (this._included.Contains(childElement.menu)) return;
+			this._included.Add(childElement.menu);
+			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in GetChildMenus(childElement.menu)) {
+				this.MappingMenu(childElement.menu, new ChildElement {
+					menuName = childMenu.Key,
+					menu = childMenu.Value,
+					installer = childElement.installer
+				});
 			}
 		}
 
