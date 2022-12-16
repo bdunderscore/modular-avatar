@@ -24,6 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
 #if NEW
         private MenuTree _menuTree;
+        private Stack<ModularAvatarMenuInstaller> _visitedInstallerStack;
         
         public void OnPreprocessAvatar(GameObject avatarRoot) {
             ModularAvatarMenuInstaller[] menuInstallers = avatarRoot.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
@@ -33,6 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
 
             _clonedMenus = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
+            _visitedInstallerStack = new Stack<ModularAvatarMenuInstaller>();
             
             VRCAvatarDescriptor avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
 
@@ -75,9 +77,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             SplitMenu(installer, targetMenu);
             
+            if (_visitedInstallerStack.Contains(installer)) return;
+            _visitedInstallerStack.Push(installer);
             foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(installer)) {
                 InstallMenuToInstallerMenu(childElement.parent, childElement.installer);
             }
+
+            _visitedInstallerStack.Pop();
         }
 
         private void InstallMenuToInstallerMenu(VRCExpressionsMenu installTarget, ModularAvatarMenuInstaller installer) {
@@ -95,6 +101,14 @@ namespace nadena.dev.modular_avatar.core.editor
             targetMenu.controls.AddRange(CloneMenu(installer.menuToAppend).controls);
 
             SplitMenu(installer, targetMenu);
+
+            if (_visitedInstallerStack.Contains(installer)) return;
+            _visitedInstallerStack.Push(installer);
+            foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(installer)) {
+                InstallMenuToInstallerMenu(childElement.parent, childElement.installer);
+            }
+
+            _visitedInstallerStack.Pop();
         }
 
         private void SplitMenu(ModularAvatarMenuInstaller installer, VRCExpressionsMenu targetMenu) {
