@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define NEW
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -6,6 +7,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using Object = UnityEngine.Object;
+
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -16,9 +18,114 @@ namespace nadena.dev.modular_avatar.core.editor
         );
 
         private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _clonedMenus;
-        private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _installTargets;
+       
 
         private VRCExpressionsMenu _rootMenu;
+
+#if NEW
+        private MenuTree _menuTree;
+        
+        public void OnPreprocessAvatar(GameObject avatarRoot) {
+            ModularAvatarMenuInstaller[] menuInstallers = avatarRoot.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
+                .Where(menuInstaller => menuInstaller.enabled)
+                .ToArray();
+            if (menuInstallers.Length == 0) return;
+            
+
+            _clonedMenus = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
+            
+            VRCAvatarDescriptor avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
+
+            if (avatar.expressionsMenu == null) {
+                var menu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                AssetDatabase.CreateAsset(menu, Util.GenerateAssetPath());
+                avatar.expressionsMenu = menu;
+                _clonedMenus[menu] = menu;
+            }
+
+            _rootMenu = avatar.expressionsMenu;
+            _menuTree = new MenuTree(avatar);
+            _menuTree.AvatarsMenuMapping();
+            
+            avatar.expressionsMenu = CloneMenu(avatar.expressionsMenu);
+            
+            foreach (ModularAvatarMenuInstaller installer in menuInstallers) {
+                _menuTree.MappingMenuInstaller(installer);
+            }
+            
+            foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(null)) {
+                InstallMenuToAvatarMenu(childElement.installer);
+            }
+        }
+        
+        private void InstallMenuToAvatarMenu(ModularAvatarMenuInstaller installer)
+        {
+            if (!installer.enabled) return;
+
+            if (installer.installTargetMenu == null)
+            {
+                installer.installTargetMenu = _rootMenu;
+            }
+
+            if (installer.installTargetMenu == null || installer.menuToAppend == null) return;
+            if (!_clonedMenus.TryGetValue(installer.installTargetMenu, out var targetMenu)) return;
+            
+            // Clone before appending to sanitize menu icons
+            targetMenu.controls.AddRange(CloneMenu(installer.menuToAppend).controls);
+
+            SplitMenu(installer, targetMenu);
+            
+            foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(installer)) {
+                InstallMenuToInstallerMenu(childElement.parent, childElement.installer);
+            }
+        }
+
+        private void InstallMenuToInstallerMenu(VRCExpressionsMenu installTarget, ModularAvatarMenuInstaller installer) {
+            if (!installer.enabled) return;
+
+            if (installer.installTargetMenu == null)
+            {
+                installer.installTargetMenu = _rootMenu;
+            }
+
+            if (installer.installTargetMenu == null || installer.menuToAppend == null) return;
+            if (!_clonedMenus.TryGetValue(installTarget, out var targetMenu)) return;
+            
+            // Clone before appending to sanitize menu icons
+            targetMenu.controls.AddRange(CloneMenu(installer.menuToAppend).controls);
+
+            SplitMenu(installer, targetMenu);
+        }
+
+        private void SplitMenu(ModularAvatarMenuInstaller installer, VRCExpressionsMenu targetMenu) {
+            while (targetMenu.controls.Count > VRCExpressionsMenu.MAX_CONTROLS) {
+                // Split target menu
+                var newMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                AssetDatabase.CreateAsset(newMenu, Util.GenerateAssetPath());
+                var keepCount = VRCExpressionsMenu.MAX_CONTROLS - 1;
+                newMenu.controls.AddRange(targetMenu.controls.Skip(keepCount));
+                targetMenu.controls.RemoveRange(keepCount,
+                    targetMenu.controls.Count - keepCount
+                );
+
+                targetMenu.controls.Add(new VRCExpressionsMenu.Control() {
+                    name = "More",
+                    type = VRCExpressionsMenu.Control.ControlType.SubMenu,
+                    subMenu = newMenu,
+                    parameter = new VRCExpressionsMenu.Control.Parameter() {
+                        name = ""
+                    },
+                    subParameters = Array.Empty<VRCExpressionsMenu.Control.Parameter>(),
+                    icon = _moreIcon,
+                    labels = Array.Empty<VRCExpressionsMenu.Control.Label>()
+                });
+
+                _clonedMenus[installer.installTargetMenu] = newMenu;
+                targetMenu = newMenu;
+            }
+        }
+#else
+        private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _installTargets;
 
         public void OnPreprocessAvatar(GameObject avatarRoot)
         {
@@ -93,6 +200,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 targetMenu = newMenu;
             }
         }
+#endif
+
+
 
         private VRCExpressionsMenu CloneMenu(VRCExpressionsMenu menu)
         {
