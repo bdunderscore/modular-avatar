@@ -159,6 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Where(child => !this._visitedMenuStack.Contains(child.menu));
             foreach (MenuTree.ChildElement child in children) 
             {
+                if (child.menu == null) continue;
                 string displayName = child.installer == null ? 
                     $"{child.menuName} ({child.menu.name})" : 
                     $"{child.menuName} ({child.menu.name}) InstallerObject : {child.installer.name}";
