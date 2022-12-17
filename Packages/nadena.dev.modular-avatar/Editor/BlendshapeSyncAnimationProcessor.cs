@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         _bindingMappings[srcBinding] = dstBindings;
                     }
 
-                    dstBindings.Add(new SummaryBinding(targetObj, binding.Blendshape));
+                    dstBindings.Add(new SummaryBinding(targetObj, binding.LocalBlendshape));
                 }
             }
 
