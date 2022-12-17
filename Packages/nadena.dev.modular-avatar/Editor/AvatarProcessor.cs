@@ -140,7 +140,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
-                new SubMenuCreateHook().OnPreprocessAvatar(avatarGameObject);
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
                 new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
