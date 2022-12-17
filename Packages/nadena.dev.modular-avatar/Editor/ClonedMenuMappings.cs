@@ -5,7 +5,8 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 // ReSharper disable once CheckNamespace
 namespace nadena.dev.modular_avatar.core.editor 
 {
-	public static class ClonedMenuMappings {
+	public static class ClonedMenuMappings 
+	{
 		private static readonly Dictionary<VRCExpressionsMenu, ImmutableArray<VRCExpressionsMenu>> ClonedMappings =
 			new Dictionary<VRCExpressionsMenu, ImmutableArray<VRCExpressionsMenu>>();
 
