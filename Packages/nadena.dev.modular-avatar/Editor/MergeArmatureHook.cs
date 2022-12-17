@@ -327,6 +327,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     transformPath = RuntimeUtil.AvatarRootPath(newParent),
                     path = srcPath
                 });
+                // The new merged leaf (if it's retained below) can break parent bone physbones. Add a PB Blocker
+                // to prevent this becoming an issue.
+                mergedSrcBone.GetOrAddComponent<ModularAvatarPBBlocker>();
             }
 
             BoneRemappings[src.transform] = mergedSrcBone.transform;
