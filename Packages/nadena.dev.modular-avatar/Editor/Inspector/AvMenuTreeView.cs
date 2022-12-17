@@ -122,20 +122,24 @@ namespace nadena.dev.modular_avatar.core.editor
             OnDoubleclickSelect.Invoke();
         }
 
-        protected override TreeViewItem BuildRoot() {
+        protected override TreeViewItem BuildRoot() 
+        {
             this._menuItems.Clear();
             this._visitedMenuStack.Clear();
 
             _menuTree = new MenuTree(Avatar);
             _menuTree.AvatarsMenuMapping();
-            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) {
+            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
+            {
                 if (installer == Installer) continue;
                 this._menuTree.MappingMenuInstaller(installer);
             }
             
             var root = new TreeViewItem(-1, -1, "<root>");
-            List<TreeViewItem> treeItems = new List<TreeViewItem> {
-                new TreeViewItem {
+            List<TreeViewItem> treeItems = new List<TreeViewItem> 
+            {
+                new TreeViewItem 
+                {
                     id = 0,
                     depth = 0,
                     displayName = $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
@@ -149,15 +153,18 @@ namespace nadena.dev.modular_avatar.core.editor
             return root;
         }
 
-        private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) {
+        private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) 
+        {
             IEnumerable<MenuTree.ChildElement> children = this._menuTree.GetChildren(menu)
                 .Where(child => !this._visitedMenuStack.Contains(child.menu));
-            foreach (MenuTree.ChildElement child in children) {
+            foreach (MenuTree.ChildElement child in children) 
+            {
                 string displayName = child.installer == null ? 
                     $"{child.menuName} ({child.menu.name})" : 
                     $"{child.menuName} ({child.menu.name}) InstallerObject : {child.installer.name}";
                 items.Add(
-                    new TreeViewItem {
+                    new TreeViewItem 
+                    {
                         id = items.Count,
                         depth = depth,
                         displayName = displayName
@@ -169,53 +176,5 @@ namespace nadena.dev.modular_avatar.core.editor
                 this._visitedMenuStack.Pop();
             }
         }
-
-        /*
-        protected override TreeViewItem BuildRoot()
-        {
-            _menuItems.Clear();
-            _visitedMenus.Clear();
-
-            if (Avatar.expressionsMenu == null)
-            {
-                return new TreeViewItem(0, -1, "No menu");
-            }
-
-            _visitedMenus.Add(Avatar.expressionsMenu);
-            _menuItems.Add(Avatar.expressionsMenu);
-            var root = new TreeViewItem {id = -1, depth = -1, displayName = "<root>"};
-
-            var treeItems = new List<TreeViewItem>();
-            treeItems.Add(new TreeViewItem
-                {id = 0, depth = 0, displayName = $"{Avatar.gameObject.name} ({Avatar.expressionsMenu.name})"});
-
-            TraverseMenu(1, treeItems, Avatar.expressionsMenu);
-
-            SetupParentsAndChildrenFromDepths(root, treeItems);
-
-            return root;
-        }
-
-        private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu)
-        {
-            foreach (var control in menu.controls)
-            {
-                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu
-                    && control.subMenu != null && !_visitedMenus.Contains(control.subMenu))
-                {
-                    items.Add(new TreeViewItem
-                    {
-                        id = _menuItems.Count,
-                        depth = depth,
-                        displayName = $"{control.name} ({control.subMenu.name})"
-                    });
-                    _menuItems.Add(control.subMenu);
-                    _visitedMenus.Add(control.subMenu);
-
-                    TraverseMenu(depth + 1, items, control.subMenu);
-                }
-            }
-        }
-        */
     }
 }
