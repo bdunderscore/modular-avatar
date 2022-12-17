@@ -102,21 +102,27 @@ namespace nadena.dev.modular_avatar.core.editor
             for (int i = 0; i < nSources; i++)
             {
                 var source = constraint.GetSource(i);
-                if (source.sourceTransform == null) continue;
-                if (!BoneRemappings.TryGetValue(source.sourceTransform, out var remap)) continue;
-                var retarget = BoneDatabase.GetRetargetedBone(remap);
-
-                if (retarget != null)
-                {
-                    source.sourceTransform = retarget;
-                }
-                else
-                {
-                    source.sourceTransform = remap;
-                }
-
+                source.sourceTransform = MapConstraintSource(source.sourceTransform);
                 constraint.SetSource(i, source);
             }
+
+            if (constraint is AimConstraint aimConstraint)
+            {
+                aimConstraint.worldUpObject = MapConstraintSource(aimConstraint.worldUpObject);
+            }
+
+            if (constraint is LookAtConstraint lookAtConstraint)
+            {
+                lookAtConstraint.worldUpObject = MapConstraintSource(lookAtConstraint.worldUpObject);
+            }
+        }
+
+        private Transform MapConstraintSource(Transform transform)
+        {
+            if (transform == null) return null;
+            if (!BoneRemappings.TryGetValue(transform, out var remap)) return transform;
+            var retarget = BoneDatabase.GetRetargetedBone(remap);
+            return retarget != null ? retarget : remap;
         }
 
         private void UpdateBoneReferences(Component c, Retargetable retargetable = Retargetable.Disable)
@@ -321,6 +327,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     transformPath = RuntimeUtil.AvatarRootPath(newParent),
                     path = srcPath
                 });
+                // The new merged leaf (if it's retained below) can break parent bone physbones. Add a PB Blocker
+                // to prevent this becoming an issue.
+                mergedSrcBone.GetOrAddComponent<ModularAvatarPBBlocker>();
             }
 
             BoneRemappings[src.transform] = mergedSrcBone.transform;

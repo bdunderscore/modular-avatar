@@ -335,27 +335,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return false;
         }
-        
-        private bool IsMenuReachable(VRCAvatarDescriptor avatar, ModularAvatarSubMenuCreator creator, HashSet<ModularAvatarSubMenuCreator> session) 
-        {
-            if (avatar == null) return true;
-            if (this._menuFolderCreators == null) return true;
-
-            if (session.Contains(creator)) return false;
-            if (!this._menuFolderCreators.Contains(creator)) return false;
-
-            if (!creator.enabled) return false;
-            session.Add(creator);
-            switch (creator.installTargetType) 
-            {
-                case InstallTargetType.VRCExpressionMenu:
-                    return creator.installTargetMenu == null || this.IsMenuReachable(avatar, creator.installTargetMenu);
-                case InstallTargetType.FolderCreator:
-                    return creator.installTargetCreator == null || this.IsMenuReachable(avatar, creator.installTargetCreator, session);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
 
         private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu, HashSet<VRCExpressionsMenu> visitedMenus = null) 
         {
