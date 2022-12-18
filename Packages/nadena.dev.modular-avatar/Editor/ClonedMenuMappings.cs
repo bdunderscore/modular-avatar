@@ -6,9 +6,17 @@ namespace nadena.dev.modular_avatar.core.editor
 {
 	internal static class ClonedMenuMappings 
 	{
+		/// <summary>
+		/// Map to link the cloned menu from the clone source.
+		/// If one menu is specified for multiple installers, they are replicated separately, so there is a one-to-many relationship.
+		/// </summary>
 		private static readonly Dictionary<VRCExpressionsMenu, ImmutableList<VRCExpressionsMenu>> ClonedMappings =
 			new Dictionary<VRCExpressionsMenu, ImmutableList<VRCExpressionsMenu>>();
 
+		/// <summary>
+		/// Map to link the clone source from the cloned menu.
+		/// Map is the opposite of ClonedMappings.
+		/// </summary>
 		private static readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> OriginalMapping =
 			new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
 

@@ -13,16 +13,29 @@ namespace nadena.dev.modular_avatar.core.editor
 		
 		public struct ChildElement 
 		{
+			/// <summary>
+			/// Parent menu control name
+			/// </summary>
 			public string menuName;
 			public VRCExpressionsMenu menu;
 			public VRCExpressionsMenu parent;
+			/// <summary>
+			/// Installer to install this menu. Is null if the this menu is not installed by the installer.
+			/// </summary>
 			public ModularAvatarMenuInstaller installer;
+			/// <summary>
+			/// Whether the this submenu is added directly by the installer
+			/// </summary>
 			public bool isInstallerRoot;
 		}
 		
 		private readonly HashSet<VRCExpressionsMenu> _included;
 
 		private readonly VRCExpressionsMenu _rootMenu;
+		
+		/// <summary>
+		/// Map to link child menus from parent menu
+		/// </summary>
 		private readonly Dictionary<VRCExpressionsMenu, ImmutableList<ChildElement>> _menuChildrenMap;
 
 		public MenuTree(VRCAvatarDescriptor descriptor) 
@@ -33,6 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
 			if (_rootMenu == null) 
 			{
+				// If the route menu is null, create a temporary menu indicating the route
 				_rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
 			}
 
@@ -89,7 +103,8 @@ namespace nadena.dev.modular_avatar.core.editor
 						queue.Enqueue(childElement.menu);
 						continue;
 					}
-
+					
+					// One installer may add multiple children, so filter to return only one.
 					if (returnedInstallers.Contains(childElement.installer)) continue;
 					returnedInstallers.Add(childElement.installer);
 					yield return childElement;
@@ -122,6 +137,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
 			VRCExpressionsMenu[] parentsMenus = parents.DefaultIfEmpty(installer.installTargetMenu).ToArray();
 			bool hasChildMenu = false;
+			/*
+			 * Installer adds the controls in specified menu to the installation destination.
+			 * So, since the specified menu itself does not exist as a child menu,
+			 * and the child menus of the specified menu are the actual child menus, a single installer may add multiple child menus.
+			 */
 			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in childMenus) 
 			{
 				hasChildMenu = true;
@@ -139,6 +159,10 @@ namespace nadena.dev.modular_avatar.core.editor
 			}
 			
 			if (hasChildMenu) return;
+			/*
+			 * If the specified menu does not have any submenus, it is not mapped as a child menu and the Installer information itself is not registered.
+			 * Therefore, register elements that do not have child menus themselves, but only have information about the installer.
+			 */
 			foreach (VRCExpressionsMenu parentMenu in parentsMenus) 
 			{
 				TraverseMenu(parentMenu, new ChildElement 
