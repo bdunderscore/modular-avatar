@@ -23,6 +23,9 @@
  */
 
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -45,10 +48,10 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             RuntimeUtil.OnDemandProcessAvatar = MaybeProcessAvatar;
-            Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
+            EditorApplication.delayCall += () => Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
         }
 
-        private static void MaybeProcessAvatar(RuntimeUtil.OnDemandSource source, AvatarTagComponent component)
+        private static void MaybeProcessAvatar(RuntimeUtil.OnDemandSource source, MonoBehaviour component)
         {
             if (ModularAvatarSettings.applyOnPlay && source == armedSource && component != null)
             {
