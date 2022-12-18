@@ -124,15 +124,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override TreeViewItem BuildRoot() 
         {
-            this._menuItems.Clear();
-            this._visitedMenuStack.Clear();
+            _menuItems.Clear();
+            _visitedMenuStack.Clear();
 
             _menuTree = new MenuTree(Avatar);
             _menuTree.AvatarsMenuMapping();
-            foreach (ModularAvatarMenuInstaller installer in this.Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
+            foreach (ModularAvatarMenuInstaller installer in Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
             {
                 if (installer == Installer) continue;
-                this._menuTree.MappingMenuInstaller(installer);
+                _menuTree.MappingMenuInstaller(installer);
             }
             
             var root = new TreeViewItem(-1, -1, "<root>");
@@ -145,18 +145,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     displayName = $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
                 }
             };
-            this._menuItems.Add(Avatar.expressionsMenu);
-            this._visitedMenuStack.Push(Avatar.expressionsMenu);
+            _menuItems.Add(Avatar.expressionsMenu);
+            _visitedMenuStack.Push(Avatar.expressionsMenu);
             
-            this.TraverseMenu(1, treeItems, Avatar.expressionsMenu);
+            TraverseMenu(1, treeItems, Avatar.expressionsMenu);
             SetupParentsAndChildrenFromDepths(root, treeItems);
             return root;
         }
 
         private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) 
         {
-            IEnumerable<MenuTree.ChildElement> children = this._menuTree.GetChildren(menu)
-                .Where(child => !this._visitedMenuStack.Contains(child.menu));
+            IEnumerable<MenuTree.ChildElement> children = _menuTree.GetChildren(menu)
+                .Where(child => !_visitedMenuStack.Contains(child.menu));
             foreach (MenuTree.ChildElement child in children) 
             {
                 if (child.menu == null) continue;
@@ -171,10 +171,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         displayName = displayName
                     }
                 );
-                this._menuItems.Add(child.menu);
-                this._visitedMenuStack.Push(child.menu);
-                this.TraverseMenu(depth + 1, items, child.menu);
-                this._visitedMenuStack.Pop();
+                _menuItems.Add(child.menu);
+                _visitedMenuStack.Push(child.menu);
+                TraverseMenu(depth + 1, items, child.menu);
+                _visitedMenuStack.Pop();
             }
         }
     }
