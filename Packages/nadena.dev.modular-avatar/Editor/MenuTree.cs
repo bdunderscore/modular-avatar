@@ -8,7 +8,7 @@ using static VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control;
 
 namespace nadena.dev.modular_avatar.core.editor 
 {
-	public class MenuTree 
+	internal class MenuTree 
 	{
 		public struct ChildElement 
 		{
