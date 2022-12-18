@@ -176,11 +176,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 ClonedMenuMappings.Clear();
             }
 
-                var activator = avatarGameObject.GetComponent<AvatarActivator>();
-                if (activator != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(activator);
-                }
+            var activator = avatarGameObject.GetComponent<AvatarActivator>();
+            if (activator != null)
+            {
+                UnityEngine.Object.DestroyImmediate(activator);
             }
         }
 
