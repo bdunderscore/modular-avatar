@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
@@ -23,10 +22,10 @@ namespace nadena.dev.modular_avatar.core.editor
             set => _treeView.Avatar = value;
         }
 
-        public ModularAvatarMenuInstaller Installer 
+        public ModularAvatarMenuInstaller TargetInstaller 
         {
-            get => _treeView.Installer;
-            set => _treeView.Installer = value;
+            get => _treeView.TargetInstaller;
+            set => _treeView.TargetInstaller = value;
         }
 
         public Action<VRCExpressionsMenu> OnMenuSelected = (menu) => { };
@@ -65,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor
             window.titleContent = new GUIContent("Select menu");
 
             window.Avatar = Avatar;
-            window.Installer = Installer;
+            window.TargetInstaller = Installer;
             window.OnMenuSelected = OnSelect;
 
             window.Show();
@@ -86,14 +85,14 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private ModularAvatarMenuInstaller _installer;
+        private ModularAvatarMenuInstaller _targetInstaller;
 
-        public ModularAvatarMenuInstaller Installer 
+        public ModularAvatarMenuInstaller TargetInstaller 
         {
-            get => _installer;
+            get => _targetInstaller;
             set 
             {
-                _installer = value;
+                _targetInstaller = value;
                 Reload();
             }
         }
@@ -131,7 +130,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _menuTree.AvatarsMenuMapping();
             foreach (ModularAvatarMenuInstaller installer in Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
             {
-                if (installer == Installer) continue;
+                if (installer == TargetInstaller) continue;
                 _menuTree.MappingMenuInstaller(installer);
             }
             
