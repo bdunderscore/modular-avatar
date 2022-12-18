@@ -49,7 +49,7 @@ namespace nadena.dev.modular_avatar.core
             Start
         }
 
-        public delegate void OnDemandProcessAvatarDelegate(OnDemandSource source, AvatarTagComponent component);
+        public delegate void OnDemandProcessAvatarDelegate(OnDemandSource source, MonoBehaviour component);
 
         public static OnDemandProcessAvatarDelegate OnDemandProcessAvatar = (_m, _c) => { };
 
