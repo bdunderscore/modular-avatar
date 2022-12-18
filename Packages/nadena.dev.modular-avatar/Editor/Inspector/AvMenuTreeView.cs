@@ -127,11 +127,11 @@ namespace nadena.dev.modular_avatar.core.editor
             _visitedMenuStack.Clear();
 
             _menuTree = new MenuTree(Avatar);
-            _menuTree.AvatarsMenuMapping();
+            _menuTree.TraverseAvatarMenu();
             foreach (ModularAvatarMenuInstaller installer in Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
             {
                 if (installer == TargetInstaller) continue;
-                _menuTree.MappingMenuInstaller(installer);
+                _menuTree.TraverseMenuInstaller(installer);
             }
             
             var root = new TreeViewItem(-1, -1, "<root>");

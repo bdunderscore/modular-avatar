@@ -47,13 +47,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _rootMenu = avatar.expressionsMenu;
             _menuTree = new MenuTree(avatar);
-            _menuTree.AvatarsMenuMapping();
+            _menuTree.TraverseAvatarMenu();
             
             avatar.expressionsMenu = CloneMenu(avatar.expressionsMenu);
             
             foreach (ModularAvatarMenuInstaller installer in menuInstallers) 
             {
-                _menuTree.MappingMenuInstaller(installer);
+                _menuTree.TraverseMenuInstaller(installer);
             }
             
             foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(null)) 

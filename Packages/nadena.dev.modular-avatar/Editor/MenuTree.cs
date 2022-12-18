@@ -32,35 +32,35 @@ namespace nadena.dev.modular_avatar.core.editor
 
 		public MenuTree(VRCAvatarDescriptor descriptor) 
 		{
-			this._rootMenu = descriptor.expressionsMenu;
-			this._included = new HashSet<VRCExpressionsMenu>();
-			this._menuChildrenMap = new Dictionary<VRCExpressionsMenu, ImmutableBuilder>();
+			_rootMenu = descriptor.expressionsMenu;
+			_included = new HashSet<VRCExpressionsMenu>();
+			_menuChildrenMap = new Dictionary<VRCExpressionsMenu, ImmutableBuilder>();
 
-			if (this._rootMenu == null) 
+			if (_rootMenu == null) 
 			{
-				this._rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+				_rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
 			}
 
-			this._included.Add(this._rootMenu);
+			_included.Add(_rootMenu);
 		}
 
-		public void AvatarsMenuMapping() 
+		public void TraverseAvatarMenu() 
 		{
-			if (this._rootMenu == null) return;
-			this.MappingMenu(this._rootMenu);
+			if (_rootMenu == null) return;
+			TraverseMenu(_rootMenu);
 		}
 
-		public void MappingMenuInstaller(ModularAvatarMenuInstaller installer) 
+		public void TraverseMenuInstaller(ModularAvatarMenuInstaller installer) 
 		{
 			if (!installer.enabled) return;
 			if (installer.menuToAppend == null) return;
-			this.MappingMenu(installer);
+			TraverseMenu(installer);
 		}
 
 		public ImmutableArray<ChildElement> GetChildren(VRCExpressionsMenu parent) 
 		{
-			if (parent == null) parent = this._rootMenu;
-			if (!this._menuChildrenMap.TryGetValue(parent, out ImmutableBuilder immutableBuilder)) return ImmutableArray<ChildElement>.Empty;
+			if (parent == null) parent = _rootMenu;
+			if (!_menuChildrenMap.TryGetValue(parent, out ImmutableBuilder immutableBuilder)) return ImmutableArray<ChildElement>.Empty;
 			if (immutableBuilder.immutableArray == ImmutableArray<ChildElement>.Empty) 
 			{
 				immutableBuilder.immutableArray = immutableBuilder.builder.ToImmutable();
@@ -75,7 +75,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			if (parentInstaller != null && parentInstaller.menuToAppend == null) yield break;
 			if (parentInstaller == null) 
 			{
-				queue.Enqueue(this._rootMenu);
+				queue.Enqueue(_rootMenu);
 			} 
 			else 
 			{
@@ -92,7 +92,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				if (visitedMenus.Contains(parentMenu)) continue;
 				visitedMenus.Add(parentMenu);
 				HashSet<ModularAvatarMenuInstaller> returnedInstallers = new HashSet<ModularAvatarMenuInstaller>();
-				foreach (ChildElement childElement in this.GetChildren(parentMenu)) 
+				foreach (ChildElement childElement in GetChildren(parentMenu)) 
 				{
 					if (!childElement.isInstallerRoot) 
 					{
@@ -108,11 +108,11 @@ namespace nadena.dev.modular_avatar.core.editor
 		}
 
 
-		private void MappingMenu(VRCExpressionsMenu root) 
+		private void TraverseMenu(VRCExpressionsMenu root) 
 		{
 			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in GetChildMenus(root)) 
 			{
-				this.MappingMenu(root, new ChildElement 
+				TraverseMenu(root, new ChildElement 
 				{
 					menuName = childMenu.Key,
 					menu = childMenu.Value
@@ -120,7 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			}
 		}
 
-		private void MappingMenu(ModularAvatarMenuInstaller installer) 
+		private void TraverseMenu(ModularAvatarMenuInstaller installer) 
 		{
 			IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> childMenus = GetChildMenus(installer.menuToAppend);
 			IEnumerable<VRCExpressionsMenu> parents = Enumerable.Empty<VRCExpressionsMenu>();
@@ -144,7 +144,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				};
 				foreach (VRCExpressionsMenu parentMenu in parentsMenus) 
 				{
-					this.MappingMenu(parentMenu, childElement);
+					TraverseMenu(parentMenu, childElement);
 				}
 			}
 
@@ -152,7 +152,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			{
 				foreach (VRCExpressionsMenu parentMenu in parentsMenus) 
 				{
-					this.MappingMenu(parentMenu, new ChildElement 
+					TraverseMenu(parentMenu, new ChildElement 
 					{
 						installer = installer,
 						isInstallerRoot = true
@@ -161,28 +161,28 @@ namespace nadena.dev.modular_avatar.core.editor
 			}
 		}
 
-		private void MappingMenu(VRCExpressionsMenu parent, ChildElement childElement) 
+		private void TraverseMenu(VRCExpressionsMenu parent, ChildElement childElement) 
 		{
-			if (parent == null) parent = this._rootMenu;
+			if (parent == null) parent = _rootMenu;
 			childElement.parent = parent;
-			if (!this._menuChildrenMap.TryGetValue(parent, out ImmutableBuilder children)) 
+			if (!_menuChildrenMap.TryGetValue(parent, out ImmutableBuilder children)) 
 			{
 				children = new ImmutableBuilder 
 				{
 					builder = ImmutableArray.CreateBuilder<ChildElement>(),
 					immutableArray = ImmutableArray<ChildElement>.Empty
 				};
-				this._menuChildrenMap[parent] = children;
+				_menuChildrenMap[parent] = children;
 			}
 
 			children.builder.Add(childElement);
 			children.immutableArray = ImmutableArray<ChildElement>.Empty;
 			if (childElement.menu == null) return;
-			if (this._included.Contains(childElement.menu)) return;
-			this._included.Add(childElement.menu);
+			if (_included.Contains(childElement.menu)) return;
+			_included.Add(childElement.menu);
 			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in GetChildMenus(childElement.menu)) 
 			{
-				this.MappingMenu(childElement.menu, new ChildElement 
+				TraverseMenu(childElement.menu, new ChildElement 
 				{
 					menuName = childMenu.Key,
 					menu = childMenu.Value,
