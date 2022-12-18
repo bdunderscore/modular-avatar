@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-using System;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -43,6 +42,19 @@ namespace nadena.dev.modular_avatar.core
         {
             if (!RuntimeUtil.isPlaying || this == null) return;
             RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Start, this);
+        }
+
+        private void OnValidate()
+        {
+            if (RuntimeUtil.isPlaying) return;
+
+            RuntimeUtil.delayCall(() =>
+            {
+                if (this == null) return;
+#if UNITY_EDITOR
+                Activator.CreateIfNotPresent(gameObject.scene);
+#endif
+            });
         }
     }
 }
