@@ -125,7 +125,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			IEnumerable<KeyValuePair<string, VRCExpressionsMenu>> childMenus = GetChildMenus(installer.menuToAppend);
 			IEnumerable<VRCExpressionsMenu> parents = Enumerable.Empty<VRCExpressionsMenu>();
 			if (installer.installTargetMenu != null &&
-			    ClonedMenuMappings.TryGetClonedMenus(installer.installTargetMenu, out ImmutableArray<VRCExpressionsMenu> parentMenus)) 
+			    ClonedMenuMappings.TryGetClonedMenus(installer.installTargetMenu, out ImmutableList<VRCExpressionsMenu> parentMenus)) 
 			{
 				parents = parentMenus;
 			}
