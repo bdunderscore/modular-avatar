@@ -10,6 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
 	internal class MenuTree 
 	{
+		
 		public struct ChildElement 
 		{
 			public string menuName;
@@ -18,23 +19,17 @@ namespace nadena.dev.modular_avatar.core.editor
 			public ModularAvatarMenuInstaller installer;
 			public bool isInstallerRoot;
 		}
-
-		private class ImmutableBuilder 
-		{
-			public ImmutableArray<ChildElement> immutableArray;
-			public ImmutableArray<ChildElement>.Builder builder;
-		}
-
+		
 		private readonly HashSet<VRCExpressionsMenu> _included;
 
 		private readonly VRCExpressionsMenu _rootMenu;
-		private readonly Dictionary<VRCExpressionsMenu, ImmutableBuilder> _menuChildrenMap;
+		private readonly Dictionary<VRCExpressionsMenu, ImmutableList<ChildElement>> _menuChildrenMap;
 
 		public MenuTree(VRCAvatarDescriptor descriptor) 
 		{
 			_rootMenu = descriptor.expressionsMenu;
 			_included = new HashSet<VRCExpressionsMenu>();
-			_menuChildrenMap = new Dictionary<VRCExpressionsMenu, ImmutableBuilder>();
+			_menuChildrenMap = new Dictionary<VRCExpressionsMenu, ImmutableList<ChildElement>>();
 
 			if (_rootMenu == null) 
 			{
@@ -57,17 +52,12 @@ namespace nadena.dev.modular_avatar.core.editor
 			TraverseMenu(installer);
 		}
 
-		public ImmutableArray<ChildElement> GetChildren(VRCExpressionsMenu parent) 
+		public ImmutableList<ChildElement> GetChildren(VRCExpressionsMenu parent) 
 		{
 			if (parent == null) parent = _rootMenu;
-			if (!_menuChildrenMap.TryGetValue(parent, out ImmutableBuilder immutableBuilder)) return ImmutableArray<ChildElement>.Empty;
-			if (immutableBuilder.immutableArray == ImmutableArray<ChildElement>.Empty) 
-			{
-				immutableBuilder.immutableArray = immutableBuilder.builder.ToImmutable();
-			}
-			return immutableBuilder.immutableArray;
+			return !_menuChildrenMap.TryGetValue(parent, out ImmutableList<ChildElement> immutableList) ? ImmutableList<ChildElement>.Empty : immutableList;
 		}
-
+		
 		public IEnumerable<ChildElement> GetChildInstallers(ModularAvatarMenuInstaller parentInstaller) 
 		{
 			HashSet<VRCExpressionsMenu> visitedMenus = new HashSet<VRCExpressionsMenu>();
@@ -165,18 +155,13 @@ namespace nadena.dev.modular_avatar.core.editor
 		{
 			if (parent == null) parent = _rootMenu;
 			childElement.parent = parent;
-			if (!_menuChildrenMap.TryGetValue(parent, out ImmutableBuilder children)) 
+			if (!_menuChildrenMap.TryGetValue(parent, out ImmutableList<ChildElement> children)) 
 			{
-				children = new ImmutableBuilder 
-				{
-					builder = ImmutableArray.CreateBuilder<ChildElement>(),
-					immutableArray = ImmutableArray<ChildElement>.Empty
-				};
+				children = ImmutableList<ChildElement>.Empty;
 				_menuChildrenMap[parent] = children;
 			}
 
-			children.builder.Add(childElement);
-			children.immutableArray = ImmutableArray<ChildElement>.Empty;
+			_menuChildrenMap[parent] = children.Add(childElement);
 			if (childElement.menu == null) return;
 			if (_included.Contains(childElement.menu)) return;
 			_included.Add(childElement.menu);
