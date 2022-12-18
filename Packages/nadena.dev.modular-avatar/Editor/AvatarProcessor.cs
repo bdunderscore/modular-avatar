@@ -40,6 +40,12 @@ namespace nadena.dev.modular_avatar.core.editor
         // Place after EditorOnly processing (which runs at -1024) but hopefully before most other user callbacks
         public int callbackOrder => -25;
 
+        /// <summary>
+        /// Avoid recursive activation of avatar processing by suppressing starting processing while processing is
+        /// already in progress.
+        /// </summary>
+        private static bool nowProcessing = false;
+
         public delegate void AvatarProcessorCallback(GameObject obj);
 
         /// <summary>
@@ -117,11 +123,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public static void ProcessAvatar(GameObject avatarGameObject)
         {
-            BoneDatabase.ResetBones();
-            PathMappings.Clear();
+            if (nowProcessing) return;
 
             try
             {
+                nowProcessing = true;
+
+                BoneDatabase.ResetBones();
+                PathMappings.Clear();
+
                 // Sometimes people like to nest one avatar in another, when transplanting clothing. To avoid issues
                 // with inconsistently determining the avatar root, we'll go ahead and remove the extra sub-avatars
                 // here.
@@ -149,9 +159,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 PhysboneBlockerPass.Process(avatarGameObject);
 
                 AfterProcessing?.Invoke(avatarGameObject);
+
+                FixupAnimatorDebugData(avatarGameObject);
             }
             finally
             {
+                nowProcessing = false;
+
                 // Ensure that we clean up AvatarTagComponents after failed processing. This ensures we don't re-enter
                 // processing from the Awake method on the unprocessed AvatarTagComponents
                 foreach (var component in avatarGameObject.GetComponentsInChildren<AvatarTagComponent>(true))
@@ -159,8 +173,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     UnityEngine.Object.DestroyImmediate(component);
                 }
             }
-
-            FixupAnimatorDebugData(avatarGameObject);
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
