@@ -121,10 +121,10 @@ namespace nadena.dev.modular_avatar.core.editor
 			}
 
 			VRCExpressionsMenu[] parentsMenus = parents.DefaultIfEmpty(installer.installTargetMenu).ToArray();
-			bool isControlOnlyMenu = true;
+			bool hasChildMenu = false;
 			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in childMenus) 
 			{
-				isControlOnlyMenu = false;
+				hasChildMenu = true;
 				ChildElement childElement = new ChildElement 
 				{
 					menuName = childMenu.Key,
@@ -137,18 +137,17 @@ namespace nadena.dev.modular_avatar.core.editor
 					TraverseMenu(parentMenu, childElement);
 				}
 			}
-
-			if (!isControlOnlyMenu) return;
+			
+			if (hasChildMenu) return;
+			foreach (VRCExpressionsMenu parentMenu in parentsMenus) 
 			{
-				foreach (VRCExpressionsMenu parentMenu in parentsMenus) 
+				TraverseMenu(parentMenu, new ChildElement 
 				{
-					TraverseMenu(parentMenu, new ChildElement 
-					{
-						installer = installer,
-						isInstallerRoot = true
-					});
-				}
+					installer = installer,
+					isInstallerRoot = true
+				});
 			}
+			
 		}
 
 		private void TraverseMenu(VRCExpressionsMenu parent, ChildElement childElement) 
