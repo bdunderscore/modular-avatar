@@ -58,6 +58,8 @@ namespace nadena.dev.modular_avatar.core
         {
             EditorApplication.delayCall += () =>
             {
+                if (this == null) return;
+
                 gameObject.hideFlags = HideFlags.HideInHierarchy;
                 if (!HasMAComponentsInScene())
                 {
