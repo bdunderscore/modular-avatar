@@ -173,14 +173,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
+                var activator = avatarGameObject.GetComponent<AvatarActivator>();
+                if (activator != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(activator);
+                }
+                
                 ClonedMenuMappings.Clear();
             }
 
-            var activator = avatarGameObject.GetComponent<AvatarActivator>();
-            if (activator != null)
-            {
-                UnityEngine.Object.DestroyImmediate(activator);
-            }
+
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
