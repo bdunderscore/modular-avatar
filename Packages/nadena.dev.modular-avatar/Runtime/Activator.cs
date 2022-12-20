@@ -56,11 +56,13 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnValidate()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+
             EditorApplication.delayCall += () =>
             {
                 if (this == null) return;
 
-                gameObject.hideFlags = HideFlags.HideInHierarchy;
+                gameObject.hideFlags = HIDE_FLAGS;
                 if (!HasMAComponentsInScene())
                 {
                     var scene = gameObject.scene;
@@ -75,10 +77,18 @@ namespace nadena.dev.modular_avatar.core
             if (!scene.IsValid() || EditorSceneManager.IsPreviewScene(scene)) return;
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
+            bool rootPresent = false;
             foreach (var root in scene.GetRootGameObjects())
             {
-                if (root.GetComponent<Activator>() != null) return;
+                if (root.GetComponent<Activator>() != null)
+                {
+                    root.hideFlags = HIDE_FLAGS;
+                    if (rootPresent) DestroyImmediate(root);
+                    rootPresent = true;
+                }
             }
+
+            if (rootPresent) return;
 
             var oldActiveScene = SceneManager.GetActiveScene();
             try
@@ -86,13 +96,15 @@ namespace nadena.dev.modular_avatar.core
                 SceneManager.SetActiveScene(scene);
                 var gameObject = new GameObject(TAG_OBJECT_NAME);
                 gameObject.AddComponent<Activator>();
-                gameObject.hideFlags = HideFlags.HideInHierarchy;
+                gameObject.hideFlags = HIDE_FLAGS;
             }
             finally
             {
                 SceneManager.SetActiveScene(oldActiveScene);
             }
         }
+
+        private const HideFlags HIDE_FLAGS = HideFlags.HideInHierarchy;
     }
 
     [AddComponentMenu("")]
