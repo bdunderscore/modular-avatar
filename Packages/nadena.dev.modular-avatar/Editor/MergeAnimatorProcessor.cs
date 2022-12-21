@@ -127,6 +127,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 defaultControllers_[layer.type] = controller;
                 writeDefaults_[layer.type] = ProbeWriteDefaults(controller);
+                mergeSessions[layer.type] = new AnimatorCombiner();
+                if (!layer.isDefault)
+                {
+                    // For non-default layers, ensure we always clone the controller for the benefit of subsequent
+                    // processing phases
+                    mergeSessions[layer.type].AddController("", controller, null);
+                }
             }
         }
 

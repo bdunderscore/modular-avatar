@@ -186,12 +186,8 @@ namespace nadena.dev.modular_avatar.core.editor
             return ValidateExpressionMenuIconResult.Success;
         }
 
-        internal static void VisitMotions(AnimatorController ac, Func<AnimationClip, AnimationClip> transformation)
+        internal static IEnumerable<AnimatorState> States(AnimatorController ac)
         {
-            if (!IsTemporaryAsset(ac))
-                throw new Exception("Can only be used on temporary animation controllers");
-
-            Dictionary<Motion, Motion> transformedMotions = new Dictionary<Motion, Motion>();
             HashSet<AnimatorStateMachine> visitedStateMachines = new HashSet<AnimatorStateMachine>();
             Queue<AnimatorStateMachine> pending = new Queue<AnimatorStateMachine>();
 
@@ -211,18 +207,28 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (child.stateMachine != null) pending.Enqueue(child.stateMachine);
                 }
 
-                var states = next.states;
-                for (int i = 0; i < states.Length; i++)
+                foreach (var state in next.states)
                 {
-                    var state = states[i].state;
-                    if (state == null || state.motion == null) continue;
-                    var newState = TransformMotionTree(state.motion);
+                    yield return state.state;
+                }
+            }
+        }
 
-                    if (newState != state.motion)
-                    {
-                        state.motion = newState;
-                        EditorUtility.SetDirty(state);
-                    }
+        internal static void VisitMotions(AnimatorController ac, Func<AnimationClip, AnimationClip> transformation)
+        {
+            if (!IsTemporaryAsset(ac))
+                throw new Exception("Can only be used on temporary animation controllers");
+
+            Dictionary<Motion, Motion> transformedMotions = new Dictionary<Motion, Motion>();
+            foreach (var state in States(ac))
+            {
+                if (state == null || state.motion == null) continue;
+                var newState = TransformMotionTree(state.motion);
+
+                if (newState != state.motion)
+                {
+                    state.motion = newState;
+                    EditorUtility.SetDirty(state);
                 }
             }
 

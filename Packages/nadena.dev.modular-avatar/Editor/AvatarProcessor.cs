@@ -151,8 +151,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                var context = new BuildContext(vrcAvatarDescriptor);
+
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
+                context.AnimationDatabase.Bootstrap(vrcAvatarDescriptor);
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
                 new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
