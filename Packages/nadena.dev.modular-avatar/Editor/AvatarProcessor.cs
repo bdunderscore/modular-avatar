@@ -129,6 +129,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 nowProcessing = true;
 
+                var vrcAvatarDescriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+
                 BoneDatabase.ResetBones();
                 PathMappings.Clear();
                 ClonedMenuMappings.Clear();
@@ -150,12 +152,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
+                new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
                 new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
                 new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-                new VisibleHeadAccessoryProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
-                new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
+                new RemapAnimationPass(vrcAvatarDescriptor).Process();
+                new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process();
                 new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
                 PhysboneBlockerPass.Process(avatarGameObject);
 
