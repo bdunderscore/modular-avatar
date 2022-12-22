@@ -24,10 +24,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 using VRC.Dynamics;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Object = UnityEngine.Object;
 
@@ -35,12 +37,16 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MergeArmatureHook
     {
+        private BuildContext context;
+
         private Dictionary<Transform, Transform> BoneRemappings = new Dictionary<Transform, Transform>();
         private HashSet<GameObject> ToDelete = new HashSet<GameObject>();
         private HashSet<IConstraint> AddedConstraints = new HashSet<IConstraint>();
 
-        internal bool OnPreprocessAvatar(GameObject avatarGameObject)
+        internal bool OnPreprocessAvatar(BuildContext context, GameObject avatarGameObject)
         {
+            this.context = context;
+
             BoneRemappings.Clear();
             ToDelete.Clear();
             AddedConstraints.Clear();
@@ -91,7 +97,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
+            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
+
+            //foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
 
             return true;
         }
@@ -103,17 +111,20 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var source = constraint.GetSource(i);
                 source.sourceTransform = MapConstraintSource(source.sourceTransform);
+                ClearToDeleteFlag(source.sourceTransform);
                 constraint.SetSource(i, source);
             }
 
             if (constraint is AimConstraint aimConstraint)
             {
                 aimConstraint.worldUpObject = MapConstraintSource(aimConstraint.worldUpObject);
+                ClearToDeleteFlag(aimConstraint.worldUpObject);
             }
 
             if (constraint is LookAtConstraint lookAtConstraint)
             {
                 lookAtConstraint.worldUpObject = MapConstraintSource(lookAtConstraint.worldUpObject);
+                ClearToDeleteFlag(lookAtConstraint.worldUpObject);
             }
         }
 
@@ -166,6 +177,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ClearToDeleteFlag(Transform t)
         {
+            BoneDatabase.MarkNonRetargetable(t);
             while (t != null && ToDelete.Contains(t.gameObject))
             {
                 ToDelete.Remove(t.gameObject);
@@ -258,12 +270,103 @@ namespace nadena.dev.modular_avatar.core.editor
             return hasComponents;
         }
 
+        struct IntermediateObj
+        {
+            public string name;
+            public string originPath;
+            public bool active;
+        }
+
+        private List<IntermediateObj> intermediateObjects = new List<IntermediateObj>();
+        private Dictionary<string, List<string>> activationPathMappings = new Dictionary<string, List<string>>();
+
         private void MergeArmature(ModularAvatarMergeArmature mergeArmature)
         {
             // TODO: error reporting framework?
             if (mergeArmature.mergeTargetObject == null) return;
 
+            GatherActiveStatePaths(mergeArmature.transform);
+
             RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeArmature.mergeTargetObject.gameObject, true);
+
+            FixupAnimations();
+        }
+
+        private AnimationCurve GetActiveBinding(AnimationClip clip, string path)
+        {
+            return AnimationUtility.GetEditorCurve(clip,
+                EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
+        }
+
+        private void FixupAnimations()
+        {
+            foreach (var kvp in activationPathMappings)
+            {
+                var path = kvp.Key;
+                var mappings = kvp.Value;
+
+                foreach (var holder in context.AnimationDatabase.ClipsForPath(path))
+                {
+                    if (!Util.IsTemporaryAsset(holder.CurrentClip))
+                    {
+                        holder.CurrentClip = Object.Instantiate(holder.CurrentClip);
+                    }
+
+                    var clip = holder.CurrentClip as AnimationClip;
+                    if (clip == null) continue;
+
+                    var curve = GetActiveBinding(clip, path);
+                    if (curve != null)
+                    {
+                        foreach (var mapping in mappings)
+                        {
+                            clip.SetCurve(mapping, typeof(GameObject), "m_IsActive", curve);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GatherActiveStatePaths(Transform root)
+        {
+            intermediateObjects.Clear();
+            activationPathMappings.Clear();
+
+            List<IntermediateObj> rootPath = new List<IntermediateObj>();
+
+            while (root != null && root.GetComponent<VRCAvatarDescriptor>() == null)
+            {
+                rootPath.Insert(0, new IntermediateObj()
+                {
+                    name = root.name,
+                    originPath = RuntimeUtil.AvatarRootPath(root.gameObject),
+                    active = root.gameObject.activeSelf
+                });
+                root = root.parent;
+            }
+
+            var prefix = "";
+
+            for (int i = 1; i <= rootPath.Count; i++)
+            {
+                var srcPrefix = string.Join("/", rootPath.Take(i).Select(p => p.name));
+                if (context.AnimationDatabase.ClipsForPath(srcPrefix).Any(clip =>
+                        GetActiveBinding(clip.CurrentClip as AnimationClip, srcPrefix) != null
+                    ))
+                {
+                    var intermediate = rootPath[i - 1].name + "$" + Guid.NewGuid().ToString();
+                    var originPath = rootPath[i - 1].originPath;
+                    intermediateObjects.Add(new IntermediateObj()
+                    {
+                        name = intermediate,
+                        originPath = originPath,
+                        active = rootPath[i - 1].active
+                    });
+                    if (prefix.Length > 0) prefix += "/";
+                    prefix += intermediate;
+                    activationPathMappings[originPath] = new List<string>();
+                }
+            }
         }
 
         /**
@@ -282,57 +385,76 @@ namespace nadena.dev.modular_avatar.core.editor
                 throw new Exception("[ModularAvatar] Attempted to merge an armature into itself! Aborting build...");
             }
 
-            GameObject mergedSrcBone = new GameObject(src.name + "@" + GUID.Generate());
-            mergedSrcBone.transform.SetParent(src.transform.parent);
-            mergedSrcBone.transform.localPosition = src.transform.localPosition;
-            mergedSrcBone.transform.localRotation = src.transform.localRotation;
-            mergedSrcBone.transform.localScale = src.transform.localScale;
-            mergedSrcBone.transform.SetParent(newParent.transform, true);
-
             if (zipMerge) PruneDuplicatePhysBones(newParent, src);
 
-            bool retain = HasAdditionalComponents(src, out var constraintType);
-            if (constraintType != null)
+            bool retain = HasAdditionalComponents(src, out var constraintType) || !zipMerge;
+            zipMerge = zipMerge && constraintType == null;
+
+            GameObject mergedSrcBone = newParent;
+            if (retain)
             {
-                IConstraint constraint = (IConstraint) src.AddComponent(constraintType);
-                AddedConstraints.Add(constraint);
-                constraint.AddSource(new ConstraintSource()
+                mergedSrcBone = newParent;
+                var switchPath = "";
+                foreach (var intermediate in intermediateObjects)
                 {
-                    weight = 1,
-                    sourceTransform = mergedSrcBone.transform
-                });
-                Matrix4x4 targetToSrc = src.transform.worldToLocalMatrix * newParent.transform.localToWorldMatrix;
-                if (constraint is ParentConstraint pc)
-                {
-                    pc.translationOffsets = new Vector3[] {targetToSrc.MultiplyPoint(Vector3.zero)};
-                    pc.rotationOffsets = new Vector3[] {targetToSrc.rotation.eulerAngles};
+                    var preexisting = mergedSrcBone.transform.Find(intermediate.name);
+                    if (preexisting != null)
+                    {
+                        mergedSrcBone = preexisting.gameObject;
+                        continue;
+                    }
+
+                    var switchObj = new GameObject(intermediate.name);
+                    switchObj.transform.SetParent(mergedSrcBone.transform, false);
+                    switchObj.transform.localPosition = Vector3.zero;
+                    switchObj.transform.localRotation = Quaternion.identity;
+                    switchObj.transform.localScale = Vector3.one;
+                    switchObj.SetActive(intermediate.active);
+
+                    if (switchPath.Length > 0)
+                    {
+                        switchPath += "/";
+                    }
+                    else
+                    {
+                        // This new leaf can break parent bone physbones. Add a PB Blocker
+                        // to prevent this becoming an issue.
+                        switchObj.GetOrAddComponent<ModularAvatarPBBlocker>();
+                    }
+
+                    switchPath += intermediate.name;
+
+                    activationPathMappings[intermediate.originPath].Add(RuntimeUtil.AvatarRootPath(switchObj));
+
+                    mergedSrcBone = switchObj;
+
+                    // Ensure mesh retargeting looks through this 
+                    BoneDatabase.AddMergedBone(mergedSrcBone.transform);
                 }
-
-                constraint.locked = true;
-                constraint.constraintActive = true;
             }
 
-            if ((constraintType != null && constraintType != typeof(ParentConstraint))
-                || (constraintType == null && src.GetComponent<IConstraint>() != null))
+            var oldPath = RuntimeUtil.AvatarRootPath(src);
+            src.transform.SetParent(mergedSrcBone.transform, true);
+            src.name = src.name + "$" + Guid.NewGuid();
+            src.GetOrAddComponent<ModularAvatarPBBlocker>();
+            mergedSrcBone = src;
+            var newPath = RuntimeUtil.AvatarRootPath(src);
+
+            PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
             {
-                return true;
-            }
+                path = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : newPath,
+                transformPath = oldPath,
+            });
 
             if (zipMerge)
             {
-                BoneDatabase.AddMergedBone(mergedSrcBone.transform);
-                var srcPath = RuntimeUtil.AvatarRootPath(src);
-                PathMappings.Remap(srcPath, new PathMappings.MappingEntry()
-                {
-                    transformPath = RuntimeUtil.AvatarRootPath(newParent),
-                    path = srcPath
-                });
-                // The new merged leaf (if it's retained below) can break parent bone physbones. Add a PB Blocker
-                // to prevent this becoming an issue.
-                mergedSrcBone.GetOrAddComponent<ModularAvatarPBBlocker>();
+                BoneDatabase.AddMergedBone(src.transform);
             }
-
-            BoneRemappings[src.transform] = mergedSrcBone.transform;
+            else
+            {
+                // unmergable bones cannot be deleted
+                retain = true;
+            }
 
             List<Transform> children = new List<Transform>();
             foreach (Transform child in src.transform)
@@ -340,30 +462,29 @@ namespace nadena.dev.modular_avatar.core.editor
                 children.Add(child);
             }
 
-            foreach (Transform child in children)
+            if (zipMerge)
             {
-                var childGameObject = child.gameObject;
-                var childName = childGameObject.name;
-                GameObject childNewParent = mergedSrcBone;
-                bool shouldZip = zipMerge;
-
-                if (shouldZip && childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix))
+                foreach (Transform child in children)
                 {
-                    var targetObjectName = childName.Substring(config.prefix.Length,
-                        childName.Length - config.prefix.Length - config.suffix.Length);
-                    var targetObject = newParent.transform.Find(targetObjectName);
-                    if (targetObject != null)
-                    {
-                        childNewParent = targetObject.gameObject;
-                    }
-                    else
-                    {
-                        shouldZip = false;
-                    }
-                }
+                    var childGameObject = child.gameObject;
+                    var childName = childGameObject.name;
+                    GameObject childNewParent = mergedSrcBone;
+                    bool shouldZip = false;
 
-                var retainChild = RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
-                retain = retain || retainChild;
+                    if (childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix))
+                    {
+                        var targetObjectName = childName.Substring(config.prefix.Length,
+                            childName.Length - config.prefix.Length - config.suffix.Length);
+                        var targetObject = newParent.transform.Find(targetObjectName);
+                        if (targetObject != null)
+                        {
+                            childNewParent = targetObject.gameObject;
+                            shouldZip = true;
+                        }
+                    }
+
+                    RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
+                }
             }
 
             if (!retain) ToDelete.Add(src);
