@@ -177,6 +177,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ClearToDeleteFlag(Transform t)
         {
+            if (t == null) return;
+
             BoneDatabase.MarkNonRetargetable(t);
             while (t != null && ToDelete.Contains(t.gameObject))
             {
