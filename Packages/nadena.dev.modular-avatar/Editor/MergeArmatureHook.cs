@@ -301,7 +301,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     weight = 1,
                     sourceTransform = mergedSrcBone.transform
                 });
-                Matrix4x4 targetToSrc = src.transform.worldToLocalMatrix * newParent.transform.localToWorldMatrix;
+                Matrix4x4 targetToSrc = src.transform.worldToLocalMatrix * mergedSrcBone.transform.localToWorldMatrix;
                 if (constraint is ParentConstraint pc)
                 {
                     pc.translationOffsets = new Vector3[] {targetToSrc.MultiplyPoint(Vector3.zero)};
