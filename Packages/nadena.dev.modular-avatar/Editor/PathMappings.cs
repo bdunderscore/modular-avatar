@@ -31,6 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class PathMappings
     {
         private static List<(string, MappingEntry)> Mappings = new List<(string, MappingEntry)>();
+        private static Dictionary<(bool, string), string> MappingCache = new Dictionary<(bool, string), string>();
 
         internal struct MappingEntry
         {
@@ -46,15 +47,20 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static void Clear()
         {
             Mappings.Clear();
+            MappingCache.Clear();
         }
 
         internal static void Remap(string from, MappingEntry to)
         {
             Mappings.Add((from, to));
+            MappingCache.Clear();
         }
 
         internal static string MapPath(string path, bool isTransformMapping = false)
         {
+            var cacheKey = (isTransformMapping, path);
+            if (MappingCache.TryGetValue(cacheKey, out var result)) return result;
+
             foreach (var (src, mapping) in Mappings)
             {
                 if (path == src || path.StartsWith(src + "/"))
@@ -65,6 +71,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     // Continue processing subsequent remappings
                 }
             }
+
+            MappingCache[cacheKey] = path;
 
             return path;
         }
