@@ -44,8 +44,9 @@ namespace nadena.dev.modular_avatar.core.editor
             IsRetargetable[bone] = true;
         }
 
-        internal static void MarkNonRetargetable(Transform bone)
+        internal static void RetainMergedBone(Transform bone)
         {
+            if (bone == null) return;
             if (IsRetargetable.ContainsKey(bone)) IsRetargetable[bone] = false;
         }
 

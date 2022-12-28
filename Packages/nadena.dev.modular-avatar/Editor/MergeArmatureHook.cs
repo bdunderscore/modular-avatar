@@ -111,20 +111,20 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var source = constraint.GetSource(i);
                 source.sourceTransform = MapConstraintSource(source.sourceTransform);
-                ClearToDeleteFlag(source.sourceTransform);
+                BoneDatabase.RetainMergedBone(source.sourceTransform);
                 constraint.SetSource(i, source);
             }
 
             if (constraint is AimConstraint aimConstraint)
             {
                 aimConstraint.worldUpObject = MapConstraintSource(aimConstraint.worldUpObject);
-                ClearToDeleteFlag(aimConstraint.worldUpObject);
+                BoneDatabase.RetainMergedBone(aimConstraint.worldUpObject);
             }
 
             if (constraint is LookAtConstraint lookAtConstraint)
             {
                 lookAtConstraint.worldUpObject = MapConstraintSource(lookAtConstraint.worldUpObject);
-                ClearToDeleteFlag(lookAtConstraint.worldUpObject);
+                BoneDatabase.RetainMergedBone(lookAtConstraint.worldUpObject);
             }
         }
 
@@ -158,14 +158,14 @@ namespace nadena.dev.modular_avatar.core.editor
                             var mapped = MapBoneReference(t, retargetable);
 
                             iter.objectReferenceValue = mapped;
-                            ClearToDeleteFlag(mapped);
+                            BoneDatabase.RetainMergedBone(mapped);
                         }
                         else if (iter.objectReferenceValue is GameObject go)
                         {
                             var mapped = MapBoneReference(go.transform, retargetable);
 
                             iter.objectReferenceValue = mapped?.gameObject;
-                            ClearToDeleteFlag(mapped);
+                            BoneDatabase.RetainMergedBone(mapped);
                         }
 
                         break;
@@ -173,18 +173,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        private void ClearToDeleteFlag(Transform t)
-        {
-            if (t == null) return;
-
-            BoneDatabase.MarkNonRetargetable(t);
-            while (t != null && ToDelete.Contains(t.gameObject))
-            {
-                ToDelete.Remove(t.gameObject);
-                t = t.parent;
-            }
         }
 
         enum Retargetable
@@ -198,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (bone != null && BoneRemappings.TryGetValue(bone, out var newBone))
             {
-                if (retargetable == Retargetable.Disable) BoneDatabase.MarkNonRetargetable(newBone);
+                if (retargetable == Retargetable.Disable) BoneDatabase.RetainMergedBone(newBone);
                 bone = newBone;
             }
 
@@ -488,8 +476,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 }
             }
-
-            if (!retain) ToDelete.Add(src);
 
             return retain;
         }
