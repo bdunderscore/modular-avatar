@@ -29,6 +29,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private HashSet<BlendTree> _processedBlendTrees = new HashSet<BlendTree>();
 
+        internal void Commit()
+        {
+            foreach (var action in _clipCommitActions)
+            {
+                action();
+            }
+        }
+
         internal void Bootstrap(VRCAvatarDescriptor avatarDescriptor)
         {
             foreach (var layer in avatarDescriptor.baseAnimationLayers)

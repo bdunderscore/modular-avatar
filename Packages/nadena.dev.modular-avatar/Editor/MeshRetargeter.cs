@@ -115,7 +115,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     foreach (Transform child in children)
                     {
+                        var prior = RuntimeUtil.AvatarRootPath(child.gameObject);
                         child.SetParent(destBone, true);
+                        var newPath = RuntimeUtil.AvatarRootPath(child.gameObject);
+                        PathMappings.Remap(prior, new PathMappings.MappingEntry()
+                        {
+                            path = newPath,
+                            // TODO - should transform mappings just block the merge?
+                            transformPath = newPath,
+                        });
                     }
 
                     UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);

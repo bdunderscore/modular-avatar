@@ -164,6 +164,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
                 PhysboneBlockerPass.Process(avatarGameObject);
 
+                context.AnimationDatabase.Commit();
+
                 AfterProcessing?.Invoke(avatarGameObject);
 
                 FixupAnimatorDebugData(avatarGameObject);

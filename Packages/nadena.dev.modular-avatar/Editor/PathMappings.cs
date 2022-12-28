@@ -61,6 +61,11 @@ namespace nadena.dev.modular_avatar.core.editor
             var cacheKey = (isTransformMapping, path);
             if (MappingCache.TryGetValue(cacheKey, out var result)) return result;
 
+            if (path.Contains("ToggleTest"))
+            {
+                MappingCache.Clear();
+            }
+
             foreach (var (src, mapping) in Mappings)
             {
                 if (path == src || path.StartsWith(src + "/"))

@@ -420,6 +420,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     // Ensure mesh retargeting looks through this 
                     BoneDatabase.AddMergedBone(mergedSrcBone.transform);
+                    BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
                 }
             }
 
@@ -432,8 +433,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
             {
-                path = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : newPath,
-                transformPath = oldPath,
+                transformPath = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : newPath,
+                path = newPath,
             });
 
             if (zipMerge)
