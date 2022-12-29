@@ -204,6 +204,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (o is AnimationClip clip)
             {
+                if (Util.IsProxyAnimation(clip)) return null;
+
                 AnimationClip newClip = new AnimationClip();
                 newClip.name = "rebased " + clip.name;
                 AssetDatabase.AddObjectToAsset(newClip, _combined);

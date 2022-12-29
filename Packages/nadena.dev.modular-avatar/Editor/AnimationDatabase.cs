@@ -14,10 +14,12 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             internal Motion CurrentClip;
             internal Motion OriginalClip { get; }
+            internal readonly bool IsProxyAnimation;
 
             internal ClipHolder(Motion clip)
             {
                 CurrentClip = OriginalClip = clip;
+                IsProxyAnimation = Util.IsProxyAnimation(clip);
             }
         }
 
@@ -31,6 +33,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Commit()
         {
+            foreach (var clip in _clips)
+            {
+                if (clip.IsProxyAnimation) clip.CurrentClip = clip.OriginalClip;
+            }
+
             foreach (var action in _clipCommitActions)
             {
                 action();

@@ -282,5 +282,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 return newMotion;
             }
         }
+
+        internal static bool IsProxyAnimation(Motion m)
+        {
+            var path = AssetDatabase.GetAssetPath(m);
+
+            return (path.StartsWith("Packages/com.vrchat.avatars") || path.StartsWith("Assets/VRCSDK"))
+                   && path.Contains("ProxyAnim/proxy");
+        }
     }
 }
