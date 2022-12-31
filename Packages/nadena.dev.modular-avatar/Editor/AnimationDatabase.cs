@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -80,14 +81,24 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<Motion, ClipHolder> _originalToHolder = new Dictionary<Motion, ClipHolder>();
 
             if (processClip == null) processClip = (_) => { };
-            if (!Util.IsTemporaryAsset(state))
+            var isProxyAnim = Util.IsProxyAnimation(state.motion);
+            if (!Util.IsTemporaryAsset(state) && !isProxyAnim)
             {
                 throw new Exception("State must be a temporary asset");
             }
 
             if (state.motion == null) return;
 
-            RegisterMotion(state.motion, state, processClip, _originalToHolder);
+            var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
+            if (isProxyAnim)
+            {
+                // Protect the proxy animations from mutations by creating temporary clones; we'll restore the original
+                // in a later pass
+                var placeholder = Object.Instantiate(state.motion);
+                AssetDatabase.CreateAsset(placeholder, Util.GenerateAssetPath());
+                clipHolder.CurrentClip = placeholder;
+                _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
+            }
         }
 
         internal void ForeachClip(Action<ClipHolder> processClip)
