@@ -86,18 +86,20 @@ namespace nadena.dev.modular_avatar.core.editor
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
-            if (!Util.IsTemporaryAsset(state))
+            if (!Util.IsTemporaryAsset(state.motion))
             {
                 // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
                 // animation, we'll restore the original in a later pass
                 var placeholder = Object.Instantiate(state.motion);
-                AssetDatabase.CreateAsset(placeholder, Util.GenerateAssetPath());
+                AssetDatabase.AddObjectToAsset(placeholder, state);
                 clipHolder.CurrentClip = placeholder;
                 if (isProxyAnim)
                 {
-                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
+                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder, true); });
                 }
             }
+
+            _clipCommitActions.Add(() => { state.motion = clipHolder.CurrentClip; });
         }
 
         internal void ForeachClip(Action<ClipHolder> processClip)
@@ -150,13 +152,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         if (holder.CurrentClip != holder.OriginalClip)
                         {
-                            state.motion = holder.CurrentClip;
                             if (!AssetDatabase.IsSubAsset(holder.CurrentClip))
                             {
                                 AssetDatabase.AddObjectToAsset(holder.CurrentClip, AssetDatabase.GetAssetPath(state));
                             }
-
-                            EditorUtility.SetDirty(state);
                         }
                     });
                     break;
@@ -227,13 +226,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 var dirty = false;
                 for (int i = 0; i < children.Length; i++)
                 {
-                    if (children[i].motion != holders[i].CurrentClip)
+                    var curClip = holders[i].CurrentClip;
+                    if (children[i].motion != curClip)
                     {
-                        children[i].motion = holders[i].CurrentClip;
+                        children[i].motion = curClip;
                         dirty = true;
-                        if (!AssetDatabase.IsSubAsset(holders[i].CurrentClip))
+                        if (string.IsNullOrWhiteSpace(AssetDatabase.GetAssetPath(curClip)))
                         {
-                            AssetDatabase.AddObjectToAsset(holders[i].CurrentClip, AssetDatabase.GetAssetPath(state));
+                            AssetDatabase.AddObjectToAsset(curClip, AssetDatabase.GetAssetPath(state));
                         }
                     }
                 }

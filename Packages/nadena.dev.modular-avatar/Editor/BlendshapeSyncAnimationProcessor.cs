@@ -43,7 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void OnPreprocessAvatar(GameObject avatar)
+        public void OnPreprocessAvatar(GameObject avatar, AnimationDatabase animDb)
         {
             var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
@@ -102,21 +102,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            // Ensure we have a unique copy of the controller.
-            if (!Util.IsTemporaryAsset(controller))
-            {
-                controller = Util.DeepCloneAnimator(controller);
-                layers[fxIndex].animatorController = controller;
-                avatarDescriptor.baseAnimationLayers = layers;
-            }
-
-            _container = controller;
-
             // Walk and transform all clips
-            foreach (var state in AllStates(controller))
+            animDb.ForeachClip(clip =>
             {
-                state.motion = TransformMotion(state.motion);
-            }
+                if (clip.CurrentClip is AnimationClip anim)
+                {
+                    clip.CurrentClip = TransformMotion(anim);
+                }
+            });
         }
 
         Motion TransformMotion(Motion motion)

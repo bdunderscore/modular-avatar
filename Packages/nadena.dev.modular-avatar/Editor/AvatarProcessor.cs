@@ -156,12 +156,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
                 context.AnimationDatabase.Bootstrap(vrcAvatarDescriptor);
+
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(context, avatarGameObject);
                 new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-                new RemapAnimationPass(vrcAvatarDescriptor).Process();
+                new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                 new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process();
-                new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
+                new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context.AnimationDatabase);
                 PhysboneBlockerPass.Process(avatarGameObject);
 
                 context.AnimationDatabase.Commit();

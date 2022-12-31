@@ -17,35 +17,15 @@ namespace nadena.dev.modular_avatar.core.editor
             _avatarDescriptor = avatarDescriptor;
         }
 
-        public void Process()
+        public void Process(AnimationDatabase animDb)
         {
-            // TODO: Determine which animation layers actually require processing (once we have the path-analysis database)
-
-            var layers = _avatarDescriptor.baseAnimationLayers;
-            for (int i = 0; i < layers.Length; i++)
+            animDb.ForeachClip(clip =>
             {
-                layers[i] = RemapAnimationLayer(layers[i]);
-            }
-
-            layers = _avatarDescriptor.specialAnimationLayers;
-            for (int i = 0; i < layers.Length; i++)
-            {
-                layers[i] = RemapAnimationLayer(layers[i]);
-            }
-        }
-
-        private VRCAvatarDescriptor.CustomAnimLayer RemapAnimationLayer(VRCAvatarDescriptor.CustomAnimLayer layer)
-        {
-            if (layer.animatorController == null || layer.isDefault) return layer;
-
-            if (!Util.IsTemporaryAsset(layer.animatorController))
-            {
-                layer.animatorController = Util.DeepCloneAnimator(layer.animatorController);
-            }
-
-            Util.VisitMotions(layer.animatorController as AnimatorController, MapMotion);
-
-            return layer;
+                if (clip.CurrentClip is AnimationClip anim && !clip.IsProxyAnimation)
+                {
+                    clip.CurrentClip = MapMotion(anim);
+                }
+            });
         }
 
         private static string MapPath(EditorCurveBinding binding)
@@ -62,7 +42,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private AnimationClip MapMotion(AnimationClip clip)
         {
-            if (Util.IsProxyAnimation(clip)) return clip;
+            if (clip.name.StartsWith("proxy_"))
+            {
+                Debug.Log("");
+            }
 
             AnimationClip newClip = new AnimationClip();
             newClip.name = "remapped " + clip.name;

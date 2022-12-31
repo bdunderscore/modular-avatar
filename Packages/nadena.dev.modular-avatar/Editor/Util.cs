@@ -287,8 +287,12 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var path = AssetDatabase.GetAssetPath(m);
 
-            return (path.StartsWith("Packages/com.vrchat.avatars") || path.StartsWith("Assets/VRCSDK"))
-                   && path.Contains("ProxyAnim/proxy");
+            // This is a fairly wide condition in order to deal with:
+            // 1. Future additions of proxy animations (so GUIDs are out)
+            // 2. Unitypackage based installations of the VRCSDK
+            // 3. VCC based installations of the VRCSDK
+            // 4. Very old VCC based installations of the VRCSDK where proxy animations were copied into Assets
+            return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy");
         }
     }
 }
