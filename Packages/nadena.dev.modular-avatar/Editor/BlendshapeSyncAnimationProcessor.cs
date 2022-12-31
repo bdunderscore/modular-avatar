@@ -94,7 +94,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         _bindingMappings[srcBinding] = dstBindings;
                     }
 
-                    dstBindings.Add(new SummaryBinding(targetObj, binding.LocalBlendshape));
+                    var targetBlendshapeName = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
+                        ? binding.Blendshape
+                        : binding.LocalBlendshape;
+
+                    dstBindings.Add(new SummaryBinding(targetObj, targetBlendshapeName));
                 }
             }
 
