@@ -82,22 +82,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (processClip == null) processClip = (_) => { };
             var isProxyAnim = Util.IsProxyAnimation(state.motion);
-            if (!Util.IsTemporaryAsset(state) && !isProxyAnim)
-            {
-                throw new Exception("State must be a temporary asset");
-            }
 
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
-            if (isProxyAnim)
+            if (!Util.IsTemporaryAsset(state))
             {
-                // Protect the proxy animations from mutations by creating temporary clones; we'll restore the original
-                // in a later pass
+                // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
+                // animation, we'll restore the original in a later pass
                 var placeholder = Object.Instantiate(state.motion);
                 AssetDatabase.CreateAsset(placeholder, Util.GenerateAssetPath());
                 clipHolder.CurrentClip = placeholder;
-                _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
+                if (isProxyAnim)
+                {
+                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
+                }
             }
         }
 

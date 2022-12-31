@@ -200,11 +200,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Object customClone(Object o, string basePath)
         {
-            if (basePath == "") return o;
-
             if (o is AnimationClip clip)
             {
-                if (Util.IsProxyAnimation(clip)) return clip;
+                if (basePath == "" || Util.IsProxyAnimation(clip)) return clip;
 
                 AnimationClip newClip = new AnimationClip();
                 newClip.name = "rebased " + clip.name;
