@@ -127,7 +127,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (willPurgeAnimators) break; // animator will be deleted in subsequent processing
 
                         // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
-                        if (anim.runtimeAnimatorController is AnimatorOverrideController overrideController) 
+                        if (anim.runtimeAnimatorController is AnimatorOverrideController overrideController)
                         {
                             anim.runtimeAnimatorController = Util.ConvertAnimatorController(overrideController);
                         }
@@ -144,12 +144,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     case ModularAvatarMergeAnimator merger:
                     {
-                        
                         // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
-                        if (merger.animator is AnimatorOverrideController overrideController) 
+                        if (merger.animator is AnimatorOverrideController overrideController)
                         {
                             merger.animator = Util.ConvertAnimatorController(overrideController);
                         }
+
                         var controller = merger.animator as AnimatorController;
                         if (controller != null)
                         {
@@ -187,6 +187,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             VRCExpressionsMenu Transform(VRCExpressionsMenu menu)
             {
+                if (menu == null) return null;
+
                 if (remapped.TryGetValue(menu, out var newMenu)) return newMenu;
 
                 newMenu = Object.Instantiate(menu);
