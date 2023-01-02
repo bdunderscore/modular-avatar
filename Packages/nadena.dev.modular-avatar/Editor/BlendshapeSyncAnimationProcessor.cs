@@ -145,7 +145,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var newTree = new BlendTree();
                         EditorUtility.CopySerialized(tree, newTree);
-                        AssetDatabase.AddObjectToAsset(newTree, _container);
+                        if (_container == null)
+                        {
+                            _container = newTree;
+                            AssetDatabase.CreateAsset(_container, Util.GenerateAssetPath());
+                        }
+                        else
+                        {
+                            AssetDatabase.AddObjectToAsset(newTree, _container);
+                        }
+
                         newTree.children = children;
                         motion = newTree;
                     }
@@ -176,7 +185,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (clip == origClip)
                 {
                     clip = Object.Instantiate(clip);
-                    AssetDatabase.AddObjectToAsset(clip, _container);
                 }
 
                 foreach (var dst in dstBindings)
