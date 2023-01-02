@@ -282,9 +282,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (result != ValidateExpressionMenuIconResult.Success) return result;
 
                 // Labels
-                foreach (VRCExpressionsMenu.Control.Label label in control.labels) {
-                    ValidateExpressionMenuIconResult labelResult = Util.ValidateExpressionMenuIcon(label.icon);
-                    if (labelResult != ValidateExpressionMenuIconResult.Success) return labelResult;
+                if (control.labels != null)
+                {
+                    foreach (VRCExpressionsMenu.Control.Label label in control.labels)
+                    {
+                        ValidateExpressionMenuIconResult labelResult = Util.ValidateExpressionMenuIcon(label.icon);
+                        if (labelResult != ValidateExpressionMenuIconResult.Success) return labelResult;
+                    }
                 }
 
                 // SubMenu
