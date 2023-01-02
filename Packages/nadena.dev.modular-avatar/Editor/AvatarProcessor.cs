@@ -160,8 +160,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
                 new MergeArmatureHook().OnPreprocessAvatar(context, avatarGameObject);
                 new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-                new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                 new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process();
+                new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                 new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context.AnimationDatabase);
                 PhysboneBlockerPass.Process(avatarGameObject);
 
@@ -181,16 +181,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
+
                 var activator = avatarGameObject.GetComponent<AvatarActivator>();
                 if (activator != null)
                 {
                     UnityEngine.Object.DestroyImmediate(activator);
                 }
-                
+
                 ClonedMenuMappings.Clear();
             }
-
-
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
