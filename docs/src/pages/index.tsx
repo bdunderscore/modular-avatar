@@ -35,7 +35,7 @@ function HomepageHeader() {
           </Link>
           <Link
               className={`button button--secondary button--lg ${styles.button}`}
-              to="https://github.com/bdunderscore/modular-avatar/releases">
+              to="https://github.com/bdunderscore/modular-avatar/releases/latest">
               <Translate>Download</Translate>
           </Link>
           <Link
