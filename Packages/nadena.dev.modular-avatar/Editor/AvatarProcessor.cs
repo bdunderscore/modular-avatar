@@ -131,6 +131,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 BoneDatabase.ResetBones();
                 PathMappings.Clear();
+                ClonedMenuMappings.Clear();
 
                 // Sometimes people like to nest one avatar in another, when transplanting clothing. To avoid issues
                 // with inconsistently determining the avatar root, we'll go ahead and remove the extra sub-avatars
@@ -172,13 +173,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
-
                 var activator = avatarGameObject.GetComponent<AvatarActivator>();
                 if (activator != null)
                 {
                     UnityEngine.Object.DestroyImmediate(activator);
                 }
+                
+                ClonedMenuMappings.Clear();
             }
+
+
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]

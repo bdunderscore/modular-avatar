@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -22,11 +23,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private HashSet<VRCExpressionsMenu> _avatarMenus;
 
+        private Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>> _menuInstallersMap;
+
         private void OnEnable()
         {
             _installer = (ModularAvatarMenuInstaller) target;
 
             FindMenus();
+            FindMenuInstallers();
         }
 
         private void SetupMenuEditor()
@@ -47,7 +51,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 _menuToAppend = _installer.menuToAppend;
             }
         }
-
         protected override void OnInnerInspectorGUI()
         {
             SetupMenuEditor();
@@ -95,7 +98,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
             if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
             {
-                AvMenuTreeViewWindow.Show(avatar, menu =>
+                AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
                 {
                     installTo.objectReferenceValue = menu;
                     serializedObject.ApplyModifiedProperties();
@@ -200,9 +203,70 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu)
+        private void FindMenuInstallers() 
         {
-            return _avatarMenus == null || _avatarMenus.Contains(menu);
+            if (targets.Length > 1) 
+            {
+                _menuInstallersMap = null;
+                return;
+            }
+
+            _menuInstallersMap = new Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>>();
+            var avatar = RuntimeUtil.FindAvatarInParents(((Component)target).transform);
+            if (avatar == null) return;
+            var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
+                .Where(menuInstaller => menuInstaller.enabled && menuInstaller.menuToAppend != null);
+            foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers) 
+            {
+                if (menuInstaller == target) continue;
+                var visitedMenus = new HashSet<VRCExpressionsMenu>();
+                var queue = new Queue<VRCExpressionsMenu>();
+                queue.Enqueue(menuInstaller.menuToAppend);
+
+                while (queue.Count > 0) 
+                {
+                    VRCExpressionsMenu parent = queue.Dequeue();
+                    var controls = parent.controls.Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu && control.subMenu != null);
+                    foreach (VRCExpressionsMenu.Control control in controls) 
+                    {
+                        // Do not filter in LINQ to avoid closure allocation
+                        if (visitedMenus.Contains(control.subMenu)) continue;
+                        if (!_menuInstallersMap.TryGetValue(control.subMenu, out List<ModularAvatarMenuInstaller> fromInstallers)) 
+                        {
+                            fromInstallers = new List<ModularAvatarMenuInstaller>();
+                            _menuInstallersMap[control.subMenu] = fromInstallers;
+                        }
+
+                        fromInstallers.Add(menuInstaller);
+                        visitedMenus.Add(control.subMenu);
+                        queue.Enqueue(control.subMenu);
+                    }
+                }
+            }
+        }
+
+        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu, HashSet<ModularAvatarMenuInstaller> visitedInstaller = null)
+        {
+            if (_avatarMenus == null || _avatarMenus.Contains(menu)) return true;
+
+            if (_menuInstallersMap == null) return true;
+            if (visitedInstaller == null) visitedInstaller = new HashSet<ModularAvatarMenuInstaller> { (ModularAvatarMenuInstaller)target };
+
+            if (!_menuInstallersMap.TryGetValue(menu, out List<ModularAvatarMenuInstaller> installers)) return false;
+            foreach (ModularAvatarMenuInstaller installer in installers) 
+            {
+                // Root is always reachable if installTargetMenu is null
+                if (installer.installTargetMenu == null) return true;
+                // Even in a circular structure, it may be possible to reach root by another path.
+                if (visitedInstaller.Contains(installer)) continue;
+                visitedInstaller.Add(installer);
+                if (IsMenuReachable(avatar, installer.installTargetMenu, visitedInstaller)) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu, HashSet<VRCExpressionsMenu> visitedMenus = null) 
@@ -212,26 +276,25 @@ namespace nadena.dev.modular_avatar.core.editor
             if (visitedMenus.Contains(menu)) return ValidateExpressionMenuIconResult.Success;
             visitedMenus.Add(menu);
             
-            foreach (VRCExpressionsMenu.Control control in menu.controls) 
-            {
+            foreach (VRCExpressionsMenu.Control control in menu.controls) {
                 // Control
                 ValidateExpressionMenuIconResult result = Util.ValidateExpressionMenuIcon(control.icon);
                 if (result != ValidateExpressionMenuIconResult.Success) return result;
-                
+
                 // Labels
-                foreach (VRCExpressionsMenu.Control.Label label in control.labels) 
-                {
+                foreach (VRCExpressionsMenu.Control.Label label in control.labels) {
                     ValidateExpressionMenuIconResult labelResult = Util.ValidateExpressionMenuIcon(label.icon);
                     if (labelResult != ValidateExpressionMenuIconResult.Success) return labelResult;
                 }
-                
+
                 // SubMenu
                 if (control.type != VRCExpressionsMenu.Control.ControlType.SubMenu) continue;
                 ValidateExpressionMenuIconResult subMenuResult = ValidateExpressionMenuIcon(control.subMenu, visitedMenus);
                 if (subMenuResult != ValidateExpressionMenuIconResult.Success) return subMenuResult;
             }
-            
+
             return ValidateExpressionMenuIconResult.Success;
         }
+
     }
 }
