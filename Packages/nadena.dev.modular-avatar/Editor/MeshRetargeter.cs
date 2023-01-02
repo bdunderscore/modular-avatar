@@ -134,13 +134,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SkinnedMeshRenderer renderer;
         private Mesh src, dst;
 
-        struct BindInfo
-        {
-            public Matrix4x4 priorLocalToBone;
-            public Matrix4x4 localToBone;
-            public Matrix4x4 priorToNew;
-        }
-
         public MeshRetargeter(SkinnedMeshRenderer renderer)
         {
             this.renderer = renderer;

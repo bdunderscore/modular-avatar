@@ -39,22 +39,11 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private BuildContext context;
 
-        private Dictionary<Transform, Transform> BoneRemappings = new Dictionary<Transform, Transform>();
-        private HashSet<GameObject> ToDelete = new HashSet<GameObject>();
-        private HashSet<IConstraint> AddedConstraints = new HashSet<IConstraint>();
-
-        internal bool OnPreprocessAvatar(BuildContext context, GameObject avatarGameObject)
+        internal void OnPreprocessAvatar(BuildContext context, GameObject avatarGameObject)
         {
             this.context = context;
 
-            BoneRemappings.Clear();
-            ToDelete.Clear();
-            AddedConstraints.Clear();
-
             var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
-
-            BoneRemappings.Clear();
-            ToDelete.Clear();
 
             foreach (var mergeArmature in mergeArmatures)
             {
@@ -65,10 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var bones = renderer.bones;
-                for (int i = 0; i < bones.Length; i++) bones[i] = MapBoneReference(bones[i], Retargetable.Ignore);
                 renderer.bones = bones;
-                renderer.rootBone = MapBoneReference(renderer.rootBone, Retargetable.Ignore);
-                renderer.probeAnchor = MapBoneReference(renderer.probeAnchor);
             }
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
@@ -91,17 +77,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>(true))
             {
-                if (!AddedConstraints.Contains(c))
-                {
-                    FixupConstraint(c);
-                }
+                FixupConstraint(c);
             }
 
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
-
-            //foreach (var bone in ToDelete) UnityEngine.Object.DestroyImmediate(bone);
-
-            return true;
         }
 
         private void FixupConstraint(IConstraint constraint)
@@ -110,30 +89,18 @@ namespace nadena.dev.modular_avatar.core.editor
             for (int i = 0; i < nSources; i++)
             {
                 var source = constraint.GetSource(i);
-                source.sourceTransform = MapConstraintSource(source.sourceTransform);
                 BoneDatabase.RetainMergedBone(source.sourceTransform);
-                constraint.SetSource(i, source);
             }
 
             if (constraint is AimConstraint aimConstraint)
             {
-                aimConstraint.worldUpObject = MapConstraintSource(aimConstraint.worldUpObject);
                 BoneDatabase.RetainMergedBone(aimConstraint.worldUpObject);
             }
 
             if (constraint is LookAtConstraint lookAtConstraint)
             {
-                lookAtConstraint.worldUpObject = MapConstraintSource(lookAtConstraint.worldUpObject);
                 BoneDatabase.RetainMergedBone(lookAtConstraint.worldUpObject);
             }
-        }
-
-        private Transform MapConstraintSource(Transform transform)
-        {
-            if (transform == null) return null;
-            if (!BoneRemappings.TryGetValue(transform, out var remap)) return transform;
-            var retarget = BoneDatabase.GetRetargetedBone(remap);
-            return retarget != null ? retarget : remap;
         }
 
         private void UpdateBoneReferences(Component c, Retargetable retargetable = Retargetable.Disable)
@@ -155,17 +122,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         if (iter.objectReferenceValue is Transform t)
                         {
-                            var mapped = MapBoneReference(t, retargetable);
-
-                            iter.objectReferenceValue = mapped;
-                            BoneDatabase.RetainMergedBone(mapped);
+                            BoneDatabase.RetainMergedBone(t);
                         }
                         else if (iter.objectReferenceValue is GameObject go)
                         {
-                            var mapped = MapBoneReference(go.transform, retargetable);
-
-                            iter.objectReferenceValue = mapped?.gameObject;
-                            BoneDatabase.RetainMergedBone(mapped);
+                            BoneDatabase.RetainMergedBone(go.transform);
                         }
 
                         break;
@@ -178,25 +139,7 @@ namespace nadena.dev.modular_avatar.core.editor
         enum Retargetable
         {
             Disable,
-            Ignore,
-            Use
-        }
-
-        private Transform MapBoneReference(Transform bone, Retargetable retargetable = Retargetable.Disable)
-        {
-            if (bone != null && BoneRemappings.TryGetValue(bone, out var newBone))
-            {
-                if (retargetable == Retargetable.Disable) BoneDatabase.RetainMergedBone(newBone);
-                bone = newBone;
-            }
-
-            if (bone != null && retargetable == Retargetable.Use)
-            {
-                var retargeted = BoneDatabase.GetRetargetedBone(bone);
-                if (retargeted != null) bone = retargeted;
-            }
-
-            return bone;
+            Ignore
         }
 
         private bool HasAdditionalComponents(GameObject go, out Type constraintType)
@@ -260,10 +203,26 @@ namespace nadena.dev.modular_avatar.core.editor
             return hasComponents;
         }
 
+        /// <summary>
+        /// Tracks an object whose Active state is animated, and which leads up to this Merge Animator component.
+        /// We use this tracking data to create proxy objects within the main armature, which track the same active
+        /// state.
+        /// </summary>
         struct IntermediateObj
         {
+            /// <summary>
+            /// Name of the intermediate object. Used to name proxy objects.
+            /// </summary>
             public string name;
+
+            /// <summary>
+            /// The original path of this intermediate object.
+            /// </summary>
             public string originPath;
+
+            /// <summary>
+            /// Whether this object is initially active.
+            /// </summary>
             public bool active;
         }
 
@@ -431,16 +390,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (zipMerge)
             {
                 PathMappings.MarkTransformLookthrough(src);
-            }
-
-            if (zipMerge)
-            {
                 BoneDatabase.AddMergedBone(src.transform);
-            }
-            else
-            {
-                // unmergable bones cannot be deleted
-                retain = true;
             }
 
             List<Transform> children = new List<Transform>();
