@@ -26,3 +26,8 @@ As such, if you want a submenu of your own, you will need to create two menu ass
 
 Add a Menu Installer component to your prefab, at the same level as your [Parameters](parameters.md) component.
 Then, open the Prefab Developer Options tag, and add the desired menu to "Menu to install". Done!
+
+### Extending menus of other assets
+
+In some cases, it can be useful to extend a menu that is being installed by another Menu Installer component.
+This can be done by specifying the menu asset (or a submenu) that is being installed by a Menu Installer in the "Install To" field.
