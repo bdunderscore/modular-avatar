@@ -363,12 +363,10 @@ namespace nadena.dev.modular_avatar.core.editor
          * (Attempts to) merge the source gameobject into the target gameobject. Returns true if the merged source
          * object must be retained.
          */
-        private bool RecursiveMerge(
-            ModularAvatarMergeArmature config,
+        private void RecursiveMerge(ModularAvatarMergeArmature config,
             GameObject src,
             GameObject newParent,
-            bool zipMerge
-        )
+            bool zipMerge)
         {
             if (src == newParent)
             {
@@ -421,15 +419,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     // Ensure mesh retargeting looks through this 
                     BoneDatabase.AddMergedBone(mergedSrcBone.transform);
                     BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
+                    PathMappings.MarkTransformLookthrough(mergedSrcBone);
                 }
             }
 
-            var oldPath = RuntimeUtil.AvatarRootPath(src);
             src.transform.SetParent(mergedSrcBone.transform, true);
             src.name = src.name + "$" + Guid.NewGuid();
             src.GetOrAddComponent<ModularAvatarPBBlocker>();
             mergedSrcBone = src;
-            var newPath = RuntimeUtil.AvatarRootPath(src);
 
             if (zipMerge)
             {
@@ -476,8 +473,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 }
             }
-
-            return retain;
         }
 
         /**

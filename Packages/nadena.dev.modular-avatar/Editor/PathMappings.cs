@@ -128,11 +128,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (isTransformMapping)
             {
-                mappings = BuildMapping(ref _originalPathToMappedPath, false);
+                mappings = BuildMapping(ref _originalPathToMappedPath, true);
             }
             else
             {
-                mappings = BuildMapping(ref _transformOriginalPathToMappedPath, true);
+                mappings = BuildMapping(ref _transformOriginalPathToMappedPath, false);
             }
 
             if (mappings.TryGetValue(path, out var mappedPath))
