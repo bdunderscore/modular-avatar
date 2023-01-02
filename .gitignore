@@ -70,4 +70,9 @@ crashlytics-build.properties
 !/Assets/bd_/ModularAvatar.meta
 !/Assets/bd_.meta
 
+!/Assets/bd_/ModularAvatar/DevAssets/
+!/Assets/bd_/ModularAvatar/DevAssets/**/*
+
 ![Mm]odular[Aa]vatar.meta
+
+Thry
