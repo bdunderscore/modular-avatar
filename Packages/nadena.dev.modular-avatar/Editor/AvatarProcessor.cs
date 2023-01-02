@@ -132,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var vrcAvatarDescriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
 
                 BoneDatabase.ResetBones();
-                PathMappings.Clear();
+                PathMappings.Init(vrcAvatarDescriptor.gameObject);
                 ClonedMenuMappings.Clear();
 
                 // Sometimes people like to nest one avatar in another, when transplanting clothing. To avoid issues

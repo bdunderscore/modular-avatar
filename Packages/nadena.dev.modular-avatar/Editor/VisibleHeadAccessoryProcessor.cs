@@ -89,14 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var oscale = xform.lossyScale;
                 xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
 
-                var oldPath = RuntimeUtil.AvatarRootPath(target.gameObject);
                 target.transform.SetParent(proxy, true);
-                var newPath = RuntimeUtil.AvatarRootPath(target.gameObject);
-                PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
-                {
-                    path = newPath,
-                    transformPath = newPath
-                });
 
                 didWork = true;
             }

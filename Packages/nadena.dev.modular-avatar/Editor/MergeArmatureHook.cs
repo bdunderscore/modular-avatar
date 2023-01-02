@@ -431,11 +431,10 @@ namespace nadena.dev.modular_avatar.core.editor
             mergedSrcBone = src;
             var newPath = RuntimeUtil.AvatarRootPath(src);
 
-            PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
+            if (zipMerge)
             {
-                transformPath = zipMerge ? RuntimeUtil.AvatarRootPath(newParent) : newPath,
-                path = newPath,
-            });
+                PathMappings.MarkTransformLookthrough(src);
+            }
 
             if (zipMerge)
             {

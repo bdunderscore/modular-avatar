@@ -19,6 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void Process(AnimationDatabase animDb)
         {
+            PathMappings.ClearCache();
             animDb.ForeachClip(clip =>
             {
                 if (clip.CurrentClip is AnimationClip anim && !clip.IsProxyAnimation)
