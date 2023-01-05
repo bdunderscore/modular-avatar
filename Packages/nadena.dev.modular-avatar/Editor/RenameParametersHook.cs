@@ -17,13 +17,17 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
 
+        private BuildContext _context;
+
         private int internalParamIndex = 0;
 
         private Dictionary<string, VRCExpressionParameters.Parameter> _syncedParams =
             new Dictionary<string, VRCExpressionParameters.Parameter>();
 
-        public void OnPreprocessAvatar(GameObject avatar)
+        public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
+            _context = context;
+
             _syncedParams.Clear();
 
             WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
@@ -49,7 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             expParams = Object.Instantiate(expParams);
-            AssetDatabase.CreateAsset(expParams, Util.GenerateAssetPath());
+            _context.SaveAsset(expParams);
 
             var knownParams = expParams.parameters.Select(p => p.name).ToImmutableHashSet();
             var parameters = expParams.parameters.ToList();
@@ -129,7 +133,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
                         if (anim.runtimeAnimatorController is AnimatorOverrideController overrideController)
                         {
-                            anim.runtimeAnimatorController = Util.ConvertAnimatorController(overrideController);
+                            anim.runtimeAnimatorController = _context.ConvertAnimatorController(overrideController);
                         }
 
                         var controller = anim.runtimeAnimatorController as AnimatorController;
@@ -147,7 +151,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
                         if (merger.animator is AnimatorOverrideController overrideController)
                         {
-                            merger.animator = Util.ConvertAnimatorController(overrideController);
+                            merger.animator = _context.ConvertAnimatorController(overrideController);
                         }
 
                         var controller = merger.animator as AnimatorController;
@@ -192,7 +196,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (remapped.TryGetValue(menu, out var newMenu)) return newMenu;
 
                 newMenu = Object.Instantiate(menu);
-                AssetDatabase.CreateAsset(newMenu, Util.GenerateAssetPath());
+                _context.SaveAsset(newMenu);
                 remapped[menu] = newMenu;
                 ClonedMenuMappings.Add(menu, newMenu);
 
@@ -222,7 +226,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // Deep clone the animator
             if (!Util.IsTemporaryAsset(controller))
             {
-                controller = Util.DeepCloneAnimator(controller);
+                controller = _context.DeepCloneAnimator(controller);
             }
 
             var parameters = controller.parameters;

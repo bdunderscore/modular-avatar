@@ -52,9 +52,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private int controllerBaseLayer = 0;
 
-        public AnimatorCombiner()
+        public AnimatorCombiner(BuildContext context)
         {
-            _combined = Util.CreateAnimator();
+            _combined = context.CreateAnimator();
         }
 
         public AnimatorController Finish()

@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
      */
     internal class BlendshapeSyncAnimationProcessor
     {
-        private Object _container;
+        private BuildContext _context;
         private Dictionary<Motion, Motion> _motionCache;
         private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
 
@@ -43,8 +43,11 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void OnPreprocessAvatar(GameObject avatar, AnimationDatabase animDb)
+        public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
+            _context = context;
+            var animDb = _context.AnimationDatabase;
+
             var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
             _motionCache = new Dictionary<Motion, Motion>();
@@ -145,15 +148,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var newTree = new BlendTree();
                         EditorUtility.CopySerialized(tree, newTree);
-                        if (_container == null)
-                        {
-                            _container = newTree;
-                            AssetDatabase.CreateAsset(_container, Util.GenerateAssetPath());
-                        }
-                        else
-                        {
-                            AssetDatabase.AddObjectToAsset(newTree, _container);
-                        }
+                        _context.SaveAsset(newTree);
 
                         newTree.children = children;
                         motion = newTree;

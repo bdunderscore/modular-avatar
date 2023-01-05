@@ -77,8 +77,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class RetargetMeshes
     {
-        internal void OnPreprocessAvatar(GameObject avatarGameObject)
+        private BuildContext _context;
+
+        internal void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
         {
+            _context = context;
+
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 bool isRetargetable = false;
@@ -93,7 +97,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (isRetargetable)
                 {
-                    new MeshRetargeter(renderer).Retarget();
+                    var newMesh = new MeshRetargeter(renderer).Retarget();
+                    _context.SaveAsset(newMesh);
                 }
             }
 
@@ -139,7 +144,7 @@ namespace nadena.dev.modular_avatar.core.editor
             this.renderer = renderer;
         }
 
-        public void Retarget()
+        public Mesh Retarget()
         {
             var avatar = RuntimeUtil.FindAvatarInParents(renderer.transform);
             if (avatar == null) throw new System.Exception("Could not find avatar in parents of " + renderer.name);
@@ -164,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
             avatarTransform.rotation = avRot;
             avatarTransform.localScale = avScale;
 
-            AssetDatabase.CreateAsset(dst, Util.GenerateAssetPath());
+            return dst;
         }
 
         private void AdjustShapeKeys()
