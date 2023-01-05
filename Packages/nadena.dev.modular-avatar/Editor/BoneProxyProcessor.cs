@@ -51,12 +51,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         transform.localPosition = Vector3.zero;
                         transform.localRotation = Quaternion.identity;
                     }
-
-                    PathMappings.Remap(oldPath, new PathMappings.MappingEntry()
-                    {
-                        path = RuntimeUtil.AvatarRootPath(proxy.gameObject),
-                        transformPath = RuntimeUtil.AvatarRootPath(proxy.gameObject)
-                    });
                 }
 
                 Object.DestroyImmediate(proxy);

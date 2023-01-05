@@ -43,7 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void OnPreprocessAvatar(GameObject avatar)
+        public void OnPreprocessAvatar(GameObject avatar, AnimationDatabase animDb)
         {
             var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
@@ -102,21 +102,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            // Ensure we have a unique copy of the controller.
-            if (!Util.IsTemporaryAsset(controller))
-            {
-                controller = Util.DeepCloneAnimator(controller);
-                layers[fxIndex].animatorController = controller;
-                avatarDescriptor.baseAnimationLayers = layers;
-            }
-
-            _container = controller;
-
             // Walk and transform all clips
-            foreach (var state in AllStates(controller))
+            animDb.ForeachClip(clip =>
             {
-                state.motion = TransformMotion(state.motion);
-            }
+                if (clip.CurrentClip is AnimationClip anim)
+                {
+                    clip.CurrentClip = TransformMotion(anim);
+                }
+            });
         }
 
         Motion TransformMotion(Motion motion)
@@ -152,7 +145,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var newTree = new BlendTree();
                         EditorUtility.CopySerialized(tree, newTree);
-                        AssetDatabase.AddObjectToAsset(newTree, _container);
+                        if (_container == null)
+                        {
+                            _container = newTree;
+                            AssetDatabase.CreateAsset(_container, Util.GenerateAssetPath());
+                        }
+                        else
+                        {
+                            AssetDatabase.AddObjectToAsset(newTree, _container);
+                        }
+
                         newTree.children = children;
                         motion = newTree;
                     }
@@ -183,7 +185,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (clip == origClip)
                 {
                     clip = Object.Instantiate(clip);
-                    AssetDatabase.AddObjectToAsset(clip, _container);
                 }
 
                 foreach (var dst in dstBindings)

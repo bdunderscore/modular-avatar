@@ -26,11 +26,14 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Object = UnityEngine.Object;
+
+[assembly: InternalsVisibleTo("Tests")]
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -129,8 +132,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 nowProcessing = true;
 
+                var vrcAvatarDescriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+
                 BoneDatabase.ResetBones();
-                PathMappings.Clear();
+                PathMappings.Init(vrcAvatarDescriptor.gameObject);
                 ClonedMenuMappings.Clear();
 
                 // Sometimes people like to nest one avatar in another, when transplanting clothing. To avoid issues
@@ -149,15 +154,21 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                var context = new BuildContext(vrcAvatarDescriptor);
+
                 new RenameParametersHook().OnPreprocessAvatar(avatarGameObject);
-                new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
-                new MergeArmatureHook().OnPreprocessAvatar(avatarGameObject);
-                new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
-                new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
-                new VisibleHeadAccessoryProcessor(avatarGameObject.GetComponent<VRCAvatarDescriptor>()).Process();
                 new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject);
-                new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject);
+                context.AnimationDatabase.Bootstrap(vrcAvatarDescriptor);
+
+                new MenuInstallHook().OnPreprocessAvatar(avatarGameObject);
+                new MergeArmatureHook().OnPreprocessAvatar(context, avatarGameObject);
+                new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
+                new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process();
+                new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
+                new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context.AnimationDatabase);
                 PhysboneBlockerPass.Process(avatarGameObject);
+
+                context.AnimationDatabase.Commit();
 
                 AfterProcessing?.Invoke(avatarGameObject);
 
@@ -173,16 +184,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     UnityEngine.Object.DestroyImmediate(component);
                 }
+
                 var activator = avatarGameObject.GetComponent<AvatarActivator>();
                 if (activator != null)
                 {
                     UnityEngine.Object.DestroyImmediate(activator);
                 }
-                
+
                 ClonedMenuMappings.Clear();
             }
-
-
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]

@@ -44,8 +44,9 @@ namespace nadena.dev.modular_avatar.core.editor
             IsRetargetable[bone] = true;
         }
 
-        internal static void MarkNonRetargetable(Transform bone)
+        internal static void RetainMergedBone(Transform bone)
         {
+            if (bone == null) return;
             if (IsRetargetable.ContainsKey(bone)) IsRetargetable[bone] = false;
         }
 
@@ -117,6 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         child.SetParent(destBone, true);
                     }
 
+                    PathMappings.MarkRemoved(sourceBone.gameObject);
                     UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
                 }
             }
@@ -131,13 +133,6 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly SkinnedMeshRenderer renderer;
         private Mesh src, dst;
-
-        struct BindInfo
-        {
-            public Matrix4x4 priorLocalToBone;
-            public Matrix4x4 localToBone;
-            public Matrix4x4 priorToNew;
-        }
 
         public MeshRetargeter(SkinnedMeshRenderer renderer)
         {

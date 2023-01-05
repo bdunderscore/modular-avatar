@@ -36,7 +36,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
-        
+
         private AnimatorOverrideController _overrideController;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
@@ -92,15 +92,17 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void AddOverrideController(string basePath, AnimatorOverrideController overrideController, bool? writeDefaults) 
+        public void AddOverrideController(string basePath, AnimatorOverrideController overrideController,
+            bool? writeDefaults)
         {
             AnimatorController controller = overrideController.runtimeAnimatorController as AnimatorController;
             if (controller == null) return;
             _overrideController = overrideController;
-            try 
+            try
             {
                 this.AddController(basePath, controller, writeDefaults);
-            } finally 
+            }
+            finally
             {
                 _overrideController = null;
             }
@@ -192,16 +194,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     newPath = newPath.Substring(0, newPath.Length - 1);
                 }
 
-                return PathMappings.MapPath(newPath, binding.type == typeof(Transform));
+                return newPath;
             }
         }
 
         private Object customClone(Object o, string basePath)
         {
-            if (basePath == "") return null;
-
             if (o is AnimationClip clip)
             {
+                if (basePath == "" || Util.IsProxyAnimation(clip)) return clip;
+
                 AnimationClip newClip = new AnimationClip();
                 newClip.name = "rebased " + clip.name;
                 AssetDatabase.AddObjectToAsset(newClip, _combined);
@@ -277,10 +279,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             // When using AnimatorOverrideController, replace the original AnimationClip based on AnimatorOverrideController.
-            if (_overrideController != null && original is AnimationClip srcClip) 
+            if (_overrideController != null && original is AnimationClip srcClip)
             {
                 T overrideClip = _overrideController[srcClip] as T;
-                if (overrideClip != null) 
+                if (overrideClip != null)
                 {
                     original = overrideClip;
                 }
