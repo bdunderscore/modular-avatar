@@ -70,6 +70,11 @@ crashlytics-build.properties
 !/Assets/bd_/ModularAvatar.meta
 !/Assets/bd_.meta
 
+!/Assets/_ModularAvatar.meta
+!/Assets/_ModularAvatar/
+!/Assets/_ModularAvatar/*
+!/Assets/_ModularAvatar/**/*
+
 !/Assets/bd_/ModularAvatar/DevAssets/
 !/Assets/bd_/ModularAvatar/DevAssets/**/*
 

@@ -52,6 +52,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 var path = RuntimeUtil.RelativePath(root, xform.gameObject);
                 _objectToOriginalPaths.Add(xform.gameObject, new List<string> {path});
             }
+
+            ClearCache();
         }
 
         internal static void ClearCache()

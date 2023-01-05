@@ -26,11 +26,14 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Object = UnityEngine.Object;
+
+[assembly: InternalsVisibleTo("Tests")]
 
 namespace nadena.dev.modular_avatar.core.editor
 {
