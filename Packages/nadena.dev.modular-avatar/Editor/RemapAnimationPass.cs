@@ -43,11 +43,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private AnimationClip MapMotion(AnimationClip clip)
         {
-            if (clip.name.StartsWith("proxy_"))
-            {
-                Debug.Log("");
-            }
-
             AnimationClip newClip = new AnimationClip();
             newClip.name = "remapped " + clip.name;
 
