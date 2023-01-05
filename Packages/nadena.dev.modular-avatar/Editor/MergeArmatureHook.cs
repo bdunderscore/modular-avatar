@@ -60,51 +60,33 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
-                UpdateBoneReferences(c);
+                RetainBoneReferences(c);
             }
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneCollider>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
-                UpdateBoneReferences(c);
+                RetainBoneReferences(c);
             }
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ContactBase>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
-                UpdateBoneReferences(c);
+                RetainBoneReferences(c);
             }
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>(true))
             {
-                FixupConstraint(c);
+                RetainBoneReferences(c as Component);
             }
 
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
         }
 
-        private void FixupConstraint(IConstraint constraint)
+        private void RetainBoneReferences(Component c)
         {
-            int nSources = constraint.sourceCount;
-            for (int i = 0; i < nSources; i++)
-            {
-                var source = constraint.GetSource(i);
-                BoneDatabase.RetainMergedBone(source.sourceTransform);
-            }
+            if (c == null) return;
 
-            if (constraint is AimConstraint aimConstraint)
-            {
-                BoneDatabase.RetainMergedBone(aimConstraint.worldUpObject);
-            }
-
-            if (constraint is LookAtConstraint lookAtConstraint)
-            {
-                BoneDatabase.RetainMergedBone(lookAtConstraint.worldUpObject);
-            }
-        }
-
-        private void UpdateBoneReferences(Component c, Retargetable retargetable = Retargetable.Disable)
-        {
             SerializedObject so = new SerializedObject(c);
             SerializedProperty iter = so.GetIterator();
 
@@ -136,13 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        enum Retargetable
-        {
-            Disable,
-            Ignore
-        }
-
-        private bool HasAdditionalComponents(GameObject go, out Type constraintType)
+        private bool HasAdditionalComponents(GameObject go)
         {
             bool hasComponents = false;
             bool needsConstraint = false;
@@ -155,49 +131,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     case Transform _: break;
                     case ModularAvatarMergeArmature _: break;
-                    case VRCPhysBone _:
-                    case VRCPhysBoneCollider _:
-                        hasComponents = true;
-                        break;
-                    case AimConstraint _:
-                    case LookAtConstraint _:
-                    case RotationConstraint _:
-                        hasRotationConstraint = true;
-                        needsConstraint = true;
-                        hasComponents = true;
-                        break;
-                    case PositionConstraint _:
-                        hasPositionConstraint = true;
-                        needsConstraint = true;
-                        hasComponents = true;
-                        break;
-                    case ParentConstraint _:
-                        needsConstraint = false;
-                        hasPositionConstraint = hasRotationConstraint = true;
-                        hasComponents = true;
-                        break;
                     default:
                         hasComponents = true;
-                        needsConstraint = true;
                         break;
                 }
-            }
-
-            if (!needsConstraint || (hasPositionConstraint && hasRotationConstraint))
-            {
-                constraintType = null;
-            }
-            else if (hasPositionConstraint)
-            {
-                constraintType = typeof(RotationConstraint);
-            }
-            else if (hasRotationConstraint)
-            {
-                constraintType = typeof(PositionConstraint);
-            }
-            else
-            {
-                constraintType = typeof(ParentConstraint);
             }
 
             return hasComponents;
@@ -334,8 +271,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (zipMerge) PruneDuplicatePhysBones(newParent, src);
 
-            bool retain = HasAdditionalComponents(src, out var constraintType) || !zipMerge;
-            zipMerge = zipMerge && constraintType == null;
+            bool retain = HasAdditionalComponents(src) || !zipMerge;
+            zipMerge = zipMerge && src.GetComponent<IConstraint>() == null;
 
             GameObject mergedSrcBone = newParent;
             if (retain)
