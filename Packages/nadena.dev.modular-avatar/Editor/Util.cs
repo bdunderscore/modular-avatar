@@ -60,23 +60,6 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorApplication.hierarchyChanged += () => { RuntimeUtil.InvokeHierarchyChanged(); };
         }
 
-        public static AnimatorController CreateAnimator(AnimatorController toClone = null)
-        {
-            AnimatorController controller;
-            if (toClone != null)
-            {
-                controller = Object.Instantiate(toClone);
-            }
-            else
-            {
-                controller = new AnimatorController();
-            }
-
-            AssetDatabase.CreateAsset(controller, GenerateAssetPath());
-
-            return controller;
-        }
-
         public static string GenerateAssetPath()
         {
             return GetGeneratedAssetsFolder() + "/" + GUID.Generate() + ".asset";
@@ -111,31 +94,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 AssetDatabase.DeleteAsset(subdir);
                 FileUtil.DeleteFileOrDirectory(subdir);
             };
-        }
-
-        public static AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
-        {
-            var merger = new AnimatorCombiner();
-            switch (controller)
-            {
-                case AnimatorController ac:
-                    merger.AddController("", ac, null);
-                    break;
-                case AnimatorOverrideController oac:
-                    merger.AddOverrideController("", oac, null);
-                    break;
-                default:
-                    throw new Exception("Unknown RuntimeAnimatorContoller type " + controller.GetType());
-            }
-
-            return merger.Finish();
-        }
-
-        public static AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController)
-        {
-            var merger = new AnimatorCombiner();
-            merger.AddOverrideController("", overrideController, null);
-            return merger.Finish();
         }
 
         public static bool IsTemporaryAsset(Object obj)

@@ -80,7 +80,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 RetainBoneReferences(c as Component);
             }
 
-            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject);
+            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, context);
         }
 
         private void RetainBoneReferences(Component c)
