@@ -115,6 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
             try
             {
                 ProcessAvatar(avatarGameObject);
+                FixupAnimatorDebugData(avatarGameObject);
                 return true;
             }
             catch (Exception e)
@@ -130,6 +131,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             try
             {
+                AssetDatabase.StartAssetEditing();
                 nowProcessing = true;
 
                 var vrcAvatarDescriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
@@ -171,11 +173,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 context.AnimationDatabase.Commit();
 
                 AfterProcessing?.Invoke(avatarGameObject);
-
-                FixupAnimatorDebugData(avatarGameObject);
             }
             finally
             {
+                AssetDatabase.StopAssetEditing();
+
                 nowProcessing = false;
 
                 // Ensure that we clean up AvatarTagComponents after failed processing. This ensures we don't re-enter
