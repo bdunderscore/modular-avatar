@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -60,6 +62,33 @@ namespace modular_avatar_tests
             var go = Object.Instantiate(prefab);
             objects.Add(go);
             return go;
+        }
+
+
+        protected static AnimationClip findFxMotion(GameObject prefab, string layerName)
+        {
+            var layer = findFxLayer(prefab, layerName);
+            var state = layer.stateMachine.states[0].state;
+            Assert.NotNull(state);
+
+            var motion = state.motion as AnimationClip;
+            Assert.NotNull(motion);
+            return motion;
+        }
+
+        protected static AnimatorControllerLayer findFxLayer(GameObject prefab, string layerName)
+        {
+            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+
+            Assert.NotNull(fx);
+            var ac = fx.animatorController as AnimatorController;
+            Assert.NotNull(ac);
+            Assert.False(fx.isDefault);
+
+            var layer = ac.layers.FirstOrDefault(l => l.name == layerName);
+            Assert.NotNull(layer);
+            return layer;
         }
     }
 }

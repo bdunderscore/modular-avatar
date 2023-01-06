@@ -20,21 +20,9 @@ namespace modular_avatar_tests.AnimateAddedBones
             var prefab = CreatePrefab("AnimateAddedBones.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
 
-            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var layerName = "merged";
 
-            Assert.NotNull(fx);
-            var ac = fx.animatorController as AnimatorController;
-            Assert.NotNull(ac);
-            Assert.False(fx.isDefault);
-
-            var layer = ac.layers.FirstOrDefault(l => l.name == "merged");
-            Assert.NotNull(layer);
-            var state = layer.stateMachine.states[0].state;
-            Assert.NotNull(state);
-
-            var motion = state.motion as AnimationClip;
-            Assert.NotNull(motion);
+            var motion = findFxMotion(prefab, layerName);
 
             var cubeObject = prefab.transform.Find("Armature/Hips").GetChild(0).gameObject;
             Assert.True(cubeObject.name.StartsWith("Cube$"));
