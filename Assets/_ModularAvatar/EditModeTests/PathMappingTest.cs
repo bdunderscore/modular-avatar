@@ -9,42 +9,8 @@ using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests
 {
-    public class PathMappingTest
+    public class PathMappingTest : TestBase
     {
-        private List<GameObject> objects;
-
-        [SetUp]
-        public void Setup()
-        {
-            objects = new List<GameObject>();
-        }
-
-        [TearDown]
-        public void Teardown()
-        {
-            foreach (var obj in objects)
-            {
-                Object.DestroyImmediate(obj);
-            }
-        }
-
-        GameObject CreateRoot(string name)
-        {
-            var go = new GameObject(name);
-            objects.Add(go);
-            // Needed for avatar path finding functions to work properly
-            go.AddComponent(typeof(VRCAvatarDescriptor));
-            return go;
-        }
-
-        GameObject CreateChild(GameObject parent, string name)
-        {
-            var go = new GameObject(name);
-            go.transform.parent = parent.transform;
-            objects.Add(go);
-            return go;
-        }
-
         [Test]
         public void TracksSimpleRenames()
         {
