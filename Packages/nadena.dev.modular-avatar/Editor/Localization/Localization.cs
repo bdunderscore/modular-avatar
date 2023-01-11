@@ -19,9 +19,10 @@ namespace nadena.dev.modular_avatar.core.editor
         private static ImmutableDictionary<string, string> SupportedLanguageDisplayNames
             = ImmutableDictionary<string, string>.Empty
                 .Add("en", "English")
-                .Add("ja", "日本語");
+                .Add("ja", "日本語")
+                .Add("zh-hans", "简体中文");
 
-        private static ImmutableList<string> SupportedLanguages = new string[] {"en", "ja"}.ToImmutableList();
+        private static ImmutableList<string> SupportedLanguages = new string[] {"en", "ja", "zh-hans"}.ToImmutableList();
 
         private static string[] DisplayNames = SupportedLanguages.Select(l =>
         {
