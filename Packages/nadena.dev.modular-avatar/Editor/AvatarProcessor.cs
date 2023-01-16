@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <summary>
         /// This API is NOT stable. Do not use it yet.
         /// </summary>
-        public static event AvatarProcessorCallback AfterProcessing;
+        internal static event AvatarProcessorCallback AfterProcessing;
 
         static AvatarProcessor()
         {
