@@ -81,3 +81,7 @@ crashlytics-build.properties
 ![Mm]odular[Aa]vatar.meta
 
 Thry
+
+CodeCoverage
+CodeCoverage/*
+
