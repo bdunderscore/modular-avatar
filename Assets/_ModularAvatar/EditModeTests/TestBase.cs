@@ -12,6 +12,7 @@ namespace modular_avatar_tests
     public class TestBase
     {
         private List<GameObject> objects;
+        private const string MinimalAvatarGuid = "60d3416d1f6af4a47bf9056aefc38333";
 
         [SetUp]
         public void Setup()
@@ -36,10 +37,10 @@ namespace modular_avatar_tests
 
         protected GameObject CreateRoot(string name)
         {
-            var go = new GameObject(name);
+            var path = AssetDatabase.GUIDToAssetPath(MinimalAvatarGuid);
+            var go = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
+
             objects.Add(go);
-            // Needed for avatar path finding functions to work properly
-            go.AddComponent(typeof(VRCAvatarDescriptor));
             return go;
         }
 

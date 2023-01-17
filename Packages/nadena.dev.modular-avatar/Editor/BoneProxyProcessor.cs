@@ -46,11 +46,30 @@ namespace nadena.dev.modular_avatar.core.editor
                     var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
                     Transform transform = proxy.transform;
                     transform.SetParent(proxy.target, true);
-                    if (proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepWorldPosition)
+
+                    bool keepPos, keepRot;
+                    switch (proxy.attachmentMode)
                     {
-                        transform.localPosition = Vector3.zero;
-                        transform.localRotation = Quaternion.identity;
+                        default:
+                        case BoneProxyAttachmentMode.Unset:
+                        case BoneProxyAttachmentMode.AsChildAtRoot:
+                            keepPos = keepRot = false;
+                            break;
+                        case BoneProxyAttachmentMode.AsChildKeepWorldPose:
+                            keepPos = keepRot = true;
+                            break;
+                        case BoneProxyAttachmentMode.AsChildKeepPosition:
+                            keepPos = true;
+                            keepRot = false;
+                            break;
+                        case BoneProxyAttachmentMode.AsChildKeepRotation:
+                            keepRot = true;
+                            keepPos = false;
+                            break;
                     }
+
+                    if (!keepPos) transform.localPosition = Vector3.zero;
+                    if (!keepRot) transform.localRotation = Quaternion.identity;
                 }
 
                 Object.DestroyImmediate(proxy);

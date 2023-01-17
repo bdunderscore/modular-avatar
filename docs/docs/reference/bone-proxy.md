@@ -36,9 +36,12 @@ In the "As child at root" attachment mode, the object that the bone proxy is att
 its local position and orientation will be zeroed out. This will place it at the same position and orientation as the target object.
 This mode is recommended for prefabs that are not avatar-specific.
 
-In the "As child keep world position" attachment mode, the object that the bone proxy is attached to will be reparented to the target object,
+In the "As child keep world pose" attachment mode, the object that the bone proxy is attached to will be reparented to the target object,
 but its world position and orientation will be preserved. This is usually only useful for avatar-specific prefabs, where you want to
 place an object at a precise position relative to the parent bone. For example, it can be used to place colliders for cloth components.
+
+You can also opt to keep only one of the original position or rotation, allowing the other to match the target bone. This can sometimes
+be useful for more advanced applications.
 
 When you set the target for a bone proxy component, the attachment mode will be automatically set based on whether the object is
 currently at the target bone's position and orientation.
