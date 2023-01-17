@@ -59,8 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
 
-            InitSessions(descriptor.baseAnimationLayers);
-            InitSessions(descriptor.specialAnimationLayers);
+            if (descriptor.baseAnimationLayers != null) InitSessions(descriptor.baseAnimationLayers);
+            if (descriptor.specialAnimationLayers != null) InitSessions(descriptor.specialAnimationLayers);
 
             var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
 
