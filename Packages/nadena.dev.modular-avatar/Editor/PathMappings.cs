@@ -30,7 +30,6 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    // TODO - needs optimization pass maybe?
     internal static class PathMappings
     {
         private static Dictionary<GameObject, List<string>> _objectToOriginalPaths =
