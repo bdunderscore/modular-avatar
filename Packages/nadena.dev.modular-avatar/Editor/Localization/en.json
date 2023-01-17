@@ -1,4 +1,6 @@
 ﻿{
+  "test0.test_a": "test_a",
+  "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "Advanced",
   "boneproxy.target": "Target",
   "menuinstall.help.hint_set_menu": "This prefab will be installed to the root menu of your avatar by default. Select a different menu or uncheck the component's enabled checkbox to prevent this.",
