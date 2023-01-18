@@ -21,6 +21,27 @@ namespace modular_avatar_tests
                 expectSnapRot: false);
         }
 
+        [Test]
+        public void TestNonHumanoidTarget()
+        {
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var reference = CreateChild(root, "ref");
+
+            var boneProxy = reference.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = root.transform;
+            boneProxy.ClearCache();
+            Assert.AreEqual(root.transform, boneProxy.target);
+
+            boneProxy.target = target.transform;
+            boneProxy.ClearCache();
+            Assert.AreEqual(target.transform, boneProxy.target);
+
+            target.name = "target2";
+            boneProxy.ClearCache();
+            Assert.IsNull(boneProxy.target);
+        }
+
         private void AssertAttachmentMode(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
