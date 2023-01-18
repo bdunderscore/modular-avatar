@@ -17,7 +17,12 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override string localizationPrefix => "boneproxy.attachment";
 
         protected override Array enumValues => new object[]
-            {BoneProxyAttachmentMode.AsChildAtRoot, BoneProxyAttachmentMode.AsChildKeepWorldPose};
+        {
+            BoneProxyAttachmentMode.AsChildAtRoot,
+            BoneProxyAttachmentMode.AsChildKeepWorldPose,
+            BoneProxyAttachmentMode.AsChildKeepRotation,
+            BoneProxyAttachmentMode.AsChildKeepPosition,
+        };
     }
 
     [CustomEditor(typeof(ModularAvatarBoneProxy))]
