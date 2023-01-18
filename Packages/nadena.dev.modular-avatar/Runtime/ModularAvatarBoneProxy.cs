@@ -71,7 +71,7 @@ namespace nadena.dev.modular_avatar.core
             get
             {
                 if (_targetCache != null) return _targetCache;
-                UpdateDynamicMapping();
+                _targetCache = UpdateDynamicMapping();
                 RuntimeUtil.OnHierarchyChanged -= ClearCache;
                 RuntimeUtil.OnHierarchyChanged += ClearCache;
                 return _targetCache;
@@ -100,7 +100,7 @@ namespace nadena.dev.modular_avatar.core
             ClearCache();
         }
 
-        void ClearCache()
+        internal void ClearCache()
         {
             _targetCache = null;
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
@@ -122,34 +122,32 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
         }
 
-        private void UpdateDynamicMapping()
+        private Transform UpdateDynamicMapping()
         {
-            if (boneReference == HumanBodyBones.LastBone)
+            if (boneReference == HumanBodyBones.LastBone && string.IsNullOrWhiteSpace(subPath))
             {
-                return;
+                return null;
             }
 
             var avatar = RuntimeUtil.FindAvatarInParents(transform);
-            if (avatar == null) return;
+            if (avatar == null) return null;
 
             if (subPath == "$$AVATAR")
             {
-                target = avatar.transform;
-                return;
+                return avatar.transform;
             }
 
             if (boneReference == HumanBodyBones.LastBone)
             {
-                target = avatar.transform.Find(subPath);
-                return;
+                return avatar.transform.Find(subPath);
             }
 
             var animator = avatar.GetComponent<Animator>();
-            if (animator == null) return;
+            if (animator == null) return null;
             var bone = animator.GetBoneTransform(boneReference);
-            if (bone == null) return;
-            if (string.IsNullOrWhiteSpace(subPath)) _targetCache = bone;
-            else _targetCache = bone.Find(subPath);
+            if (bone == null) return null;
+            if (string.IsNullOrWhiteSpace(subPath)) return bone;
+            else return bone.Find(subPath);
         }
 
         private void UpdateStaticMapping(Transform newTarget)
