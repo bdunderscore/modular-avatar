@@ -61,7 +61,7 @@ namespace nadena.dev.modular_avatar.core
                 child = child.transform.parent?.gameObject;
             }
 
-            if (child == null) return null;
+            if (child == null && root != null) return null;
 
             pathSegments.Reverse();
             return String.Join("/", pathSegments);

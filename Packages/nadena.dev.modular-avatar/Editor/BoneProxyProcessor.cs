@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -41,39 +42,44 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var proxy in boneProxies)
             {
-                if (proxy.target != null && ValidateTarget(avatarGameObject, proxy.target) == ValidationResult.OK)
+                BuildReport.ReportingObject(proxy, () => ProcessProxy(avatarGameObject, proxy));
+            }
+        }
+
+        private void ProcessProxy(GameObject avatarGameObject, ModularAvatarBoneProxy proxy)
+        {
+            if (proxy.target != null && ValidateTarget(avatarGameObject, proxy.target) == ValidationResult.OK)
+            {
+                var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
+                Transform transform = proxy.transform;
+                transform.SetParent(proxy.target, true);
+
+                bool keepPos, keepRot;
+                switch (proxy.attachmentMode)
                 {
-                    var oldPath = RuntimeUtil.AvatarRootPath(proxy.gameObject);
-                    Transform transform = proxy.transform;
-                    transform.SetParent(proxy.target, true);
-
-                    bool keepPos, keepRot;
-                    switch (proxy.attachmentMode)
-                    {
-                        default:
-                        case BoneProxyAttachmentMode.Unset:
-                        case BoneProxyAttachmentMode.AsChildAtRoot:
-                            keepPos = keepRot = false;
-                            break;
-                        case BoneProxyAttachmentMode.AsChildKeepWorldPose:
-                            keepPos = keepRot = true;
-                            break;
-                        case BoneProxyAttachmentMode.AsChildKeepPosition:
-                            keepPos = true;
-                            keepRot = false;
-                            break;
-                        case BoneProxyAttachmentMode.AsChildKeepRotation:
-                            keepRot = true;
-                            keepPos = false;
-                            break;
-                    }
-
-                    if (!keepPos) transform.localPosition = Vector3.zero;
-                    if (!keepRot) transform.localRotation = Quaternion.identity;
+                    default:
+                    case BoneProxyAttachmentMode.Unset:
+                    case BoneProxyAttachmentMode.AsChildAtRoot:
+                        keepPos = keepRot = false;
+                        break;
+                    case BoneProxyAttachmentMode.AsChildKeepWorldPose:
+                        keepPos = keepRot = true;
+                        break;
+                    case BoneProxyAttachmentMode.AsChildKeepPosition:
+                        keepPos = true;
+                        keepRot = false;
+                        break;
+                    case BoneProxyAttachmentMode.AsChildKeepRotation:
+                        keepRot = true;
+                        keepPos = false;
+                        break;
                 }
 
-                Object.DestroyImmediate(proxy);
+                if (!keepPos) transform.localPosition = Vector3.zero;
+                if (!keepRot) transform.localRotation = Quaternion.identity;
             }
+
+            Object.DestroyImmediate(proxy);
         }
 
         internal static ValidationResult ValidateTarget(GameObject avatarGameObject, Transform proxyTarget)

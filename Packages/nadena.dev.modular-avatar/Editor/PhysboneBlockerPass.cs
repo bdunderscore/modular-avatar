@@ -23,6 +23,7 @@
  */
 
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
@@ -43,28 +44,34 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarTransform = avatarRoot.transform;
             foreach (var tip in blockers)
             {
-                var node = tip.transform;
-                // We deliberately skip the node itself to allow for a specific PhysBone to be attached here.
-                while (node != null && node != avatarTransform && node.parent != null)
+                BuildReport.ReportingObject(tip, () =>
                 {
-                    node = node.parent;
-                    if (!physBoneRootToIgnores.TryGetValue(node, out var parent))
+                    var node = tip.transform;
+                    // We deliberately skip the node itself to allow for a specific PhysBone to be attached here.
+                    while (node != null && node != avatarTransform && node.parent != null)
                     {
-                        parent = new List<Transform>();
-                        physBoneRootToIgnores.Add(node, parent);
-                    }
+                        node = node.parent;
+                        if (!physBoneRootToIgnores.TryGetValue(node, out var parent))
+                        {
+                            parent = new List<Transform>();
+                            physBoneRootToIgnores.Add(node, parent);
+                        }
 
-                    parent.Add(tip.transform);
-                }
+                        parent.Add(tip.transform);
+                    }
+                });
             }
 
             foreach (var pb in physBones)
             {
-                var root = pb.rootTransform != null ? pb.rootTransform : pb.transform;
-                if (physBoneRootToIgnores.TryGetValue(root, out var ignores))
+                BuildReport.ReportingObject(pb, () =>
                 {
-                    pb.ignoreTransforms.AddRange(ignores);
-                }
+                    var root = pb.rootTransform != null ? pb.rootTransform : pb.transform;
+                    if (physBoneRootToIgnores.TryGetValue(root, out var ignores))
+                    {
+                        pb.ignoreTransforms.AddRange(ignores);
+                    }
+                });
             }
         }
     }

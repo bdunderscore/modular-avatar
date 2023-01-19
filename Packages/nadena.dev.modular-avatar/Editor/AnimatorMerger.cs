@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -77,8 +78,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (acp.type != param.type)
                     {
-                        throw new Exception(
-                            $"Parameter {param.name} has different types in {basePath} and {controller.name}");
+                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch", param.name, acp.type,
+                            param.type);
                     }
 
                     continue;

@@ -6,8 +6,13 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class LogoDisplay
     {
-        private static Texture2D LOGO_ASSET;
+        internal static readonly Texture2D LOGO_ASSET;
         private static float TARGET_HEIGHT => EditorStyles.label.lineHeight * 3;
+
+        internal static float ImageWidth(float height)
+        {
+            return (height / (float) LOGO_ASSET.height) * LOGO_ASSET.width;
+        }
 
         private static GUIStyle STYLE => new GUIStyle()
         {
@@ -35,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (LOGO_ASSET == null) return;
 
             var height = TARGET_HEIGHT;
-            var width = (height / (float) LOGO_ASSET.height) * LOGO_ASSET.width;
+            var width = ImageWidth(height);
             var rect = GUILayoutUtility.GetRect(width, height);
 
             GUI.DrawTexture(rect, LOGO_ASSET, ScaleMode.ScaleToFit);

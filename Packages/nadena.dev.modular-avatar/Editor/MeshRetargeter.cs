@@ -24,6 +24,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
@@ -85,23 +86,26 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
-                if (renderer.sharedMesh == null) continue;
-
-                bool isRetargetable = false;
-                foreach (var bone in renderer.bones)
+                BuildReport.ReportingObject(renderer, () =>
                 {
-                    if (BoneDatabase.GetRetargetedBone(bone) != null)
+                    if (renderer.sharedMesh == null) return;
+
+                    bool isRetargetable = false;
+                    foreach (var bone in renderer.bones)
                     {
-                        isRetargetable = true;
-                        break;
+                        if (BoneDatabase.GetRetargetedBone(bone) != null)
+                        {
+                            isRetargetable = true;
+                            break;
+                        }
                     }
-                }
 
-                if (isRetargetable)
-                {
-                    var newMesh = new MeshRetargeter(renderer).Retarget();
-                    _context.SaveAsset(newMesh);
-                }
+                    if (isRetargetable)
+                    {
+                        var newMesh = new MeshRetargeter(renderer).Retarget();
+                        _context.SaveAsset(newMesh);
+                    }
+                });
             }
 
             // Now remove retargeted bones

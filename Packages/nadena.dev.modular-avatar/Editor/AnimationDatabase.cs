@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -61,10 +62,13 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (!layer.isDefault && layer.animatorController is AnimatorController ac && Util.IsTemporaryAsset(ac))
                 {
-                    foreach (var state in Util.States(ac))
+                    BuildReport.ReportingObject(ac, () =>
                     {
-                        RegisterState(state);
-                    }
+                        foreach (var state in Util.States(ac))
+                        {
+                            RegisterState(state);
+                        }
+                    });
                 }
             }
         }

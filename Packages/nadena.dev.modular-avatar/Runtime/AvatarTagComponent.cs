@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using System;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -32,6 +33,8 @@ namespace nadena.dev.modular_avatar.core
     [DefaultExecutionOrder(-9999)] // run before av3emu
     public abstract class AvatarTagComponent : MonoBehaviour
     {
+        internal static event Action OnChangeAction;
+
         private void Awake()
         {
             if (!RuntimeUtil.isPlaying || this == null) return;
@@ -44,7 +47,7 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Start, this);
         }
 
-        private void OnValidate()
+        protected virtual void OnValidate()
         {
             if (RuntimeUtil.isPlaying) return;
 
@@ -55,6 +58,13 @@ namespace nadena.dev.modular_avatar.core
                 Activator.CreateIfNotPresent(gameObject.scene);
 #endif
             });
+
+            OnChangeAction?.Invoke();
+        }
+
+        protected void OnDestroy()
+        {
+            OnChangeAction?.Invoke();
         }
     }
 }

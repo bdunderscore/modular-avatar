@@ -58,8 +58,10 @@ namespace nadena.dev.modular_avatar.core
 
         private List<BoneBinding> lockedBones;
 
-        void OnValidate()
+        protected override void OnValidate()
         {
+            base.OnValidate();
+
             RuntimeUtil.delayCall(() =>
             {
                 if (this == null) return;

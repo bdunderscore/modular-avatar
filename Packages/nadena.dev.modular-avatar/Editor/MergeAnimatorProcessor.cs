@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -66,42 +67,48 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var merge in toMerge)
             {
-                if (merge.animator == null) continue;
-
-                string basePath;
-                if (merge.pathMode == MergeAnimatorPathMode.Relative)
-                {
-                    var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
-                    basePath = relativePath != "" ? relativePath + "/" : "";
-                }
-                else
-                {
-                    basePath = "";
-                }
-
-                if (!mergeSessions.TryGetValue(merge.layerType, out var session))
-                {
-                    session = new AnimatorCombiner(context);
-                    mergeSessions[merge.layerType] = session;
-                    if (defaultControllers_.ContainsKey(merge.layerType))
-                    {
-                        session.AddController("", defaultControllers_[merge.layerType], null);
-                    }
-                }
-
-                bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
-                mergeSessions[merge.layerType]
-                    .AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
-
-                if (merge.deleteAttachedAnimator)
-                {
-                    var animator = merge.GetComponent<Animator>();
-                    if (animator != null) Object.DestroyImmediate(animator);
-                }
+                BuildReport.ReportingObject(merge, () => ProcessMergeAnimator(avatarGameObject, context, merge));
             }
 
             descriptor.baseAnimationLayers = FinishSessions(descriptor.baseAnimationLayers);
             descriptor.specialAnimationLayers = FinishSessions(descriptor.specialAnimationLayers);
+        }
+
+        private void ProcessMergeAnimator(GameObject avatarGameObject, BuildContext context,
+            ModularAvatarMergeAnimator merge)
+        {
+            if (merge.animator == null) return;
+
+            string basePath;
+            if (merge.pathMode == MergeAnimatorPathMode.Relative)
+            {
+                var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
+                basePath = relativePath != "" ? relativePath + "/" : "";
+            }
+            else
+            {
+                basePath = "";
+            }
+
+            if (!mergeSessions.TryGetValue(merge.layerType, out var session))
+            {
+                session = new AnimatorCombiner(context);
+                mergeSessions[merge.layerType] = session;
+                if (defaultControllers_.ContainsKey(merge.layerType))
+                {
+                    session.AddController("", defaultControllers_[merge.layerType], null);
+                }
+            }
+
+            bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
+            mergeSessions[merge.layerType]
+                .AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
+
+            if (merge.deleteAttachedAnimator)
+            {
+                var animator = merge.GetComponent<Animator>();
+                if (animator != null) Object.DestroyImmediate(animator);
+            }
         }
 
         private VRCAvatarDescriptor.CustomAnimLayer[] FinishSessions(

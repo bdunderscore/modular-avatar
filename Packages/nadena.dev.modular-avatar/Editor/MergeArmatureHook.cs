@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -49,17 +50,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var mergeArmature in mergeArmatures)
             {
-                mergedObjects.Clear();
-                thisPassAdded.Clear();
-                MergeArmature(mergeArmature);
-                PruneDuplicatePhysBones();
-                UnityEngine.Object.DestroyImmediate(mergeArmature);
-            }
-
-            foreach (var renderer in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-            {
-                var bones = renderer.bones;
-                renderer.bones = bones;
+                BuildReport.ReportingObject(mergeArmature, () =>
+                {
+                    mergedObjects.Clear();
+                    thisPassAdded.Clear();
+                    MergeArmature(mergeArmature);
+                    PruneDuplicatePhysBones();
+                    UnityEngine.Object.DestroyImmediate(mergeArmature);
+                });
             }
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
@@ -274,7 +272,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (src == newParent)
             {
-                throw new Exception("[ModularAvatar] Attempted to merge an armature into itself! Aborting build...");
+                // Error reported by validation framework
+                return;
             }
 
             if (zipMerge)
