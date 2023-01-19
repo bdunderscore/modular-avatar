@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -78,31 +79,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var component in components)
             {
-                var targetObj = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, component.gameObject);
-
-                foreach (var binding in component.Bindings)
-                {
-                    var refObj = binding.ReferenceMesh.Get(component);
-                    if (refObj == null) continue;
-                    var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
-                    if (refSmr == null) continue;
-
-                    var refPath = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, refObj);
-
-                    var srcBinding = new SummaryBinding(refPath, binding.Blendshape);
-
-                    if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
-                    {
-                        dstBindings = new List<SummaryBinding>();
-                        _bindingMappings[srcBinding] = dstBindings;
-                    }
-
-                    var targetBlendshapeName = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
-                        ? binding.Blendshape
-                        : binding.LocalBlendshape;
-
-                    dstBindings.Add(new SummaryBinding(targetObj, targetBlendshapeName));
-                }
+                BuildReport.ReportingObject(component, () => ProcessComponent(avatarDescriptor, component));
             }
 
             // Walk and transform all clips
@@ -110,9 +87,39 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (clip.CurrentClip is AnimationClip anim)
                 {
-                    clip.CurrentClip = TransformMotion(anim);
+                    BuildReport.ReportingObject(clip.CurrentClip,
+                        () => { clip.CurrentClip = TransformMotion(anim); });
                 }
             });
+        }
+
+        private void ProcessComponent(VRCAvatarDescriptor avatarDescriptor, ModularAvatarBlendshapeSync component)
+        {
+            var targetObj = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, component.gameObject);
+
+            foreach (var binding in component.Bindings)
+            {
+                var refObj = binding.ReferenceMesh.Get(component);
+                if (refObj == null) continue;
+                var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
+                if (refSmr == null) continue;
+
+                var refPath = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, refObj);
+
+                var srcBinding = new SummaryBinding(refPath, binding.Blendshape);
+
+                if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
+                {
+                    dstBindings = new List<SummaryBinding>();
+                    _bindingMappings[srcBinding] = dstBindings;
+                }
+
+                var targetBlendshapeName = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
+                    ? binding.Blendshape
+                    : binding.LocalBlendshape;
+
+                dstBindings.Add(new SummaryBinding(targetObj, targetBlendshapeName));
+            }
         }
 
         Motion TransformMotion(Motion motion)

@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using nadena.dev.modular_avatar.editor.ErrorReporting;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -22,10 +23,13 @@ namespace nadena.dev.modular_avatar.core.editor
             PathMappings.ClearCache();
             animDb.ForeachClip(clip =>
             {
-                if (clip.CurrentClip is AnimationClip anim && !clip.IsProxyAnimation)
+                BuildReport.ReportingObject(clip.CurrentClip, () =>
                 {
-                    clip.CurrentClip = MapMotion(anim);
-                }
+                    if (clip.CurrentClip is AnimationClip anim && !clip.IsProxyAnimation)
+                    {
+                        clip.CurrentClip = MapMotion(anim);
+                    }
+                });
             });
         }
 

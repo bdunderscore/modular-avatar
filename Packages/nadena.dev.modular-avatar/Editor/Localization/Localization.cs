@@ -11,6 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class Localization
     {
+        public static event Action OnLangChange;
         private const string FallbackLanguage = "en";
 
         private const string localizationPathGuid = "488c994003974b3ab2796371cf627bca";
@@ -22,7 +23,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Add("ja", "日本語")
                 .Add("zh-hans", "简体中文");
 
-        private static ImmutableList<string> SupportedLanguages = new string[] {"en", "ja", "zh-hans"}.ToImmutableList();
+        private static ImmutableList<string>
+            SupportedLanguages = new string[] {"en", "ja", "zh-hans"}.ToImmutableList();
 
         private static string[] DisplayNames = SupportedLanguages.Select(l =>
         {
@@ -38,6 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public static void Reload()
         {
             Cache.Clear();
+            OnLangChange?.Invoke();
         }
 
         private static ImmutableDictionary<string, string> GetLocalization(string lang)

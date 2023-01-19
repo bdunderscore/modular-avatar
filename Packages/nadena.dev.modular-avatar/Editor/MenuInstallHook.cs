@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -59,12 +60,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (ModularAvatarMenuInstaller installer in menuInstallers)
             {
-                _menuTree.TraverseMenuInstaller(installer);
+                BuildReport.ReportingObject(installer, () => _menuTree.TraverseMenuInstaller(installer));
             }
 
             foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(null))
             {
-                InstallMenu(childElement.installer);
+                BuildReport.ReportingObject(childElement.installer, () => InstallMenu(childElement.installer));
             }
         }
 

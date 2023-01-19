@@ -48,8 +48,10 @@ namespace nadena.dev.modular_avatar.core
 
         private List<EditorBlendshapeBinding> _editorBindings;
 
-        private void OnValidate()
+        protected override void OnValidate()
         {
+            base.OnValidate();
+
             if (RuntimeUtil.isPlaying) return;
             RuntimeUtil.delayCall(Rebind);
             RuntimeUtil.OnHierarchyChanged -= Rebind;

@@ -58,5 +58,22 @@
   "boneproxy.attachment.AsChildKeepPosition": "子として・ワールド位置を維持",
   "boneproxy.attachment.AsChildKeepRotation": "子として・ワールド向きを維持",
   "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。",
-  "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。"
+  "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。",
+  "error.stack_trace": "スタックトレース（バグを報告する時は必ず添付してください！）",
+  "error.merge_armature.merge_into_self": "Merge Armatureに自分自身のオブジェクト、もしくは自分の子をターゲットにしてしています。かわりにアバターのメインArmatureを指定してください。アバター自体のArmatureに追加しないでください。",
+  "error.internal_error": "内部エラーが発生しました：{0}\n以下のオブジェクトの処理中に発生しました：",
+  "error.merge_animator.param_type_mismatch": "パラメーター {0} に複数の種別が設定されています: {1} != {2}",
+  "error.rename_params.too_many_synced_params": "同期パラメーターが多すぎます。コスト{0}が制限値の{1}を超えています。",
+  "validation.blendshape_sync.no_local_renderer": "このオブジェクトにはSkinnedMeshRendererがありません。",
+  "validation.blendshape_sync.no_local_mesh": "このオブジェクトにはSkinnedMeshRendererがありますが、メッシュがありません。",
+  "validation.blendshape_sync.no_bindings": "このBlendshapeSyncにはバインドが設定されていません。",
+  "validation.blendshape_sync.missing_local_shape": "同期先のメッシュに該当するブレンドシェープ「{0}」がありません。",
+  "validation.blendshape_sync.missing_target_shape": "同期元のメッシュに該当するブレンドシェープ「{0}」がありません。",
+  "validation.blendshape_sync.no_target": "このBlendshapeSyncには同期元が設定されていないバインドがあります。",
+  "validation.blendshape_sync.missing_target_renderer": "同期元のオブジェクトにはSkinnedMeshRendererがありません。",
+  "validation.blendshape_sync.missing_target_mesh": "同期元のオブジェクトにはSkinnedMeshRendererがありますが、メッシュがありません。",
+  "validation.bone_proxy.no_target": "ターゲットオブジェクトが未設定、もしくは存在しません。",
+  "validation.menu_installer.no_menu": "インストールするメニューがありません。",
+  "validation.merge_animator.no_animator": "Animator Controllerがありません。",
+  "validation.merge_armature.no_target": "ターゲットオブジェクトが未設定、もしくは存在しません。"
 }
