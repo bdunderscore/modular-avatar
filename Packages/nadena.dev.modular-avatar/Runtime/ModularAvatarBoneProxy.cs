@@ -106,14 +106,25 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
         }
 
-        private void Update()
+        internal void Update()
         {
-            if (!RuntimeUtil.isPlaying && target != null && attachmentMode == BoneProxyAttachmentMode.AsChildAtRoot)
+            if (!RuntimeUtil.isPlaying && target != null)
             {
                 var targetTransform = target.transform;
                 var myTransform = transform;
-                myTransform.position = targetTransform.position;
-                myTransform.rotation = targetTransform.rotation;
+                switch (attachmentMode)
+                {
+                    case BoneProxyAttachmentMode.AsChildAtRoot:
+                        myTransform.position = targetTransform.position;
+                        myTransform.rotation = targetTransform.rotation;
+                        break;
+                    case BoneProxyAttachmentMode.AsChildKeepPosition:
+                        myTransform.rotation = targetTransform.rotation;
+                        break;
+                    case BoneProxyAttachmentMode.AsChildKeepRotation:
+                        myTransform.position = targetTransform.position;
+                        break;
+                }
             }
         }
 
