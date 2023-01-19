@@ -57,8 +57,8 @@
   "boneproxy.attachment": "Attachment mode",
   "boneproxy.attachment.AsChildAtRoot": "As child; at root",
   "boneproxy.attachment.AsChildKeepWorldPose": "As child; keep position and rotation",
-  "boneproxy.attachment.AsChildKeepWorldPosition": "As child; keep position",
-  "boneproxy.attachment.AsChildKeepWorldRotation": "As child; keep rotation",
+  "boneproxy.attachment.AsChildKeepPosition": "As child; keep position",
+  "boneproxy.attachment.AsChildKeepRotation": "As child; keep rotation",
   "pb_blocker.help": "This object will not be affected by PhysBones attached to parents.",
   "hint.bad_vrcsdk": "Incompatible version of VRCSDK detected.\n\nPlease try upgrading your VRCSDK; if this does not work, check for a newer version of Modular Avatar as well."
 }
