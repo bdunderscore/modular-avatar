@@ -27,11 +27,7 @@ namespace modular_avatar_tests
             {
                 Object.DestroyImmediate(obj);
             }
-        }
 
-        [OneTimeTearDown]
-        void Cleanup()
-        {
             Util.DeleteTemporaryAssets();
         }
 
