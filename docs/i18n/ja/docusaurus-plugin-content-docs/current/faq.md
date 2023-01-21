@@ -5,6 +5,25 @@ sidebar_label: FAQ
 
 # FAQ
 
+## VCCを使ってModular Avatarを導入できますか？
+
+VRChat Creator Companionを使ってModular Avatarをインストールすることに当たって実験的に対応しています。
+まずは[VPM CLIを導入して](https://vcc.docs.vrchat.com/vpm/cli/)から、以下のコマンドを実行してください。
+
+```
+vpm add repo https://vpm.nadena.dev/vpm.json
+```
+
+開いていればVCCを一度閉じて、再度開いてください。`bd_`というリポジトリーが追加されて、そこからModular Avatarをインストール・更新できます。
+
+ベータ版の導入は以下のコマンドを実行してください。
+
+```
+vpm add repo https://vpm.nadena.dev/vpm-prerelease.json
+```
+
+GUIからカスタムリポジトリを追加する対応がVCCに追加されたら、推奨インストール方法とする予定です。
+
 ## VRMなど、他の形式へのエクスポートでも使えますか？
 
 UniVRMなどを使った場合は自動的に変換しませんが、手動で変換して、それでできた普通のアバターをエクスポートすることがかのうです。

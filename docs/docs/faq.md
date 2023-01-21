@@ -5,6 +5,27 @@ sidebar_label: FAQ
 
 # FAQ
 
+## Can Modular Avatar be installed using the VCC?
+
+There is currently experimental support for installing using the VRChat Creator Companion.
+You will first need to install the [VPM CLI tool](https://vcc.docs.vrchat.com/vpm/cli/), then run the following command:
+
+```
+vpm add repo https://vpm.nadena.dev/vpm.json
+```
+
+Close the VCC, if it's open already, then reopen it. You should now see a new package repository labeled `bd_` from which you can
+install and update Modular Avatar.
+
+To install prerelease versions, use this command instead (or in addition):
+
+```
+vpm add repo https://vpm.nadena.dev/vpm-prerelease.json
+```
+
+VCC installations will become the recommended method for installing Modular Avatar once the VCC supports adding custom repositories
+from the GUI.
+
 ## Is it possible to use this to export to other formats, like VRM?
 
 While Modular Avatar does not automatically apply its transformations when you e.g. export using UniVRM or other similar tools,
