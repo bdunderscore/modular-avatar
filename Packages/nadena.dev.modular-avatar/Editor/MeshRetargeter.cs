@@ -85,6 +85,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
+                if (renderer.sharedMesh == null) continue;
+
                 bool isRetargetable = false;
                 foreach (var bone in renderer.bones)
                 {
