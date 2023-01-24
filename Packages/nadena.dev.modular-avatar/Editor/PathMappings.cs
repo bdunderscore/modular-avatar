@@ -25,6 +25,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
@@ -58,6 +59,27 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static void ClearCache()
         {
             _originalPathToMappedPath = _transformOriginalPathToMappedPath = null;
+        }
+
+        /// <summary>
+        /// Returns a path identifying a given object. This can include objects not originally present; in this case,
+        /// they will be assigned a randomly-generated internal ID which will be replaced during path remapping with
+        /// the true path.
+        /// </summary>
+        /// <param name="obj">Object to map</param>
+        /// <returns></returns>
+        internal static string GetObjectIdentifier(GameObject obj)
+        {
+            if (_objectToOriginalPaths.TryGetValue(obj, out var paths))
+            {
+                return paths[0];
+            }
+            else
+            {
+                var internalPath = "_ModularAvatarInternal/" + GUID.Generate();
+                _objectToOriginalPaths.Add(obj, new List<string> {internalPath});
+                return internalPath;
+            }
         }
 
         /// <summary>

@@ -169,7 +169,9 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private List<IntermediateObj> intermediateObjects = new List<IntermediateObj>();
-        private Dictionary<string, List<string>> activationPathMappings = new Dictionary<string, List<string>>();
+
+        private Dictionary<string, List<GameObject>>
+            activationPathMappings = new Dictionary<string, List<GameObject>>();
 
         private void MergeArmature(ModularAvatarMergeArmature mergeArmature)
         {
@@ -211,7 +213,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         foreach (var mapping in mappings)
                         {
-                            clip.SetCurve(mapping, typeof(GameObject), "m_IsActive", curve);
+                            clip.SetCurve(PathMappings.GetObjectIdentifier(mapping), typeof(GameObject), "m_IsActive",
+                                curve);
                         }
                     }
                 }
@@ -255,7 +258,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     });
                     if (prefix.Length > 0) prefix += "/";
                     prefix += intermediate;
-                    activationPathMappings[originPath] = new List<string>();
+                    activationPathMappings[originPath] = new List<GameObject>();
                 }
             }
         }
@@ -317,7 +320,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     switchPath += intermediate.name;
 
-                    activationPathMappings[intermediate.originPath].Add(RuntimeUtil.AvatarRootPath(switchObj));
+                    activationPathMappings[intermediate.originPath].Add(switchObj);
 
                     mergedSrcBone = switchObj;
 
