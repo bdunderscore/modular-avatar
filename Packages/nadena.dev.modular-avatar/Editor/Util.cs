@@ -181,7 +181,8 @@ namespace nadena.dev.modular_avatar.core.editor
             // 2. Unitypackage based installations of the VRCSDK
             // 3. VCC based installations of the VRCSDK
             // 4. Very old VCC based installations of the VRCSDK where proxy animations were copied into Assets
-            return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy");
+            return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy")
+                   || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
         }
     }
 }
