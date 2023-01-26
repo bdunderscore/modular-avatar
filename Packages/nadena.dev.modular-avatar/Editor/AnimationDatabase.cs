@@ -20,7 +20,7 @@ namespace nadena.dev.modular_avatar.core.editor
             internal ClipHolder(Motion clip)
             {
                 CurrentClip = OriginalClip = clip;
-                IsProxyAnimation = Util.IsProxyAnimation(clip);
+                IsProxyAnimation = clip != null && Util.IsProxyAnimation(clip);
             }
         }
 
@@ -135,6 +135,11 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<Motion, ClipHolder> originalToHolder
         )
         {
+            if (motion == null)
+            {
+                return new ClipHolder(null);
+            }
+
             if (originalToHolder.TryGetValue(motion, out var holder))
             {
                 return holder;
