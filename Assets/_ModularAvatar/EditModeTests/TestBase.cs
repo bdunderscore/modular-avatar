@@ -73,6 +73,16 @@ namespace modular_avatar_tests
             return motion;
         }
 
+        protected static AnimatorState FindStateInLayer(AnimatorControllerLayer layer, string stateName)
+        {
+            foreach (var state in layer.stateMachine.states)
+            {
+                if (state.state.name == stateName) return state.state;
+            }
+
+            return null;
+        }
+
         protected static AnimatorControllerLayer findFxLayer(GameObject prefab, string layerName)
         {
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers

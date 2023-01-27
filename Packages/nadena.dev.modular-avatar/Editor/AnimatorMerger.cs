@@ -50,6 +50,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private Dictionary<KeyValuePair<String, AnimatorStateMachine>, AnimatorStateMachine> _stateMachines =
             new Dictionary<KeyValuePair<string, AnimatorStateMachine>, AnimatorStateMachine>();
 
+        private Dictionary<Object, Object> _cloneMap;
+
         private int controllerBaseLayer = 0;
 
         public AnimatorCombiner(BuildContext context)
@@ -67,6 +69,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
         {
             controllerBaseLayer = _layers.Count;
+            _cloneMap = new Dictionary<Object, Object>();
 
             foreach (var param in controller.parameters)
             {
@@ -85,9 +88,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             bool first = true;
-            foreach (var layer in controller.layers)
+            var layers = controller.layers;
+            foreach (var layer in layers)
             {
-                insertLayer(basePath, layer, first, writeDefaults);
+                insertLayer(basePath, layer, first, writeDefaults, layers);
                 first = false;
             }
         }
@@ -108,7 +112,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void insertLayer(string basePath, AnimatorControllerLayer layer, bool first, bool? writeDefaults)
+        private void insertLayer(
+            string basePath,
+            AnimatorControllerLayer layer,
+            bool first,
+            bool? writeDefaults,
+            AnimatorControllerLayer[] layers
+        )
         {
             var newLayer = new AnimatorControllerLayer()
             {
@@ -116,15 +126,79 @@ namespace nadena.dev.modular_avatar.core.editor
                 avatarMask = layer.avatarMask, // TODO map transforms
                 blendingMode = layer.blendingMode,
                 defaultWeight = first ? 1 : layer.defaultWeight,
-                syncedLayerIndex = layer.syncedLayerIndex, // TODO
-                syncedLayerAffectsTiming = layer.syncedLayerAffectsTiming, // TODO
+                syncedLayerIndex = layer.syncedLayerIndex,
+                syncedLayerAffectsTiming = layer.syncedLayerAffectsTiming,
                 iKPass = layer.iKPass,
                 stateMachine = mapStateMachine(basePath, layer.stateMachine),
             };
 
             UpdateWriteDefaults(newLayer.stateMachine, writeDefaults);
 
+            if (newLayer.syncedLayerIndex != -1 && newLayer.syncedLayerIndex >= 0 &&
+                newLayer.syncedLayerIndex < layers.Length)
+            {
+                // Transfer any motion overrides onto the new synced layer
+                var baseLayer = layers[newLayer.syncedLayerIndex];
+                foreach (var state in WalkAllStates(baseLayer.stateMachine))
+                {
+                    var overrideMotion = layer.GetOverrideMotion(state);
+                    if (overrideMotion != null)
+                    {
+                        newLayer.SetOverrideMotion((AnimatorState) _cloneMap[state], overrideMotion);
+                    }
+
+                    var overrideBehaviors = (StateMachineBehaviour[]) layer.GetOverrideBehaviours(state)?.Clone();
+                    if (overrideBehaviors != null)
+                    {
+                        for (int i = 0; i < overrideBehaviors.Length; i++)
+                        {
+                            overrideBehaviors[i] = deepClone(overrideBehaviors[i], x => x,
+                                new Dictionary<Object, Object>());
+                            AdjustBehavior(overrideBehaviors[i]);
+                        }
+
+                        newLayer.SetOverrideBehaviours((AnimatorState) _cloneMap[state], overrideBehaviors);
+                    }
+                }
+
+                newLayer.syncedLayerIndex += controllerBaseLayer;
+            }
+
             _layers.Add(newLayer);
+        }
+
+        IEnumerable<AnimatorState> WalkAllStates(AnimatorStateMachine animatorStateMachine)
+        {
+            HashSet<Object> visited = new HashSet<Object>();
+
+            foreach (var state in VisitStateMachine(animatorStateMachine))
+            {
+                yield return state;
+            }
+
+            IEnumerable<AnimatorState> VisitStateMachine(AnimatorStateMachine layerStateMachine)
+            {
+                if (!visited.Add(layerStateMachine)) yield break;
+
+                foreach (var state in layerStateMachine.states)
+                {
+                    if (state.state == null) continue;
+
+                    yield return state.state;
+                }
+
+                foreach (var child in layerStateMachine.stateMachines)
+                {
+                    if (child.stateMachine == null) continue;
+
+                    if (visited.Contains(child.stateMachine)) continue;
+                    visited.Add(child.stateMachine);
+                    foreach (var state in VisitStateMachine(child.stateMachine))
+                    {
+                        yield return state;
+                    }
+                }
+            }
         }
 
         private void UpdateWriteDefaults(AnimatorStateMachine stateMachine, bool? writeDefaults)
@@ -157,27 +231,32 @@ namespace nadena.dev.modular_avatar.core.editor
                 return asm;
             }
 
-            asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath));
+            asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath), _cloneMap);
 
-            foreach (var state in asm.states)
+            foreach (var state in WalkAllStates(asm))
             {
-                foreach (var behavior in state.state.behaviours)
+                foreach (var behavior in state.behaviours)
                 {
-                    switch (behavior)
-                    {
-                        case VRCAnimatorLayerControl layerControl:
-                        {
-                            // TODO - need to figure out how to handle cross-layer references. For now this will handle
-                            // intra-animator cases.
-                            layerControl.layer += controllerBaseLayer;
-                            break;
-                        }
-                    }
+                    AdjustBehavior(behavior);
                 }
             }
 
             _stateMachines[cacheKey] = asm;
             return asm;
+        }
+
+        private void AdjustBehavior(StateMachineBehaviour behavior)
+        {
+            switch (behavior)
+            {
+                case VRCAnimatorLayerControl layerControl:
+                {
+                    // TODO - need to figure out how to handle cross-layer references. For now this will handle
+                    // intra-animator cases.
+                    layerControl.layer += controllerBaseLayer;
+                    break;
+                }
+            }
         }
 
         private static string MapPath(EditorCurveBinding binding, string basePath)
@@ -244,7 +323,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private T deepClone<T>(T original,
             Func<Object, Object> visitor,
-            Dictionary<Object, Object> cloneMap = null
+            Dictionary<Object, Object> cloneMap
         ) where T : Object
         {
             if (original == null) return null;
@@ -287,8 +366,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     original = overrideClip;
                 }
             }
-
-            if (cloneMap == null) cloneMap = new Dictionary<Object, Object>();
 
             if (cloneMap.ContainsKey(original))
             {
