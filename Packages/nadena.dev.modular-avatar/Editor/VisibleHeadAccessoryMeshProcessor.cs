@@ -33,14 +33,14 @@ namespace nadena.dev.modular_avatar.core.editor
             return _renderer.bones.Any(_visibleBones.Contains) && _renderer.bones.Any(b => !_visibleBones.Contains(b));
         }
 
-        public void Retarget()
+        public void Retarget(BuildContext context)
         {
             if (!NeedsRetargeting()) return;
 
             bool anyVisible = false;
             var originalMesh = _renderer.sharedMesh;
             var newMesh = Object.Instantiate(originalMesh);
-            AssetDatabase.CreateAsset(newMesh, Util.GenerateAssetPath());
+            context.SaveAsset(newMesh);
 
             // Identify the manifolds which need to be retargeted. Generally, we define a manifold as the maximal set of
             // points which are connected by primitives. If this manifold contains both visible and retargeted bones,

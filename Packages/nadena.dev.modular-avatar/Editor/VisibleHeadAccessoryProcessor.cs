@@ -55,7 +55,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void Process()
+        public void Process(BuildContext context)
         {
             bool didWork = false;
 
@@ -70,7 +70,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Process meshes
                 foreach (var smr in _avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
-                    new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget();
+                    new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(context);
                 }
             }
         }
