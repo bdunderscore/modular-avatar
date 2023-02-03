@@ -58,6 +58,35 @@ namespace nadena.dev.modular_avatar.core.editor
             RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
 
             EditorApplication.hierarchyChanged += () => { RuntimeUtil.InvokeHierarchyChanged(); };
+
+            if (!SessionState.GetBool("MAIconsDisabled", false))
+            {
+                SessionState.SetBool("MAIconsDisabled", true);
+                DisableMAGizmoIcons();
+            }
+        }
+
+        // From Acegikmo http://answers.unity.com/answers/1722605/view.html
+        // In Unity 2022.1+, this can be replaced with GizmoUtility.SetIconEnabled(type, enabled);
+        static MethodInfo setIconEnabled;
+        static MethodInfo SetIconEnabled => setIconEnabled = setIconEnabled ?? Assembly.GetAssembly(typeof(Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+        static void SetGizmoIconEnabled(Type type, bool enabled)
+        {
+            if (SetIconEnabled == null) return;
+            const int MONO_BEHAVIOR_CLASS_ID = 114; // https://docs.unity3d.com/Manual/ClassIDReference.html
+            SetIconEnabled.Invoke(null, new object[] { MONO_BEHAVIOR_CLASS_ID, type.Name, enabled ? 1 : 0 });
+        }
+
+        static void DisableMAGizmoIcons()
+        {
+            SetGizmoIconEnabled(typeof(ModularAvatarBoneProxy), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarBlendshapeSync), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarMenuInstaller), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarMergeAnimator), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarMergeArmature), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarParameters), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarPBBlocker), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarVisibleHeadAccessory), false);
         }
 
         public static string GenerateAssetPath()
