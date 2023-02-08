@@ -78,8 +78,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (acp.type != param.type)
                     {
-                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch", param.name, acp.type,
-                            param.type);
+                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch", new[]
+                        {
+                            param.name, acp.type.ToString(),
+                            param.type.ToString()
+                        });
                     }
 
                     continue;

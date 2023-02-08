@@ -291,9 +291,9 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             return new AvatarReportScope();
         }
 
-        internal static void Log(ReportLevel level, string code, params object[] objects)
+        internal static void Log(ReportLevel level, string code, object[] strings, params Object[] objects)
         {
-            ErrorLog errorLog = new ErrorLog(level, code, objects);
+            ErrorLog errorLog = new ErrorLog(level, code, strings, objects);
 
             var avatarReport = CurrentReport._currentAvatar;
             if (avatarReport == null)
@@ -305,9 +305,9 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             avatarReport.logs.Add(errorLog);
         }
 
-        internal static void LogFatal(string code, params object[] objects)
+        internal static void LogFatal(string code, object[] strings, params Object[] objects)
         {
-            Log(ReportLevel.Error, code, objects);
+            Log(ReportLevel.Error, code, strings, objects);
             if (CurrentReport._currentAvatar != null)
             {
                 CurrentReport._currentAvatar.successful = false;

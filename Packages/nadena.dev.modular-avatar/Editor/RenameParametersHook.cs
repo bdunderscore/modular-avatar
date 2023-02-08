@@ -72,8 +72,12 @@ namespace nadena.dev.modular_avatar.core.editor
             expParams.parameters = parameters.ToArray();
             if (expParams.CalcTotalCost() > VRCExpressionParameters.MAX_PARAMETER_COST)
             {
-                BuildReport.LogFatal("error.rename_params.too_many_synced_params", expParams.CalcTotalCost(),
-                    VRCExpressionParameters.MAX_PARAMETER_COST);
+                BuildReport.LogFatal("error.rename_params.too_many_synced_params", new[]
+                    {
+                        "" + expParams.CalcTotalCost(),
+                        "" + VRCExpressionParameters.MAX_PARAMETER_COST,
+                    }
+                );
             }
 
             avatar.expressionParameters = expParams;
