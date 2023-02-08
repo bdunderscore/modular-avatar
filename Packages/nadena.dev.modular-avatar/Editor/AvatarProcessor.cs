@@ -149,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     AssetDatabase.StartAssetEditing();
                     nowProcessing = true;
-                    
+
                     BoneDatabase.ResetBones();
                     PathMappings.Init(vrcAvatarDescriptor.gameObject);
                     ClonedMenuMappings.Clear();
@@ -210,6 +210,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ClonedMenuMappings.Clear();
 
                     ErrorReportUI.MaybeOpenErrorReportUI();
+
+                    AssetDatabase.SaveAssets();
                 }
             }
         }
