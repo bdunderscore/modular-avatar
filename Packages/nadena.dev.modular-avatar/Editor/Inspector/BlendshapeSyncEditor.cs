@@ -126,17 +126,26 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 EditorGUI.PropertyField(meshFieldRect, mesh, GUIContent.none);
 
-                var sourceMesh =
-                    (targets.Length == 1 ? target as ModularAvatarBlendshapeSync : null)?.Bindings[index]
-                    .ReferenceMesh.Get((Component) target)
-                    ?.GetComponent<SkinnedMeshRenderer>()
-                    ?.sharedMesh;
-                DrawBlendshapePopup(sourceMesh, baseShapeNameRect, sourceBlendshape);
+                Mesh sourceMesh = null, localMesh = null;
+                if (targets.Length == 1)
+                {
+                    var targetMeshObject = (target as ModularAvatarBlendshapeSync)
+                        ?.Bindings[index]
+                        .ReferenceMesh
+                        ?.Get((Component) target);
+                    if (targetMeshObject != null)
+                    {
+                        sourceMesh = targetMeshObject.GetComponent<SkinnedMeshRenderer>()
+                            ?.sharedMesh;
+                    }
 
-                var localMesh =
-                    (targets.Length == 1 ? target as ModularAvatarBlendshapeSync : null)?
-                    .GetComponent<SkinnedMeshRenderer>()
-                    ?.sharedMesh;
+                    localMesh =
+                        (target as ModularAvatarBlendshapeSync)
+                        ?.GetComponent<SkinnedMeshRenderer>()
+                        ?.sharedMesh;
+                }
+
+                DrawBlendshapePopup(sourceMesh, baseShapeNameRect, sourceBlendshape);
 
                 DrawBlendshapePopup(localMesh, targetShapeNameRect, localBlendshape, sourceBlendshape.stringValue);
             }
