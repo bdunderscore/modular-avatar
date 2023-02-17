@@ -37,6 +37,8 @@ using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 using Object = UnityEngine.Object;
 
 [assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("net.fushizen.xdress")]
+[assembly: InternalsVisibleTo("net.fushizen.xdress.editor")]
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -52,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         private static bool nowProcessing = false;
 
-        public delegate void AvatarProcessorCallback(GameObject obj);
+        internal delegate void AvatarProcessorCallback(GameObject obj, BuildContext context);
 
         /// <summary>
         /// This API is NOT stable. Do not use it yet.
@@ -186,7 +188,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     context.AnimationDatabase.Commit();
 
-                    AfterProcessing?.Invoke(avatarGameObject);
+                    AfterProcessing?.Invoke(avatarGameObject, context);
                 }
                 finally
                 {
