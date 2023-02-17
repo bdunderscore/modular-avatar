@@ -30,6 +30,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cp -f image-assets/img/logo/ma_logo.png Packages/${{env.packageName}}/Editor/Images/logo.png
+          cp -f image-assets/img/logo/ma_icon.png Packages/${{env.packageName}}/Runtime/Icons/Icon_MA_Script.png
 
       - name: get version
         id: version
