@@ -59,26 +59,72 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorApplication.hierarchyChanged += () => { RuntimeUtil.InvokeHierarchyChanged(); };
 
-            if (!SessionState.GetBool("MAIconsDisabled", false))
-            {
-                SessionState.SetBool("MAIconsDisabled", true);
-                DisableMAGizmoIcons();
-            }
+            EditorApplication.update += DisableMAGizmoIcons;
         }
 
         // From Acegikmo http://answers.unity.com/answers/1722605/view.html
         // In Unity 2022.1+, this can be replaced with GizmoUtility.SetIconEnabled(type, enabled);
         static MethodInfo setIconEnabled;
-        static MethodInfo SetIconEnabled => setIconEnabled = setIconEnabled ?? Assembly.GetAssembly(typeof(Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+
+        static MethodInfo SetIconEnabled => setIconEnabled = setIconEnabled ?? Assembly.GetAssembly(typeof(Editor))
+            ?.GetType("UnityEditor.AnnotationUtility")
+            ?.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+
+        private static MethodInfo getAnnotations;
+
+        private static MethodInfo GetAnnotations =>
+            getAnnotations = getAnnotations ??
+                             Assembly.GetAssembly(typeof(Editor))
+                                 ?.GetType("UnityEditor.AnnotationUtility")
+                                 ?.GetMethod("GetAnnotations", BindingFlags.Static | BindingFlags.NonPublic);
+
+        private static Type t_Annotation = Assembly.GetAssembly(typeof(Editor))?.GetType("UnityEditor.Annotation");
+
+        private static FieldInfo f_classID =
+            t_Annotation?.GetField("classID", BindingFlags.Instance | BindingFlags.Public);
+
+        private static FieldInfo f_scriptClass =
+            t_Annotation?.GetField("scriptClass", BindingFlags.Instance | BindingFlags.Public);
+
         static void SetGizmoIconEnabled(Type type, bool enabled)
         {
             if (SetIconEnabled == null) return;
             const int MONO_BEHAVIOR_CLASS_ID = 114; // https://docs.unity3d.com/Manual/ClassIDReference.html
-            SetIconEnabled.Invoke(null, new object[] { MONO_BEHAVIOR_CLASS_ID, type.Name, enabled ? 1 : 0 });
+            SetIconEnabled.Invoke(null, new object[] {MONO_BEHAVIOR_CLASS_ID, type.Name, enabled ? 1 : 0});
         }
 
         static void DisableMAGizmoIcons()
         {
+            if (SessionState.GetBool("MAIconsDisabled", false) ||
+                f_classID == null || f_scriptClass == null || GetAnnotations == null || SetIconEnabled == null)
+            {
+                EditorApplication.update -= DisableMAGizmoIcons;
+                SessionState.GetBool("MAIconsDisabled", true);
+                return;
+            }
+
+
+            var annotations = (Array) GetAnnotations.Invoke(null, new object[] { });
+            bool hasBoneProxy = false;
+            for (int i = 0; i < annotations.Length; i++)
+            {
+                var annotation = annotations.GetValue(i);
+                var classID = (int) f_classID.GetValue(annotation);
+                var scriptClass = (string) f_scriptClass.GetValue(annotation);
+
+                if (classID == 114 && scriptClass == "ModularAvatarBoneProxy")
+                {
+                    hasBoneProxy = true;
+                    break;
+                }
+            }
+
+            if (!hasBoneProxy)
+            {
+                // Annotations aren't created yet for MA types, check back later.
+                return;
+            }
+
             SetGizmoIconEnabled(typeof(ModularAvatarBoneProxy), false);
             SetGizmoIconEnabled(typeof(ModularAvatarBlendshapeSync), false);
             SetGizmoIconEnabled(typeof(ModularAvatarMenuInstaller), false);
@@ -87,6 +133,9 @@ namespace nadena.dev.modular_avatar.core.editor
             SetGizmoIconEnabled(typeof(ModularAvatarParameters), false);
             SetGizmoIconEnabled(typeof(ModularAvatarPBBlocker), false);
             SetGizmoIconEnabled(typeof(ModularAvatarVisibleHeadAccessory), false);
+
+            EditorApplication.update -= DisableMAGizmoIcons;
+            SessionState.GetBool("MAIconsDisabled", true);
         }
 
         public static string GenerateAssetPath()
