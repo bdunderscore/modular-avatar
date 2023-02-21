@@ -51,6 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 _menuToAppend = _installer.menuToAppend;
             }
         }
+
         protected override void OnInnerInspectorGUI()
         {
             SetupMenuEditor();
@@ -107,6 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (targets.Length == 1)
             {
+                /* TODO
                 _menuFoldout = EditorGUILayout.Foldout(_menuFoldout, G("menuinstall.showcontents"));
                 if (_menuFoldout)
                 {
@@ -119,30 +121,66 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     EditorGUI.indentLevel--;
                 }
+                */
             }
 
-            _devFoldout = EditorGUILayout.Foldout(_devFoldout, G("menuinstall.devoptions"));
-            if (_devFoldout) 
+            bool inconsistentSources = false;
+            MenuSource menuSource = null;
+            bool first = true;
+            foreach (var target in targets)
             {
-                SerializedProperty menuToAppendProperty = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend));
-                switch (ValidateExpressionMenuIcon((VRCExpressionsMenu)menuToAppendProperty.objectReferenceValue)) 
+                var component = (ModularAvatarMenuInstaller) target;
+                var componentSource = component.GetComponent<MenuSource>();
+                if (componentSource != null)
                 {
-                    case ValidateExpressionMenuIconResult.Success:
-                        break;
-                    case ValidateExpressionMenuIconResult.TooLarge:
-                        EditorGUILayout.HelpBox(S("menuinstall.menu_icon_too_large"), MessageType.Error);
-                        break;
-                    case ValidateExpressionMenuIconResult.Uncompressed:
-                        EditorGUILayout.HelpBox(S("menuinstall.menu_icon_uncompressed"), MessageType.Error);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    if (menuSource == null && first)
+                    {
+                        menuSource = componentSource;
+                    }
+                    else
+                    {
+                        inconsistentSources = true;
+                    }
                 }
-                
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(
-                    menuToAppendProperty, new GUIContent(G("menuinstall.srcmenu")));
-                EditorGUI.indentLevel--;
+            }
+
+            if (menuSource != null)
+            {
+                // TODO localize
+                EditorGUILayout.HelpBox("Menu contents provided by " + menuSource.GetType() + " component",
+                    MessageType.Info);
+            }
+
+            if (!inconsistentSources)
+            {
+                _devFoldout = EditorGUILayout.Foldout(_devFoldout, G("menuinstall.devoptions"));
+                if (_devFoldout)
+                {
+                    SerializedProperty menuToAppendProperty =
+                        serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.menuToAppend));
+                    if (!menuToAppendProperty.hasMultipleDifferentValues)
+                    {
+                        switch (ValidateExpressionMenuIcon(
+                                    (VRCExpressionsMenu) menuToAppendProperty.objectReferenceValue))
+                        {
+                            case ValidateExpressionMenuIconResult.Success:
+                                break;
+                            case ValidateExpressionMenuIconResult.TooLarge:
+                                EditorGUILayout.HelpBox(S("menuinstall.menu_icon_too_large"), MessageType.Error);
+                                break;
+                            case ValidateExpressionMenuIconResult.Uncompressed:
+                                EditorGUILayout.HelpBox(S("menuinstall.menu_icon_uncompressed"), MessageType.Error);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
+
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(
+                        menuToAppendProperty, new GUIContent(G("menuinstall.srcmenu")));
+                    EditorGUI.indentLevel--;
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -203,35 +241,37 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void FindMenuInstallers() 
+        private void FindMenuInstallers()
         {
-            if (targets.Length > 1) 
+            if (targets.Length > 1)
             {
                 _menuInstallersMap = null;
                 return;
             }
 
             _menuInstallersMap = new Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>>();
-            var avatar = RuntimeUtil.FindAvatarInParents(((Component)target).transform);
+            var avatar = RuntimeUtil.FindAvatarInParents(((Component) target).transform);
             if (avatar == null) return;
             var menuInstallers = avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)
                 .Where(menuInstaller => menuInstaller.enabled && menuInstaller.menuToAppend != null);
-            foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers) 
+            foreach (ModularAvatarMenuInstaller menuInstaller in menuInstallers)
             {
                 if (menuInstaller == target) continue;
                 var visitedMenus = new HashSet<VRCExpressionsMenu>();
                 var queue = new Queue<VRCExpressionsMenu>();
                 queue.Enqueue(menuInstaller.menuToAppend);
 
-                while (queue.Count > 0) 
+                while (queue.Count > 0)
                 {
                     VRCExpressionsMenu parent = queue.Dequeue();
-                    var controls = parent.controls.Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu && control.subMenu != null);
-                    foreach (VRCExpressionsMenu.Control control in controls) 
+                    var controls = parent.controls.Where(control =>
+                        control.type == VRCExpressionsMenu.Control.ControlType.SubMenu && control.subMenu != null);
+                    foreach (VRCExpressionsMenu.Control control in controls)
                     {
                         // Do not filter in LINQ to avoid closure allocation
                         if (visitedMenus.Contains(control.subMenu)) continue;
-                        if (!_menuInstallersMap.TryGetValue(control.subMenu, out List<ModularAvatarMenuInstaller> fromInstallers)) 
+                        if (!_menuInstallersMap.TryGetValue(control.subMenu,
+                                out List<ModularAvatarMenuInstaller> fromInstallers))
                         {
                             fromInstallers = new List<ModularAvatarMenuInstaller>();
                             _menuInstallersMap[control.subMenu] = fromInstallers;
@@ -245,22 +285,24 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu, HashSet<ModularAvatarMenuInstaller> visitedInstaller = null)
+        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu,
+            HashSet<ModularAvatarMenuInstaller> visitedInstaller = null)
         {
             if (_avatarMenus == null || _avatarMenus.Contains(menu)) return true;
 
             if (_menuInstallersMap == null) return true;
-            if (visitedInstaller == null) visitedInstaller = new HashSet<ModularAvatarMenuInstaller> { (ModularAvatarMenuInstaller)target };
+            if (visitedInstaller == null)
+                visitedInstaller = new HashSet<ModularAvatarMenuInstaller> {(ModularAvatarMenuInstaller) target};
 
             if (!_menuInstallersMap.TryGetValue(menu, out List<ModularAvatarMenuInstaller> installers)) return false;
-            foreach (ModularAvatarMenuInstaller installer in installers) 
+            foreach (ModularAvatarMenuInstaller installer in installers)
             {
                 // Root is always reachable if installTargetMenu is null
                 if (installer.installTargetMenu == null) return true;
                 // Even in a circular structure, it may be possible to reach root by another path.
                 if (visitedInstaller.Contains(installer)) continue;
                 visitedInstaller.Add(installer);
-                if (IsMenuReachable(avatar, installer.installTargetMenu, visitedInstaller)) 
+                if (IsMenuReachable(avatar, installer.installTargetMenu, visitedInstaller))
                 {
                     return true;
                 }
@@ -269,14 +311,16 @@ namespace nadena.dev.modular_avatar.core.editor
             return false;
         }
 
-        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu, HashSet<VRCExpressionsMenu> visitedMenus = null) 
+        private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu,
+            HashSet<VRCExpressionsMenu> visitedMenus = null)
         {
             if (menu == null) return ValidateExpressionMenuIconResult.Success;
             if (visitedMenus == null) visitedMenus = new HashSet<VRCExpressionsMenu>();
             if (visitedMenus.Contains(menu)) return ValidateExpressionMenuIconResult.Success;
             visitedMenus.Add(menu);
-            
-            foreach (VRCExpressionsMenu.Control control in menu.controls) {
+
+            foreach (VRCExpressionsMenu.Control control in menu.controls)
+            {
                 // Control
                 ValidateExpressionMenuIconResult result = Util.ValidateExpressionMenuIcon(control.icon);
                 if (result != ValidateExpressionMenuIconResult.Success) return result;
@@ -293,12 +337,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // SubMenu
                 if (control.type != VRCExpressionsMenu.Control.ControlType.SubMenu) continue;
-                ValidateExpressionMenuIconResult subMenuResult = ValidateExpressionMenuIcon(control.subMenu, visitedMenus);
+                ValidateExpressionMenuIconResult subMenuResult =
+                    ValidateExpressionMenuIcon(control.subMenu, visitedMenus);
                 if (subMenuResult != ValidateExpressionMenuIconResult.Success) return subMenuResult;
             }
 
             return ValidateExpressionMenuIconResult.Success;
         }
-
     }
 }

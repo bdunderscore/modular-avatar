@@ -137,7 +137,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
         private static List<ErrorLog> CheckInternal(ModularAvatarMenuInstaller mi)
         {
             // TODO - check that target menu is in the avatar
-            if (mi.menuToAppend == null)
+            if (mi.menuToAppend == null && mi.GetComponent<MenuSource>() == null)
             {
                 return new List<ErrorLog>()
                 {

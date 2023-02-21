@@ -20,9 +20,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private BuildContext _context;
 
-        private Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> _clonedMenus;
-
-
         private VRCExpressionsMenu _rootMenu;
 
         private MenuTree _menuTree;
@@ -38,8 +35,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToArray();
             if (menuInstallers.Length == 0) return;
 
-
-            _clonedMenus = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
             _visitedInstallerStack = new Stack<ModularAvatarMenuInstaller>();
 
             VRCAvatarDescriptor avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
@@ -49,14 +44,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 var menu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
                 _context.SaveAsset(menu);
                 avatar.expressionsMenu = menu;
-                _clonedMenus[menu] = menu;
+                context.ClonedMenus[menu] = menu;
             }
 
             _rootMenu = avatar.expressionsMenu;
             _menuTree = new MenuTree(avatar);
             _menuTree.TraverseAvatarMenu();
 
-            avatar.expressionsMenu = CloneMenu(avatar.expressionsMenu);
+            avatar.expressionsMenu = _context.CloneMenu(avatar.expressionsMenu);
 
             foreach (ModularAvatarMenuInstaller installer in menuInstallers)
             {
@@ -84,10 +79,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             if (installer.installTargetMenu == null || installer.menuToAppend == null) return;
-            if (!_clonedMenus.TryGetValue(installTarget, out var targetMenu)) return;
+            if (!_context.ClonedMenus.TryGetValue(installTarget, out var targetMenu)) return;
 
             // Clone before appending to sanitize menu icons
-            targetMenu.controls.AddRange(CloneMenu(installer.menuToAppend).controls);
+            targetMenu.controls.AddRange(_context.CloneMenu(installer.menuToAppend).controls);
 
             SplitMenu(installer, targetMenu);
 
@@ -128,42 +123,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     labels = Array.Empty<VRCExpressionsMenu.Control.Label>()
                 });
 
-                _clonedMenus[installer.installTargetMenu] = newMenu;
+                _context.ClonedMenus[installer.installTargetMenu] = newMenu;
                 targetMenu = newMenu;
             }
-        }
-
-        private VRCExpressionsMenu CloneMenu(VRCExpressionsMenu menu)
-        {
-            if (menu == null) return null;
-            if (_clonedMenus.TryGetValue(menu, out var newMenu)) return newMenu;
-            newMenu = Object.Instantiate(menu);
-            _context.SaveAsset(newMenu);
-            _clonedMenus[menu] = newMenu;
-
-            foreach (var control in newMenu.controls)
-            {
-                if (Util.ValidateExpressionMenuIcon(control.icon) != Util.ValidateExpressionMenuIconResult.Success)
-                    control.icon = null;
-
-                for (int i = 0; i < control.labels.Length; i++)
-                {
-                    var label = control.labels[i];
-                    var labelResult = Util.ValidateExpressionMenuIcon(label.icon);
-                    if (labelResult != Util.ValidateExpressionMenuIconResult.Success)
-                    {
-                        label.icon = null;
-                        control.labels[i] = label;
-                    }
-                }
-
-                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
-                {
-                    control.subMenu = CloneMenu(control.subMenu);
-                }
-            }
-
-            return newMenu;
         }
     }
 }

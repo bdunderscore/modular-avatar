@@ -172,6 +172,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var context = new BuildContext(vrcAvatarDescriptor);
 
+                    new ReifyMenuPass().OnPreprocessAvatar(vrcAvatarDescriptor, context);
                     new RenameParametersHook().OnPreprocessAvatar(avatarGameObject, context);
                     new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject, context);
                     context.AnimationDatabase.Bootstrap(vrcAvatarDescriptor);
@@ -212,6 +213,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ErrorReportUI.MaybeOpenErrorReportUI();
 
                     AssetDatabase.SaveAssets();
+
+                    Resources.UnloadUnusedAssets();
                 }
             }
         }
