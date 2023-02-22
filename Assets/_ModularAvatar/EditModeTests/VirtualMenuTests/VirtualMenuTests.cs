@@ -3,6 +3,7 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor.menu;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -469,6 +470,59 @@ namespace modular_avatar_tests.VirtualMenuTests
             Assert.AreEqual(1, rootNode.Controls.Count);
             AssertControlEquals(menu_b.controls[0], rootNode.Controls[0]);
         }
+
+        [Test]
+        public void TestSerializeMenu()
+        {
+            var menu_a = Create<VRCExpressionsMenu>("test");
+            var menu_b = Create<VRCExpressionsMenu>("test2");
+            var menu_c = Create<VRCExpressionsMenu>("test3");
+
+            menu_a.controls = new List<VRCExpressionsMenu.Control>()
+            {
+                GenerateTestControl(),
+                GenerateTestSubmenu(menu_b),
+            };
+
+            menu_b.controls = new List<VRCExpressionsMenu.Control>()
+            {
+                GenerateTestControl(),
+                GenerateTestSubmenu(menu_c),
+            };
+
+            menu_c.controls = new List<VRCExpressionsMenu.Control>()
+            {
+                GenerateTestSubmenu(menu_a),
+            };
+
+            var virtualMenu = new VirtualMenu(menu_a);
+            virtualMenu.FreezeMenu();
+
+            var assetSet = new HashSet<UnityEngine.Object>();
+            var serialized = virtualMenu.SerializeMenu(obj => assetSet.Add(obj));
+
+            Assert.AreEqual(3, assetSet.Count);
+            Assert.AreEqual(2, serialized.controls.Count);
+
+            AssertControlEquals(menu_a.controls[0], serialized.controls[0]);
+            AssertControlEquals(menu_a.controls[1], serialized.controls[1]);
+
+            var serialized_b = serialized.controls[1].subMenu;
+            Assert.AreEqual(2, serialized_b.controls.Count);
+
+            AssertControlEquals(menu_b.controls[0], serialized_b.controls[0]);
+            AssertControlEquals(menu_b.controls[1], serialized_b.controls[1]);
+
+            var serialized_c = serialized_b.controls[1].subMenu;
+            Assert.AreEqual(1, serialized_c.controls.Count);
+
+            AssertControlEquals(menu_c.controls[0], serialized_c.controls[0]);
+
+            Assert.True(assetSet.Contains(serialized));
+            Assert.True(assetSet.Contains(serialized_b));
+            Assert.True(assetSet.Contains(serialized_c));
+        }
+
 
         ModularAvatarMenuInstaller CreateInstaller(string name)
         {

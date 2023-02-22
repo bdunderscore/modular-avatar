@@ -174,6 +174,45 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             ResolveNode(RootMenuKey);
         }
 
+        internal VRCExpressionsMenu SerializeMenu(Action<UnityEngine.Object> SaveAsset)
+        {
+            Dictionary<object, VRCExpressionsMenu> serializedMenus = new Dictionary<object, VRCExpressionsMenu>();
+
+            return Serialize(RootMenuKey);
+
+            VRCExpressionsMenu Serialize(object menuKey)
+            {
+                if (menuKey == null) return null;
+                if (serializedMenus.TryGetValue(menuKey, out var menu)) return menu;
+                if (!_resolvedMenu.TryGetValue(menuKey, out var node)) return null;
+
+                menu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                serializedMenus[menuKey] = menu;
+                menu.controls = node.Controls.Select(c =>
+                {
+                    var control = new VRCExpressionsMenu.Control();
+                    control.name = c.name;
+                    control.type = c.type;
+                    control.parameter = new VRCExpressionsMenu.Control.Parameter() {name = c.parameter.name};
+                    control.value = c.value;
+                    control.icon = c.icon;
+                    control.style = c.style;
+                    control.labels = c.labels.ToArray();
+                    control.subParameters = c.subParameters.Select(p => new VRCExpressionsMenu.Control.Parameter()
+                    {
+                        name = p.name
+                    }).ToArray();
+                    control.subMenu = Serialize(c.SubmenuNode?.NodeKey);
+
+                    return control;
+                }).ToList();
+
+                SaveAsset(menu);
+
+                return menu;
+            }
+        }
+
         private HashSet<object> _sourceTrace = null;
 
         private MenuNode ResolveNode(object nodeKey)
