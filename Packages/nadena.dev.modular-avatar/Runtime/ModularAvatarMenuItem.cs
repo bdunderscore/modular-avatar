@@ -22,17 +22,15 @@ namespace nadena.dev.modular_avatar.core
     {
         External,
         Children,
-        MenuInstaller,
-        OtherMenuItem,
     }
 
-    public class MAMenuItem : MenuSource
+    [AddComponentMenu("Modular Avatar/MA Menu Item")]
+    public class ModularAvatarMenuItem : MenuSource
     {
         public VRCExpressionsMenu.Control Control;
         public SubmenuSource MenuSource;
 
         public ModularAvatarMenuInstaller menuSource_installer;
-        public MenuSource menuSource_otherSource;
         public GameObject menuSource_otherObjectChildren;
 
         internal override VRCExpressionsMenu.Control[] GenerateMenu()
@@ -75,6 +73,7 @@ namespace nadena.dev.modular_avatar.core
 
                     break;
                 }
+                /*
                 case SubmenuSource.MenuInstaller:
                     controls = menuSource_installer.installTargetMenu?.controls?.ToList();
                     break;
@@ -95,6 +94,7 @@ namespace nadena.dev.modular_avatar.core
                             _recursing = false;
                         }
                     }
+                    */
             }
 
             if (controls == null)

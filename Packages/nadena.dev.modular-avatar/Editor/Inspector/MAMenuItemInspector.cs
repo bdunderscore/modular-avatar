@@ -5,7 +5,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomEditor(typeof(MAMenuItem))]
+    [CustomEditor(typeof(ModularAvatarMenuItem))]
     internal class MAMenuItemInspector : MAEditorBase
     {
         private SerializedProperty prop_submenu_source;
@@ -14,9 +14,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         void OnEnable()
         {
-            prop_control = serializedObject.FindProperty(nameof(MAMenuItem.Control));
-            prop_submenu_source = serializedObject.FindProperty(nameof(MAMenuItem.MenuSource));
-            prop_otherObjChildren = serializedObject.FindProperty(nameof(MAMenuItem.menuSource_otherObjectChildren));
+            prop_control = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.Control));
+            prop_submenu_source = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
+            prop_otherObjChildren =
+                serializedObject.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
         }
 
         private void DrawControlSettings(SerializedProperty control, string name = null,
@@ -25,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (name != null)
             {
                 EditorGUI.BeginChangeCheck();
-                var targetGameObject = ((MAMenuItem) target).gameObject;
+                var targetGameObject = ((ModularAvatarMenuItem) target).gameObject;
                 var newName = EditorGUILayout.TextField("Name", targetGameObject.name);
                 if (EditorGUI.EndChangeCheck() && commitName != null)
                 {
@@ -51,7 +52,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!multiEdit)
             {
                 EditorGUI.BeginChangeCheck();
-                var targetGameObject = ((MAMenuItem) target).gameObject;
+                var targetGameObject = ((ModularAvatarMenuItem) target).gameObject;
                 name = targetGameObject.name;
                 commitName = newName =>
                 {
@@ -68,7 +69,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (multiEdit) return;
 
-            var menuItem = (MAMenuItem) target;
+            var menuItem = (ModularAvatarMenuItem) target;
             if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
             {
                 GUILayout.Space(EditorStyles.label.lineHeight);
@@ -92,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             : menuItem.gameObject;
                         foreach (Transform t in source.transform)
                         {
-                            var child = t.GetComponent<MAMenuItem>();
+                            var child = t.GetComponent<ModularAvatarMenuItem>();
                             if (child == null) continue;
 
                             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -100,7 +101,8 @@ namespace nadena.dev.modular_avatar.core.editor
                             GUILayout.BeginHorizontal();
                             using (new EditorGUI.DisabledScope(true))
                             {
-                                EditorGUILayout.ObjectField(new GUIContent(), child, typeof(MAMenuItem), true,
+                                EditorGUILayout.ObjectField(new GUIContent(), child, typeof(ModularAvatarMenuItem),
+                                    true,
                                     GUILayout.ExpandWidth(true));
                             }
 
@@ -125,7 +127,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             };
 
                             var childSO = new SerializedObject(child);
-                            var childControl = childSO.FindProperty(nameof(MAMenuItem.Control));
+                            var childControl = childSO.FindProperty(nameof(ModularAvatarMenuItem.Control));
                             DrawControlSettings(childControl, name, commitName);
                             childSO.ApplyModifiedProperties();
 

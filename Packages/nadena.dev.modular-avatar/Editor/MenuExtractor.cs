@@ -44,15 +44,15 @@ namespace nadena.dev.modular_avatar.core.editor
             itemObj.transform.localRotation = Quaternion.identity;
             itemObj.transform.localScale = Vector3.one;
 
-            var menuItem = itemObj.AddComponent<MAMenuItem>();
+            var menuItem = itemObj.AddComponent<ModularAvatarMenuItem>();
             menuItem.Control = sourceControl;
 
             if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
             {
                 if (convertedMenus.TryGetValue(sourceControl.subMenu, out var otherSource))
                 {
-                    menuItem.MenuSource = SubmenuSource.OtherMenuItem;
-                    menuItem.menuSource_otherSource = otherSource;
+                    menuItem.MenuSource = SubmenuSource.Children;
+                    menuItem.menuSource_otherObjectChildren = otherSource.gameObject;
                 }
                 else
                 {
