@@ -353,7 +353,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
                 switch (item.MenuSource)
                 {
-                    case SubmenuSource.External:
+                    case SubmenuSource.MenuAsset:
                     {
                         if (item.Control.subMenu != null)
                         {

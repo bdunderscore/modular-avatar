@@ -347,7 +347,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             var item_a = installer_a.gameObject.AddComponent<ModularAvatarMenuItem>();
             item_a.Control = GenerateTestControl();
             item_a.Control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
-            item_a.MenuSource = SubmenuSource.External;
+            item_a.MenuSource = SubmenuSource.MenuAsset;
             item_a.Control.subMenu = menu_a;
 
             installer_b.menuToAppend = menu_b;

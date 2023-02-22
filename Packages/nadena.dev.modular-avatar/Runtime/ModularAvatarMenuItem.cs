@@ -27,7 +27,7 @@ namespace nadena.dev.modular_avatar.core
 
     public enum SubmenuSource
     {
-        External,
+        MenuAsset,
         Children,
     }
 
@@ -60,7 +60,7 @@ namespace nadena.dev.modular_avatar.core
             List<VRCExpressionsMenu.Control> controls = null;
             switch (MenuSource)
             {
-                case SubmenuSource.External:
+                case SubmenuSource.MenuAsset:
                     controls = Control.subMenu?.controls?.ToList();
                     break;
                 case SubmenuSource.Children:
