@@ -39,6 +39,13 @@ namespace nadena.dev.modular_avatar.core
         public static Action<Action> delayCall = (_) => { };
         public static event Action OnHierarchyChanged;
 
+        internal static event Action OnMenuInvalidate;
+
+        internal static void InvalidateMenu()
+        {
+            OnMenuInvalidate?.Invoke();
+        }
+
         public enum OnDemandSource
         {
             Awake,

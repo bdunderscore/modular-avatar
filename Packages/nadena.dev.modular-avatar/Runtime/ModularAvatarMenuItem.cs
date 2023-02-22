@@ -15,6 +15,13 @@ namespace nadena.dev.modular_avatar.core
          * Note that this method might be called outside of a build context (e.g. from custom inspectors).
          */
         internal abstract VRCExpressionsMenu.Control[] GenerateMenu();
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+
+            RuntimeUtil.InvalidateMenu();
+        }
     }
 
 

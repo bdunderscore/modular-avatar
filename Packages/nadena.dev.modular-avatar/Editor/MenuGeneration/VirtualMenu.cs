@@ -53,16 +53,16 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             this.name = control.name;
             this.type = control.type;
-            this.parameter = new Parameter() {name = control.parameter.name};
+            this.parameter = new Parameter() {name = control?.parameter?.name};
             this.value = control.value;
             this.icon = control.icon;
             this.style = control.style;
             this.subMenu = null;
-            this.subParameters = control.subParameters.Select(p => new VRCExpressionsMenu.Control.Parameter()
+            this.subParameters = control.subParameters?.Select(p => new VRCExpressionsMenu.Control.Parameter()
             {
                 name = p.name
-            }).ToArray();
-            this.labels = control.labels.ToArray();
+            })?.ToArray();
+            this.labels = control.labels?.ToArray();
         }
     }
 
@@ -73,6 +73,23 @@ namespace nadena.dev.modular_avatar.core.editor.menu
     internal class VirtualMenu
     {
         internal readonly object RootMenuKey;
+
+        private static long _cacheSeq = 0;
+
+        internal static void InvalidateCaches()
+        {
+            _cacheSeq++;
+        }
+
+        static VirtualMenu()
+        {
+            RuntimeUtil.OnMenuInvalidate += InvalidateCaches;
+        }
+
+        internal static long CacheSequence => _cacheSeq;
+
+        private readonly long _initialCacheSeq = _cacheSeq;
+        internal bool IsOutdated => _initialCacheSeq != _cacheSeq;
 
         /// <summary>
         /// Indexes which menu installers are contributing to which VRCExpressionMenu assets.
@@ -131,6 +148,20 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             return menu;
         }
 
+        internal IEnumerable<ModularAvatarMenuInstallTarget> GetInstallTargetsForInstaller(
+            ModularAvatarMenuInstaller installer
+        )
+        {
+            if (_installerToTargetComponent.TryGetValue(installer, out var targets))
+            {
+                return targets;
+            }
+            else
+            {
+                return Array.Empty<ModularAvatarMenuInstallTarget>();
+            }
+        }
+
         private MenuNode ImportMenu(VRCExpressionsMenu menu, object menuKey = null)
         {
             if (menuKey == null) menuKey = menu;
@@ -184,6 +215,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 targets = new List<ModularAvatarMenuInstallTarget>();
                 _installerToTargetComponent[target.installer] = targets;
             }
+
+            targets.Add(target);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
 using UnityEditor;
@@ -8,6 +9,7 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using static nadena.dev.modular_avatar.core.editor.Util;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -32,6 +34,74 @@ namespace nadena.dev.modular_avatar.core.editor
 
             FindMenus();
             FindMenuInstallers();
+
+            VRCAvatarDescriptor commonAvatar = FindCommonAvatar();
+        }
+
+        private long _cacheSeq = -1;
+        private ImmutableList<object> _cachedTargets = null;
+
+        // Interpretation:
+        //  <empty> : Inconsistent install targets
+        //  List of [null]: Install to root
+        //  List of [VRCExpMenu]: Install to expressions menu
+        //  List of [InstallTarget]: Install to single install target
+        //  List of [InstallTarget, InstallTarget ...]: Install to multiple install targets
+        private ImmutableList<object> InstallTargets
+        {
+            get
+            {
+                if (VirtualMenu.CacheSequence == _cacheSeq && _cachedTargets != null) return _cachedTargets;
+
+                List<ImmutableList<object>> perTarget = new List<ImmutableList<object>>();
+
+                var commonAvatar = FindCommonAvatar();
+                if (commonAvatar == null)
+                {
+                    _cacheSeq = VirtualMenu.CacheSequence;
+                    _cachedTargets = ImmutableList<object>.Empty;
+                    return _cachedTargets;
+                }
+
+                var virtualMenu = VirtualMenu.ForAvatar(commonAvatar);
+
+                foreach (var target in targets)
+                {
+                    var installer = (ModularAvatarMenuInstaller) target;
+
+                    var installTargets = virtualMenu.GetInstallTargetsForInstaller(installer)
+                        .Select(o => (object) o).ToImmutableList();
+                    if (installTargets.Any())
+                    {
+                        perTarget.Add(installTargets);
+                    }
+                    else
+                    {
+                        perTarget.Add(ImmutableList<object>.Empty.Add(installer.installTargetMenu));
+                    }
+                }
+
+                for (int i = 1; i < perTarget.Count; i++)
+                {
+                    if (perTarget[0].Count != perTarget[i].Count ||
+                        perTarget[0].Zip(perTarget[i], (a, b) => (Resolve(a) != Resolve(b))).Any(differs => differs))
+                    {
+                        perTarget.Clear();
+                        perTarget.Add(ImmutableList<object>.Empty);
+                        break;
+                    }
+                }
+
+                _cacheSeq = VirtualMenu.CacheSequence;
+                _cachedTargets = perTarget[0];
+                return _cachedTargets;
+
+                object Resolve(object p0)
+                {
+                    if (p0 is ModularAvatarMenuInstallTarget target && target != null) return target.transform.parent;
+                    return p0;
+                }
+            }
         }
 
         private void SetupMenuEditor()
@@ -63,61 +133,105 @@ namespace nadena.dev.modular_avatar.core.editor
 
             VRCAvatarDescriptor commonAvatar = FindCommonAvatar();
 
-            if (!installTo.hasMultipleDifferentValues)
+            if (InstallTargets.Count == 0)
             {
-                if (installTo.objectReferenceValue == null)
+                // TODO - show warning for inconsistent targets?
+            }
+            else if (InstallTargets.Count > 0)
+            {
+                if (InstallTargets.Count == 1)
                 {
-                    if (isEnabled)
+                    if (InstallTargets[0] == null)
                     {
-                        EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+                        if (isEnabled)
+                        {
+                            EditorGUILayout.HelpBox(S("menuinstall.help.hint_set_menu"), MessageType.Info);
+                        }
+                    }
+                    else if (InstallTargets[0] is VRCExpressionsMenu menu
+                             && !IsMenuReachable(RuntimeUtil.FindAvatarInParents(((Component) target).transform), menu))
+                    {
+                        EditorGUILayout.HelpBox(S("menuinstall.help.hint_bad_menu"), MessageType.Error);
                     }
                 }
-                else if (!IsMenuReachable(RuntimeUtil.FindAvatarInParents(((Component) target).transform),
-                             (VRCExpressionsMenu) installTo.objectReferenceValue))
+
+                if (InstallTargets.Count == 1 && (InstallTargets[0] is VRCExpressionsMenu || InstallTargets[0] == null))
                 {
-                    EditorGUILayout.HelpBox(S("menuinstall.help.hint_bad_menu"), MessageType.Error);
+                    var displayValue = installTo.objectReferenceValue;
+                    if (displayValue == null) displayValue = commonAvatar.expressionsMenu;
+
+                    EditorGUI.BeginChangeCheck();
+                    var newValue = EditorGUILayout.ObjectField(G("menuinstall.installto"), displayValue,
+                        typeof(VRCExpressionsMenu), false);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        installTo.objectReferenceValue = newValue;
+                        _cacheSeq = -1;
+                    }
                 }
-            }
-
-            if (installTo.hasMultipleDifferentValues || commonAvatar == null)
-            {
-                EditorGUILayout.PropertyField(installTo, G("menuinstall.installto"));
-            }
-            else
-            {
-                var displayValue = installTo.objectReferenceValue;
-                if (displayValue == null) displayValue = commonAvatar.expressionsMenu;
-
-                EditorGUI.BeginChangeCheck();
-                var newValue = EditorGUILayout.ObjectField(G("menuinstall.installto"), displayValue,
-                    typeof(VRCExpressionsMenu), false);
-                if (EditorGUI.EndChangeCheck())
+                else
                 {
-                    installTo.objectReferenceValue = newValue;
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        foreach (var target in InstallTargets)
+                        {
+                            if (target is VRCExpressionsMenu menu)
+                            {
+                                EditorGUILayout.ObjectField(G("menuinstall.installto"), menu,
+                                    typeof(VRCExpressionsMenu), true);
+                            }
+                            else if (target is ModularAvatarMenuInstallTarget t)
+                            {
+                                EditorGUILayout.ObjectField(G("menuinstall.installto"), t.transform.parent.gameObject,
+                                    typeof(GameObject), true);
+                            }
+                        }
+                    }
                 }
-            }
 
-            var avatar = RuntimeUtil.FindAvatarInParents(_installer.transform);
-            if (avatar != null && GUILayout.Button(G("menuinstall.selectmenu")))
-            {
-                AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
+                var avatar = commonAvatar;
+                if (avatar != null && InstallTargets.Count == 1 && GUILayout.Button(G("menuinstall.selectmenu")))
                 {
-                    if (menu is VRCExpressionsMenu expMenu)
+                    AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
                     {
-                        if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
-                        else installTo.objectReferenceValue = expMenu;
-                    }
-                    else if (menu is RootMenu)
-                    {
-                        installTo.objectReferenceValue = null;
-                    }
-                    else if (menu is ModularAvatarMenuItem item)
-                    {
-                        // TODO
-                    }
+                        if (InstallTargets.Count != 1 || menu == InstallTargets[0]) return;
 
-                    serializedObject.ApplyModifiedProperties();
-                });
+                        if (InstallTargets[0] is ModularAvatarMenuInstallTarget oldTarget && oldTarget != null)
+                        {
+                            DestroyInstallTargets();
+                        }
+
+                        if (menu is VRCExpressionsMenu expMenu)
+                        {
+                            if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
+                            else installTo.objectReferenceValue = expMenu;
+                        }
+                        else if (menu is RootMenu)
+                        {
+                            installTo.objectReferenceValue = null;
+                        }
+                        else if (menu is ModularAvatarMenuItem item)
+                        {
+                            installTo.objectReferenceValue = null;
+
+                            foreach (var target in targets)
+                            {
+                                var installer = (ModularAvatarMenuInstaller) target;
+                                var child = new GameObject();
+                                Undo.RegisterCreatedObjectUndo(child, "Set install target");
+                                child.transform.SetParent(item.transform, false);
+                                child.name = installer.gameObject.name;
+
+                                var targetComponent = child.AddComponent<ModularAvatarMenuInstallTarget>();
+                                targetComponent.installer = installer;
+                            }
+                        }
+
+                        serializedObject.ApplyModifiedProperties();
+                        VirtualMenu.InvalidateCaches();
+                        Repaint();
+                    });
+                }
             }
 
             if (targets.Length == 1)
@@ -200,6 +314,36 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
+        }
+
+        private void DestroyInstallTargets()
+        {
+            VirtualMenu menu = VirtualMenu.ForAvatar(FindCommonAvatar());
+
+            foreach (var t in targets)
+            {
+                foreach (var oldTarget in menu.GetInstallTargetsForInstaller((ModularAvatarMenuInstaller) t))
+                {
+                    if (PrefabUtility.IsPartOfPrefabInstance(oldTarget))
+                    {
+                        Undo.RecordObject(oldTarget, "Change menu install target");
+                        oldTarget.installer = null;
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(oldTarget);
+                    }
+                    else
+                    {
+                        if (oldTarget.transform.childCount == 0 &&
+                            oldTarget.GetComponents(typeof(Component)).Length == 2)
+                        {
+                            Undo.DestroyObjectImmediate(oldTarget.gameObject);
+                        }
+                        else
+                        {
+                            Undo.DestroyObjectImmediate(oldTarget);
+                        }
+                    }
+                }
+            }
         }
 
         private VRCAvatarDescriptor FindCommonAvatar()

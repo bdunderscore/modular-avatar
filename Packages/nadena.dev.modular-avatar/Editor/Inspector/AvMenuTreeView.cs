@@ -40,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OnLostFocus()
         {
-            Close();
+            //Close();
         }
 
         private void OnDisable()
