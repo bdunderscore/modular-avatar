@@ -175,25 +175,40 @@ namespace nadena.dev.modular_avatar.core.editor
             _needsRebuild = true;
         }
 
-        private float ElementHeight(int index)
+        // https://github.com/bdunderscore/modular-avatar/issues/217
+        private float[] ElementHeightCache = null;
+
+        private float[] BuildHeightCache()
         {
-            float baseHeight = _devMode ? elemHeight * 2 : elemHeight;
+            float[] cache = new float[_selectedIndices.Count];
 
-            var param = GetParamByIndex(_selectedIndices[index]);
-            var syncMode = param.FindPropertyRelative(nameof(ParameterConfig.syncType));
-            if (syncMode.enumValueIndex != (int) ParameterSyncType.NotSynced)
+            for (int i = 0; i < _selectedIndices.Count; i++)
             {
-                baseHeight += elemHeight;
+                float baseHeight = _devMode ? elemHeight * 2 : elemHeight;
+
+                var param = GetParamByIndex(_selectedIndices[i]);
+                var syncMode = param.FindPropertyRelative(nameof(ParameterConfig.syncType));
+                if (syncMode.enumValueIndex != (int) ParameterSyncType.NotSynced)
+                {
+                    baseHeight += elemHeight;
+                }
+
+                if (_selectedIndices[i] == -1)
+                {
+                    cache[i] = elemHeight + baseHeight;
+                }
+                else
+                {
+                    cache[i] = baseHeight;
+                }
             }
 
-            if (_selectedIndices[index] == -1)
-            {
-                return elemHeight + baseHeight;
-            }
-            else
-            {
-                return baseHeight;
-            }
+            return cache;
+        }
+
+        private float ElementHeight(int reqIndex)
+        {
+            return ElementHeightCache[reqIndex];
         }
 
         private void DrawAutodetectHeader(ref Rect rect)
@@ -412,6 +427,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void OnInnerInspectorGUI()
         {
+            ElementHeightCache = BuildHeightCache();
+
             EditorGUI.BeginChangeCheck();
             _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();
