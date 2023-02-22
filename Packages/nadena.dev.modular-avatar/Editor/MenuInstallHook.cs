@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
@@ -22,7 +23,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private VRCExpressionsMenu _rootMenu;
 
-        private MenuTree _menuTree;
         private Stack<ModularAvatarMenuInstaller> _visitedInstallerStack;
 
         public void OnPreprocessAvatar(GameObject avatarRoot, BuildContext context)
@@ -48,55 +48,15 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             _rootMenu = avatar.expressionsMenu;
-            _menuTree = new MenuTree(avatar);
-            _menuTree.TraverseAvatarMenu();
-
-            avatar.expressionsMenu = _context.CloneMenu(avatar.expressionsMenu);
-
-            foreach (ModularAvatarMenuInstaller installer in menuInstallers)
+            var virtualMenu = VirtualMenu.ForAvatar(avatar);
+            avatar.expressionsMenu = virtualMenu.SerializeMenu(asset =>
             {
-                BuildReport.ReportingObject(installer, () => _menuTree.TraverseMenuInstaller(installer));
-            }
-
-            foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(null))
-            {
-                BuildReport.ReportingObject(childElement.installer, () => InstallMenu(childElement.installer));
-            }
+                context.SaveAsset(asset);
+                if (asset is VRCExpressionsMenu menu) SplitMenu(menu);
+            });
         }
 
-        private void InstallMenu(ModularAvatarMenuInstaller installer, VRCExpressionsMenu installTarget = null)
-        {
-            if (!installer.enabled) return;
-
-            if (installer.installTargetMenu == null)
-            {
-                installer.installTargetMenu = _rootMenu;
-            }
-
-            if (installTarget == null)
-            {
-                installTarget = installer.installTargetMenu;
-            }
-
-            if (installer.installTargetMenu == null || installer.menuToAppend == null) return;
-            if (!_context.ClonedMenus.TryGetValue(installTarget, out var targetMenu)) return;
-
-            // Clone before appending to sanitize menu icons
-            targetMenu.controls.AddRange(_context.CloneMenu(installer.menuToAppend).controls);
-
-            SplitMenu(installer, targetMenu);
-
-            if (_visitedInstallerStack.Contains(installer)) return;
-            _visitedInstallerStack.Push(installer);
-            foreach (MenuTree.ChildElement childElement in _menuTree.GetChildInstallers(installer))
-            {
-                InstallMenu(childElement.installer, childElement.parent);
-            }
-
-            _visitedInstallerStack.Pop();
-        }
-
-        private void SplitMenu(ModularAvatarMenuInstaller installer, VRCExpressionsMenu targetMenu)
+        private void SplitMenu(VRCExpressionsMenu targetMenu)
         {
             while (targetMenu.controls.Count > VRCExpressionsMenu.MAX_CONTROLS)
             {
@@ -123,7 +83,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     labels = Array.Empty<VRCExpressionsMenu.Control.Label>()
                 });
 
-                _context.ClonedMenus[installer.installTargetMenu] = newMenu;
                 targetMenu = newMenu;
             }
         }

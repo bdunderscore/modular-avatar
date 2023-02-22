@@ -26,8 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (name != null)
             {
                 EditorGUI.BeginChangeCheck();
-                var targetGameObject = ((ModularAvatarMenuItem) target).gameObject;
-                var newName = EditorGUILayout.TextField("Name", targetGameObject.name);
+                var newName = EditorGUILayout.TextField("Name", name);
                 if (EditorGUI.EndChangeCheck() && commitName != null)
                 {
                     commitName(newName);

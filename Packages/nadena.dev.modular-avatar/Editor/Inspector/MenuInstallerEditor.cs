@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.menu;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -101,7 +102,20 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
                 {
-                    installTo.objectReferenceValue = menu;
+                    if (menu is VRCExpressionsMenu expMenu)
+                    {
+                        if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
+                        else installTo.objectReferenceValue = expMenu;
+                    }
+                    else if (menu is RootMenu)
+                    {
+                        installTo.objectReferenceValue = null;
+                    }
+                    else if (menu is ModularAvatarMenuItem item)
+                    {
+                        // TODO
+                    }
+
                     serializedObject.ApplyModifiedProperties();
                 });
             }

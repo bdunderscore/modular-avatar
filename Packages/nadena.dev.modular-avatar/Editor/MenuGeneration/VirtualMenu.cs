@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor.menu
@@ -71,7 +72,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
      */
     internal class VirtualMenu
     {
-        private readonly object RootMenuKey;
+        internal readonly object RootMenuKey;
 
         /// <summary>
         /// Indexes which menu installers are contributing to which VRCExpressionMenu assets.
@@ -92,6 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         // TODO: immutable?
         public Dictionary<object, MenuNode> ResolvedMenu => _resolvedMenu;
+        public MenuNode RootMenuNode => ResolvedMenu[RootMenuKey];
 
         /// <summary>
         /// Initializes the VirtualMenu.
@@ -109,6 +111,24 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 RootMenuKey = RootMenu.Instance;
                 _menuNodeMap[RootMenu.Instance] = new MenuNode(RootMenu.Instance);
             }
+        }
+
+        internal static VirtualMenu ForAvatar(VRCAvatarDescriptor avatar)
+        {
+            var menu = new VirtualMenu(avatar.expressionsMenu);
+            foreach (var installer in avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
+            {
+                menu.RegisterMenuInstaller(installer);
+            }
+
+            foreach (var target in avatar.GetComponentsInChildren<ModularAvatarMenuInstallTarget>(true))
+            {
+                menu.RegisterMenuInstallTarget(target);
+            }
+
+            menu.FreezeMenu();
+
+            return menu;
         }
 
         private MenuNode ImportMenu(VRCExpressionsMenu menu, object menuKey = null)

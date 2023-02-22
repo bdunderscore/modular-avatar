@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.menu;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -22,13 +23,13 @@ namespace nadena.dev.modular_avatar.core.editor
             set => _treeView.Avatar = value;
         }
 
-        public ModularAvatarMenuInstaller TargetInstaller 
+        public ModularAvatarMenuInstaller TargetInstaller
         {
             get => _treeView.TargetInstaller;
             set => _treeView.TargetInstaller = value;
         }
 
-        public Action<VRCExpressionsMenu> OnMenuSelected = (menu) => { };
+        public Action<object> OnMenuSelected = (menu) => { };
 
         private void Awake()
         {
@@ -37,7 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _treeView.OnDoubleclickSelect = Close;
         }
 
-        private void OnLostFocus() 
+        private void OnLostFocus()
         {
             Close();
         }
@@ -58,7 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _treeView.OnGUI(new Rect(0, 0, position.width, position.height));
         }
 
-        internal static void Show(VRCAvatarDescriptor Avatar, ModularAvatarMenuInstaller Installer, Action<VRCExpressionsMenu> OnSelect)
+        internal static void Show(VRCAvatarDescriptor Avatar, ModularAvatarMenuInstaller Installer,
+            Action<object> OnSelect)
         {
             var window = GetWindow<AvMenuTreeViewWindow>();
             window.titleContent = new GUIContent("Select menu");
@@ -87,24 +89,24 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private ModularAvatarMenuInstaller _targetInstaller;
 
-        public ModularAvatarMenuInstaller TargetInstaller 
+        public ModularAvatarMenuInstaller TargetInstaller
         {
             get => _targetInstaller;
-            set 
+            set
             {
                 _targetInstaller = value;
                 Reload();
             }
         }
 
-        internal Action<VRCExpressionsMenu> OnSelect = (menu) => { };
+        internal Action<object> OnSelect = (menu) => { };
         internal Action OnDoubleclickSelect = () => { };
 
-        private List<VRCExpressionsMenu> _menuItems = new List<VRCExpressionsMenu>();
-        private HashSet<VRCExpressionsMenu> _visitedMenus = new HashSet<VRCExpressionsMenu>();
+        private List<object> _nodeKeys = new List<object>();
+        private HashSet<object> _visitedMenus = new HashSet<object>();
 
-        private MenuTree _menuTree;
-        private Stack<VRCExpressionsMenu> _visitedMenuStack = new Stack<VRCExpressionsMenu>();
+        private VirtualMenu _menuTree;
+        private Stack<object> _visitedMenuStack = new Stack<object>();
 
         public AvMenuTreeView(TreeViewState state) : base(state)
         {
@@ -112,67 +114,61 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void SelectionChanged(IList<int> selectedIds)
         {
-            OnSelect.Invoke(_menuItems[selectedIds[0]]);
+            OnSelect.Invoke(_nodeKeys[selectedIds[0]]);
         }
 
         protected override void DoubleClickedItem(int id)
         {
-            OnSelect.Invoke(_menuItems[id]);
+            OnSelect.Invoke(_nodeKeys[id]);
             OnDoubleclickSelect.Invoke();
         }
 
-        protected override TreeViewItem BuildRoot() 
+        protected override TreeViewItem BuildRoot()
         {
-            _menuItems.Clear();
+            _nodeKeys.Clear();
             _visitedMenuStack.Clear();
 
-            _menuTree = new MenuTree(Avatar);
-            _menuTree.TraverseAvatarMenu();
-            foreach (ModularAvatarMenuInstaller installer in Avatar.gameObject.GetComponentsInChildren<ModularAvatarMenuInstaller>(true)) 
-            {
-                if (installer == TargetInstaller) continue;
-                _menuTree.TraverseMenuInstaller(installer);
-            }
-            
+            _menuTree = VirtualMenu.ForAvatar(_avatar);
+
             var root = new TreeViewItem(-1, -1, "<root>");
-            List<TreeViewItem> treeItems = new List<TreeViewItem> 
+            List<TreeViewItem> treeItems = new List<TreeViewItem>
             {
-                new TreeViewItem 
+                new TreeViewItem
                 {
                     id = 0,
                     depth = 0,
-                    displayName = $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
+                    displayName =
+                        $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
                 }
             };
-            _menuItems.Add(Avatar.expressionsMenu);
-            _visitedMenuStack.Push(Avatar.expressionsMenu);
-            
-            TraverseMenu(1, treeItems, Avatar.expressionsMenu);
+            _nodeKeys.Add(_menuTree.RootMenuKey);
+            _visitedMenuStack.Push(_menuTree.RootMenuKey);
+            TraverseMenu(1, treeItems, _menuTree.RootMenuNode);
             SetupParentsAndChildrenFromDepths(root, treeItems);
             return root;
         }
 
-        private void TraverseMenu(int depth, List<TreeViewItem> items, VRCExpressionsMenu menu) 
+        private void TraverseMenu(int depth, List<TreeViewItem> items, MenuNode node)
         {
-            IEnumerable<MenuTree.ChildElement> children = _menuTree.GetChildren(menu)
-                .Where(child => !_visitedMenuStack.Contains(child.menu));
-            foreach (MenuTree.ChildElement child in children) 
+            IEnumerable<VirtualControl> children = node.Controls
+                .Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu &&
+                                  control.SubmenuNode != null &&
+                                  !_visitedMenuStack.Contains(control.SubmenuNode));
+            foreach (var child in children)
             {
-                if (child.menu == null) continue;
-                string displayName = child.installer == null ? 
-                    $"{child.menuName} ({child.menu.name})" : 
-                    $"{child.menuName} ({child.menu.name}) InstallerObject : {child.installer.name}";
+                string displayName = child.name;
+
                 items.Add(
-                    new TreeViewItem 
+                    new TreeViewItem
                     {
                         id = items.Count,
                         depth = depth,
                         displayName = displayName
                     }
                 );
-                _menuItems.Add(child.menu);
-                _visitedMenuStack.Push(child.menu);
-                TraverseMenu(depth + 1, items, child.menu);
+                _nodeKeys.Add(child.SubmenuNode.NodeKey);
+                _visitedMenuStack.Push(child.SubmenuNode);
+                TraverseMenu(depth + 1, items, child.SubmenuNode);
                 _visitedMenuStack.Pop();
             }
         }
