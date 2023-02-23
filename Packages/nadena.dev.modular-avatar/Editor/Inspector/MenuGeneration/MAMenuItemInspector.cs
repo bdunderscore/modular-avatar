@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -12,58 +13,39 @@ namespace nadena.dev.modular_avatar.core.editor
         private SerializedProperty prop_control;
         private SerializedProperty prop_otherObjChildren;
 
+        private MenuItemCoreGUI _coreGUI;
+
+        private Dictionary<ModularAvatarMenuItem, MenuItemCoreGUI> _innerItemGUI =
+            new Dictionary<ModularAvatarMenuItem, MenuItemCoreGUI>();
+
         void OnEnable()
         {
-            prop_control = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.Control));
+            _coreGUI = new MenuItemCoreGUI(serializedObject, Repaint);
+
             prop_submenu_source = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
+            prop_control = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.Control));
             prop_otherObjChildren =
                 serializedObject.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
         }
 
-        private void DrawControlSettings(SerializedProperty control, string name = null,
-            Action<string> commitName = null)
+        private void DrawControlSettings(ModularAvatarMenuItem item)
         {
-            if (name != null)
+            if (!_innerItemGUI.TryGetValue(item, out var gui))
             {
-                EditorGUI.BeginChangeCheck();
-                var newName = EditorGUILayout.TextField("Name", name);
-                if (EditorGUI.EndChangeCheck() && commitName != null)
-                {
-                    commitName(newName);
-                }
+                gui = new MenuItemCoreGUI(new SerializedObject(item), Repaint);
+                _innerItemGUI.Add(item, gui);
             }
 
-            var prop_type = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.type));
-            var prop_parameter = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
-                .FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter.name));
-            var prop_value = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
-
-            EditorGUILayout.PropertyField(prop_type);
-            EditorGUILayout.PropertyField(prop_parameter, new GUIContent("Parameter"));
-            EditorGUILayout.PropertyField(prop_value);
+            gui.DoGUI();
         }
 
         protected override void OnInnerInspectorGUI()
         {
             bool multiEdit = targets.Length != 1;
-            string name = null;
-            Action<string> commitName = null;
-            if (!multiEdit)
-            {
-                EditorGUI.BeginChangeCheck();
-                var targetGameObject = ((ModularAvatarMenuItem) target).gameObject;
-                name = targetGameObject.name;
-                commitName = newName =>
-                {
-                    Undo.RecordObject(targetGameObject, "Rename object");
-                    targetGameObject.name = newName;
-                };
-            }
 
             serializedObject.Update();
 
-            DrawControlSettings(prop_control, name, commitName);
-
+            _coreGUI.DoGUI();
             serializedObject.ApplyModifiedProperties();
 
             if (multiEdit) return;
@@ -118,17 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             GUILayout.EndHorizontal();
 
-                            name = t.gameObject.name;
-                            commitName = newName =>
-                            {
-                                Undo.RecordObject(t.gameObject, "Rename object");
-                                t.gameObject.name = newName;
-                            };
-
-                            var childSO = new SerializedObject(child);
-                            var childControl = childSO.FindProperty(nameof(ModularAvatarMenuItem.Control));
-                            DrawControlSettings(childControl, name, commitName);
-                            childSO.ApplyModifiedProperties();
+                            DrawControlSettings(child);
 
                             EditorGUILayout.EndVertical();
                         }
