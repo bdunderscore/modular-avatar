@@ -22,33 +22,54 @@ namespace nadena.dev.modular_avatar.core.editor
             _redraw = redraw;
         }
 
-        public void DoGUI()
+        public void DoGUI(GUIContent label = null)
         {
+            DoGUI(EditorGUILayout.GetControlRect(
+                true,
+                EditorGUIUtility.singleLineHeight
+            ), label);
+        }
+
+        public void DoGUI(Rect rect, GUIContent label = null)
+        {
+            if (label == null) label = new GUIContent("Parameter");
+
             if (_parameterReference != null) GUILayout.Space(-2);
             GUILayout.BeginHorizontal();
 
-            EditorGUILayout.PropertyField(_property, new GUIContent("Parameter"));
+            rect.width -= EditorGUIUtility.singleLineHeight;
+
+            EditorGUI.PropertyField(rect, _property, label);
             Rect propField = new Rect();
 
             if (Event.current.type == EventType.Repaint)
             {
-                propField = GUILayoutUtility.GetLastRect();
+                propField = rect;
             }
 
+            Rect buttonRect = rect;
+            buttonRect.xMin = rect.xMax;
+            buttonRect.width = EditorGUIUtility.singleLineHeight;
+
+            GUIStyle style = "IN DropDown";
+
+            buttonRect.xMin += (buttonRect.width - style.fixedWidth) / 2;
+
             if (_parameterReference != null &&
-                EditorGUILayout.DropdownButton(new GUIContent(), FocusType.Keyboard, "IN DropDown"))
+                EditorGUI.DropdownButton(buttonRect, new GUIContent(), FocusType.Keyboard, "IN DropDown"))
             {
+                Debug.Log("Popup=" + fieldRect);
                 PopupWindow.Show(fieldRect,
                     new ParameterWindow(_parameterReference, _property, fieldRect.width, _redraw));
             }
 
             if (Event.current.type == EventType.Repaint)
             {
-                var buttonRect = GUILayoutUtility.GetLastRect();
+                float labelWidth = label == GUIContent.none ? 0 : EditorGUIUtility.labelWidth;
 
                 fieldRect = propField;
-                fieldRect.x += EditorGUIUtility.labelWidth + 2;
-                fieldRect.width = buttonRect.xMax - propField.x - EditorGUIUtility.labelWidth;
+                fieldRect.x += labelWidth + 2;
+                fieldRect.width = buttonRect.xMax - propField.x - labelWidth;
                 fieldRect.height = 0;
             }
 
@@ -115,7 +136,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public override Vector2 GetWindowSize()
             {
-                return new Vector2(_width, 150);
+                return new Vector2(Math.Max(256, _width), 150);
             }
 
             public void SetContext(Object serializedObjectTargetObject)
