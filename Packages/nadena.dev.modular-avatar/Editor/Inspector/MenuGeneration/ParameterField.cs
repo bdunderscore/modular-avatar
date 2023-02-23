@@ -10,19 +10,21 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ParameterGUI
     {
+        private GameObject _parameterReference;
         private readonly SerializedProperty _property;
         private readonly Action _redraw;
         private Rect fieldRect;
 
-        internal ParameterGUI(SerializedProperty property, Action redraw)
+        internal ParameterGUI(GameObject parameterReference, SerializedProperty property, Action redraw)
         {
+            _parameterReference = parameterReference;
             _property = property;
             _redraw = redraw;
         }
 
         public void DoGUI()
         {
-            GUILayout.Space(-2);
+            if (_parameterReference != null) GUILayout.Space(-2);
             GUILayout.BeginHorizontal();
 
             EditorGUILayout.PropertyField(_property, new GUIContent("Parameter"));
@@ -33,15 +35,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 propField = GUILayoutUtility.GetLastRect();
             }
 
-            if (_property.serializedObject.targetObjects.Length == 1)
+            if (_parameterReference != null &&
+                EditorGUILayout.DropdownButton(new GUIContent(), FocusType.Keyboard, "IN DropDown"))
             {
-                var target = (_property.serializedObject.targetObject as Component)?.gameObject;
-
-                if (target != null &&
-                    EditorGUILayout.DropdownButton(new GUIContent(), FocusType.Keyboard, "IN DropDown"))
-                {
-                    PopupWindow.Show(fieldRect, new ParameterWindow(target, _property, fieldRect.width, _redraw));
-                }
+                PopupWindow.Show(fieldRect,
+                    new ParameterWindow(_parameterReference, _property, fieldRect.width, _redraw));
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -51,10 +49,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 fieldRect = propField;
                 fieldRect.x += EditorGUIUtility.labelWidth + 2;
                 fieldRect.width = buttonRect.xMax - propField.x - EditorGUIUtility.labelWidth;
+                fieldRect.height = 0;
             }
 
             GUILayout.EndHorizontal();
-            GUILayout.Space(2);
+            if (_parameterReference != null) GUILayout.Space(2);
         }
 
         private class ParameterWindow : PopupWindowContent

@@ -18,7 +18,6 @@ namespace nadena.dev.modular_avatar.core
         public VRCExpressionsMenu.Control Control;
         public SubmenuSource MenuSource;
 
-        public ModularAvatarMenuInstaller menuSource_installer;
         public GameObject menuSource_otherObjectChildren;
 
         public override void Visit(NodeContext context)
