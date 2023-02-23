@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -23,17 +24,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 type = VRCExpressionsMenu.Control.ControlType.SubMenu,
                 name = "Avatar Menu"
             };
-            var rootMenu = ConvertSubmenu(gameObj, fakeControl, new Dictionary<VRCExpressionsMenu, MenuSource>());
+            var rootMenu = ConvertSubmenu(gameObj, fakeControl,
+                new Dictionary<VRCExpressionsMenu, MenuSourceComponent>());
             Undo.RecordObject(avatar, "Convert menu");
             avatar.expressionsMenu = null;
 
             rootMenu.gameObject.AddComponent<ModularAvatarMenuInstaller>();
         }
 
-        private static MenuSource ConvertSubmenu(
+        private static MenuSourceComponent ConvertSubmenu(
             GameObject parentObj,
             VRCExpressionsMenu.Control sourceControl,
-            Dictionary<VRCExpressionsMenu, MenuSource> convertedMenus
+            Dictionary<VRCExpressionsMenu, MenuSourceComponent> convertedMenus
         )
         {
             var itemObj = new GameObject();

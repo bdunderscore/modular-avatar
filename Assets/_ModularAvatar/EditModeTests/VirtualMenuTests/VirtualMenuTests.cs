@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor.menu;
+using nadena.dev.modular_avatar.core.menu;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.VersionControl;
@@ -13,12 +14,14 @@ namespace modular_avatar_tests.VirtualMenuTests
     {
         private Texture2D testTex;
         private List<UnityEngine.Object> toDestroy;
+        private int controlIndex;
 
         public override void Setup()
         {
             base.Setup();
             testTex = new Texture2D(1, 1);
             toDestroy = new List<UnityEngine.Object>();
+            controlIndex = 0;
         }
 
         public override void Teardown()
@@ -280,14 +283,14 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             Assert.AreEqual(2, virtualMenu.ResolvedMenu.Count);
             var rootMenu = virtualMenu.ResolvedMenu[RootMenu.Instance];
-            var item_node = virtualMenu.ResolvedMenu[item];
+            var item_node = virtualMenu.ResolvedMenu[new MenuNodesUnder(item.gameObject)];
             Assert.AreEqual(1, rootMenu.Controls.Count);
             Assert.AreSame(RootMenu.Instance, rootMenu.NodeKey);
             AssertControlEquals(item.Control, rootMenu.Controls[0]);
             Assert.AreSame(item_node, rootMenu.Controls[0].SubmenuNode);
 
             Assert.AreEqual(1, item_node.Controls.Count);
-            Assert.AreSame(item, item_node.NodeKey);
+            Assert.AreEqual(new MenuNodesUnder(item.gameObject), item_node.NodeKey);
             AssertControlEquals(menu_a.controls[0], item_node.Controls[0]);
         }
 
@@ -558,11 +561,10 @@ namespace modular_avatar_tests.VirtualMenuTests
                 VRCExpressionsMenu.Control.ControlType.RadialPuppet,
                 VRCExpressionsMenu.Control.ControlType.FourAxisPuppet,
                 VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet,
-                VRCExpressionsMenu.Control.ControlType.OneAxisPuppet,
             };
 
             control.type = types[Random.Range(0, types.Length)];
-            control.name = "Test Control " + GUID.Generate();
+            control.name = "Test Control " + controlIndex++;
             control.parameter = new VRCExpressionsMenu.Control.Parameter();
             control.parameter.name = "Test Parameter " + GUID.Generate();
             control.icon = new Texture2D(1, 1);

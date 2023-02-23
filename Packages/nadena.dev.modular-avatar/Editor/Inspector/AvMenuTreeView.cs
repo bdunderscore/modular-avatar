@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
+using nadena.dev.modular_avatar.core.menu;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -148,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return root;
         }
 
-        private void TraverseMenu(int depth, List<TreeViewItem> items, MenuNode node)
+        private void TraverseMenu(int depth, List<TreeViewItem> items, VirtualMenuNode node)
         {
             IEnumerable<VirtualControl> children = node.Controls
                 .Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu &&

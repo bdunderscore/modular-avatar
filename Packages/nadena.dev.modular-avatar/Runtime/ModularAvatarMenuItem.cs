@@ -1,30 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core
 {
-    [DisallowMultipleComponent]
-    public abstract class MenuSource : AvatarTagComponent
-    {
-        /**
-         * Generates the menu items for this menu source object. Submenus are not required to be persisted as assets;
-         * this will be handled by the caller if necessary.
-         *
-         * Note that this method might be called outside of a build context (e.g. from custom inspectors).
-         */
-        internal abstract VRCExpressionsMenu.Control[] GenerateMenu();
-
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-
-            RuntimeUtil.InvalidateMenu();
-        }
-    }
-
-
     public enum SubmenuSource
     {
         MenuAsset,
@@ -32,7 +13,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Menu Item")]
-    public class ModularAvatarMenuItem : MenuSource
+    public class ModularAvatarMenuItem : MenuSourceComponent
     {
         public VRCExpressionsMenu.Control Control;
         public SubmenuSource MenuSource;
@@ -40,98 +21,32 @@ namespace nadena.dev.modular_avatar.core
         public ModularAvatarMenuInstaller menuSource_installer;
         public GameObject menuSource_otherObjectChildren;
 
-        internal override VRCExpressionsMenu.Control[] GenerateMenu()
+        public override void Visit(NodeContext context)
         {
-            switch (Control.type)
-            {
-                case VRCExpressionsMenu.Control.ControlType.SubMenu:
-                    return GenerateSubmenu();
-                default:
-                    return new[]
-                        {Control};
-            }
-        }
+            var cloned = new VirtualControl(Control);
+            cloned.subMenu = null;
+            cloned.name = gameObject.name;
 
-        private bool _recursing = false;
-        private VRCExpressionsMenu _cachedMenu;
-
-        private VRCExpressionsMenu.Control[] GenerateSubmenu()
-        {
-            List<VRCExpressionsMenu.Control> controls = null;
-            switch (MenuSource)
+            if (cloned.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
             {
-                case SubmenuSource.MenuAsset:
-                    controls = Control.subMenu?.controls?.ToList();
-                    break;
-                case SubmenuSource.Children:
+                switch (this.MenuSource)
                 {
-                    var menuRoot = menuSource_otherObjectChildren == null
-                        ? gameObject
-                        : menuSource_otherObjectChildren;
-                    controls = new List<VRCExpressionsMenu.Control>();
-                    foreach (Transform child in menuRoot.transform)
+                    case SubmenuSource.MenuAsset:
+                        cloned.SubmenuNode = context.NodeFor(this.Control.subMenu);
+                        break;
+                    case SubmenuSource.Children:
                     {
-                        var menuSource = child.GetComponent<MenuSource>();
-                        if (menuSource != null && child.gameObject.activeSelf && menuSource.enabled)
-                        {
-                            controls.AddRange(menuSource.GenerateMenu());
-                        }
-                    }
+                        var root = this.menuSource_otherObjectChildren != null
+                            ? this.menuSource_otherObjectChildren
+                            : this.gameObject;
 
-                    break;
+                        cloned.SubmenuNode = context.NodeFor(new MenuNodesUnder(root));
+                        break;
+                    }
                 }
-                /*
-                case SubmenuSource.MenuInstaller:
-                    controls = menuSource_installer.installTargetMenu?.controls?.ToList();
-                    break;
-                case SubmenuSource.OtherMenuItem:
-                    if (_recursing || menuSource_otherSource == null)
-                    {
-                        return new VRCExpressionsMenu.Control[] { };
-                    }
-                    else
-                    {
-                        _recursing = true;
-                        try
-                        {
-                            return menuSource_otherSource.GenerateMenu();
-                        }
-                        finally
-                        {
-                            _recursing = false;
-                        }
-                    }
-                    */
             }
 
-            if (controls == null)
-            {
-                return new VRCExpressionsMenu.Control[] { };
-            }
-
-            if (_cachedMenu == null) _cachedMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
-            _cachedMenu.controls = controls;
-
-            var control = CloneControl(Control);
-            control.name = gameObject.name;
-            control.subMenu = _cachedMenu;
-
-            return new[] {control};
-        }
-
-        private static VRCExpressionsMenu.Control CloneControl(VRCExpressionsMenu.Control control)
-        {
-            return new VRCExpressionsMenu.Control()
-            {
-                type = control.type,
-                parameter = control.parameter,
-                labels = control.labels.ToArray(),
-                subParameters = control.subParameters.ToArray(),
-                icon = control.icon,
-                name = control.name,
-                value = control.value,
-                subMenu = control.subMenu
-            };
+            context.PushControl(cloned);
         }
     }
 }

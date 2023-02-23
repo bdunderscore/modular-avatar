@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using nadena.dev.modular_avatar.core.menu;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
 
@@ -14,55 +15,13 @@ namespace nadena.dev.modular_avatar.core
     ///
     /// We can also end up with a loop between install targets; in this case, we break the loop at an arbitrary point.
     /// </summary>
-    internal class ModularAvatarMenuInstallTarget : MenuSource
+    internal class ModularAvatarMenuInstallTarget : MenuSourceComponent
     {
         public ModularAvatarMenuInstaller installer;
 
-        private static HashSet<MenuSource> _recursing = new HashSet<MenuSource>();
-
-        internal delegate T Returning<T>();
-
-        /**
-         * Temporarily clears the list of install targets we're recursing through. This is useful if we need to generate
-         * a submenu; these have their own recursion stack, and we shouldn't truncate the set of controls registered on
-         * a different submenu that happens to transclude the same point.
-         */
-        internal static T PushRecursing<T>(Returning<T> callback)
+        public override void Visit(NodeContext context)
         {
-            HashSet<MenuSource> oldRecursing = _recursing;
-            _recursing = new HashSet<MenuSource>();
-            try
-            {
-                return callback();
-            }
-            finally
-            {
-                _recursing = oldRecursing;
-            }
-        }
-
-        internal override VRCExpressionsMenu.Control[] GenerateMenu()
-        {
-            if (installer == null) return new VRCExpressionsMenu.Control[] { };
-
-            _recursing.Add(this);
-            try
-            {
-                var source = installer.GetComponent<MenuSource>();
-                if (source != null)
-                {
-                    return source.GenerateMenu();
-                }
-                else
-                {
-                    // ReSharper disable once Unity.NoNullPropagation
-                    return installer.menuToAppend?.controls?.ToArray() ?? new VRCExpressionsMenu.Control[] { };
-                }
-            }
-            finally
-            {
-                _recursing.Remove(this);
-            }
+            context.PushNode(installer);
         }
     }
 }

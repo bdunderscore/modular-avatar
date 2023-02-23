@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
+using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
