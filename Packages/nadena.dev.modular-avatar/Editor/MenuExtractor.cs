@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
@@ -95,14 +96,37 @@ namespace nadena.dev.modular_avatar.core.editor
                 itemObj.transform.SetParent(parent.transform, false);
 
                 var menuItem = itemObj.AddComponent<ModularAvatarMenuItem>();
-                menuItem.Control = control;
-                if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
-                {
-                    menuItem.MenuSource = SubmenuSource.MenuAsset;
-                }
+                ControlToMenuItem(menuItem, control);
             }
 
             return parent;
+        }
+
+        internal static void ControlToMenuItem(ModularAvatarMenuItem menuItem, VRCExpressionsMenu.Control control)
+        {
+            menuItem.Control = CloneControl(control);
+            if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+            {
+                menuItem.MenuSource = SubmenuSource.MenuAsset;
+            }
+        }
+
+        internal static VRCExpressionsMenu.Control CloneControl(VRCExpressionsMenu.Control c)
+        {
+            return new VRCExpressionsMenu.Control()
+            {
+                type = c.type,
+                name = c.name,
+                icon = c.icon,
+                parameter = new VRCExpressionsMenu.Control.Parameter() {name = c.parameter?.name},
+                subMenu = c.subMenu,
+                subParameters = c.subParameters?.Select(p =>
+                        new VRCExpressionsMenu.Control.Parameter() {name = p?.name})
+                    .ToArray(),
+                labels = c.labels.ToArray(),
+                style = c.style,
+                value = c.value,
+            };
         }
     }
 }

@@ -10,9 +10,11 @@ namespace nadena.dev.modular_avatar.core
     {
         private bool recursing = false;
 
+        public GameObject targetObject;
+
         public override void Visit(NodeContext context)
         {
-            context.PushNode(new MenuNodesUnder(gameObject));
+            context.PushNode(new MenuNodesUnder(targetObject != null ? targetObject : gameObject));
         }
     }
 }

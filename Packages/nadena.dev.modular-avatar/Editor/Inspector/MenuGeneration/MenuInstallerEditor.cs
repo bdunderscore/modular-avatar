@@ -253,6 +253,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 */
             }
 
+            if (targets.Any(t =>
+                {
+                    var installer = (ModularAvatarMenuInstaller) t;
+                    return installer.GetComponent<MenuSource>() == null && installer.menuToAppend != null;
+                }))
+            {
+                if (GUILayout.Button("Extract menu to objects"))
+                {
+                    ExtractMenu();
+                }
+            }
+
             bool inconsistentSources = false;
             MenuSource menuSource = null;
             bool first = true;
@@ -315,6 +327,54 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
+        }
+
+        private void ExtractMenu()
+        {
+            serializedObject.ApplyModifiedProperties();
+
+            foreach (var t in targets)
+            {
+                var installer = (ModularAvatarMenuInstaller) t;
+                if (installer.GetComponent<MenuSourceComponent>() || installer.menuToAppend == null) continue;
+
+                var menu = installer.menuToAppend;
+                if (menu.controls.Count == 0)
+                {
+                    continue;
+                }
+
+                Undo.RecordObject(installer, "Extract menu");
+
+                if (menu.controls.Count == 1)
+                {
+                    // Attach control directly to the installer
+                    var item = installer.gameObject.AddComponent<ModularAvatarMenuItem>();
+                    Undo.RegisterCreatedObjectUndo(item, "Extract menu");
+                    MenuExtractor.ControlToMenuItem(item, menu.controls[0]);
+                }
+                else
+                {
+                    // Use a menu group and attach items on a child
+                    var group = installer.gameObject.AddComponent<ModularAvatarMenuGroup>();
+                    var menuRoot = new GameObject();
+                    menuRoot.name = "Menu";
+                    Undo.RegisterCreatedObjectUndo(menuRoot, "Extract menu");
+                    menuRoot.transform.SetParent(group.transform, false);
+                    foreach (var control in menu.controls)
+                    {
+                        var itemObject = new GameObject();
+                        itemObject.gameObject.name = control.name;
+                        Undo.RegisterCreatedObjectUndo(itemObject, "Extract menu");
+                        itemObject.transform.SetParent(menuRoot.transform, false);
+                        var item = itemObject.AddComponent<ModularAvatarMenuItem>();
+                        MenuExtractor.ControlToMenuItem(item, control);
+                    }
+                }
+
+                PrefabUtility.RecordPrefabInstancePropertyModifications(installer);
+                EditorUtility.SetDirty(installer);
+            }
         }
 
         private void DestroyInstallTargets()
