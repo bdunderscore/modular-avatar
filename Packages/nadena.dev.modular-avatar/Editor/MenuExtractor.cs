@@ -18,61 +18,91 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatar = gameObj.GetComponent<VRCAvatarDescriptor>();
             if (avatar == null || avatar.expressionsMenu == null) return;
 
-            VRCExpressionsMenu.Control fakeControl = new VRCExpressionsMenu.Control()
-            {
-                subMenu = avatar.expressionsMenu,
-                type = VRCExpressionsMenu.Control.ControlType.SubMenu,
-                name = "Avatar Menu"
-            };
-            var rootMenu = ConvertSubmenu(gameObj, fakeControl,
-                new Dictionary<VRCExpressionsMenu, MenuSourceComponent>());
-            Undo.RecordObject(avatar, "Convert menu");
-            avatar.expressionsMenu = null;
+            var parent = ExtractSingleLayerMenu(avatar.expressionsMenu, gameObj, "Avatar Menu");
+            parent.AddComponent<ModularAvatarMenuInstaller>();
 
-            rootMenu.gameObject.AddComponent<ModularAvatarMenuInstaller>();
+            // The VRCSDK requires that an expressions menu asset be provided if any parameters are defined.
+            // We can't just remove the asset, so we'll replace it with a dummy asset. However, to avoid users
+            // accidentally overwriting files in Packages, we'll place this dummy asset next to where the original
+            // asset was (or in the Assets root, if the original asset was in Packages).
+            Undo.RecordObject(avatar, "Extract menu");
+
+            var assetPath = AssetDatabase.GetAssetPath(avatar.expressionsMenu);
+            var dummyAssetPathBase = assetPath.Replace(".asset", " placeholder");
+            if (dummyAssetPathBase.StartsWith("Packages" + System.IO.Path.DirectorySeparatorChar))
+            {
+                var filename = System.IO.Path.GetFileName(dummyAssetPathBase);
+                dummyAssetPathBase = System.IO.Path.Combine("Assets", filename);
+            }
+
+            // Check that a similarly-named file doesn't already exist
+            int i = 0;
+            do
+            {
+                var fullPath = dummyAssetPathBase + (i > 0 ? " " + i : "") + ".asset";
+                if (System.IO.File.Exists(fullPath))
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(fullPath);
+                    if (asset != null && asset.controls.Count == 0)
+                    {
+                        avatar.expressionsMenu = asset;
+                        break;
+                    }
+                }
+                else if (!System.IO.File.Exists(fullPath))
+                {
+                    var dummyAsset = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                    AssetDatabase.CreateAsset(dummyAsset, fullPath);
+                    avatar.expressionsMenu = dummyAsset;
+
+                    break;
+                }
+
+                i++;
+            } while (true);
+
+            EditorUtility.SetDirty(avatar);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(avatar);
         }
 
-        private static MenuSourceComponent ConvertSubmenu(
-            GameObject parentObj,
-            VRCExpressionsMenu.Control sourceControl,
-            Dictionary<VRCExpressionsMenu, MenuSourceComponent> convertedMenus
-        )
+        /// <summary>
+        /// Extracts a single expressions menu asset to Menu Item components.
+        /// </summary>
+        /// <param name="menu">The menu to extract</param>
+        /// <param name="parent">The parent object to use</param>
+        /// <param name="containerName">The name of a gameobject to place between the parent and menu item objects,
+        /// or null to skip</param>
+        /// <returns>the direct parent of the generated menu items</returns>
+        internal static GameObject ExtractSingleLayerMenu(
+            VRCExpressionsMenu menu,
+            GameObject parent,
+            string containerName = null)
         {
-            var itemObj = new GameObject();
-            itemObj.name = string.IsNullOrEmpty(sourceControl.name) ? " " : sourceControl.name;
-            Undo.RegisterCreatedObjectUndo(itemObj, "Convert menu");
-            itemObj.transform.SetParent(parentObj.transform);
-            itemObj.transform.localPosition = Vector3.zero;
-            itemObj.transform.localRotation = Quaternion.identity;
-            itemObj.transform.localScale = Vector3.one;
-
-            var menuItem = itemObj.AddComponent<ModularAvatarMenuItem>();
-            menuItem.Control = sourceControl;
-
-            if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+            if (containerName != null)
             {
-                if (convertedMenus.TryGetValue(sourceControl.subMenu, out var otherSource))
-                {
-                    menuItem.MenuSource = SubmenuSource.Children;
-                    menuItem.menuSource_otherObjectChildren = otherSource.gameObject;
-                }
-                else
-                {
-                    convertedMenus[sourceControl.subMenu] = menuItem;
+                var container = new GameObject();
+                container.name = containerName;
+                container.transform.SetParent(parent.transform, false);
+                parent = container;
+                Undo.RegisterCreatedObjectUndo(container, "Convert menu");
+            }
 
-                    menuItem.MenuSource = SubmenuSource.Children;
+            foreach (var control in menu.controls)
+            {
+                var itemObj = new GameObject();
+                itemObj.name = string.IsNullOrEmpty(control.name) ? " " : control.name;
+                Undo.RegisterCreatedObjectUndo(itemObj, "Convert menu");
+                itemObj.transform.SetParent(parent.transform, false);
 
-                    if (sourceControl.subMenu.controls != null)
-                    {
-                        foreach (var childControl in sourceControl.subMenu.controls)
-                        {
-                            ConvertSubmenu(itemObj, childControl, convertedMenus);
-                        }
-                    }
+                var menuItem = itemObj.AddComponent<ModularAvatarMenuItem>();
+                menuItem.Control = control;
+                if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                {
+                    menuItem.MenuSource = SubmenuSource.MenuAsset;
                 }
             }
 
-            return menuItem;
+            return parent;
         }
     }
 }

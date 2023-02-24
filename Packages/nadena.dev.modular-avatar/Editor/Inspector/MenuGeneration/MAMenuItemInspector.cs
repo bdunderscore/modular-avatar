@@ -109,6 +109,19 @@ namespace nadena.dev.modular_avatar.core.editor
                             EditorGUILayout.EndVertical();
                         }
 
+                        serializedObject.ApplyModifiedProperties();
+
+                        if (expMenu != null && GUILayout.Button("Extract menu to children"))
+                        {
+                            MenuExtractor.ExtractSingleLayerMenu(expMenu, menuItem.gameObject);
+                            Undo.RecordObject(menuItem, "Extract menu");
+                            menuItem.Control.subMenu = null;
+                            menuItem.MenuSource = SubmenuSource.Children;
+                            serializedObject.Update();
+                            EditorUtility.SetDirty(menuItem);
+                            PrefabUtility.RecordPrefabInstancePropertyModifications(menuItem);
+                        }
+
                         break;
                     }
 
