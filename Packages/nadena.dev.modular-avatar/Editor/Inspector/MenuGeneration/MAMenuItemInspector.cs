@@ -155,6 +155,16 @@ namespace nadena.dev.modular_avatar.core.editor
                             EditorGUILayout.EndVertical();
                         }
 
+
+                        if (GUILayout.Button("Add menu item"))
+                        {
+                            var obj = new GameObject();
+                            obj.name = "New Control";
+                            obj.transform.SetParent(source.transform, false);
+                            obj.AddComponent<ModularAvatarMenuItem>();
+                            Undo.RegisterCreatedObjectUndo(obj, "Add menu item");
+                        }
+
                         break;
                     }
                     default: break;

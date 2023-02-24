@@ -137,7 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     case VRCExpressionsMenu.Control.ControlType.Button:
                     case VRCExpressionsMenu.Control.ControlType.Toggle:
-                        break;
+                        return;
                 }
 
                 EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
