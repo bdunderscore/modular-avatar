@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -8,6 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MenuItemCoreGUI
     {
+        private static readonly ObjectIDGenerator IdGenerator = new ObjectIDGenerator();
         private readonly GameObject _parameterReference;
         private readonly Action _redraw;
 
@@ -237,12 +239,12 @@ namespace nadena.dev.modular_avatar.core.editor
             var blockWidth = rect.width / 3;
 
             var up = rect;
-            up.yMin += blockHeight * 2;
+            up.yMax -= blockHeight * 2;
             up.xMin += blockWidth;
             up.xMax -= blockWidth;
 
             var down = rect;
-            down.yMax -= blockHeight * 2;
+            down.yMin += blockHeight * 2;
             down.xMin += blockWidth;
             down.xMax -= blockWidth;
 
@@ -307,19 +309,25 @@ namespace nadena.dev.modular_avatar.core.editor
                     icon_content = tex != null ? new GUIContent(tex) : new GUIContent("(no icon)");
                 }
 
+                int objectId = GUIUtility.GetControlID(
+                    ((int) IdGenerator.GetId(this, out bool _) << 2) | index,
+                    FocusType.Passive,
+                    block
+                );
+
                 if (GUI.Button(rect_icon, icon_content))
                 {
                     texPicker = index;
 
                     EditorGUIUtility.ShowObjectPicker<Texture2D>(
                         prop_icon.hasMultipleDifferentValues ? null : prop_icon.objectReferenceValue, false,
-                        "t:texture2d", index);
+                        "t:texture2d", objectId);
                 }
 
                 if (texPicker == index)
                 {
                     if (Event.current.commandName == "ObjectSelectorUpdated" &&
-                        EditorGUIUtility.GetObjectPickerControlID() == index)
+                        EditorGUIUtility.GetObjectPickerControlID() == objectId)
                     {
                         prop_icon.objectReferenceValue = EditorGUIUtility.GetObjectPickerObject() as Texture;
                         _redraw();
