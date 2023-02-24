@@ -202,6 +202,22 @@ namespace nadena.dev.modular_avatar.core.editor
                             DestroyInstallTargets();
                         }
 
+                        if (menu is ModularAvatarMenuItem item)
+                        {
+                            if (item.MenuSource == SubmenuSource.MenuAsset)
+                            {
+                                menu = item.Control.subMenu;
+                            }
+                            else
+                            {
+                                var menuParent = item.menuSource_otherObjectChildren != null
+                                    ? item.menuSource_otherObjectChildren
+                                    : item.gameObject;
+
+                                menu = new MenuNodesUnder(menuParent);
+                            }
+                        }
+
                         if (menu is VRCExpressionsMenu expMenu)
                         {
                             if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
@@ -211,7 +227,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             installTo.objectReferenceValue = null;
                         }
-                        else if (menu is ModularAvatarMenuItem item)
+                        else if (menu is MenuNodesUnder nodesUnder)
                         {
                             installTo.objectReferenceValue = null;
 
@@ -220,11 +236,13 @@ namespace nadena.dev.modular_avatar.core.editor
                                 var installer = (ModularAvatarMenuInstaller) target;
                                 var child = new GameObject();
                                 Undo.RegisterCreatedObjectUndo(child, "Set install target");
-                                child.transform.SetParent(item.transform, false);
+                                child.transform.SetParent(nodesUnder.root.transform, false);
                                 child.name = installer.gameObject.name;
 
                                 var targetComponent = child.AddComponent<ModularAvatarMenuInstallTarget>();
                                 targetComponent.installer = installer;
+
+                                EditorGUIUtility.PingObject(child);
                             }
                         }
 
@@ -504,30 +522,11 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu,
-            HashSet<ModularAvatarMenuInstaller> visitedInstaller = null)
+        private bool IsMenuReachable(VRCAvatarDescriptor avatar, VRCExpressionsMenu menu)
         {
-            if (_avatarMenus == null || _avatarMenus.Contains(menu)) return true;
+            var virtualMenu = VirtualMenu.ForAvatar(avatar);
 
-            if (_menuInstallersMap == null) return true;
-            if (visitedInstaller == null)
-                visitedInstaller = new HashSet<ModularAvatarMenuInstaller> {(ModularAvatarMenuInstaller) target};
-
-            if (!_menuInstallersMap.TryGetValue(menu, out List<ModularAvatarMenuInstaller> installers)) return false;
-            foreach (ModularAvatarMenuInstaller installer in installers)
-            {
-                // Root is always reachable if installTargetMenu is null
-                if (installer.installTargetMenu == null) return true;
-                // Even in a circular structure, it may be possible to reach root by another path.
-                if (visitedInstaller.Contains(installer)) continue;
-                visitedInstaller.Add(installer);
-                if (IsMenuReachable(avatar, installer.installTargetMenu, visitedInstaller))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return virtualMenu.ContainsMenu(menu);
         }
 
         private static ValidateExpressionMenuIconResult ValidateExpressionMenuIcon(VRCExpressionsMenu menu,

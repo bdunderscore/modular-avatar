@@ -17,6 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private VRCAvatarDescriptor _avatarDescriptor;
         private AvMenuTreeView _treeView;
+        private long _cacheIndex = -1;
 
         public VRCAvatarDescriptor Avatar
         {
@@ -37,6 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _treeView = new AvMenuTreeView(new TreeViewState());
             _treeView.OnSelect = (menu) => OnMenuSelected.Invoke(menu);
             _treeView.OnDoubleclickSelect = Close;
+            _cacheIndex = -1;
         }
 
         private void OnLostFocus()
@@ -55,6 +57,12 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 Close();
                 return;
+            }
+
+            if (_cacheIndex != VirtualMenu.CacheSequence)
+            {
+                _treeView.Reload();
+                _cacheIndex = VirtualMenu.CacheSequence;
             }
 
             _treeView.OnGUI(new Rect(0, 0, position.width, position.height));

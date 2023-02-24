@@ -40,16 +40,20 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         private readonly VirtualMenuNode _node;
         private readonly NodeForDelegate _nodeFor;
+        private readonly Action<VRCExpressionsMenu> _visitedMenu;
         private readonly HashSet<object> _visited = new HashSet<object>();
 
         public NodeContextImpl(
             VirtualMenuNode node,
             NodeForDelegate nodeFor,
-            ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>> menuToInstallerMap)
+            ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>> menuToInstallerMap,
+            Action<VRCExpressionsMenu> visitedMenu
+        )
         {
             _node = node;
             _nodeFor = nodeFor;
             _menuToInstallerMap = menuToInstallerMap;
+            _visitedMenu = visitedMenu;
         }
 
         public void PushNode(VRCExpressionsMenu expMenu)
@@ -57,6 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             if (expMenu == null) return;
             if (_visited.Contains(expMenu)) return;
             _visited.Add(expMenu);
+            _visitedMenu(expMenu);
 
             foreach (var control in expMenu.controls)
             {
@@ -169,6 +174,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         public VirtualMenuNode RootMenuNode => ResolvedMenu[RootMenuKey];
 
         private Queue<Action> _pendingGeneration = new Queue<Action>();
+        private HashSet<VRCExpressionsMenu> _visitedMenus = new HashSet<VRCExpressionsMenu>();
 
         /// <summary>
         /// Initializes the VirtualMenu.
@@ -271,7 +277,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             var RootNode = new VirtualMenuNode(RootMenuKey);
             _resolvedMenu[RootMenuKey] = RootNode;
 
-            var rootContext = new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered);
+            var rootContext =
+                new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, m => _visitedMenus.Add(m));
             if (RootMenuKey is VRCExpressionsMenu menu)
             {
                 foreach (var control in menu.controls)
@@ -303,7 +310,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 {
                     BuildReport.ReportingObject(key as UnityEngine.Object, () =>
                     {
-                        var context = new NodeContextImpl(node, NodeFor, menuToInstallerFiltered);
+                        var context = new NodeContextImpl(node, NodeFor, menuToInstallerFiltered,
+                            m => _visitedMenus.Add(m));
                         if (key is VRCExpressionsMenu expMenu)
                         {
                             context.PushNode(expMenu);
@@ -360,6 +368,11 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
                 return menu;
             }
+        }
+
+        public bool ContainsMenu(VRCExpressionsMenu menu)
+        {
+            return _visitedMenus.Contains(menu);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.menu
     /// </summary>
     internal class MenuNodesUnder : MenuSource
     {
-        private readonly GameObject root;
+        internal readonly GameObject root;
 
         public MenuNodesUnder(GameObject root)
         {

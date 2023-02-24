@@ -21,6 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var parent = ExtractSingleLayerMenu(avatar.expressionsMenu, gameObj, "Avatar Menu");
             parent.AddComponent<ModularAvatarMenuInstaller>();
+            parent.AddComponent<ModularAvatarMenuGroup>();
 
             // The VRCSDK requires that an expressions menu asset be provided if any parameters are defined.
             // We can't just remove the asset, so we'll replace it with a dummy asset. However, to avoid users
