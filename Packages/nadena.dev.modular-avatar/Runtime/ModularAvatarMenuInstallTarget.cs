@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.menu;
+using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
 
@@ -15,6 +16,7 @@ namespace nadena.dev.modular_avatar.core
     ///
     /// We can also end up with a loop between install targets; in this case, we break the loop at an arbitrary point.
     /// </summary>
+    [AddComponentMenu("Modular Avatar/MA Menu Install Target")]
     internal class ModularAvatarMenuInstallTarget : MenuSourceComponent
     {
         public ModularAvatarMenuInstaller installer;
