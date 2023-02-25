@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -6,18 +7,12 @@ namespace nadena.dev.modular_avatar.core.editor
     [CanEditMultipleObjects]
     internal class MAMenuItemInspector : MAEditorBase
     {
-        private SerializedProperty prop_control;
         private MenuItemCoreGUI _coreGUI;
 
         void OnEnable()
         {
             _coreGUI = new MenuItemCoreGUI(serializedObject, Repaint);
             _coreGUI.AlwaysExpandContents = true;
-
-            serializedObject.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
-            prop_control = serializedObject.FindProperty(nameof(ModularAvatarMenuItem.Control));
-            prop_control.FindPropertyRelative(nameof(ModularAvatarMenuItem.Control.subMenu));
-            serializedObject.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
         }
 
         protected override void OnInnerInspectorGUI()
@@ -25,6 +20,30 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.Update();
 
             _coreGUI.DoGUI();
+
+            serializedObject.ApplyModifiedProperties();
+        }
+    }
+
+    [CustomEditor(typeof(ModularAvatarMenuGroup))]
+    internal class MAMenuGroupInspector : MAEditorBase
+    {
+        private MenuPreviewGUI _previewGUI;
+        private SerializedProperty _prop_target;
+
+        void OnEnable()
+        {
+            _previewGUI = new MenuPreviewGUI(Repaint);
+            _prop_target = serializedObject.FindProperty(nameof(ModularAvatarMenuGroup.targetObject));
+        }
+
+        protected override void OnInnerInspectorGUI()
+        {
+            serializedObject.Update();
+
+            EditorGUILayout.PropertyField(_prop_target, G("menuitem.prop.source_override"));
+
+            _previewGUI.DoGUI((ModularAvatarMenuGroup) target);
 
             serializedObject.ApplyModifiedProperties();
         }
