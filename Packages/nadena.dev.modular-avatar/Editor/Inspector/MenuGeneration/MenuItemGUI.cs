@@ -6,9 +6,16 @@ using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [CustomPropertyDrawer(typeof(SubmenuSource))]
+    class SubmenuSourceDrawer : EnumDrawer<SubmenuSource>
+    {
+        protected override string localizationPrefix => "submenu_source";
+    }
+
     internal class MenuItemCoreGUI
     {
         private static readonly ObjectIDGenerator IdGenerator = new ObjectIDGenerator();
@@ -108,10 +115,10 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.PropertyField(_name);
-            EditorGUILayout.PropertyField(_texture);
-            EditorGUILayout.PropertyField(_type);
-            EditorGUILayout.PropertyField(_value);
+            EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+            EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
+            EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
+            EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
 
             _parameterGUI.DoGUI();
 
@@ -168,7 +175,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         if (_prop_submenuSource != null)
                         {
-                            EditorGUILayout.PropertyField(_prop_submenuSource);
+                            EditorGUILayout.PropertyField(_prop_submenuSource, G("menuitem.prop.submenu_source"));
                             if (_prop_submenuSource.hasMultipleDifferentValues) break;
 
                             var sourceType = (SubmenuSource) Enum.GetValues(typeof(SubmenuSource))
@@ -178,7 +185,8 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 case SubmenuSource.Children:
                                 {
-                                    EditorGUILayout.PropertyField(_prop_otherObjSource);
+                                    EditorGUILayout.PropertyField(_prop_otherObjSource,
+                                        G("menuitem.prop.source_override"));
                                     if (_prop_otherObjSource.hasMultipleDifferentValues) break;
                                     if (_prop_otherObjSource.objectReferenceValue == null)
                                     {
@@ -195,7 +203,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                 }
                                 case SubmenuSource.MenuAsset:
                                 {
-                                    EditorGUILayout.PropertyField(_submenu);
+                                    EditorGUILayout.PropertyField(_submenu, G("menuitem.prop.submenu_asset"));
                                     if (_submenu.hasMultipleDifferentValues) break;
                                     menuSource = _submenu.objectReferenceValue;
                                     break;
@@ -205,7 +213,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         else
                         {
                             // Native VRCSDK control
-                            EditorGUILayout.PropertyField(_submenu);
+                            EditorGUILayout.PropertyField(_submenu, G("menuitem.prop.submenu_asset"));
                             if (_submenu.hasMultipleDifferentValues) break;
                             menuSource = _submenu.objectReferenceValue;
                         }
@@ -219,8 +227,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             else
                             {
                                 EditorGUI.indentLevel += 1;
-                                ExpandContents = EditorGUILayout.Foldout(ExpandContents,
-                                    Localization.G("menuinstall.showcontents"));
+                                ExpandContents = EditorGUILayout.Foldout(ExpandContents, G("menuitem.showcontents"));
                                 EditorGUI.indentLevel -= 1;
                             }
 
@@ -237,7 +244,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         EnsureParameterCount(1);
 
-                        _subParams[0].DoGUI(new GUIContent("Parameter Rotation"));
+                        _subParams[0].DoGUI(G("menuitem.param.rotation"));
 
                         break;
                     }
@@ -249,8 +256,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
                         EditorGUILayout.Space(2);
 
-                        _subParams[0].DoGUI(new GUIContent("Parameter Horizontal"));
-                        _subParams[1].DoGUI(new GUIContent("Parameter Vertical"));
+                        _subParams[0].DoGUI(G("menuitem.param.horizontal"));
+                        _subParams[1].DoGUI(G("menuitem.param.vertical"));
 
                         DoFourAxisLabels(false);
 
@@ -304,7 +311,8 @@ namespace nadena.dev.modular_avatar.core.editor
             float extraHeight = EditorGUIUtility.singleLineHeight * 3;
             if (showParams) extraHeight += EditorGUIUtility.singleLineHeight;
 
-            EditorGUILayout.LabelField(showParams ? "Control Labels and Parameters" : "Control Labels",
+            EditorGUILayout.LabelField(
+                G(showParams ? "menuitem.label.control_labels_and_params" : "menuitem.label.control_labels"),
                 EditorStyles.boldLabel);
 
             var square = GUILayoutUtility.GetAspectRect(1, GUILayout.MaxWidth(maxWidth));
@@ -356,8 +364,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var rect_name_l = rect_param_l;
             if (showParams) rect_name_l.y -= rect_param_l.height;
 
-            if (showParams) CenterLabel(rect_param_l, new GUIContent("Parameter"), EditorStyles.label);
-            CenterLabel(rect_name_l, new GUIContent("Label"), EditorStyles.label);
+            if (showParams) CenterLabel(rect_param_l, G("menuitem.prop.parameter"), EditorStyles.label);
+            CenterLabel(rect_name_l, G("menuitem.prop.label"), EditorStyles.label);
 
             void SingleLabel(int index, Rect block)
             {
@@ -384,11 +392,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (prop_icon.hasMultipleDifferentValues)
                 {
-                    icon_content = new GUIContent("(multiple)");
+                    icon_content = G("menuitem.misc.multiple");
                 }
                 else
                 {
-                    icon_content = tex != null ? new GUIContent(tex) : new GUIContent("(no icon)");
+                    icon_content = tex != null ? new GUIContent(tex) : G("menuitem.misc.no_icon");
                 }
 
                 int objectId = GUIUtility.GetControlID(

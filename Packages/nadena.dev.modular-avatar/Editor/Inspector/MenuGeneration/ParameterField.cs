@@ -5,6 +5,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -32,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void DoGUI(Rect rect, GUIContent label = null)
         {
-            if (label == null) label = new GUIContent("Parameter");
+            if (label == null) label = G("menuitem.prop.parameter");
 
             if (_parameterReference != null) GUILayout.Space(-2);
             GUILayout.BeginHorizontal();
@@ -56,9 +57,8 @@ namespace nadena.dev.modular_avatar.core.editor
             buttonRect.xMin += (buttonRect.width - style.fixedWidth) / 2;
 
             if (_parameterReference != null &&
-                EditorGUI.DropdownButton(buttonRect, new GUIContent(), FocusType.Keyboard, "IN DropDown"))
+                EditorGUI.DropdownButton(buttonRect, new GUIContent(), FocusType.Keyboard, style))
             {
-                Debug.Log("Popup=" + fieldRect);
                 PopupWindow.Show(fieldRect,
                     new ParameterWindow(_parameterReference, _property, fieldRect.width, _redraw));
             }
@@ -137,11 +137,6 @@ namespace nadena.dev.modular_avatar.core.editor
             public override Vector2 GetWindowSize()
             {
                 return new Vector2(Math.Max(256, _width), 150);
-            }
-
-            public void SetContext(Object serializedObjectTargetObject)
-            {
-                //throw new NotImplementedException();
             }
         }
 
