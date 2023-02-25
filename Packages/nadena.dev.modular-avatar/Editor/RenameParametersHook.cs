@@ -260,6 +260,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (visited.Contains(sm)) continue;
                 visited.Add(sm);
 
+                foreach (var behavior in sm.behaviours)
+                {
+                    if (behavior is VRCAvatarParameterDriver driver)
+                    {
+                        ProcessDriver(driver, remaps);
+                    }
+                }
+
                 foreach (var t in sm.anyStateTransitions)
                 {
                     ProcessTransition(t, remaps);
