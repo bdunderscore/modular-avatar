@@ -25,6 +25,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool _menuFoldout;
         private bool _devFoldout;
 
+        private MenuPreviewGUI _previewGUI;
+
         private HashSet<VRCExpressionsMenu> _avatarMenus;
 
         private Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>> _menuInstallersMap;
@@ -32,6 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private void OnEnable()
         {
             _installer = (ModularAvatarMenuInstaller) target;
+            _previewGUI = new MenuPreviewGUI(Repaint);
 
             FindMenus();
             FindMenuInstallers();
@@ -260,20 +263,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (targets.Length == 1)
             {
-                /* TODO
                 _menuFoldout = EditorGUILayout.Foldout(_menuFoldout, G("menuinstall.showcontents"));
                 if (_menuFoldout)
                 {
-                    EditorGUI.indentLevel++;
-                    using (var disabled = new EditorGUI.DisabledScope(true))
-                    {
-                        if (_innerMenuEditor != null) _innerMenuEditor.OnInspectorGUI();
-                        else EditorGUILayout.HelpBox(S("menuinstall.showcontents.notselected"), MessageType.Info);
-                    }
-
-                    EditorGUI.indentLevel--;
+                    _previewGUI.DoGUI((ModularAvatarMenuInstaller) target);
                 }
-                */
             }
 
             if (targets.Any(t =>
