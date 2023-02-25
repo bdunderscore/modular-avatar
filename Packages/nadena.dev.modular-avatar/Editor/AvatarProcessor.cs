@@ -150,6 +150,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     AssetDatabase.StartAssetEditing();
                     nowProcessing = true;
 
+                    ClearEditorOnlyTagComponents(avatarGameObject.transform);
+
                     BoneDatabase.ResetBones();
                     PathMappings.Init(vrcAvatarDescriptor.gameObject);
                     ClonedMenuMappings.Clear();
@@ -212,6 +214,28 @@ namespace nadena.dev.modular_avatar.core.editor
                     ErrorReportUI.MaybeOpenErrorReportUI();
 
                     AssetDatabase.SaveAssets();
+                }
+            }
+        }
+
+        private static void ClearEditorOnlyTagComponents(Transform obj)
+        {
+            // EditorOnly objects can be used for multiple purposes - users might want a camera rig to be available in
+            // play mode, for example. For now, we'll prune MA components from EditorOnly objects, but otherwise leave
+            // them in place when in play mode.
+
+            if (obj.CompareTag("EditorOnly"))
+            {
+                foreach (var component in obj.GetComponentsInChildren<AvatarTagComponent>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(component);
+                }
+            }
+            else
+            {
+                foreach (Transform transform in obj)
+                {
+                    ClearEditorOnlyTagComponents(transform);
                 }
             }
         }
