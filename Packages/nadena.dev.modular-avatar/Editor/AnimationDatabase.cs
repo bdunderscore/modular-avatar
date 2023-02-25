@@ -40,6 +40,26 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (clip.IsProxyAnimation) clip.CurrentClip = clip.OriginalClip;
             }
 
+            foreach (var clip in _clips)
+            {
+                // Changing the "high quality curve" setting can result in behavior changes (but can happen accidentally
+                // as we manipulate curves)
+                if (clip.CurrentClip != clip.OriginalClip && clip.CurrentClip != null && clip.OriginalClip != null)
+                {
+                    SerializedObject before = new SerializedObject(clip.OriginalClip);
+                    SerializedObject after = new SerializedObject(clip.CurrentClip);
+
+                    var before_prop = before.FindProperty("m_UseHighQualityCurve");
+                    var after_prop = after.FindProperty("m_UseHighQualityCurve");
+
+                    if (after_prop.boolValue != before_prop.boolValue)
+                    {
+                        after_prop.boolValue = before_prop.boolValue;
+                        after.ApplyModifiedPropertiesWithoutUndo();
+                    }
+                }
+            }
+
             foreach (var action in _clipCommitActions)
             {
                 action();
