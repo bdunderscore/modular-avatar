@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.core.menu;
@@ -43,7 +44,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OnLostFocus()
         {
-            //Close();
+            Close();
         }
 
         private void OnDisable()
@@ -61,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (_cacheIndex != VirtualMenu.CacheSequence)
             {
-                _treeView.Reload();
+                _treeView.ReloadPreservingExpanded();
                 _cacheIndex = VirtualMenu.CacheSequence;
             }
 
@@ -119,6 +120,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AvMenuTreeView(TreeViewState state) : base(state)
         {
+        }
+
+        public void ReloadPreservingExpanded()
+        {
+            var expanded = GetExpanded().Select(id => _nodeKeys[id]).ToImmutableHashSet();
+            var selected = GetSelection().Select(id => _nodeKeys[id]).ToImmutableHashSet();
+            CollapseAll();
+            Reload();
+            SetExpanded(Enumerable.Range(0, _nodeKeys.Count)
+                .Where(i => _nodeKeys[i] != null && expanded.Contains(_nodeKeys[i]))
+                .ToList());
+            SetSelection(Enumerable.Range(0, _nodeKeys.Count)
+                .Where(i => _nodeKeys[i] != null && selected.Contains(_nodeKeys[i]))
+                .ToList());
         }
 
         protected override void SelectionChanged(IList<int> selectedIds)
