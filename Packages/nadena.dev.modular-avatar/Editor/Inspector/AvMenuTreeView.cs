@@ -154,6 +154,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _menuTree = VirtualMenu.ForAvatar(_avatar);
 
+            var preferredRoot = FindPreferredRoot(_menuTree);
+            var rootName = "";
+            if (preferredRoot is ModularAvatarMenuGroup group)
+            {
+                if (group.targetObject != null) rootName = $"({group.targetObject.name})";
+                else rootName = $"({group.gameObject.name})";
+            }
+            else if (preferredRoot is VRCExpressionsMenu menu)
+            {
+                rootName = $"({menu.name})";
+            }
+
             var root = new TreeViewItem(-1, -1, "<root>");
             List<TreeViewItem> treeItems = new List<TreeViewItem>
             {
@@ -162,14 +174,35 @@ namespace nadena.dev.modular_avatar.core.editor
                     id = 0,
                     depth = 0,
                     displayName =
-                        $"{Avatar.gameObject.name} ({(Avatar.expressionsMenu == null ? "None" : Avatar.expressionsMenu.name)})"
+                        $"{Avatar.gameObject.name} {rootName}"
                 }
             };
-            _nodeKeys.Add(_menuTree.RootMenuKey);
-            _visitedMenuStack.Push(_menuTree.RootMenuKey);
+
+            _nodeKeys.Add(preferredRoot);
+            _visitedMenuStack.Push(preferredRoot);
             TraverseMenu(1, treeItems, _menuTree.RootMenuNode);
             SetupParentsAndChildrenFromDepths(root, treeItems);
             return root;
+        }
+
+        private object FindPreferredRoot(VirtualMenu menuTree)
+        {
+            // There's always a VRCExpressionsMenu at the root, but we'd prefer to add stuff under a MenuItem tree if
+            // available. See if we can find one.
+            foreach (var installer in _avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
+            {
+                if (installer.installTargetMenu != null && installer.installTargetMenu != menuTree.RootMenuKey)
+                {
+                    continue;
+                }
+
+                var menuSource = installer.GetComponent<MenuSource>();
+                if (menuSource == null || !(menuSource is ModularAvatarMenuGroup group)) continue;
+
+                return menuSource;
+            }
+
+            return menuTree.RootMenuKey;
         }
 
         private void TraverseMenu(int depth, List<TreeViewItem> items, VirtualMenuNode node)

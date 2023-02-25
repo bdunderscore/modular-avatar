@@ -217,6 +217,11 @@ namespace nadena.dev.modular_avatar.core.editor
                                 menu = new MenuNodesUnder(menuParent);
                             }
                         }
+                        else if (menu is ModularAvatarMenuGroup group)
+                        {
+                            if (group.targetObject != null) menu = new MenuNodesUnder(group.targetObject);
+                            else menu = new MenuNodesUnder(group.gameObject);
+                        }
 
                         if (menu is VRCExpressionsMenu expMenu)
                         {
