@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using Codice.CM.Common.Tree.Partial;
+using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -26,10 +28,18 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _subParamsRoot;
         private readonly SerializedProperty _labelsRoot;
 
+        private readonly MenuPreviewGUI _previewGUI;
+
         private ParameterGUI[] _subParams;
         private SerializedProperty[] _labels;
 
         private int texPicker = -1;
+
+        private readonly SerializedProperty _prop_submenuSource;
+        private readonly SerializedProperty _prop_otherObjSource;
+
+        public bool AlwaysExpandContents = false;
+        public bool ExpandContents = false;
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -58,12 +68,16 @@ namespace nadena.dev.modular_avatar.core.editor
             var parameter = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
                 .FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter.name));
             _value = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
-            _submenu = null;
+            _submenu = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
             _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
 
             _subParamsRoot = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subParameters));
             _labelsRoot = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.labels));
+
+            _prop_submenuSource = obj.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
+            _prop_otherObjSource = obj.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
+            _previewGUI = new MenuPreviewGUI(redraw);
         }
 
         public MenuItemCoreGUI(GameObject parameterReference, SerializedProperty _control, Action redraw)
@@ -83,6 +97,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _subParamsRoot = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subParameters));
             _labelsRoot = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.labels));
+
+            _prop_submenuSource = null;
+            _prop_otherObjSource = null;
+            _previewGUI = new MenuPreviewGUI(redraw);
         }
 
         public void DoGUI()
@@ -102,7 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_texture != null)
             {
                 var tex = _texture.objectReferenceValue as Texture2D;
-                if (tex != null)
+                if (tex != null && !_texture.hasMultipleDifferentValues)
                 {
                     var size = EditorGUIUtility.singleLineHeight * 5;
                     var margin = 4;
@@ -145,12 +163,76 @@ namespace nadena.dev.modular_avatar.core.editor
                 switch (type)
                 {
                     case VRCExpressionsMenu.Control.ControlType.SubMenu:
-                        if (_submenu != null)
+                    {
+                        object menuSource = null;
+
+                        if (_prop_submenuSource != null)
                         {
+                            EditorGUILayout.PropertyField(_prop_submenuSource);
+                            if (_prop_submenuSource.hasMultipleDifferentValues) break;
+
+                            var sourceType = (SubmenuSource) Enum.GetValues(typeof(SubmenuSource))
+                                .GetValue(_prop_submenuSource.enumValueIndex);
+
+                            switch (sourceType)
+                            {
+                                case SubmenuSource.Children:
+                                {
+                                    EditorGUILayout.PropertyField(_prop_otherObjSource);
+                                    if (_prop_otherObjSource.hasMultipleDifferentValues) break;
+                                    if (_prop_otherObjSource.objectReferenceValue == null)
+                                    {
+                                        if (_obj.targetObjects.Length != 1) break;
+                                        menuSource = new MenuNodesUnder((_obj.targetObject as Component)?.gameObject);
+                                    }
+                                    else
+                                    {
+                                        menuSource =
+                                            new MenuNodesUnder((GameObject) _prop_otherObjSource.objectReferenceValue);
+                                    }
+
+                                    break;
+                                }
+                                case SubmenuSource.MenuAsset:
+                                {
+                                    EditorGUILayout.PropertyField(_submenu);
+                                    if (_submenu.hasMultipleDifferentValues) break;
+                                    menuSource = _submenu.objectReferenceValue;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Native VRCSDK control
                             EditorGUILayout.PropertyField(_submenu);
+                            if (_submenu.hasMultipleDifferentValues) break;
+                            menuSource = _submenu.objectReferenceValue;
+                        }
+
+                        if (menuSource != null)
+                        {
+                            if (AlwaysExpandContents)
+                            {
+                                ExpandContents = true;
+                            }
+                            else
+                            {
+                                EditorGUI.indentLevel += 1;
+                                ExpandContents = EditorGUILayout.Foldout(ExpandContents,
+                                    Localization.G("menuinstall.showcontents"));
+                                EditorGUI.indentLevel -= 1;
+                            }
+
+                            if (ExpandContents)
+                            {
+                                if (menuSource is VRCExpressionsMenu menu) _previewGUI.DoGUI(menu, _parameterReference);
+                                else if (menuSource is MenuSource nodes) _previewGUI.DoGUI(nodes);
+                            }
                         }
 
                         break;
+                    }
                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
                     {
                         EnsureParameterCount(1);

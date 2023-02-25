@@ -32,6 +32,12 @@ namespace nadena.dev.modular_avatar.core.editor
             new VisitorContext(this).PushMenuInstaller(root);
         }
 
+        public void DoGUI(VRCExpressionsMenu menu, GameObject parameterReference = null)
+        {
+            _indentLevel = 0;
+            new VisitorContext(this).PushNode(menu);
+        }
+
         private void PushGuiNode(object key, Func<Action> guiBuilder)
         {
             if (!_guiNodes.TryGetValue(key, out var gui))
@@ -58,41 +64,36 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public IDisposable Scope()
             {
-                if (_headerObj == null) return new NullScope();
-
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(_gui._indentLevel);
                 _gui._indentLevel += INDENT_PER_LEVEL;
 
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                GUILayout.BeginHorizontal();
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    EditorGUILayout.ObjectField(new GUIContent(), _headerObj, _headerObj.GetType(),
-                        true,
-                        GUILayout.ExpandWidth(true));
-                }
 
-                if (_disableProp != null)
+                if (_headerObj != null)
                 {
-                    _disableProp.serializedObject.Update();
-                    GUILayout.Space(20);
-                    GUILayout.Label("Enabled", GUILayout.Width(50));
-                    EditorGUILayout.PropertyField(_disableProp, GUIContent.none,
-                        GUILayout.Width(EditorGUIUtility.singleLineHeight));
-                    _disableProp.serializedObject.ApplyModifiedProperties();
-                }
+                    GUILayout.BeginHorizontal();
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        EditorGUILayout.ObjectField(new GUIContent(), _headerObj, _headerObj.GetType(),
+                            true,
+                            GUILayout.ExpandWidth(true));
+                    }
 
-                GUILayout.EndHorizontal();
+                    if (_disableProp != null)
+                    {
+                        _disableProp.serializedObject.Update();
+                        GUILayout.Space(20);
+                        GUILayout.Label("Enabled", GUILayout.Width(50));
+                        EditorGUILayout.PropertyField(_disableProp, GUIContent.none,
+                            GUILayout.Width(EditorGUIUtility.singleLineHeight));
+                        _disableProp.serializedObject.ApplyModifiedProperties();
+                    }
+
+                    GUILayout.EndHorizontal();
+                }
 
                 return new ScopeSentinel(_gui);
-            }
-
-            private class NullScope : IDisposable
-            {
-                public void Dispose()
-                {
-                }
             }
 
             private class ScopeSentinel : IDisposable
@@ -123,12 +124,39 @@ namespace nadena.dev.modular_avatar.core.editor
                 _gui = gui;
             }
 
+            public void PushMenu(VRCExpressionsMenu expMenu, GameObject parameterReference = null)
+            {
+                _gui.PushGuiNode((expMenu, parameterReference), () =>
+                {
+                    var header = new Header(_gui, expMenu);
+                    var obj = new SerializedObject(expMenu);
+                    var controls = obj.FindProperty(nameof(expMenu.controls));
+                    var subGui = new List<MenuItemCoreGUI>();
+                    for (int i = 0; i < controls.arraySize; i++)
+                    {
+                        subGui.Add(new MenuItemCoreGUI(parameterReference, controls.GetArrayElementAtIndex(i),
+                            _gui._redraw));
+                    }
+
+                    return () =>
+                    {
+                        using (header.Scope())
+                        {
+                            foreach (var gui in subGui)
+                            {
+                                using (new Header(_gui, null).Scope())
+                                {
+                                    gui.DoGUI();
+                                }
+                            }
+                        }
+                    };
+                });
+            }
+
             public void PushNode(VRCExpressionsMenu expMenu)
             {
-                foreach (var control in expMenu.controls)
-                {
-                    PushControl(control);
-                }
+                PushMenu(expMenu, null);
             }
 
             public void PushNode(MenuSource source)
@@ -178,7 +206,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else if (installer.menuToAppend != null)
                 {
-                    PushNode(installer.menuToAppend);
+                    PushMenu(installer.menuToAppend, installer.gameObject);
                 }
             }
 
