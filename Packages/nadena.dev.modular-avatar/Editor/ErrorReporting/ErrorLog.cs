@@ -334,7 +334,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         internal static T ReportingObject<T>(UnityEngine.Object obj, Func<T> action)
         {
-            CurrentReport._references.Push(obj);
+            if (obj != null) CurrentReport._references.Push(obj);
             try
             {
                 return action();
@@ -347,7 +347,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             }
             finally
             {
-                CurrentReport._references.Pop();
+                if (obj != null) CurrentReport._references.Pop();
             }
         }
 

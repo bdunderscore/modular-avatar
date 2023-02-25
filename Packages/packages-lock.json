@@ -158,6 +158,13 @@
         "com.unity.nuget.newtonsoft-json": "2.0.2"
       }
     },
+    "de.thryrallo.vrc.avatar-performance-tools": {
+      "version": "https://github.com/Thryrallo/VRC-Avatar-Performance-Tools.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ba9c16e482e7a376db18e9a85e24fabc04649d37"
+    },
     "nadena.dev.modular-avatar": {
       "version": "file:nadena.dev.modular-avatar",
       "depth": 0,

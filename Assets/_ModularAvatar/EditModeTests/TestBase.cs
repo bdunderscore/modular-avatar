@@ -15,13 +15,13 @@ namespace modular_avatar_tests
         private const string MinimalAvatarGuid = "60d3416d1f6af4a47bf9056aefc38333";
 
         [SetUp]
-        public void Setup()
+        public virtual void Setup()
         {
             objects = new List<GameObject>();
         }
 
         [TearDown]
-        public void Teardown()
+        public virtual void Teardown()
         {
             foreach (var obj in objects)
             {
