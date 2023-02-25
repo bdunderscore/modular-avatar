@@ -22,6 +22,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _coreGUI.DoGUI();
 
             serializedObject.ApplyModifiedProperties();
+
+            ShowLanguageUI();
         }
     }
 
@@ -46,6 +48,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _previewGUI.DoGUI((ModularAvatarMenuGroup) target);
 
             serializedObject.ApplyModifiedProperties();
+
+            ShowLanguageUI();
         }
     }
 }
