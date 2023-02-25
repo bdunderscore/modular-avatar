@@ -214,6 +214,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ErrorReportUI.MaybeOpenErrorReportUI();
 
                     AssetDatabase.SaveAssets();
+
+                    Resources.UnloadUnusedAssets();
                 }
             }
         }

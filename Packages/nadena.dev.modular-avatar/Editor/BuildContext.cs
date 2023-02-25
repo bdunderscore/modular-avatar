@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -12,6 +14,10 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly VRCAvatarDescriptor AvatarDescriptor;
         internal readonly AnimationDatabase AnimationDatabase = new AnimationDatabase();
         internal readonly AnimatorController AssetContainer;
+
+        internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
+            = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
+
 
         public BuildContext(VRCAvatarDescriptor avatarDescriptor)
         {
@@ -71,6 +77,39 @@ namespace nadena.dev.modular_avatar.core.editor
             var merger = new AnimatorCombiner(this);
             merger.AddOverrideController("", overrideController, null);
             return merger.Finish();
+        }
+
+        public VRCExpressionsMenu CloneMenu(VRCExpressionsMenu menu)
+        {
+            if (menu == null) return null;
+            if (ClonedMenus.TryGetValue(menu, out var newMenu)) return newMenu;
+            newMenu = Object.Instantiate(menu);
+            this.SaveAsset(newMenu);
+            ClonedMenus[menu] = newMenu;
+
+            foreach (var control in newMenu.controls)
+            {
+                if (Util.ValidateExpressionMenuIcon(control.icon) != Util.ValidateExpressionMenuIconResult.Success)
+                    control.icon = null;
+
+                for (int i = 0; i < control.labels.Length; i++)
+                {
+                    var label = control.labels[i];
+                    var labelResult = Util.ValidateExpressionMenuIcon(label.icon);
+                    if (labelResult != Util.ValidateExpressionMenuIconResult.Success)
+                    {
+                        label.icon = null;
+                        control.labels[i] = label;
+                    }
+                }
+
+                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                {
+                    control.subMenu = CloneMenu(control.subMenu);
+                }
+            }
+
+            return newMenu;
         }
     }
 }

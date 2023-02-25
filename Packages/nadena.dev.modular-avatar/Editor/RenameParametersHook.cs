@@ -178,6 +178,26 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             break;
                         }
+
+                        case ModularAvatarMenuItem menuItem:
+                        {
+                            if (menuItem.Control.parameter?.name != null &&
+                                remaps.TryGetValue(menuItem.Control.parameter.name, out var newVal))
+                            {
+                                menuItem.Control.parameter.name = newVal;
+                            }
+
+                            foreach (var subParam in menuItem.Control.subParameters ??
+                                                     Array.Empty<VRCExpressionsMenu.Control.Parameter>())
+                            {
+                                if (subParam?.name != null && remaps.TryGetValue(subParam.name, out var subNewVal))
+                                {
+                                    subParam.name = subNewVal;
+                                }
+                            }
+
+                            break;
+                        }
                     }
                 });
             }
