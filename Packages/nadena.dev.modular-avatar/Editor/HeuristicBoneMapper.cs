@@ -20,7 +20,7 @@ namespace nadena.dev.modular_avatar.core.editor
             new[] {"LeftFoot", "Foot_Left", "Foot_L"},
             new[] {"RightFoot", "Foot_Right", "Foot_R"},
             new[] {"Spine"},
-            new[] {"Chest"},
+            new[] {"Chest", "Bust"},
             new[] {"Neck"},
             new[] {"Head"},
             new[] {"LeftShoulder", "Shoulder_Left", "Shoulder_L"},
