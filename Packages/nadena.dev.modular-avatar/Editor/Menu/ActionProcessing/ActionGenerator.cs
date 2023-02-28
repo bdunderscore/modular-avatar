@@ -358,8 +358,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var defaultItems = items.Where(i => i.isDefault).ToList();
             if (defaultItems.Count > 1)
             {
-                BuildReport.LogFatal("animation_gen.multiple_defaults", Array.Empty<object>(),
-                    defaultItems.ToArray<UnityEngine.Object>());
+                BuildReport.LogFatal("animation_gen.multiple_defaults",
+                    strings: Array.Empty<object>(),
+                    objects: defaultItems.ToArray<UnityEngine.Object>()
+                );
                 defaultItems.RemoveRange(1, defaultItems.Count - 1);
             }
 
