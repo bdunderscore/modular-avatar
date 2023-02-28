@@ -20,6 +20,9 @@ namespace nadena.dev.modular_avatar.core
 
         public GameObject menuSource_otherObjectChildren;
 
+        public ToggleGroup toggleGroup;
+        public bool isDefault;
+
         public override void Visit(NodeContext context)
         {
             var cloned = new VirtualControl(Control);

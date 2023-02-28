@@ -208,16 +208,48 @@ namespace nadena.dev.modular_avatar.core.editor
             List<VRCExpressionParameters.Parameter> expParameters = expParams.parameters.ToList();
             List<BlendTree> blendTrees = new List<BlendTree>();
 
-            int index = 0;
+            Dictionary<Component, List<ModularAvatarMenuItem>> groupedItems =
+                new Dictionary<Component, List<ModularAvatarMenuItem>>();
+
             foreach (var item in items)
             {
-                var paramname = "_MA/A/" + item.gameObject.name + "/" + (index++);
-                // TODO toggle group handling
+                List<ModularAvatarMenuItem> group;
+                if (item.toggleGroup)
+                {
+                    if (!groupedItems.TryGetValue(item.toggleGroup, out group))
+                    {
+                        group = new List<ModularAvatarMenuItem>();
+                        groupedItems.Add(item.toggleGroup, group);
+                    }
+                }
+                else
+                {
+                    group = new List<ModularAvatarMenuItem>();
+                    groupedItems.Add(item, group);
+                }
+
+                group.Add(item);
+            }
+
+            int paramIndex = 0;
+            foreach (var kvp in groupedItems)
+            {
+                // sort default first
+                var group = kvp.Value;
+                group.Sort((a, b) => b.isDefault.CompareTo(a.isDefault));
+
+                // Generate parameter
+                var paramname = "_MA/A/" + kvp.Key.gameObject.name + "/" + (paramIndex++);
+
+                var expParamType = group.Count > 1
+                    ? VRCExpressionParameters.ValueType.Int
+                    : VRCExpressionParameters.ValueType.Bool;
+
                 expParameters.Add(new VRCExpressionParameters.Parameter()
                 {
                     name = paramname,
                     defaultValue = 0, // TODO
-                    valueType = VRCExpressionParameters.ValueType.Bool,
+                    valueType = expParamType,
                     saved = false, // TODO
                 });
                 acParameters.Add(new AnimatorControllerParameter()
@@ -227,31 +259,48 @@ namespace nadena.dev.modular_avatar.core.editor
                     defaultFloat = 0, // TODO
                 });
 
-                item.Control.parameter = new VRCExpressionsMenu.Control.Parameter() {name = paramname};
-                item.Control.value = 1;
+                var hasDefault = group[0].isDefault;
+                for (int i = 0; i < group.Count; i++)
+                {
+                    var control = group[i].Control;
+                    control.parameter = new VRCExpressionsMenu.Control.Parameter() {name = paramname};
+                    control.value = hasDefault ? i : i + 1;
+                }
 
                 var blendTree = new BlendTree();
                 blendTree.name = paramname;
                 blendTree.blendParameter = paramname;
                 blendTree.blendType = BlendTreeType.Simple1D;
                 blendTree.useAutomaticThresholds = false;
-                blendTree.children = new[]
+
+                List<ChildMotion> children = new List<ChildMotion>();
+
+                List<Motion> motions = GenerateMotions(group, out var inactiveMotion);
+
+                if (!hasDefault)
                 {
-                    new ChildMotion()
+                    motions.Insert(0, inactiveMotion);
+                }
+
+                for (int i = 0; i < motions.Count; i++)
+                {
+                    children.Add(new ChildMotion()
                     {
-                        motion = GenerateMotion(item, false),
-                        position = new Vector2(0, 0),
-                        threshold = 0.25f,
+                        motion = motions[i],
+                        position = new Vector2(i, 0),
+                        threshold = i - 0.1f,
                         timeScale = 1,
-                    },
-                    new ChildMotion()
+                    });
+                    children.Add(new ChildMotion()
                     {
-                        motion = GenerateMotion(item, true),
-                        position = new Vector2(1, 0),
-                        threshold = 0.75f,
+                        motion = motions[i],
+                        position = new Vector2(i, 0),
+                        threshold = i + 0.1f,
                         timeScale = 1,
-                    },
-                };
+                    });
+                }
+
+                blendTree.children = children.ToArray();
 
                 _context.SaveAsset(blendTree);
                 blendTrees.Add(blendTree);
@@ -263,18 +312,16 @@ namespace nadena.dev.modular_avatar.core.editor
             return blendTrees;
         }
 
-        private Motion GenerateMotion(ModularAvatarMenuItem item, bool active)
+        void MergeCurves(
+            IDictionary<MenuCurveBinding, (Component, AnimationCurve)> curves,
+            ModularAvatarMenuItem item,
+            Func<MenuAction, IDictionary<MenuCurveBinding, AnimationCurve>> getCurves,
+            bool ignoreDuplicates
+        )
         {
-            AnimationClip clip = new AnimationClip();
-            _context.SaveAsset(clip);
-            clip.name = item.gameObject.name + (active ? " (On)" : " (Off)");
-
-            Dictionary<MenuCurveBinding, (Component, AnimationCurve)> curves =
-                new Dictionary<MenuCurveBinding, (Component, AnimationCurve)>();
-
             foreach (var action in item.GetComponents<MenuAction>())
             {
-                var newCurves = active ? action.GetCurves() : action.GetDefaultCurves();
+                var newCurves = getCurves(action);
 
                 foreach (var curvePair in newCurves)
                 {
@@ -283,7 +330,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (curves.TryGetValue(binding, out var existing))
                     {
-                        if (active)
+                        if (!ignoreDuplicates)
                         {
                             BuildReport.LogFatal("animation_gen.conflict", new object[]
                             {
@@ -301,7 +348,67 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
+        }
 
+        private List<Motion> GenerateMotions(List<ModularAvatarMenuItem> items, out Motion inactiveMotion)
+        {
+            Dictionary<MenuCurveBinding, (Component, AnimationCurve)> inactiveCurves =
+                new Dictionary<MenuCurveBinding, (Component, AnimationCurve)>();
+
+            var defaultItems = items.Where(i => i.isDefault).ToList();
+            if (defaultItems.Count > 1)
+            {
+                BuildReport.LogFatal("animation_gen.multiple_defaults", Array.Empty<object>(),
+                    defaultItems.ToArray<UnityEngine.Object>());
+                defaultItems.RemoveRange(1, defaultItems.Count - 1);
+            }
+
+            MergeCurves(inactiveCurves, defaultItems[0], a => a.GetInactiveCurves(true), false);
+
+            foreach (var item in items)
+            {
+                if (defaultItems.Count == 0 || defaultItems[0] != item)
+                {
+                    MergeCurves(inactiveCurves, item, a => a.GetInactiveCurves(false), true);
+                }
+            }
+
+            inactiveMotion = CurvesToMotion(inactiveCurves);
+            var groupName = (items[0].toggleGroup != null
+                ? items[0].toggleGroup.gameObject.name
+                : items[0].gameObject.name);
+            inactiveMotion.name =
+                groupName
+                + " (Inactive)";
+
+            List<Motion> motions = new List<Motion>();
+
+            foreach (var item in items)
+            {
+                Dictionary<MenuCurveBinding, (Component, AnimationCurve)> activeCurves =
+                    new Dictionary<MenuCurveBinding, (Component, AnimationCurve)>();
+
+                MergeCurves(activeCurves, item, a => a.GetCurves(), false);
+                foreach (var kvp in inactiveCurves)
+                {
+                    if (!activeCurves.ContainsKey(kvp.Key))
+                    {
+                        activeCurves.Add(kvp.Key, kvp.Value);
+                    }
+                }
+
+                var clip = CurvesToMotion(activeCurves);
+                clip.name = groupName + " (" + item.gameObject.name + ")";
+                motions.Add(clip);
+            }
+
+            return motions;
+        }
+
+        Motion CurvesToMotion(IDictionary<MenuCurveBinding, (Component, AnimationCurve)> curves)
+        {
+            var clip = new AnimationClip();
+            _context.SaveAsset(clip);
             foreach (var entry in curves)
             {
                 clip.SetCurve(
