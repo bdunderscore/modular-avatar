@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
-using Codice.CM.Common.Tree.Partial;
 using nadena.dev.modular_avatar.core.menu;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -54,11 +51,23 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private bool _hasActions;
 
-        private bool HasActions()
+        private bool HasActions(TargetParameter? p = null)
         {
             return _toggleGroup != null && _obj.targetObjects.Any(o =>
-                o is ModularAvatarMenuItem c && c.GetComponent<MenuAction>() != null
-            );
+            {
+                if (!(o is ModularAvatarMenuItem c)) return false;
+                if (p.HasValue)
+                {
+                    foreach (var component in c.GetComponents<MenuAction>())
+                    {
+                        if (component.BindsParameter(p.Value)) return true;
+                    }
+
+                    return false;
+                }
+
+                return true;
+            });
         }
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
@@ -162,7 +171,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            _parameterGUI.DoGUI(!_hasActions);
+            _parameterGUI.DoGUI(!_hasActions || !HasActions(TargetParameter.BaseParameter));
 
             EditorGUILayout.EndVertical();
 
@@ -286,7 +295,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         EnsureParameterCount(1);
 
-                        _subParams[0].DoGUI(true, G("menuitem.param.rotation"));
+                        _subParams[0].DoGUI(!_hasActions || !HasActions(TargetParameter.RadialParam),
+                            G("menuitem.param.rotation"));
 
                         break;
                     }
@@ -298,8 +308,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
                         EditorGUILayout.Space(2);
 
-                        _subParams[0].DoGUI(true, G("menuitem.param.horizontal"));
-                        _subParams[1].DoGUI(true, G("menuitem.param.vertical"));
+                        _subParams[0].DoGUI(!_hasActions || !HasActions(TargetParameter.Horizontal),
+                            G("menuitem.param.horizontal"));
+                        _subParams[1].DoGUI(!_hasActions || !HasActions(TargetParameter.Vertical),
+                            G("menuitem.param.vertical"));
 
                         DoFourAxisLabels(false);
 
@@ -396,10 +408,10 @@ namespace nadena.dev.modular_avatar.core.editor
             center.xMin += blockWidth;
             center.xMax -= blockWidth;
 
-            SingleLabel(0, up);
-            SingleLabel(1, right);
-            SingleLabel(2, down);
-            SingleLabel(3, left);
+            SingleLabel(0, up, TargetParameter.Up);
+            SingleLabel(1, right, TargetParameter.Right);
+            SingleLabel(2, down, TargetParameter.Down);
+            SingleLabel(3, left, TargetParameter.Left);
 
             var rect_param_l = center;
             rect_param_l.yMin = rect_param_l.yMax - EditorGUIUtility.singleLineHeight;
@@ -409,7 +421,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (showParams) CenterLabel(rect_param_l, G("menuitem.prop.parameter"), EditorStyles.label);
             CenterLabel(rect_name_l, G("menuitem.prop.label"), EditorStyles.label);
 
-            void SingleLabel(int index, Rect block)
+            void SingleLabel(int index, Rect block, TargetParameter parameter)
             {
                 var prop_name = _labels[index].FindPropertyRelative(nameof(VRCExpressionsMenu.Control.Label.name));
                 var prop_icon = _labels[index].FindPropertyRelative(nameof(VRCExpressionsMenu.Control.Label.icon));
@@ -426,7 +438,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUI.PropertyField(rect_name, prop_name, GUIContent.none);
                 if (showParams)
                 {
-                    _subParams[index].DoGUI(rect_param, true, GUIContent.none);
+                    _subParams[index].DoGUI(rect_param, !_hasActions || !HasActions(parameter), GUIContent.none);
                 }
 
                 var tex = prop_icon.objectReferenceValue as Texture;

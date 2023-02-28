@@ -315,11 +315,11 @@ namespace nadena.dev.modular_avatar.core.editor
         void MergeCurves(
             IDictionary<MenuCurveBinding, (Component, AnimationCurve)> curves,
             ModularAvatarMenuItem item,
-            Func<MenuAction, IDictionary<MenuCurveBinding, AnimationCurve>> getCurves,
+            Func<SwitchedMenuAction, IDictionary<MenuCurveBinding, AnimationCurve>> getCurves,
             bool ignoreDuplicates
         )
         {
-            foreach (var action in item.GetComponents<MenuAction>())
+            foreach (var action in item.GetComponents<SwitchedMenuAction>())
             {
                 var newCurves = getCurves(action);
 

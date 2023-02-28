@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _redraw = redraw;
         }
 
-        public void DoGUI(bool enabled = true, GUIContent label = null)
+        public void DoGUI(bool enabled, GUIContent label = null)
         {
             DoGUI(EditorGUILayout.GetControlRect(
                 true,
@@ -31,7 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ), enabled, label);
         }
 
-        public void DoGUI(Rect rect, bool enabled = true, GUIContent label = null)
+        public void DoGUI(Rect rect, bool enabled, GUIContent label = null)
         {
             label = label ?? G("menuitem.prop.parameter");
 
