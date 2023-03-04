@@ -117,6 +117,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             DetectParameters();
 
+            ElementHeightCache = BuildHeightCache();
+
             if (_reorderableList == null)
             {
                 _reorderableList = new ReorderableList(
