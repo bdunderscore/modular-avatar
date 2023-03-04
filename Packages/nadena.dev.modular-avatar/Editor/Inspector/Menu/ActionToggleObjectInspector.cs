@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -60,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _objectRect = new Rect(_checkRect.xMax + margin, 0, rect.width - _checkRect.width - margin,
                 _list.elementHeight);
 
-            EditorGUI.LabelField(rect, "Objects to hide/show");
+            EditorGUI.LabelField(rect, G("action.toggle_object.header"));
         }
 
         private void DrawElement(Rect rect, int index, bool isactive, bool isfocused)

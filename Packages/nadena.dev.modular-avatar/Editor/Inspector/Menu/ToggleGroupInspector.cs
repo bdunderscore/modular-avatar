@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -54,7 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     coreUI.DoGUI();
 
-                    foldout = EditorGUILayout.Foldout(foldout, "Actions");
+                    foldout = EditorGUILayout.Foldout(foldout, G("toggle_group.foldout.actions"));
                     if (foldout)
                     {
                         if (foldoutInspectors == null)
@@ -90,7 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_menuItemActions == null) Invalidate();
 
-            _showInner = EditorGUILayout.Foldout(_showInner, "Bound menu items");
+            _showInner = EditorGUILayout.Foldout(_showInner, G("toggle_group.foldout.menu_items"));
             if (_showInner)
             {
                 foreach (var action in _menuItemActions)

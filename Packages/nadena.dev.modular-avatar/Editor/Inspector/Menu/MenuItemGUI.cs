@@ -161,15 +161,22 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
             EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
-            EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
 
             if (_hasActions)
             {
-                EditorGUILayout.PropertyField(_toggleGroup);
-                using (new EditorGUI.DisabledScope(_obj.isEditingMultipleObjects))
+                EditorGUILayout.PropertyField(_toggleGroup, G("menuitem.prop.toggle_group"));
+                if (_toggleGroup.hasMultipleDifferentValues || _toggleGroup.objectReferenceValue != null)
                 {
-                    EditorGUILayout.PropertyField(_isDefault);
+                    using (new EditorGUI.DisabledScope(_obj.isEditingMultipleObjects))
+                    {
+                        EditorGUILayout.PropertyField(_isDefault, G("menuitem.prop.is_default"));
+                    }
                 }
+            }
+
+            if (!_hasActions || !HasActions(TargetParameter.BaseParameter))
+            {
+                EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
             }
 
             _parameterGUI.DoGUI(!_hasActions || !HasActions(TargetParameter.BaseParameter));
@@ -338,7 +345,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         EnsureParameterCount(2);
                         EnsureLabelCount(4);
 
-                        EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField(G("menuitem.label.parameters"), EditorStyles.boldLabel);
                         EditorGUILayout.Space(2);
 
                         _subParams[0].DoGUI(!_hasActions || !HasActions(TargetParameter.Horizontal),

@@ -39,7 +39,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    EditorGUI.TextField(rect, label, "<controlled by action>");
+                    EditorGUI.TextField(rect, label, S("menuitem.param.controlled_by_action"));
                     return;
                 }
             }
