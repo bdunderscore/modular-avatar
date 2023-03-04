@@ -112,9 +112,10 @@ namespace nadena.dev.modular_avatar.core.editor
 			}
 		}
 
-
-		private void TraverseMenu(VRCExpressionsMenu root) 
-		{
+        
+		private void TraverseMenu(VRCExpressionsMenu root)
+        {
+            Debug.Log("test");
 			foreach (KeyValuePair<string, VRCExpressionsMenu> childMenu in GetChildMenus(root)) 
 			{
 				TraverseMenu(root, new ChildElement 
