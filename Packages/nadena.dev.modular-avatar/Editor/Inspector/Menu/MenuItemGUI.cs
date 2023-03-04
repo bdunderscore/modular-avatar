@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -223,6 +224,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VRCExpressionsMenu.Control.ControlType.SubMenu:
                     {
                         object menuSource = null;
+                        bool canExpand = false;
 
                         if (_prop_submenuSource != null)
                         {
@@ -255,6 +257,8 @@ namespace nadena.dev.modular_avatar.core.editor
                                 case SubmenuSource.MenuAsset:
                                 {
                                     EditorGUILayout.PropertyField(_submenu, G("menuitem.prop.submenu_asset"));
+                                    canExpand = true;
+
                                     if (_submenu.hasMultipleDifferentValues) break;
                                     menuSource = _submenu.objectReferenceValue;
                                     break;
@@ -286,6 +290,35 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 if (menuSource is VRCExpressionsMenu menu) _previewGUI.DoGUI(menu, _parameterReference);
                                 else if (menuSource is MenuSource nodes) _previewGUI.DoGUI(nodes);
+                            }
+                        }
+
+                        if (canExpand && (_submenu.hasMultipleDifferentValues || _submenu.objectReferenceValue != null))
+                        {
+                            if (GUILayout.Button(G("menuitem.misc.extract")))
+                            {
+                                _obj.ApplyModifiedProperties();
+
+                                foreach (var targetObj in _obj.targetObjects)
+                                {
+                                    var menuItem = (ModularAvatarMenuItem) targetObj;
+                                    if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu
+                                        && menuItem.Control.subMenu != null
+                                        && menuItem.MenuSource == SubmenuSource.MenuAsset
+                                       )
+                                    {
+                                        Undo.RecordObject(menuItem, "Extract menu");
+                                        MenuExtractor.ExtractSingleLayerMenu(menuItem.Control.subMenu,
+                                            menuItem.gameObject);
+                                        menuItem.Control.subMenu = null;
+                                        menuItem.MenuSource = SubmenuSource.Children;
+                                        menuItem.menuSource_otherObjectChildren = null;
+                                        EditorUtility.SetDirty(menuItem);
+                                        PrefabUtility.RecordPrefabInstancePropertyModifications(menuItem);
+                                    }
+                                }
+
+                                _obj.Update();
                             }
                         }
 

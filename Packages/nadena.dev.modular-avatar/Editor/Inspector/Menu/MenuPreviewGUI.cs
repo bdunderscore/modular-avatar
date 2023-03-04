@@ -51,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (_disableProp != null)
                     {
                         _disableProp.serializedObject.Update();
-                        GUILayout.Space(20);
+                        GUILayout.Space(10);
                         GUILayout.Label("Enabled", GUILayout.Width(50));
                         EditorGUILayout.PropertyField(_disableProp, GUIContent.none,
                             GUILayout.Width(EditorGUIUtility.singleLineHeight));

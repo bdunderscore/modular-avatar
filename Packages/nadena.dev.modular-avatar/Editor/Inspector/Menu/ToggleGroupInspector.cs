@@ -11,6 +11,8 @@ namespace nadena.dev.modular_avatar.core.editor
     [CustomEditor(typeof(ToggleGroup))]
     internal class ToggleGroupInspector : MAEditorBase
     {
+        private bool _showInner;
+
         private void OnEnable()
         {
             EditorApplication.hierarchyChanged += Invalidate;
@@ -88,21 +90,26 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_menuItemActions == null) Invalidate();
 
-            EditorGUILayout.LabelField("Bound menu items", EditorStyles.boldLabel);
-            foreach (var action in _menuItemActions)
+            _showInner = EditorGUILayout.Foldout(_showInner, "Bound menu items");
+            if (_showInner)
             {
-                try
+                foreach (var action in _menuItemActions)
                 {
-                    EditorGUI.indentLevel++;
-                    action();
-                }
-                finally
-                {
-                    EditorGUI.indentLevel--;
-                }
+                    try
+                    {
+                        EditorGUI.indentLevel++;
+                        action();
+                    }
+                    finally
+                    {
+                        EditorGUI.indentLevel--;
+                    }
 
-                EditorGUILayout.Space(4);
+                    EditorGUILayout.Space(4);
+                }
             }
+
+            Localization.ShowLanguageUI();
         }
     }
 }
