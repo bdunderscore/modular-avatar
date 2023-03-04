@@ -188,6 +188,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     context.AnimationDatabase.Commit();
 
+                    new GCGameObjectsPass(context, avatarGameObject).OnPreprocessAvatar();
+
                     AfterProcessing?.Invoke(avatarGameObject);
                 }
                 finally
