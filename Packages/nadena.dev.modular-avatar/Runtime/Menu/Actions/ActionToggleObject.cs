@@ -8,6 +8,7 @@ using Object = System.Object;
 namespace nadena.dev.modular_avatar.core
 {
     [RequireComponent(typeof(ModularAvatarMenuItem))]
+    [AddComponentMenu("Modular Avatar/MA Action Toggle Object")]
     public class ActionToggleObject : AvatarTagComponent, SwitchedMenuAction
     {
         [Serializable]
@@ -18,6 +19,16 @@ namespace nadena.dev.modular_avatar.core
         }
 
         public List<ObjectEntry> Objects;
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+
+            if (Objects == null)
+            {
+                Objects = new List<ObjectEntry>();
+            }
+        }
 
         public ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetCurves()
         {

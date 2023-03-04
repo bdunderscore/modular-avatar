@@ -94,7 +94,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             Rect rect = GUILayoutUtility.GetRect(
                 10f,
-                _list.headerHeight + _list.elementHeight * _list.serializedProperty.arraySize + _list.footerHeight,
+                _list.headerHeight + _list.elementHeight * Math.Max(1, _list.serializedProperty.arraySize) +
+                _list.footerHeight,
                 GUILayout.ExpandWidth(true)
             );
 
@@ -119,6 +120,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         if (!DragIsGameObject()) break;
                         var targetObj = (ActionToggleObject) target;
+
+                        if (targetObj.Objects == null)
+                        {
+                            targetObj.Objects = new List<ActionToggleObject.ObjectEntry>();
+                        }
 
                         HashSet<GameObject> currentObjects = new HashSet<GameObject>();
                         foreach (var obj in targetObj.Objects)
