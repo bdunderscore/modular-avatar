@@ -231,6 +231,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 group.Add(item);
             }
 
+            Dictionary<MenuCurveBinding, Component> bindings = new Dictionary<MenuCurveBinding, Component>();
+
             int paramIndex = 0;
             foreach (var kvp in groupedItems)
             {
@@ -275,7 +277,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 List<ChildMotion> children = new List<ChildMotion>();
 
-                List<Motion> motions = GenerateMotions(group, out var inactiveMotion);
+                List<Motion> motions = GenerateMotions(group, bindings, out var inactiveMotion);
 
                 if (!hasDefault)
                 {
@@ -350,8 +352,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private List<Motion> GenerateMotions(List<ModularAvatarMenuItem> items, out Motion inactiveMotion)
+        private List<Motion> GenerateMotions(
+            List<ModularAvatarMenuItem> items,
+            Dictionary<MenuCurveBinding, Component> bindings,
+            out Motion inactiveMotion)
         {
+            Dictionary<MenuCurveBinding, Component> newBindings = new Dictionary<MenuCurveBinding, Component>();
+
             Dictionary<MenuCurveBinding, (Component, AnimationCurve)> inactiveCurves =
                 new Dictionary<MenuCurveBinding, (Component, AnimationCurve)>();
 
@@ -405,6 +412,29 @@ namespace nadena.dev.modular_avatar.core.editor
                 var clip = CurvesToMotion(activeCurves);
                 clip.name = groupName + " (" + item.gameObject.name + ")";
                 motions.Add(clip);
+
+                foreach (var binding in activeCurves)
+                {
+                    if (!newBindings.ContainsKey(binding.Key))
+                    {
+                        newBindings.Add(binding.Key, binding.Value.Item1);
+                    }
+                }
+            }
+
+            foreach (var binding in newBindings)
+            {
+                if (bindings.ContainsKey(binding.Key))
+                {
+                    BuildReport.LogFatal("animation_gen.duplicate_binding", new object[]
+                    {
+                        binding.Key
+                    }, binding.Value, bindings[binding.Key]);
+                }
+                else
+                {
+                    bindings.Add(binding.Key, binding.Value);
+                }
             }
 
             return motions;

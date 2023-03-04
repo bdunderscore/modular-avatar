@@ -247,8 +247,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         ClonedMenuMappings.Clear();
 
-                        ErrorReportUI.MaybeOpenErrorReportUI();
-
                         AssetDatabase.SaveAssets();
 
                         Resources.UnloadUnusedAssets();
@@ -258,6 +256,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     BuildReport.LogException(e);
                     throw;
+                }
+                finally
+                {
+                    ErrorReportUI.MaybeOpenErrorReportUI();
                 }
 
                 if (!BuildReport.CurrentReport.CurrentAvatar.successful)

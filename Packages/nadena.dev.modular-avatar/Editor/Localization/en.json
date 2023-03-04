@@ -116,5 +116,7 @@
   "control_group.foldout.menu_items": "Bound menu items",
   "menuitem.prop.control_group": "Control Group",
   "menuitem.prop.control_group.tooltip": "Only one toggle in a given group can be selected at the same time",
-  "menuitem.prop.is_default": "Is Group Default"
+  "menuitem.prop.is_default": "Is Group Default",
+  "animation_gen.duplicate_binding": "Controls from different control groups are trying to animate the same parameter. Parameter: {0}",
+  "animation_gen.multiple_defaults": "Multiple default menu items were found in the same control group."
 }
