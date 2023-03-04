@@ -365,7 +365,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 defaultItems.RemoveRange(1, defaultItems.Count - 1);
             }
 
-            MergeCurves(inactiveCurves, defaultItems[0], a => a.GetInactiveCurves(true), false);
+            if (defaultItems.Count > 0)
+            {
+                MergeCurves(inactiveCurves, defaultItems[0], a => a.GetInactiveCurves(true), false);
+            }
 
             foreach (var item in items)
             {
