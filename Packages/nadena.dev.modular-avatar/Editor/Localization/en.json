@@ -112,8 +112,9 @@
   "action.toggle_object.header": "Objects to show/hide",
   "menu_tree.title": "Select menu",
   "menuitem.param.controlled_by_action": "<controlled by action>",
-  "toggle_group.foldout.actions": "Actions",
-  "toggle_group.foldout.menu_items": "Bound menu items",
-  "menuitem.prop.toggle_group": "Toggle Group",
+  "control_group.foldout.actions": "Actions",
+  "control_group.foldout.menu_items": "Bound menu items",
+  "menuitem.prop.control_group": "Control Group",
+  "menuitem.prop.control_group.tooltip": "Only one toggle in a given group can be selected at the same time",
   "menuitem.prop.is_default": "Is Group Default"
 }

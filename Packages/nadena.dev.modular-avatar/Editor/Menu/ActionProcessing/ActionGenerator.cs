@@ -214,12 +214,12 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var item in items)
             {
                 List<ModularAvatarMenuItem> group;
-                if (item.toggleGroup)
+                if (item.controlGroup)
                 {
-                    if (!groupedItems.TryGetValue(item.toggleGroup, out group))
+                    if (!groupedItems.TryGetValue(item.controlGroup, out group))
                     {
                         group = new List<ModularAvatarMenuItem>();
-                        groupedItems.Add(item.toggleGroup, group);
+                        groupedItems.Add(item.controlGroup, group);
                     }
                 }
                 else
@@ -379,8 +379,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             inactiveMotion = CurvesToMotion(inactiveCurves);
-            var groupName = (items[0].toggleGroup != null
-                ? items[0].toggleGroup.gameObject.name
+            var groupName = (items[0].controlGroup != null
+                ? items[0].controlGroup.gameObject.name
                 : items[0].gameObject.name);
             inactiveMotion.name =
                 groupName

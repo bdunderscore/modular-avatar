@@ -109,8 +109,9 @@
   "action.toggle_object.header": "表示・非表示にするオブジェクト",
   "menu_tree.title": "メニューを選択",
   "menuitem.param.controlled_by_action": "<アクションで制御されています>",
-  "toggle_group.foldout.actions": "アクション",
-  "toggle_group.foldout.menu_items": "関連付けされたメニューアイテム",
-  "menuitem.prop.toggle_group": "Toggle Group",
+  "control_group.foldout.actions": "アクション",
+  "control_group.foldout.menu_items": "関連付けされたメニューアイテム",
+  "menuitem.prop.control_group": "コントロールグループ",
+  "menuitem.prop.control_group.tooltip": "同じグループ内では、一つのトグルしか起動できません",
   "menuitem.prop.is_default": "グループの初期設定にする"
 }

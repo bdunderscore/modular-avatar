@@ -7,8 +7,8 @@ using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomEditor(typeof(ToggleGroup))]
-    internal class ToggleGroupInspector : MAEditorBase
+    [CustomEditor(typeof(ControlGroup))]
+    internal class ControlGroupInspector : MAEditorBase
     {
         private bool _showInner;
 
@@ -26,12 +26,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void Invalidate()
         {
-            var target = (ToggleGroup) this.target;
+            var target = (ControlGroup) this.target;
             var avatar = RuntimeUtil.FindAvatarInParents(target.transform);
             var menuItems = avatar.GetComponentsInChildren<ModularAvatarMenuItem>(true);
 
             _menuItemActions = new List<Action>();
-            foreach (var menuItem in menuItems.Where(item => item.toggleGroup == target))
+            foreach (var menuItem in menuItems.Where(item => item.controlGroup == target))
             {
                 var node = CreateMenuItemNode(menuItem);
                 _menuItemActions.Add(node);
@@ -53,7 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     coreUI.DoGUI();
 
-                    foldout = EditorGUILayout.Foldout(foldout, G("toggle_group.foldout.actions"));
+                    foldout = EditorGUILayout.Foldout(foldout, G("control_group.foldout.actions"));
                     if (foldout)
                     {
                         if (foldoutInspectors == null)
@@ -89,7 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_menuItemActions == null) Invalidate();
 
-            _showInner = EditorGUILayout.Foldout(_showInner, G("toggle_group.foldout.menu_items"));
+            _showInner = EditorGUILayout.Foldout(_showInner, G("control_group.foldout.menu_items"));
             if (_showInner)
             {
                 foreach (var action in _menuItemActions)

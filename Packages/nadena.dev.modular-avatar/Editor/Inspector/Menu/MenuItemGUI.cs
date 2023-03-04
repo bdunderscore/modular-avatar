@@ -29,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _type;
         private readonly SerializedProperty _value;
         private readonly SerializedProperty _submenu;
-        private readonly SerializedProperty _toggleGroup;
+        private readonly SerializedProperty _controlGroup;
         private readonly SerializedProperty _isDefault;
 
         private readonly ParameterGUI _parameterGUI;
@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private bool HasActions(TargetParameter? p = null)
         {
-            return _toggleGroup != null && _obj.targetObjects.Any(o =>
+            return _controlGroup != null && _obj.targetObjects.Any(o =>
             {
                 if (!(o is ModularAvatarMenuItem c)) return false;
                 if (p.HasValue)
@@ -91,7 +91,7 @@ namespace nadena.dev.modular_avatar.core.editor
             );
 
             _name = gameObjects.FindProperty("m_Name");
-            _toggleGroup = obj.FindProperty(nameof(ModularAvatarMenuItem.toggleGroup));
+            _controlGroup = obj.FindProperty(nameof(ModularAvatarMenuItem.controlGroup));
             _isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
 
             var control = obj.FindProperty(nameof(ModularAvatarMenuItem.Control));
@@ -132,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _value = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
             _submenu = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
-            _toggleGroup = null;
+            _controlGroup = null;
             _isDefault = null;
 
             _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
@@ -164,8 +164,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (_hasActions)
             {
-                EditorGUILayout.PropertyField(_toggleGroup, G("menuitem.prop.toggle_group"));
-                if (_toggleGroup.hasMultipleDifferentValues || _toggleGroup.objectReferenceValue != null)
+                EditorGUILayout.PropertyField(_controlGroup, G("menuitem.prop.control_group"));
+                if (_controlGroup.hasMultipleDifferentValues || _controlGroup.objectReferenceValue != null)
                 {
                     using (new EditorGUI.DisabledScope(_obj.isEditingMultipleObjects))
                     {

@@ -2,6 +2,7 @@
 using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core
@@ -20,7 +21,7 @@ namespace nadena.dev.modular_avatar.core
 
         public GameObject menuSource_otherObjectChildren;
 
-        public ToggleGroup toggleGroup;
+        [FormerlySerializedAs("toggleGroup")] public ControlGroup controlGroup;
         public bool isDefault;
 
         public override void Visit(NodeContext context)
