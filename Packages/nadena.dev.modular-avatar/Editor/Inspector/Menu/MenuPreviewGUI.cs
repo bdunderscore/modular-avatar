@@ -7,11 +7,86 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class MenuPreviewGUI
+    internal class MenuObjectHeader
     {
         private const float INDENT_PER_LEVEL = 2;
+        private static float _indentLevel = 0;
+
+        private UnityEngine.Object _headerObj;
+        private SerializedProperty _disableProp;
+
+        public MenuObjectHeader(UnityEngine.Object headerObj, SerializedProperty disableProp = null)
+        {
+            _headerObj = headerObj;
+            _disableProp = disableProp;
+        }
+
+        public static void ClearIndent()
+        {
+            _indentLevel = 0;
+        }
+
+        public IDisposable Scope()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(_indentLevel);
+            _indentLevel += INDENT_PER_LEVEL;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            if (_headerObj != null)
+            {
+                var oldIndent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+                try
+                {
+                    GUILayout.BeginHorizontal();
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        EditorGUILayout.ObjectField(new GUIContent(), _headerObj, _headerObj.GetType(),
+                            true,
+                            GUILayout.ExpandWidth(true));
+                    }
+
+                    if (_disableProp != null)
+                    {
+                        _disableProp.serializedObject.Update();
+                        GUILayout.Space(10);
+                        GUILayout.Label("Enabled", GUILayout.Width(50));
+                        EditorGUILayout.PropertyField(_disableProp, GUIContent.none,
+                            GUILayout.Width(EditorGUIUtility.singleLineHeight));
+                        _disableProp.serializedObject.ApplyModifiedProperties();
+                    }
+
+                    GUILayout.EndHorizontal();
+                }
+                finally
+                {
+                    EditorGUI.indentLevel = oldIndent;
+                }
+            }
+
+            return new ScopeSentinel();
+        }
+
+        private class ScopeSentinel : IDisposable
+        {
+            public ScopeSentinel()
+            {
+            }
+
+            public void Dispose()
+            {
+                GUILayout.EndVertical();
+                _indentLevel -= INDENT_PER_LEVEL;
+                GUILayout.EndHorizontal();
+            }
+        }
+    }
+
+    internal class MenuPreviewGUI
+    {
         private Action _redraw;
-        private float _indentLevel = 0;
         private readonly Dictionary<object, Action> _guiNodes = new Dictionary<object, Action>();
 
         public MenuPreviewGUI(Action redraw)
@@ -21,19 +96,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void DoGUI(MenuSource root)
         {
-            _indentLevel = 0;
             new VisitorContext(this).PushNode(root);
         }
 
         public void DoGUI(ModularAvatarMenuInstaller root)
         {
-            _indentLevel = 0;
             new VisitorContext(this).PushMenuInstaller(root);
         }
 
         public void DoGUI(VRCExpressionsMenu menu, GameObject parameterReference = null)
         {
-            _indentLevel = 0;
             new VisitorContext(this).PushNode(menu);
         }
 
@@ -48,70 +120,6 @@ namespace nadena.dev.modular_avatar.core.editor
             gui();
         }
 
-        private class Header
-        {
-            private MenuPreviewGUI _gui;
-            private UnityEngine.Object _headerObj;
-            private SerializedProperty _disableProp;
-
-            public Header(MenuPreviewGUI gui, UnityEngine.Object headerObj, SerializedProperty disableProp = null)
-            {
-                _gui = gui;
-                _headerObj = headerObj;
-                _disableProp = disableProp;
-            }
-
-            public IDisposable Scope()
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(_gui._indentLevel);
-                _gui._indentLevel += INDENT_PER_LEVEL;
-
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-                if (_headerObj != null)
-                {
-                    GUILayout.BeginHorizontal();
-                    using (new EditorGUI.DisabledScope(true))
-                    {
-                        EditorGUILayout.ObjectField(new GUIContent(), _headerObj, _headerObj.GetType(),
-                            true,
-                            GUILayout.ExpandWidth(true));
-                    }
-
-                    if (_disableProp != null)
-                    {
-                        _disableProp.serializedObject.Update();
-                        GUILayout.Space(20);
-                        GUILayout.Label("Enabled", GUILayout.Width(50));
-                        EditorGUILayout.PropertyField(_disableProp, GUIContent.none,
-                            GUILayout.Width(EditorGUIUtility.singleLineHeight));
-                        _disableProp.serializedObject.ApplyModifiedProperties();
-                    }
-
-                    GUILayout.EndHorizontal();
-                }
-
-                return new ScopeSentinel(_gui);
-            }
-
-            private class ScopeSentinel : IDisposable
-            {
-                private readonly MenuPreviewGUI _gui;
-
-                public ScopeSentinel(MenuPreviewGUI gui)
-                {
-                    _gui = gui;
-                }
-
-                public void Dispose()
-                {
-                    GUILayout.EndVertical();
-                    _gui._indentLevel -= INDENT_PER_LEVEL;
-                    GUILayout.EndHorizontal();
-                }
-            }
-        }
 
         private class VisitorContext : NodeContext
         {
@@ -127,7 +135,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _gui.PushGuiNode((expMenu, parameterReference), () =>
                 {
-                    var header = new Header(_gui, expMenu);
+                    var header = new MenuObjectHeader(expMenu);
                     var obj = new SerializedObject(expMenu);
                     var controls = obj.FindProperty(nameof(expMenu.controls));
                     var subGui = new List<MenuItemCoreGUI>();
@@ -143,7 +151,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             foreach (var gui in subGui)
                             {
-                                using (new Header(_gui, null).Scope())
+                                using (new MenuObjectHeader(null).Scope())
                                 {
                                     gui.DoGUI();
                                 }
@@ -164,7 +172,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     _gui.PushGuiNode(item, () =>
                     {
-                        var header = new Header(_gui, item,
+                        var header = new MenuObjectHeader(item,
                             new SerializedObject(item.gameObject).FindProperty("m_IsActive"));
                         var gui = new MenuItemCoreGUI(new SerializedObject(item), _gui._redraw);
                         return () =>
@@ -178,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    using (new Header(_gui, source as UnityEngine.Object).Scope())
+                    using (new MenuObjectHeader(source as UnityEngine.Object).Scope())
                     {
                         if (_visited.Contains(source)) return;
                         _visited.Add(source);
@@ -190,7 +198,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public void PushNode(ModularAvatarMenuInstaller installer)
             {
-                using (new Header(_gui, installer).Scope())
+                using (new MenuObjectHeader(installer).Scope())
                 {
                     PushMenuInstaller(installer);
                 }

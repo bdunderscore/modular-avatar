@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.core.menu;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using VRC.SDKBase;
+using static nadena.dev.modular_avatar.core.editor.Localization;
+
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -73,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Action<object> OnSelect)
         {
             var window = GetWindow<AvMenuTreeViewWindow>();
-            window.titleContent = new GUIContent("Select menu");
+            window.titleContent = G("menu_tree.title");
 
             window.Avatar = Avatar;
             window.TargetInstaller = Installer;

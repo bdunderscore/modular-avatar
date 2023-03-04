@@ -103,5 +103,15 @@
   "menuitem.label.control_labels_and_params": "表示名・パラメーター",
   "menuitem.label.control_labels": "表示名",
   "menuitem.misc.multiple": "(複数設定)",
-  "menuitem.misc.no_icon": "(アイコン無し)"
+  "menuitem.misc.no_icon": "(アイコン無し)",
+  "menuitem.misc.extract": "オブジェクトに展開",
+  "menuitem.label.parameters": "パラメーター",
+  "action.toggle_object.header": "表示・非表示にするオブジェクト",
+  "menu_tree.title": "メニューを選択",
+  "menuitem.param.controlled_by_action": "<アクションで制御されています>",
+  "control_group.foldout.actions": "アクション",
+  "control_group.foldout.menu_items": "関連付けされたメニューアイテム",
+  "menuitem.prop.control_group": "コントロールグループ",
+  "menuitem.prop.control_group.tooltip": "同じグループ内では、一つのトグルしか起動できません",
+  "menuitem.prop.is_default": "グループの初期設定にする"
 }

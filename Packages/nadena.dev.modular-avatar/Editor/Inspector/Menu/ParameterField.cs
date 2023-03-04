@@ -23,17 +23,26 @@ namespace nadena.dev.modular_avatar.core.editor
             _redraw = redraw;
         }
 
-        public void DoGUI(GUIContent label = null)
+        public void DoGUI(bool enabled, GUIContent label = null)
         {
             DoGUI(EditorGUILayout.GetControlRect(
                 true,
                 EditorGUIUtility.singleLineHeight
-            ), label);
+            ), enabled, label);
         }
 
-        public void DoGUI(Rect rect, GUIContent label = null)
+        public void DoGUI(Rect rect, bool enabled, GUIContent label = null)
         {
-            if (label == null) label = G("menuitem.prop.parameter");
+            label = label ?? G("menuitem.prop.parameter");
+
+            if (!enabled)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUI.TextField(rect, label, S("menuitem.param.controlled_by_action"));
+                    return;
+                }
+            }
 
             if (_parameterReference != null) GUILayout.Space(-2);
             GUILayout.BeginHorizontal();

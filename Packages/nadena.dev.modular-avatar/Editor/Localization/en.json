@@ -106,5 +106,15 @@
   "menuitem.label.control_labels_and_params": "Control Labels and Parameters",
   "menuitem.label.control_labels": "Control Labels",
   "menuitem.misc.multiple": "(multiple)",
-  "menuitem.misc.no_icon": "(no icon)"
+  "menuitem.misc.no_icon": "(no icon)",
+  "menuitem.misc.extract": "Extract to objects",
+  "menuitem.label.parameters": "Parameters",
+  "action.toggle_object.header": "Objects to show/hide",
+  "menu_tree.title": "Select menu",
+  "menuitem.param.controlled_by_action": "<controlled by action>",
+  "control_group.foldout.actions": "Actions",
+  "control_group.foldout.menu_items": "Bound menu items",
+  "menuitem.prop.control_group": "Control Group",
+  "menuitem.prop.control_group.tooltip": "Only one toggle in a given group can be selected at the same time",
+  "menuitem.prop.is_default": "Is Group Default"
 }

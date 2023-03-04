@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
-using Codice.CM.Common.Tree.Partial;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -29,6 +29,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _type;
         private readonly SerializedProperty _value;
         private readonly SerializedProperty _submenu;
+        private readonly SerializedProperty _controlGroup;
+        private readonly SerializedProperty _isDefault;
 
         private readonly ParameterGUI _parameterGUI;
 
@@ -47,6 +49,27 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
+
+        private bool _hasActions;
+
+        private bool HasActions(TargetParameter? p = null)
+        {
+            return _controlGroup != null && _obj.targetObjects.Any(o =>
+            {
+                if (!(o is ModularAvatarMenuItem c)) return false;
+                if (p.HasValue)
+                {
+                    foreach (var component in c.GetComponents<MenuAction>())
+                    {
+                        if (component.BindsParameter(p.Value)) return true;
+                    }
+
+                    return false;
+                }
+
+                return true;
+            });
+        }
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -68,6 +91,9 @@ namespace nadena.dev.modular_avatar.core.editor
             );
 
             _name = gameObjects.FindProperty("m_Name");
+            _controlGroup = obj.FindProperty(nameof(ModularAvatarMenuItem.controlGroup));
+            _isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
+
             var control = obj.FindProperty(nameof(ModularAvatarMenuItem.Control));
 
             _texture = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.icon));
@@ -87,6 +113,12 @@ namespace nadena.dev.modular_avatar.core.editor
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
+        /// <summary>
+        /// Builds a menu item GUI for a raw VRCExpressionsMenu.Control reference.
+        /// </summary>
+        /// <param name="parameterReference"></param>
+        /// <param name="_control"></param>
+        /// <param name="redraw"></param>
         public MenuItemCoreGUI(GameObject parameterReference, SerializedProperty _control, Action redraw)
         {
             _obj = _control.serializedObject;
@@ -100,6 +132,9 @@ namespace nadena.dev.modular_avatar.core.editor
             _value = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
             _submenu = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
+            _controlGroup = null;
+            _isDefault = null;
+
             _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
 
             _subParamsRoot = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subParameters));
@@ -112,15 +147,39 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void DoGUI()
         {
+            _hasActions = HasActions();
+
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                _name.serializedObject.ApplyModifiedProperties();
+            }
+
             EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
             EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
-            EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
 
-            _parameterGUI.DoGUI();
+            if (_hasActions)
+            {
+                EditorGUILayout.PropertyField(_controlGroup, G("menuitem.prop.control_group"));
+                if (_controlGroup.hasMultipleDifferentValues || _controlGroup.objectReferenceValue != null)
+                {
+                    using (new EditorGUI.DisabledScope(_obj.isEditingMultipleObjects))
+                    {
+                        EditorGUILayout.PropertyField(_isDefault, G("menuitem.prop.is_default"));
+                    }
+                }
+            }
+
+            if (!_hasActions || !HasActions(TargetParameter.BaseParameter))
+            {
+                EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
+            }
+
+            _parameterGUI.DoGUI(!_hasActions || !HasActions(TargetParameter.BaseParameter));
 
             EditorGUILayout.EndVertical();
 
@@ -172,6 +231,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VRCExpressionsMenu.Control.ControlType.SubMenu:
                     {
                         object menuSource = null;
+                        bool canExpand = false;
 
                         if (_prop_submenuSource != null)
                         {
@@ -204,6 +264,8 @@ namespace nadena.dev.modular_avatar.core.editor
                                 case SubmenuSource.MenuAsset:
                                 {
                                     EditorGUILayout.PropertyField(_submenu, G("menuitem.prop.submenu_asset"));
+                                    canExpand = true;
+
                                     if (_submenu.hasMultipleDifferentValues) break;
                                     menuSource = _submenu.objectReferenceValue;
                                     break;
@@ -238,13 +300,43 @@ namespace nadena.dev.modular_avatar.core.editor
                             }
                         }
 
+                        if (canExpand && (_submenu.hasMultipleDifferentValues || _submenu.objectReferenceValue != null))
+                        {
+                            if (GUILayout.Button(G("menuitem.misc.extract")))
+                            {
+                                _obj.ApplyModifiedProperties();
+
+                                foreach (var targetObj in _obj.targetObjects)
+                                {
+                                    var menuItem = (ModularAvatarMenuItem) targetObj;
+                                    if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu
+                                        && menuItem.Control.subMenu != null
+                                        && menuItem.MenuSource == SubmenuSource.MenuAsset
+                                       )
+                                    {
+                                        Undo.RecordObject(menuItem, "Extract menu");
+                                        MenuExtractor.ExtractSingleLayerMenu(menuItem.Control.subMenu,
+                                            menuItem.gameObject);
+                                        menuItem.Control.subMenu = null;
+                                        menuItem.MenuSource = SubmenuSource.Children;
+                                        menuItem.menuSource_otherObjectChildren = null;
+                                        EditorUtility.SetDirty(menuItem);
+                                        PrefabUtility.RecordPrefabInstancePropertyModifications(menuItem);
+                                    }
+                                }
+
+                                _obj.Update();
+                            }
+                        }
+
                         break;
                     }
                     case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
                     {
                         EnsureParameterCount(1);
 
-                        _subParams[0].DoGUI(G("menuitem.param.rotation"));
+                        _subParams[0].DoGUI(!_hasActions || !HasActions(TargetParameter.RadialParam),
+                            G("menuitem.param.rotation"));
 
                         break;
                     }
@@ -253,11 +345,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         EnsureParameterCount(2);
                         EnsureLabelCount(4);
 
-                        EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField(G("menuitem.label.parameters"), EditorStyles.boldLabel);
                         EditorGUILayout.Space(2);
 
-                        _subParams[0].DoGUI(G("menuitem.param.horizontal"));
-                        _subParams[1].DoGUI(G("menuitem.param.vertical"));
+                        _subParams[0].DoGUI(!_hasActions || !HasActions(TargetParameter.Horizontal),
+                            G("menuitem.param.horizontal"));
+                        _subParams[1].DoGUI(!_hasActions || !HasActions(TargetParameter.Vertical),
+                            G("menuitem.param.vertical"));
 
                         DoFourAxisLabels(false);
 
@@ -354,10 +448,10 @@ namespace nadena.dev.modular_avatar.core.editor
             center.xMin += blockWidth;
             center.xMax -= blockWidth;
 
-            SingleLabel(0, up);
-            SingleLabel(1, right);
-            SingleLabel(2, down);
-            SingleLabel(3, left);
+            SingleLabel(0, up, TargetParameter.Up);
+            SingleLabel(1, right, TargetParameter.Right);
+            SingleLabel(2, down, TargetParameter.Down);
+            SingleLabel(3, left, TargetParameter.Left);
 
             var rect_param_l = center;
             rect_param_l.yMin = rect_param_l.yMax - EditorGUIUtility.singleLineHeight;
@@ -367,7 +461,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (showParams) CenterLabel(rect_param_l, G("menuitem.prop.parameter"), EditorStyles.label);
             CenterLabel(rect_name_l, G("menuitem.prop.label"), EditorStyles.label);
 
-            void SingleLabel(int index, Rect block)
+            void SingleLabel(int index, Rect block, TargetParameter parameter)
             {
                 var prop_name = _labels[index].FindPropertyRelative(nameof(VRCExpressionsMenu.Control.Label.name));
                 var prop_icon = _labels[index].FindPropertyRelative(nameof(VRCExpressionsMenu.Control.Label.icon));
@@ -384,7 +478,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUI.PropertyField(rect_name, prop_name, GUIContent.none);
                 if (showParams)
                 {
-                    _subParams[index].DoGUI(rect_param, GUIContent.none);
+                    _subParams[index].DoGUI(rect_param, !_hasActions || !HasActions(parameter), GUIContent.none);
                 }
 
                 var tex = prop_icon.objectReferenceValue as Texture;
