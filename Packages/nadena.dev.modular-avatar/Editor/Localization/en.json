@@ -106,5 +106,6 @@
   "menuitem.label.control_labels_and_params": "Control Labels and Parameters",
   "menuitem.label.control_labels": "Control Labels",
   "menuitem.misc.multiple": "(multiple)",
-  "menuitem.misc.no_icon": "(no icon)"
+  "menuitem.misc.no_icon": "(no icon)",
+  "menuitem.misc.extract": "Extract to objects"
 }
