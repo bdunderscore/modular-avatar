@@ -102,6 +102,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 BuildReport.Clear();
 
                 ProcessAvatar(avatar);
+                avatar.SetActive(false);
+                Selection.objects = new Object[] { avatar };
             }
             finally
             {
