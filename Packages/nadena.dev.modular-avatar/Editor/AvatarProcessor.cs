@@ -66,6 +66,18 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
+        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", true, 50)]
+        static bool ValidateApplyToCurrentAvatarGameobject()
+        {
+            return ValidateApplyToCurrentAvatar();
+        }
+
+        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", false, 50)]
+        static void ApplyToCurrentAvatarGameobject()
+        {
+            ApplyToCurrentAvatar();
+        }
+
         [MenuItem("Tools/Modular Avatar/Manual bake avatar", true)]
         private static bool ValidateApplyToCurrentAvatar()
         {
