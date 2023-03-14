@@ -66,13 +66,13 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", true, 50)]
+        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", true, 49)]
         static bool ValidateApplyToCurrentAvatarGameobject()
         {
             return ValidateApplyToCurrentAvatar();
         }
 
-        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", false, 50)]
+        [MenuItem("GameObject/[ModularAvatar] Manual bake avatar", false, 49)]
         static void ApplyToCurrentAvatarGameobject()
         {
             ApplyToCurrentAvatar();
@@ -334,13 +334,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 var animator = avatarGameObject.GetComponent<Animator>();
                 var builder = ty_VRCSdkControlPanelAvatarBuilder3A.GetConstructor(Type.EmptyTypes)
                     .Invoke(Array.Empty<object>());
-                var perfStats = ty_AvatarPerformanceStats.GetConstructor(new[] {typeof(bool)})
-                    .Invoke(new object[] {false});
+                var perfStats = ty_AvatarPerformanceStats.GetConstructor(new[] { typeof(bool) })
+                    .Invoke(new object[] { false });
                 ty_VRCSdkControlPanelAvatarBuilder3A
                     .GetMethod("RegisterBuilder", BindingFlags.Public | BindingFlags.Instance)
-                    .Invoke(builder, new object[] {tempControlPanel});
+                    .Invoke(builder, new object[] { tempControlPanel });
                 ty_VRCSdkControlPanelAvatarBuilder3A.GetMethod("ValidateFeatures").Invoke(
-                    builder, new object[] {avatar, animator, perfStats}
+                    builder, new object[] { avatar, animator, perfStats }
                 );
             }
             catch (Exception e)
