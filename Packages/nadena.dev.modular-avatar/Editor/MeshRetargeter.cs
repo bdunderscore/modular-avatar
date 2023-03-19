@@ -100,6 +100,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
+                    isRetargetable |= BoneDatabase.GetRetargetedBone(renderer.rootBone);
+
                     if (isRetargetable)
                     {
                         var newMesh = new MeshRetargeter(renderer).Retarget();
