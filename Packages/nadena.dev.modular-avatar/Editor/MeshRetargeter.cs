@@ -89,8 +89,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 BuildReport.ReportingObject(renderer, () =>
                 {
-                    if (renderer.sharedMesh == null) return;
-
                     bool isRetargetable = false;
                     foreach (var bone in renderer.bones)
                     {
