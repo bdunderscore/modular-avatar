@@ -59,7 +59,7 @@ jobs:
       - name: Set baseUri
         if: ${{ inputs.path }}
         run: |
-          BASEURL="/${{ inputs.path }}/" perl -i -e "s{baseUrl: '/'}{$ENV{BASEURL}}e" docs/docusaurus.config.js
+          BASEURL="/${{ inputs.path }}/" perl -i -p -e "s{baseUrl: '/'}{$ENV{BASEURL}}e" docs/docusaurus.config.js
           cat docs/docusaurus.config.js
 
       - name: Build docs
