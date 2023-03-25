@@ -30,7 +30,12 @@ on:
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
-  pull_request_target: {}
+  pull_request_target:
+    paths:
+      - 'Packages/**'
+      - 'Assets/**'
+      - 'ProjectSettings/**'
+      - '.github/workflows/gameci.yml'
   workflow_dispatch: {}
 
 # pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
