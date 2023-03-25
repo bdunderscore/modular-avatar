@@ -26,7 +26,7 @@ name: GameCI
 
 on:
   push:
-    branches: [master, dev, ci]
+    branches: [master, dev]
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
