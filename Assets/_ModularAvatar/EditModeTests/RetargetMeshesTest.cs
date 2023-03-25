@@ -24,7 +24,7 @@ namespace modular_avatar_tests
             var context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
             new RetargetMeshes().OnPreprocessAvatar(root, context);
 
-            Assert.AreEqual(skinnedMeshRenderer.rootBone, a.transform);
+            Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
     }
 }
