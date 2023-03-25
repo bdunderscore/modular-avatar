@@ -34,7 +34,7 @@ jobs:
 
       - name: get version
         id: version
-        uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
+        uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8
         with:
           path: "Packages/${{env.packageName}}/package.json"
           prop_path: "version"
