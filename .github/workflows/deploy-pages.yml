@@ -19,10 +19,10 @@ concurrency:
 jobs:
   build-docs:
     name: Build documentation
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@ci
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   build-docs-dev:
     name: Build documentation (dev branch)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@ci
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
     with:
       ref: dev
       path: dev
