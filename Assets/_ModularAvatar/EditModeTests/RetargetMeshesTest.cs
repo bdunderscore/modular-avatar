@@ -1,10 +1,11 @@
 ﻿using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests
 {
-    public class MeshRetargeterTest : TestBase
+    public class RetargetMeshesTest : TestBase
     {
         // Real world case of this test case is with skinned mesh without bones or skinned mesh renderer with null mesh. 
         [Test]
@@ -20,7 +21,8 @@ namespace modular_avatar_tests
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
             BoneDatabase.AddMergedBone(b.transform);
-            new MeshRetargeter(skinnedMeshRenderer).Retarget();
+            var context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            new RetargetMeshes().OnPreprocessAvatar(root, context);
 
             Assert.AreEqual(skinnedMeshRenderer.rootBone, a.transform);
         }
