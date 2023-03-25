@@ -26,5 +26,28 @@ namespace modular_avatar_tests
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
+        
+        [Test]
+        public void NoMeshRootBoneOnly()
+        {
+            var root = CreateRoot("root");
+            var a = CreateChild(root, "a");
+            var b = CreateChild(a, "b");
+            b.transform.localScale = new Vector3(2, 2, 2);
+
+            var skinnedMeshRenderer = root.AddComponent<SkinnedMeshRenderer>();
+            skinnedMeshRenderer.sharedMesh = null;
+            skinnedMeshRenderer.localBounds = new Bounds(new Vector3(0, 0, 0), new Vector3(1, 1, 1));
+            skinnedMeshRenderer.rootBone = b.transform;
+            Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
+
+            BoneDatabase.AddMergedBone(b.transform);
+            var context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            new RetargetMeshes().OnPreprocessAvatar(root, context);
+
+            Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
+            Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)), 
+                skinnedMeshRenderer.localBounds);
+        }
     }
 }
