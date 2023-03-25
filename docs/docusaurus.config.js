@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Modular Avatar',
   tagline: 'Drag-and-drop avatar assembly',
-  url: 'https://modular-avatar.fushizen.net',
+  url: 'https://modular-avatar.nadena.dev',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',

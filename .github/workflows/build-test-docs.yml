@@ -3,6 +3,19 @@
 on:
   pull_request:
   workflow_call:
+    inputs:
+      ref:
+        description: 'commit to build'
+        type: string
+        required: false
+      path:
+        description: 'path within the docs pages to build to'
+        type: string
+        required: false
+      artifact:
+        description: 'artifact name to write'
+        type: string
+        required: false
 
 jobs:
   build-docs:
@@ -13,6 +26,11 @@ jobs:
         with:
           node-version: 18
       - uses: actions/checkout@v3 # check out this repo
+        if: ${{ !inputs.ref }}
+      - uses: actions/checkout@v3 # check out the repo we're building docs for
+        if: ${{ inputs.ref }}
+        with:
+          ref: ${{ inputs.ref }} 
       - uses: actions/checkout@v3
         with:
           repository: bdunderscore/modular-avatar-images
@@ -38,15 +56,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Set baseUri
+        if: ${{ inputs.path }}
+        run: |
+          BASEURL="/${{ inputs.path }}/" perl -i -p -e "s{baseUrl: '/'}{baseUrl: '\$ENV{BASEURL}'}" docs/docusaurus.config.js
+          cat docs/docusaurus.config.js
 
       - name: Build docs
         run: |
           cd docs
           yarn install --immutable
           yarn build
+          ls -lR build
+
+      - name: Set robots.txt
+        run: |
+          if [ -e docs/robots.txt ]; then
+            cp docs/robots.txt docs/build/robots.txt
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: docs
+          name: ${{ inputs.artifact || 'docs' }}
           path: docs/build

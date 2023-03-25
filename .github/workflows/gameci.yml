@@ -26,9 +26,22 @@ name: GameCI
 
 on:
   push:
-    branches: [master, dev, ci]
-  pull_request: {}
+    branches: [master, dev]
+  # This is a bit of a radioactive event; we need to be very careful with what permissions
+  # we assign this action, as we're allowing arbitrary code execution with the context of
+  # whatever permissions we assign.
+  pull_request_target:
+    paths:
+      - 'Packages/**'
+      - 'Assets/**'
+      - 'ProjectSettings/**'
+      - '.github/workflows/gameci.yml'
   workflow_dispatch: {}
+
+# pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
+permissions:
+  contents: read
+  checks: write
 
 jobs:
   build-and-test:
@@ -37,22 +50,14 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@v3
-#        with:
-#          ref: project-for-test
-#      - uses: actions/checkout@v3
-#        with:
-#          path: Packages/nadena.dev.modular-avatar
-      - uses: anatawa12/sh-actions/resolve-vpm-packages@master
-
-      - uses: actions/cache@v3
         with:
-          path: Library
-          key: Library
-          restore-keys: Library
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: anatawa12/sh-actions/resolve-vpm-packages@master
 
       - uses: game-ci/unity-test-runner@v2
         id: gameci
         env:
+          # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           testMode: EditMode

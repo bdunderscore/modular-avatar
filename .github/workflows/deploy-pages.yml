@@ -2,7 +2,9 @@ name: Deploy documentation
 on:
   push:
     branches:
+      - ci
       - main
+      - dev
   workflow_dispatch: 
 
 permissions:
@@ -18,9 +20,18 @@ jobs:
   build-docs:
     name: Build documentation
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+  build-docs-dev:
+    name: Build documentation (dev branch)
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    with:
+      ref: dev
+      path: dev
+      artifact: docs-dev
   deploy-docs:
     name: Deploy documentation
-    needs: build-docs
+    needs: 
+      - build-docs
+      - build-docs-dev
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -28,10 +39,19 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: docs
           path: docs/build
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docs-dev
+          path: docs/build/dev
+
+      - name: Dump file listing
+        run: |
+          ls -lR docs/build
 
       - name: Setup Pages
         uses: actions/configure-pages@v2
@@ -43,4 +63,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v2
