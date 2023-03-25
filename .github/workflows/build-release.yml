@@ -55,7 +55,7 @@ jobs:
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
-        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
+        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
         with:
           type: "zip"
           directory: "Packages/${{env.packageName}}/"
