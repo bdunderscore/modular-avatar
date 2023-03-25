@@ -48,7 +48,8 @@ jobs:
         with:
           name: docs-dev
           path: docs/build/dev
-      - name: test
+
+      - name: Dump file listing
         run: |
           ls -lR docs/build
 
