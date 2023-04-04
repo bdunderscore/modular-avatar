@@ -171,11 +171,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     AddParam(control.parameter.name);
                 }
 
-                foreach (var subParam in control.subParameters)
+                if (control.subParameters != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(subParam.name))
+                    foreach (var subParam in control.subParameters)
                     {
-                        AddParam(subParam.name);
+                        if (!string.IsNullOrWhiteSpace(subParam.name))
+                        {
+                            AddParam(subParam.name);
+                        }
                     }
                 }
 
