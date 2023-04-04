@@ -115,5 +115,6 @@
   "menuitem.prop.control_group.tooltip": "同じグループ内では、一つのトグルしか起動できません",
   "menuitem.prop.is_default": "グループの初期設定にする",
   "animation_gen.duplicate_binding": "別々のコントロールグループから、同じパラメーターが操作されています。パラメーター：{0}",
-  "animation_gen.multiple_defaults": "同じコントロールグループに初期設定に指定されたメニューアイテムが複数あります。"
+  "animation_gen.multiple_defaults": "同じコントロールグループに初期設定に指定されたメニューアイテムが複数あります。",
+  "menuitem.misc.add_item": "メニューアイテムを追加"
 }

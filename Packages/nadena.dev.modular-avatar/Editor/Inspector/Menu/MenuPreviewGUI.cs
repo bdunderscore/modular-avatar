@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.menu;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -168,6 +169,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public void PushNode(MenuSource source)
             {
+                var originalSource = source;
+                if (source is ModularAvatarMenuGroup group)
+                {
+                    // Avoid calling source.Visit as this results in an extra MenuObjectHeader
+                    // TODO: Avoid this unnecessary header in a cleaner way?
+                    source = new MenuNodesUnder(group.targetObject != null ? group.targetObject : group.gameObject);
+                }
+
                 if (source is ModularAvatarMenuItem item)
                 {
                     _gui.PushGuiNode(item, () =>
@@ -186,12 +195,24 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    using (new MenuObjectHeader(source as UnityEngine.Object).Scope())
+                    using (new MenuObjectHeader(originalSource as UnityEngine.Object).Scope())
                     {
-                        if (_visited.Contains(source)) return;
-                        _visited.Add(source);
+                        if (_visited.Contains(originalSource)) return;
+                        _visited.Add(originalSource);
 
                         source.Visit(this);
+
+                        if (source is MenuNodesUnder nodesUnder)
+                        {
+                            if (GUILayout.Button(G("menuitem.misc.add_item")))
+                            {
+                                var newChild = new GameObject();
+                                newChild.name = "New item";
+                                newChild.transform.SetParent(nodesUnder.root.transform, false);
+                                newChild.AddComponent<ModularAvatarMenuItem>();
+                                Undo.RegisterCreatedObjectUndo(newChild, "Added menu item");
+                            }
+                        }
                     }
                 }
             }

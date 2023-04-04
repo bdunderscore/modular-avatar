@@ -24,8 +24,23 @@ namespace nadena.dev.modular_avatar.core
         [FormerlySerializedAs("toggleGroup")] public ControlGroup controlGroup;
         public bool isDefault;
 
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+
+            if (Control == null)
+            {
+                Control = new VRCExpressionsMenu.Control();
+            }
+        }
+
         public override void Visit(NodeContext context)
         {
+            if (Control == null)
+            {
+                Control = new VRCExpressionsMenu.Control();
+            }
+
             var cloned = new VirtualControl(Control);
             cloned.subMenu = null;
             cloned.name = gameObject.name;
