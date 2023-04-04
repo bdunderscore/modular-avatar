@@ -3,6 +3,8 @@ sidebar_position: 4
 sidebar_label: Edit menus
 ---
 
+# Edit menus
+
 Modular Avatar includes an object-based menu editing system, which lets you easily edit menus and even create simple toggles from within the Unity inspector.
 
 This tutorial will show you how to use this system to edit your avatar's existing menus, and how to include it in your assets.
