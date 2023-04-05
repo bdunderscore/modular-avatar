@@ -59,6 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
             avatar.baseAnimationLayers = animLayers;
 
             var parameters = controller.parameters.ToList();
+
+            var actions = GenerateActions(avatar, actionMenus, parameters);
             parameters.Add(new AnimatorControllerParameter()
             {
                 name = DIRECT_BLEND_TREE_PARAM,
@@ -66,11 +68,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 defaultFloat = 1,
             });
 
-            var actions = GenerateActions(avatar, actionMenus, parameters);
-
             controller.parameters = parameters.ToArray();
 
-            int layersToInsert = 2; // TODO
+            int layersToInsert = 1; // TODO
 
             var rootBlendTree = GenerateRootBlendLayer(actions);
             AdjustAllBehaviors(controller, b =>
@@ -86,8 +86,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var layerList = controller.layers.ToList();
-            layerList.Insert(0, GenerateBlendshapeBaseLayer(avatar));
-            rootBlendTree.defaultWeight = 1;
+            //layerList.Insert(0, GenerateBlendshapeBaseLayer(avatar));
+            //rootBlendTree.defaultWeight = 1;
             layerList.Insert(0, rootBlendTree);
             layerList[1].defaultWeight = 1;
             controller.layers = layerList.ToArray();
@@ -120,6 +120,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            _context.SaveAsset(clip);
+
             layer.stateMachine = new AnimatorStateMachine();
             _context.SaveAsset(layer.stateMachine);
 
@@ -128,6 +130,7 @@ namespace nadena.dev.modular_avatar.core.editor
             state.writeDefaultValues = false;
 
             layer.defaultWeight = 1;
+            layer.name = "Write blendshape defaults";
 
             return layer;
         }
@@ -182,6 +185,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var rootState = layer.stateMachine.AddState("Root");
             rootState.motion = motion;
+            // WD off causes other write default states to fail to write their defaults (facial expressions get stuck
+            // on e.g. kikyo)
+            rootState.writeDefaultValues = true;
 
             return layer;
         }
