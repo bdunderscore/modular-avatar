@@ -131,8 +131,8 @@ MonoBehaviour:
   m_Script: {fileID: -1936262289, guid: 67cc4cb7839cd3741b63733d5adf0442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playable: 0
-  layer: 1
+  playable: 1
+  layer: 2
   goalWeight: 0.5
   blendDuration: 0
   debugString: 

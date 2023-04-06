@@ -370,7 +370,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   layerType: 5
   animators:
-  - type: 4
+  - type: 5
     animator: {fileID: 9100000, guid: 22f4686ec8638e243854be6fccb38820, type: 2}
   deleteAttachedAnimator: 0
   pathMode: 0
