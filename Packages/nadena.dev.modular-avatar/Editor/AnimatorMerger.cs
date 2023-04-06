@@ -53,14 +53,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<Object, Object> _cloneMap;
 
-        private Dictionary<VRCAvatarDescriptor.AnimLayerType, int> _controllerBaseLayers;
+        private Dictionary<VRCAvatarDescriptor.AnimLayerType, int> _controllerLayersCount;
 
         private VRCAvatarDescriptor.AnimLayerType _layerType;
 
-        public AnimatorCombiner(BuildContext context, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerBaseLayers, VRCAvatarDescriptor.AnimLayerType layerType)
+        public AnimatorCombiner(BuildContext context, 
+            Dictionary<VRCAvatarDescriptor.AnimLayerType, int> layersCount, 
+            VRCAvatarDescriptor.AnimLayerType layerType)
         {
             _combined = context.CreateAnimator();
-            _controllerBaseLayers = controllerBaseLayers;
+            _controllerLayersCount = layersCount;
             _layerType = layerType;
         }
 
@@ -71,15 +73,15 @@ namespace nadena.dev.modular_avatar.core.editor
             return _combined;
         }
 
-        public int getLayerCount()
+        public int GetLayerCount()
         {
             return _layers.Count;
         }
 
-        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerBaseLayers)
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> layersCount)
         {
-            _controllerBaseLayers = controllerBaseLayers;
-            _controllerBaseLayers[_layerType] = _layers.Count;
+            _controllerLayersCount = layersCount;
+            _controllerLayersCount[_layerType] = _layers.Count;
             _cloneMap = new Dictionary<Object, Object>();
 
             foreach (var param in controller.parameters)
@@ -175,7 +177,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                newLayer.syncedLayerIndex += _controllerBaseLayers[_layerType];
+                newLayer.syncedLayerIndex += _controllerLayersCount[_layerType];
             }
 
             _layers.Add(newLayer);
@@ -283,9 +285,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     if (targetLayer != VRCAvatarDescriptor.AnimLayerType.Deprecated0)
                     {
-                        if (_controllerBaseLayers.ContainsKey(targetLayer))
+                        if (_controllerLayersCount.ContainsKey(targetLayer))
                         {
-                            layerControl.layer += _controllerBaseLayers[targetLayer];
+                            layerControl.layer += _controllerLayersCount[targetLayer];
                         }
                     }
                     break;

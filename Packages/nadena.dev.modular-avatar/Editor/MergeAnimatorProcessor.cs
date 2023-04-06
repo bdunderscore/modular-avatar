@@ -87,7 +87,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (mergeSessions.ContainsKey(layerData.type))
                 {
-                    controllerLayersCount[layerData.type] = mergeSessions[layerData.type].getLayerCount();
+                    controllerLayersCount[layerData.type] = mergeSessions[layerData.type].GetLayerCount();
                 }
             }
 
