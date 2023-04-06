@@ -132,7 +132,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playable: 1
-  layer: 2
+  layer: 1
   goalWeight: 0.5
   blendDuration: 0
   debugString: 
@@ -173,7 +173,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 3457079820388324162}
-    m_Position: {x: 360, y: 10, z: 0}
+    m_Position: {x: 360, y: 0, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 592244106348618204}
     m_Position: {x: 360, y: 120, z: 0}
