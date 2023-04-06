@@ -59,6 +59,7 @@ MonoBehaviour:
   unityVersion: 
   portraitCameraPositionOffset: {x: 0, y: 0, z: 0}
   portraitCameraRotationOffset: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  networkIDs: []
   customExpressions: 0
   expressionsMenu: {fileID: 0}
   expressionParameters: {fileID: 0}
@@ -366,8 +367,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bb122659f724ebf85fe095ac02dc339, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 9100000, guid: 22f4686ec8638e243854be6fccb38820, type: 2}
+  animator: {fileID: 0}
   layerType: 5
+  animators:
+  - type: 4
+    animator: {fileID: 9100000, guid: 22f4686ec8638e243854be6fccb38820, type: 2}
   deleteAttachedAnimator: 0
   pathMode: 0
   matchAvatarWriteDefaults: 0
