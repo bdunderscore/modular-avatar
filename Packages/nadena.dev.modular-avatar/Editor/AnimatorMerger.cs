@@ -53,11 +53,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<Object, Object> _cloneMap;
 
-        private int controllerBaseLayer = 0;
+        private Dictionary<VRCAvatarDescriptor.AnimLayerType, int> _controllerBaseLayers;
 
-        public AnimatorCombiner(BuildContext context)
+        private VRCAvatarDescriptor.AnimLayerType _layerType;
+
+        public AnimatorCombiner(BuildContext context, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerBaseLayers, VRCAvatarDescriptor.AnimLayerType layerType)
         {
             _combined = context.CreateAnimator();
+            _controllerBaseLayers = controllerBaseLayers;
+            _layerType = layerType;
         }
 
         public AnimatorController Finish()
@@ -67,9 +71,15 @@ namespace nadena.dev.modular_avatar.core.editor
             return _combined;
         }
 
-        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
+        public int getLayerCount()
         {
-            controllerBaseLayer = _layers.Count;
+            return _layers.Count;
+        }
+
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerBaseLayers)
+        {
+            _controllerBaseLayers = controllerBaseLayers;
+            _controllerBaseLayers[_layerType] = _layers.Count;
             _cloneMap = new Dictionary<Object, Object>();
 
             foreach (var param in controller.parameters)
@@ -101,14 +111,14 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         public void AddOverrideController(string basePath, AnimatorOverrideController overrideController,
-            bool? writeDefaults)
+            bool? writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerBaseLayers)
         {
             AnimatorController controller = overrideController.runtimeAnimatorController as AnimatorController;
             if (controller == null) return;
             _overrideController = overrideController;
             try
             {
-                this.AddController(basePath, controller, writeDefaults);
+                this.AddController(basePath, controller, writeDefaults, controllerBaseLayers);
             }
             finally
             {
@@ -165,7 +175,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                newLayer.syncedLayerIndex += controllerBaseLayer;
+                newLayer.syncedLayerIndex += _controllerBaseLayers[_layerType];
             }
 
             _layers.Add(newLayer);
@@ -255,9 +265,29 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 case VRCAnimatorLayerControl layerControl:
                 {
-                    // TODO - need to figure out how to handle cross-layer references. For now this will handle
-                    // intra-animator cases.
-                    layerControl.layer += controllerBaseLayer;
+                    VRCAvatarDescriptor.AnimLayerType targetLayer = VRCAvatarDescriptor.AnimLayerType.Deprecated0;
+                    switch (layerControl.playable)
+                    {
+                        case VRCAnimatorLayerControl.BlendableLayer.Action:
+                            targetLayer = VRCAvatarDescriptor.AnimLayerType.Action;
+                            break;
+                        case VRCAnimatorLayerControl.BlendableLayer.Additive:
+                            targetLayer = VRCAvatarDescriptor.AnimLayerType.Additive;
+                            break;
+                        case VRCAnimatorLayerControl.BlendableLayer.Gesture:
+                            targetLayer = VRCAvatarDescriptor.AnimLayerType.Gesture;
+                            break;
+                        case VRCAnimatorLayerControl.BlendableLayer.FX:
+                            targetLayer = VRCAvatarDescriptor.AnimLayerType.FX;
+                            break;
+                    }
+                    if (targetLayer != VRCAvatarDescriptor.AnimLayerType.Deprecated0)
+                    {
+                        if (_controllerBaseLayers.ContainsKey(targetLayer))
+                        {
+                            layerControl.layer += _controllerBaseLayers[targetLayer];
+                        }
+                    }
                     break;
                 }
             }

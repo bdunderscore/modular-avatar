@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -33,13 +35,35 @@ namespace nadena.dev.modular_avatar.core
         Absolute
     }
 
+    [Serializable]
+    public struct AnimLayerData
+    {
+        public VRCAvatarDescriptor.AnimLayerType type;
+        public RuntimeAnimatorController animator;
+    }
+
+    [ExecuteInEditMode]
     [AddComponentMenu("Modular Avatar/MA Merge Animator")]
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
+        // Old 
         public RuntimeAnimatorController animator;
         public VRCAvatarDescriptor.AnimLayerType layerType = VRCAvatarDescriptor.AnimLayerType.FX;
+
+        // New
+        public List<AnimLayerData> animators = new List<AnimLayerData>();
         public bool deleteAttachedAnimator;
         public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
         public bool matchAvatarWriteDefaults;
+
+        // Convert old version to new Version
+        private void Awake()
+        {
+            if (animator != null)
+            {
+                animators.Add(new AnimLayerData { type = layerType, animator = animator });
+                animator = null;
+            }
+        }
     }
 }

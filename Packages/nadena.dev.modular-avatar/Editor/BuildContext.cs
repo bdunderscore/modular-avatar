@@ -50,14 +50,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
         {
-            var merger = new AnimatorCombiner(this);
+            var merger = new AnimatorCombiner(this, new System.Collections.Generic.Dictionary<VRCAvatarDescriptor.AnimLayerType, int>(), 0);
             switch (controller)
             {
                 case AnimatorController ac:
-                    merger.AddController("", ac, null);
+                    merger.AddController("", ac, null, new System.Collections.Generic.Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
                     break;
                 case AnimatorOverrideController oac:
-                    merger.AddOverrideController("", oac, null);
+                    merger.AddOverrideController("", oac, null, new System.Collections.Generic.Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
                     break;
                 default:
                     throw new Exception("Unknown RuntimeAnimatorContoller type " + controller.GetType());
@@ -68,8 +68,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController)
         {
-            var merger = new AnimatorCombiner(this);
-            merger.AddOverrideController("", overrideController, null);
+            var merger = new AnimatorCombiner(this, new System.Collections.Generic.Dictionary<VRCAvatarDescriptor.AnimLayerType, int>(), 0);
+            merger.AddOverrideController("", overrideController, null, new System.Collections.Generic.Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
             return merger.Finish();
         }
     }

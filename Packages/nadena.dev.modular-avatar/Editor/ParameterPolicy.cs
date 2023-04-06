@@ -130,8 +130,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     case ModularAvatarMergeAnimator merger:
                     {
-                        WalkAnimator(parameters, merger.animator as AnimatorController);
+                        if (merger.animators.Count != 0)
+                        {
+                            foreach (AnimLayerData layerData in merger.animators)
+                            {
+                                WalkAnimator(parameters, layerData.animator as AnimatorController);
+                            }
+                        }
                         break;
+
                     }
                 }
             }

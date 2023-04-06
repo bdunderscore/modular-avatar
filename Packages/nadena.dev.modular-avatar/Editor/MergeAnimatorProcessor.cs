@@ -63,21 +63,33 @@ namespace nadena.dev.modular_avatar.core.editor
             if (descriptor.baseAnimationLayers != null) InitSessions(descriptor.baseAnimationLayers);
             if (descriptor.specialAnimationLayers != null) InitSessions(descriptor.specialAnimationLayers);
 
+
             var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
 
             foreach (var merge in toMerge)
             {
-                BuildReport.ReportingObject(merge, () => ProcessMergeAnimator(avatarGameObject, context, merge));
+                BuildReport.ReportingObject(merge, () => ProcessMergeAnimators(avatarGameObject, context, merge));
             }
 
             descriptor.baseAnimationLayers = FinishSessions(descriptor.baseAnimationLayers);
             descriptor.specialAnimationLayers = FinishSessions(descriptor.specialAnimationLayers);
         }
 
-        private void ProcessMergeAnimator(GameObject avatarGameObject, BuildContext context,
+        private void ProcessMergeAnimators(GameObject avatarGameObject, BuildContext context,
             ModularAvatarMergeAnimator merge)
         {
-            if (merge.animator == null) return;
+            if (merge.animators.Count == 0) return;
+
+            Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerLayersCount =
+                new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>();
+
+            foreach (AnimLayerData layerData in merge.animators)
+            {
+                if (mergeSessions.ContainsKey(layerData.type))
+                {
+                    controllerLayersCount[layerData.type] = mergeSessions[layerData.type].getLayerCount();
+                }
+            }
 
             string basePath;
             if (merge.pathMode == MergeAnimatorPathMode.Relative)
@@ -90,25 +102,34 @@ namespace nadena.dev.modular_avatar.core.editor
                 basePath = "";
             }
 
-            if (!mergeSessions.TryGetValue(merge.layerType, out var session))
+            foreach (AnimLayerData layerData in merge.animators)
             {
-                session = new AnimatorCombiner(context);
-                mergeSessions[merge.layerType] = session;
-                if (defaultControllers_.ContainsKey(merge.layerType))
-                {
-                    session.AddController("", defaultControllers_[merge.layerType], null);
-                }
+                ProcessMergeAnimator(context, layerData, basePath, merge.matchAvatarWriteDefaults, controllerLayersCount);
             }
-
-            bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
-            mergeSessions[merge.layerType]
-                .AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
 
             if (merge.deleteAttachedAnimator)
             {
                 var animator = merge.GetComponent<Animator>();
                 if (animator != null) Object.DestroyImmediate(animator);
             }
+        }
+
+        private void ProcessMergeAnimator(BuildContext context, AnimLayerData layerData, 
+            string basePath, bool _writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> layersCount)
+        {
+            if (!mergeSessions.TryGetValue(layerData.type, out var session))
+            {
+                session = new AnimatorCombiner(context, layersCount, layerData.type);
+                mergeSessions[layerData.type] = session;
+                if (defaultControllers_.ContainsKey(layerData.type))
+                {
+                    session.AddController("", defaultControllers_[layerData.type], null, layersCount);
+                }
+            }
+
+            bool? writeDefaults = _writeDefaults ? writeDefaults_[layerData.type] : null;
+            mergeSessions[layerData.type]
+                .AddController(basePath, (AnimatorController)layerData.animator, writeDefaults, layersCount);
         }
 
         private VRCAvatarDescriptor.CustomAnimLayer[] FinishSessions(
@@ -142,8 +163,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // For non-default layers, ensure we always clone the controller for the benefit of subsequent
                     // processing phases
-                    mergeSessions[layer.type] = new AnimatorCombiner(_context);
-                    mergeSessions[layer.type].AddController("", controller, null);
+                    mergeSessions[layer.type] = new AnimatorCombiner(_context, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>(), layer.type);
+                    mergeSessions[layer.type].AddController("", controller, null, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
                 }
             }
         }

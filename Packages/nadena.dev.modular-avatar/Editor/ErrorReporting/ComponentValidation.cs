@@ -150,12 +150,15 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         private static List<ErrorLog> CheckInternal(ModularAvatarMergeAnimator ma)
         {
-            if (ma.animator == null)
+            foreach (AnimLayerData data in ma.animators)
             {
-                return new List<ErrorLog>()
+                if (data.animator == null)
+                {
+                    return new List<ErrorLog>()
                 {
                     new ErrorLog(ReportLevel.Validation, "validation.merge_animator.no_animator", ma)
                 };
+                }
             }
 
             return null;
