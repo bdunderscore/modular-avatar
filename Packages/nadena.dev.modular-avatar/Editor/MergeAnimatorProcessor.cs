@@ -119,7 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!mergeSessions.TryGetValue(layerData.type, out var session))
             {
-                session = new AnimatorCombiner(context, layersCount, layerData.type);
+                session = new AnimatorCombiner(context, layerData.type);
                 mergeSessions[layerData.type] = session;
                 if (defaultControllers_.ContainsKey(layerData.type))
                 {
@@ -163,8 +163,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // For non-default layers, ensure we always clone the controller for the benefit of subsequent
                     // processing phases
-                    mergeSessions[layer.type] = new AnimatorCombiner(_context, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>(), layer.type);
-                    mergeSessions[layer.type].AddController("", controller, null, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
+                    mergeSessions[layer.type] = new AnimatorCombiner(_context, layer.type);
+                    mergeSessions[layer.type].AddController("", controller, null);
                 }
             }
         }

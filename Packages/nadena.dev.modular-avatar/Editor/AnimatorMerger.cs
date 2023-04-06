@@ -57,12 +57,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private VRCAvatarDescriptor.AnimLayerType _layerType;
 
-        public AnimatorCombiner(BuildContext context, 
-            Dictionary<VRCAvatarDescriptor.AnimLayerType, int> layersCount, 
-            VRCAvatarDescriptor.AnimLayerType layerType)
+        public AnimatorCombiner(BuildContext context, VRCAvatarDescriptor.AnimLayerType layerType)
         {
             _combined = context.CreateAnimator();
-            _controllerLayersCount = layersCount;
             _layerType = layerType;
         }
 
@@ -78,6 +75,10 @@ namespace nadena.dev.modular_avatar.core.editor
             return _layers.Count;
         }
 
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
+        {
+            AddController(basePath, controller, writeDefaults, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
+        }
         public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, Dictionary<VRCAvatarDescriptor.AnimLayerType, int> layersCount)
         {
             _controllerLayersCount = layersCount;
@@ -110,6 +111,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 insertLayer(basePath, layer, first, writeDefaults, layers);
                 first = false;
             }
+        }
+
+        public void AddOverrideController(string basePath, AnimatorOverrideController overrideController, bool? writeDefaults)
+        {
+            AddOverrideController(basePath, overrideController, writeDefaults, new Dictionary<VRCAvatarDescriptor.AnimLayerType, int>());
         }
 
         public void AddOverrideController(string basePath, AnimatorOverrideController overrideController,
