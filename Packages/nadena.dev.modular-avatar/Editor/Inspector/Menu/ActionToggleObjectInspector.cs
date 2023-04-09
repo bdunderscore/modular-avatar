@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using VRC.Collections;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -47,25 +48,63 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private float elementWidth;
+        private GUIContent _rectHeader, _objectHeader;
         private Rect _checkRect, _objectRect;
 
         private void DrawListHeader(Rect rect)
         {
-            var margin = 2;
+            if (elementWidth > 1 && elementWidth < rect.width)
+            {
+                rect.x += rect.width - elementWidth;
+                rect.width = elementWidth;
+            }
+
+            var margin = 4;
 
             var t = EditorStyles.toggle;
             var toggleSize = t.CalcSize(GUIContent.none);
             _checkRect = new Rect(0, 0, toggleSize.x, toggleSize.y);
+
+            _rectHeader = G("action.toggle_object.header.show");
+            _objectHeader = G("action.toggle_object.header.object");
+
+            var checkLabelRect = _checkRect;
+
+            var rectHeaderSize = EditorStyles.label.CalcSize(_rectHeader);
+            checkLabelRect.width = Mathf.Max(checkLabelRect.width, rectHeaderSize.x);
+            _checkRect.x += (checkLabelRect.width - _checkRect.width) / 2;
+            _checkRect.width = checkLabelRect.width;
+
             _checkRect.y += (rect.height - _checkRect.height);
 
-            _objectRect = new Rect(_checkRect.xMax + margin, 0, rect.width - _checkRect.width - margin,
+            _objectRect = new Rect(checkLabelRect.xMax + margin, 0, rect.width - checkLabelRect.width - margin,
                 _list.elementHeight);
 
-            EditorGUI.LabelField(rect, G("action.toggle_object.header"));
+            //EditorGUI.LabelField(rect, G("action.toggle_object.header"));
+            var headerCheckRect = checkLabelRect;
+            headerCheckRect.x += rect.x;
+            headerCheckRect.height = rectHeaderSize.y;
+            // why does *2 work well here???
+            headerCheckRect.y += (rect.height - headerCheckRect.height) * 2;
+
+            var headerObjectRect = _objectRect;
+            headerObjectRect.x += rect.x;
+            headerObjectRect.height = rectHeaderSize.y;
+            headerObjectRect.y += (rect.height - headerObjectRect.height) * 2;
+
+            EditorGUI.LabelField(headerCheckRect, _rectHeader);
+            EditorGUI.LabelField(headerObjectRect, _objectHeader);
         }
 
         private void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
         {
+            if (Mathf.Abs(elementWidth - rect.width) > 0.01f && rect.width > 1)
+            {
+                elementWidth = rect.width;
+                Repaint();
+            }
+
             var element = _listProp.GetArrayElementAtIndex(index);
             var activeProp = element.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.Active));
             var targetProp = element.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.target));
