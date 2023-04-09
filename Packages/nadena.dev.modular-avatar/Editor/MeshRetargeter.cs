@@ -24,6 +24,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
@@ -88,8 +89,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 BuildReport.ReportingObject(renderer, () =>
                 {
-                    if (renderer.sharedMesh == null) return;
-
                     bool isRetargetable = false;
                     foreach (var bone in renderer.bones)
                     {
@@ -100,10 +99,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
+                    isRetargetable |= BoneDatabase.GetRetargetedBone(renderer.rootBone);
+
                     if (isRetargetable)
                     {
                         var newMesh = new MeshRetargeter(renderer).Retarget();
-                        _context.SaveAsset(newMesh);
+                        if (newMesh) _context.SaveAsset(newMesh);
                     }
                 });
             }
@@ -143,13 +144,14 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class MeshRetargeter
     {
         private readonly SkinnedMeshRenderer renderer;
-        private Mesh src, dst;
+        [CanBeNull] private Mesh src, dst;
 
         public MeshRetargeter(SkinnedMeshRenderer renderer)
         {
             this.renderer = renderer;
         }
 
+        [CanBeNull]
         public Mesh Retarget()
         {
             var avatar = RuntimeUtil.FindAvatarInParents(renderer.transform);
@@ -165,8 +167,11 @@ namespace nadena.dev.modular_avatar.core.editor
             avatarTransform.localScale = Vector3.one;
 
             src = renderer.sharedMesh;
-            dst = Mesh.Instantiate(src);
-            dst.name = "RETARGETED: " + src.name;
+            if (src != null)
+            {
+                dst = Mesh.Instantiate(src);
+                dst.name = "RETARGETED: " + src.name;
+            }
 
             RetargetBones();
             AdjustShapeKeys();
@@ -185,22 +190,25 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void RetargetBones()
         {
-            var originalBindPoses = src.bindposes;
+            var originalBindPoses = src ? src.bindposes : null;
             var originalBones = renderer.bones;
 
             var newBones = (Transform[]) originalBones.Clone();
-            var newBindPoses = (Matrix4x4[]) originalBindPoses.Clone();
+            var newBindPoses = (Matrix4x4[]) originalBindPoses?.Clone();
 
             for (int i = 0; i < originalBones.Length; i++)
             {
                 Transform newBindTarget = BoneDatabase.GetRetargetedBone(originalBones[i]);
                 if (newBindTarget == null) continue;
-
-                Matrix4x4 Bp = newBindTarget.worldToLocalMatrix * originalBones[i].localToWorldMatrix *
-                               originalBindPoses[i];
-
                 newBones[i] = newBindTarget;
-                newBindPoses[i] = Bp;
+
+                if (originalBindPoses != null)
+                {
+                    Matrix4x4 Bp = newBindTarget.worldToLocalMatrix * originalBones[i].localToWorldMatrix *
+                                   originalBindPoses[i];
+
+                    newBindPoses[i] = Bp;
+                }
             }
 
             var rootBone = renderer.rootBone;
@@ -212,9 +220,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 scaleBone = renderer.bones[0];
             }
 
-            dst.bindposes = newBindPoses;
             renderer.bones = newBones;
-            renderer.sharedMesh = dst;
+            if (dst)
+            {
+                dst.bindposes = newBindPoses;
+                renderer.sharedMesh = dst;
+            }
 
             var newRootBone = BoneDatabase.GetRetargetedBone(rootBone, true);
             var newScaleBone = BoneDatabase.GetRetargetedBone(scaleBone, true);
