@@ -15,6 +15,6 @@
     "com.unity.nuget.newtonsoft-json": "2.0.0"
   },
   "vpmDependencies": {
-    "com.vrchat.avatars": ">=3.1.9"
+    "com.vrchat.avatars": ">=3.1.13"
   }
 }
