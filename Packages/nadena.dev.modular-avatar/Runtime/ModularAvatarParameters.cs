@@ -12,10 +12,15 @@ namespace nadena.dev.modular_avatar.core
         public string remapTo;
         public bool internalParameter, isPrefix;
         public ParameterSyncType syncType;
+        public bool localOnly;
         public float defaultValue;
         public bool saved;
     }
 
+    /**
+     * This enum is a bit poorly named, having been introduced before local-only parameters were a thing. In actuality,
+     * this is the parameter type - NotSynced indicates the parameter should not be registered in Expression Parameters.
+     */
     public enum ParameterSyncType
     {
         NotSynced,
