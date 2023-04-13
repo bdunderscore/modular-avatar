@@ -11,10 +11,14 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class ControlGroupInspector : MAEditorBase
     {
         private bool _showInner;
+        private SerializedProperty _isSynced, _isSaved;
 
         private void OnEnable()
         {
             EditorApplication.hierarchyChanged += Invalidate;
+
+            _isSynced = serializedObject.FindProperty(nameof(ControlGroup.isSynced));
+            _isSaved = serializedObject.FindProperty(nameof(ControlGroup.isSaved));
         }
 
         private void OnDisable()
@@ -88,6 +92,9 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override void OnInnerInspectorGUI()
         {
             if (_menuItemActions == null) Invalidate();
+
+            EditorGUILayout.PropertyField(_isSynced, G("control_group.is_synced"));
+            EditorGUILayout.PropertyField(_isSaved, G("control_group.is_saved"));
 
             _showInner = EditorGUILayout.Foldout(_showInner, G("control_group.foldout.menu_items"));
             if (_showInner)

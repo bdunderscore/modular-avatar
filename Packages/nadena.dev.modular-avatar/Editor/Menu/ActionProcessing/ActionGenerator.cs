@@ -253,12 +253,30 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? VRCExpressionParameters.ValueType.Int
                     : VRCExpressionParameters.ValueType.Bool;
 
+                bool isSaved, isSynced;
+
+                if (kvp.Key is ControlGroup cg)
+                {
+                    isSaved = cg.isSaved;
+                    isSynced = cg.isSynced;
+                }
+                else if (kvp.Key is ModularAvatarMenuItem menuItem)
+                {
+                    isSaved = menuItem.isSaved;
+                    isSynced = menuItem.isSynced;
+                }
+                else
+                {
+                    throw new Exception("Unknown key: " + kvp.Key);
+                }
+
                 expParameters.Add(new VRCExpressionParameters.Parameter()
                 {
                     name = paramname,
                     defaultValue = 0, // TODO
                     valueType = expParamType,
-                    saved = false, // TODO
+                    saved = isSaved,
+                    networkSynced = isSynced
                 });
                 acParameters.Add(new AnimatorControllerParameter()
                 {

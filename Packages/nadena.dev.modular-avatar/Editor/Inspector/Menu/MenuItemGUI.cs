@@ -46,6 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly SerializedProperty _prop_submenuSource;
         private readonly SerializedProperty _prop_otherObjSource;
+        private readonly SerializedProperty _prop_isSynced, _prop_isSaved;
 
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
@@ -110,6 +111,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _prop_submenuSource = obj.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
             _prop_otherObjSource = obj.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
+            _prop_isSynced = obj.FindProperty(nameof(ModularAvatarMenuItem.isSynced));
+            _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
@@ -142,6 +145,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _prop_submenuSource = null;
             _prop_otherObjSource = null;
+            _prop_isSynced = null;
+            _prop_isSaved = null;
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
@@ -171,6 +176,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         EditorGUILayout.PropertyField(_isDefault, G("menuitem.prop.is_default"));
                     }
+                }
+
+                if (!_controlGroup.hasMultipleDifferentValues && _controlGroup.objectReferenceValue == null)
+                {
+                    EditorGUILayout.PropertyField(_prop_isSynced, G("menuitem.prop.is_synced"));
+                    EditorGUILayout.PropertyField(_prop_isSaved, G("menuitem.prop.is_saved"));
                 }
             }
 

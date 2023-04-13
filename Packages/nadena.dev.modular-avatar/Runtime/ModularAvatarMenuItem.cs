@@ -24,6 +24,13 @@ namespace nadena.dev.modular_avatar.core
         [FormerlySerializedAs("toggleGroup")] public ControlGroup controlGroup;
         public bool isDefault;
 
+        /// <summary>
+        /// If no control group is set (and an action is linked), this controls whether this control is synced.
+        /// </summary>
+        public bool isSynced = true;
+
+        public bool isSaved = true;
+
         protected override void OnValidate()
         {
             base.OnValidate();
