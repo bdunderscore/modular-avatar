@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             BuildReport.ReportingObject(installer, () =>
             {
-                var menuSourceComp = installer.GetComponent<MenuSourceComponent>();
+                var menuSourceComp = installer.GetComponent<MenuSource>();
                 if (menuSourceComp != null)
                 {
                     PushNode(menuSourceComp);

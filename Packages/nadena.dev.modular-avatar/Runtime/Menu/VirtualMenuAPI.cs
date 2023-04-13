@@ -88,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.menu
         {
             foreach (Transform t in root.transform)
             {
-                var source = t.GetComponent<MenuSourceComponent>();
+                var source = t.GetComponent<MenuSource>();
                 if (source != null) context.PushNode(source);
             }
         }

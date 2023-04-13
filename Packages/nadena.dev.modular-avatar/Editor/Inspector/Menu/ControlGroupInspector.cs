@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class ControlGroupInspector : MAEditorBase
     {
         private bool _showInner;
-        private SerializedProperty _isSynced, _isSaved;
+        private SerializedProperty _isSynced, _isSaved, _defaultValue;
 
         private void OnEnable()
         {
@@ -19,6 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _isSynced = serializedObject.FindProperty(nameof(ControlGroup.isSynced));
             _isSaved = serializedObject.FindProperty(nameof(ControlGroup.isSaved));
+            _defaultValue = serializedObject.FindProperty(nameof(ControlGroup.defaultValue));
         }
 
         private void OnDisable()
@@ -95,6 +96,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.PropertyField(_isSynced, G("control_group.is_synced"));
             EditorGUILayout.PropertyField(_isSaved, G("control_group.is_saved"));
+            EditorGUILayout.PropertyField(_defaultValue, G("control_group.default_value")); // TODO - dropdown
 
             _showInner = EditorGUILayout.Foldout(_showInner, G("control_group.foldout.menu_items"));
             if (_showInner)
