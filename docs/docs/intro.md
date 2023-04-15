@@ -37,6 +37,10 @@ Note that in some cases it may be necessary to delete the Modular Avatar folder 
 
 To make prerelease versions available in the VCC, [click here](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
 
+Then, in your VCC Settings -> Packages window, uncheck the `bd_` repository, check the `bd_ prerelease` repository, and enable `Show pre-release packages`.
+
+![Pre-release settings](prerelease.png)
+
 The documentation for the prerelease branch can be [found here](https://modular-avatar.nadena.dev/dev).
 
 Prerelease versions may contain bugs, and/or may have compatibility breaks as development progresses. Please leave
