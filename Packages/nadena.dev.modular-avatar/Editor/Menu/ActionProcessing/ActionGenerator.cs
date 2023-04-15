@@ -31,6 +31,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Where(item => item != null)
                 .ToImmutableHashSet();
 
+            if (actionMenus.IsEmpty) return;
+
             // Generate the root blendtree and animation; insert into the FX layer
             var animLayers = avatar.baseAnimationLayers;
             int fxLayerIndex = -1;
@@ -89,7 +91,11 @@ namespace nadena.dev.modular_avatar.core.editor
             layerList.Insert(0, GenerateBlendshapeBaseLayer(avatar));
             rootBlendTree.defaultWeight = 1;
             layerList.Insert(0, rootBlendTree);
-            layerList[1].defaultWeight = 1;
+            if (layerList.Count > 1)
+            {
+                layerList[1].defaultWeight = 1;
+            }
+
             controller.layers = layerList.ToArray();
 
             foreach (var action in avatar.GetComponentsInChildren<MenuAction>(true))
@@ -211,7 +217,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 descriptor.expressionParameters = expParams;
             }
 
-            List<VRCExpressionParameters.Parameter> expParameters = expParams.parameters.ToList();
+            List<VRCExpressionParameters.Parameter> expParameters =
+                expParams.parameters?.ToList() ?? new List<VRCExpressionParameters.Parameter>();
             List<BlendTree> blendTrees = new List<BlendTree>();
 
             Dictionary<ActionController, List<ModularAvatarMenuItem>> groupedItems =

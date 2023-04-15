@@ -56,6 +56,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
         {
+            if (controller == null) return null;
+
             var merger = new AnimatorCombiner(this);
             switch (controller)
             {
