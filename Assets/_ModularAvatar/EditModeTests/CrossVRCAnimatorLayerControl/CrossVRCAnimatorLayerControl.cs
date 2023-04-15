@@ -52,10 +52,10 @@ namespace modular_avatar_tests.CrossVRCAnimatorLayerControl
             Assert.NotNull(lc3);
             Assert.NotNull(lc4);
 
-            Assert.AreEqual(1, lc1.layer);
+            Assert.AreEqual(0, lc1.layer);
             Assert.AreEqual(1, lc2.layer);
-            Assert.AreEqual(1, lc3.layer);
-            Assert.AreEqual(1, lc4.layer);
+            Assert.AreEqual(2, lc3.layer);
+            Assert.AreEqual(3, lc4.layer);
         }
 
         [Test]
@@ -86,10 +86,15 @@ namespace modular_avatar_tests.CrossVRCAnimatorLayerControl
             Assert.NotNull(lc3);
             Assert.NotNull(lc4);
 
-            Assert.AreEqual(2, lc1.layer);
-            Assert.AreEqual(2, lc2.layer);
-            Assert.AreEqual(2, lc3.layer);
-            Assert.AreEqual(2, lc4.layer);
+            // baselayercount + layernum
+            // 3 + 0
+            Assert.AreEqual(3, lc1.layer);
+            // 5 + 1
+            Assert.AreEqual(6, lc2.layer);
+            // 2 + 2
+            Assert.AreEqual(4, lc3.layer);
+            // 4 + 3
+            Assert.AreEqual(7, lc4.layer);
         }
     }
 }

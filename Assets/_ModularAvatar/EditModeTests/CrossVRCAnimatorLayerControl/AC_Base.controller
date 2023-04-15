@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playable: 3
-  layer: 1
+  layer: 2
   goalWeight: 0
   blendDuration: 0
   debugString: 
@@ -74,7 +74,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playable: 0
-  layer: 1
+  layer: 0
   goalWeight: 0
   blendDuration: 0
   debugString: 
@@ -155,7 +155,7 @@ AnimatorStateMachine:
   m_StateMachineBehaviours: []
   m_AnyStatePosition: {x: 50, y: 20, z: 0}
   m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
+  m_ExitPosition: {x: 900, y: 100, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
   m_DefaultState: {fileID: 6254103606317933494}
 --- !u!1102 &6254103606317933494
@@ -225,7 +225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playable: 2
-  layer: 1
+  layer: 3
   goalWeight: 0
   blendDuration: 0
   debugString: 

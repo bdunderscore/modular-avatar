@@ -46,8 +46,10 @@ namespace nadena.dev.modular_avatar.core
     [AddComponentMenu("Modular Avatar/MA Merge Animator")]
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
-        // Old 
+        // Old
+        [Obsolete("This is old. Use animators.")]
         public RuntimeAnimatorController animator;
+        [Obsolete("This is old. Use animators.")]
         public VRCAvatarDescriptor.AnimLayerType layerType = VRCAvatarDescriptor.AnimLayerType.FX;
 
         // New
@@ -57,13 +59,23 @@ namespace nadena.dev.modular_avatar.core
         public bool matchAvatarWriteDefaults;
 
         // Convert old version to new Version
-        private void Awake()
+        private void Convert()
         {
             if (animator != null)
             {
                 animators.Add(new AnimLayerData { type = layerType, animator = animator });
                 animator = null;
             }
+        }
+        private void Awake()
+        {
+            Convert();
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            Convert();
         }
     }
 }

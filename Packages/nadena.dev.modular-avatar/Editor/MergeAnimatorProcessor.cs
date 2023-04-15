@@ -78,6 +78,10 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessMergeAnimators(GameObject avatarGameObject, BuildContext context,
             ModularAvatarMergeAnimator merge)
         {
+            // Convert old version to new version
+            if (merge.animator != null)
+                merge.animators.Add(new AnimLayerData() { animator = merge.animator, type = merge.layerType });
+
             if (merge.animators.Count == 0) return;
 
             Dictionary<VRCAvatarDescriptor.AnimLayerType, int> controllerLayersCount =

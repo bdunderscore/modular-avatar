@@ -206,31 +206,31 @@ MonoBehaviour:
   baseAnimationLayers:
   - isEnabled: 0
     type: 0
-    animatorController: {fileID: 9100000, guid: fd57d738f531634409d19687a053f56d,
+    animatorController: {fileID: 9100000, guid: 2069d293198a68840a52588195788652,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
   - isEnabled: 0
     type: 2
-    animatorController: {fileID: 9100000, guid: fd57d738f531634409d19687a053f56d,
+    animatorController: {fileID: 9100000, guid: 2069d293198a68840a52588195788652,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
   - isEnabled: 0
     type: 3
-    animatorController: {fileID: 9100000, guid: fd57d738f531634409d19687a053f56d,
+    animatorController: {fileID: 9100000, guid: 976948467c2cabf408ff59eb5a27664e,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
   - isEnabled: 0
     type: 4
-    animatorController: {fileID: 9100000, guid: fd57d738f531634409d19687a053f56d,
+    animatorController: {fileID: 9100000, guid: bd12b67badca9b04598c264ab9a9e0b6,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
   - isEnabled: 0
     type: 5
-    animatorController: {fileID: 9100000, guid: fd57d738f531634409d19687a053f56d,
+    animatorController: {fileID: 9100000, guid: d3c24a0e4796a55499da8e5643de6b24,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
