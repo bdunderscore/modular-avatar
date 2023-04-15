@@ -32,6 +32,17 @@ jobs:
           cp -f image-assets/img/logo/ma_logo.png Packages/${{env.packageName}}/Editor/Images/logo.png
           cp -f image-assets/img/logo/ma_icon.png Packages/${{env.packageName}}/Runtime/Icons/Icon_MA_Script.png
 
+      - name: Check semver syntax
+        id: semver-check
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          REF_NAME: ${{ github.ref }}
+        run: |
+          if echo $REF_NAME | grep '[a-z]-[0-9]' && ! echo $REF_NAME | grep '^refs/tags/1\.5\.0-'; then
+            echo "Tag name does not follow semver prerelease syntax: $REF_NAME"
+            exit 1
+          fi
+
       - name: get version
         id: version
         uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8
