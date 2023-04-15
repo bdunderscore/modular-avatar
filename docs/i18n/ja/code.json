@@ -257,8 +257,8 @@
   "Documentation": {
     "message": "説明書"
   },
-  "Download": {
-    "message": "ダウンロード"
+  "Download (using VCC)": {
+    "message": "VCCでダウンロード"
   },
   "Modular Avatar": {
     "message": "モジュラーアバター"

@@ -35,8 +35,8 @@ function HomepageHeader() {
           </Link>
           <Link
               className={`button button--secondary button--lg ${styles.button}`}
-              to="https://github.com/bdunderscore/modular-avatar/releases/latest">
-              <Translate>Download</Translate>
+              to="vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json">
+              <Translate>Download (using VCC)</Translate>
           </Link>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}
