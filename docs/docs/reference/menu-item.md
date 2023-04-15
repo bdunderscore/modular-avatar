@@ -34,12 +34,10 @@ In order to define where a menu item will go in the menu, another component will
 * The menu item can be on the same game object as a [Menu Installer](menu-installer) component.
 * The menu item can be the child of a [Menu Group](menu-group) object (which would typically be on a game object with a Menu Installer component)
 
-Unbound menu items have no effect
+Unbound menu items have no effect.
 
 ### Using with actions
 
 If an [action component](action-toggle-object) is on the same object as the menu item, the menu item will be configured to control this action component, instead of controlling an arbitrary parameter. See the action component documentation for details.
 
-When an action component is present on the same object, you can no longer select the parameter name for the menu item; Modular Avatar will automatically assign a parameter at build time. By default, a boolean parameter will be created; if you attach a [control group](control-group) to the menu item, an int parameter will be used instead.
-
-When a control group is attached, you can select a single menu item to be the "Group Default". When this is done, this menu item will be set to be initially selected; additionally, for certain types of actions (notably, [Toggle Object](action-toggle-object) actions), when _other_ menu items are selected, the action of this default item will be negated (so any objects this action toggles on, will be off by default in other states). 
+When an action component is present on the same object, you can no longer select the parameter name for the menu item; Modular Avatar will automatically assign a parameter at build time. By default, a boolean parameter will be created; if you attach a [control group](control-group) to the menu item, an int parameter will be used instead. 

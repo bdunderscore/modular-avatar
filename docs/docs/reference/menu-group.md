@@ -1,6 +1,6 @@
 # Menu Group
 
-The menu group asset allows a single menu installer to install multiple menu items without grouping them into a submenu.
+The menu group component allows a single menu installer to install multiple menu items without grouping them into a submenu.
 It is primarily intended as an internal component for use when converting expressions menus.
 
 ![Menu Group](menu-group.png)
