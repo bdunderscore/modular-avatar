@@ -62,15 +62,20 @@ namespace modular_avatar_tests
         }
 
 
-        protected static AnimationClip findFxMotion(GameObject prefab, string layerName)
+        protected static AnimationClip findFxClip(GameObject prefab, string layerName)
+        {
+            var motion = findFxMotion(prefab, layerName) as AnimationClip;
+            Assert.NotNull(motion);
+            return motion;
+        }
+
+        protected static Motion findFxMotion(GameObject prefab, string layerName)
         {
             var layer = findFxLayer(prefab, layerName);
             var state = layer.stateMachine.states[0].state;
             Assert.NotNull(state);
 
-            var motion = state.motion as AnimationClip;
-            Assert.NotNull(motion);
-            return motion;
+            return state.motion;
         }
 
         protected static AnimatorState FindStateInLayer(AnimatorControllerLayer layer, string stateName)

@@ -122,7 +122,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             InspectorCommon.DisplayOutOfAvatarWarning(targets);
-            if (!ComponentAllowlistPatch.PATCH_OK) InspectorCommon.DisplayVRCSDKVersionWarning();
 
             OnInnerInspectorGUI();
         }

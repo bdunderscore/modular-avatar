@@ -1,0 +1,77 @@
+#  MIT License
+#
+#  Copyright (c) 2022 anatawa12
+#  Copyright (c) 2022 bd_
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
+
+name: GameCI
+
+on:
+  push:
+    branches: [master, dev]
+  # This is a bit of a radioactive event; we need to be very careful with what permissions
+  # we assign this action, as we're allowing arbitrary code execution with the context of
+  # whatever permissions we assign.
+  pull_request_target:
+    paths:
+      - 'Packages/**'
+      - 'Assets/**'
+      - 'ProjectSettings/**'
+      - '.github/workflows/gameci.yml'
+  workflow_dispatch: {}
+
+# pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: anatawa12/sh-actions/resolve-vpm-packages@master
+
+      - uses: game-ci/unity-test-runner@v2
+        id: gameci
+        env:
+          # meh, just a personal license...
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          testMode: EditMode
+          githubToken: ${{ github.token }}
+          coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
+          customParameters: -nographics -assemblyNames Tests
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Test results
+          path: ${{ steps.gameci.outputs.artifactsPath }}
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Coverage results
+          path: ${{ steps.gameci.outputs.coveragePath }}

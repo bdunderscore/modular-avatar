@@ -22,7 +22,7 @@ namespace modular_avatar_tests.AnimateAddedBones
 
             var layerName = "merged";
 
-            var motion = findFxMotion(prefab, layerName);
+            var motion = findFxClip(prefab, layerName);
 
             var cubeObject = prefab.transform.Find("Armature/Hips").GetChild(0).gameObject;
             Assert.True(cubeObject.name.StartsWith("Cube$"));

@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.vrchat.avatars": {
-      "version": "3.1.9"
+      "version": "3.1.13"
     },
     "com.vrchat.core.vpm-resolver": {
       "version": "0.1.13"
@@ -22,7 +22,8 @@
       "dependencies": {}
     },
     "com.vrchat.core.vpm-resolver": {
-      "version": "0.1.17"
+      "version": "0.1.18",
+      "dependencies": {}
     },
     "vrchat.blackstartx.gesture-manager": {
       "version": "3.8.3",

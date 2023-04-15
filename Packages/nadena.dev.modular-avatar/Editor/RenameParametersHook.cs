@@ -347,13 +347,20 @@ namespace nadena.dev.modular_avatar.core.editor
             blendTree.blendParameter = remap(remaps, blendTree.blendParameter);
             blendTree.blendParameterY = remap(remaps, blendTree.blendParameterY);
 
-            foreach (var childMotion in blendTree.children)
+            var children = blendTree.children;
+            for (int i = 0; i < children.Length; i++)
             {
+                var childMotion = children[i];
                 if (childMotion.motion is BlendTree subTree)
                 {
                     ProcessBlendtree(subTree, remaps);
                 }
+
+                childMotion.directBlendParameter = remap(remaps, childMotion.directBlendParameter);
+                children[i] = childMotion;
             }
+
+            blendTree.children = children;
         }
 
         private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<string, string> remaps)

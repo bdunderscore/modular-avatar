@@ -17,7 +17,7 @@ namespace modular_avatar_tests.TransformMappingThroughSwitchedObject
             var prefab = CreatePrefab("TransformMappingThroughSwitchedObject.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
 
-            var motion = findFxMotion(prefab, "child_controller");
+            var motion = findFxClip(prefab, "child_controller");
 
             var binding = EditorCurveBinding.FloatCurve("Armature/Hips", typeof(Transform), "localEulerAnglesRaw.x");
             var curve = AnimationUtility.GetEditorCurve(motion, binding);
