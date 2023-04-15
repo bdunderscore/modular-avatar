@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Menu Item")]
-    public class ModularAvatarMenuItem : MenuSourceComponent
+    public class ModularAvatarMenuItem : ActionController, MenuSource
     {
         public VRCExpressionsMenu.Control Control;
         public SubmenuSource MenuSource;
@@ -22,11 +22,22 @@ namespace nadena.dev.modular_avatar.core
         public GameObject menuSource_otherObjectChildren;
 
         [FormerlySerializedAs("toggleGroup")] public ControlGroup controlGroup;
-        public bool isDefault;
+
+        /// <summary>
+        /// If no control group is set (and an action is linked), this controls whether this control is synced.
+        /// </summary>
+        public bool isSynced = true;
+
+        public bool isSaved = true;
+
+        internal override bool isSyncedProp => isSynced;
+        internal override bool isSavedProp => isSaved;
 
         protected override void OnValidate()
         {
             base.OnValidate();
+
+            RuntimeUtil.InvalidateMenu();
 
             if (Control == null)
             {
@@ -34,7 +45,7 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
-        public override void Visit(NodeContext context)
+        public void Visit(NodeContext context)
         {
             if (Control == null)
             {

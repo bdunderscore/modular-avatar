@@ -7,8 +7,8 @@ using Object = System.Object;
 
 namespace nadena.dev.modular_avatar.core
 {
-    [RequireComponent(typeof(ModularAvatarMenuItem))]
     [AddComponentMenu("Modular Avatar/MA Action Toggle Object")]
+    [RequireComponent(typeof(ActionController))]
     public class ActionToggleObject : AvatarTagComponent, SwitchedMenuAction
     {
         [Serializable]

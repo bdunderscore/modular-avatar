@@ -70,25 +70,33 @@ In some cases you might want more complex toggles. This can be done by adding a 
 
 ![Sample control group object](control-group.png)
 
-Here we have a clothing menu which has a control group on it. The control group has no settings on it; it's just there to tie together the menu items. Here's what those look like:
+Here we have a clothing menu which has a control group on it. The main job of the control group is to to tie together the menu items, so that only one can be selected at a time. Here's what those look like:
 
 ![Clothing menu item: Default](clothes-0.png)
 ![Clothing menu item: Blanchir](clothes-1.png)
 ![Clothing menu item: SailorOnepiece](clothes-2.png)
 
-As you can see, each of these menu items has a "Toggle" type, and a "MA Action Toggle Object" component. The "MA Action Toggle Object" component has a checkbox next to each object, which indicates whether that object should be shown when the menu item is selected.
-What's different here is that we've specified the control group object under "Control Group", and on the default object, we selected "Is Group Default".
-
+As you can see, each of these menu items has a "Toggle" type, and a "MA Action Toggle Object" component.
+What's different here is that we've specified the control group object under "Control Group".
 When you specify a control group, only one menu item out of the control group can be selected at a time. This essentially means they'll be bound to the same parameter.
 
-You can select one item out of your control group to be the default item. When you do this, the default item will be selected initially, and anything that it selects will be reversed when you select a different item. In this example, because we selected the "Kikyo_Blouse", "Kikyo_Coat", and "Kikyo_Skirt" objects ON in the default item, these will be toggled off when we select Blanchir or SailorOnepiece. You can override this on the individual other items by adding that item in explicitly.
+The control group can be placed on any object, provided that you don't have a Menu Item on that same game object. Feel
+free to put it wherever it makes sense in your hierarchy.
+
+We've also set an additional Action Toggle Object on the control group itself. These toggles will be applied by default -
+this lets us turn off the default Kikyo outfit in all of our additional outfits that we're adding.
+
+You can select one item out of your control group to be the default item on the control group. If you select the "(none
+selected)" option, then it'll be possible to turn off all toggles, selecting the control group defaults.
+
+Finally, you can set on the control group whether the parameter is saved and/or synced.
 
 ### Limitations
 
 This feature is in preview and has a number of limitations you should be aware of:
 
 1. Objects can only be controlled by one control group or ungrouped toggle at this time.
-2. Currently, these toggles will not be saved. This means that if you change avatars or move between worlds, your toggles will not be saved.
+2. Only GameObjects can be toggled; there is not yet support for toggling individual components, blend shapes, etc.
 3. A toggle cannot both control actions and traditional animators at the same time.
 
 These limitations will be improved on in future releases.

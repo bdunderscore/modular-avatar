@@ -30,7 +30,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _value;
         private readonly SerializedProperty _submenu;
         private readonly SerializedProperty _controlGroup;
-        private readonly SerializedProperty _isDefault;
 
         private readonly ParameterGUI _parameterGUI;
 
@@ -46,6 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly SerializedProperty _prop_submenuSource;
         private readonly SerializedProperty _prop_otherObjSource;
+        private readonly SerializedProperty _prop_isSynced, _prop_isSaved;
 
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
@@ -92,7 +92,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _name = gameObjects.FindProperty("m_Name");
             _controlGroup = obj.FindProperty(nameof(ModularAvatarMenuItem.controlGroup));
-            _isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
 
             var control = obj.FindProperty(nameof(ModularAvatarMenuItem.Control));
 
@@ -110,6 +109,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _prop_submenuSource = obj.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
             _prop_otherObjSource = obj.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
+            _prop_isSynced = obj.FindProperty(nameof(ModularAvatarMenuItem.isSynced));
+            _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
@@ -133,7 +134,6 @@ namespace nadena.dev.modular_avatar.core.editor
             _submenu = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
             _controlGroup = null;
-            _isDefault = null;
 
             _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
 
@@ -142,6 +142,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _prop_submenuSource = null;
             _prop_otherObjSource = null;
+            _prop_isSynced = null;
+            _prop_isSaved = null;
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
@@ -165,12 +167,11 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_hasActions)
             {
                 EditorGUILayout.PropertyField(_controlGroup, G("menuitem.prop.control_group"));
-                if (_controlGroup.hasMultipleDifferentValues || _controlGroup.objectReferenceValue != null)
+
+                if (!_controlGroup.hasMultipleDifferentValues && _controlGroup.objectReferenceValue == null)
                 {
-                    using (new EditorGUI.DisabledScope(_obj.isEditingMultipleObjects))
-                    {
-                        EditorGUILayout.PropertyField(_isDefault, G("menuitem.prop.is_default"));
-                    }
+                    EditorGUILayout.PropertyField(_prop_isSynced, G("menuitem.prop.is_synced"));
+                    EditorGUILayout.PropertyField(_prop_isSaved, G("menuitem.prop.is_saved"));
                 }
             }
 

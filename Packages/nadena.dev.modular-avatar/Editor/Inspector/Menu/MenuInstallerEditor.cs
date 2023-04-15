@@ -353,7 +353,7 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var t in targets)
             {
                 var installer = (ModularAvatarMenuInstaller) t;
-                if (installer.GetComponent<MenuSourceComponent>() || installer.menuToAppend == null) continue;
+                if (installer.GetComponent<MenuSource>() != null || installer.menuToAppend == null) continue;
 
                 var menu = installer.menuToAppend;
                 if (menu.controls.Count == 0)
