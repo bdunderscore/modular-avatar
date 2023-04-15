@@ -480,6 +480,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 valueType = type,
                 defaultValue = parameterConfig.defaultValue,
                 saved = parameterConfig.saved,
+                networkSynced = !parameterConfig.localOnly
             };
         }
 
