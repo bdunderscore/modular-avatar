@@ -469,7 +469,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 _avatarMenus.Add(menu);
                 foreach (var subMenu in menu.controls)
                 {
-                    if (subMenu.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                    if (subMenu.type == VRCExpressionsMenu.Control.ControlType.SubMenu && subMenu.subMenu != null)
                     {
                         queue.Enqueue(subMenu.subMenu);
                     }
