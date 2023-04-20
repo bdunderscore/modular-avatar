@@ -110,6 +110,7 @@ namespace nadena.dev.modular_avatar.core.editor
             AnimationClip clip = new AnimationClip();
             foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
+                if (!renderer.sharedMesh)  continue;
                 int nShapes = renderer.sharedMesh.blendShapeCount;
                 for (int i = 0; i < nShapes; i++)
                 {
