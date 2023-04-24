@@ -29,6 +29,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
+  "object_remover.hide": "Hide in hierarchy",
   "merge_armature.merge_target": "Merge Target",
   "merge_armature.merge_target.tooltip": "The armature (or subtree) to merge this object into",
   "merge_armature.prefix": "Prefix",

@@ -201,6 +201,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process(context);
                         new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                         new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context);
+                        ObjectRemoverProcessor.OnPreprocessAvatar(avatarGameObject);
                         PhysboneBlockerPass.Process(avatarGameObject);
 
                         AfterProcessing?.Invoke(avatarGameObject, context);
