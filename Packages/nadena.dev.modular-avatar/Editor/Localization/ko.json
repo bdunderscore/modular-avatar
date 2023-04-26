@@ -45,7 +45,7 @@
   "merge_animator.match_avatar_write_defaults": "아바타와 일치하게 Write Defaults 변환",
   "merge_animator.match_avatar_write_defaults.tooltip": "아바타의 애니메이터에서 사용하는 Write Defaults 설정과 일치시킵니다. 아바타의 Write Defaults 설정이 일관되지 않은 경우에는 작동하지 않습니다.",
   "fpvisible.normal": "이 오브젝트는 일인칭 시점에서 보일 것입니다.",
-  "fpvisible.NotUnderHead": "Head 본(Bone) 아래에 위치하지 않은 경우 이 컴포넌트는 영향을 미치지 않습니다.",
+  "fpvisible.NotUnderHead": "Head 본(Bone) 내의 오브젝트가 아닌 경우 작동하지 않습니다.",
   "fpvisible.quest": "이 컴포넌트는 오큘러스 퀘스트 단독 버전과 호환되지 않으며 영향을 미치지 않습니다.",
   "fpvisible.InPhysBoneChain": "이 객체는 Physics Bone 체인에 의해 컨트롤되므로 체인의 세부적인 선택이 불가능합니다. 대신 체인의 시작 부분을 선택하세요.",
   "blendshape.mesh": "메시",
