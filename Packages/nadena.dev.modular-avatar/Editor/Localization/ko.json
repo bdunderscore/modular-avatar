@@ -60,7 +60,7 @@
   "boneproxy.attachment.AsChildKeepPosition": "자식으로서; 위치 유지",
   "boneproxy.attachment.AsChildKeepRotation": "자식으로서; 회전 유지",
   "pb_blocker.help": "이 오브젝트는 부모에 첨부된 PhysBones의 영향을 받지 않습니다.",
-  "hint.bad_vrcsdk": "호환되지 않는 VRCSDK 버전이 감지되었습니다.\n\nVRCSDK 를 업그레이드 해 보세요. 그래도 작동하지 않는다면 최신버전의 Modular Avatar 로 업데이트가 가능한지 확인하세요.",
+  "hint.bad_vrcsdk": "호환되지 않는 VRCSDK 버전이 감지되었습니다.\n\nVRCSDK 를 업그레이드 해 보세요. 그래도 작동하지 않는다면 최신버전의 Modular Avatar 로 업데이트할 수 있는지 확인하세요.",
   "error.stack_trace": "스택 추적 (버그를 보고할 때 제공하세요!)",
   "error.merge_armature.merge_into_self": "병합 Armature 컴포넌트가 자체 또는 자체의 하위 항목을 병합 대상으로 참조하고 있습니다. 대신 아바타의 Armature를 참조해야 합니다. 아바타의 주요 Armature에 병합 Armature를 두지 마세요.",
   "error.internal_error": "내부 오류가 발생했습니다: {0}\n 처리 중:",
