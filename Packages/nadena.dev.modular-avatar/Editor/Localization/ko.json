@@ -39,7 +39,7 @@
   "merge_animator.animator": "병합할 애니메이터",
   "merge_animator.layer_type": "레이어 유형",
   "merge_animator.delete_attached_animator": "첨부된 애니메이터 삭제",
-  "merge_animator.delete_attached_animator.tooltip": "병합 후 이 오브젝트에 첨부된 애니메이터를 삭제합니다.",
+  "merge_animator.delete_attached_animator.tooltip": "병합 후 해당 오브젝트의 애니메이터를 삭제합니다.",
   "merge_animator.path_mode": "경로 모드",
   "merge_animator.path_mode.tooltip": "애니메이션에서 경로를 해석하는 방법입니다. '상대적'을 사용하면 이 오브젝트에 있는 애니메이터에서 애니메이션을 기록할 수 있습니다.",
   "merge_animator.match_avatar_write_defaults": "아바타와 일치하게 Write Defaults 변환",
