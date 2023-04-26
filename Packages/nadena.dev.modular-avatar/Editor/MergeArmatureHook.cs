@@ -29,6 +29,7 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
+using VRC.Core;
 using VRC.Dynamics;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
