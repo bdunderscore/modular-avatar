@@ -37,7 +37,13 @@ namespace nadena.dev.modular_avatar.core
                 {
                     if (avatar.GetComponentInChildren<AvatarTagComponent>(true) != null)
                     {
-                        avatar.gameObject.GetOrAddComponent<AvatarActivator>().hideFlags = HideFlags.HideInInspector;
+                        var component = avatar.GetComponent<AvatarActivator>();
+                        if (component == null)
+                        {
+                            component = avatar.gameObject.AddComponent<AvatarActivator>();
+                        }
+
+                        component.hideFlags = HideFlags.HideInInspector;
                     }
                 }
             }
