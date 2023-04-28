@@ -33,6 +33,7 @@ using VRC.Dynamics;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Object = UnityEngine.Object;
+using VRC.Core;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
