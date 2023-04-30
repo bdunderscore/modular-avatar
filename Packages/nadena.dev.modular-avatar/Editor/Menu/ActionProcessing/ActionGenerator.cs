@@ -88,14 +88,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var layerList = controller.layers.ToList();
-            layerList.Insert(0, GenerateBlendshapeBaseLayer(avatar));
-            rootBlendTree.defaultWeight = 1;
             layerList.Insert(0, rootBlendTree);
-            if (layerList.Count > 1)
-            {
-                layerList[1].defaultWeight = 1;
-            }
+            rootBlendTree.defaultWeight = 1;
 
+            controller.layers = layerList.ToArray();
+
+            // Generate blendshape base layer including anything we're animating in our blendtree
+            layerList.Insert(0, GenerateBlendshapeBaseLayer(avatar));
             controller.layers = layerList.ToArray();
 
             foreach (var action in avatar.GetComponentsInChildren<MenuAction>(true))

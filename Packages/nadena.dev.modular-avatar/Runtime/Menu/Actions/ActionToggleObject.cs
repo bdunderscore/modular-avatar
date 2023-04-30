@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core
         [Serializable]
         public class ObjectEntry
         {
-            public AvatarObjectReference target;
+            public AvatarObjectReference target = new AvatarObjectReference();
             public bool Active;
         }
 
