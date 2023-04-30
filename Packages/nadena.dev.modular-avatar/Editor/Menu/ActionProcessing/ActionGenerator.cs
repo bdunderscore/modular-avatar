@@ -110,7 +110,7 @@ namespace nadena.dev.modular_avatar.core.editor
             AnimationClip clip = new AnimationClip();
             foreach (var renderer in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
-                if (!renderer.sharedMesh)  continue;
+                if (!renderer.sharedMesh) continue;
                 int nShapes = renderer.sharedMesh.blendShapeCount;
                 for (int i = 0; i < nShapes; i++)
                 {
@@ -222,8 +222,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 expParams.parameters?.ToList() ?? new List<VRCExpressionParameters.Parameter>();
             List<BlendTree> blendTrees = new List<BlendTree>();
 
-            Dictionary<ActionController, List<ModularAvatarMenuItem>> groupedItems =
-                new Dictionary<ActionController, List<ModularAvatarMenuItem>>();
+            Dictionary<Component, List<ModularAvatarMenuItem>> groupedItems =
+                new Dictionary<Component, List<ModularAvatarMenuItem>>();
 
             foreach (var item in items)
             {
@@ -274,7 +274,21 @@ namespace nadena.dev.modular_avatar.core.editor
                     group.Insert(0, null);
                 }
 
-                bool isSaved = kvp.Key.isSavedProp, isSynced = kvp.Key.isSyncedProp;
+                bool isSaved, isSynced;
+                if (kvp.Key is ControlGroup cg_)
+                {
+                    isSaved = cg_.isSaved;
+                    isSynced = cg_.isSynced;
+                }
+                else if (kvp.Key is ModularAvatarMenuItem menuItem)
+                {
+                    isSaved = menuItem.isSaved;
+                    isSynced = menuItem.isSynced;
+                }
+                else
+                {
+                    throw new Exception("Unknown type " + kvp.Key.GetType());
+                }
 
                 expParameters.Add(new VRCExpressionParameters.Parameter()
                 {
@@ -341,7 +355,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         void MergeCurves(
             IDictionary<MenuCurveBinding, (Component, AnimationCurve)> curves,
-            ActionController controller,
+            Component controller,
             Func<SwitchedMenuAction, IDictionary<MenuCurveBinding, AnimationCurve>> getCurves,
             bool ignoreDuplicates
         )
@@ -382,7 +396,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private List<Motion> GenerateMotions(
             List<ModularAvatarMenuItem> items,
             Dictionary<MenuCurveBinding, Component> bindings,
-            ActionController controller
+            Component controller
         )
         {
             Dictionary<MenuCurveBinding, Component> newBindings = new Dictionary<MenuCurveBinding, Component>();
@@ -397,7 +411,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var item in items)
             {
-                MergeCurves(inactiveCurves, item, a => a.GetInactiveCurves(false), true);
+                MergeCurves(inactiveCurves, item, a => a.GetInactiveCurves(), true);
             }
 
             var inactiveMotion = CurvesToMotion(inactiveCurves);

@@ -39,7 +39,7 @@ namespace nadena.dev.modular_avatar.core
             ).ToImmutableDictionary();
         }
 
-        public ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetInactiveCurves(bool isDefault)
+        public ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetInactiveCurves()
         {
             var builder = ImmutableDictionary<MenuCurveBinding, AnimationCurve>.Empty.ToBuilder();
 
@@ -49,19 +49,9 @@ namespace nadena.dev.modular_avatar.core
 
                 if (target == null) continue;
 
-                bool active;
-                if (isDefault)
-                {
-                    active = !obj.Active; // inactive state is the opposite of the default state
-                }
-                else
-                {
-                    active = target.activeSelf; // inactive state is the current state
-                }
-
                 builder.Add(
                     new MenuCurveBinding(target, typeof(GameObject), "m_IsActive"),
-                    AnimationCurve.Constant(0, 1, active ? 1 : 0)
+                    AnimationCurve.Constant(0, 1, 0)
                 );
             }
 

@@ -24,10 +24,11 @@ namespace nadena.dev.modular_avatar.core
 
         /// <summary>
         /// Returns the curves applied when this action is inactive (and no other actions override).
+        /// In general, this should depend only on the path and state of the target objects, and not on the
+        /// configuration of the action itself (apart from target selection).
         /// </summary>
-        /// <param name="isDefault">True if this action is part of the default toggle option.</param>
         /// <returns></returns>
-        ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetInactiveCurves(bool isDefault);
+        ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetInactiveCurves();
     }
 
     public enum TargetParameter
