@@ -77,6 +77,7 @@ namespace nadena.dev.modular_avatar.core
         [CanBeNull]
         public static string AvatarRootPath(GameObject child)
         {
+            if (child == null) return null;
             var avatar = FindAvatarInParents(child.transform);
             if (avatar == null) return null;
             return RelativePath(avatar.gameObject, child);

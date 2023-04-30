@@ -171,7 +171,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (obj != null && obj.target != null)
                             {
-                                currentObjects.Add(obj.target);
+                                currentObjects.Add(obj.target.Get(targetObj));
                             }
                         }
 
@@ -183,7 +183,10 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 objects.Add(new ActionToggleObject.ObjectEntry()
                                 {
-                                    target = go,
+                                    target = new AvatarObjectReference()
+                                    {
+                                        referencePath = RuntimeUtil.AvatarRootPath(go)
+                                    },
                                     Active = go.activeSelf
                                 });
                             }

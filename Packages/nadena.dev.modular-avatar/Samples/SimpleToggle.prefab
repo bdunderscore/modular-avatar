@@ -73,8 +73,9 @@ MonoBehaviour:
     labels: []
   MenuSource: 0
   menuSource_otherObjectChildren: {fileID: 0}
-  toggleGroup: {fileID: 0}
-  isDefault: 0
+  controlGroup: {fileID: 0}
+  isSynced: 1
+  isSaved: 1
 --- !u!114 &186869909411364114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,7 +89,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Objects:
-  - target: {fileID: 186869909814968463}
+  - target:
+      referencePath: SimpleToggle/Cube
     Active: 1
 --- !u!1 &186869909814968463
 GameObject:

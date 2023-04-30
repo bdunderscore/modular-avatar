@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core
         [Serializable]
         public class ObjectEntry
         {
-            public GameObject target;
+            public AvatarObjectReference target;
             public bool Active;
         }
 
@@ -34,30 +34,38 @@ namespace nadena.dev.modular_avatar.core
         {
             return Objects.Select(obj =>
                 new KeyValuePair<MenuCurveBinding, AnimationCurve>(
-                    new MenuCurveBinding(obj.target, typeof(GameObject), "m_IsActive"),
+                    new MenuCurveBinding(obj.target.Get(this), typeof(GameObject), "m_IsActive"),
                     AnimationCurve.Constant(0, 1, obj.Active ? 1 : 0))
             ).ToImmutableDictionary();
         }
 
         public ImmutableDictionary<MenuCurveBinding, AnimationCurve> GetInactiveCurves(bool isDefault)
         {
-            return Objects.Select(obj =>
-                {
-                    bool active;
-                    if (isDefault)
-                    {
-                        active = !obj.Active; // inactive state is the opposite of the default state
-                    }
-                    else
-                    {
-                        active = obj.target.activeSelf; // inactive state is the current state
-                    }
+            var builder = ImmutableDictionary<MenuCurveBinding, AnimationCurve>.Empty.ToBuilder();
 
-                    return new KeyValuePair<MenuCurveBinding, AnimationCurve>(
-                        new MenuCurveBinding(obj.target, typeof(GameObject), "m_IsActive"),
-                        AnimationCurve.Constant(0, 1, active ? 1 : 0));
+            foreach (var obj in Objects)
+            {
+                var target = obj.target?.Get(this);
+
+                if (target == null) continue;
+
+                bool active;
+                if (isDefault)
+                {
+                    active = !obj.Active; // inactive state is the opposite of the default state
                 }
-            ).ToImmutableDictionary();
+                else
+                {
+                    active = target.activeSelf; // inactive state is the current state
+                }
+
+                builder.Add(
+                    new MenuCurveBinding(target, typeof(GameObject), "m_IsActive"),
+                    AnimationCurve.Constant(0, 1, active ? 1 : 0)
+                );
+            }
+
+            return builder.ToImmutable();
         }
 
         public bool BindsParameter(TargetParameter parameter)
