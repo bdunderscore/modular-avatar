@@ -1,5 +1,4 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -7,23 +6,10 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal static void OnPreprocessAvatar(GameObject avatarGameObject)
         {
-            var toRemove = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarObjectRemover>(true);
-
-            foreach (var remove in toRemove)
+            var removers = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarObjectRemover>(true);
+            foreach (var remover in removers)
             {
-                Object.DestroyImmediate(remove.gameObject);
-            }
-        }
-
-
-        [MenuItem("GameObject/ModularAvatar/Restore Removed", false, 49)]
-        static void RestoreRemoved(MenuCommand menuCommand)
-        {
-            if (!(menuCommand.context is GameObject obj)) return;
-            foreach (Transform child in obj.transform)
-            {
-                var toRemove = child.GetComponent<ModularAvatarObjectRemover>();
-                if (toRemove != null) toRemove.Restore();
+                foreach (var toRemove in remover.objectsToRemove) Object.DestroyImmediate(toRemove);
             }
         }
     }
