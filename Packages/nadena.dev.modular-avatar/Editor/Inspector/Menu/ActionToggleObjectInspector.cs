@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BestHTTP;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -12,13 +13,13 @@ namespace nadena.dev.modular_avatar.core.editor
     [CustomEditor(typeof(ActionToggleObject))]
     internal class ActionToggleObjectInspector : MAEditorBase
     {
-        private ReorderableList _list;
+        private ColumnReorderableList _list;
         private SerializedProperty _listProp;
 
         private void OnEnable()
         {
             _listProp = serializedObject.FindProperty(nameof(ActionToggleObject.Objects));
-            _list = new ReorderableList(
+            _list = new ColumnReorderableList(
                 serializedObject,
                 _listProp,
                 true,
@@ -27,8 +28,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 true
             );
 
-            _list.drawHeaderCallback += DrawListHeader;
-            _list.drawElementCallback += DrawElement;
+            _list.Repaint = Repaint;
+            _list.OnGenerateColumns = BuildColumns;
             _list.onRemoveCallback += OnRemoveElement;
             _list.onAddCallback += OnAddElement;
 
@@ -48,85 +49,41 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private float elementWidth;
-        private GUIContent _rectHeader, _objectHeader;
-        private Rect _checkRect, _objectRect;
-
-        private void DrawListHeader(Rect rect)
+        private void BuildColumns(float width)
         {
-            if (elementWidth > 1 && elementWidth < rect.width)
-            {
-                rect.x += rect.width - elementWidth;
-                rect.width = elementWidth;
-            }
-
-            var margin = 4;
-
             var t = EditorStyles.toggle;
             var toggleSize = t.CalcSize(GUIContent.none);
-            _checkRect = new Rect(0, 0, toggleSize.x, toggleSize.y);
 
-            _rectHeader = G("action.toggle_object.header.show");
-            _objectHeader = G("action.toggle_object.header.object");
+            var checkHeaderContent = G("action.toggle_object.header.show");
+            var rectHeaderSize = EditorStyles.label.CalcSize(checkHeaderContent);
 
-            var checkLabelRect = _checkRect;
+            width = _list.AddColumn(rectHeaderSize.x, "action.toggle_object.header.show", (rect, prop) =>
+            {
+                rect = CenterElement(rect, toggleSize);
 
-            var rectHeaderSize = EditorStyles.label.CalcSize(_rectHeader);
-            checkLabelRect.width = Mathf.Max(checkLabelRect.width, rectHeaderSize.x);
-            _checkRect.x += (checkLabelRect.width - _checkRect.width) / 2;
-            _checkRect.width = checkLabelRect.width;
+                var activeProp = prop.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.Active));
+                EditorGUI.PropertyField(rect, activeProp, GUIContent.none);
+            });
 
-            _checkRect.y += (rect.height - _checkRect.height);
-
-            _objectRect = new Rect(checkLabelRect.xMax + margin, 0, rect.width - checkLabelRect.width - margin,
-                _list.elementHeight);
-
-            //EditorGUI.LabelField(rect, G("action.toggle_object.header"));
-            var headerCheckRect = checkLabelRect;
-            headerCheckRect.x += rect.x;
-            headerCheckRect.height = rectHeaderSize.y;
-            // why does *2 work well here???
-            headerCheckRect.y += (rect.height - headerCheckRect.height) * 2;
-
-            var headerObjectRect = _objectRect;
-            headerObjectRect.x += rect.x;
-            headerObjectRect.height = rectHeaderSize.y;
-            headerObjectRect.y += (rect.height - headerObjectRect.height) * 2;
-
-            EditorGUI.LabelField(headerCheckRect, _rectHeader);
-            EditorGUI.LabelField(headerObjectRect, _objectHeader);
+            _list.AddColumn(width, "action.toggle_object.header.object", ((rect, elem) =>
+            {
+                var targetProp = elem.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.target));
+                EditorGUI.PropertyField(rect, targetProp, GUIContent.none);
+            }));
         }
 
-        private void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
+        private static Rect CenterElement(Rect rect, Vector2 toggleSize)
         {
-            if (Mathf.Abs(elementWidth - rect.width) > 0.01f && rect.width > 1)
-            {
-                elementWidth = rect.width;
-                Repaint();
-            }
+            float adjust = rect.height - toggleSize.y;
+            rect.yMin += adjust / 2;
+            rect.yMax -= adjust / 2;
 
-            var element = _listProp.GetArrayElementAtIndex(index);
-            var activeProp = element.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.Active));
-            var targetProp = element.FindPropertyRelative(nameof(ActionToggleObject.ObjectEntry.target));
+            adjust = rect.width - toggleSize.x;
+            rect.xMin += adjust / 2;
+            rect.xMax -= adjust / 2;
 
-            var checkRect = _checkRect;
-            checkRect.x += rect.x;
-            checkRect.y += rect.y;
-
-            var objectRect = _objectRect;
-            objectRect.x += rect.x;
-            objectRect.y += rect.y;
-            objectRect.xMax = rect.xMax;
-            objectRect.yMin += 1;
-            objectRect.yMax -= 1;
-
-            using (new ZeroIndentScope())
-            {
-                EditorGUI.PropertyField(checkRect, activeProp, GUIContent.none);
-                EditorGUI.PropertyField(objectRect, targetProp, GUIContent.none);
-            }
+            return rect;
         }
-
 
         protected override void OnInnerInspectorGUI()
         {
