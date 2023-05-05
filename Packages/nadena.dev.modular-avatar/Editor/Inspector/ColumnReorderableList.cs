@@ -112,6 +112,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (_columns.Count == 0)
             {
+                if (_elementWidth < 1.0f)
+                {
+                    if (rect.width < 1.0f)
+                    {
+                        return;
+                    }
+
+                    _elementWidth = rect.width - 10f;
+                    Repaint();
+                }
+
                 _columnPos = 0;
                 _remainingWidth = _elementWidth;
                 OnGenerateColumns(_elementWidth);
