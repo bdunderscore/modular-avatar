@@ -25,6 +25,60 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnPreprocessAvatar(VRCAvatarDescriptor avatar)
         {
+            List<Action> revertChangesActions = new List<Action>();
+
+            try
+            {
+                ApplyControlGroupOverrides(revertChangesActions, avatar);
+                Generate(avatar);
+            }
+            finally
+            {
+                foreach (var action in revertChangesActions)
+                {
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception e)
+                    {
+                        /* ignore */
+                    }
+                }
+            }
+        }
+
+        private void ApplyControlGroupOverrides(List<Action> revertChangesActions, VRCAvatarDescriptor avatar)
+        {
+            foreach (var groupOverride in avatar.GetComponentsInChildren<SetGroupDefaults>(true))
+            {
+                var target = groupOverride.targetControlGroup;
+                if (target == null)
+                {
+                    continue;
+                }
+
+                bool oldSynced = target.isSynced;
+                bool oldSaved = target.isSaved;
+                var oldDefault = target.defaultValue;
+
+                revertChangesActions.Add(() =>
+                {
+                    if (target == null) return;
+
+                    target.isSynced = oldSynced;
+                    target.isSaved = oldSaved;
+                    target.defaultValue = oldDefault;
+                });
+
+                target.isSynced = groupOverride.isSynced;
+                target.isSaved = groupOverride.isSaved;
+                target.defaultValue = groupOverride.defaultValue;
+            }
+        }
+
+        private void Generate(VRCAvatarDescriptor avatar)
+        {
             // Locate MenuActions
             var actionMenus = avatar.GetComponentsInChildren<MenuAction>(true)
                 .Select(a => ((Component) a).gameObject.GetComponent<ModularAvatarMenuItem>())

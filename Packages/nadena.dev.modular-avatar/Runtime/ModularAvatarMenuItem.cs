@@ -30,9 +30,6 @@ namespace nadena.dev.modular_avatar.core
 
         public bool isSaved = true;
 
-        internal override bool isSyncedProp => isSynced;
-        internal override bool isSavedProp => isSaved;
-
         protected override void OnValidate()
         {
             base.OnValidate();

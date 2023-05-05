@@ -11,7 +11,5 @@ namespace nadena.dev.modular_avatar.core
     [DisallowMultipleComponent]
     public abstract class ActionController : AvatarTagComponent
     {
-        internal abstract bool isSyncedProp { get; }
-        internal abstract bool isSavedProp { get; }
     }
 }

@@ -262,5 +262,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy")
                    || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
         }
+
+        public static T LoadAssetByGuid<T>(string guid) where T : UnityEngine.Object
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            if (string.IsNullOrWhiteSpace(path)) return null;
+
+            return AssetDatabase.LoadAssetAtPath<T>(path);
+        }
     }
 }

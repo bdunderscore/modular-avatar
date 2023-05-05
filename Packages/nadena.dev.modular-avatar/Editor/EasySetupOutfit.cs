@@ -1,11 +1,19 @@
 ﻿using System.Text;
 using UnityEditor;
 using UnityEngine;
+using VRC.Core;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     public class EasySetupOutfit
     {
+        private static readonly ControlGroup CLOTHING_GROUP
+            = Util.LoadAssetByGuid<GameObject>("e451e988456f35b49a3d011d780bda07")?.GetComponent<ControlGroup>();
+
+        private static readonly VRCExpressionsMenu CLOTHING_MENU
+            = Util.LoadAssetByGuid<VRCExpressionsMenu>("2fe0aa7ecd6bc4443bade672c978f59d");
+
         private const int PRIORITY = 49;
 
         [MenuItem("GameObject/[ModularAvatar] Setup Outfit", false, PRIORITY)]
@@ -18,13 +26,38 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
 
-            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() != null) return;
+            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
+            {
+                var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+                merge.mergeTarget = new AvatarObjectReference();
+                merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
+                merge.InferPrefixSuffix();
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+            }
 
-            var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
-            merge.mergeTarget = new AvatarObjectReference();
-            merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
-            merge.InferPrefixSuffix();
-            HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+            if (CLOTHING_MENU == null || CLOTHING_GROUP == null) return;
+
+            var outfitObject = (GameObject) cmd.context;
+
+            if (outfitObject.GetComponent<ModularAvatarMenuInstaller>() == null)
+            {
+                var installer = Undo.AddComponent<ModularAvatarMenuInstaller>(outfitObject);
+                installer.installTargetMenu = CLOTHING_MENU;
+
+                var menuItem = Undo.AddComponent<ModularAvatarMenuItem>(outfitObject);
+                menuItem.Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
+                menuItem.controlGroup = CLOTHING_GROUP;
+
+                var action = Undo.AddComponent<ActionToggleObject>(outfitObject);
+                action.Objects.Add(new ActionToggleObject.ObjectEntry()
+                {
+                    target = new AvatarObjectReference()
+                    {
+                        referencePath = RuntimeUtil.AvatarRootPath(outfitObject)
+                    },
+                    Active = true
+                });
+            }
         }
 
         [MenuItem("GameObject/[ModularAvatar] Setup Outfit", true, PRIORITY)]

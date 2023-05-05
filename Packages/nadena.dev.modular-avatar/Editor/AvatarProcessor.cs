@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         private static bool nowProcessing = false;
 
-        public delegate void AvatarProcessorCallback(GameObject obj);
+        internal delegate void AvatarProcessorCallback(GameObject obj, BuildContext context);
 
         /// <summary>
         /// This API is NOT stable. Do not use it yet.
@@ -114,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 BuildReport.Clear();
 
                 ProcessAvatar(avatar);
-                Selection.objects = new Object[] { avatar };
+                Selection.objects = new Object[] {avatar};
             }
             finally
             {
@@ -204,11 +204,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context);
                         PhysboneBlockerPass.Process(avatarGameObject);
 
+                        AfterProcessing?.Invoke(avatarGameObject, context);
+
                         context.AnimationDatabase.Commit();
 
                         new GCGameObjectsPass(context, avatarGameObject).OnPreprocessAvatar();
-
-                        AfterProcessing?.Invoke(avatarGameObject);
                     }
                     finally
                     {
@@ -333,13 +333,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 var animator = avatarGameObject.GetComponent<Animator>();
                 var builder = ty_VRCSdkControlPanelAvatarBuilder3A.GetConstructor(Type.EmptyTypes)
                     .Invoke(Array.Empty<object>());
-                var perfStats = ty_AvatarPerformanceStats.GetConstructor(new[] { typeof(bool) })
-                    .Invoke(new object[] { false });
+                var perfStats = ty_AvatarPerformanceStats.GetConstructor(new[] {typeof(bool)})
+                    .Invoke(new object[] {false});
                 ty_VRCSdkControlPanelAvatarBuilder3A
                     .GetMethod("RegisterBuilder", BindingFlags.Public | BindingFlags.Instance)
-                    .Invoke(builder, new object[] { tempControlPanel });
+                    .Invoke(builder, new object[] {tempControlPanel});
                 ty_VRCSdkControlPanelAvatarBuilder3A.GetMethod("ValidateFeatures").Invoke(
-                    builder, new object[] { avatar, animator, perfStats }
+                    builder, new object[] {avatar, animator, perfStats}
                 );
             }
             catch (Exception e)
