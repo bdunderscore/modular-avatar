@@ -20,6 +20,9 @@ jobs:
   build-docs:
     name: Build documentation
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    with:
+      ref: main
+    
   build-docs-dev:
     name: Build documentation (dev branch)
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
