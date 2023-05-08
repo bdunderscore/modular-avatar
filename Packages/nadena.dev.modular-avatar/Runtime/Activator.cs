@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core
