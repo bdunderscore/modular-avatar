@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -18,6 +19,13 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
             = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
 
+        /// <summary>
+        /// This dictionary overrides the _original contents_ of ModularAvatarMenuInstallers. Notably, this does not
+        /// replace the source menu for the purposes of identifying any other MAMIs that might install to the same
+        /// menu asset.
+        /// </summary>
+        internal readonly Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>> PostProcessControls
+            = new Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>();
 
         public BuildContext(VRCAvatarDescriptor avatarDescriptor)
         {

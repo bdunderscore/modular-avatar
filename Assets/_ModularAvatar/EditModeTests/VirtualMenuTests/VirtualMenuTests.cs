@@ -526,6 +526,40 @@ namespace modular_avatar_tests.VirtualMenuTests
             Assert.True(assetSet.Contains(serialized_c));
         }
 
+        [Test]
+        public void InstallTargetToInstallerToInstaller()
+        {
+            var menu_a = Create<VRCExpressionsMenu>();
+            var menu_b = Create<VRCExpressionsMenu>();
+            var menu_c = Create<VRCExpressionsMenu>();
+            menu_c.controls = new List<VRCExpressionsMenu.Control>
+            {
+                GenerateTestControl()
+            };
+
+            var node_a = CreateInstaller("root");
+            var item_a = node_a.gameObject.AddComponent<ModularAvatarMenuInstallTarget>();
+
+            var node_b = CreateInstaller("menu_b");
+            node_b.menuToAppend = menu_c;
+
+            var node_c = CreateInstaller("menu_c");
+            node_c.installTargetMenu = menu_c;
+
+            node_b.transform.parent = node_a.transform;
+            item_a.installer = node_b;
+
+            var virtualMenu = new VirtualMenu(menu_a);
+            virtualMenu.RegisterMenuInstallTarget(item_a);
+            virtualMenu.RegisterMenuInstaller(node_a);
+            virtualMenu.RegisterMenuInstaller(node_b);
+            virtualMenu.RegisterMenuInstaller(node_c);
+
+            virtualMenu.FreezeMenu();
+
+            var root = virtualMenu.ResolvedMenu[menu_a];
+            Assert.AreEqual(1, root.Controls.Count);
+        }
 
         ModularAvatarMenuInstaller CreateInstaller(string name)
         {

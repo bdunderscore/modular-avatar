@@ -38,21 +38,47 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         private readonly ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>>
             _menuToInstallerMap;
 
+        private readonly ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>
+            _postProcessControls
+                = ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>.Empty;
+
         private readonly VirtualMenuNode _node;
         private readonly NodeForDelegate _nodeFor;
         private readonly Action<VRCExpressionsMenu> _visitedMenu;
         private readonly HashSet<object> _visited = new HashSet<object>();
 
+        private Action<VRCExpressionsMenu.Control> _currentPostprocessor = _control => { };
+
+        private class PostprocessorContext : IDisposable
+        {
+            private NodeContextImpl _context;
+            private Action<VRCExpressionsMenu.Control> _priorPreprocessor;
+
+            public PostprocessorContext(NodeContextImpl context, Action<VRCExpressionsMenu.Control> preprocessor)
+            {
+                this._context = context;
+                this._priorPreprocessor = context._currentPostprocessor;
+                context._currentPostprocessor = preprocessor;
+            }
+
+            public void Dispose()
+            {
+                _context._currentPostprocessor = _priorPreprocessor;
+            }
+        }
+
         public NodeContextImpl(
             VirtualMenuNode node,
             NodeForDelegate nodeFor,
             ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>> menuToInstallerMap,
+            ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>> postProcessControls,
             Action<VRCExpressionsMenu> visitedMenu
         )
         {
             _node = node;
             _nodeFor = nodeFor;
             _menuToInstallerMap = menuToInstallerMap;
+            _postProcessControls = postProcessControls;
             _visitedMenu = visitedMenu;
         }
 
@@ -72,7 +98,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             {
                 foreach (var installer in installers)
                 {
-                    PushNode(installer);
+                    using (new PostprocessorContext(this, null))
+                    {
+                        PushNode(installer);
+                    }
                 }
             }
         }
@@ -101,7 +130,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 }
                 else if (installer.menuToAppend != null)
                 {
-                    PushNode(installer.menuToAppend);
+                    using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
+                    {
+                        PushNode(installer.menuToAppend);
+                    }
                 }
             });
         }
@@ -167,6 +199,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         private Dictionary<ModularAvatarMenuInstaller, List<ModularAvatarMenuInstallTarget>> _installerToTargetComponent
             = new Dictionary<ModularAvatarMenuInstaller, List<ModularAvatarMenuInstallTarget>>();
 
+        private ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>
+            _postprocessControlsHooks =
+                ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>.Empty;
+
         private Dictionary<object, VirtualMenuNode> _resolvedMenu = new Dictionary<object, VirtualMenuNode>();
 
         // TODO: immutable?
@@ -180,8 +216,16 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         /// Initializes the VirtualMenu.
         /// </summary>
         /// <param name="rootMenu">The root VRCExpressionsMenu to import</param>
-        internal VirtualMenu(VRCExpressionsMenu rootMenu)
+        internal VirtualMenu(
+            VRCExpressionsMenu rootMenu,
+            BuildContext context = null
+        )
         {
+            if (context != null)
+            {
+                _postprocessControlsHooks = context.PostProcessControls.ToImmutableDictionary();
+            }
+
             if (rootMenu != null)
             {
                 RootMenuKey = rootMenu;
@@ -192,9 +236,12 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             }
         }
 
-        internal static VirtualMenu ForAvatar(VRCAvatarDescriptor avatar)
+        internal static VirtualMenu ForAvatar(
+            VRCAvatarDescriptor avatar,
+            BuildContext context = null
+        )
         {
-            var menu = new VirtualMenu(avatar.expressionsMenu);
+            var menu = new VirtualMenu(avatar.expressionsMenu, context);
             foreach (var installer in avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
             {
                 menu.RegisterMenuInstaller(installer);
@@ -278,7 +325,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _resolvedMenu[RootMenuKey] = RootNode;
 
             var rootContext =
-                new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, m => _visitedMenus.Add(m));
+                new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, _postprocessControlsHooks,
+                    m => _visitedMenus.Add(m));
             if (RootMenuKey is VRCExpressionsMenu menu)
             {
                 foreach (var control in menu.controls)
@@ -311,6 +359,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                     BuildReport.ReportingObject(key as UnityEngine.Object, () =>
                     {
                         var context = new NodeContextImpl(node, NodeFor, menuToInstallerFiltered,
+                            _postprocessControlsHooks,
                             m => _visitedMenus.Add(m));
                         if (key is VRCExpressionsMenu expMenu)
                         {

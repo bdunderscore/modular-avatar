@@ -48,7 +48,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             _rootMenu = avatar.expressionsMenu;
-            var virtualMenu = VirtualMenu.ForAvatar(avatar);
+            var virtualMenu = VirtualMenu.ForAvatar(avatar, context);
             avatar.expressionsMenu = virtualMenu.SerializeMenu(asset =>
             {
                 context.SaveAsset(asset);

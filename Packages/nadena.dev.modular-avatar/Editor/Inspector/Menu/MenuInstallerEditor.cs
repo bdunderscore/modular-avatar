@@ -28,6 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private MenuPreviewGUI _previewGUI;
 
         private HashSet<VRCExpressionsMenu> _avatarMenus;
+        private VirtualMenu _virtualMenuCache;
 
         private Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>> _menuInstallersMap;
 
@@ -45,6 +46,61 @@ namespace nadena.dev.modular_avatar.core.editor
         private long _cacheSeq = -1;
         private ImmutableList<object> _cachedTargets = null;
 
+        private void CacheMenu()
+        {
+            if (VirtualMenu.CacheSequence == _cacheSeq && _cachedTargets != null && _virtualMenuCache != null) return;
+
+
+            List<ImmutableList<object>> perTarget = new List<ImmutableList<object>>();
+
+            var commonAvatar = FindCommonAvatar();
+            if (commonAvatar == null)
+            {
+                _cacheSeq = VirtualMenu.CacheSequence;
+                _cachedTargets = ImmutableList<object>.Empty;
+                _virtualMenuCache = null;
+                return;
+            }
+
+            _virtualMenuCache = VirtualMenu.ForAvatar(commonAvatar);
+
+            foreach (var target in targets)
+            {
+                var installer = (ModularAvatarMenuInstaller) target;
+
+                var installTargets = _virtualMenuCache.GetInstallTargetsForInstaller(installer)
+                    .Select(o => (object) o).ToImmutableList();
+                if (installTargets.Any())
+                {
+                    perTarget.Add(installTargets);
+                }
+                else
+                {
+                    perTarget.Add(ImmutableList<object>.Empty.Add(installer.installTargetMenu));
+                }
+            }
+
+            for (int i = 1; i < perTarget.Count; i++)
+            {
+                if (perTarget[0].Count != perTarget[i].Count ||
+                    perTarget[0].Zip(perTarget[i], (a, b) => (Resolve(a) != Resolve(b))).Any(differs => differs))
+                {
+                    perTarget.Clear();
+                    perTarget.Add(ImmutableList<object>.Empty);
+                    break;
+                }
+            }
+
+            _cacheSeq = VirtualMenu.CacheSequence;
+            _cachedTargets = perTarget[0];
+
+            object Resolve(object p0)
+            {
+                if (p0 is ModularAvatarMenuInstallTarget target && target != null) return target.transform.parent;
+                return p0;
+            }
+        }
+
         // Interpretation:
         //  <empty> : Inconsistent install targets
         //  List of [null]: Install to root
@@ -55,56 +111,18 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             get
             {
-                if (VirtualMenu.CacheSequence == _cacheSeq && _cachedTargets != null) return _cachedTargets;
+                CacheMenu();
 
-                List<ImmutableList<object>> perTarget = new List<ImmutableList<object>>();
-
-                var commonAvatar = FindCommonAvatar();
-                if (commonAvatar == null)
-                {
-                    _cacheSeq = VirtualMenu.CacheSequence;
-                    _cachedTargets = ImmutableList<object>.Empty;
-                    return _cachedTargets;
-                }
-
-                var virtualMenu = VirtualMenu.ForAvatar(commonAvatar);
-
-                foreach (var target in targets)
-                {
-                    var installer = (ModularAvatarMenuInstaller) target;
-
-                    var installTargets = virtualMenu.GetInstallTargetsForInstaller(installer)
-                        .Select(o => (object) o).ToImmutableList();
-                    if (installTargets.Any())
-                    {
-                        perTarget.Add(installTargets);
-                    }
-                    else
-                    {
-                        perTarget.Add(ImmutableList<object>.Empty.Add(installer.installTargetMenu));
-                    }
-                }
-
-                for (int i = 1; i < perTarget.Count; i++)
-                {
-                    if (perTarget[0].Count != perTarget[i].Count ||
-                        perTarget[0].Zip(perTarget[i], (a, b) => (Resolve(a) != Resolve(b))).Any(differs => differs))
-                    {
-                        perTarget.Clear();
-                        perTarget.Add(ImmutableList<object>.Empty);
-                        break;
-                    }
-                }
-
-                _cacheSeq = VirtualMenu.CacheSequence;
-                _cachedTargets = perTarget[0];
                 return _cachedTargets;
+            }
+        }
 
-                object Resolve(object p0)
-                {
-                    if (p0 is ModularAvatarMenuInstallTarget target && target != null) return target.transform.parent;
-                    return p0;
-                }
+        private VirtualMenu _virtualMenu
+        {
+            get
+            {
+                CacheMenu();
+                return _virtualMenuCache;
             }
         }
 
