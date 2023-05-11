@@ -67,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     return false;
                 }
 
-                return true;
+                return c.GetComponent<MenuAction>() != null;
             });
         }
 
