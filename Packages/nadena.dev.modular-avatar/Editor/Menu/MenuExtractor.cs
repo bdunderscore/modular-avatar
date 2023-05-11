@@ -12,12 +12,12 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private const int PRIORITY = 49;
 
-        [MenuItem("GameObject/[Modular Avatar] Extract menu", false, PRIORITY)]
+        [MenuItem("GameObject/ModularAvatar/Extract menu", false, PRIORITY)]
         static void ExtractMenu(MenuCommand menuCommand)
         {
             if (!(menuCommand.context is GameObject gameObj)) return;
             var avatar = gameObj.GetComponent<VRCAvatarDescriptor>();
-            if (avatar == null || avatar.expressionsMenu == null) return;
+            if (avatar == null || avatar.expressionsMenu == null || avatar.expressionsMenu.controls.Count == 0) return;
 
             var parent = ExtractSingleLayerMenu(avatar.expressionsMenu, gameObj, "Avatar Menu");
             parent.AddComponent<ModularAvatarMenuInstaller>();

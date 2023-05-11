@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private const int PRIORITY = 49;
 
-        [MenuItem("GameObject/[ModularAvatar] Setup Outfit", false, PRIORITY)]
+        [MenuItem("GameObject/ModularAvatar/Setup Outfit", false, PRIORITY)]
         static void SetupOutfit(MenuCommand cmd)
         {
             if (!FindBones(cmd.context,
@@ -60,7 +60,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        [MenuItem("GameObject/[ModularAvatar] Setup Outfit", true, PRIORITY)]
+        [MenuItem("GameObject/ModularAvatar/Setup Outfit", true, PRIORITY)]
         static bool ValidateSetupOutfit()
         {
             if (Selection.objects.Length == 0) return false;
