@@ -10,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor
         // This list is originally from https://github.com/HhotateA/AvatarModifyTools/blob/d8ae75fed8577707253d6b63a64d6053eebbe78b/Assets/HhotateA/AvatarModifyTool/Editor/EnvironmentVariable.cs#L81-L139
         // Copyright (c) 2021 @HhotateA_xR
         // Licensed under the MIT License
-        // In addition, some part is copied from from https://github.com/Azukimochi/BoneRenamer/blob/e9f68acd631d2a0fc3d8b382d361649ac971e988/BoneRenamer/Editor/BoneNames.xml
+        // In addition, some part is copied from from https://github.com/Azukimochi/BoneRenamer/blob/6ec12b848830f467e35ddf7ff105aaa72be02908/BoneNames.xml
         // Copyright (c) 2023 Azukimochi
         // Licensed under the MIT License
         private static string[][] boneNamePatterns = new[]
@@ -30,8 +30,8 @@ namespace nadena.dev.modular_avatar.core.editor
             new[] {"RightShoulder", "Shoulder_Right", "Shoulder_R"},
             new[] {"LeftUpperArm", "UpperArm_Left", "UpperArm_L", "Arm_Left", "Arm_L", "UArm_L", "Left arm", "UpperLeftArm"},
             new[] {"RightUpperArm", "UpperArm_Right", "UpperArm_R", "Arm_Right", "Arm_R", "UArm_R", "Right arm", "UpperRightArm"},
-            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm"},
-            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm"},
+            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm", "Elbow_L"},
+            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm", "Elbow_R"},
             new[] {"LeftHand", "Hand_Left", "Hand_L", "Left wrist", "Wrist_L"},
             new[] {"RightHand", "Hand_Right", "Hand_R", "Right wrist", "Wrist_R"},
             new[] {"LeftToes", "Toes_Left", "Toe_Left", "ToeIK_L", "Toes_L", "Toe_L", "Foot.L.002", "Left Toe", "LeftToeBase"},
