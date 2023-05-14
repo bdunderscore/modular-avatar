@@ -49,6 +49,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         private Action<VRCExpressionsMenu.Control> _currentPostprocessor = _control => { };
 
+        internal ImmutableHashSet<object> Visited => _visited.ToImmutableHashSet();
+
         private class PostprocessorContext : IDisposable
         {
             private NodeContextImpl _context;
@@ -211,6 +213,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         private Queue<Action> _pendingGeneration = new Queue<Action>();
         private HashSet<VRCExpressionsMenu> _visitedMenus = new HashSet<VRCExpressionsMenu>();
+        private ImmutableHashSet<object> _visitedNodes = ImmutableHashSet<object>.Empty;
 
         /// <summary>
         /// Initializes the VirtualMenu.
@@ -348,6 +351,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 _pendingGeneration.Dequeue()();
             }
 
+            _visitedNodes = rootContext.Visited;
+
             VirtualMenuNode NodeFor(object key)
             {
                 if (_resolvedMenu.TryGetValue(key, out var node)) return node;
@@ -422,6 +427,11 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         public bool ContainsMenu(VRCExpressionsMenu menu)
         {
             return _visitedMenus.Contains(menu);
+        }
+
+        public bool ContainsNode(ModularAvatarMenuItem item)
+        {
+            return _visitedNodes.Contains(item);
         }
     }
 }

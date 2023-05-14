@@ -3,7 +3,7 @@
 namespace nadena.dev.modular_avatar.core
 {
     [AddComponentMenu("Modular Avatar/MA Control Group")]
-    public class ControlGroup : ActionController
+    public class ControlGroup : AvatarTagComponent
     {
         public bool isSynced = true;
         public bool isSaved = true;
