@@ -14,14 +14,12 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Menu Item")]
-    public class ModularAvatarMenuItem : ActionController, MenuSource
+    public class ModularAvatarMenuItem : AvatarTagComponent, MenuSource
     {
         public VRCExpressionsMenu.Control Control;
         public SubmenuSource MenuSource;
 
         public GameObject menuSource_otherObjectChildren;
-
-        [FormerlySerializedAs("toggleGroup")] public ControlGroup controlGroup;
 
         /// <summary>
         /// If no control group is set (and an action is linked), this controls whether this control is synced.
