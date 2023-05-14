@@ -257,8 +257,20 @@
   "Documentation": {
     "message": "説明書"
   },
+  "VPM installation": {
+    "message": "VPMでインストール"
+  },
+  "You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown here:": {
+    "message": "VCCでインストールする確認画面が出たはずです。もし出てない場合は、VRChat Creator Companionを更新してもう一度やり直してみてください。設定したあとは、下記のボタンを押すことでプロジェクトにModular Avatarを追加できます。"
+  },
+  "Click the plus button to install": {
+    "message": "プラスボタンを押してインストール"
+  },
+  "Close": {
+    "message": "閉じる"
+  },
   "Download (using VCC)": {
-    "message": "VCCでダウンロード"
+    "message": "ダウンロード (VCC経由)"
   },
   "Modular Avatar": {
     "message": "モジュラーアバター"
