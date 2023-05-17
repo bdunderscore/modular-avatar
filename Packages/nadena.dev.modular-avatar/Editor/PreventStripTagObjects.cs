@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDKBase.Editor.BuildPipeline;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -43,14 +45,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            foreach (var editoronly in avatarGameObject.GetComponentsInChildren<IEditorOnly>(true))
-            {
-                if (editoronly == null || editoronly is AvatarTagComponent)
-                {
-                    continue;
-                }
+            return true;
+        }
+    }
 
-                Object.DestroyImmediate((Component) editoronly);
+    internal class ReplacementRemoveIEditorOnly : IVRCSDKPreprocessAvatarCallback
+    {
+        public int callbackOrder => Int32.MaxValue;
+
+        public bool OnPreprocessAvatar(GameObject avatarGameObject)
+        {
+            foreach (var component in avatarGameObject.GetComponentsInChildren<IEditorOnly>(true))
+            {
+                Object.DestroyImmediate(component as Object);
             }
 
             return true;
