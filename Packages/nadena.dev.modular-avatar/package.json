@@ -1,7 +1,7 @@
 {
   "name": "nadena.dev.modular-avatar",
   "displayName": "Modular Avatar",
-  "version": "1.5.0-beta-4",
+  "version": "1.5.0",
   "unity": "2019.4",
   "description": "A suite of tools for assembling your avatar out of reusable components",
   "author": {
@@ -15,6 +15,6 @@
     "com.unity.nuget.newtonsoft-json": "2.0.0"
   },
   "vpmDependencies": {
-    "com.vrchat.avatars": ">=3.2.0-beta.1"
+    "com.vrchat.avatars": ">=3.2.0"
   }
 }
