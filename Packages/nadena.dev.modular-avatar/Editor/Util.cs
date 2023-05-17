@@ -126,6 +126,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             SetGizmoIconEnabled(typeof(ModularAvatarBoneProxy), false);
+            SetGizmoIconEnabled(typeof(ModularAvatarProbeAnchor), false);
             SetGizmoIconEnabled(typeof(ModularAvatarBlendshapeSync), false);
             SetGizmoIconEnabled(typeof(ModularAvatarMenuInstaller), false);
             SetGizmoIconEnabled(typeof(ModularAvatarMergeAnimator), false);
