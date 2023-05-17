@@ -293,7 +293,8 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         internal static void Log(ReportLevel level, string code, object[] strings, params Object[] objects)
         {
-            ErrorLog errorLog = new ErrorLog(level, code, strings, objects);
+            ErrorLog errorLog =
+                new ErrorLog(level, code, strings: strings.Select(s => s.ToString()).ToArray(), objects);
 
             var avatarReport = CurrentReport._currentAvatar;
             if (avatarReport == null)
@@ -307,7 +308,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         internal static void LogFatal(string code, object[] strings, params Object[] objects)
         {
-            Log(ReportLevel.Error, code, strings, objects);
+            Log(ReportLevel.Error, code, strings: strings, objects: objects);
             if (CurrentReport._currentAvatar != null)
             {
                 CurrentReport._currentAvatar.successful = false;
@@ -334,7 +335,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         internal static T ReportingObject<T>(UnityEngine.Object obj, Func<T> action)
         {
-            CurrentReport._references.Push(obj);
+            if (obj != null) CurrentReport._references.Push(obj);
             try
             {
                 return action();
@@ -347,7 +348,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             }
             finally
             {
-                CurrentReport._references.Pop();
+                if (obj != null) CurrentReport._references.Pop();
             }
         }
 

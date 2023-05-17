@@ -11,6 +11,20 @@ using Debug = System.Diagnostics.Debug;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [CustomPropertyDrawer(typeof(ParameterSyncType))]
+    internal class ParameterSyncTypeDrawer : EnumDrawer<ParameterSyncType>
+    {
+        protected override string localizationPrefix => "params.syncmode";
+
+        protected override Array enumValues => new object[]
+        {
+            ParameterSyncType.NotSynced,
+            ParameterSyncType.Bool,
+            ParameterSyncType.Float,
+            ParameterSyncType.Int,
+        };
+    }
+
     [CustomEditor(typeof(ModularAvatarParameters))]
     internal class AvatarParametersEditor : MAEditorBase
     {
@@ -258,9 +272,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var margin = 20;
             var halfMargin = margin / 2;
-            var leftHalf = new Rect(rect.x, rect.y, rect.width / 2 - halfMargin, elemHeight);
+            var leftHalf = new Rect(rect.x, rect.y, rect.width * 0.3f - halfMargin, elemHeight);
             var rightHalf = new Rect(rect.x + leftHalf.width + halfMargin, rect.y, leftHalf.width, elemHeight);
+            rightHalf.xMax = rect.xMax;
             var rightHalfTop = new Rect(rect.x + leftHalf.width + halfMargin, rect.y, leftHalf.width, elemHeight);
+            rightHalfTop.xMax = rect.xMax;
             var rightHalfSyncControlField = rightHalfTop;
             rightHalfSyncControlField.y += _devMode ? elemHeight : 0;
 
@@ -326,6 +342,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (isSynced)
                 {
+                    var localOnly = elem.FindPropertyRelative(nameof(ParameterConfig.localOnly));
                     var saved = elem.FindPropertyRelative(nameof(ParameterConfig.saved));
 
                     var savedContents = new GUIContent(G("params.saved"));
@@ -340,11 +357,25 @@ namespace nadena.dev.modular_avatar.core.editor
                     rightHalfDefaultValue.width -= savedPos.width;
                     //savedPos.x -= savedSize.x + checkboxPad * 2;
 
-
                     EditorGUI.LabelField(savedPos, savedContents);
                     savedPos.x += savedLabelWidth + checkboxPad;
                     savedPos.width -= savedLabelWidth - checkboxPad * 2;
                     saved.boolValue = EditorGUI.Toggle(savedPos, saved.boolValue);
+
+                    var syncedContents = new GUIContent(G("params.synced"));
+                    var syncedStyle = EditorStyles.toggle;
+                    var syncedSize = syncedStyle.CalcSize(syncedContents);
+                    var syncedLabelWidth = EditorStyles.label.CalcSize(syncedContents).x;
+
+                    var syncedPos = rightHalfDefaultValue;
+                    syncedPos.width = syncedSize.x + checkboxPad * 2;
+                    rightHalfDefaultValue.x += syncedPos.width;
+                    rightHalfDefaultValue.width -= syncedPos.width;
+
+                    EditorGUI.LabelField(syncedPos, syncedContents);
+                    syncedPos.x += syncedLabelWidth + checkboxPad;
+                    syncedPos.width -= syncedLabelWidth - checkboxPad * 2;
+                    localOnly.boolValue = !EditorGUI.Toggle(syncedPos, !localOnly.boolValue);
 
                     var defaultValueProp = elem.FindPropertyRelative(nameof(ParameterConfig.defaultValue));
                     var label = new GUIContent(G("params.default"));
@@ -420,8 +451,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void DrawHeader(Rect rect)
         {
-            var leftHalf = new Rect(rect.x, rect.y, rect.width / 2, rect.height);
-            var rightHalf = new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, rect.height);
+            var leftHalf = new Rect(rect.x, rect.y, rect.width * 0.3f, rect.height);
+            var rightHalf = new Rect(rect.x + leftHalf.width, rect.y, rect.width / 2, rect.height);
 
             EditorGUI.LabelField(leftHalf, G("params.fieldname"));
             if (!_devMode) EditorGUI.LabelField(rightHalf, G("params.remapto"));

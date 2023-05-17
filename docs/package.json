@@ -24,6 +24,8 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-loadable": "^5.5.0",
+    "react-medium-image-zoom": "^5.1.6",
+    "react-modal": "^3.16.1",
     "react-player": "^2.12.0"
   },
   "devDependencies": {

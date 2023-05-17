@@ -98,13 +98,16 @@ namespace modular_avatar_tests
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = bone.transform;
             boneProxy.attachmentMode = attachmentMode;
+            // Prevent the bone from being optimized away
+            var proxyTransform = boneProxy.transform;
+            proxyTransform.gameObject.AddComponent<MeshRenderer>();
 
             bone.transform.localPosition = Vector3.one;
             bone.transform.localRotation = Quaternion.Euler(123, 45, 6);
 
             AvatarProcessor.ProcessAvatar(root);
 
-            Assert.AreEqual(proxy.transform.parent, bone.transform);
+            Assert.AreEqual(proxyTransform.parent, bone.transform);
 
             if (expectSnapPos)
             {

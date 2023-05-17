@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -152,7 +153,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
         private static List<ErrorLog> CheckInternal(ModularAvatarMenuInstaller mi)
         {
             // TODO - check that target menu is in the avatar
-            if (mi.menuToAppend == null)
+            if (mi.menuToAppend == null && mi.GetComponent<MenuSource>() == null)
             {
                 return new List<ErrorLog>()
                 {

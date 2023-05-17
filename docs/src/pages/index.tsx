@@ -7,6 +7,8 @@ import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import styles from './index.module.css';
 import Translate, {translate} from '@docusaurus/Translate'; 
 
+import InstallButton from '@site/src/components/install';
+
 let logo;
 try {
   logo = require('@site/static/img/logo/ma_logo.png');
@@ -28,15 +30,12 @@ function HomepageHeader() {
             <Translate>Drag-and-Drop Avatar Assembly</Translate>
         </p>
         <div className={styles.buttons}>
+          <InstallButton/>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}
-            to="/docs/intro">
+            to="/docs/intro"
+          >
             <Translate>Documentation</Translate>
-          </Link>
-          <Link
-              className={`button button--secondary button--lg ${styles.button}`}
-              to="https://github.com/bdunderscore/modular-avatar/releases/latest">
-              <Translate>Download</Translate>
           </Link>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}

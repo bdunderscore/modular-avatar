@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using UnityEditor;
 using UnityEngine;
+using VRC.Core;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -8,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private const int PRIORITY = 49;
 
-        [MenuItem("GameObject/[ModularAvatar] Setup Outfit", false, PRIORITY)]
+        [MenuItem("GameObject/ModularAvatar/Setup Outfit", false, PRIORITY)]
         static void SetupOutfit(MenuCommand cmd)
         {
             if (!FindBones(cmd.context,
@@ -18,16 +20,17 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
 
-            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() != null) return;
-
-            var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
-            merge.mergeTarget = new AvatarObjectReference();
-            merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
-            merge.InferPrefixSuffix();
-            HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
+            {
+                var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+                merge.mergeTarget = new AvatarObjectReference();
+                merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
+                merge.InferPrefixSuffix();
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+            }
         }
 
-        [MenuItem("GameObject/[ModularAvatar] Setup Outfit", true, PRIORITY)]
+        [MenuItem("GameObject/ModularAvatar/Setup Outfit", true, PRIORITY)]
         static bool ValidateSetupOutfit()
         {
             if (Selection.objects.Length == 0) return false;
