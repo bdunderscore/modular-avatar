@@ -51,7 +51,7 @@ export default function InstallButton() {
         <>
             <Link
                 className={`button button--secondary button--lg ${styles.button}`}
-                //to="vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json"
+                to="vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json"
                 onClick={() => { setShowModal(true); return true; }}
             >
                 <Translate>Download (using VCC)</Translate>
