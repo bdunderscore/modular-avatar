@@ -22,14 +22,6 @@ namespace nadena.dev.modular_avatar.core
             OnListChange();
         }
 
-        private void Update()
-        {
-            if (Application.isPlaying) return;
-            if (!keepDisabled) return;
-            if (objectsToRemove == null) return;
-            foreach (var toRemove in objectsToRemove) toRemove.SetActive(false);
-        }
-        
         private new void OnDestroy()
         {
             if (Application.isPlaying) return;
@@ -62,6 +54,10 @@ namespace nadena.dev.modular_avatar.core
             _lastObjectsToRemove = new List<GameObject>(objectsToRemove);
             if (hideInHierarchy) Hide();
             if (removePrefabComponents) RemovePrefabComponents();
+            if (keepDisabled)
+            {
+                foreach (var obj in objectsToRemove) obj.SetActive(false);
+            }
         }
 
         private void CollectComponentsToRemove(List<Component> list, Transform current)
@@ -117,7 +113,7 @@ namespace nadena.dev.modular_avatar.core
         {
             foreach (var obj in objectsToRemove)
             {
-                obj.hideFlags |= HideFlags.HideInHierarchy;
+                if (IsSafeToBeHidden(obj)) obj.hideFlags |= HideFlags.HideInHierarchy;
             }
         }
 
@@ -127,6 +123,11 @@ namespace nadena.dev.modular_avatar.core
             {
                 obj.hideFlags &= ~HideFlags.HideInHierarchy;
             }
+        }
+
+        private bool IsSafeToBeHidden(GameObject obj)
+        {
+            return obj.GetComponentInChildren<ModularAvatarObjectRemover>(true) == null;
         }
     }
 }
