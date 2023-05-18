@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -53,8 +54,8 @@ namespace nadena.dev.modular_avatar.core.menu
             this.subParameters = control.subParameters?.Select(p => new VRCExpressionsMenu.Control.Parameter()
             {
                 name = p.name
-            })?.ToArray();
-            this.labels = control.labels?.ToArray();
+            })?.ToArray() ?? Array.Empty<Parameter>();
+            this.labels = control.labels?.ToArray() ?? Array.Empty<Label>();
         }
     }
 
