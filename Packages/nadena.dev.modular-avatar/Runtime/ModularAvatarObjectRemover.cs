@@ -18,7 +18,6 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnEnable()
         {
-            objectsToRemove?.RemoveAll(x => !x);
             OnListChange();
         }
 

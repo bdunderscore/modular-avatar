@@ -54,6 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var newBinding = binding;
                 newBinding.path = MapPath(binding);
+                if (newBinding.path == null) continue; // removed
                 newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
                     AnimationUtility.GetEditorCurve(clip, binding));
             }
