@@ -70,6 +70,23 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
+
+            // Also retain humanoid bones
+            var animator = _root.GetComponent<Animator>();
+            if (animator != null)
+            {
+                foreach (var bone_ in Enum.GetValues(typeof(HumanBodyBones)))
+                {
+                    var bone = (HumanBodyBones) bone_;
+                    if (bone == HumanBodyBones.LastBone) continue;
+
+                    var transform = animator.GetBoneTransform((HumanBodyBones) bone);
+                    if (transform != null)
+                    {
+                        MarkObject(transform.gameObject);
+                    }
+                }
+            }
         }
 
         private void MarkPhysBone(VRCPhysBone pb)
