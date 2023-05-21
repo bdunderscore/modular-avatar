@@ -139,7 +139,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         private static List<ErrorLog> CheckInternal(ModularAvatarProbeAnchor pa)
         {
-            if (pa.target == null)
+            if (pa.probeTarget == null)
             {
                 return new List<ErrorLog>()
                 {

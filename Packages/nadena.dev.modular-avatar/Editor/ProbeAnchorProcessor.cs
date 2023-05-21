@@ -32,7 +32,6 @@ namespace nadena.dev.modular_avatar.core.editor
         internal enum ValidationResult
         {
             OK,
-            MovingTarget,
             NotInAvatar
         }
 
@@ -48,11 +47,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessAnchor(GameObject avatarGameObject, ModularAvatarProbeAnchor proxy)
         {
-            if (proxy.target != null && ValidateTarget(avatarGameObject, proxy.target) == ValidationResult.OK)
+            if (proxy.probeTarget.Get(proxy) != null && ValidateTarget(avatarGameObject, proxy.probeTarget.Get(proxy).transform) == ValidationResult.OK)
             {
                 foreach (Renderer r in proxy.GetComponentsInChildren<Renderer>(true))
                 {
-                    r.probeAnchor = proxy.target;
+                    r.probeAnchor = proxy.probeTarget.Get(proxy).transform;
                 }
             }
 
@@ -66,11 +65,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             while (node != null && node != avatar)
             {
-                if (node.GetComponent<ModularAvatarProbeAnchor>() != null)
-                {
-                    return ValidationResult.MovingTarget;
-                }
-
                 node = node.parent;
             }
 
