@@ -67,7 +67,7 @@
   "boneproxy.attachment.AsChildKeepPosition": "As child; keep position",
   "boneproxy.attachment.AsChildKeepRotation": "As child; keep rotation",
   "pb_blocker.help": "This object will not be affected by PhysBones attached to parents.",
-  "probe_anchor.help": "Sets the Light Probe for the inner renderer object.",
+  "probe_anchor.help": "Sets the Anchor Override for the inner renderer object.",
   "hint.bad_vrcsdk": "Incompatible version of VRCSDK detected.\n\nPlease try upgrading your VRCSDK; if this does not work, check for a newer version of Modular Avatar as well.",
   "error.stack_trace": "Stack trace (provide this when reporting bugs!)",
   "error.merge_armature.merge_into_self": "Your Merge Armature component is referencing itself, or a child of itself, as the merge target. You should reference the avatar's armature instead. Do not put Merge Armature on the avatar's main armature.",
