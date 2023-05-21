@@ -32,7 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal void OnPreprocessAvatar()
         {
             CollectReferences();
-            Cleanup();
+            CleanupPhysBones();
             MarkAll();
             Sweep();
             Debug.Log($"Cleanup complete, removed {_removedObjects} objects and {_removedComponents} components.");
@@ -61,13 +61,9 @@ namespace nadena.dev.modular_avatar.core.editor
         private void CollectBonesFromSkinnedMeshRenderer(SkinnedMeshRenderer renderer)
         {
             HashSet<int> usedBonesIndices = new HashSet<int>();
-            foreach (var boneWeight in renderer.sharedMesh.boneWeights)
+            foreach (var boneWeight in renderer.sharedMesh.GetAllBoneWeights())
             {
-                // technically should add only if weight is > 0, but not worth the cost and does not have negative effects
-                usedBonesIndices.Add(boneWeight.boneIndex0);
-                usedBonesIndices.Add(boneWeight.boneIndex1);
-                usedBonesIndices.Add(boneWeight.boneIndex2);
-                usedBonesIndices.Add(boneWeight.boneIndex3);
+                usedBonesIndices.Add(boneWeight.boneIndex);
             }
 
             Transform[] bones = renderer.bones;
@@ -83,7 +79,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void Cleanup()
+        private void CleanupPhysBones()
         {
             // remove phys bones that only affect bones that are not used
             var bonesToRemove = new HashSet<VRCPhysBone>();
