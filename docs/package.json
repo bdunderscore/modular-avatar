@@ -29,7 +29,7 @@
     "react-player": "^2.12.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "2.4.0",
+    "@docusaurus/module-type-aliases": "2.4.1",
     "@tsconfig/docusaurus": "^1.0.7",
     "typescript": "^5.0.4"
   },
