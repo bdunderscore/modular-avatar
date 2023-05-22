@@ -176,7 +176,27 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (installer.menuToAppend != null && installer.enabled)
                             {
-                                ProcessMenu(ref installer.menuToAppend, remaps);
+                                ProcessMenuInstaller(installer, remaps);
+                            }
+
+                            break;
+                        }
+
+                        case ModularAvatarMenuItem menuItem:
+                        {
+                            if (menuItem.Control.parameter?.name != null &&
+                                remaps.TryGetValue(menuItem.Control.parameter.name, out var newVal))
+                            {
+                                menuItem.Control.parameter.name = newVal;
+                            }
+
+                            foreach (var subParam in menuItem.Control.subParameters ??
+                                                     Array.Empty<VRCExpressionsMenu.Control.Parameter>())
+                            {
+                                if (subParam?.name != null && remaps.TryGetValue(subParam.name, out var subNewVal))
+                                {
+                                    subParam.name = subNewVal;
+                                }
                             }
 
                             break;
@@ -191,40 +211,22 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessMenu(ref VRCExpressionsMenu rootMenu, ImmutableDictionary<string, string> remaps)
+        private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
+            ImmutableDictionary<string, string> remaps)
         {
             Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> remapped =
                 new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
 
-            rootMenu = Transform(rootMenu);
+            if (installer.menuToAppend == null) return;
 
-            VRCExpressionsMenu Transform(VRCExpressionsMenu menu)
+            _context.PostProcessControls.Add(installer, control =>
             {
-                if (menu == null) return null;
-
-                if (remapped.TryGetValue(menu, out var newMenu)) return newMenu;
-
-                newMenu = Object.Instantiate(menu);
-                _context.SaveAsset(newMenu);
-                remapped[menu] = newMenu;
-                ClonedMenuMappings.Add(menu, newMenu);
-
-                foreach (var control in newMenu.controls)
+                control.parameter.name = remap(remaps, control.parameter.name);
+                foreach (var subParam in control.subParameters)
                 {
-                    control.parameter.name = remap(remaps, control.parameter.name);
-                    foreach (var subParam in control.subParameters)
-                    {
-                        subParam.name = remap(remaps, subParam.name);
-                    }
-
-                    if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
-                    {
-                        control.subMenu = Transform(control.subMenu);
-                    }
+                    subParam.name = remap(remaps, subParam.name);
                 }
-
-                return newMenu;
-            }
+            });
         }
 
         private void ProcessAnimator(ref AnimatorController controller, ImmutableDictionary<string, string> remaps)
@@ -470,6 +472,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 valueType = type,
                 defaultValue = parameterConfig.defaultValue,
                 saved = parameterConfig.saved,
+                networkSynced = !parameterConfig.localOnly
             };
         }
 
@@ -477,8 +480,16 @@ namespace nadena.dev.modular_avatar.core.editor
         private T remap<T>(ImmutableDictionary<string, string> remaps, T x)
             where T : class
         {
+            bool tmp = false;
+            return remap(remaps, x, ref tmp);
+        }
+
+        private T remap<T>(ImmutableDictionary<string, string> remaps, T x, ref bool anyRemapped)
+            where T : class
+        {
             if (x is string s && remaps.TryGetValue(s, out var newS))
             {
+                anyRemapped = true;
                 return (T) (object) newS;
             }
 

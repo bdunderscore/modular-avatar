@@ -1,24 +1,35 @@
 {
   "dependencies": {
     "com.vrchat.avatars": {
-      "version": "3.1.9"
+      "version": "3.2.0"
     },
     "com.vrchat.core.vpm-resolver": {
-      "version": "0.1.13"
+      "version": "0.1.19"
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.8.4"
     }
   },
   "locked": {
     "com.vrchat.avatars": {
-      "version": "3.1.10",
+      "version": "3.2.0",
       "dependencies": {
-        "com.vrchat.base": "3.1.x"
+        "com.vrchat.base": "3.2.0"
       }
     },
     "com.vrchat.base": {
-      "version": "3.1.10"
+      "version": "3.2.0",
+      "dependencies": {}
     },
     "com.vrchat.core.vpm-resolver": {
-      "version": "0.1.17"
+      "version": "0.1.19",
+      "dependencies": {}
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.8.4",
+      "dependencies": {
+        "com.vrchat.avatars": "3.1.x"
+      }
     }
   }
 }

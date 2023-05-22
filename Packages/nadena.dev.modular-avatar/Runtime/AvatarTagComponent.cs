@@ -24,6 +24,7 @@
 
 using System;
 using UnityEngine;
+using VRC.SDKBase;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -31,7 +32,7 @@ namespace nadena.dev.modular_avatar.core
      * This abstract base class is injected into the VRCSDK avatar component allowlist to avoid
      */
     [DefaultExecutionOrder(-9999)] // run before av3emu
-    public abstract class AvatarTagComponent : MonoBehaviour
+    public abstract class AvatarTagComponent : MonoBehaviour, IEditorOnly
     {
         internal static event Action OnChangeAction;
 

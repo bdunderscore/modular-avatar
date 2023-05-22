@@ -81,10 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected virtual VisualElement CreateInnerInspectorGUI()
         {
-            var throwaway = new InspectorElement();
-            MethodInfo m = typeof(InspectorElement).GetMethod("CreateIMGUIInspectorFromEditor",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            return m.Invoke(throwaway, new object[] {serializedObject, this, false}) as VisualElement;
+            return null;
         }
 
         public sealed override VisualElement CreateInspectorGUI()
@@ -94,10 +91,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var inner = CreateInnerInspectorGUI();
 
+            bool innerIsImgui = (inner == null);
+            if (innerIsImgui)
+            {
+                var throwaway = new InspectorElement();
+                MethodInfo m = typeof(InspectorElement).GetMethod("CreateIMGUIInspectorFromEditor",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                inner = m.Invoke(throwaway, new object[] {serializedObject, this, false}) as VisualElement;
+            }
+
             _visualElement = new MAVisualElement();
             _visualElement.Add(inner);
 
-            _suppressOnceDefaultMargins = true;
+            _suppressOnceDefaultMargins = innerIsImgui;
             return _visualElement;
         }
 
@@ -116,7 +122,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             InspectorCommon.DisplayOutOfAvatarWarning(targets);
-            if (!ComponentAllowlistPatch.PATCH_OK) InspectorCommon.DisplayVRCSDKVersionWarning();
 
             OnInnerInspectorGUI();
         }

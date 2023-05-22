@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -21,10 +21,11 @@ namespace nadena.dev.modular_avatar.core.editor
             = ImmutableDictionary<string, string>.Empty
                 .Add("en", "English")
                 .Add("ja", "日本語")
-                .Add("zh-hans", "简体中文");
+                .Add("zh-hans", "简体中文")
+                .Add("ko", "한국어");
 
         private static ImmutableList<string>
-            SupportedLanguages = new string[] {"en", "ja", "zh-hans"}.ToImmutableList();
+            SupportedLanguages = new string[] {"en", "ja", "zh-hans", "ko"}.ToImmutableList();
 
         private static string[] DisplayNames = SupportedLanguages.Select(l =>
         {

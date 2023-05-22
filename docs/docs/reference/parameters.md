@@ -21,6 +21,7 @@ The Parameters component should be used when you're building a prefab which make
 The parameters component on prefabs can be used to rename parameters to avoid conflicts, and to adjust whether synced parameters are saved across avatar reloads (and their default value).
 By renaming multiple prefab parameters to be the same, you can make them all share the same state and animate at the same time.
 Alternately, by changing conflicting names to be different, you can resolve prefab conflicts.
+Finally, you can mark parameters as being unsynced to save on bandwidth, if desired. 
 
 ### Prefab developers
 
@@ -30,7 +31,7 @@ Each parameter can be configured with the following options:
 
 * Internal - Hides the parameter, and automatically renames the parameter with a unique name.
 * PhysBones Prefix - Indicates this is a parameter passed to a PhysBone "parameter" field (and thus it really references a number of sub-parameters)
-* Sync Mode - Indicates if a parameter is synced, and if so what its type is
+* Param type - Indicates what type a parameter is, or if it's only present on the animator (and not the Expressions Parameters asset)
 
 Parameters components can be nested. This lets you build up a complex prefab out of sub-prefabs, some which may be added multiple times, and while avoiding parameter name conflicts.
 

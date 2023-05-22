@@ -20,7 +20,7 @@
   },
   "theme.ErrorPageContent.tryAgain": {
     "message": "Try again",
-    "description": "The label of the button to try again when the page crashed"
+    "description": "The label of the button to try again rendering when the React error boundary captures an error"
   },
   "theme.NotFound.title": {
     "message": "Page Not Found",
@@ -283,5 +283,39 @@
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
     "message": "Embed modular avatar components in your prefabs to make installation a breeze!"
+  },
+  "VPM installation": {
+    "message": "VPM installation"
+  },
+  "You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown here:": {
+    "message": "You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown here:"
+  },
+  "Click the plus button to install": {
+    "message": "Click the plus button to install"
+  },
+  "Close": {
+    "message": "Close"
+  },
+  "Download (using VCC)": {
+    "message": "Download (using VCC)"
+  },
+  "Tutorials": {
+    "message": "Tutorials"
+  },
+  "theme.NavBar.navAriaLabel": {
+    "message": "Main",
+    "description": "The ARIA label for the main navigation"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "Docs sidebar",
+    "description": "The ARIA label for the sidebar navigation"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "Close navigation bar",
+    "description": "The ARIA label for close button of mobile sidebar"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "Toggle navigation bar",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
   }
 }

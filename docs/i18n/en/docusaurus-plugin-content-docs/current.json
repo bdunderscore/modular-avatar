@@ -2,5 +2,17 @@
   "version.label": {
     "message": "Next",
     "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Tutorials": {
+    "message": "Tutorials",
+    "description": "The label for category Tutorials in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Component reference": {
+    "message": "Component reference",
+    "description": "The label for category Component reference in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Distributing Prefabs": {
+    "message": "Distributing Prefabs",
+    "description": "The label for category Distributing Prefabs in sidebar tutorialSidebar"
   }
 }
