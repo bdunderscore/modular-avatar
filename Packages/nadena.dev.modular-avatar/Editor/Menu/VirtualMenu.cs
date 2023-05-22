@@ -132,6 +132,9 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 }
                 else if (installer.menuToAppend != null)
                 {
+                    // Temporarily evacuate the current post-processor and execute PushNode.
+                    // While PushNode is in progress, the post-processor is obtained from _postProcessControls.
+                    // TODO: In this case, post-processor is enabled only for the root menu PushControl, and post-processor is disabled for the submenu PushControl.
                     using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
                     {
                         PushNode(installer.menuToAppend);
@@ -144,9 +147,55 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             var virtualControl = new VirtualControl(control);
 
+            // This is not enabled in all cases except root menu of MenuInstaller.
+            // if (_currentPostprocessor is Action<VRCExpressionsMenu.Control>) { _currentPostprocessor(virtualControl); }
+
+            // (Workaround) Get post-processor.
+            var postProcessor = GetPostProcessor(control);
+            if (postProcessor is Action<VRCExpressionsMenu.Control>) { postProcessor(virtualControl); }
+
             virtualControl.SubmenuNode = NodeFor(control.subMenu);
 
             PushControl(virtualControl);
+        }
+
+        /// <summary>
+        /// (Workaround) Check whether the target control is a descendant of menuToAppend, and return post-processor if it is.
+        /// </summary>
+        /// <param name="targetControl"></param>
+        private Action<VRCExpressionsMenu.Control> GetPostProcessor(VRCExpressionsMenu.Control targetControl)
+        {
+            Action<VRCExpressionsMenu.Control> postProcessor = null;
+
+            foreach (var installer in _postProcessControls.Keys)
+            {
+                if (installer != null && IsDescendantOf(installer.menuToAppend, targetControl))
+                {
+                    return _postProcessControls[installer];
+                }
+            }
+
+            return postProcessor;
+        }
+
+        private static bool IsDescendantOf(VRCExpressionsMenu expressionsMenu, VRCExpressionsMenu.Control targetControl)
+        {
+            if (expressionsMenu != null && expressionsMenu.controls != null)
+            {
+                foreach (var control in expressionsMenu.controls)
+                {
+                    if (control != null && ReferenceEquals(control, targetControl))
+                    {
+                        return true;
+                    }
+
+                    if (control.subMenu != null && IsDescendantOf(control.subMenu, targetControl))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public void PushControl(VirtualControl control)
