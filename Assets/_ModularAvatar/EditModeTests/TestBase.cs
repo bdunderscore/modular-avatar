@@ -50,15 +50,22 @@ namespace modular_avatar_tests
 
         protected GameObject CreatePrefab(string relPath)
         {
-            var prefabRoot = "Assets/_ModularAvatar/EditModeTests/" + GetType().Name + "/";
-            var prefabPath = prefabRoot + relPath;
-
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            Assert.NotNull(prefab, "Missing test prefab {0}", prefabPath);
+            var prefab = LoadAsset<GameObject>(relPath);
 
             var go = Object.Instantiate(prefab);
             objects.Add(go);
             return go;
+        }
+
+        protected T LoadAsset<T>(string relPath) where T : UnityEngine.Object
+        {
+            var root = "Assets/_ModularAvatar/EditModeTests/" + GetType().Name + "/";
+            var path = root + relPath;
+
+            var obj = AssetDatabase.LoadAssetAtPath<T>(path);
+            Assert.NotNull(obj, "Missing test asset {0}", path);
+
+            return obj;
         }
 
 
