@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.menu;
+using NUnit.Framework;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -21,6 +22,8 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                     return CheckInternal(bs);
                 case ModularAvatarBoneProxy bp:
                     return CheckInternal(bp);
+                case ModularAvatarBoundsOverride bo:
+                    return CheckInternal(bo);
                 case ModularAvatarMenuInstaller mi:
                     return CheckInternal(mi);
                 case ModularAvatarMergeAnimator obj:
@@ -129,6 +132,19 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 return new List<ErrorLog>()
                 {
                     new ErrorLog(ReportLevel.Validation, "validation.bone_proxy.no_target", bp)
+                };
+            }
+
+            return null;
+        }
+
+        private static List<ErrorLog> CheckInternal(ModularAvatarBoundsOverride bo)
+        {
+            if (bo.rootBoneTarget.Get(bo) == null) 
+            {
+                return new List<ErrorLog>()
+                {
+                    new ErrorLog(ReportLevel.Validation, "validation.bounds_override.no_target", bo)
                 };
             }
 
