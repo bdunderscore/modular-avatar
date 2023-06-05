@@ -24,6 +24,8 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                     return CheckInternal(bp);
                 case ModularAvatarBoundsOverride bo:
                     return CheckInternal(bo);
+                case ModularAvatarProbeAnchor pa:
+                    return CheckInternal(pa);
                 case ModularAvatarMenuInstaller mi:
                     return CheckInternal(mi);
                 case ModularAvatarMergeAnimator obj:
@@ -135,6 +137,19 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 };
             }
 
+            return null;
+        }
+
+        private static List<ErrorLog> CheckInternal(ModularAvatarProbeAnchor pa)
+        {
+            if (pa.probeTarget == null)
+            {
+                return new List<ErrorLog>()
+                {
+                    new ErrorLog(ReportLevel.Validation, "validation.probe_anchor.no_target", pa)
+                };
+            }
+ 
             return null;
         }
 
