@@ -1,7 +1,6 @@
 ﻿{
   "boneproxy.foldout.advanced": "高级设置",
   "boneproxy.target": "目标",
-  "probeanchor.target": "目标",
   "menuinstall.help.hint_set_menu": "此预制体的菜单默认会安装Avatar的顶部菜单中. 如果不需要, 可以选择其他菜单或取消勾选启用复选框.",
   "menuinstall.help.hint_bad_menu": "选择的菜单不属于当前Avatar.",
   "menuinstall.installto": "安装到",
@@ -53,11 +52,9 @@
   "hint.not_in_avatar": "此组件需要放置于你的Avatar中才能工作",
   "boneproxy.err.MovingTarget": "您不能指定将由其他 Modular Avatar 组件移动的目标对象",
   "boneproxy.err.NotInAvatar": "你必须指定一个在Avatar中的对象",
-  "probeanchor.err.NotInAvatar": "你必须指定一个在Avatar中的对象",
   "boneproxy.attachment": "附加模式",
   "boneproxy.attachment.AsChildAtRoot": "作为子对象, 放置于Root",
   "boneproxy.attachment.AsChildKeepWorldPosition": "作为子对象, 保持原有位置",
   "pb_blocker.help": "当前对象不会受到附加的父对象的PhysBones的影响.",
-  "probe_anchor.help": "设置此对象所包含的渲染器的AnchorOverride",
   "hint.bad_vrcsdk": "检测到不兼容的VRCSDK版本.\n\n请尝试升级VRCSDK; 如果这不起作用, 请尝试新版本的Modular Avatar."
 }

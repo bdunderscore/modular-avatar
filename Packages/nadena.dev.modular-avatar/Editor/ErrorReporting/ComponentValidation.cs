@@ -22,10 +22,6 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                     return CheckInternal(bs);
                 case ModularAvatarBoneProxy bp:
                     return CheckInternal(bp);
-                case ModularAvatarBoundsOverride bo:
-                    return CheckInternal(bo);
-                case ModularAvatarProbeAnchor pa:
-                    return CheckInternal(pa);
                 case ModularAvatarMenuInstaller mi:
                     return CheckInternal(mi);
                 case ModularAvatarMergeAnimator obj:
@@ -134,32 +130,6 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 return new List<ErrorLog>()
                 {
                     new ErrorLog(ReportLevel.Validation, "validation.bone_proxy.no_target", bp)
-                };
-            }
-
-            return null;
-        }
-
-        private static List<ErrorLog> CheckInternal(ModularAvatarProbeAnchor pa)
-        {
-            if (pa.probeTarget == null)
-            {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.probe_anchor.no_target", pa)
-                };
-            }
- 
-            return null;
-        }
-
-        private static List<ErrorLog> CheckInternal(ModularAvatarBoundsOverride bo)
-        {
-            if (bo.rootBoneTarget.Get(bo) == null) 
-            {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.bounds_override.no_target", bo)
                 };
             }
 
