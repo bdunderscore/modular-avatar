@@ -119,6 +119,23 @@ namespace nadena.dev.modular_avatar.core.editor
                     var sourceBone = bonePair.Key;
                     var destBone = bonePair.Value;
 
+                    // Check that we don't have any components left over (e.g. Unity colliders) that need to stick
+                    // around.
+                    var components = sourceBone.GetComponents<Component>();
+                    bool has_unknown_component = false;
+                    foreach (var component in components)
+                    {
+                        if (component is Transform || component is AvatarTagComponent)
+                        {
+                            continue; // we assume MA components are okay to purge by this point
+                        }
+
+                        has_unknown_component = true;
+                        break;
+                    }
+
+                    if (has_unknown_component) continue;
+
                     var children = new List<Transform>();
                     foreach (Transform child in sourceBone)
                     {
