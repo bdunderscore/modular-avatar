@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core
 
         public GameObject Get(Component container)
         {
-            if (_cacheValid && _cachedPath == referencePath) return _cachedReference;
+            if (_cacheValid && _cachedPath == referencePath && _cachedReference != null) return _cachedReference;
 
             _cacheValid = true;
             _cachedPath = referencePath;
