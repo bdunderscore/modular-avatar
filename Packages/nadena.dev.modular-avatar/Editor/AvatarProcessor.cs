@@ -198,6 +198,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         new MenuInstallHook().OnPreprocessAvatar(avatarGameObject, context);
                         new MergeArmatureHook().OnPreprocessAvatar(context, avatarGameObject);
                         new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
+                        new ProbeAnchorProcessor().OnPreprocessAvatar(avatarGameObject);
                         new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process(context);
                         new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                         new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context);
