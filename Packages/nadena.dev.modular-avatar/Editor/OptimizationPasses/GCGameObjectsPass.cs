@@ -50,6 +50,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 foreach (var component in obj.GetComponents<Component>())
                 {
+                    // component is null if script is missing
+                    if (!component) continue;
                     switch (component)
                     {
                         case Transform t: break;
