@@ -460,12 +460,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void OnInnerInspectorGUI()
         {
-            ElementHeightCache = BuildHeightCache();
-
             EditorGUI.BeginChangeCheck();
             _devMode = EditorGUILayout.Toggle(G("params.devmode"), _devMode);
             if (EditorGUI.EndChangeCheck() || _reorderableList == null || _needsRebuild) SetupList();
             Debug.Assert(_reorderableList != null, nameof(_reorderableList) + " != null");
+            
+            ElementHeightCache = BuildHeightCache();
 
             if (_devMode || _selectedIndices.Count > 0)
             {
