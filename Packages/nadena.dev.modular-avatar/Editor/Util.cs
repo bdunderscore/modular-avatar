@@ -125,15 +125,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            SetGizmoIconEnabled(typeof(ModularAvatarBoneProxy), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarProbeAnchor), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarBlendshapeSync), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarMenuInstaller), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarMergeAnimator), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarMergeArmature), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarParameters), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarPBBlocker), false);
-            SetGizmoIconEnabled(typeof(ModularAvatarVisibleHeadAccessory), false);
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var ty in assembly.GetTypes())
+                {
+                    if (typeof(AvatarTagComponent).IsAssignableFrom(ty) && !ty.IsAbstract)
+                    {
+                        SetGizmoIconEnabled(ty, false);
+                    }
+                }
+            }
 
             EditorApplication.update -= DisableMAGizmoIcons;
             SessionState.GetBool("MAIconsDisabled", true);
