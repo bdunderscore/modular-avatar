@@ -89,6 +89,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
+
+            // https://github.com/bdunderscore/modular-avatar/issues/332
+            // Retain transforms with names ending in "end" as these might be used for VRM spring bones
+            foreach (Transform t in _root.GetComponentsInChildren<Transform>())
+            {
+                if (t.name.ToLower().EndsWith("end"))
+                {
+                    MarkObject(t.gameObject);
+                }
+            }
         }
 
         private void MarkPhysBone(VRCPhysBone pb)
