@@ -40,6 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
             "VelocityX",
             "VelocityY",
             "VelocityZ",
+            "VelocityMagnitude",
             "Upright",
             "Grounded",
             "Seated",
