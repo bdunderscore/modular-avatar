@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -102,6 +103,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (settings.SetBounds && mesh is SkinnedMeshRenderer smr)
             {
+                if (smr.bones.Length == 0)
+                {
+                    Mesh newMesh = Object.Instantiate(smr.sharedMesh);
+                    smr.sharedMesh = newMesh;
+                    smr.bones = new Transform[] { smr.transform };
+                    smr.rootBone = smr.transform;
+                    smr.sharedMesh.boneWeights = Enumerable.Repeat(new BoneWeight() { boneIndex0 = 0, weight0 = 1 }, newMesh.vertexCount).ToArray();
+                    smr.sharedMesh.bindposes = new Matrix4x4[] { smr.transform.worldToLocalMatrix * smr.transform.localToWorldMatrix };
+
+                    if (newMesh) context.SaveAsset(newMesh);
+                }
                 smr.rootBone = settings.RootBone;
                 smr.localBounds = settings.Bounds;
             }
