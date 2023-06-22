@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (settings.SetBounds && mesh is SkinnedMeshRenderer smr)
             {
-                if (smr.bones.Length == 0)
+                if (smr.bones.Length == 0 && smr.sharedMesh)
                 {
                     Mesh newMesh = Object.Instantiate(smr.sharedMesh);
                     smr.sharedMesh = newMesh;
