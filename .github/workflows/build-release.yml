@@ -72,11 +72,21 @@ jobs:
           directory: "Packages/${{env.packageName}}/"
           filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package-zip
+          path: ${{ env.zipFile }}
+
       - name: Create unitypackage
         uses: anatawa12/sh-actions/create-unitypackage@master
         with:
           output-path: ${{ env.unityPackage }}
           package-path: Packages/${{ env.packageName }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: unitypackage
+          path: ${{ env.unityPackage }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
