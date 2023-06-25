@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -126,16 +127,24 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkPhysBones()
         {
-            IEnumerable<VRCPhysBone> pbs = referencedGameObjects.SelectMany(x => x.GetComponents<VRCPhysBone>()).Where(x => x != null);
+            IEnumerable<VRCPhysBone> pbs = _avatarGameObject.SelectMany(x => x.GetComponents<VRCPhysBone>()).Where(x => x != null);
             IEnumerable<VRCPhysBone> markObjects = Enumerable.Empty<VRCPhysBone>();
             foreach (VRCPhysBone pb in pbs)
             {
-                markObjects = markObjects.Append(pb);
+                if (referencedGameObjects.Contains(pb.rootTransform ? pb.rootTransform.gameObject : pb.gameObject))
+                {
+                    markObjects = markObjects.Append(pb);
+                }
             }
             foreach (VRCPhysBone pb in markObjects)
             {
-                pb.GetComponentsInChildren<Transform>(true).ToList().ForEach(x => MarkObject(x.gameObject));
+                MarkObject(pb.gameObject);
+                if (pb.rootTransform) pb.rootTransform.GetComponentsInChildren<Transform>(true).ToList().ForEach(x => MarkObject(x.gameObject));
                 MarkAllReferencedObjects(pb);
+                foreach (VRCPhysBoneColliderBase pbc in pb.colliders)
+                {
+                    MarkAllReferencedObjects(pbc);
+                }
             }
         }
 
