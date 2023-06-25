@@ -16,13 +16,13 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly BuildContext _context;
         private readonly GameObject _root;
         private readonly HashSet<GameObject> referencedGameObjects = new HashSet<GameObject>();
-        private readonly List<GameObject> _avatarGameObject = new List<GameObject>();
+        private readonly HashSet<GameObject> _avatarGameObject = new HashSet<GameObject>();
 
         internal GCGameObjectsPass(BuildContext context, GameObject root)
         {
             _context = context;
             _root = root;
-            _avatarGameObject = root.GetComponentsInChildren<Transform>(true).Select(x => x.gameObject).ToList();
+            root.GetComponentsInChildren<Transform>(true).Select(x => x.gameObject).ToList().ForEach(x => _avatarGameObject.Add(x));
         }
 
         internal void OnPreprocessAvatar()
@@ -117,11 +117,14 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (!smr) continue;
                 MarkObject(smr.gameObject);
-                MarkObject(smr.rootBone != null ? smr.rootBone.gameObject : null);
-                MarkObject(smr.probeAnchor != null ? smr.probeAnchor.gameObject : null);
-                IEnumerable<int> weightedBoneIdxs = smr.sharedMesh.boneWeights.SelectMany(x => { return new int[] { x.boneIndex0, x.boneIndex1, x.boneIndex2, x.boneIndex3 }; });
-
-                weightedBoneIdxs.Select(x => smr.bones[x]).ToList().ForEach(x => MarkObject(x.gameObject));
+                if (smr.rootBone) MarkObject(smr.rootBone.gameObject);
+                if (smr.probeAnchor) MarkObject(smr.probeAnchor.gameObject);
+                smr.sharedMesh.boneWeights
+                    .SelectMany(x => { return new int[] { x.boneIndex0, x.boneIndex1, x.boneIndex2, x.boneIndex3 }; })
+                    .Distinct()
+                    .Select(x => smr.bones[x])
+                    .ToList()
+                    .ForEach(x => MarkObject(x.gameObject));
             }
         }
 
@@ -150,6 +153,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkAllReferencedObjects(Component component)
         {
+            if (!component) return;
             SerializedObject so = new SerializedObject(component);
             SerializedProperty sp = so.GetIterator();
 
