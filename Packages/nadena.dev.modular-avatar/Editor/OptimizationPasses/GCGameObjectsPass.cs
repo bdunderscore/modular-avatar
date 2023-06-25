@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Dynamics.PhysBone.Components;
@@ -14,75 +15,83 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly BuildContext _context;
         private readonly GameObject _root;
         private readonly HashSet<GameObject> referencedGameObjects = new HashSet<GameObject>();
+        private readonly List<GameObject> _avatarGameObject = new List<GameObject>();
 
         internal GCGameObjectsPass(BuildContext context, GameObject root)
         {
             _context = context;
             _root = root;
+            _avatarGameObject = root.GetComponentsInChildren<Transform>(true).Select(x => x.gameObject).ToList();
         }
 
         internal void OnPreprocessAvatar()
         {
-            MarkAll();
+            MarkSkinnedMeshRenderers();
+            MarkOthers();
+            MarkPhysBones();
             Sweep();
         }
 
-        private void MarkAll()
+        private void MarkOthers()
         {
-            foreach (var obj in GameObjects(_root,
-                         node =>
-                         {
-                             if (node.CompareTag("EditorOnly"))
-                             {
-                                 if (EditorApplication.isPlayingOrWillChangePlaymode)
-                                 {
-                                     // Retain EditorOnly objects (in case they contain camera fixtures or something),
-                                     // but ignore references _from_ them. (TODO: should we mark from them as well?)
-                                     MarkObject(node);
-                                 }
-
-                                 return false;
-                             }
-
-                             return true;
-                         }
-                     ))
+            foreach (GameObject obj in _avatarGameObject)
             {
-                foreach (var component in obj.GetComponents<Component>())
+                if (!IsEditorOnly(obj))
                 {
-                    // component is null if script is missing
-                    if (!component) continue;
-                    switch (component)
+                    foreach (Component component in obj.GetComponents<Component>())
                     {
-                        case Transform t: break;
+                        // component is null if script is missing
+                        if (!component) continue;
+                        switch (component)
+                        {
+                            case Transform _: break;
 
-                        case VRCPhysBone pb:
-                            MarkObject(obj);
-                            MarkPhysBone(pb);
-                            break;
+                            case VRCPhysBone _:
+                            case VRCPhysBoneCollider _:
+                                // PB-related components handled separately.
+                                break;
 
-                        case AvatarTagComponent _:
-                            // Tag components will not be retained at runtime, so pretend they're not there.
-                            break;
+                            case SkinnedMeshRenderer _:
+                                // SkinnedMehsRenderer has been processed.
+                                break;
 
-                        default:
-                            MarkObject(obj);
-                            MarkAllReferencedObjects(component);
-                            break;
+                            case AvatarTagComponent _:
+                                // Tag components will not be retained at runtime, so pretend they're not there.
+                                break;
+
+                            default:
+                                MarkObject(obj);
+                                MarkAllReferencedObjects(component);
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (EditorApplication.isPlayingOrWillChangePlaymode)
+                    {
+                        // Retain EditorOnly objects (in case they contain camera fixtures or something),
+                        // but ignore references _from_ them. (TODO: should we mark from them as well?)
+                        MarkObject(obj);
+
+                        //SkinnedMeshRenderer with insufficient bones will result in corrupted rendering.
+                        if (obj.TryGetComponent(out SkinnedMeshRenderer r))
+                        {
+                            MarkAllReferencedObjects(r);
+                        }
                     }
                 }
             }
 
             // Also retain humanoid bones
-            var animator = _root.GetComponent<Animator>();
-            if (animator != null)
+            if (_root.TryGetComponent(out Animator animator))
             {
-                foreach (var bone_ in Enum.GetValues(typeof(HumanBodyBones)))
+                foreach (object bone_ in Enum.GetValues(typeof(HumanBodyBones)))
                 {
-                    var bone = (HumanBodyBones) bone_;
+                    HumanBodyBones bone = (HumanBodyBones)bone_;
                     if (bone == HumanBodyBones.LastBone) continue;
 
-                    var transform = animator.GetBoneTransform((HumanBodyBones) bone);
+                    Transform transform = animator.GetBoneTransform(bone);
                     if (transform != null)
                     {
                         MarkObject(transform.gameObject);
@@ -101,25 +110,39 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void MarkPhysBone(VRCPhysBone pb)
+        private void MarkSkinnedMeshRenderers()
         {
-            var rootTransform = pb.GetRootTransform();
-            var ignoreTransforms = pb.ignoreTransforms ?? new List<Transform>();
-
-            foreach (var obj in GameObjects(rootTransform.gameObject,
-                         obj => !obj.CompareTag("EditorOnly") && !ignoreTransforms.Contains(obj.transform)))
+            foreach (SkinnedMeshRenderer smr in _avatarGameObject.Where(x => !IsEditorOnly(x)).Select(x => x.GetComponent<SkinnedMeshRenderer>()))
             {
-                MarkObject(obj);
-            }
+                if (!smr) continue;
+                MarkObject(smr.gameObject);
+                MarkObject(smr.rootBone != null ? smr.rootBone.gameObject : null);
+                MarkObject(smr.probeAnchor != null ? smr.probeAnchor.gameObject : null);
+                IEnumerable<int> weightedBoneIdxs = smr.sharedMesh.boneWeights.SelectMany(x => { return new int[] { x.boneIndex0, x.boneIndex1, x.boneIndex2, x.boneIndex3 }; });
 
-            // Mark colliders, etc
-            MarkAllReferencedObjects(pb);
+                weightedBoneIdxs.Select(x => smr.bones[x]).ToList().ForEach(x => MarkObject(x.gameObject));
+            }
+        }
+
+        private void MarkPhysBones()
+        {
+            IEnumerable<VRCPhysBone> pbs = referencedGameObjects.SelectMany(x => x.GetComponents<VRCPhysBone>()).Where(x => x != null);
+            IEnumerable<VRCPhysBone> markObjects = Enumerable.Empty<VRCPhysBone>();
+            foreach (VRCPhysBone pb in pbs)
+            {
+                markObjects = markObjects.Append(pb);
+            }
+            foreach (VRCPhysBone pb in markObjects)
+            {
+                pb.GetComponentsInChildren<Transform>(true).ToList().ForEach(x => MarkObject(x.gameObject));
+                MarkAllReferencedObjects(pb);
+            }
         }
 
         private void MarkAllReferencedObjects(Component component)
         {
-            var so = new SerializedObject(component);
-            var sp = so.GetIterator();
+            SerializedObject so = new SerializedObject(component);
+            SerializedProperty sp = so.GetIterator();
 
             bool enterChildren = true;
             while (sp.Next(enterChildren))
@@ -153,13 +176,13 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             while (go != null && referencedGameObjects.Add(go) && go != _root)
             {
-                go = go.transform.parent?.gameObject;
+                go = go.transform.parent != null ? go.transform.parent.gameObject : null;
             }
         }
 
         private void Sweep()
         {
-            foreach (var go in GameObjects())
+            foreach (GameObject go in _avatarGameObject)
             {
                 if (!referencedGameObjects.Contains(go))
                 {
@@ -169,31 +192,15 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private IEnumerable<GameObject> GameObjects(GameObject node = null,
-            Func<GameObject, bool> shouldTraverse = null)
+        private bool IsEditorOnly(GameObject go)
         {
-            if (node == null) node = _root;
-            if (shouldTraverse == null) shouldTraverse = obj => !obj.CompareTag("EditorOnly");
-
-            if (!shouldTraverse(node)) yield break;
-
-            yield return node;
-            if (node == null) yield break;
-
-            // Guard against object deletion mid-traversal
-            List<Transform> children = new List<Transform>();
-            foreach (Transform t in node.transform)
+            Transform t = go.transform;
+            while (t != _root.transform && t)
             {
-                children.Add(t);
+                if (t.CompareTag("EditorOnly")) return true;
+                t = t.parent;
             }
-
-            foreach (var child in children)
-            {
-                foreach (var grandchild in GameObjects(child.gameObject, shouldTraverse))
-                {
-                    yield return grandchild;
-                }
-            }
+            return false;
         }
     }
 }
