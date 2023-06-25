@@ -16,13 +16,13 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly BuildContext _context;
         private readonly GameObject _root;
         private readonly HashSet<GameObject> referencedGameObjects = new HashSet<GameObject>();
-        private readonly HashSet<GameObject> _avatarGameObject = new HashSet<GameObject>();
+        private readonly HashSet<GameObject> _avatarGameObjects = new HashSet<GameObject>();
 
         internal GCGameObjectsPass(BuildContext context, GameObject root)
         {
             _context = context;
             _root = root;
-            root.GetComponentsInChildren<Transform>(true).Select(x => x.gameObject).ToList().ForEach(x => _avatarGameObject.Add(x));
+            root.GetComponentsInChildren<Transform>(true).Select(x => x.gameObject).ToList().ForEach(x => _avatarGameObjects.Add(x));
         }
 
         internal void OnPreprocessAvatar()
@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkOthers()
         {
-            foreach (GameObject obj in _avatarGameObject)
+            foreach (GameObject obj in _avatarGameObjects)
             {
                 if (!IsEditorOnly(obj))
                 {
@@ -113,7 +113,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkSkinnedMeshRenderers()
         {
-            foreach (SkinnedMeshRenderer smr in _avatarGameObject.Where(x => !IsEditorOnly(x)).Select(x => x.GetComponent<SkinnedMeshRenderer>()))
+            foreach (SkinnedMeshRenderer smr in _avatarGameObjects.Where(x => !IsEditorOnly(x)).Select(x => x.GetComponent<SkinnedMeshRenderer>()))
             {
                 if (!smr) continue;
                 MarkObject(smr.gameObject);
@@ -130,7 +130,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkPhysBones()
         {
-            IEnumerable<VRCPhysBone> pbs = _avatarGameObject.SelectMany(x => x.GetComponents<VRCPhysBone>()).Where(x => x != null);
+            IEnumerable<VRCPhysBone> pbs = _avatarGameObjects.SelectMany(x => x.GetComponents<VRCPhysBone>()).Where(x => x != null);
             IEnumerable<VRCPhysBone> markObjects = Enumerable.Empty<VRCPhysBone>();
             foreach (VRCPhysBone pb in pbs)
             {
@@ -195,7 +195,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void Sweep()
         {
-            foreach (GameObject go in _avatarGameObject)
+            foreach (GameObject go in _avatarGameObjects)
             {
                 if (!referencedGameObjects.Contains(go))
                 {
