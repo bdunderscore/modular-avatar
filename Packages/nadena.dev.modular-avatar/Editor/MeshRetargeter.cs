@@ -187,7 +187,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (src != null)
             {
                 dst = Mesh.Instantiate(src);
-                dst.name = "RETARGETED: " + src.name;
+                dst.name = "RETARGETED__" + src.name;
             }
 
             RetargetBones();
