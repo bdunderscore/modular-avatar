@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -39,6 +40,24 @@ namespace nadena.dev.modular_avatar.core
             }
 
             return (_cachedReference = avatar.transform.Find(referencePath)?.gameObject);
+        }
+
+        public void Set(GameObject target)
+        {
+            if (target == null)
+            {
+                referencePath = "";
+            }
+            else if (target.GetComponent<VRCAvatarDescriptor>() != null)
+            {
+                referencePath = AVATAR_ROOT;
+            }
+            else
+            {
+                referencePath = RuntimeUtil.AvatarRootPath(target);
+            }
+
+            _cacheValid = false;
         }
 
         private void InvalidateCache()
