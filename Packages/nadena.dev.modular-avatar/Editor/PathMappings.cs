@@ -114,6 +114,37 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        /// <summary>
+        /// Marks an object as having been replaced by another object. All references to the old object will be replaced
+        /// by the new object. References originally to the new object will continue to point to the new object.
+        /// </summary>
+        /// <param name="old"></param>
+        /// <param name="newObject"></param>
+        public static void ReplaceObject(GameObject old, GameObject newObject)
+        {
+            ClearCache();
+
+            if (_objectToOriginalPaths.TryGetValue(old, out var paths))
+            {
+                if (!_objectToOriginalPaths.TryGetValue(newObject, out var newObjectPaths))
+                {
+                    newObjectPaths = new List<string>();
+                    _objectToOriginalPaths.Add(newObject, newObjectPaths);
+                }
+
+                newObjectPaths.AddRange(paths);
+
+                _objectToOriginalPaths.Remove(old);
+            }
+
+
+            if (_transformLookthroughObjects.Contains(old))
+            {
+                _transformLookthroughObjects.Remove(old);
+                _transformLookthroughObjects.Add(newObject);
+            }
+        }
+
         private static ImmutableDictionary<string, string> BuildMapping(ref ImmutableDictionary<string, string> cache,
             bool transformLookup)
         {
