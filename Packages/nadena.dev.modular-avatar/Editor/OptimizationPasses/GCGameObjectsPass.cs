@@ -163,7 +163,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (!referencedGameObjects.Contains(go))
                 {
-                    Debug.Log("Purging object: " + RuntimeUtil.AvatarRootPath(go));
                     UnityEngine.Object.DestroyImmediate(go);
                 }
             }
