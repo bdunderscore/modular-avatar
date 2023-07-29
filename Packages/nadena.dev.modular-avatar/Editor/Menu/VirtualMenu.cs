@@ -94,20 +94,29 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _visited.Add(expMenu);
             _visitedMenu(expMenu);
 
-            foreach (var control in expMenu.controls)
+            try
             {
-                PushControl(control);
-            }
-
-            if (_menuToInstallerMap.TryGetValue(expMenu, out var installers))
-            {
-                foreach (var installer in installers)
+                foreach (var control in expMenu.controls)
                 {
-                    using (new PostprocessorContext(this, null))
+                    PushControl(control);
+                }
+
+                if (_menuToInstallerMap.TryGetValue(expMenu, out var installers))
+                {
+                    foreach (var installer in installers)
                     {
-                        PushNode(installer);
+                        using (new PostprocessorContext(this, null))
+                        {
+                            PushNode(installer);
+                        }
                     }
                 }
+            }
+            finally
+            {
+                // We can visit the same expMenu multiple times, with different visit contexts (owing to having
+                // different source installers, with different postprocessing configurations).
+                _visited.Remove(expMenu);
             }
         }
 
@@ -118,6 +127,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _visited.Add(source);
 
             BuildReport.ReportingObject(source as UnityEngine.Object, () => source.Visit(this));
+
+            _visited.Remove(source);
         }
 
         public void PushNode(ModularAvatarMenuInstaller installer)
@@ -141,10 +152,15 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                     }
                 }
             });
+
+            _visited.Remove(installer);
         }
 
         public void PushControl(VRCExpressionsMenu.Control control)
         {
+            // XXX: When we invoke NodeFor on the subMenu, we need to ensure we dedup considering the parameter context
+            // of the source control. This is because the same subMenu can be used in multiple places, with different
+            // parameter replacements. (FIXME)
             var virtualControl = new VirtualControl(control);
 
             virtualControl.SubmenuNode = NodeFor(control.subMenu);
