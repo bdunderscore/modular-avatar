@@ -30,6 +30,7 @@ using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Object = UnityEngine.Object;
 
@@ -236,6 +237,18 @@ namespace nadena.dev.modular_avatar.core.editor
             if (settings.textureCompression == TextureImporterCompression.Uncompressed)
                 return ValidateExpressionMenuIconResult.Uncompressed;
             return ValidateExpressionMenuIconResult.Success;
+        }
+
+        internal static IEnumerable<T> FindComponentInParents<T>(this Component t) where T : Component
+        {
+            Transform ptr = t.transform.parent;
+            while (ptr != null)
+            {
+                var component = ptr.GetComponent<T>();
+                if (component != null) yield return component;
+                if (ptr.GetComponent<VRCAvatarDescriptor>() != null) break;
+                ptr = ptr.parent;
+            }
         }
 
         internal static IEnumerable<AnimatorState> States(AnimatorController ac)

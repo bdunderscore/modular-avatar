@@ -40,12 +40,13 @@ namespace nadena.dev.modular_avatar.core
         private const float POS_EPSILON = 0.001f * 0.001f;
         private const float ROT_EPSILON = 0.001f * 0.001f;
 
-        public AvatarObjectReference mergeTarget;
+        public AvatarObjectReference mergeTarget = new AvatarObjectReference();
         public GameObject mergeTargetObject => mergeTarget.Get(this);
 
-        public string prefix;
-        public string suffix;
-        public bool locked;
+        public string prefix = "";
+        public string suffix = "";
+        public bool locked = false;
+        public bool mangleNames = true;
 
         private class BoneBinding
         {

@@ -32,6 +32,9 @@ Merge Armature goes to a lot of trouble to ensure that components configured on 
 Merge Armature will leave portions of the original hierarchy behind - specifically, if they contain any components other than Transforms, they will be retained, and otherwise will generally be deleted.
 Where necessary, PhysBone objects will have their targets updated, and ParentConstraints may be created as necessary to make things Just Work (tm).
 
+As of Modular Avatar 1.7.0, it is now possible to perform nested merges - that is, merge an armature A into B, then 
+merge B into C. Modular Avatar will automatically determine the correct order to apply these merges.
+
 ## Locked mode
 
 If the locked option is enabled, the position and rotation of the merged bones will be locked to their parents in the editor. This is a two-way relationship; if you move the merged bone, the avatar's bone will move, and vice versa.
@@ -48,3 +51,12 @@ This allows the merge armature component to automatically restore its Merge Targ
 Since Merge Animator will attempt to match bones by name, just attaching it won't always work to make an outfit designed for one avatar work with another avatar.
 You can click the "Adjust bone names to match target" button to attempt to rename bones in the outfit to match the base avatar it's currently attached to.
 This will be done automatically if you added the Merge Armature component using the "Setup Outfit" menu item.
+
+## Avoid name collisions
+
+Although merge armature merges bones that have names matching ones on the merge target, by default any _newly added_
+bones that are unique to this new merged asset will have their names changed. This helps avoid conflicting with other
+assets that also use merge armature, and which happen to have chosen the same bone name.
+
+In some special circumstances, it can be helpful to disable this behavior. In those cases, you can uncheck the "avoid 
+name collisions" box.

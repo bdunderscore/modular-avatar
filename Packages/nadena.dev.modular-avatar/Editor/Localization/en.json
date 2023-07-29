@@ -39,6 +39,8 @@
   "merge_armature.locked.tooltip": "Lock the position of this armature's bones to the target armature (and vice versa). Useful for creating animations.",
   "merge_armature.adjust_names": "Adjust bone names to match target",
   "merge_armature.adjust_names.tooltip": "Changes bone names to match the target avatar. Useful for porting outfits from one avatar to another.",
+  "merge_armature.mangle_names": "Avoid name collisions",
+  "merge_armature.mangle_names.tooltip": "Avoid name collisions with other assets by mangling newly added bone names.",
   "path_mode.Relative": "Relative to this object",
   "path_mode.Absolute": "Absolute (based on avatar root)",
   "merge_animator.animator": "Animator to merge",
