@@ -181,7 +181,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         if (holder.CurrentClip != holder.OriginalClip)
                         {
-                            if (!AssetDatabase.IsSubAsset(holder.CurrentClip))
+                            if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(holder.CurrentClip)))
                             {
                                 AssetDatabase.AddObjectToAsset(holder.CurrentClip, AssetDatabase.GetAssetPath(state));
                             }
