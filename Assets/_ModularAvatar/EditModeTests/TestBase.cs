@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -17,6 +18,7 @@ namespace modular_avatar_tests
         [SetUp]
         public virtual void Setup()
         {
+            BuildReport.Clear();
             objects = new List<GameObject>();
         }
 

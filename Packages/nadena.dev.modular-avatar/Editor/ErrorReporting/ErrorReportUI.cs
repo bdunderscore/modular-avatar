@@ -23,6 +23,8 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
         public static void MaybeOpenErrorReportUI()
         {
+            if (Application.isBatchMode) return; // headless unit tests
+
             if (BuildReport.CurrentReport.Avatars.Any(av => av.logs.Count > 0))
             {
                 OpenErrorReportUI();
