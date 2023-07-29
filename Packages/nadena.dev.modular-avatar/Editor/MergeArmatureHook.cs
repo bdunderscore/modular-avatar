@@ -29,7 +29,6 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
-using VRC.Core;
 using VRC.Dynamics;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
@@ -125,9 +124,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool HasAdditionalComponents(GameObject go)
         {
             bool hasComponents = false;
-            bool needsConstraint = false;
-            bool hasPositionConstraint = false;
-            bool hasRotationConstraint = false;
 
             foreach (Component c in go.GetComponents<Component>())
             {

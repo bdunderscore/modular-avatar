@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -80,8 +81,9 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.delayCall(CheckLock);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
 #if UNITY_EDITOR
             EditorApplication.update -= EditorUpdate;
 #endif

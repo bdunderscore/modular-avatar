@@ -95,8 +95,9 @@ namespace nadena.dev.modular_avatar.core
         public string subPath;
         public BoneProxyAttachmentMode attachmentMode = BoneProxyAttachmentMode.Unset;
 
-        void OnValidate()
+        protected override void OnValidate()
         {
+            base.OnValidate();
             ClearCache();
         }
 
@@ -128,8 +129,9 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
         }
 

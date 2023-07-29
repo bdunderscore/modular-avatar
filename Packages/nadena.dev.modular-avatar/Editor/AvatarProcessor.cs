@@ -183,7 +183,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                 Object.DestroyImmediate(component);
                             }
 
+                            // Disable deprecation warning for reference to PipelineSaver
+#pragma warning disable CS0618
                             foreach (var component in directChild.GetComponentsInChildren<PipelineSaver>(true))
+#pragma warning restore CS0618
                             {
                                 Object.DestroyImmediate(component);
                             }
@@ -242,7 +245,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                         madeProgress = true;
                                     }
                                 }
-                                catch (Exception e)
+                                catch (Exception)
                                 {
                                     retryDestroy.Add(component);
                                 }
