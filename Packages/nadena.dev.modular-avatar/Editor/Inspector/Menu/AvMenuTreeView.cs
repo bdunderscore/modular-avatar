@@ -191,7 +191,8 @@ namespace nadena.dev.modular_avatar.core.editor
             // available. See if we can find one.
             foreach (var installer in _avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
             {
-                if (installer.installTargetMenu != null && installer.installTargetMenu != menuTree.RootMenuKey)
+                if (installer.installTargetMenu != null &&
+                    !ReferenceEquals(installer.installTargetMenu, menuTree.RootMenuKey))
                 {
                     continue;
                 }

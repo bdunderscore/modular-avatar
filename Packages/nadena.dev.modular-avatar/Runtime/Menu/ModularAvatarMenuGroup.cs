@@ -9,8 +9,6 @@ namespace nadena.dev.modular_avatar.core
     [AddComponentMenu("Modular Avatar/MA Menu Group")]
     public class ModularAvatarMenuGroup : MenuSourceComponent
     {
-        private bool recursing = false;
-
         public GameObject targetObject;
 
         public override void Visit(NodeContext context)

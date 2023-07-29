@@ -56,6 +56,20 @@ namespace nadena.dev.modular_avatar.core
 
         public static OnDemandProcessAvatarDelegate OnDemandProcessAvatar = (_m, _c) => { };
 
+        internal static T GetOrAddComponent<T>(this Component self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            if (component == null) component = self.gameObject.AddComponent<T>();
+            return component;
+        }
+
+        internal static T GetOrAddComponent<T>(this GameObject self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            if (component == null) component = self.AddComponent<T>();
+            return component;
+        }
+
         [CanBeNull]
         public static string RelativePath(GameObject root, GameObject child)
         {

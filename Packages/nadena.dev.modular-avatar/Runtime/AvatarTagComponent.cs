@@ -63,7 +63,7 @@ namespace nadena.dev.modular_avatar.core
             OnChangeAction?.Invoke();
         }
 
-        protected void OnDestroy()
+        protected virtual void OnDestroy()
         {
             OnChangeAction?.Invoke();
         }

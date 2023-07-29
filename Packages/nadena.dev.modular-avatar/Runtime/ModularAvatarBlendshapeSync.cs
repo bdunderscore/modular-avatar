@@ -58,8 +58,9 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnHierarchyChanged += Rebind;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             RuntimeUtil.OnHierarchyChanged -= Rebind;
         }
 

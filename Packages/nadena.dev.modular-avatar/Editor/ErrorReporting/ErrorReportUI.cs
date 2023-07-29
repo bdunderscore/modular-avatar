@@ -230,7 +230,6 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
         {
             var report = BuildReport.CurrentReport;
 
-            AvatarReport selected = null;
             EditorGUILayout.BeginVertical(GUILayout.MaxHeight(150), GUILayout.Width(position.width));
             if (report.Avatars.Count == 0)
             {
