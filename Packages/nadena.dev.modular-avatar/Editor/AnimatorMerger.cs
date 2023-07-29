@@ -37,6 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
+        private bool isSaved;
 
         private AnimatorOverrideController _overrideController;
 
@@ -55,9 +56,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private int controllerBaseLayer = 0;
 
-        public AnimatorCombiner(BuildContext context)
+        public AnimatorCombiner(BuildContext context, String assetName)
         {
             _combined = context.CreateAnimator();
+            isSaved = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(_combined));
+            _combined.name = assetName;
         }
 
         public AnimatorController Finish()
@@ -289,7 +292,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 AnimationClip newClip = new AnimationClip();
                 newClip.name = "rebased " + clip.name;
-                AssetDatabase.AddObjectToAsset(newClip, _combined);
+                if (isSaved)
+                {
+                    AssetDatabase.AddObjectToAsset(newClip, _combined);
+                }
 
                 foreach (var binding in AnimationUtility.GetCurveBindings(clip))
                 {
@@ -396,7 +402,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             cloneMap[original] = obj;
 
-            AssetDatabase.AddObjectToAsset(obj, _combined);
+            if (isSaved)
+            {
+                AssetDatabase.AddObjectToAsset(obj, _combined);
+            }
 
             SerializedObject so = new SerializedObject(obj);
             SerializedProperty prop = so.GetIterator();

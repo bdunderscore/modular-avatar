@@ -31,8 +31,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip =
             new Dictionary<string, HashSet<ClipHolder>>();
 
-        private HashSet<BlendTree> _processedBlendTrees = new HashSet<BlendTree>();
-
         internal void Commit()
         {
             foreach (var clip in _clips)
@@ -115,11 +113,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
                 // animation, we'll restore the original in a later pass
                 var placeholder = Object.Instantiate(state.motion);
-                AssetDatabase.AddObjectToAsset(placeholder, state);
                 clipHolder.CurrentClip = placeholder;
                 if (isProxyAnim)
                 {
-                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder, true); });
+                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
                 }
             }
 
@@ -177,16 +174,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     processClip(holder);
                     recordPaths(holder);
                     _clips.Add(holder);
-                    _clipCommitActions.Add(() =>
-                    {
-                        if (holder.CurrentClip != holder.OriginalClip)
-                        {
-                            if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(holder.CurrentClip)))
-                            {
-                                AssetDatabase.AddObjectToAsset(holder.CurrentClip, AssetDatabase.GetAssetPath(state));
-                            }
-                        }
-                    });
                     break;
                 }
                 case BlendTree tree:
@@ -260,10 +247,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         children[i].motion = curClip;
                         dirty = true;
-                        if (string.IsNullOrWhiteSpace(AssetDatabase.GetAssetPath(curClip)))
-                        {
-                            AssetDatabase.AddObjectToAsset(curClip, AssetDatabase.GetAssetPath(state));
-                        }
                     }
                 }
 

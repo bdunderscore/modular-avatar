@@ -92,11 +92,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (!mergeSessions.TryGetValue(merge.layerType, out var session))
             {
-                session = new AnimatorCombiner(context);
+                session = new AnimatorCombiner(context, merge.layerType.ToString() + " (merged)");
                 mergeSessions[merge.layerType] = session;
-                if (defaultControllers_.ContainsKey(merge.layerType))
+                if (defaultControllers_.TryGetValue(merge.layerType, out var defaultController))
                 {
-                    session.AddController("", defaultControllers_[merge.layerType], null);
+                    session.AddController("", defaultController, null);
                 }
             }
 
@@ -142,7 +142,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // For non-default layers, ensure we always clone the controller for the benefit of subsequent
                     // processing phases
-                    mergeSessions[layer.type] = new AnimatorCombiner(_context);
+                    mergeSessions[layer.type] = new AnimatorCombiner(_context, layer.type.ToString());
                     mergeSessions[layer.type].AddController("", controller, null);
                 }
             }

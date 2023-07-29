@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -15,6 +16,8 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly VRCAvatarDescriptor AvatarDescriptor;
         internal readonly AnimationDatabase AnimationDatabase = new AnimationDatabase();
         internal readonly UnityEngine.Object AssetContainer;
+
+        private bool SaveImmediate = false;
 
         internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
             = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
@@ -41,7 +44,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void SaveAsset(Object obj)
         {
-            if (AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) return;
+            if (!SaveImmediate || AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) return;
 
             AssetDatabase.AddObjectToAsset(obj, AssetContainer);
         }
@@ -67,7 +70,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (controller == null) return null;
 
-            var merger = new AnimatorCombiner(this);
+            var merger = new AnimatorCombiner(this, controller.name + " (clone)");
             switch (controller)
             {
                 case AnimatorController ac:
@@ -85,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController)
         {
-            var merger = new AnimatorCombiner(this);
+            var merger = new AnimatorCombiner(this, overrideController.name + " (clone)");
             merger.AddOverrideController("", overrideController, null);
             return merger.Finish();
         }
@@ -121,6 +124,65 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return newMenu;
+        }
+
+        public void CommitReferencedAssets()
+        {
+            HashSet<UnityEngine.Object> referencedAssets = new HashSet<UnityEngine.Object>();
+            HashSet<UnityEngine.Object> sceneAssets = new HashSet<UnityEngine.Object>();
+
+            Walk(AvatarDescriptor.gameObject);
+
+            foreach (var asset in referencedAssets
+                         .Where(o => !sceneAssets.Contains(o))
+                         .Where(o => string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o))))
+            {
+                AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+            }
+
+            SaveImmediate = true;
+
+            void Walk(GameObject obj)
+            {
+                sceneAssets.Add(obj);
+
+                foreach (var component in obj.GetComponents<Component>())
+                {
+                    sceneAssets.Add(component);
+                    if (component is Transform t)
+                    {
+                        foreach (Transform child in t)
+                        {
+                            Walk(child.gameObject);
+                        }
+                    }
+
+                    var so = new SerializedObject(component);
+                    var sp = so.GetIterator();
+                    bool enterChildren = true;
+
+                    while (sp.Next(enterChildren))
+                    {
+                        enterChildren = true;
+                        if (sp.name == "m_GameObject") continue;
+                        if (sp.propertyType == SerializedPropertyType.String)
+                        {
+                            enterChildren = false;
+                            continue;
+                        }
+
+                        if (sp.propertyType != SerializedPropertyType.ObjectReference)
+                        {
+                            continue;
+                        }
+
+                        if (sp.objectReferenceValue != null)
+                        {
+                            referencedAssets.Add(sp.objectReferenceValue);
+                        }
+                    }
+                }
+            }
         }
     }
 }
