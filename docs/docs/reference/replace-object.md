@@ -1,5 +1,7 @@
 ﻿# Replace Object
 
+![Replace Object](replace-object.png)
+
 The Replace Object component allows you to completely replace the contents of a GameObject on the parent avatar.
 
 ## When should I use it?
