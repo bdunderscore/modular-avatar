@@ -150,5 +150,6 @@
   "menuitem.prop.is_default": "Is Group Default",
   "animation_gen.duplicate_binding": "Controls from different control groups are trying to animate the same parameter. Parameter: {0}",
   "animation_gen.multiple_defaults": "Multiple default menu items were found in the same control group.",
-  "menuitem.misc.add_item": "Add menu item"
+  "menuitem.misc.add_item": "Add menu item",
+  "replace_object.target_object": "Object to replace"
 }

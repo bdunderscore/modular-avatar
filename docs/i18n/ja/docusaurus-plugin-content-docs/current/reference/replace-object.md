@@ -1,5 +1,7 @@
 ﻿# Replace Object
 
+![Replace Object](replace-object.png)
+
 Replace Objectコンポーネントを使うことで、任意のGameObjectの内容を完全に置き換えることができます。
 
 ## どんな時に使うべきか？
