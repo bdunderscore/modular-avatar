@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal readonly VRCAvatarDescriptor AvatarDescriptor;
         internal readonly AnimationDatabase AnimationDatabase = new AnimationDatabase();
-        internal readonly AnimatorController AssetContainer;
+        internal readonly UnityEngine.Object AssetContainer;
 
         internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
             = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
@@ -32,9 +32,10 @@ namespace nadena.dev.modular_avatar.core.editor
             AvatarDescriptor = avatarDescriptor;
 
             // AssetDatabase.CreateAsset is super slow - so only do it once, and add everything else as sub-assets.
-            // This animator controller exists for the sole purpose of providing a placeholder to dump everything we
-            // generate into.
-            AssetContainer = new AnimatorController();
+            // This scriptable object exists for the sole purpose of providing a placeholder to dump everything we
+            // generate into. Note that we use a custom component here to force binary serialization; this saves both
+            // time as well as disk space (if you're using manual bake).
+            AssetContainer = ScriptableObject.CreateInstance<MAAssetBundle>();
             AssetDatabase.CreateAsset(AssetContainer, Util.GenerateAssetPath());
         }
 

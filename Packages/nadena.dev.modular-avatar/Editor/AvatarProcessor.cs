@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -31,11 +32,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 [assembly: InternalsVisibleTo("Tests")]
@@ -157,6 +158,9 @@ namespace nadena.dev.modular_avatar.core.editor
             if (nowProcessing) return;
 
             var vrcAvatarDescriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             using (BuildReport.CurrentReport.ReportingOnAvatar(vrcAvatarDescriptor))
             {
@@ -283,6 +287,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     throw new Exception("Fatal error reported during avatar processing.");
                 }
             }
+
+            Debug.Log($"Processed avatar " + avatarGameObject.name + " in " + sw.ElapsedMilliseconds + "ms");
         }
 
         private static void ClearEditorOnlyTagComponents(Transform obj)
