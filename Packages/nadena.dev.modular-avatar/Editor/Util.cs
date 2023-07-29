@@ -140,6 +140,20 @@ namespace nadena.dev.modular_avatar.core.editor
             SessionState.GetBool("MAIconsDisabled", true);
         }
 
+        internal static T GetOrAddComponent<T>(this Component self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            if (component == null) component = self.gameObject.AddComponent<T>();
+            return component;
+        }
+
+        internal static T GetOrAddComponent<T>(this GameObject self) where T : Component
+        {
+            var component = self.GetComponent<T>();
+            if (component == null) component = self.AddComponent<T>();
+            return component;
+        }
+
         public static string GenerateAssetPath()
         {
             return GetGeneratedAssetsFolder() + "/" + GUID.Generate() + ".asset";
