@@ -34,37 +34,42 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class BoneDatabase
     {
-        private static Dictionary<Transform, bool> IsRetargetable = new Dictionary<Transform, bool>();
+        private static Dictionary<Transform, bool> m_IsRetargetable = new Dictionary<Transform, bool>();
 
         internal static void ResetBones()
         {
-            IsRetargetable.Clear();
+            m_IsRetargetable.Clear();
+        }
+
+        internal static bool IsRetargetable(Transform t)
+        {
+            return m_IsRetargetable.TryGetValue(t, out var result) && result;
         }
 
         internal static void AddMergedBone(Transform bone)
         {
-            IsRetargetable[bone] = true;
+            m_IsRetargetable[bone] = true;
         }
 
         internal static void RetainMergedBone(Transform bone)
         {
             if (bone == null) return;
-            if (IsRetargetable.ContainsKey(bone)) IsRetargetable[bone] = false;
+            if (m_IsRetargetable.ContainsKey(bone)) m_IsRetargetable[bone] = false;
         }
 
         internal static Transform GetRetargetedBone(Transform bone)
         {
-            if (bone == null || !IsRetargetable.ContainsKey(bone)) return null;
+            if (bone == null || !m_IsRetargetable.ContainsKey(bone)) return null;
 
-            while (bone != null && IsRetargetable.ContainsKey(bone) && IsRetargetable[bone]) bone = bone.parent;
+            while (bone != null && m_IsRetargetable.ContainsKey(bone) && m_IsRetargetable[bone]) bone = bone.parent;
 
-            if (IsRetargetable.ContainsKey(bone)) return null;
+            if (m_IsRetargetable.ContainsKey(bone)) return null;
             return bone;
         }
 
         internal static IEnumerable<KeyValuePair<Transform, Transform>> GetRetargetedBones()
         {
-            return IsRetargetable.Where((kvp) => kvp.Value)
+            return m_IsRetargetable.Where((kvp) => kvp.Value)
                 .Select(kvp => new KeyValuePair<Transform, Transform>(kvp.Key, GetRetargetedBone(kvp.Key)))
                 .Where(kvp => kvp.Value != null);
         }

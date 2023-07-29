@@ -46,19 +46,10 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             this.context = context;
 
-            var mergeArmatures = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
+            var mergeArmatures =
+                avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
 
-            foreach (var mergeArmature in mergeArmatures)
-            {
-                BuildReport.ReportingObject(mergeArmature, () =>
-                {
-                    mergedObjects.Clear();
-                    thisPassAdded.Clear();
-                    MergeArmature(mergeArmature);
-                    PruneDuplicatePhysBones();
-                    UnityEngine.Object.DestroyImmediate(mergeArmature);
-                });
-            }
+            TopoProcessMergeArmatures(mergeArmatures);
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
             {
@@ -84,6 +75,90 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, context);
+        }
+
+        private void TopoProcessMergeArmatures(ModularAvatarMergeArmature[] mergeArmatures)
+        {
+            Dictionary<ModularAvatarMergeArmature, List<ModularAvatarMergeArmature>> runsBefore
+                = new Dictionary<ModularAvatarMergeArmature, List<ModularAvatarMergeArmature>>();
+
+            foreach (var config in mergeArmatures)
+            {
+                // TODO - assert that we're not nesting merge armatures?
+
+                var target = config.mergeTargetObject;
+                if (target == null)
+                {
+                    // TODO - report error
+                    continue;
+                }
+
+                var parentConfig = target.GetComponentInParent<ModularAvatarMergeArmature>();
+                if (parentConfig != null)
+                {
+                    if (!runsBefore.ContainsKey(parentConfig))
+                    {
+                        runsBefore[parentConfig] = new List<ModularAvatarMergeArmature>();
+                    }
+
+                    runsBefore[parentConfig].Add(config);
+                }
+            }
+
+            HashSet<ModularAvatarMergeArmature> visited = new HashSet<ModularAvatarMergeArmature>();
+            Stack<ModularAvatarMergeArmature> visitStack = new Stack<ModularAvatarMergeArmature>();
+            foreach (var next in mergeArmatures)
+            {
+                TopoLoop(next);
+            }
+
+            void TopoLoop(ModularAvatarMergeArmature config)
+            {
+                if (visited.Contains(config)) return;
+                if (visitStack.Contains(config))
+                {
+                    BuildReport.LogFatal("merge_armature.circular_dependency", new string[0], config);
+                    return;
+                }
+
+                visitStack.Push(config);
+                var target = config.mergeTargetObject;
+
+                if (target != null)
+                {
+                    if (runsBefore.TryGetValue(config, out var predecessors))
+                    {
+                        foreach (var priorConfig in predecessors)
+                        {
+                            TopoLoop(priorConfig);
+                        }
+                    }
+
+                    MergeArmatureWithReporting(config);
+                }
+
+                visitStack.Pop();
+                visited.Add(config);
+            }
+        }
+
+        private void MergeArmatureWithReporting(ModularAvatarMergeArmature config)
+        {
+            var target = config.mergeTargetObject;
+
+            while (BoneDatabase.IsRetargetable(target.transform))
+            {
+                target = target.transform.parent.gameObject;
+            }
+
+            BuildReport.ReportingObject(config, () =>
+            {
+                mergedObjects.Clear();
+                thisPassAdded.Clear();
+                MergeArmature(config, target);
+                PruneDuplicatePhysBones();
+                UnityEngine.Object.DestroyImmediate(config);
+            });
         }
 
         private void RetainBoneReferences(Component c)
@@ -168,14 +243,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private Dictionary<string, List<GameObject>>
             activationPathMappings = new Dictionary<string, List<GameObject>>();
 
-        private void MergeArmature(ModularAvatarMergeArmature mergeArmature)
+        private void MergeArmature(ModularAvatarMergeArmature mergeArmature, GameObject mergeTargetObject)
         {
-            // TODO: error reporting framework?
-            if (mergeArmature.mergeTargetObject == null) return;
+            // TODO: error reporting?
+            if (mergeTargetObject == null) return;
 
             GatherActiveStatePaths(mergeArmature.transform);
 
-            RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeArmature.mergeTargetObject.gameObject, true);
+            RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeTargetObject, true);
 
             FixupAnimations();
         }
@@ -329,7 +404,11 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             src.transform.SetParent(mergedSrcBone.transform, true);
-            src.name = src.name + "$" + Guid.NewGuid();
+            if (config.mangleNames)
+            {
+                src.name = src.name + "$" + Guid.NewGuid();
+            }
+
             src.GetOrAddComponent<ModularAvatarPBBlocker>();
             mergedSrcBone = src;
 
