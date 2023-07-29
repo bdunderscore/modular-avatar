@@ -180,7 +180,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var path = AssetDatabase.GetAssetPath(obj);
 
-            return path != null && path.StartsWith(GetGeneratedAssetsFolder() + "/");
+            return string.IsNullOrEmpty(path) || path.StartsWith(GetGeneratedAssetsFolder() + "/");
         }
 
         public static Type FindType(string typeName)

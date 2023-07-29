@@ -211,11 +211,15 @@ namespace nadena.dev.modular_avatar.core.editor
                         new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context);
                         PhysboneBlockerPass.Process(avatarGameObject);
 
+                        context.CommitReferencedAssets();
+
                         AfterProcessing?.Invoke(avatarGameObject, context);
 
                         context.AnimationDatabase.Commit();
 
                         new GCGameObjectsPass(context, avatarGameObject).OnPreprocessAvatar();
+
+                        context.CommitReferencedAssets();
                     }
                     finally
                     {
