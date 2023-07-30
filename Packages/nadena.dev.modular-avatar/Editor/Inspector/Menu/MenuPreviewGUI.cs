@@ -107,7 +107,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void DoGUI(VRCExpressionsMenu menu, GameObject parameterReference = null)
         {
-            new VisitorContext(this).PushNode(menu);
+            new VisitorContext(this).PushMenuContents(menu);
         }
 
         private void PushGuiNode(object key, Func<Action> guiBuilder)
@@ -162,7 +162,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 });
             }
 
-            public void PushNode(VRCExpressionsMenu expMenu)
+            public void PushMenuContents(VRCExpressionsMenu expMenu)
             {
                 PushMenu(expMenu, null);
             }

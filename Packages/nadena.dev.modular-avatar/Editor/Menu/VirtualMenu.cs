@@ -87,7 +87,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _currentPostprocessor = postprocessor;
         }
 
-        public void PushNode(VRCExpressionsMenu expMenu)
+        public void PushMenuContents(VRCExpressionsMenu expMenu)
         {
             if (expMenu == null) return;
             if (_visited.Contains(expMenu)) return;
@@ -148,7 +148,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 {
                     using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
                     {
-                        PushNode(installer.menuToAppend);
+                        PushMenuContents(installer.menuToAppend);
                     }
                 }
             });
@@ -163,7 +163,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             // parameter replacements. (FIXME)
             var virtualControl = new VirtualControl(control);
 
-            virtualControl.SubmenuNode = NodeFor(control.subMenu);
+            if (control.subMenu != null)
+            {
+                virtualControl.SubmenuNode = NodeFor(control.subMenu);
+            }
 
             _currentPostprocessor(virtualControl);
 
@@ -377,9 +380,15 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             VirtualMenuNode NodeFor(object key, Action<VRCExpressionsMenu.Control> postprocessContext)
             {
-                if (_resolvedMenu.TryGetValue(key, out var node)) return node;
+                var lookupKey = key;
+                if (key is VRCExpressionsMenu)
+                {
+                    lookupKey = (key, postprocessContext);
+                }
+
+                if (_resolvedMenu.TryGetValue(lookupKey, out var node)) return node;
                 node = new VirtualMenuNode(key);
-                _resolvedMenu[key] = node;
+                _resolvedMenu[lookupKey] = node;
 
                 _pendingGeneration.Enqueue(() =>
                 {
@@ -391,7 +400,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                             postprocessContext);
                         if (key is VRCExpressionsMenu expMenu)
                         {
-                            context.PushNode(expMenu);
+                            context.PushMenuContents(expMenu);
                         }
                         else if (key is MenuSource source)
                         {
