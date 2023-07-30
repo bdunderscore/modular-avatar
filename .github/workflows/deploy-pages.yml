@@ -17,17 +17,23 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
+  get_latest_release:
+    name: Get latest release
+    uses: bdunderscore/modular-avatar/.github/workflows/get-latest-release.yml@main
+  
   build-docs:
-    name: Build documentation
+    name: Build documentation (latest release)
+    needs:
+      - get_latest_release
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    with:
+      ref: ${{ needs.get_latest_release.outputs.latest_release_tag }}
+    
+  build-docs-dev:
+    name: Build documentation (main branch)
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
     with:
       ref: main
-    
-  build-docs-dev:
-    name: Build documentation (dev branch)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
-    with:
-      ref: dev
       path: dev
       artifact: docs-dev
   deploy-docs:
