@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.core.menu;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.VersionControl;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace modular_avatar_tests.VirtualMenuTests
@@ -559,6 +562,96 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             var root = virtualMenu.ResolvedMenu[menu_a];
             Assert.AreEqual(1, root.Controls.Count);
+        }
+
+        [Test]
+        public void multipleMenuAssets_areInstalledMultipleTimes()
+        {
+            var menu_a = Create<VRCExpressionsMenu>();
+            menu_a.controls.Add(new VRCExpressionsMenu.Control()
+            {
+                name = "control",
+                parameter = new VRCExpressionsMenu.Control.Parameter()
+                {
+                    name = "p"
+                },
+                type = VRCExpressionsMenu.Control.ControlType.Toggle
+            });
+
+            var av_root = CreateRoot("avatar");
+
+            var node_a = CreateInstaller("menu_a");
+            node_a.transform.SetParent(av_root.transform);
+            node_a.menuToAppend = menu_a;
+
+            var node_b = CreateInstaller("menu_b");
+            node_b.transform.SetParent(av_root.transform);
+            node_b.menuToAppend = menu_a;
+
+            var virtualMenu = VirtualMenu.ForAvatar(av_root.GetComponent<VRCAvatarDescriptor>());
+            virtualMenu.FreezeMenu();
+            Assert.AreEqual(2, virtualMenu.RootMenuNode.Controls.Count);
+        }
+
+        [Test]
+        public void remapParams_isAppliedSeparatelyForEachDedup()
+        {
+            var menu_a = Create<VRCExpressionsMenu>();
+            menu_a.controls.Add(new VRCExpressionsMenu.Control()
+            {
+                name = "control",
+                parameter = new VRCExpressionsMenu.Control.Parameter()
+                {
+                    name = "p"
+                },
+                type = VRCExpressionsMenu.Control.ControlType.Toggle
+            });
+            var menu_outer = Create<VRCExpressionsMenu>();
+            menu_outer.controls.Add(new VRCExpressionsMenu.Control()
+            {
+                name = "control",
+                type = VRCExpressionsMenu.Control.ControlType.SubMenu,
+                subMenu = menu_a
+            });
+
+            var av_root = CreateRoot("avatar");
+
+            var node_a = CreateInstaller("menu_a");
+            node_a.transform.SetParent(av_root.transform);
+            node_a.menuToAppend = menu_outer;
+            node_a.gameObject.AddComponent<ModularAvatarParameters>().parameters = new List<ParameterConfig>()
+            {
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "p",
+                    remapTo = "a",
+                }
+            };
+
+            var node_b = CreateInstaller("menu_b");
+            node_b.transform.SetParent(av_root.transform);
+            node_b.menuToAppend = menu_outer;
+            node_b.gameObject.AddComponent<ModularAvatarParameters>().parameters = new List<ParameterConfig>()
+            {
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "p",
+                    remapTo = "b",
+                }
+            };
+
+            var buildContext = new BuildContext(av_root.GetComponent<VRCAvatarDescriptor>());
+            new RenameParametersHook().OnPreprocessAvatar(av_root, buildContext);
+
+            var virtualMenu = VirtualMenu.ForAvatar(av_root.GetComponent<VRCAvatarDescriptor>(), buildContext);
+            virtualMenu.FreezeMenu();
+
+            Assert.IsTrue(virtualMenu.RootMenuNode.Controls.Any(c =>
+                c.SubmenuNode.Controls[0].parameter.name == "a"
+            ));
+            Assert.IsTrue(virtualMenu.RootMenuNode.Controls.Any(c =>
+                c.SubmenuNode.Controls[0].parameter.name == "b"
+            ));
         }
 
         ModularAvatarMenuInstaller CreateInstaller(string name)
