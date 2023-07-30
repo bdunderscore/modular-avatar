@@ -198,6 +198,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         var context = new BuildContext(vrcAvatarDescriptor);
 
+                        new MeshSettingsPass(context).OnPreprocessAvatar();
                         new RenameParametersHook().OnPreprocessAvatar(avatarGameObject, context);
                         new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject, context);
                         context.AnimationDatabase.Bootstrap(vrcAvatarDescriptor);
@@ -206,7 +207,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         new MergeArmatureHook().OnPreprocessAvatar(context, avatarGameObject);
                         new BoneProxyProcessor().OnPreprocessAvatar(avatarGameObject);
                         new VisibleHeadAccessoryProcessor(vrcAvatarDescriptor).Process(context);
-                        new MeshSettingsPass(context).OnPreprocessAvatar();
                         new ReplaceObjectPass(context).Process();
                         new RemapAnimationPass(vrcAvatarDescriptor).Process(context.AnimationDatabase);
                         new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(avatarGameObject, context);
