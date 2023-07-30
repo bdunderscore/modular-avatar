@@ -40,6 +40,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
 
+        private const string GUID_GESTURE_HANDSONLY_MASK = "b2b8bad9583e56a46a3e21795e96ad92";
+
         private BuildContext _context;
 
         private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
@@ -72,6 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             descriptor.baseAnimationLayers = FinishSessions(descriptor.baseAnimationLayers);
             descriptor.specialAnimationLayers = FinishSessions(descriptor.specialAnimationLayers);
+            descriptor.customizeAnimationLayers = true;
         }
 
         private void ProcessMergeAnimator(GameObject avatarGameObject, BuildContext context,
@@ -121,6 +124,14 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (mergeSessions.TryGetValue(layers[i].type, out var session))
                 {
+                    if (layers[i].type == VRCAvatarDescriptor.AnimLayerType.Gesture && layers[i].isDefault)
+                    {
+                        // We need to set the mask field for the gesture layer on initial configuration
+                        layers[i].mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(
+                            AssetDatabase.GUIDToAssetPath(GUID_GESTURE_HANDSONLY_MASK)
+                        );
+                    }
+
                     layers[i].isDefault = false;
                     layers[i].animatorController = session.Finish();
                 }
