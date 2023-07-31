@@ -133,10 +133,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
             Walk(AvatarDescriptor.gameObject);
 
-            foreach (var asset in referencedAssets
-                         .Where(o => !sceneAssets.Contains(o))
-                         .Where(o => string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o))))
+            referencedAssets.RemoveWhere(sceneAssets.Contains);
+            referencedAssets.RemoveWhere(o => !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o)));
+
+            int index = 0;
+
+            foreach (var asset in referencedAssets)
             {
+                if (asset.name == "")
+                {
+                    asset.name = "Asset " + index++;
+                }
+
                 AssetDatabase.AddObjectToAsset(asset, AssetContainer);
             }
 
@@ -157,28 +165,38 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    var so = new SerializedObject(component);
-                    var sp = so.GetIterator();
-                    bool enterChildren = true;
+                    Queue<UnityEngine.Object> visitQueue = new Queue<UnityEngine.Object>();
+                    visitQueue.Enqueue(component);
 
-                    while (sp.Next(enterChildren))
+                    while (visitQueue.Count > 0)
                     {
-                        enterChildren = true;
-                        if (sp.name == "m_GameObject") continue;
-                        if (sp.propertyType == SerializedPropertyType.String)
-                        {
-                            enterChildren = false;
-                            continue;
-                        }
+                        var current = visitQueue.Dequeue();
+                        if (referencedAssets.Contains(current)) continue;
+                        referencedAssets.Add(current);
 
-                        if (sp.propertyType != SerializedPropertyType.ObjectReference)
-                        {
-                            continue;
-                        }
+                        var so = new SerializedObject(current);
+                        var sp = so.GetIterator();
+                        bool enterChildren = true;
 
-                        if (sp.objectReferenceValue != null)
+                        while (sp.Next(enterChildren))
                         {
-                            referencedAssets.Add(sp.objectReferenceValue);
+                            enterChildren = true;
+                            if (sp.name == "m_GameObject") continue;
+                            if (sp.propertyType == SerializedPropertyType.String)
+                            {
+                                enterChildren = false;
+                                continue;
+                            }
+
+                            if (sp.propertyType != SerializedPropertyType.ObjectReference)
+                            {
+                                continue;
+                            }
+
+                            if (sp.objectReferenceValue != null)
+                            {
+                                visitQueue.Enqueue(sp.objectReferenceValue);
+                            }
                         }
                     }
                 }
