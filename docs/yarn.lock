@@ -7383,7 +7383,7 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     react-loadable: ^5.5.0
-    react-medium-image-zoom: ^5.1.6
+    react-medium-image-zoom: ^5.1.7
     react-modal: ^3.16.1
     react-player: ^2.12.0
     typescript: ^5.1.6
@@ -8787,13 +8787,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-medium-image-zoom@npm:^5.1.6":
-  version: 5.1.6
-  resolution: "react-medium-image-zoom@npm:5.1.6"
+"react-medium-image-zoom@npm:^5.1.7":
+  version: 5.1.7
+  resolution: "react-medium-image-zoom@npm:5.1.7"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 4df975a80e9244764de600b64e26df114643365ecc1c1c122fb1c1cf638cbf01999dd46b67c11cf01d0c26cfe94a38fa4e0554be30a54555dab5a8103b1f9139
+  checksum: 5a61facd42e50e9d64e7bd765ce23e914a3fe79660e630ef437d2607bd02803a9de95d61aee925315ad733672088c7207135f0e7dd92bc35812c7a5cb6317523
   languageName: node
   linkType: hard
 
