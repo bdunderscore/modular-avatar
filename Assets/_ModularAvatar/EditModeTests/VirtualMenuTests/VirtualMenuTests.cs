@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
@@ -10,6 +11,8 @@ using UnityEditor.VersionControl;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace modular_avatar_tests.VirtualMenuTests
 {
@@ -76,9 +79,9 @@ namespace modular_avatar_tests.VirtualMenuTests
             virtualMenu.FreezeMenu();
 
             Assert.AreEqual(1, virtualMenu.ResolvedMenu.Count);
-            var root = virtualMenu.ResolvedMenu[rootMenu];
+            var root = virtualMenu.NodeForMenuAsset(rootMenu);
             Assert.AreEqual(2, root.Controls.Count);
-            Assert.AreSame(rootMenu, root.NodeKey);
+            Assert.AreSame(rootMenu, root.SourceMenu());
             AssertControlEquals(rootMenu.controls[0], root.Controls[0]);
             AssertControlEquals(rootMenu.controls[1], root.Controls[1]);
         }
@@ -109,22 +112,22 @@ namespace modular_avatar_tests.VirtualMenuTests
             virtualMenu.FreezeMenu();
 
             Assert.AreEqual(3, virtualMenu.ResolvedMenu.Count);
-            var rootNode = virtualMenu.ResolvedMenu[rootMenu];
-            var sub1Node = virtualMenu.ResolvedMenu[sub1];
-            var sub2Node = virtualMenu.ResolvedMenu[sub2];
+            var rootNode = virtualMenu.ResolvedMenu[virtualMenu.RootMenuKey];
+            var sub1Node = virtualMenu.NodeForMenuAsset(sub1);
+            var sub2Node = virtualMenu.NodeForMenuAsset(sub2);
 
             Assert.AreEqual(1, rootNode.Controls.Count);
-            Assert.AreSame(rootMenu, rootNode.NodeKey);
+            Assert.AreSame(virtualMenu.RootMenuKey, rootNode.NodeKey);
             Assert.AreSame(sub1Node, rootNode.Controls[0].SubmenuNode);
             Assert.IsNull(rootNode.Controls[0].subMenu);
 
             Assert.AreEqual(1, sub1Node.Controls.Count);
-            Assert.AreSame(sub1, sub1Node.NodeKey);
+            Assert.AreSame(sub1, sub1Node.SourceMenu());
             Assert.AreSame(sub2Node, sub1Node.Controls[0].SubmenuNode);
             Assert.IsNull(sub1Node.Controls[0].subMenu);
 
             Assert.AreEqual(1, sub2Node.Controls.Count);
-            Assert.AreSame(sub2, sub2Node.NodeKey);
+            Assert.AreSame(sub2, sub2Node.SourceMenu());
             Assert.AreSame(rootNode, sub2Node.Controls[0].SubmenuNode);
             Assert.IsNull(sub2Node.Controls[0].subMenu);
         }
@@ -246,10 +249,10 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             Assert.AreEqual(2, virtualMenu.ResolvedMenu.Count);
             var rootMenu = virtualMenu.ResolvedMenu[RootMenu.Instance];
-            var subMenu = virtualMenu.ResolvedMenu[menu_b];
+            var subMenu = virtualMenu.NodeForMenuAsset(menu_b);
             Assert.AreSame(subMenu, rootMenu.Controls[0].SubmenuNode);
             Assert.AreSame(RootMenu.Instance, rootMenu.NodeKey);
-            Assert.AreSame(menu_b, subMenu.NodeKey);
+            Assert.AreSame(menu_b, ((ValueTuple<object, object>) subMenu.NodeKey).Item1);
             Assert.AreEqual(1, subMenu.Controls.Count);
             AssertControlEquals(menu_b.controls[0], subMenu.Controls[0]);
         }
@@ -327,8 +330,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             virtualMenu.FreezeMenu();
 
             Assert.AreEqual(1, virtualMenu.ResolvedMenu.Count);
-            var rootMenu = virtualMenu.ResolvedMenu[menu_a];
-            var menu_a_node = virtualMenu.ResolvedMenu[menu_a];
+            var rootMenu = virtualMenu.NodeForMenuAsset(menu_a);
             Assert.AreEqual(3, rootMenu.Controls.Count);
         }
 
@@ -560,7 +562,7 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             virtualMenu.FreezeMenu();
 
-            var root = virtualMenu.ResolvedMenu[menu_a];
+            var root = virtualMenu.NodeForMenuAsset(menu_a);
             Assert.AreEqual(1, root.Controls.Count);
         }
 
@@ -654,6 +656,19 @@ namespace modular_avatar_tests.VirtualMenuTests
             ));
         }
 
+        [Test]
+        public void internalParameterTest()
+        {
+            var root = CreatePrefab("InternalParameterTest.prefab");
+
+            BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
+            var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
+
+            Assert.AreNotEqual("x", virtualMenu.RootMenuNode.Controls[0]
+                .SubmenuNode.Controls[0].parameter.name);
+        }
+
         ModularAvatarMenuInstaller CreateInstaller(string name)
         {
             GameObject obj = new GameObject();
@@ -731,6 +746,26 @@ namespace modular_avatar_tests.VirtualMenuTests
             Assert.AreNotSame(expected.subParameters[0], actual.subParameters[0]);
             Assert.AreEqual(expected.value, actual.value);
             Assert.AreEqual(expected.style, actual.style);
+        }
+    }
+
+    internal static class TestHelpers
+    {
+        internal static VirtualMenuNode NodeForMenuAsset(this VirtualMenu menu, VRCExpressionsMenu asset)
+        {
+            return menu.ResolvedMenu.FirstOrDefault(
+                kvp => kvp.Key is ValueTuple<object, object> tuple && ReferenceEquals(tuple.Item1, asset)
+            ).Value;
+        }
+
+        internal static VRCExpressionsMenu SourceMenu(this VirtualMenuNode node)
+        {
+            if (node.NodeKey is ValueTuple<object, object> tuple && tuple.Item1 is VRCExpressionsMenu menu)
+            {
+                return menu;
+            }
+
+            return null;
         }
     }
 }

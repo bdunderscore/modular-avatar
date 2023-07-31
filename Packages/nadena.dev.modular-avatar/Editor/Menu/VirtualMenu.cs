@@ -139,14 +139,14 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             BuildReport.ReportingObject(installer, () =>
             {
-                var menuSourceComp = installer.GetComponent<MenuSource>();
-                if (menuSourceComp != null)
+                using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
                 {
-                    PushNode(menuSourceComp);
-                }
-                else if (installer.menuToAppend != null)
-                {
-                    using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
+                    var menuSourceComp = installer.GetComponent<MenuSource>();
+                    if (menuSourceComp != null)
+                    {
+                        PushNode(menuSourceComp);
+                    }
+                    else if (installer.menuToAppend != null)
                     {
                         PushMenuContents(installer.menuToAppend);
                     }
@@ -197,6 +197,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
      */
     internal class VirtualMenu
     {
+        private static readonly Action<VRCExpressionsMenu.Control> NoopPostprocessor = control => { };
+
         internal readonly object RootMenuKey;
 
         private static long _cacheSeq = 0;
@@ -255,7 +257,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             if (rootMenu != null)
             {
-                RootMenuKey = rootMenu;
+                RootMenuKey = (ValueTuple<object, object>) (rootMenu, NoopPostprocessor);
             }
             else
             {
@@ -354,18 +356,28 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             var rootContext =
                 new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, _postprocessControlsHooks,
                     m => _visitedMenus.Add(m),
-                    _control => { });
-            if (RootMenuKey is VRCExpressionsMenu menu)
+                    NoopPostprocessor);
+            if (RootMenuKey is ValueTuple<object, object> tuple && tuple.Item1 is VRCExpressionsMenu menu)
             {
                 foreach (var control in menu.controls)
                 {
                     rootContext.PushControl(control);
                 }
+
+                // Some menu installers may be bound to the root menu _asset_ directly.
+                if (menuToInstallerFiltered.TryGetValue(menu, out var installers))
+                {
+                    foreach (var installer in installers)
+                    {
+                        rootContext.PushNode(installer);
+                    }
+                }
             }
 
-            if (menuToInstallerFiltered.TryGetValue(RootMenuKey, out var installers))
+            // Untargeted installers are bound to the RootMenuKey, rather than the menu asset itself.
+            if (menuToInstallerFiltered.TryGetValue(RootMenuKey, out var installers2))
             {
-                foreach (var installer in installers)
+                foreach (var installer in installers2)
                 {
                     rootContext.PushNode(installer);
                 }
@@ -383,11 +395,11 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 var lookupKey = key;
                 if (key is VRCExpressionsMenu)
                 {
-                    lookupKey = (key, postprocessContext);
+                    lookupKey = (ValueTuple<object, object>) (key, postprocessContext);
                 }
 
                 if (_resolvedMenu.TryGetValue(lookupKey, out var node)) return node;
-                node = new VirtualMenuNode(key);
+                node = new VirtualMenuNode(lookupKey);
                 _resolvedMenu[lookupKey] = node;
 
                 _pendingGeneration.Enqueue(() =>
