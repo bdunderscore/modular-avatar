@@ -134,6 +134,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Walk(AvatarDescriptor.gameObject);
 
             referencedAssets.RemoveWhere(sceneAssets.Contains);
+            referencedAssets.RemoveWhere(a => a is GameObject || a is Component);
             referencedAssets.RemoveWhere(o => !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o)));
 
             int index = 0;
