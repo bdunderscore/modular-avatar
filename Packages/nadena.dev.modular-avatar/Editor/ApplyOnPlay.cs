@@ -74,6 +74,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 armedSource = RuntimeUtil.OnDemandSource.Start;
             }
+            else if (obj == PlayModeStateChange.EnteredEditMode)
+            {
+                armedSource = RuntimeUtil.OnDemandSource.Awake;
+            }
         }
     }
 }
