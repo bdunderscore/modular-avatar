@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -151,56 +150,68 @@ namespace nadena.dev.modular_avatar.core.editor
 
             SaveImmediate = true;
 
-            void Walk(GameObject obj)
+            void Walk(GameObject root)
             {
-                sceneAssets.Add(obj);
+                var components = AvatarDescriptor.gameObject.GetComponentsInChildren<Component>(true);
+                Queue<UnityEngine.Object> visitQueue = new Queue<UnityEngine.Object>(
+                    components.Where(t => (!(t is Transform)))
+                );
 
-                foreach (var component in obj.GetComponents<Component>())
+                while (visitQueue.Count > 0)
                 {
-                    sceneAssets.Add(component);
-                    if (component is Transform t)
+                    var current = visitQueue.Dequeue();
+                    if (referencedAssets.Contains(current)) continue;
+                    referencedAssets.Add(current);
+
+                    // These assets have large internal arrays we don't want to walk through...
+                    if (current is Mesh || current is AnimationClip || current is Texture) continue;
+
+                    var so = new SerializedObject(current);
+                    var sp = so.GetIterator();
+                    bool enterChildren = true;
+
+                    while (sp.Next(enterChildren))
                     {
-                        foreach (Transform child in t)
+                        enterChildren = true;
+                        if (sp.name == "m_GameObject") continue;
+                        if (sp.propertyType == SerializedPropertyType.String)
                         {
-                            Walk(child.gameObject);
+                            enterChildren = false;
+                            continue;
                         }
-                    }
 
-                    Queue<UnityEngine.Object> visitQueue = new Queue<UnityEngine.Object>();
-                    visitQueue.Enqueue(component);
-
-                    while (visitQueue.Count > 0)
-                    {
-                        var current = visitQueue.Dequeue();
-                        if (referencedAssets.Contains(current)) continue;
-                        referencedAssets.Add(current);
-
-                        var so = new SerializedObject(current);
-                        var sp = so.GetIterator();
-                        bool enterChildren = true;
-
-                        while (sp.Next(enterChildren))
+                        if (sp.isArray && IsPrimitiveArray(sp))
                         {
-                            enterChildren = true;
-                            if (sp.name == "m_GameObject") continue;
-                            if (sp.propertyType == SerializedPropertyType.String)
-                            {
-                                enterChildren = false;
-                                continue;
-                            }
+                            enterChildren = false;
+                        }
 
-                            if (sp.propertyType != SerializedPropertyType.ObjectReference)
-                            {
-                                continue;
-                            }
+                        if (sp.propertyType != SerializedPropertyType.ObjectReference)
+                        {
+                            continue;
+                        }
 
-                            if (sp.objectReferenceValue != null)
-                            {
-                                visitQueue.Enqueue(sp.objectReferenceValue);
-                            }
+                        var obj = sp.objectReferenceValue;
+                        if (obj != null && !referencedAssets.Contains(obj) && !(obj is Transform) &&
+                            !(obj is GameObject))
+                        {
+                            visitQueue.Enqueue(sp.objectReferenceValue);
                         }
                     }
                 }
+            }
+        }
+
+        private bool IsPrimitiveArray(SerializedProperty prop)
+        {
+            if (prop.arraySize == 0) return false;
+            var propertyType = prop.GetArrayElementAtIndex(0).propertyType;
+            switch (propertyType)
+            {
+                case SerializedPropertyType.Generic:
+                case SerializedPropertyType.ObjectReference:
+                    return false;
+                default:
+                    return true;
             }
         }
     }
