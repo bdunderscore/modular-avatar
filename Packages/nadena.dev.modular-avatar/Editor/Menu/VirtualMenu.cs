@@ -87,27 +87,36 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _currentPostprocessor = postprocessor;
         }
 
-        public void PushNode(VRCExpressionsMenu expMenu)
+        public void PushMenuContents(VRCExpressionsMenu expMenu)
         {
             if (expMenu == null) return;
             if (_visited.Contains(expMenu)) return;
             _visited.Add(expMenu);
             _visitedMenu(expMenu);
 
-            foreach (var control in expMenu.controls)
+            try
             {
-                PushControl(control);
-            }
-
-            if (_menuToInstallerMap.TryGetValue(expMenu, out var installers))
-            {
-                foreach (var installer in installers)
+                foreach (var control in expMenu.controls)
                 {
-                    using (new PostprocessorContext(this, null))
+                    PushControl(control);
+                }
+
+                if (_menuToInstallerMap.TryGetValue(expMenu, out var installers))
+                {
+                    foreach (var installer in installers)
                     {
-                        PushNode(installer);
+                        using (new PostprocessorContext(this, null))
+                        {
+                            PushNode(installer);
+                        }
                     }
                 }
+            }
+            finally
+            {
+                // We can visit the same expMenu multiple times, with different visit contexts (owing to having
+                // different source installers, with different postprocessing configurations).
+                _visited.Remove(expMenu);
             }
         }
 
@@ -118,6 +127,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             _visited.Add(source);
 
             BuildReport.ReportingObject(source as UnityEngine.Object, () => source.Visit(this));
+
+            _visited.Remove(source);
         }
 
         public void PushNode(ModularAvatarMenuInstaller installer)
@@ -128,26 +139,34 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             BuildReport.ReportingObject(installer, () =>
             {
-                var menuSourceComp = installer.GetComponent<MenuSource>();
-                if (menuSourceComp != null)
+                using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
                 {
-                    PushNode(menuSourceComp);
-                }
-                else if (installer.menuToAppend != null)
-                {
-                    using (new PostprocessorContext(this, _postProcessControls.GetValueOrDefault(installer)))
+                    var menuSourceComp = installer.GetComponent<MenuSource>();
+                    if (menuSourceComp != null)
                     {
-                        PushNode(installer.menuToAppend);
+                        PushNode(menuSourceComp);
+                    }
+                    else if (installer.menuToAppend != null)
+                    {
+                        PushMenuContents(installer.menuToAppend);
                     }
                 }
             });
+
+            _visited.Remove(installer);
         }
 
         public void PushControl(VRCExpressionsMenu.Control control)
         {
+            // XXX: When we invoke NodeFor on the subMenu, we need to ensure we dedup considering the parameter context
+            // of the source control. This is because the same subMenu can be used in multiple places, with different
+            // parameter replacements. (FIXME)
             var virtualControl = new VirtualControl(control);
 
-            virtualControl.SubmenuNode = NodeFor(control.subMenu);
+            if (control.subMenu != null)
+            {
+                virtualControl.SubmenuNode = NodeFor(control.subMenu);
+            }
 
             _currentPostprocessor(virtualControl);
 
@@ -178,6 +197,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
      */
     internal class VirtualMenu
     {
+        private static readonly Action<VRCExpressionsMenu.Control> NoopPostprocessor = control => { };
+
         internal readonly object RootMenuKey;
 
         private static long _cacheSeq = 0;
@@ -236,7 +257,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             if (rootMenu != null)
             {
-                RootMenuKey = rootMenu;
+                RootMenuKey = (ValueTuple<object, object>) (rootMenu, NoopPostprocessor);
             }
             else
             {
@@ -335,18 +356,28 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             var rootContext =
                 new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, _postprocessControlsHooks,
                     m => _visitedMenus.Add(m),
-                    _control => { });
-            if (RootMenuKey is VRCExpressionsMenu menu)
+                    NoopPostprocessor);
+            if (RootMenuKey is ValueTuple<object, object> tuple && tuple.Item1 is VRCExpressionsMenu menu)
             {
                 foreach (var control in menu.controls)
                 {
                     rootContext.PushControl(control);
                 }
+
+                // Some menu installers may be bound to the root menu _asset_ directly.
+                if (menuToInstallerFiltered.TryGetValue(menu, out var installers))
+                {
+                    foreach (var installer in installers)
+                    {
+                        rootContext.PushNode(installer);
+                    }
+                }
             }
 
-            if (menuToInstallerFiltered.TryGetValue(RootMenuKey, out var installers))
+            // Untargeted installers are bound to the RootMenuKey, rather than the menu asset itself.
+            if (menuToInstallerFiltered.TryGetValue(RootMenuKey, out var installers2))
             {
-                foreach (var installer in installers)
+                foreach (var installer in installers2)
                 {
                     rootContext.PushNode(installer);
                 }
@@ -361,9 +392,15 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             VirtualMenuNode NodeFor(object key, Action<VRCExpressionsMenu.Control> postprocessContext)
             {
-                if (_resolvedMenu.TryGetValue(key, out var node)) return node;
-                node = new VirtualMenuNode(key);
-                _resolvedMenu[key] = node;
+                var lookupKey = key;
+                if (key is VRCExpressionsMenu)
+                {
+                    lookupKey = (ValueTuple<object, object>) (key, postprocessContext);
+                }
+
+                if (_resolvedMenu.TryGetValue(lookupKey, out var node)) return node;
+                node = new VirtualMenuNode(lookupKey);
+                _resolvedMenu[lookupKey] = node;
 
                 _pendingGeneration.Enqueue(() =>
                 {
@@ -375,7 +412,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                             postprocessContext);
                         if (key is VRCExpressionsMenu expMenu)
                         {
-                            context.PushNode(expMenu);
+                            context.PushMenuContents(expMenu);
                         }
                         else if (key is MenuSource source)
                         {

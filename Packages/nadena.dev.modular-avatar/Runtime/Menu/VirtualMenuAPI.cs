@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.menu
         /// installer invocations.
         /// </summary>
         /// <param name="expMenu"></param>
-        void PushNode(VRCExpressionsMenu expMenu);
+        void PushMenuContents(VRCExpressionsMenu expMenu);
 
         /// <summary>
         /// Pushes the contents of this menu source onto the current menu node.
