@@ -196,6 +196,12 @@
         "com.unity.nuget.newtonsoft-json": "2.0.0"
       }
     },
+    "nadena.dev.ndmf": {
+      "version": "file:nadena.dev.ndmf",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "vrchat.blackstartx.gesture-manager": {
       "version": "file:vrchat.blackstartx.gesture-manager",
       "depth": 0,

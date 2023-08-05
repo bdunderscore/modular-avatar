@@ -1,4 +1,5 @@
-﻿using nadena.dev.modular_avatar.core.editor;
+﻿using nadena.dev.ndmf.animation;
+using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -20,13 +21,19 @@ namespace modular_avatar_tests
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
-            BoneDatabase.AddMergedBone(b.transform);
-            var context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
-            new RetargetMeshes().OnPreprocessAvatar(root, context);
+            var build_context =
+                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            var torc = new TrackObjectRenamesContext();
+            torc.OnActivate(build_context);
+
+            var bonedb = new BoneDatabase();
+            bonedb.AddMergedBone(b.transform);
+
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
-        
+
         [Test]
         public void NoMeshRootBoneOnly()
         {
@@ -41,12 +48,18 @@ namespace modular_avatar_tests
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
-            BoneDatabase.AddMergedBone(b.transform);
-            var context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
-            new RetargetMeshes().OnPreprocessAvatar(root, context);
+            var build_context =
+                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            var torc = new TrackObjectRenamesContext();
+            torc.OnActivate(build_context);
+
+            var bonedb = new BoneDatabase();
+            bonedb.AddMergedBone(b.transform);
+
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
-            Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)), 
+            Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)),
                 skinnedMeshRenderer.localBounds);
         }
     }

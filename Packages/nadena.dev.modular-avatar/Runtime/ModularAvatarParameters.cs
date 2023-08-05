@@ -33,5 +33,10 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarParameters : AvatarTagComponent
     {
         public List<ParameterConfig> parameters = new List<ParameterConfig>();
+
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
     }
 }

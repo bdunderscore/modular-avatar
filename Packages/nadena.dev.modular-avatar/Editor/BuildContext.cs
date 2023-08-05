@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -12,9 +11,11 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class BuildContext
     {
-        internal readonly VRCAvatarDescriptor AvatarDescriptor;
+        internal readonly nadena.dev.ndmf.BuildContext PluginBuildContext;
+
+        internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
         internal readonly AnimationDatabase AnimationDatabase = new AnimationDatabase();
-        internal readonly UnityEngine.Object AssetContainer;
+        internal UnityEngine.Object AssetContainer => PluginBuildContext.AssetContainer;
 
         private bool SaveImmediate = false;
 
@@ -29,16 +30,14 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>> PostProcessControls
             = new Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>();
 
-        public BuildContext(VRCAvatarDescriptor avatarDescriptor)
+        public BuildContext(nadena.dev.ndmf.BuildContext PluginBuildContext)
         {
-            AvatarDescriptor = avatarDescriptor;
+            this.PluginBuildContext = PluginBuildContext;
+        }
 
-            // AssetDatabase.CreateAsset is super slow - so only do it once, and add everything else as sub-assets.
-            // This scriptable object exists for the sole purpose of providing a placeholder to dump everything we
-            // generate into. Note that we use a custom component here to force binary serialization; this saves both
-            // time as well as disk space (if you're using manual bake).
-            AssetContainer = ScriptableObject.CreateInstance<MAAssetBundle>();
-            AssetDatabase.CreateAsset(AssetContainer, Util.GenerateAssetPath());
+        public BuildContext(VRCAvatarDescriptor avatarDescriptor)
+            : this(new ndmf.BuildContext(avatarDescriptor, null))
+        {
         }
 
         public void SaveAsset(Object obj)
@@ -123,96 +122,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return newMenu;
-        }
-
-        public void CommitReferencedAssets()
-        {
-            HashSet<UnityEngine.Object> referencedAssets = new HashSet<UnityEngine.Object>();
-            HashSet<UnityEngine.Object> sceneAssets = new HashSet<UnityEngine.Object>();
-
-            Walk(AvatarDescriptor.gameObject);
-
-            referencedAssets.RemoveWhere(sceneAssets.Contains);
-            referencedAssets.RemoveWhere(a => a is GameObject || a is Component);
-            referencedAssets.RemoveWhere(o => !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o)));
-
-            int index = 0;
-
-            foreach (var asset in referencedAssets)
-            {
-                if (asset.name == "")
-                {
-                    asset.name = "Asset " + index++;
-                }
-
-                AssetDatabase.AddObjectToAsset(asset, AssetContainer);
-            }
-
-            SaveImmediate = true;
-
-            void Walk(GameObject root)
-            {
-                var components = AvatarDescriptor.gameObject.GetComponentsInChildren<Component>(true);
-                Queue<UnityEngine.Object> visitQueue = new Queue<UnityEngine.Object>(
-                    components.Where(t => (!(t is Transform)))
-                );
-
-                while (visitQueue.Count > 0)
-                {
-                    var current = visitQueue.Dequeue();
-                    if (referencedAssets.Contains(current)) continue;
-                    referencedAssets.Add(current);
-
-                    // These assets have large internal arrays we don't want to walk through...
-                    if (current is Mesh || current is AnimationClip || current is Texture) continue;
-
-                    var so = new SerializedObject(current);
-                    var sp = so.GetIterator();
-                    bool enterChildren = true;
-
-                    while (sp.Next(enterChildren))
-                    {
-                        enterChildren = true;
-                        if (sp.name == "m_GameObject") continue;
-                        if (sp.propertyType == SerializedPropertyType.String)
-                        {
-                            enterChildren = false;
-                            continue;
-                        }
-
-                        if (sp.isArray && IsPrimitiveArray(sp))
-                        {
-                            enterChildren = false;
-                        }
-
-                        if (sp.propertyType != SerializedPropertyType.ObjectReference)
-                        {
-                            continue;
-                        }
-
-                        var obj = sp.objectReferenceValue;
-                        if (obj != null && !referencedAssets.Contains(obj) && !(obj is Transform) &&
-                            !(obj is GameObject))
-                        {
-                            visitQueue.Enqueue(sp.objectReferenceValue);
-                        }
-                    }
-                }
-            }
-        }
-
-        private bool IsPrimitiveArray(SerializedProperty prop)
-        {
-            if (prop.arraySize == 0) return false;
-            var propertyType = prop.GetArrayElementAtIndex(0).propertyType;
-            switch (propertyType)
-            {
-                case SerializedPropertyType.Generic:
-                case SerializedPropertyType.ObjectReference:
-                    return false;
-                default:
-                    return true;
-            }
         }
     }
 }

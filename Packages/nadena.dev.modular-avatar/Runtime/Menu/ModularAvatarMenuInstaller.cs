@@ -22,5 +22,10 @@ namespace nadena.dev.modular_avatar.core
 
             RuntimeUtil.InvalidateMenu();
         }
+
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
     }
 }

@@ -37,6 +37,11 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
+
         public void Visit(NodeContext context)
         {
             if (Control == null)

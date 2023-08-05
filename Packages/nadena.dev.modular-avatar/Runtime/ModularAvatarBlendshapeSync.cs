@@ -64,6 +64,11 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnHierarchyChanged -= Rebind;
         }
 
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
+
         private void Rebind()
         {
             if (this == null) return;

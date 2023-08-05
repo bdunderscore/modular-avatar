@@ -1,18 +1,18 @@
 ﻿/*
  * MIT License
- * 
+ *
  * Copyright (c) 2022 bd_
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
@@ -38,13 +39,19 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MergeArmatureHook
     {
+        private ndmf.BuildContext frameworkContext;
         private BuildContext context;
+        private BoneDatabase BoneDatabase = new BoneDatabase();
+
+        private TrackObjectRenamesContext PathMappings => frameworkContext.Extension<TrackObjectRenamesContext>();
+
         private HashSet<Transform> mergedObjects = new HashSet<Transform>();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
 
-        internal void OnPreprocessAvatar(BuildContext context, GameObject avatarGameObject)
+        internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
-            this.context = context;
+            this.frameworkContext = context;
+            this.context = context.Extension<ModularAvatarContext>().BuildContext;
 
             var mergeArmatures =
                 avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
@@ -74,7 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 RetainBoneReferences(c as Component);
             }
 
-            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, context);
+            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, BoneDatabase, PathMappings);
         }
 
         private void TopoProcessMergeArmatures(ModularAvatarMergeArmature[] mergeArmatures)

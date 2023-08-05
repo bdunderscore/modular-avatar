@@ -12,5 +12,10 @@ namespace nadena.dev.modular_avatar.core
         {
             context.PushNode(new MenuNodesUnder(targetObject != null ? targetObject : gameObject));
         }
+
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
     }
 }

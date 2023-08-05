@@ -7,5 +7,10 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarReplaceObject : AvatarTagComponent
     {
         public AvatarObjectReference targetObject = new AvatarObjectReference();
+
+        internal override void ResolveReferences()
+        {
+            targetObject?.Get(this);
+        }
     }
 }

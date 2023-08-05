@@ -16,7 +16,7 @@ namespace modular_avatar_tests
         Texture2D _iconTexture;
 
         [SetUp]
-        public virtual void Setup()
+        public override void Setup()
         {
             base.Setup();
             _gameObject = new GameObject();
@@ -40,10 +40,10 @@ namespace modular_avatar_tests
             if (type == typeof(TestComponent)) return;
 
             // get icon
-            var component = (MonoBehaviour)_gameObject.AddComponent(type);
+            var component = (MonoBehaviour) _gameObject.AddComponent(type);
             var monoScript = MonoScript.FromMonoBehaviour(component);
             var scriptPath = AssetDatabase.GetAssetPath(monoScript);
-            var monoImporter = (MonoImporter)AssetImporter.GetAtPath(scriptPath);
+            var monoImporter = (MonoImporter) AssetImporter.GetAtPath(scriptPath);
             // in Unity 2021.2, we can use monoImporter.GetIcon()
             // but it's not available in unity 2019 so use SerializedObject
             var serializedImporter = new SerializedObject(monoImporter);

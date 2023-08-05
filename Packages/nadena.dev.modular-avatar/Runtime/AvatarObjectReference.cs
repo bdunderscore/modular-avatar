@@ -7,6 +7,8 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public class AvatarObjectReference
     {
+        private long ReferencesLockedAtFrame = long.MinValue;
+
         public static string AVATAR_ROOT = "$$$AVATAR_ROOT$$$";
         public string referencePath;
 
@@ -16,7 +18,9 @@ namespace nadena.dev.modular_avatar.core
 
         public GameObject Get(Component container)
         {
-            if (_cacheValid && _cachedPath == referencePath && _cachedReference != null) return _cachedReference;
+            bool cacheValid = _cacheValid || ReferencesLockedAtFrame == Time.frameCount;
+
+            if (cacheValid && _cachedPath == referencePath && _cachedReference != null) return _cachedReference;
 
             _cacheValid = true;
             _cachedPath = referencePath;
@@ -57,7 +61,8 @@ namespace nadena.dev.modular_avatar.core
                 referencePath = RuntimeUtil.AvatarRootPath(target);
             }
 
-            _cacheValid = false;
+            _cachedReference = target;
+            _cacheValid = true;
         }
 
         private void InvalidateCache()

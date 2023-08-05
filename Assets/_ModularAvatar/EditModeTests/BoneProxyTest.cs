@@ -29,15 +29,15 @@ namespace modular_avatar_tests
 
             var boneProxy = reference.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = root.transform;
-            boneProxy.ClearCache();
+            boneProxy.ClearCache(true);
             Assert.AreEqual(root.transform, boneProxy.target);
 
             boneProxy.target = target.transform;
-            boneProxy.ClearCache();
+            boneProxy.ClearCache(true);
             Assert.AreEqual(target.transform, boneProxy.target);
 
             target.name = "target2";
-            boneProxy.ClearCache();
+            boneProxy.ClearCache(true);
             Assert.IsNull(boneProxy.target);
         }
 

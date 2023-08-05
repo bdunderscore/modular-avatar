@@ -1,4 +1,5 @@
 ﻿using System;
+using nadena.dev.ndmf.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
@@ -10,10 +11,14 @@ namespace modular_avatar_tests.ReplaceObject
 {
     public class ReplaceObjectTests : TestBase
     {
+        private TrackObjectRenamesContext pathMappings;
+
         void Process(GameObject root)
         {
             var avDesc = root.GetComponent<VRCAvatarDescriptor>();
-            new ReplaceObjectPass(new BuildContext(avDesc)).Process();
+            var buildContext = new nadena.dev.ndmf.BuildContext(avDesc, null);
+            pathMappings = buildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
+            new ReplaceObjectPass(buildContext).Process();
         }
 
         [Test]
@@ -159,10 +164,9 @@ namespace modular_avatar_tests.ReplaceObject
             var replaceObject = replacement.AddComponent<ModularAvatarReplaceObject>();
             replaceObject.targetObject.Set(replacee);
 
-            PathMappings.Init(root);
             Process(root);
 
-            Assert.AreEqual("replacement", PathMappings.MapPath("replacee"));
+            Assert.AreEqual("replacement", pathMappings.MapPath("replacee"));
         }
     }
 }

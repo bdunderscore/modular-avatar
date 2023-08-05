@@ -1,18 +1,18 @@
 ﻿/*
  * MIT License
- * 
+ *
  * Copyright (c) 2022 bd_
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,37 +25,38 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal static class BoneDatabase
+    internal class BoneDatabase
     {
-        private static Dictionary<Transform, bool> m_IsRetargetable = new Dictionary<Transform, bool>();
+        private Dictionary<Transform, bool> m_IsRetargetable = new Dictionary<Transform, bool>();
 
-        internal static void ResetBones()
+        internal void ResetBones()
         {
             m_IsRetargetable.Clear();
         }
 
-        internal static bool IsRetargetable(Transform t)
+        internal bool IsRetargetable(Transform t)
         {
             return m_IsRetargetable.TryGetValue(t, out var result) && result;
         }
 
-        internal static void AddMergedBone(Transform bone)
+        internal void AddMergedBone(Transform bone)
         {
             m_IsRetargetable[bone] = true;
         }
 
-        internal static void RetainMergedBone(Transform bone)
+        internal void RetainMergedBone(Transform bone)
         {
             if (bone == null) return;
             if (m_IsRetargetable.ContainsKey(bone)) m_IsRetargetable[bone] = false;
         }
 
-        internal static Transform GetRetargetedBone(Transform bone)
+        internal Transform GetRetargetedBone(Transform bone)
         {
             if (bone == null || !m_IsRetargetable.ContainsKey(bone)) return null;
 
@@ -65,14 +66,14 @@ namespace nadena.dev.modular_avatar.core.editor
             return bone;
         }
 
-        internal static IEnumerable<KeyValuePair<Transform, Transform>> GetRetargetedBones()
+        internal IEnumerable<KeyValuePair<Transform, Transform>> GetRetargetedBones()
         {
             return m_IsRetargetable.Where((kvp) => kvp.Value)
                 .Select(kvp => new KeyValuePair<Transform, Transform>(kvp.Key, GetRetargetedBone(kvp.Key)))
                 .Where(kvp => kvp.Value != null);
         }
 
-        public static Transform GetRetargetedBone(Transform bone, bool fallbackToOriginal)
+        public Transform GetRetargetedBone(Transform bone, bool fallbackToOriginal)
         {
             Transform retargeted = GetRetargetedBone(bone);
 
@@ -82,11 +83,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class RetargetMeshes
     {
-        private BuildContext _context;
+        private BoneDatabase _boneDatabase;
+        private TrackObjectRenamesContext _pathTracker;
 
-        internal void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
+        internal void OnPreprocessAvatar(GameObject avatarGameObject, BoneDatabase boneDatabase,
+            TrackObjectRenamesContext pathMappings)
         {
-            _context = context;
+            this._boneDatabase = boneDatabase;
+            this._pathTracker = pathMappings;
 
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
@@ -95,19 +99,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     bool isRetargetable = false;
                     foreach (var bone in renderer.bones)
                     {
-                        if (BoneDatabase.GetRetargetedBone(bone) != null)
+                        if (_boneDatabase.GetRetargetedBone(bone) != null)
                         {
                             isRetargetable = true;
                             break;
                         }
                     }
 
-                    isRetargetable |= BoneDatabase.GetRetargetedBone(renderer.rootBone);
+                    isRetargetable |= _boneDatabase.GetRetargetedBone(renderer.rootBone);
 
                     if (isRetargetable)
                     {
-                        var newMesh = new MeshRetargeter(renderer).Retarget();
-                        if (newMesh) _context.SaveAsset(newMesh);
+                        new MeshRetargeter(renderer, _boneDatabase).Retarget();
                     }
                 });
             }
@@ -115,9 +118,9 @@ namespace nadena.dev.modular_avatar.core.editor
             // Now remove retargeted bones
             if (true)
             {
-                foreach (var bonePair in BoneDatabase.GetRetargetedBones())
+                foreach (var bonePair in _boneDatabase.GetRetargetedBones())
                 {
-                    if (BoneDatabase.GetRetargetedBone(bonePair.Key) == null) continue;
+                    if (_boneDatabase.GetRetargetedBone(bonePair.Key) == null) continue;
 
                     var sourceBone = bonePair.Key;
                     var destBone = bonePair.Value;
@@ -150,7 +153,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         child.SetParent(destBone, true);
                     }
 
-                    PathMappings.MarkRemoved(sourceBone.gameObject);
+                    _pathTracker.MarkRemoved(sourceBone.gameObject);
                     UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
                 }
             }
@@ -164,11 +167,14 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class MeshRetargeter
     {
         private readonly SkinnedMeshRenderer renderer;
+        private readonly BoneDatabase _boneDatabase;
+
         [CanBeNull] private Mesh src, dst;
 
-        public MeshRetargeter(SkinnedMeshRenderer renderer)
+        public MeshRetargeter(SkinnedMeshRenderer renderer, BoneDatabase boneDatabase)
         {
             this.renderer = renderer;
+            this._boneDatabase = boneDatabase;
         }
 
         [CanBeNull]
@@ -218,7 +224,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             for (int i = 0; i < originalBones.Length; i++)
             {
-                Transform newBindTarget = BoneDatabase.GetRetargetedBone(originalBones[i]);
+                Transform newBindTarget = _boneDatabase.GetRetargetedBone(originalBones[i]);
                 if (newBindTarget == null) continue;
                 newBones[i] = newBindTarget;
 
@@ -247,8 +253,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 renderer.sharedMesh = dst;
             }
 
-            var newRootBone = BoneDatabase.GetRetargetedBone(rootBone, true);
-            var newScaleBone = BoneDatabase.GetRetargetedBone(scaleBone, true);
+            var newRootBone = _boneDatabase.GetRetargetedBone(rootBone, true);
+            var newScaleBone = _boneDatabase.GetRetargetedBone(scaleBone, true);
 
             var oldLossyScale = scaleBone.transform.lossyScale;
             var newLossyScale = newScaleBone.transform.lossyScale;
@@ -267,7 +273,7 @@ namespace nadena.dev.modular_avatar.core.editor
             renderer.localBounds = bounds;
 
             renderer.rootBone = newRootBone;
-            renderer.probeAnchor = BoneDatabase.GetRetargetedBone(renderer.probeAnchor, true);
+            renderer.probeAnchor = _boneDatabase.GetRetargetedBone(renderer.probeAnchor, true);
         }
     }
 }

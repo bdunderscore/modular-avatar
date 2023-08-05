@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
@@ -13,9 +14,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class ReplaceObjectPass
     {
-        private readonly BuildContext _buildContext;
+        private readonly ndmf.BuildContext _buildContext;
 
-        public ReplaceObjectPass(BuildContext context)
+        public ReplaceObjectPass(ndmf.BuildContext context)
         {
             _buildContext = context;
         }
@@ -122,7 +123,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                PathMappings.ReplaceObject(original, replacement);
+                _buildContext.Extension<TrackObjectRenamesContext>()
+                    .ReplaceObject(original, replacement);
 
                 // Destroy original
                 UnityObject.DestroyImmediate(original);

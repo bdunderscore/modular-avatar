@@ -7,5 +7,9 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarVisibleHeadAccessory : AvatarTagComponent
     {
         // no configuration needed
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
     }
 }

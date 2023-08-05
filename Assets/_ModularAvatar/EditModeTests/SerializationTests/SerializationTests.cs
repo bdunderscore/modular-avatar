@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.ndmf.runtime;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -60,7 +61,7 @@ namespace _ModularAvatar.EditModeTests.SerializationTests
             Assert.False(string.IsNullOrEmpty(path));
 
             var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
-            Assert.IsInstanceOf<MAAssetBundle>(mainAsset);
+            Assert.IsInstanceOf<GeneratedAssets>(mainAsset);
         }
     }
 }

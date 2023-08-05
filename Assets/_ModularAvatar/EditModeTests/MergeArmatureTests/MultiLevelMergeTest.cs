@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.Linq;
+using nadena.dev.ndmf.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -51,7 +52,10 @@ namespace modular_avatar_tests.MergeArmatureTests
             m1_leaf2.AddComponent<TestComponentA>();
             m2_leaf3.AddComponent<TestComponentB>();
 
-            BuildContext context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            nadena.dev.ndmf.BuildContext context =
+                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext(typeof(TrackObjectRenamesContext));
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(bone.GetComponentInChildren<TestComponentA>() != null);
@@ -76,7 +80,10 @@ namespace modular_avatar_tests.MergeArmatureTests
             ma.mergeTarget.referencePath = RuntimeUtil.AvatarRootPath(armature);
             ma.mangleNames = false;
 
-            BuildContext context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            nadena.dev.ndmf.BuildContext context =
+                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext(typeof(TrackObjectRenamesContext));
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(m_bone == null); // destroyed by retargeting pass
@@ -97,7 +104,10 @@ namespace modular_avatar_tests.MergeArmatureTests
             var ma = merge.AddComponent<ModularAvatarMergeArmature>();
             ma.mergeTarget.referencePath = RuntimeUtil.AvatarRootPath(armature);
 
-            BuildContext context = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            nadena.dev.ndmf.BuildContext context =
+                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext(typeof(TrackObjectRenamesContext));
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(m_bone == null); // destroyed by retargeting pass

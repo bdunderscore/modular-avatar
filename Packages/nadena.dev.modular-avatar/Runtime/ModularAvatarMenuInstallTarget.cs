@@ -22,5 +22,10 @@ namespace nadena.dev.modular_avatar.core
         {
             context.PushNode(installer);
         }
+
+        internal override void ResolveReferences()
+        {
+            // no-op
+        }
     }
 }

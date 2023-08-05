@@ -1,0 +1,3 @@
+[submodule "Packages/nadena.dev.ndmf"]
+	path = Packages/nadena.dev.ndmf
+	url = https://github.com/bdunderscore/ndmf.git

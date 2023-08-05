@@ -6,6 +6,7 @@ namespace _ModularAvatar.EditModeTests
 {
     public class DuplicateObjectNameTest : TestBase
     {
+        /* TODO - move to build framework
         [Test]
         public void test_duplicate_object_names()
         {
@@ -17,5 +18,6 @@ namespace _ModularAvatar.EditModeTests
             c2.gameObject.name = "child2";
             Assert.AreEqual(PathMappings.MapPath("child"), "child");
         }
+        */
     }
 }
