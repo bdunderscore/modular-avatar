@@ -15,9 +15,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void OnInnerInspectorGUI()
         {
+            serializedObject.Update();
+
             EditorGUILayout.PropertyField(_targetObject, G("replace_object.target_object"));
 
             Localization.ShowLanguageUI();
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
