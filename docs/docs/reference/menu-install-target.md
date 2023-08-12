@@ -1,6 +1,6 @@
 ﻿# Menu Install Target
 
-The Menu Install Target component is a component used to support the "Select Menu" button on the [MA Menu Installer](menu-installer) component.
+The Menu Install Target component is a component used to support the "Select Menu" button on the [MA Menu Installer](menu-installer.md) component.
 It "pulls" the menu from the MA Menu Installer component, and installs it based on the position of the game object it is
 attached to.
 
@@ -9,7 +9,7 @@ attached to.
 ## When should I use it?
 
 Modular Avatar will create this component when necessary, when you use the "select menu" button on the
-[MA Menu Installer](menu-installer) component. In most cases it is not necessary to create it manually.
+[MA Menu Installer](menu-installer.md) component. In most cases it is not necessary to create it manually.
 
 ## What does it do?
 
