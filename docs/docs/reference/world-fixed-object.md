@@ -8,8 +8,6 @@ This component can be used to make a GameObject fixed to world.
 
 When you want to make some object world-fixed.
 
-## When shouldn't I use it?
-
 ## Setting up World Fixed Object
 
 Attach a World Fixed Object your object to a GameObject fixed to world. There are no configuration options to set.

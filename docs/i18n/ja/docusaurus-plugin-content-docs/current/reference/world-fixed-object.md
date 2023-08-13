@@ -8,8 +8,6 @@
 
 GameObjectをワールド固定したいとき。
 
-## When shouldn't I use it?
-
 ## Setting up World Fixed Object
 
 ワールド固定したいGameObjectにWorld Fixed Objectコンポーネントをつけるだけです。設定はありません。
