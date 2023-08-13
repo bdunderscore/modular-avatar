@@ -63,7 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 AssetDatabase.GUIDToAssetPath("78828bfbcb4cb4ce3b00de044eb2d927"));
 
             var avatarRoot = _avatar.transform;
-            GameObject obj = new GameObject(avatarRoot.name + " (WorldFixedRoot)");
+            GameObject obj = new GameObject("(MA WorldFixedRoot)");
 
             obj.transform.SetParent(avatarRoot, false);
             obj.transform.localPosition = Vector3.zero;
