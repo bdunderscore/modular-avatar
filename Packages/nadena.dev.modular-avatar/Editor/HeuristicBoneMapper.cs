@@ -231,6 +231,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Replace("_", "")
                 .Replace(".", "")
                 .Replace(" ", "");
+            name = Regex.Replace(name, "[0-9]", "");
 
             return PAT_END_NUMBER.Replace(name, "");
         }
