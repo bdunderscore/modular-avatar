@@ -223,6 +223,12 @@ namespace nadena.dev.modular_avatar.core.editor
                             DestroyInstallTargets();
                         }
 
+                        if (menu is ValueTuple<object, object> vt) // TODO: This should be a named type...
+                        {
+                            // Menu, ContextCallback
+                            menu = vt.Item1;
+                        }
+
                         if (menu is ModularAvatarMenuItem item)
                         {
                             if (item.MenuSource == SubmenuSource.MenuAsset)
