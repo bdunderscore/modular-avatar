@@ -30,7 +30,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 using VRC.Dynamics;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Object = UnityEngine.Object;
 
@@ -215,122 +214,20 @@ namespace nadena.dev.modular_avatar.core.editor
             return hasComponents;
         }
 
-        /// <summary>
-        /// Tracks an object whose Active state is animated, and which leads up to this Merge Animator component.
-        /// We use this tracking data to create proxy objects within the main armature, which track the same active
-        /// state.
-        /// </summary>
-        struct IntermediateObj
-        {
-            /// <summary>
-            /// Name of the intermediate object. Used to name proxy objects.
-            /// </summary>
-            public string name;
-
-            /// <summary>
-            /// The original path of this intermediate object.
-            /// </summary>
-            public string originPath;
-
-            /// <summary>
-            /// Whether this object is initially active.
-            /// </summary>
-            public bool active;
-        }
-
-        private List<IntermediateObj> intermediateObjects = new List<IntermediateObj>();
-
-        private Dictionary<string, List<GameObject>>
-            activationPathMappings = new Dictionary<string, List<GameObject>>();
+        private ActiveAnimationRetargeter _activeRetargeter;
 
         private void MergeArmature(ModularAvatarMergeArmature mergeArmature, GameObject mergeTargetObject)
         {
             // TODO: error reporting?
             if (mergeTargetObject == null) return;
 
-            GatherActiveStatePaths(mergeArmature.transform);
+            _activeRetargeter = new ActiveAnimationRetargeter(context, mergeArmature.transform);
 
             RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeTargetObject, true);
 
-            FixupAnimations();
-        }
+            _activeRetargeter.FixupAnimations();
 
-        private AnimationCurve GetActiveBinding(AnimationClip clip, string path)
-        {
-            return AnimationUtility.GetEditorCurve(clip,
-                EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
-        }
-
-        private void FixupAnimations()
-        {
-            foreach (var kvp in activationPathMappings)
-            {
-                var path = kvp.Key;
-                var mappings = kvp.Value;
-
-                foreach (var holder in context.AnimationDatabase.ClipsForPath(path))
-                {
-                    if (!Util.IsTemporaryAsset(holder.CurrentClip))
-                    {
-                        holder.CurrentClip = Object.Instantiate(holder.CurrentClip);
-                    }
-
-                    var clip = holder.CurrentClip as AnimationClip;
-                    if (clip == null) continue;
-
-                    var curve = GetActiveBinding(clip, path);
-                    if (curve != null)
-                    {
-                        foreach (var mapping in mappings)
-                        {
-                            clip.SetCurve(PathMappings.GetObjectIdentifier(mapping), typeof(GameObject), "m_IsActive",
-                                curve);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void GatherActiveStatePaths(Transform root)
-        {
-            intermediateObjects.Clear();
-            activationPathMappings.Clear();
-
-            List<IntermediateObj> rootPath = new List<IntermediateObj>();
-
-            while (root != null && root.GetComponent<VRCAvatarDescriptor>() == null)
-            {
-                rootPath.Insert(0, new IntermediateObj()
-                {
-                    name = root.name,
-                    originPath = RuntimeUtil.AvatarRootPath(root.gameObject),
-                    active = root.gameObject.activeSelf
-                });
-                root = root.parent;
-            }
-
-            var prefix = "";
-
-            for (int i = 1; i <= rootPath.Count; i++)
-            {
-                var srcPrefix = string.Join("/", rootPath.Take(i).Select(p => p.name));
-                if (context.AnimationDatabase.ClipsForPath(srcPrefix).Any(clip =>
-                        GetActiveBinding(clip.CurrentClip as AnimationClip, srcPrefix) != null
-                    ))
-                {
-                    var intermediate = rootPath[i - 1].name + "$" + Guid.NewGuid().ToString();
-                    var originPath = rootPath[i - 1].originPath;
-                    intermediateObjects.Add(new IntermediateObj()
-                    {
-                        name = intermediate,
-                        originPath = originPath,
-                        active = rootPath[i - 1].active
-                    });
-                    if (prefix.Length > 0) prefix += "/";
-                    prefix += intermediate;
-                    activationPathMappings[originPath] = new List<GameObject>();
-                }
-            }
+            thisPassAdded.UnionWith(_activeRetargeter.AddedGameObjects.Select(x => x.transform));
         }
 
         /**
@@ -359,49 +256,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             GameObject mergedSrcBone = newParent;
             if (retain)
-            {
-                mergedSrcBone = newParent;
-                var switchPath = "";
-                foreach (var intermediate in intermediateObjects)
-                {
-                    var preexisting = mergedSrcBone.transform.Find(intermediate.name);
-                    if (preexisting != null)
-                    {
-                        mergedSrcBone = preexisting.gameObject;
-                        continue;
-                    }
-
-                    var switchObj = new GameObject(intermediate.name);
-                    switchObj.transform.SetParent(mergedSrcBone.transform, false);
-                    switchObj.transform.localPosition = Vector3.zero;
-                    switchObj.transform.localRotation = Quaternion.identity;
-                    switchObj.transform.localScale = Vector3.one;
-                    switchObj.SetActive(intermediate.active);
-
-                    if (switchPath.Length > 0)
-                    {
-                        switchPath += "/";
-                    }
-                    else
-                    {
-                        // This new leaf can break parent bone physbones. Add a PB Blocker
-                        // to prevent this becoming an issue.
-                        switchObj.GetOrAddComponent<ModularAvatarPBBlocker>();
-                    }
-
-                    switchPath += intermediate.name;
-
-                    activationPathMappings[intermediate.originPath].Add(switchObj);
-
-                    mergedSrcBone = switchObj;
-
-                    // Ensure mesh retargeting looks through this 
-                    BoneDatabase.AddMergedBone(mergedSrcBone.transform);
-                    BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
-                    PathMappings.MarkTransformLookthrough(mergedSrcBone);
-                    thisPassAdded.Add(mergedSrcBone.transform);
-                }
-            }
+                mergedSrcBone = _activeRetargeter.CreateIntermediateObjects(newParent);
 
             src.transform.SetParent(mergedSrcBone.transform, true);
             if (config.mangleNames)
