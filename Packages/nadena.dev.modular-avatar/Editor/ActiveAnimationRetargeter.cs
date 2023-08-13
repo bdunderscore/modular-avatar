@@ -147,7 +147,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private AnimationCurve GetActiveBinding(AnimationClip clip, string path)
         {
             return AnimationUtility.GetEditorCurve(clip,
-                EditorCurveBinding.DiscreteCurve(path, typeof(GameObject), "m_IsActive"));
+                EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
         }
     }
 }
