@@ -9,12 +9,6 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class WorldFixedObjectProcessor
     {
-        internal enum ReadyStatus
-        {
-            Ready,
-            ParentMarked,
-        }
-
         private BuildContext _context;
         private VRCAvatarDescriptor _avatar;
         private Transform _proxy;
