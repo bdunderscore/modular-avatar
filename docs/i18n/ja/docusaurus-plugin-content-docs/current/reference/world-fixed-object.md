@@ -4,11 +4,11 @@
 
 このコンポーネントを付けることで、GameObjectをワールドに固定できます。
 
-## When should I use it?
+## いつ使うもの？
 
 GameObjectをワールド固定したいとき。
 
-## Setting up World Fixed Object
+## セットアップ方法
 
 ワールド固定したいGameObjectにWorld Fixed Objectコンポーネントをつけるだけです。設定はありません。
 
