@@ -1,4 +1,5 @@
-﻿using nadena.dev.modular_avatar.editor.ErrorReporting;
+﻿using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -24,24 +25,29 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void Process(BuildContext context)
         {
-            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarWorldFixedObject>(true))
+            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarWorldFixedObject>(true)
+                         .OrderByDescending(x => NestCount(x.transform)))
                 BuildReport.ReportingObject(target, () => Process(target));
+        }
+
+        int NestCount(Transform transform)
+        {
+            int count = 0;
+            while (transform.parent != null) transform = transform.parent;
+            return count;
         }
 
         void Process(ModularAvatarWorldFixedObject target)
         {
-            if (Validate(target) == ReadyStatus.Ready)
-            {
-                var proxy = CreateProxy();
+            var proxy = CreateProxy();
 
-                var xform = target.transform;
+            var xform = target.transform;
 
-                var pscale = proxy.lossyScale;
-                var oscale = xform.lossyScale;
-                xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
+            var pscale = proxy.lossyScale;
+            var oscale = xform.lossyScale;
+            xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
 
-                target.transform.SetParent(proxy, true);
-            }
+            target.transform.SetParent(proxy, true);
 
             Object.DestroyImmediate(target);
         }
@@ -76,21 +82,6 @@ namespace nadena.dev.modular_avatar.core.editor
             _proxy = obj.transform;
 
             return obj.transform;
-        }
-
-        internal ReadyStatus Validate(ModularAvatarWorldFixedObject target)
-        {
-            ReadyStatus status = ReadyStatus.Ready;
-            Transform node = target.transform.parent;
-
-            while (node != null)
-            {
-                if (node.GetComponent<ModularAvatarWorldFixedObject>()) return ReadyStatus.ParentMarked;
-
-                node = node.parent;
-            }
-
-            return status;
         }
     }
 }
