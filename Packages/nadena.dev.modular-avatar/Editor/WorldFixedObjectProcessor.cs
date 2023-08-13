@@ -15,6 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ParentMarked,
         }
 
+        private BuildContext _context;
         private VRCAvatarDescriptor _avatar;
         private Transform _proxy;
 
@@ -25,6 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void Process(BuildContext context)
         {
+            _context = context;
             foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarWorldFixedObject>(true)
                          .OrderByDescending(x => NestCount(x.transform)))
                 BuildReport.ReportingObject(target, () => Process(target));
@@ -39,7 +41,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         void Process(ModularAvatarWorldFixedObject target)
         {
+            var retargeter = new ActiveAnimationRetargeter(_context, target.transform);
+
             var proxy = CreateProxy();
+    
+            var parent = retargeter.CreateIntermediateObjects(proxy.gameObject);
 
             var xform = target.transform;
 
@@ -47,7 +53,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var oscale = xform.lossyScale;
             xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
 
-            target.transform.SetParent(proxy, true);
+            target.transform.SetParent(parent.transform, true);
+
+            retargeter.FixupAnimations();
 
             Object.DestroyImmediate(target);
         }
