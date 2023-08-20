@@ -154,7 +154,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var components = AvatarDescriptor.gameObject.GetComponentsInChildren<Component>(true);
                 Queue<UnityEngine.Object> visitQueue = new Queue<UnityEngine.Object>(
-                    components.Where(t => (!(t is Transform)))
+                    components.Where(t => (!(t is Transform || t == null)))
                 );
 
                 while (visitQueue.Count > 0)
