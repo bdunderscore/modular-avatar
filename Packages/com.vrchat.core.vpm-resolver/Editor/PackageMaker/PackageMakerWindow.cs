@@ -7,11 +7,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VRC.PackageManagement.Core.Types.Packages;
-using YamlDotNet.Serialization.NodeTypeResolvers;
 
 namespace VRC.PackageManagement.PackageMaker
 {

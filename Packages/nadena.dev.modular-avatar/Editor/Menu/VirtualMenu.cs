@@ -5,7 +5,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;

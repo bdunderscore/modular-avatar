@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

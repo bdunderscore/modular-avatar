@@ -1,6 +1,5 @@
 ﻿using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 

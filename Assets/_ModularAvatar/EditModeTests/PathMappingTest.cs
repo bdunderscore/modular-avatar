@@ -1,11 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using nadena.dev.modular_avatar.core.editor;
+﻿using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
-using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests
 {

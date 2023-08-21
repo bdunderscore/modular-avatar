@@ -24,11 +24,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using NUnit.Framework;
-using Serilog.Sinks.File;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

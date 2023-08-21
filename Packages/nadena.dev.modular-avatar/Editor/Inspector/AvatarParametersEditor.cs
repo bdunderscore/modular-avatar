@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Serialization;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using Debug = System.Diagnostics.Debug;
 

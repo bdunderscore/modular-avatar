@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using nadena.dev.modular_avatar.core.editor;
+﻿using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests.AnimateAddedBones
 {

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using nadena.dev.modular_avatar.core;
+﻿using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
