@@ -22,7 +22,8 @@
         "VRC.SDK3.Dynamics.Contact.dll",
         "VRC.SDK3.Dynamics.Contact.Editor.dll",
         "VRC.SDK3.Dynamics.PhysBone.dll",
-        "VRC.SDK3.Dynamics.PhysBone.Editor.dll"
+        "VRC.SDK3.Dynamics.PhysBone.Editor.dll",
+        "VRCCore-Editor.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],
