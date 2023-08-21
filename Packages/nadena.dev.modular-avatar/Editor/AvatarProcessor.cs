@@ -171,6 +171,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         AssetDatabase.StartAssetEditing();
                         nowProcessing = true;
 
+                        RemoveMissingScriptComponents(avatarGameObject);
+
                         ClearEditorOnlyTagComponents(avatarGameObject.transform);
 
                         BoneDatabase.ResetBones();
@@ -294,6 +296,12 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             Debug.Log($"Processed avatar " + avatarGameObject.name + " in " + sw.ElapsedMilliseconds + "ms");
+        }
+
+        private static void RemoveMissingScriptComponents(GameObject avatarGameObject)
+        {
+            foreach (var child in avatarGameObject.GetComponentsInChildren<Transform>())
+                GameObjectUtility.RemoveMonoBehavioursWithMissingScript(child.gameObject);
         }
 
         private static void ClearEditorOnlyTagComponents(Transform obj)
