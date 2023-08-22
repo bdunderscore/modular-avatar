@@ -26,9 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using UnityEditor;
 using UnityEngine;
-using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

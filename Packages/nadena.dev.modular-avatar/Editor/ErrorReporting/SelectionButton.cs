@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.editor.ErrorReporting

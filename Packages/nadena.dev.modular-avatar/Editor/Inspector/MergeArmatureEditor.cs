@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 

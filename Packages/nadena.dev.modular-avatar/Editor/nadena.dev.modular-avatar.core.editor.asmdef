@@ -1,17 +1,30 @@
 {
     "name": "nadena.dev.modular-avatar.core.editor",
     "references": [
-      "GUID:fc900867c0f47cd49b6e2ae4ef907300",
-      "GUID:5718fb738711cd34ea54e9553040911d",
-      "GUID:3456780c4fb2d324ab9c633d6f1b0ddb"
+        "GUID:fc900867c0f47cd49b6e2ae4ef907300",
+        "GUID:5718fb738711cd34ea54e9553040911d",
+        "GUID:3456780c4fb2d324ab9c633d6f1b0ddb"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "System.Collections.Immutable.dll",
+        "VRCSDKBase.dll",
+        "VRCSDKBase-Editor.dll",
+        "VRCSDK3A.dll",
+        "VRCSDK3A-Editor.dll",
+        "VRC.Dynamics.dll",
+        "VRC.SDK3.Dynamics.Contact.dll",
+        "VRC.SDK3.Dynamics.Contact.Editor.dll",
+        "VRC.SDK3.Dynamics.PhysBone.dll",
+        "VRC.SDK3.Dynamics.PhysBone.Editor.dll",
+        "VRCCore-Editor.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

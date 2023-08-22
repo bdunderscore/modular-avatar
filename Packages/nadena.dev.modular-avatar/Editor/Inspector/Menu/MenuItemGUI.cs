@@ -4,7 +4,6 @@ using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 

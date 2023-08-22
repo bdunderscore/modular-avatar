@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.menu;
-using NUnit.Framework;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.editor.ErrorReporting
 {

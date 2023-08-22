@@ -1,8 +1,5 @@
-﻿using System.Text;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using VRC.Core;
-using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

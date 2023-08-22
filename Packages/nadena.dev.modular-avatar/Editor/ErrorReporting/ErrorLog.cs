@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using nadena.dev.modular_avatar.core;
 using Newtonsoft.Json;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using UnityEditor;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.editor.ErrorReporting

@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using nadena.dev.modular_avatar.core.menu;
+﻿using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core

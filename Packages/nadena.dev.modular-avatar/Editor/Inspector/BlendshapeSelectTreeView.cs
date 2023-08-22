@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEditor.IMGUI.Controls;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor

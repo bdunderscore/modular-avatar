@@ -10,7 +10,6 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using static nadena.dev.modular_avatar.core.editor.Util;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using nadena.dev.modular_avatar.core.menu;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;

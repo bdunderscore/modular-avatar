@@ -1,7 +1,6 @@
 ﻿using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 using UnityEngine;
 
 namespace modular_avatar_tests

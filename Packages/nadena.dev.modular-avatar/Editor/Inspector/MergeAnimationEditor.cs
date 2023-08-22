@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine.UIElements;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor

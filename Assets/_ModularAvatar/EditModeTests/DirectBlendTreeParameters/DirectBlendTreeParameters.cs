@@ -1,8 +1,6 @@
 ﻿using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.Animations;
-using UnityEngine;
 
 namespace modular_avatar_tests.DirectBlendTreeParameters
 {

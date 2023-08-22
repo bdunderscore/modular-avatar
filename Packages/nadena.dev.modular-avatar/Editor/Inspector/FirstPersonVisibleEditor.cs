@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

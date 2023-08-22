@@ -4,8 +4,14 @@
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "VRCSDKBase.dll",
+        "VRCSDK3A.dll",
+        "VRC.Dynamics.dll",
+        "VRC.SDK3.Dynamics.Contact.dll",
+        "VRC.SDK3.Dynamics.PhysBone.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

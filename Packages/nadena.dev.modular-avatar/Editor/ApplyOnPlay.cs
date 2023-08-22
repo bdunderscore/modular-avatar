@@ -24,8 +24,6 @@
 
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

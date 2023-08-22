@@ -7,7 +7,6 @@ using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.core.menu;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;

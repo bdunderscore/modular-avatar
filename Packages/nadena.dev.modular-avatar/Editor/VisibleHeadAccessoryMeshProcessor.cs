@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
