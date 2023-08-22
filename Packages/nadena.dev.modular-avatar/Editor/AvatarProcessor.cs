@@ -300,7 +300,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static void RemoveMissingScriptComponents(GameObject avatarGameObject)
         {
-            foreach (var child in avatarGameObject.GetComponentsInChildren<Transform>())
+            foreach (var child in avatarGameObject.GetComponentsInChildren<Transform>(true))
                 GameObjectUtility.RemoveMonoBehavioursWithMissingScript(child.gameObject);
         }
 
