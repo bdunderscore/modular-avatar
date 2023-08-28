@@ -112,13 +112,8 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             {
                 activeAvatarObject = RuntimeUtil.FindAvatarInParents(Selection.activeGameObject.transform)?.gameObject;
                 activeAvatar = BuildReport.CurrentReport.Avatars.FirstOrDefault(av =>
-                    av.objectRef.path == RuntimeUtil.RelativePath(null, activeAvatarObject));
-
-                if (activeAvatar == null)
-                {
-                    activeAvatar = new AvatarReport();
-                    activeAvatar.objectRef = new ObjectRef(activeAvatarObject);
-                }
+                    av.objectRef.path == RuntimeUtil.RelativePath(null, activeAvatarObject)
+                    || av.objectRef.path == RuntimeUtil.RelativePath(null, activeAvatarObject) + "(Clone)");
             }
 
             if (activeAvatar == null)
@@ -126,6 +121,12 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 activeAvatar = BuildReport.CurrentReport.Avatars.LastOrDefault();
             }
 
+            if (activeAvatar == null)
+            {
+                activeAvatar = new AvatarReport();
+                activeAvatar.objectRef = new ObjectRef(activeAvatarObject);
+            }
+            
             if (activeAvatar != null)
             {
                 reported++;
