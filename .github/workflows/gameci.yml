@@ -54,7 +54,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
 
-      - uses: game-ci/unity-test-runner@v2
+      - uses: game-ci/unity-test-runner@v3
         id: gameci
         env:
           # meh, just a personal license...
