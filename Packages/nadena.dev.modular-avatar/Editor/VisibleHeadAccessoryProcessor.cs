@@ -85,12 +85,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var proxy = CreateProxy();
 
-                var xform = target.transform;
-
-                var pscale = proxy.lossyScale;
-                var oscale = xform.lossyScale;
-                xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
-
                 target.transform.SetParent(proxy, true);
 
                 didWork = true;
@@ -122,6 +116,7 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localPosition = src.localPosition;
             obj.transform.localRotation = src.localRotation;
             obj.transform.localScale = src.localScale;
+            Debug.Log($"src.localScale = {src.localScale} obj.transform.localScale = {obj.transform.localScale}");
 
             var constraint = obj.AddComponent<ParentConstraint>();
             constraint.AddSource(new ConstraintSource()
@@ -135,6 +130,8 @@ namespace nadena.dev.modular_avatar.core.editor
             constraint.translationOffsets = new[] {Vector3.zero};
 
             _proxyHead = obj.transform;
+
+            // TODO - lock proxy scale to head scale in animation?
 
             return obj.transform;
         }
