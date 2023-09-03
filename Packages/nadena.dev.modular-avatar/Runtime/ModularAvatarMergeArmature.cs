@@ -24,69 +24,102 @@
 
 using System;
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core
 {
+    [Serializable]
+    public enum ArmatureLockMode
+    {
+        Legacy,
+        NotLocked,
+        BaseToMerge,
+        BidirectionalExact
+    }
+
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Merge Armature")]
     public class ModularAvatarMergeArmature : AvatarTagComponent
     {
-        private const float POS_EPSILON = 0.001f * 0.001f;
-        private const float ROT_EPSILON = 0.001f * 0.001f;
-
         public AvatarObjectReference mergeTarget = new AvatarObjectReference();
         public GameObject mergeTargetObject => mergeTarget.Get(this);
 
         public string prefix = "";
         public string suffix = "";
-        public bool locked = false;
+
+        [FormerlySerializedAs("locked")] public bool legacyLocked;
+
+        public ArmatureLockMode LockMode = ArmatureLockMode.Legacy;
+
         public bool mangleNames = true;
 
-        private class BoneBinding
+        private ArmatureLockController _lockController;
+
+        internal Transform FindCorrespondingBone(Transform bone, Transform baseParent)
         {
-            public Transform baseBone;
-            public Transform mergeBone;
+            var childName = bone.gameObject.name;
 
-            public Vector3 lastLocalPos;
-            public Vector3 lastLocalScale;
-            public Quaternion lastLocalRot;
+            if (!childName.StartsWith(prefix) || !childName.EndsWith(suffix)) return null;
+            var targetObjectName = childName.Substring(prefix.Length,
+                childName.Length - prefix.Length - suffix.Length);
+            return baseParent.Find(targetObjectName);
         }
-
-        private List<BoneBinding> lockedBones;
 
         protected override void OnValidate()
         {
             base.OnValidate();
+            MigrateLockConfig();
+            RuntimeUtil.delayCall(SetLockMode);
+        }
 
-            RuntimeUtil.delayCall(() =>
+        private void SetLockMode()
+        {
+            if (_lockController == null)
             {
-                if (this == null) return;
+                _lockController = ArmatureLockController.ForMerge(this, GetBonesForLock);
+            }
 
-                CheckLock();
-            });
+            if (_lockController.Mode != LockMode)
+            {
+                _lockController.Mode = LockMode;
+
+                if (!_lockController.IsStable())
+                {
+                    _lockController.Mode = LockMode = ArmatureLockMode.NotLocked;
+                }
+            }
+
+            _lockController.Enabled = isActiveAndEnabled;
+        }
+
+        private void MigrateLockConfig()
+        {
+            if (LockMode == ArmatureLockMode.Legacy)
+            {
+                LockMode = legacyLocked ? ArmatureLockMode.BidirectionalExact : ArmatureLockMode.BaseToMerge;
+            }
         }
 
         private void OnEnable()
         {
-            RuntimeUtil.delayCall(CheckLock);
+            MigrateLockConfig();
+
+            SetLockMode();
         }
 
         private void OnDisable()
         {
-            RuntimeUtil.delayCall(CheckLock);
+            _lockController.Enabled = false;
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-#if UNITY_EDITOR
-            EditorApplication.update -= EditorUpdate;
-#endif
+            _lockController?.Dispose();
+            _lockController = null;
         }
 
         public override void ResolveReferences()
@@ -94,116 +127,32 @@ namespace nadena.dev.modular_avatar.core
             mergeTarget?.Get(this);
         }
 
-        void EditorUpdate()
+        private List<(Transform, Transform)> GetBonesForLock()
         {
-            if (this == null)
-            {
-#if UNITY_EDITOR
-                EditorApplication.update -= EditorUpdate;
-#endif
-                return;
-            }
+            var mergeRoot = this.transform;
+            var baseRoot = mergeTarget.Get(this);
 
-            if (!locked || lockedBones == null)
-            {
-                CheckLock();
-            }
+            if (baseRoot == null) return null;
 
-            if (lockedBones != null)
+            List<(Transform, Transform)> mergeBones = new List<(Transform, Transform)>();
+
+            ScanHierarchy(mergeRoot, baseRoot.transform);
+
+            return mergeBones;
+
+
+            void ScanHierarchy(Transform merge, Transform baseBone)
             {
-                foreach (var bone in lockedBones)
+                foreach (Transform t in merge)
                 {
-                    if (bone.baseBone == null || bone.mergeBone == null)
+                    var baseChild = FindCorrespondingBone(t, baseBone);
+                    if (baseChild != null)
                     {
-                        lockedBones = null;
-                        break;
-                    }
-
-                    var mergeBone = bone.mergeBone;
-                    var correspondingObject = bone.baseBone;
-                    bool lockBasePosition = bone.baseBone == mergeTargetObject.transform;
-
-                    if ((mergeBone.localPosition - bone.lastLocalPos).sqrMagnitude > POS_EPSILON
-                        || (mergeBone.localScale - bone.lastLocalScale).sqrMagnitude > POS_EPSILON
-                        || Quaternion.Angle(bone.lastLocalRot, mergeBone.localRotation) > ROT_EPSILON)
-                    {
-                        if (lockBasePosition) mergeBone.position = correspondingObject.position;
-                        else correspondingObject.localPosition = mergeBone.localPosition;
-
-                        correspondingObject.localScale = mergeBone.localScale;
-                        correspondingObject.localRotation = mergeBone.localRotation;
-                    }
-                    else
-                    {
-                        if (lockBasePosition) mergeBone.position = correspondingObject.position;
-                        else mergeBone.localPosition = correspondingObject.localPosition;
-                        mergeBone.localScale = correspondingObject.localScale;
-                        mergeBone.localRotation = correspondingObject.localRotation;
-                    }
-
-                    bone.lastLocalPos = mergeBone.localPosition;
-                    bone.lastLocalScale = mergeBone.localScale;
-                    bone.lastLocalRot = mergeBone.localRotation;
-                }
-            }
-        }
-
-        void CheckLock()
-        {
-            if (RuntimeUtil.isPlaying) return;
-
-#if UNITY_EDITOR
-            EditorApplication.update -= EditorUpdate;
-#endif
-
-            bool shouldLock = locked && isActiveAndEnabled;
-            bool wasLocked = lockedBones != null;
-            if (shouldLock != wasLocked)
-            {
-                if (!shouldLock)
-                {
-                    lockedBones = null;
-                }
-                else
-                {
-                    if (mergeTargetObject == null) return;
-                    lockedBones = new List<BoneBinding>();
-
-                    foreach (var xform in GetComponentsInChildren<Transform>(true))
-                    {
-                        Transform baseObject = FindCorresponding(xform);
-
-                        if (baseObject == null) continue;
-
-                        lockedBones.Add(new BoneBinding()
-                        {
-                            baseBone = baseObject,
-                            mergeBone = xform,
-                            lastLocalPos = xform.localPosition,
-                            lastLocalScale = xform.localScale,
-                            lastLocalRot = xform.localRotation
-                        });
+                        mergeBones.Add((t, baseChild));
+                        ScanHierarchy(t, baseChild);
                     }
                 }
             }
-
-#if UNITY_EDITOR
-            if (shouldLock)
-            {
-                EditorApplication.update += EditorUpdate;
-            }
-#endif
-        }
-
-        private Transform FindCorresponding(Transform xform)
-        {
-            if (xform == null) return null;
-            if (xform == transform) return mergeTargetObject.transform;
-
-            var correspondingParent = FindCorresponding(xform.parent);
-            if (correspondingParent == null) return null;
-
-            return correspondingParent.Find(prefix + xform.name + suffix);
         }
 
         public void InferPrefixSuffix()
