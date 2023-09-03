@@ -160,5 +160,6 @@
   "setup_outfit.err.no_avatar_descriptor": "No avatar descriptor found in {0} or its parents.",
   "setup_outfit.err.no_animator": "Your avatar does not have an Animator component.",
   "setup_outfit.err.no_hips": "Your avatar does not have a Hips bone. Setup Outfit only works on humanoid avatars.",
-  "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:"
+  "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:",
+  "move_independently.group-header": "Objects to move together"
 }

@@ -1,0 +1,9 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ui:VisualElement name="group-box">
+            <ui:Label name="top-label" text="##move_independently.group-header"/>
+            <ui:VisualElement name="group-container"/>
+        </ui:VisualElement>
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>

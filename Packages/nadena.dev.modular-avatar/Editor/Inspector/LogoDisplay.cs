@@ -7,7 +7,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class LogoDisplay
     {
         internal static readonly Texture2D LOGO_ASSET;
-        private static float TARGET_HEIGHT => EditorStyles.label.lineHeight * 3;
+        internal static float TARGET_HEIGHT => EditorStyles.label.lineHeight * 3;
 
         internal static float ImageWidth(float height)
         {
