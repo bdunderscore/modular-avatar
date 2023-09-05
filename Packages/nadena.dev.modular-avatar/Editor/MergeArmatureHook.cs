@@ -410,6 +410,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            var isPrefabInstance = PrefabUtility.IsPartOfPrefabInstance(src.transform);
+            var isPrefabAsset = PrefabUtility.IsPartOfPrefabAsset(src.transform);
+
+            if (isPrefabAsset || isPrefabInstance)
+            {
+                throw new Exception("Cannot merge prefab instances or prefab assets");
+            }
+
             src.transform.SetParent(mergedSrcBone.transform, true);
             if (config.mangleNames)
             {
