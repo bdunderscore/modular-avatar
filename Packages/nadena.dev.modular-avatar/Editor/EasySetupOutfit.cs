@@ -213,12 +213,19 @@ namespace nadena.dev.modular_avatar.core.editor
                     else if (Vector3.Distance(bounds.center, skinnedMeshRenderer.bounds.center) > 0.01f
                              || Vector3.Distance(bounds.extents, skinnedMeshRenderer.bounds.extents) > 0.01f)
                     {
-                        bounds = ModularAvatarMeshSettings.DEFAULT_BOUNDS;
+                        bounds = TransformBounds(rootBone, ModularAvatarMeshSettings.DEFAULT_BOUNDS);
                     }
                 }
 
                 firstSkinnedMeshRenderer = false;
             }
+        }
+
+        private static Bounds TransformBounds(Transform rootBone, Bounds bounds)
+        {
+            bounds.extents = bounds.extents / (Vector3.Dot(rootBone.lossyScale, Vector3.one) / 3);
+
+            return bounds;
         }
 
         static bool ValidateSetupOutfit()
