@@ -237,7 +237,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 // Sometimes meshes have no root bone set. This is usually not ideal, but let's make sure we don't
                 // choke on the scale computation below.
-                scaleBone = renderer.bones[0];
+                scaleBone = renderer.transform;
             }
 
             renderer.bones = newBones;
@@ -248,10 +248,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var newRootBone = BoneDatabase.GetRetargetedBone(rootBone, true);
-            var newScaleBone = BoneDatabase.GetRetargetedBone(scaleBone, true);
+            if (newRootBone == null)
+            {
+                newRootBone = renderer.transform;
+            }
 
             var oldLossyScale = scaleBone.transform.lossyScale;
-            var newLossyScale = newScaleBone.transform.lossyScale;
+            var newLossyScale = newRootBone.transform.lossyScale;
 
             var bounds = renderer.localBounds;
             bounds.extents = new Vector3(
@@ -259,10 +262,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 bounds.extents.y * oldLossyScale.y / newLossyScale.y,
                 bounds.extents.z * oldLossyScale.z / newLossyScale.z
             );
-            bounds.center = new Vector3(
-                bounds.center.x * oldLossyScale.x / newLossyScale.x,
-                bounds.center.y * oldLossyScale.y / newLossyScale.y,
-                bounds.center.z * oldLossyScale.z / newLossyScale.z
+            bounds.center = newRootBone.transform.InverseTransformPoint(
+                scaleBone.transform.TransformPoint(bounds.center)
             );
             renderer.localBounds = bounds;
 
