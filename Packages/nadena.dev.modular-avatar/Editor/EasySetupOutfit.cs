@@ -1,15 +1,119 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class EasySetupOutfit
+    internal class ESOErrorWindow : EditorWindow
+    {
+        private string header;
+        private string[] messageGroups;
+        private static readonly GUIStyle buttonStyle, labelStyle;
+        private const float SeparatorSize = 6f;
+
+        static ESOErrorWindow()
+        {
+            buttonStyle = EditorStyles.miniButtonRight;
+            labelStyle = EditorStyles.label;
+            labelStyle.wordWrap = true;
+
+            buttonStyle.fixedWidth = 40f;
+            buttonStyle.fixedHeight = EditorGUIUtility.singleLineHeight * 1.5f;
+        }
+        
+        private void OnEnable()
+        {
+
+        }
+
+        internal static void Show(
+            string header,
+            string[] messageGroups
+        )
+        {
+            var window = CreateInstance<ESOErrorWindow>();
+            window.titleContent = new GUIContent("Setup Outfit");
+            window.header = header;
+            window.messageGroups = messageGroups;
+            
+            // Compute required window size
+            var height = 0f;
+            var width = 450f;
+
+            height += SeparatorSize;
+            height += EditorStyles.helpBox.CalcHeight(new GUIContent(header), width);
+            foreach (var message in messageGroups)
+            {
+                height += 6f; // TODO: constant
+                height += labelStyle.CalcHeight(new GUIContent(message), width);
+            }
+
+            height += buttonStyle.fixedHeight;
+            height += SeparatorSize;
+            
+            window.minSize = new Vector2(width, height);
+            
+            window.ShowModal();
+        }
+
+        private void OnGUI()
+        {
+            EditorGUILayout.Space(SeparatorSize);
+
+            EditorGUILayout.HelpBox(header, MessageType.Error);
+
+            foreach (var message in messageGroups)
+            {
+                EditorGUILayout.Space(SeparatorSize);
+                EditorGUILayout.LabelField(message);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("OK", buttonStyle))
+            {
+                Close();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            var finalRect = GUILayoutUtility.GetRect(SeparatorSize, SeparatorSize, GUILayout.ExpandWidth(true));
+
+            var size = this.minSize;
+            size.y = finalRect.position.y + finalRect.height;
+
+            if (size.y > 10)
+            {
+                if (Vector2.Distance(this.minSize, size) > 1f)
+                {
+                    this.minSize = size;
+                }
+
+                if (Vector2.Distance(this.maxSize, size) > 1f)
+                {
+                    this.maxSize = size;
+                }
+            }
+        }
+    } 
+    
+    internal class EasySetupOutfit
     {
         private const int PRIORITY = 49;
+        private static string[] errorMessageGroups;
+        private static string errorHeader;
 
         [MenuItem("GameObject/ModularAvatar/Setup Outfit", false, PRIORITY)]
         static void SetupOutfit(MenuCommand cmd)
         {
+            if (!ValidateSetupOutfit())
+            {
+                ESOErrorWindow.Show(errorHeader, errorMessageGroups);
+                return;
+            }
+            
             if (!FindBones(cmd.context,
                     out var avatarRoot, out var avatarHips, out var outfitHips)
                ) return;
@@ -117,13 +221,21 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        [MenuItem("GameObject/ModularAvatar/Setup Outfit", true, PRIORITY)]
         static bool ValidateSetupOutfit()
         {
-            if (Selection.objects.Length == 0) return false;
+            errorHeader = S("setup_outfit.err.header.notarget");
+            errorMessageGroups = new string[] { S("setup_outfit.err.unknown") };
+            
+            if (Selection.objects.Length == 0)
+            {
+                errorMessageGroups = new string[] { S("setup_outfit.err.no_selection") };
+                return false;
+            }
 
             foreach (var obj in Selection.objects)
             {
+                errorHeader = S_f("setup_outfit.err.header", obj.name);
+                
                 if (!(obj is GameObject gameObj)) return false;
                 var xform = gameObj.transform;
 
@@ -137,10 +249,22 @@ namespace nadena.dev.modular_avatar.core.editor
                 // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
                 // the avdesc object itself)
                 var nearestAvatar = RuntimeUtil.FindAvatarInParents(xform);
-                if (nearestAvatar == null || nearestAvatar.transform == xform) return false;
+                if (nearestAvatar == null || nearestAvatar.transform == xform)
+                {
+                    errorMessageGroups = new string[]
+                        {S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name)};
+                    return false;
+                }
 
                 var parent = nearestAvatar.transform.parent;
-                if (parent != null && RuntimeUtil.FindAvatarInParents(parent) != null) return false;
+                if (parent != null && RuntimeUtil.FindAvatarInParents(parent) != null)
+                {
+                    errorMessageGroups = new string[]
+                    {
+                        S_f("setup_outfit.err.no_avatar_descriptor", xform.gameObject.name)
+                    };
+                    return false;
+                }
             }
 
             return true;
@@ -157,10 +281,24 @@ namespace nadena.dev.modular_avatar.core.editor
             if (outfitRoot == null || avatarRoot == null) return false;
 
             var avatarAnimator = avatarRoot.GetComponent<Animator>();
-            if (avatarAnimator == null) return false;
+            if (avatarAnimator == null)
+            {
+                errorMessageGroups = new string[]
+                {
+                    S("setup_outfit.err.no_animator")
+                };
+                return false;
+            }
 
             avatarHips = avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
-            if (avatarHips == null) return false;
+            if (avatarHips == null)
+            {
+                errorMessageGroups = new string[]
+                {
+                    S("setup_outfit.err.no_hips")
+                };
+                return false;
+            }
 
             var outfitAnimator = outfitRoot.GetComponent<Animator>();
             if (outfitAnimator != null)
@@ -168,9 +306,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 outfitHips = outfitAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
             }
 
+            var hipsCandidates = new List<string>();
+
             if (outfitHips == null)
             {
-                // Heuristic search - usually there'll be root -> Armature -> (single child) Hips
+                // Heuristic search - usually there'll be root -> Armature -> (single child) Hips.
+                // First, look for an exact match.
                 foreach (Transform child in outfitRoot.transform)
                 {
                     foreach (Transform tempHip in child)
@@ -181,6 +322,39 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
+                hipsCandidates.Add(avatarHips.name);
+                
+                // If that doesn't work out, we'll check for heuristic bone mapper mappings.
+                foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
+                {
+                    if (hipsCandidates[0] != hbm)
+                    {
+                        hipsCandidates.Add(hbm);
+                    }
+                }
+                
+                foreach (Transform child in outfitRoot.transform)
+                {
+                    foreach (Transform tempHip in child)
+                    {
+                        foreach (var candidate in hipsCandidates)
+                        {
+                            if (HeuristicBoneMapper.NormalizeName(tempHip.name).Contains(candidate))
+                            {
+                                outfitHips = tempHip.gameObject;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (outfitHips == null)
+            {
+                errorMessageGroups = new string[]
+                {
+                    S("setup_outfit.err.no_outfit_hips"),
+                    string.Join("\n", hipsCandidates.Select(c => "・　" + c).ToArray())
+                };
             }
 
             return avatarHips != null && outfitHips != null;
