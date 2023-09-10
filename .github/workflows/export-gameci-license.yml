@@ -9,7 +9,7 @@ jobs:
       - name: Setup
         run: |
           sudo apt-get -y install gnupg
-          gpg --import <<EOF
+          gpg --import-ownertrust <<EOF
           -----BEGIN PGP PUBLIC KEY BLOCK-----
           
           mQGNBGT9rngBDAC92NQAEUXfPlYHESpYjovuSjTwxZBy8R1NR/8czcEnnNUSo09z
