@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Setup
         run: |
-          apt-get -y install gnupg
+          sudo apt-get -y install gnupg
           gpg --import <<EOF
           -----BEGIN PGP PUBLIC KEY BLOCK-----
           
