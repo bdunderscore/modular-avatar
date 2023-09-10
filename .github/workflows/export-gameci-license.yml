@@ -11,5 +11,5 @@ jobs:
       - name: Setup
         run: |
           sudo apt-get -y install gnupg
-          gpg --import-ownertrust .github/workflows/gameci-license-recipient.gpg
-          echo "foo" | gpg --encrypt -a --recipient bd_@nadena.dev
+          gpg --import .github/workflows/gameci-license-recipient.gpg
+          echo "foo" | gpg --encrypt -a --trust-model always --recipient bd_@nadena.dev
