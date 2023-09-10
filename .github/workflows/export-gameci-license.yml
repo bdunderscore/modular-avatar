@@ -6,51 +6,10 @@ jobs:
   export:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup
         run: |
           sudo apt-get -y install gnupg
-          gpg --import-ownertrust <<EOF
-          -----BEGIN PGP PUBLIC KEY BLOCK-----
-          
-          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
-          6nL+CD9YfkV6cDH7BWlz
-          =So9v
-          -----END PGP PUBLIC KEY BLOCK-----
-          EOF
-  
+          gpg --import-ownertrust < .github/workflows/gameci-license-recipient.gpg
           echo "foo" | gpg --encrypt -a --recipient bd_@nadena.dev
