@@ -12,4 +12,6 @@ jobs:
         run: |
           sudo apt-get -y install gnupg
           gpg --import .github/workflows/gameci-license-recipient.gpg
-          echo "${{ secrets.UNITY_LICENSE }}" | gpg --encrypt -a --trust-model always --recipient bd_@nadena.dev
+          echo "$UNITY_LICENSE" | gpg --encrypt -a --trust-model always --recipient bd_@nadena.dev
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
