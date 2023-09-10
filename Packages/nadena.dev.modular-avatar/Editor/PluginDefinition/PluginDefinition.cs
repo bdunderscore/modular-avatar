@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animation;
+using nadena.dev.ndmf.fluent;
 using UnityEngine;
 
 [assembly: ExportsPlugin(
@@ -11,37 +12,48 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.plugin
 {
-    class PluginDefinition : Plugin
+    class PluginDefinition : Plugin<PluginDefinition>
     {
         public override string QualifiedName => "nadena.dev.modular-avatar";
-
-        public override ImmutableList<PluginPass> Passes => (new List<PluginPass>()
+        public override string DisplayName => "Modular Avatar";
+        
+        protected override void Configure()
         {
-            new ResolveObjectReferences(),
-            new ClearEditorOnlyTags(),
-            new MeshSettingsPluginPass(),
-            new RenameParametersPluginPass(),
-            new MergeAnimatorPluginPass(),
-            new MenuInstallPluginPass(),
-            new MergeArmaturePluginPass(),
-            new BoneProxyPluginPass(),
-            new VisibleHeadAccessoryPluginPass(),
-            new ReplaceObjectPluginPass(),
-            new BlendshapeSyncAnimationPluginPass(),
-            new PhysbonesBlockerPluginPass(),
-            new GCGameObjectsPluginPass(),
-        }).ToImmutableList();
+            InPhase(BuildPhase.Resolving)
+                .Run(ResolveObjectReferences.Instance);
+
+            Sequence seq = InPhase(BuildPhase.Transforming);
+            seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
+            {
+                seq.Run(ClearEditorOnlyTags.Instance);
+                seq.Run(MeshSettingsPluginPass.Instance);
+                seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(MergeAnimatorPluginPass.Instance);
+                seq.Run(MenuInstallPluginPass.Instance);
+                seq.WithRequiredExtension(typeof(TrackObjectRenamesContext), _s2 =>
+                {
+                    seq.Run(MergeArmaturePluginPass.Instance);
+                    seq.Run(BoneProxyPluginPass.Instance);
+                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                    seq.Run(ReplaceObjectPluginPass.Instance);
+                });
+                seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                seq.Run(PhysbonesBlockerPluginPass.Instance);;
+            });
+            
+            InPhase(BuildPhase.Optimizing)
+                .WithRequiredExtension(typeof(ModularAvatarContext),
+                    s => s.Run(GCGameObjectsPluginPass.Instance));
+        }
     }
 
     /// <summary>
     /// This plugin runs very early in order to resolve all AvatarObjectReferences to their
     /// referent before any other plugins perform heirarchy manipulations.
     /// </summary>
-    internal class ResolveObjectReferences : PluginPass
+    internal class ResolveObjectReferences : Pass<ResolveObjectReferences>
     {
-        public override BuiltInPhase ExecutionPhase => BuiltInPhase.Resolving;
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             foreach (var obj in context.AvatarRootObject.GetComponentsInChildren<AvatarTagComponent>())
             {
@@ -50,23 +62,17 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    abstract class MAPass : PluginPass
+    abstract class MAPass<T> : Pass<T> where T : Pass<T>, new()
     {
-        public override IImmutableSet<Type> RequiredContexts =>
-            ImmutableHashSet<Type>.Empty.Add(typeof(ModularAvatarContext));
-
-        public override IImmutableSet<object> CompatibleContexts =>
-            ImmutableHashSet<object>.Empty.Add(typeof(TrackObjectRenamesContext));
-
         protected BuildContext MAContext(ndmf.BuildContext context)
         {
             return context.Extension<ModularAvatarContext>().BuildContext;
         }
     }
 
-    class ClearEditorOnlyTags : MAPass
+    class ClearEditorOnlyTags : MAPass<ClearEditorOnlyTags>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             Traverse(context.AvatarRootTransform);
         }
@@ -94,44 +100,41 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    class MeshSettingsPluginPass : MAPass
+    class MeshSettingsPluginPass : MAPass<MeshSettingsPluginPass>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new MeshSettingsPass(MAContext(context)).OnPreprocessAvatar();
         }
     }
 
-    class RenameParametersPluginPass : MAPass
+    class RenameParametersPluginPass : MAPass<RenameParametersPluginPass>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new RenameParametersHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
         }
     }
 
-    class MergeAnimatorPluginPass : MAPass
+    class MergeAnimatorPluginPass : MAPass<MergeAnimatorPluginPass>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new MergeAnimatorProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
         }
     }
 
-    class MenuInstallPluginPass : MAPass
+    class MenuInstallPluginPass : MAPass<MenuInstallPluginPass>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new MenuInstallHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
         }
     }
 
-    class MergeArmaturePluginPass : MAPass
+    class MergeArmaturePluginPass : MAPass<MergeArmaturePluginPass>
     {
-        public override IImmutableSet<Type> RequiredContexts =>
-            base.RequiredContexts.Add(typeof(TrackObjectRenamesContext));
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             // The animation database is currently only used by the merge armature hook; it should probably become
             // an extension context instead.
@@ -141,64 +144,49 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    class BoneProxyPluginPass : MAPass
+    class BoneProxyPluginPass : MAPass<BoneProxyPluginPass>
     {
-        public override IImmutableSet<Type> RequiredContexts =>
-            base.RequiredContexts.Add(typeof(TrackObjectRenamesContext));
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new BoneProxyProcessor().OnPreprocessAvatar(context.AvatarRootObject);
         }
     }
 
-    class VisibleHeadAccessoryPluginPass : MAPass
+    class VisibleHeadAccessoryPluginPass : MAPass<VisibleHeadAccessoryPluginPass>
     {
-        public override IImmutableSet<Type> RequiredContexts =>
-            base.RequiredContexts.Add(typeof(TrackObjectRenamesContext));
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new VisibleHeadAccessoryProcessor(context.AvatarDescriptor).Process(MAContext(context));
         }
     }
 
-    class ReplaceObjectPluginPass : MAPass
+    class ReplaceObjectPluginPass : MAPass<ReplaceObjectPluginPass>
     {
-        public override IImmutableSet<Type> RequiredContexts =>
-            base.RequiredContexts.Add(typeof(TrackObjectRenamesContext));
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new ReplaceObjectPass(context).Process();
         }
     }
 
-    class BlendshapeSyncAnimationPluginPass : MAPass
+    class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
     {
-        // Flush animation path remappings, since we need an up-to-date path name while adjusting blendshape animations
-        public override IImmutableSet<object> CompatibleContexts =>
-            ImmutableHashSet<object>.Empty;
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
         }
     }
 
-    class PhysbonesBlockerPluginPass : MAPass
+    class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
     {
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             PhysboneBlockerPass.Process(context.AvatarRootObject);
         }
     }
 
-    class GCGameObjectsPluginPass : MAPass
+    class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {
-        public override BuiltInPhase ExecutionPhase => BuiltInPhase.Optimization;
-
-        public override void Process(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
             new GCGameObjectsPass(MAContext(context), context.AvatarRootObject).OnPreprocessAvatar();
         }
