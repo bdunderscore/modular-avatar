@@ -102,20 +102,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var control in newMenu.controls)
             {
-                if (Util.ValidateExpressionMenuIcon(control.icon) != Util.ValidateExpressionMenuIconResult.Success)
-                    control.icon = null;
-
-                for (int i = 0; i < control.labels.Length; i++)
-                {
-                    var label = control.labels[i];
-                    var labelResult = Util.ValidateExpressionMenuIcon(label.icon);
-                    if (labelResult != Util.ValidateExpressionMenuIconResult.Success)
-                    {
-                        label.icon = null;
-                        control.labels[i] = label;
-                    }
-                }
-
                 if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
                 {
                     control.subMenu = CloneMenu(control.subMenu);
