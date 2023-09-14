@@ -223,6 +223,16 @@ namespace nadena.dev.modular_avatar.core.editor
                         new GCGameObjectsPass(context, avatarGameObject).OnPreprocessAvatar();
 
                         context.CommitReferencedAssets();
+
+                        // workaround problem with avatar matching
+                        // https://github.com/bdunderscore/modular-avatar/issues/430
+                        var animator = avatarGameObject.GetComponent<Animator>();
+                        if (animator) {
+                            var avatar = animator.avatar;
+                            animator.avatar = null;
+                            // ReSharper disable once Unity.InefficientPropertyAccess
+                            animator.avatar = avatar;
+                        }
                     }
                     finally
                     {
