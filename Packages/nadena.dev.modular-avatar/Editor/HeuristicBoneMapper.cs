@@ -10,6 +10,146 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private static readonly Regex PAT_END_NUMBER = new Regex(@"[_\.][0-9]+");
 
+        private static readonly ImmutableDictionary<HumanBodyBones, ImmutableList<HumanBodyBones>> BoneChildren =
+            ImmutableDictionary<HumanBodyBones, ImmutableList<HumanBodyBones>>.Empty
+                .Add(HumanBodyBones.Hips, ImmutableList.Create(
+                    HumanBodyBones.LeftUpperLeg,
+                    HumanBodyBones.RightUpperLeg,
+                    HumanBodyBones.Spine
+                ))
+                .Add(HumanBodyBones.LeftUpperLeg, ImmutableList.Create(
+                    HumanBodyBones.LeftLowerLeg
+                ))
+                .Add(HumanBodyBones.RightUpperLeg, ImmutableList.Create(
+                    HumanBodyBones.RightLowerLeg
+                ))
+                .Add(HumanBodyBones.LeftLowerLeg, ImmutableList.Create(
+                    HumanBodyBones.LeftFoot
+                ))
+                .Add(HumanBodyBones.RightLowerLeg, ImmutableList.Create(
+                    HumanBodyBones.RightFoot
+                ))
+                .Add(HumanBodyBones.LeftFoot, ImmutableList.Create(
+                    HumanBodyBones.LeftToes
+                ))
+                .Add(HumanBodyBones.RightFoot, ImmutableList.Create(
+                    HumanBodyBones.RightToes
+                ))
+                .Add(HumanBodyBones.Spine, ImmutableList.Create(
+                    HumanBodyBones.Chest,
+                    HumanBodyBones.UpperChest
+                ))
+                .Add(HumanBodyBones.Chest, ImmutableList.Create(
+                    HumanBodyBones.Neck,
+                    HumanBodyBones.LeftShoulder,
+                    HumanBodyBones.RightShoulder
+                ))
+                .Add(HumanBodyBones.UpperChest, ImmutableList.Create(
+                    HumanBodyBones.Neck,
+                    HumanBodyBones.LeftShoulder,
+                    HumanBodyBones.RightShoulder
+                ))
+                .Add(HumanBodyBones.Neck, ImmutableList.Create(
+                    HumanBodyBones.Head
+                ))
+                .Add(HumanBodyBones.Head, ImmutableList.Create(
+                    HumanBodyBones.LeftEye,
+                    HumanBodyBones.RightEye,
+                    HumanBodyBones.Jaw
+                ))
+                .Add(HumanBodyBones.LeftShoulder, ImmutableList.Create(
+                    HumanBodyBones.LeftUpperArm
+                ))
+                .Add(HumanBodyBones.RightShoulder, ImmutableList.Create(
+                    HumanBodyBones.RightUpperArm
+                ))
+                .Add(HumanBodyBones.LeftUpperArm, ImmutableList.Create(
+                    HumanBodyBones.LeftLowerArm
+                ))
+                .Add(HumanBodyBones.RightUpperArm, ImmutableList.Create(
+                    HumanBodyBones.RightLowerArm
+                ))
+                .Add(HumanBodyBones.LeftLowerArm, ImmutableList.Create(
+                    HumanBodyBones.LeftHand
+                ))
+                .Add(HumanBodyBones.RightLowerArm, ImmutableList.Create(
+                    HumanBodyBones.RightHand
+                ))
+                .Add(HumanBodyBones.LeftHand, ImmutableList.Create(
+                    HumanBodyBones.LeftThumbProximal,
+                    HumanBodyBones.LeftIndexProximal,
+                    HumanBodyBones.LeftMiddleProximal,
+                    HumanBodyBones.LeftRingProximal,
+                    HumanBodyBones.LeftLittleProximal
+                ))
+                .Add(HumanBodyBones.RightHand, ImmutableList.Create(
+                    HumanBodyBones.RightThumbProximal,
+                    HumanBodyBones.RightIndexProximal,
+                    HumanBodyBones.RightMiddleProximal,
+                    HumanBodyBones.RightRingProximal,
+                    HumanBodyBones.RightLittleProximal
+                ))
+                .Add(HumanBodyBones.LeftThumbProximal, ImmutableList.Create(
+                    HumanBodyBones.LeftThumbIntermediate
+                ))
+                .Add(HumanBodyBones.RightThumbProximal, ImmutableList.Create(
+                    HumanBodyBones.RightThumbIntermediate
+                ))
+                .Add(HumanBodyBones.LeftThumbIntermediate, ImmutableList.Create(
+                    HumanBodyBones.LeftThumbDistal
+                ))
+                .Add(HumanBodyBones.RightThumbIntermediate, ImmutableList.Create(
+                    HumanBodyBones.RightThumbDistal
+                ))
+                .Add(HumanBodyBones.LeftIndexProximal, ImmutableList.Create(
+                    HumanBodyBones.LeftIndexIntermediate
+                ))
+                .Add(HumanBodyBones.RightIndexProximal, ImmutableList.Create(
+                    HumanBodyBones.RightIndexIntermediate
+                ))
+                .Add(HumanBodyBones.LeftIndexIntermediate, ImmutableList.Create(
+                    HumanBodyBones.LeftIndexDistal
+                ))
+                .Add(HumanBodyBones.RightIndexIntermediate, ImmutableList.Create(
+                    HumanBodyBones.RightIndexDistal
+                ))
+                .Add(HumanBodyBones.LeftMiddleProximal, ImmutableList.Create(
+                    HumanBodyBones.LeftMiddleIntermediate
+                ))
+                .Add(HumanBodyBones.RightMiddleProximal, ImmutableList.Create(
+                    HumanBodyBones.RightMiddleIntermediate
+                ))
+                .Add(HumanBodyBones.LeftMiddleIntermediate, ImmutableList.Create(
+                    HumanBodyBones.LeftMiddleDistal
+                ))
+                .Add(HumanBodyBones.RightMiddleIntermediate, ImmutableList.Create(
+                    HumanBodyBones.RightMiddleDistal
+                ))
+                .Add(HumanBodyBones.LeftRingProximal, ImmutableList.Create(
+                    HumanBodyBones.LeftRingIntermediate
+                ))
+                .Add(HumanBodyBones.RightRingProximal, ImmutableList.Create(
+                    HumanBodyBones.RightRingIntermediate
+                ))
+                .Add(HumanBodyBones.LeftRingIntermediate, ImmutableList.Create(
+                    HumanBodyBones.LeftRingDistal
+                ))
+                .Add(HumanBodyBones.RightRingIntermediate, ImmutableList.Create(
+                    HumanBodyBones.RightRingDistal
+                ))
+                .Add(HumanBodyBones.LeftLittleProximal, ImmutableList.Create(
+                    HumanBodyBones.LeftLittleIntermediate
+                ))
+                .Add(HumanBodyBones.RightLittleProximal, ImmutableList.Create(
+                    HumanBodyBones.RightLittleIntermediate
+                ))
+                .Add(HumanBodyBones.LeftLittleIntermediate, ImmutableList.Create(
+                    HumanBodyBones.LeftLittleDistal
+                ))
+                .Add(HumanBodyBones.RightLittleIntermediate, ImmutableList.Create(
+                    HumanBodyBones.RightLittleDistal
+                ));
+        
         // This list is originally from https://github.com/HhotateA/AvatarModifyTools/blob/d8ae75fed8577707253d6b63a64d6053eebbe78b/Assets/HhotateA/AvatarModifyTool/Editor/EnvironmentVariable.cs#L81-L139
         // Copyright (c) 2021 @HhotateA_xR
         // Licensed under the MIT License
@@ -359,7 +499,23 @@ namespace nadena.dev.modular_avatar.core.editor
             var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarInParents(config.transform));
             if (target == null) return;
 
+            bool changedSuffix = false;
+            var newSuffix = config.suffix;
+            if (config.prefix == "" && config.suffix == "")
+            {
+                newSuffix = ".1";
+                changedSuffix = true;
+            }
+
             Traverse(config.transform, target.transform);
+
+            config.suffix = newSuffix;
+
+            if (changedSuffix)
+            {
+                Undo.RecordObject(config, "Applying heuristic mapping");
+                PrefabUtility.RecordPrefabInstancePropertyModifications(config);
+            }
 
             void Traverse(Transform src, Transform dst)
             {
@@ -367,7 +523,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var pair in mappings)
                 {
-                    var newName = config.prefix + pair.Value.gameObject.name + config.suffix;
+                    var newName = config.prefix + pair.Value.gameObject.name + newSuffix;
                     var srcGameObj = pair.Key.gameObject;
                     var oldName = srcGameObj.name;
 

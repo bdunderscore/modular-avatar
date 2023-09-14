@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -122,14 +124,15 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
 
-            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
+            var merge = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
+            if (merge == null)
             {
-                var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+                merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
                 merge.mergeTarget = new AvatarObjectReference();
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
                 merge.InferPrefixSuffix();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
             }
+            HeuristicBoneMapper.RenameBonesByHeuristic(merge);
 
             if (outfitRoot != null
                 && outfitRoot.GetComponent<ModularAvatarMeshSettings>() == null
@@ -277,8 +280,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return true;
         }
 
-        private static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips,
-            out GameObject outfitHips)
+        private static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips, out GameObject outfitHips)
         {
             avatarHips = outfitHips = null;
             var outfitRoot = obj as GameObject;
@@ -286,7 +288,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ? RuntimeUtil.FindAvatarInParents(outfitRoot.transform)?.gameObject
                 : null;
             if (outfitRoot == null || avatarRoot == null) return false;
-
+            
             var avatarAnimator = avatarRoot.GetComponent<Animator>();
             if (avatarAnimator == null)
             {
@@ -297,7 +299,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 return false;
             }
 
-            avatarHips = avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
+            var avatarBoneMappings = GetAvatarBoneMappings(avatarAnimator);
+            if (!avatarBoneMappings.ContainsKey(HumanBodyBones.Hips))
+            {
+                errorMessageGroups = new string[]
+                {
+                    S("setup_outfit.err.no_hips")
+                };
+                return false;
+            }
+            
+            // We do an explicit search for the hips bone rather than invoking the animator, as we want to control
+            // traversal order.
+            foreach (var maybeHips in avatarRoot.GetComponentsInChildren<Transform>())
+            {
+                if (maybeHips.name == avatarBoneMappings[HumanBodyBones.Hips] && !maybeHips.IsChildOf(outfitRoot.transform))
+                {
+                    avatarHips = maybeHips.gameObject;
+                    break;
+                }
+            }
+            
             if (avatarHips == null)
             {
                 errorMessageGroups = new string[]
@@ -323,13 +345,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (Transform tempHip in child)
                     {
-                        if (tempHip.name.Contains(avatarHips.name))
+                        if (tempHip.name.Contains(avatarBoneMappings[HumanBodyBones.Hips]))
                         {
                             outfitHips = tempHip.gameObject;
                         }
                     }
                 }
-                hipsCandidates.Add(avatarHips.name);
+                hipsCandidates.Add(avatarBoneMappings[HumanBodyBones.Hips]);
                 
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
@@ -365,6 +387,18 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return avatarHips != null && outfitHips != null;
+        }
+
+        private static ImmutableDictionary<HumanBodyBones, string> GetAvatarBoneMappings(Animator avatarAnimator)
+        {
+            var avatarHuman = avatarAnimator.avatar?.humanDescription.human ?? new HumanBone[0];
+            return avatarHuman
+                .Where(hb => !string.IsNullOrEmpty(hb.boneName))
+                .Select(hb => new KeyValuePair<HumanBodyBones, string>(
+                    (HumanBodyBones) Enum.Parse(typeof(HumanBodyBones), hb.humanName.Replace(" ", "")),
+                    hb.boneName
+                ))
+                .ToImmutableDictionary();
         }
     }
 }
