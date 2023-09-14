@@ -221,6 +221,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         context.AnimationDatabase.Commit();
 
                         new GCGameObjectsPass(context, avatarGameObject).OnPreprocessAvatar();
+                        
+                        FixupExpressionsMenuPass.FixupExpressionsMenu(context);
 
                         context.CommitReferencedAssets();
 
