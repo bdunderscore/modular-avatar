@@ -56,19 +56,10 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.2",
+      "version": "3.0.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.postprocessing": {
-      "version": "3.1.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.physics": "1.0.0"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.settings-manager": {
@@ -129,6 +120,13 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.unity.xr.oculus.android": {
+      "version": "2.38.6",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.xr.oculus.standalone": {
       "version": "2.38.4",
       "depth": 0,
@@ -156,15 +154,7 @@
       "dependencies": {
         "com.unity.burst": "1.4.11",
         "com.unity.mathematics": "1.2.5",
-        "com.unity.nuget.newtonsoft-json": "2.0.2"
-      }
-    },
-    "com.vrchat.core.vpm-resolver": {
-      "version": "file:com.vrchat.core.vpm-resolver",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.2"
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
       }
     },
     "de.thryrallo.vrc.avatar-performance-tools": {
@@ -174,13 +164,11 @@
       "dependencies": {},
       "hash": "ba9c16e482e7a376db18e9a85e24fabc04649d37"
     },
-    "dev.onevr.vrworldtoolkit": {
-      "version": "file:dev.onevr.vrworldtoolkit",
+    "jp.lilxyzw.liltoon": {
+      "version": "file:jp.lilxyzw.liltoon",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {
-        "com.unity.postprocessing": "3.1.1"
-      }
+      "dependencies": {}
     },
     "lyuma.av3emulator": {
       "version": "file:lyuma.av3emulator",
@@ -195,12 +183,6 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
       }
-    },
-    "vrchat.blackstartx.gesture-manager": {
-      "version": "file:vrchat.blackstartx.gesture-manager",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
