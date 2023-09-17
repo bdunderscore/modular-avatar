@@ -43,7 +43,27 @@ namespace nadena.dev.modular_avatar.core
                 return _cachedReference;
             }
 
-            return (_cachedReference = avatar.transform.Find(referencePath)?.gameObject);
+            _cachedReference = avatar.transform.Find(referencePath)?.gameObject;
+            if (_cachedReference == null) return null;
+            
+            // https://github.com/bdunderscore/modular-avatar/issues/308
+            // Some avatars have multiple "Armature" objects in order to confuse VRChat into changing the avatar eye
+            // position. We need to be smarter than VRChat and find the "true" armature in this case.
+            var targetName = _cachedReference.name;
+            var parent = _cachedReference.transform.parent;
+            if (targetName == "Armature" && parent != null && _cachedReference.transform.childCount == 0)
+            {
+                foreach (Transform possibleTarget in parent)
+                {
+                    if (possibleTarget.gameObject.name == targetName && possibleTarget.childCount > 0)
+                    {
+                        _cachedReference = possibleTarget.gameObject;
+                        break;
+                    }
+                }
+            }
+
+            return _cachedReference;
         }
 
         public void Set(GameObject target)

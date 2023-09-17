@@ -7385,7 +7385,7 @@ __metadata:
     react-loadable: ^5.5.0
     react-medium-image-zoom: ^5.1.8
     react-modal: ^3.16.1
-    react-player: ^2.12.0
+    react-player: ^2.13.0
     typescript: ^5.2.2
   languageName: unknown
   linkType: soft
@@ -8812,9 +8812,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-player@npm:^2.12.0":
-  version: 2.12.0
-  resolution: "react-player@npm:2.12.0"
+"react-player@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "react-player@npm:2.13.0"
   dependencies:
     deepmerge: ^4.0.0
     load-script: ^1.0.0
@@ -8823,7 +8823,7 @@ __metadata:
     react-fast-compare: ^3.0.1
   peerDependencies:
     react: ">=16.6.0"
-  checksum: 77d3e55ed67cd9c1e2300a990d8015d270072daad41f8a0750c32748f3fbfbc5bd2a2f06e78ac6828c2260b84537b9571d0abac31d3e888b74a3dccb59a56365
+  checksum: 7e0e69e0ac37227ab5bfdda73991d4f5d4741585562f3ad9cfb787ae2c427510b69ddf6ef3f23f319d699b790af852fca57f3e9b1dae94f385d545a3db200d67
   languageName: node
   linkType: hard
 

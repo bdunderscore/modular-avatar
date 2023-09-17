@@ -1,4 +1,5 @@
-﻿using modular_avatar_tests;
+﻿using System.Linq;
+using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
@@ -37,5 +38,23 @@ public class GameObjectGC : TestBase
         Assert.True(bone1 != null);
         Assert.True(bone2 != null);
         Assert.True(bone3 == null);
+    }
+
+    [Test]
+    public void RetainArmatureHack()
+    {
+        var fake_humanoid = CreatePrefab("FakeHumanoid.prefab");
+        var avdesc = fake_humanoid.GetComponent<VRCAvatarDescriptor>();
+
+        var armature = new GameObject();
+        armature.name = "Armature";
+        armature.transform.parent = fake_humanoid.transform;
+        armature.transform.SetSiblingIndex(0);
+        
+        new GCGameObjectsPass(new BuildContext(avdesc), fake_humanoid).OnPreprocessAvatar();
+        AvatarProcessor.ProcessAvatar(fake_humanoid);
+
+        Assert.AreEqual(2,
+            avdesc.GetComponentsInChildren<Transform>().Count(t => t.gameObject.name == "Armature"));
     }
 }

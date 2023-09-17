@@ -149,5 +149,14 @@
   "animation_gen.duplicate_binding": "別々のコントロールグループから、同じパラメーターが操作されています。パラメーター：{0}",
   "animation_gen.multiple_defaults": "同じコントロールグループに初期設定に指定されたメニューアイテムが複数あります。",
   "menuitem.misc.add_item": "メニューアイテムを追加",
-  "replace_object.target_object": "上書き先"
+  "replace_object.target_object": "上書き先",
+  "setup_outfit.err.header.notarget": "Setup outfit の処理が失敗しました",
+  "setup_outfit.err.header": "Setup outfit が「{0}」を処理中に失敗しました。",
+  "setup_outfit.err.unknown": "原因不明のエラーが発生しました。",
+  "setup_outfit.err.no_selection": "オブジェクトが選択されていません。",
+  "setup_outfit.err.multiple_avatar_descriptors": "「{}」とその親に、複数のavatar descriptorを発見しました。",
+  "setup_outfit.err.no_avatar_descriptor": "「{}」とその親に、avatar descriptorが見つかりませんでした。",
+  "setup_outfit.err.no_animator": "アバターにAnimatorコンポーネントがありません。",
+  "setup_outfit.err.no_hips": "アバターにHipsボーンがありません。なお、Setup Outfitはヒューマノイドアバター以外には対応していません。",
+  "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。以下の名前を含むボーンを探しました："
 }

@@ -92,6 +92,18 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return S(key, key);
         }
+        
+        public static string S_f(string key, params string[] format)
+        {
+            try
+            {
+                return string.Format(S(key, key), format);
+            }
+            catch (FormatException e)
+            {
+                return S(key, key) + "(" + string.Join(", ", format) + ")";
+            }
+        }
 
         public static string S(string key, string defValue)
         {

@@ -99,6 +99,28 @@ namespace nadena.dev.modular_avatar.core.editor
                     MarkObject(t.gameObject);
                 }
             }
+            
+            // https://github.com/bdunderscore/modular-avatar/issues/308
+            // If we have duplicate Armature bones, retain them all in order to deal with some horrible hacks that are
+            // in use in the wild.
+            try
+            {
+                var trueArmature = animator?.GetBoneTransform(HumanBodyBones.Hips)?.parent;
+                if (trueArmature != null)
+                {
+                    foreach (Transform t in _root.transform)
+                    {
+                        if (t.name == trueArmature.name)
+                        {
+                            MarkObject(t.gameObject);
+                        }
+                    }
+                }
+            }
+            catch (MissingComponentException e)
+            {
+                // No animator? weird. Move on.
+            }
         }
 
         private void MarkPhysBone(VRCPhysBone pb)
