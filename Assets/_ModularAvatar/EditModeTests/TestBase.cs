@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
@@ -12,12 +13,29 @@ namespace modular_avatar_tests
 {
     public class TestBase
     {
+        private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
+        private static Dictionary<System.Type, string> _scriptToDirectory = null;
+
         private List<GameObject> objects;
         private const string MinimalAvatarGuid = "60d3416d1f6af4a47bf9056aefc38333";
 
         [SetUp]
         public virtual void Setup()
         {
+            if (_scriptToDirectory == null)
+            {
+                _scriptToDirectory = new Dictionary<System.Type, string>();
+                foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new string[] {"Assets/_ModularAvatar"}))
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    var obj = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                    if (obj != null && obj.GetClass() != null)
+                    {
+                        _scriptToDirectory.Add(obj.GetClass(), Path.GetDirectoryName(path));
+                    }
+                }
+            }
+
             BuildReport.Clear();
             objects = new List<GameObject>();
         }
@@ -31,6 +49,11 @@ namespace modular_avatar_tests
             }
 
             Util.DeleteTemporaryAssets();
+        }
+
+        protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root)
+        {
+            return new nadena.dev.ndmf.BuildContext(root, TEMP_ASSET_PATH); // TODO - cleanup
         }
 
         protected GameObject CreateRoot(string name)
@@ -59,9 +82,10 @@ namespace modular_avatar_tests
             return go;
         }
 
+
         protected T LoadAsset<T>(string relPath) where T : UnityEngine.Object
         {
-            var root = "Assets/_ModularAvatar/EditModeTests/" + GetType().Name + "/";
+            var root = _scriptToDirectory[GetType()] + "/";
             var path = root + relPath;
 
             var obj = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -69,7 +93,6 @@ namespace modular_avatar_tests
 
             return obj;
         }
-
 
         protected static AnimationClip findFxClip(GameObject prefab, string layerName)
         {

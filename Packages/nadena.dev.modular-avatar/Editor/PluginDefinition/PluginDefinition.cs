@@ -16,13 +16,15 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         public override string QualifiedName => "nadena.dev.modular-avatar";
         public override string DisplayName => "Modular Avatar";
-        
+
         protected override void Configure()
         {
-            InPhase(BuildPhase.Resolving)
-                .Run(ResolveObjectReferences.Instance);
+            Sequence seq = InPhase(BuildPhase.Resolving);
+            seq.Run(ResolveObjectReferences.Instance);
+            // Protect against accidental destructive edits by cloning the input controllers ASAP
+            seq.Run("Clone animators", AnimationUtil.CloneAllControllers);
 
-            Sequence seq = InPhase(BuildPhase.Transforming);
+            seq = InPhase(BuildPhase.Transforming);
             seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
@@ -38,9 +40,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPluginPass.Instance);
                 });
                 seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
-                seq.Run(PhysbonesBlockerPluginPass.Instance);;
+                seq.Run(PhysbonesBlockerPluginPass.Instance);
+                ;
             });
-            
+
             InPhase(BuildPhase.Optimizing)
                 .WithRequiredExtension(typeof(ModularAvatarContext),
                     s => s.Run(GCGameObjectsPluginPass.Instance));
