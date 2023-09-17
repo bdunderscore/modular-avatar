@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using nadena.dev.ndmf;
+﻿using nadena.dev.ndmf;
 using nadena.dev.ndmf.animation;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
