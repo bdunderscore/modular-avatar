@@ -53,6 +53,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
+        with:
+          repos: |
+            https://vpm.nadena.dev/vpm-prerelease.json
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
