@@ -5,6 +5,9 @@
     },
     "vrchat.blackstartx.gesture-manager": {
       "version": "3.8.4"
+    },
+    "nadena.dev.ndmf": {
+      "version": "~0.3.0"
     }
   },
   "locked": {
