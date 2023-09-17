@@ -76,17 +76,17 @@ jobs:
         with:
           name: package-zip
           path: ${{ env.zipFile }}
-
-      - name: Create unitypackage
-        uses: anatawa12/sh-actions/create-unitypackage@cf32b535acd8f4f05a0eb03e0851264122f98f62
-        with:
-          output-path: ${{ env.unityPackage }}
-          package-path: Packages/${{ env.packageName }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: unitypackage
-          path: ${{ env.unityPackage }}
+#
+#      - name: Create unitypackage
+#        uses: anatawa12/sh-actions/create-unitypackage@cf32b535acd8f4f05a0eb03e0851264122f98f62
+#        with:
+#          output-path: ${{ env.unityPackage }}
+#          package-path: Packages/${{ env.packageName }}
+#
+#      - uses: actions/upload-artifact@v3
+#        with:
+#          name: unitypackage
+#          path: ${{ env.unityPackage }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
@@ -97,5 +97,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
             Packages/${{ env.packageName }}/package.json
