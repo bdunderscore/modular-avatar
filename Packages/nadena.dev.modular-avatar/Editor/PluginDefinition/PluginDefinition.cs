@@ -38,7 +38,24 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 });
                 seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
-                ;
+                seq.Run("Fixup Expressions Menu", ctx =>
+                {
+                    var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
+                    FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
+                });
+                seq.Run("Rebind humanoid avatar", ctx =>
+                {
+                    // workaround problem with avatar matching
+                    // https://github.com/bdunderscore/modular-avatar/issues/430
+                    var animator = ctx.AvatarRootObject.GetComponent<Animator>();
+                    if (animator)
+                    {
+                        var avatar = animator.avatar;
+                        animator.avatar = null;
+                        // ReSharper disable once Unity.InefficientPropertyAccess
+                        animator.avatar = avatar;
+                    }
+                });
             });
 
             InPhase(BuildPhase.Optimizing)

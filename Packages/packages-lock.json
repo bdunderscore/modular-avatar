@@ -129,6 +129,13 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.unity.xr.oculus.android": {
+      "version": "2.38.6",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.xr.oculus.standalone": {
       "version": "2.38.4",
       "depth": 0,
@@ -156,14 +163,6 @@
       "dependencies": {
         "com.unity.burst": "1.4.11",
         "com.unity.mathematics": "1.2.5",
-        "com.unity.nuget.newtonsoft-json": "2.0.2"
-      }
-    },
-    "com.vrchat.core.vpm-resolver": {
-      "version": "file:com.vrchat.core.vpm-resolver",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.2"
       }
     },
