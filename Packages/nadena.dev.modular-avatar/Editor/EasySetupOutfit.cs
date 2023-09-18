@@ -142,7 +142,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 Transform rootBone = null, probeAnchor = null;
                 Bounds bounds = ModularAvatarMeshSettings.DEFAULT_BOUNDS;
 
-                FindConsistentSettings(avatarRoot, ref probeAnchor, ref rootBone, ref bounds);
+                FindConsistentSettings(avatarRoot, avatarHips.transform, ref probeAnchor, ref rootBone, ref bounds);
 
                 if (probeAnchor == null)
                 {
@@ -168,6 +168,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static void FindConsistentSettings(
             GameObject avatarRoot,
+            Transform avatarHips,
             ref Transform probeAnchor,
             ref Transform rootBone,
             ref Bounds bounds
@@ -210,8 +211,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (rootBone != skinnedMeshRenderer.rootBone)
                     {
-                        rootBone = null; // inconsistent configuration
-                        bounds = ModularAvatarMeshSettings.DEFAULT_BOUNDS;
+                        rootBone = avatarHips; // inconsistent configuration
+                        bounds = TransformBounds(rootBone, ModularAvatarMeshSettings.DEFAULT_BOUNDS);
                     }
                     else if (Vector3.Distance(bounds.center, skinnedMeshRenderer.bounds.center) > 0.01f
                              || Vector3.Distance(bounds.extents, skinnedMeshRenderer.bounds.extents) > 0.01f)
