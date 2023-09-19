@@ -314,27 +314,17 @@ namespace nadena.dev.ndmf.animation
                     AssetDatabase.AddObjectToAsset(newClip, _combined);
                 }
 
-                foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+                SerializedObject srcSO = new SerializedObject(clip);
+                SerializedObject destSO = new SerializedObject(newClip);
+
+                SerializedProperty iter = srcSO.GetIterator();
+
+                while (iter.Next(false))
                 {
-                    var newBinding = binding;
-                    newBinding.path = MapPath(binding, basePath);
-                    newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
-                        AnimationUtility.GetEditorCurve(clip, binding));
+                    destSO.CopyFromSerializedProperty(iter);
                 }
 
-                foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
-                {
-                    var newBinding = objBinding;
-                    newBinding.path = MapPath(objBinding, basePath);
-                    AnimationUtility.SetObjectReferenceCurve(newClip, newBinding,
-                        AnimationUtility.GetObjectReferenceCurve(clip, objBinding));
-                }
-
-                newClip.wrapMode = clip.wrapMode;
-                newClip.legacy = clip.legacy;
-                newClip.frameRate = clip.frameRate;
-                newClip.localBounds = clip.localBounds;
-                AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(clip));
+                destSO.ApplyModifiedPropertiesWithoutUndo();
 
                 return newClip;
             }
