@@ -6,17 +6,40 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class FixupExpressionsMenuPass
     {
+        private const string DEFAULT_EXP_MENU_GUID = "024fb8ef5b3988c46b446863c92f4522";
+        private const string DEFAULT_EXP_PARAM_GUID = "03a6d797deb62f0429471c4e17ea99a7";
+        
         internal static void FixupExpressionsMenu(BuildContext context)
         {
-            var expressionsMenu = context.AvatarDescriptor.expressionsMenu;
-            if (expressionsMenu == null) return;
+            context.AvatarDescriptor.customExpressions = true;
             
-            var parameters = context.AvatarDescriptor.expressionParameters?.parameters
+            var expressionsMenu = context.AvatarDescriptor.expressionsMenu;
+            if (expressionsMenu == null)
+            {
+                var defaultExpMenu = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(
+                    AssetDatabase.GUIDToAssetPath(DEFAULT_EXP_MENU_GUID)
+                );
+                
+                expressionsMenu = Object.Instantiate(defaultExpMenu);
+                context.AvatarDescriptor.expressionsMenu = expressionsMenu;
+            }
+
+            if (context.AvatarDescriptor.expressionParameters == null)
+            {
+                var defaultExpParam = AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(
+                    AssetDatabase.GUIDToAssetPath(DEFAULT_EXP_PARAM_GUID)
+                );
+                
+                context.AvatarDescriptor.expressionParameters = Object.Instantiate(defaultExpParam);
+            }
+            
+            var parameters = context.AvatarDescriptor.expressionParameters.parameters
                              ?? new VRCExpressionParameters.Parameter[0];
             var parameterNames = parameters.Select(p=> p.name).ToImmutableHashSet();
 
