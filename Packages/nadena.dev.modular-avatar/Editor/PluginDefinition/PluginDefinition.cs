@@ -1,4 +1,6 @@
-﻿using nadena.dev.ndmf;
+﻿using System;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animation;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
@@ -13,6 +15,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         public override string QualifiedName => "nadena.dev.modular-avatar";
         public override string DisplayName => "Modular Avatar";
+
+        protected override void OnUnhandledException(Exception e)
+        {
+            BuildReport.LogException(e);
+        }
 
         protected override void Configure()
         {
@@ -54,6 +61,13 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         animator.avatar = null;
                         // ReSharper disable once Unity.InefficientPropertyAccess
                         animator.avatar = avatar;
+                    }
+                });
+                seq.Run("Purge ModularAvatar components", ctx =>
+                {
+                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
+                    {
+                        UnityEngine.Object.DestroyImmediate(component);
                     }
                 });
             });
