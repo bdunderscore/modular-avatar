@@ -272,6 +272,8 @@ namespace nadena.dev.ndmf.animation
             if (originalClip == null) return null;
             if (clipCache != null && clipCache.TryGetValue(originalClip, out var cachedClip)) return cachedClip;
 
+            if (originalClip.IsProxyAnimation()) return originalClip;
+
             var newClip = new AnimationClip();
             newClip.name = originalClip.name;
 
