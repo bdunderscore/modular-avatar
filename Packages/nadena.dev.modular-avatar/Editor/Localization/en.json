@@ -51,6 +51,8 @@
   "merge_animator.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_animator.match_avatar_write_defaults": "Match Avatar Write Defaults",
   "merge_animator.match_avatar_write_defaults.tooltip": "Match the write defaults setting used on the avatar's animator. If the avatar's write defaults settings are inconsistent, the settings on the animator will be left alone.",
+  "worldfixed.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
+  "worldfixed.normal": "This object will be fixed to world unless you fixed to avatar with constraint.",
   "fpvisible.normal": "This object will be visible in your first person view.",
   "fpvisible.NotUnderHead": "This component has no effect when not placed under the head bone.",
   "fpvisible.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
