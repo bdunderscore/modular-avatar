@@ -35,11 +35,21 @@ Where necessary, PhysBone objects will have their targets updated, and ParentCon
 As of Modular Avatar 1.7.0, it is now possible to perform nested merges - that is, merge an armature A into B, then 
 merge B into C. Modular Avatar will automatically determine the correct order to apply these merges.
 
-## Locked mode
+## Position lock mode
 
-If the locked option is enabled, the position and rotation of the merged bones will be locked to their parents in the editor. This is a two-way relationship; if you move the merged bone, the avatar's bone will move, and vice versa.
+Position locking allows the outfit to follow the movement of the base avatar, even in edit mode. This is useful for
+testing animations and poses, and for creating screenshots. There are three options for position lock mode:
 
-This is intended for use when animating non-humanoid bones. For example, you could use this to build an animator which can animate cat-ear movements.
+* Not locked - the outfit will not follow the base avatar in edit mode
+* Base =======> Target (Unidirectional) - When the base avatar moves, the outfit will move too. However, if you move the
+outfit, the base avatar will not move. This mode will preserve any adjustments you've made to the outfit's fit, and is
+recommended for normal use.
+* Base <======> Target (Bidirectional) - When the base avatar moves, the outfit will move too. If you move the outfit,
+the base avatar will move too. This mode is useful for certain advanced use cases, such as creating a prefab which
+animates the base avatar's hair or animal ears.
+
+When you set up an outfit with "setup outfit", the position lock mode will be set to "Base =======> Target
+(Unidirectional)". You can change this in the inspector if desired.
 
 ## Object references
 

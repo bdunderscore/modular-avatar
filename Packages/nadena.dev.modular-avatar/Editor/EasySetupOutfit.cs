@@ -25,10 +25,9 @@ namespace nadena.dev.modular_avatar.core.editor
             buttonStyle.fixedWidth = 40f;
             buttonStyle.fixedHeight = EditorGUIUtility.singleLineHeight * 1.5f;
         }
-        
+
         private void OnEnable()
         {
-
         }
 
         internal static void Show(
@@ -40,7 +39,7 @@ namespace nadena.dev.modular_avatar.core.editor
             window.titleContent = new GUIContent("Setup Outfit");
             window.header = header;
             window.messageGroups = messageGroups;
-            
+
             // Compute required window size
             var height = 0f;
             var width = 450f;
@@ -55,9 +54,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             height += buttonStyle.fixedHeight;
             height += SeparatorSize;
-            
+
             window.minSize = new Vector2(width, height);
-            
+
             window.ShowModal();
         }
 
@@ -79,6 +78,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 Close();
             }
+
             EditorGUILayout.EndHorizontal();
 
             var finalRect = GUILayoutUtility.GetRect(SeparatorSize, SeparatorSize, GUILayout.ExpandWidth(true));
@@ -99,8 +99,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
         }
-    } 
-    
+    }
+
     internal class EasySetupOutfit
     {
         private const int PRIORITY = 49;
@@ -115,7 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ESOErrorWindow.Show(errorHeader, errorMessageGroups);
                 return;
             }
-            
+
             if (!FindBones(cmd.context,
                     out var avatarRoot, out var avatarHips, out var outfitHips)
                ) return;
@@ -130,8 +130,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
                 merge.mergeTarget = new AvatarObjectReference();
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
+                merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
             }
+
             HeuristicBoneMapper.RenameBonesByHeuristic(merge);
 
             if (outfitRoot != null
@@ -235,18 +237,18 @@ namespace nadena.dev.modular_avatar.core.editor
         static bool ValidateSetupOutfit()
         {
             errorHeader = S("setup_outfit.err.header.notarget");
-            errorMessageGroups = new string[] { S("setup_outfit.err.unknown") };
-            
+            errorMessageGroups = new string[] {S("setup_outfit.err.unknown")};
+
             if (Selection.objects.Length == 0)
             {
-                errorMessageGroups = new string[] { S("setup_outfit.err.no_selection") };
+                errorMessageGroups = new string[] {S("setup_outfit.err.no_selection")};
                 return false;
             }
 
             foreach (var obj in Selection.objects)
             {
                 errorHeader = S_f("setup_outfit.err.header", obj.name);
-                
+
                 if (!(obj is GameObject gameObj)) return false;
                 var xform = gameObj.transform;
 
@@ -281,7 +283,8 @@ namespace nadena.dev.modular_avatar.core.editor
             return true;
         }
 
-        private static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips, out GameObject outfitHips)
+        private static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips,
+            out GameObject outfitHips)
         {
             avatarHips = outfitHips = null;
             var outfitRoot = obj as GameObject;
@@ -289,7 +292,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ? RuntimeUtil.FindAvatarInParents(outfitRoot.transform)?.gameObject
                 : null;
             if (outfitRoot == null || avatarRoot == null) return false;
-            
+
             var avatarAnimator = avatarRoot.GetComponent<Animator>();
             if (avatarAnimator == null)
             {
@@ -309,18 +312,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 };
                 return false;
             }
-            
+
             // We do an explicit search for the hips bone rather than invoking the animator, as we want to control
             // traversal order.
             foreach (var maybeHips in avatarRoot.GetComponentsInChildren<Transform>())
             {
-                if (maybeHips.name == avatarBoneMappings[HumanBodyBones.Hips] && !maybeHips.IsChildOf(outfitRoot.transform))
+                if (maybeHips.name == avatarBoneMappings[HumanBodyBones.Hips] &&
+                    !maybeHips.IsChildOf(outfitRoot.transform))
                 {
                     avatarHips = maybeHips.gameObject;
                     break;
                 }
             }
-            
+
             if (avatarHips == null)
             {
                 errorMessageGroups = new string[]
@@ -352,8 +356,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
+
                 hipsCandidates.Add(avatarBoneMappings[HumanBodyBones.Hips]);
-                
+
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
                 {
@@ -362,7 +367,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         hipsCandidates.Add(hbm);
                     }
                 }
-                
+
                 foreach (Transform child in outfitRoot.transform)
                 {
                     foreach (Transform tempHip in child)
