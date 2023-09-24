@@ -15,7 +15,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@algolia/client-search": "^4.19.1",
+    "@algolia/client-search": "^4.20.0",
     "@docusaurus/core": "^2.4.1",
     "@docusaurus/preset-classic": "^2.4.1",
     "@mdx-js/react": "^1.6.22",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.1",
-    "@tsconfig/docusaurus": "^2.0.0",
+    "@tsconfig/docusaurus": "^2.0.1",
     "typescript": "^5.2.2"
   },
   "resolutions": {
