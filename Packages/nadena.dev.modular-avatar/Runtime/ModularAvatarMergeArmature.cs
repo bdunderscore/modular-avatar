@@ -77,6 +77,8 @@ namespace nadena.dev.modular_avatar.core
 
         private void SetLockMode()
         {
+            if (this == null) return;
+
             if (_lockController == null)
             {
                 _lockController = ArmatureLockController.ForMerge(this, GetBonesForLock);
