@@ -41,6 +41,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                    seq.Run("World Fixed Object",
+                        ctx => new WorldFixedObjectProcessor(ctx.AvatarDescriptor).Process(ctx)
+                    );
                     seq.Run(ReplaceObjectPluginPass.Instance);
                 });
                 seq.Run(BlendshapeSyncAnimationPluginPass.Instance);

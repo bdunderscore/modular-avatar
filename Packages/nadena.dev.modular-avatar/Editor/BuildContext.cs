@@ -21,7 +21,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
             = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
-
+        
+        public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
+            ctx.Extension<ModularAvatarContext>().BuildContext;
+        
         /// <summary>
         /// This dictionary overrides the _original contents_ of ModularAvatarMenuInstallers. Notably, this does not
         /// replace the source menu for the purposes of identifying any other MAMIs that might install to the same
