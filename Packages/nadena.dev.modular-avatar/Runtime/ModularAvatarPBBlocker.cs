@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core
     [AddComponentMenu("Modular Avatar/MA PhysBone Blocker")]
     public class ModularAvatarPBBlocker : AvatarTagComponent
     {
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             // no-op
         }

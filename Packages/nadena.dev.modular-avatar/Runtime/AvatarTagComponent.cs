@@ -63,6 +63,8 @@ namespace nadena.dev.modular_avatar.core
         /// <summary>
         /// Eagerly resolve all AvatarTagReferences to their destinations.
         /// </summary>
-        internal abstract void ResolveReferences();
+        public virtual void ResolveReferences()
+        {
+        }
     }
 }

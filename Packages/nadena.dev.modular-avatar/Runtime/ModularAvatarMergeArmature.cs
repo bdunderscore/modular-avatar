@@ -89,7 +89,7 @@ namespace nadena.dev.modular_avatar.core
 #endif
         }
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             mergeTarget?.Get(this);
         }

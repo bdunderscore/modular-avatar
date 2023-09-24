@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core
     {
         public List<ParameterConfig> parameters = new List<ParameterConfig>();
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             // no-op
         }

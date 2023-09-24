@@ -26,7 +26,7 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference RootBone;
         public Bounds Bounds = DEFAULT_BOUNDS;
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             ProbeAnchor?.Get(this);
             RootBone?.Get(this);

@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core
         public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
         public bool matchAvatarWriteDefaults;
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             // no-op
         }

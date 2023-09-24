@@ -37,7 +37,7 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             // no-op
         }

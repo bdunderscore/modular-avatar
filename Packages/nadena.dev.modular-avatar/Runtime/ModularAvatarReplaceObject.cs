@@ -8,7 +8,7 @@ namespace nadena.dev.modular_avatar.core
     {
         public AvatarObjectReference targetObject = new AvatarObjectReference();
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             targetObject?.Get(this);
         }

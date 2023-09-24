@@ -95,7 +95,7 @@ namespace nadena.dev.modular_avatar.core
         public string subPath;
         public BoneProxyAttachmentMode attachmentMode = BoneProxyAttachmentMode.Unset;
 
-        internal override void ResolveReferences()
+        public override void ResolveReferences()
         {
             _targetCache = UpdateDynamicMapping();
         }
@@ -116,7 +116,8 @@ namespace nadena.dev.modular_avatar.core
             if (immediate)
             {
                 _targetCache = null;
-            } else if (_targetCache != null)
+            }
+            else if (_targetCache != null)
             {
                 RuntimeUtil.delayCall(() => { _targetCache = null; });
             }
