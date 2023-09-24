@@ -51,6 +51,7 @@
   "merge_animator.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_animator.match_avatar_write_defaults": "Match Avatar Write Defaults",
   "merge_animator.match_avatar_write_defaults.tooltip": "Match the write defaults setting used on the avatar's animator. If the avatar's write defaults settings are inconsistent, the settings on the animator will be left alone.",
+   
   "merge_armature.lockmode": "Position sync mode",
   "merge_armature.lockmode.not_locked.title": "Not locked",
   "merge_armature.lockmode.not_locked.body": "Merged armature does not sync its position with the base avatar.",
@@ -59,6 +60,8 @@
   "merge_armature.lockmode.bidirectional.title": "Avatar <=====> Target (Bidirectional)",
   "merge_armature.lockmode.bidirectional.body": "The base armature and the merged armature will always have the same position. This is useful when creating animations that are meant to target the base armature. In order to activate this, your armatures must already be in the exact same position.",
   
+  "worldfixed.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
+  "worldfixed.normal": "This object will be fixed to world unless you fixed to avatar with constraint.",
   "fpvisible.normal": "This object will be visible in your first person view.",
   "fpvisible.NotUnderHead": "This component has no effect when not placed under the head bone.",
   "fpvisible.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
@@ -168,5 +171,6 @@
   "setup_outfit.err.no_avatar_descriptor": "No avatar descriptor found in {0} or its parents.",
   "setup_outfit.err.no_animator": "Your avatar does not have an Animator component.",
   "setup_outfit.err.no_hips": "Your avatar does not have a Hips bone. Setup Outfit only works on humanoid avatars.",
-  "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:"
+  "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:",
+  "move_independently.group-header": "Objects to move together"
 }

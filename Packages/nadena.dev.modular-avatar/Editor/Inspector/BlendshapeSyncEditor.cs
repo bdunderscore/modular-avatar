@@ -38,8 +38,9 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_window != null) DestroyImmediate(_window);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
+            base.OnDestroy();
             if (_window != null) DestroyImmediate(_window);
         }
 

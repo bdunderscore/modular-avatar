@@ -58,6 +58,8 @@
   "merge_animator.path_mode.tooltip": "アニメーション内のパスを解釈するモード。相対的にすると、このオブジェクトについているアニメーターでアニメーション編集できます",
   "merge_animator.match_avatar_write_defaults": "アバターのWrite Defaults設定に合わせる",
   "merge_animator.match_avatar_write_defaults.tooltip": "アバターの該当アニメーターのWrite Defaults設定に合わせます。アバター側の設定が矛盾する場合は、統合されるアニメーターのWD値がそのまま採用されます。",
+  "worldfixed.quest": "このコンポーネントはクエスト単体非対応のため無効となっています。",
+  "worldfixed.normal": "このオブジェクトはConstraint等でアバターに追従させない限りワールドに固定されます。",
   "fpvisible.normal": "このオブジェクトは一人視点で表示されます。",
   "fpvisible.quest": "このコンポーネントはクエスト単体非対応のため無効化となっています。",
   "fpvisible.NotUnderHead": "このコンポーネントはヘッドボーン外では効果がありません。",
@@ -166,5 +168,6 @@
   "setup_outfit.err.no_avatar_descriptor": "「{}」とその親に、avatar descriptorが見つかりませんでした。",
   "setup_outfit.err.no_animator": "アバターにAnimatorコンポーネントがありません。",
   "setup_outfit.err.no_hips": "アバターにHipsボーンがありません。なお、Setup Outfitはヒューマノイドアバター以外には対応していません。",
-  "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。以下の名前を含むボーンを探しました："
+  "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。以下の名前を含むボーンを探しました：",
+  "move_independently.group-header": "一緒に動かすオブジェクト"
 }
