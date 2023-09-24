@@ -1,0 +1,36 @@
+﻿VisualElement {
+}
+
+#group-box {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 4px;
+    border-width: 3px;
+    border-left-color: rgba(0, 1, 0, 0.2);
+    border-top-color: rgba(0, 1, 0, 0.2);
+    border-right-color: rgba(0, 1, 0, 0.2);
+    border-bottom-color: rgba(0, 1, 0, 0.2);
+    border-radius: 4px;
+    /* background-color: rgba(0, 0, 0, 0.1); */
+}
+
+#group-box > Label {
+    -unity-font-style: bold;
+}
+
+.group-root {
+    margin-top: 4px;
+}
+
+.group-root Toggle {
+    margin-left: 0;
+}
+
+.group-children {
+    padding-left: 10px;
+}
+
+.left-toggle {
+    display: flex;
+    flex-direction: row;
+}

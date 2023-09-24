@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:engine="UnityEngine.UIElements" targetNamespace="nadena.dev.modular_avatar.core.editor" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="LanguageSwitcherElement" type="engine:VisualElementType" />
+</xs:schema>

@@ -160,5 +160,6 @@
   "setup_outfit.err.no_avatar_descriptor": "「{}」とその親に、avatar descriptorが見つかりませんでした。",
   "setup_outfit.err.no_animator": "アバターにAnimatorコンポーネントがありません。",
   "setup_outfit.err.no_hips": "アバターにHipsボーンがありません。なお、Setup Outfitはヒューマノイドアバター以外には対応していません。",
-  "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。以下の名前を含むボーンを探しました："
+  "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。以下の名前を含むボーンを探しました：",
+  "move_independently.group-header": "一緒に動かすオブジェクト"
 }
