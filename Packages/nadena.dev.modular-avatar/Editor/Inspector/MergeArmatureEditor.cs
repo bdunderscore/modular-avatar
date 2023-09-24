@@ -28,21 +28,17 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.PropertyField(prop_mangleNames, G("merge_armature.mangle_names"));
 
             EditorGUILayout.Separator();
-            EditorGUILayout.LabelField("Position lock mode", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(S("merge_armature.lockmode"), EditorStyles.boldLabel);
 
             EditorGUILayout.BeginVertical();
 
-            FakeEnum(prop_lock_mode, ArmatureLockMode.NotLocked, "Not locked",
-                "Merged armature does not sync its position with the base avatar.");
-            FakeEnum(prop_lock_mode, ArmatureLockMode.BaseToMerge, "Base  =====> Target (Unidirectional)",
-                "Moving the base avatar will move the merge armature. If you move the merged armature, it will not" +
-                " affect the base avatar. This is useful when adding normal outfits, where you might want to adjust" +
-                " the position of bones in the outfit.");
-            FakeEnum(prop_lock_mode, ArmatureLockMode.BidirectionalExact, "Base <=====> Target (Bidirectional)",
-                "The base armature and the merged armature will always have the same position. This is useful when " +
-                "creating animations that are meant to target the base armature.\n\n" +
-                "In order to activate this, your armatures must already be in the exact same position."
-            );
+            FakeEnum(prop_lock_mode, ArmatureLockMode.NotLocked, S("merge_armature.lockmode.not_locked.title"),
+                S("merge_armature.lockmode.not_locked.body"));
+            FakeEnum(prop_lock_mode, ArmatureLockMode.BaseToMerge, S("merge_armature.lockmode.base_to_merge.title"),
+                S("merge_armature.lockmode.base_to_merge.body"));
+            FakeEnum(prop_lock_mode, ArmatureLockMode.BidirectionalExact,
+                S("merge_armature.lockmode.bidirectional.title"),
+                S("merge_armature.lockmode.bidirectional.body"));
 
             EditorGUILayout.EndVertical();
 
