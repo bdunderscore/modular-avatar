@@ -187,12 +187,6 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "nadena.dev.av3-build-framework": {
-      "version": "file:nadena.dev.av3-build-framework",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "nadena.dev.modular-avatar": {
       "version": "file:nadena.dev.modular-avatar",
       "depth": 0,
