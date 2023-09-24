@@ -1,7 +1,7 @@
 ﻿using System;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
-using nadena.dev.ndmf.animation;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
 

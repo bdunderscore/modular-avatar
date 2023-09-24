@@ -1,5 +1,5 @@
 using System.Linq;
-using nadena.dev.ndmf.animation;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;

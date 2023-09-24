@@ -22,19 +22,22 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
-namespace nadena.dev.ndmf.animation
+#endregion
+
+namespace nadena.dev.modular_avatar.animation
 {
-    public class AnimatorCombiner
+    internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
         private bool isSaved;
@@ -56,7 +59,7 @@ namespace nadena.dev.ndmf.animation
 
         private int controllerBaseLayer = 0;
 
-        public AnimatorCombiner(String assetName, UnityEngine.Object assetContainer)
+        public AnimatorCombiner(String assetName, Object assetContainer)
         {
             _combined = new AnimatorController();
             if (assetContainer != null)

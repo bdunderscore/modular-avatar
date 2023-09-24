@@ -25,7 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.ndmf.animation;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
@@ -422,24 +422,25 @@ namespace nadena.dev.modular_avatar.core.editor
                 && (
                     Vector3.SqrMagnitude(mergedSrcBone.transform.localScale - src.transform.localScale) > 0.00001f
                     || Quaternion.Angle(mergedSrcBone.transform.localRotation, src.transform.localRotation) > 0.00001f
-                    || Vector3.SqrMagnitude(mergedSrcBone.transform.localPosition - src.transform.localPosition) > 0.00001f
+                    || Vector3.SqrMagnitude(mergedSrcBone.transform.localPosition - src.transform.localPosition) >
+                    0.00001f
                 )
                 && src.GetComponent<IConstraint>() != null
-            )
+               )
             {
                 // Constraints are sensitive to changes in local reference frames in some cases. In this case we'll
                 // inject a dummy object in between in order to retain the local parent scale of the retargeted bone.
                 var objName = src.gameObject.name + "$ConstraintRef " + Guid.NewGuid();
-                
+
                 var constraintScaleRef = new GameObject(objName);
                 constraintScaleRef.transform.SetParent(src.transform.parent);
                 constraintScaleRef.transform.localPosition = Vector3.zero;
                 constraintScaleRef.transform.localRotation = Quaternion.identity;
                 constraintScaleRef.transform.localScale = Vector3.one;
-                
+
                 constraintScaleRef.transform.SetParent(newParent.transform, true);
                 mergedSrcBone = constraintScaleRef;
-                
+
                 BoneDatabase.AddMergedBone(mergedSrcBone.transform);
                 BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
                 PathMappings.MarkTransformLookthrough(mergedSrcBone);

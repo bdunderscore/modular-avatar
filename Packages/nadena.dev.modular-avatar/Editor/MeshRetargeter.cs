@@ -25,7 +25,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using nadena.dev.ndmf.animation;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 
@@ -252,7 +252,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 dst.bindposes = newBindPoses;
                 renderer.sharedMesh = dst;
             }
-            
+
             var newRootBone = _boneDatabase.GetRetargetedBone(rootBone, true);
             if (newRootBone == null)
             {

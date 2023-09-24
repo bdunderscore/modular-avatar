@@ -1,24 +1,33 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using VRC.Core;
 using VRC.SDK3.Avatars.Components;
+using Object = UnityEngine.Object;
 
-namespace nadena.dev.ndmf.animation
+#endregion
+
+namespace nadena.dev.modular_avatar.animation
 {
-    using UnityObject = UnityEngine.Object;
+    #region
+
+    using UnityObject = Object;
+
+    #endregion
 
     /// <summary>
     /// This extension context tracks when objects are renamed, and updates animations accordingly.
     /// Users of this context need to be aware that, when creating new curves (or otherwise introducing new motions,
     /// use context.ObjectPath to obtain a suitable path for the target objects).
     /// </summary>
-    public sealed class TrackObjectRenamesContext : IExtensionContext
+    internal sealed class TrackObjectRenamesContext : IExtensionContext
     {
         private Dictionary<GameObject, List<string>>
             _objectToOriginalPaths = new Dictionary<GameObject, List<string>>();

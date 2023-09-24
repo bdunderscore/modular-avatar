@@ -1,13 +1,18 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.ndmf.animation
+#endregion
+
+namespace nadena.dev.modular_avatar.animation
 {
-    public static class AnimationUtil
+    internal static class AnimationUtil
     {
         private const string SAMPLE_PATH_PACKAGE =
             "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
