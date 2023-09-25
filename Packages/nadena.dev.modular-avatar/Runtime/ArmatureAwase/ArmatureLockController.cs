@@ -74,7 +74,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         public ArmatureLockController(ModularAvatarMergeArmature mama, GetTransformsDelegate getTransforms)
         {
+#if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += Dispose;
+#endif
 
             this._mama = mama;
             this._getTransforms = getTransforms;

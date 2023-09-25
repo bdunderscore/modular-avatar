@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using Unity.Burst;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.armature_lock
@@ -27,7 +29,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         public void ToTransform(Transform bone)
         {
+#if UNITY_EDITOR
             Undo.RecordObject(bone, Undo.GetCurrentGroupName());
+#endif
             bone.localPosition = localPosition;
             bone.localRotation = localRotation;
             bone.localScale = localScale;

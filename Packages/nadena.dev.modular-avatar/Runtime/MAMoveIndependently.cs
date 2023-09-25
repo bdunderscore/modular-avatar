@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using VRC.SDKBase;
 
@@ -121,9 +123,9 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     if (deltaPos.sqrMagnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON)
                     {
                         Matrix4x4 childNewLocal = parent.worldToLocalMatrix * state.childWorld;
-
+#if UNITY_EDITOR
                         Undo.RecordObject(child, Undo.GetCurrentGroupName());
-
+#endif
                         child.localPosition = childNewLocal.MultiplyPoint(Vector3.zero);
                         child.localRotation = childNewLocal.rotation;
                         child.localScale = childNewLocal.lossyScale;
