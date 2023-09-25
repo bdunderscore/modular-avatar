@@ -169,6 +169,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             // Check parents haven't changed
             for (int i = 0; i < _baseBones.Length; i++)
             {
+                if (_baseBones[i] == null || _mergeBones[i] == null || _baseParentBones[i] == null ||
+                    _mergeParentBones[i] == null)
+                {
+                    return false;
+                }
+
                 if (_baseBones[i].parent != _baseParentBones[i] || _mergeBones[i].parent != _mergeParentBones[i])
                 {
                     return false;
