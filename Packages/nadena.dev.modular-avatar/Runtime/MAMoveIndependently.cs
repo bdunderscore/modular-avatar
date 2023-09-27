@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
 using VRC.SDKBase;
 
@@ -111,7 +112,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                 var localRotation = child.localRotation;
                 var localScale = child.localScale;
 
-                if (_children.TryGetValue(child, out var state))
+                if (!ArmatureLockController.MovedThisFrame && _children.TryGetValue(child, out var state))
                 {
                     var deltaPos = localPosition - state.childLocalPos;
                     var deltaRot = Quaternion.Angle(localRotation, state.childLocalRot);
@@ -120,16 +121,27 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     if (deltaPos.sqrMagnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON)
                     {
                         Matrix4x4 childNewLocal = parent.worldToLocalMatrix * state.childWorld;
-#if UNITY_EDITOR
-                        UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
-#endif
-                        child.localPosition = childNewLocal.MultiplyPoint(Vector3.zero);
-                        child.localRotation = childNewLocal.rotation;
-                        child.localScale = childNewLocal.lossyScale;
 
-                        state.childLocalPos = child.localPosition;
-                        state.childLocalRot = child.localRotation;
-                        state.childLocalScale = child.localScale;
+                        var newPosition = childNewLocal.MultiplyPoint(Vector3.zero);
+                        var newRotation = childNewLocal.rotation;
+                        var newScale = childNewLocal.lossyScale;
+
+                        if ((newPosition - localPosition).sqrMagnitude > EPSILON
+                            || Quaternion.Angle(newRotation, localRotation) > EPSILON
+                            || (newScale - localScale).sqrMagnitude > EPSILON)
+                        {
+#if UNITY_EDITOR
+                            UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
+#endif
+
+                            child.localPosition = newPosition;
+                            child.localRotation = newRotation;
+                            child.localScale = newScale;
+
+                            state.childLocalPos = child.localPosition;
+                            state.childLocalRot = child.localRotation;
+                            state.childLocalScale = child.localScale;
+                        }
 
                         _children[child] = state;
 
@@ -151,8 +163,24 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             }
         }
 
-        void Update()
+        private void OnEnable()
         {
+            UpdateLoopController.OnMoveIndependentlyUpdate += OnUpdate;
+        }
+
+        private void OnDisable()
+        {
+            UpdateLoopController.OnMoveIndependentlyUpdate -= OnUpdate;
+        }
+
+        void OnUpdate()
+        {
+            if (this == null)
+            {
+                UpdateLoopController.OnMoveIndependentlyUpdate -= OnUpdate;
+                return;
+            }
+
             var deltaPos = transform.position - _priorFrameState.MultiplyPoint(Vector3.zero);
             var deltaRot = Quaternion.Angle(_priorFrameState.rotation, transform.rotation);
             var deltaScale = (transform.lossyScale - _priorFrameState.lossyScale).sqrMagnitude;
