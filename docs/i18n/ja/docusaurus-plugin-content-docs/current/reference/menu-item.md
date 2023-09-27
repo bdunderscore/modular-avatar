@@ -13,7 +13,7 @@ MA Menu Itemコンポーネントは、Unityのヒエラルキー内でExpressio
 
 :::tip
 
-メニューエディターの使い方については、[こちらのチュートリアル](../tutorials/menu)をご覧ください。
+メニューエディターの使い方については、[こちらのチュートリアル](/docs/tutorials/menu)をご覧ください。
 
 :::
 

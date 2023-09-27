@@ -12,7 +12,7 @@ This component can provide a more convenient way to edit and define menu items t
 
 :::tip
 
-A full tutorial on using the menu editor system is available [here](../tutorials/menu).
+A full tutorial on using the menu editor system is available [here](/docs/tutorials/menu).
 
 :::
 

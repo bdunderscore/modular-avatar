@@ -36,4 +36,4 @@ An easy way of applying such settings is using the prefab overrides menu - you c
 
 ## Use internal parameters on your animator gimmicks
 
-Using [internal parameters](../reference/parameters.md) can help avoid clashing with other prefabs. Internal parameters are automatically renamed to a unique name at build time, ensuring you won't have any name clashes.
+Using [internal parameters](/docs/reference/parameters.md) can help avoid clashing with other prefabs. Internal parameters are automatically renamed to a unique name at build time, ensuring you won't have any name clashes.

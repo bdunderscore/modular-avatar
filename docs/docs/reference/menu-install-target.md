@@ -15,4 +15,4 @@ Modular Avatar will create this component when necessary, when you use the "sele
 
 This component will override the target menu option on the menu installer that is selected; the menu installer will
 instead act as if its menu had been copy-pasted to the location of the Menu Install Target. This allows for prefabs that
-use Menu Installers to be integrated into the [object-based menu system](../tutorials/menu).
+use Menu Installers to be integrated into the [object-based menu system](/docs/tutorials/menu).

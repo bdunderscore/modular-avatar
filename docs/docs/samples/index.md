@@ -16,10 +16,10 @@ Simply drop it onto your avatar, then click the "Select Menu" button in the menu
 
 The fingerpen prefab demonstrates:
 
-* Installing animators using [Merge Animator](../reference/merge-animator.md)
-* Automatically configuring [synced parameters](../reference/parameters.md)
-* Setting up [menus](../reference/menu-installer.md).
-* Using the [Bone Proxy](../reference/bone-proxy.md) component to place objects inside of the avatar's bones, in an avatar-agnostic way
+* Installing animators using [Merge Animator](/docs/reference/merge-animator.md)
+* Automatically configuring [synced parameters](/docs/reference/parameters.md)
+* Setting up [menus](/docs/reference/menu-installer.md).
+* Using the [Bone Proxy](/docs/reference/bone-proxy.md) component to place objects inside of the avatar's bones, in an avatar-agnostic way
 
 ## Clap
 

@@ -8,7 +8,7 @@ sidebar_label: Configuring a complex (cloth) outfit
 In some cases the automatic setup is not quite enough to set up a complex outfit.
 Let's look at Lachexia's [Dress Lumi](https://lachexia.booth.pm/items/3763311) as an example.
 
-This tutorial assumes you've already gone through the [simple clothing](../clothing) tutorial,
+This tutorial assumes you've already gone through the [simple clothing](/docs/clothing) tutorial,
 and will skip over some of the details covered there.
 
 We start out having dropped the Dress Lumi prefab onto the avatar, and having hidden the parts of the
@@ -17,7 +17,7 @@ original avatar's clothing that conflict with the new outfit (namely, Cloth, and
 ![Starting state](initial_state.png)
 
 As you can see, there's a ton of extra objects in this outfit. The automatic setup described in 
-the [simple clothing tutorial](../clothing) will create the Merge Armature component for us, but
+the [simple clothing tutorial](/docs/clothing) will create the Merge Armature component for us, but
 the rest of the objects require a bit more setup. That being said, that's still the right place to
 start:
 
