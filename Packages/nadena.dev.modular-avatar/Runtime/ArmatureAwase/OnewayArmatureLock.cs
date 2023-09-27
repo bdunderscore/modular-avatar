@@ -50,7 +50,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             }
         }
 
-        [BurstCompile]
+        //[BurstCompile]
         struct ComputePosition : IJobParallelFor
         {
             [ReadOnly] public NativeArray<BoneStaticData> _boneStatic;
@@ -75,6 +75,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 if (TransformState.Differs(mergeSaved, mergeState))
                 {
+                    TransformState.Differs(mergeSaved, mergeState);
                     _fault.Increment();
                 }
 

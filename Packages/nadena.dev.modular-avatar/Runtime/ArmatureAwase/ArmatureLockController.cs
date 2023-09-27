@@ -10,6 +10,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal class ArmatureLockController : IDisposable
     {
+        private static long lastMovedFrame = 0;
+        public static bool MovedThisFrame => Time.frameCount == lastMovedFrame;
+
         // Undo operations can reinitialize the MAMA component, which destroys critical lock controller state.
         // Avoid this issue by keeping a static reference to the controller for each MAMA component.
         private static Dictionary<ModularAvatarMergeArmature, ArmatureLockController>
@@ -32,11 +35,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_EDITOR
                 if (value)
                 {
-                    EditorApplication.update += VoidUpdate;
+                    UpdateLoopController.OnArmatureLockUpdate += VoidUpdate;
                 }
                 else
                 {
-                    EditorApplication.update -= VoidUpdate;
+                    UpdateLoopController.OnArmatureLockUpdate -= VoidUpdate;
                 }
 
                 _updateActive = value;
@@ -121,6 +124,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             if (_curMode == _mode)
             {
                 result = _lock?.Execute() ?? LockResult.Failed;
+                if (result == LockResult.Success)
+                {
+                    lastMovedFrame = Time.frameCount;
+                }
+
                 if (result != LockResult.Failed) return true;
             }
 
