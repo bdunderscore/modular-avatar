@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -124,17 +122,15 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
 
-            var merge = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
-            if (merge == null)
+            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
             {
-                merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+                var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
                 merge.mergeTarget = new AvatarObjectReference();
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
             }
-
-            HeuristicBoneMapper.RenameBonesByHeuristic(merge);
 
             if (outfitRoot != null
                 && outfitRoot.GetComponent<ModularAvatarMeshSettings>() == null
@@ -302,28 +298,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 };
                 return false;
             }
-
-            var avatarBoneMappings = GetAvatarBoneMappings(avatarAnimator);
-            if (!avatarBoneMappings.ContainsKey(HumanBodyBones.Hips))
-            {
-                errorMessageGroups = new string[]
-                {
-                    S("setup_outfit.err.no_hips")
-                };
-                return false;
-            }
-
-            // We do an explicit search for the hips bone rather than invoking the animator, as we want to control
-            // traversal order.
-            foreach (var maybeHips in avatarRoot.GetComponentsInChildren<Transform>())
-            {
-                if (maybeHips.name == avatarBoneMappings[HumanBodyBones.Hips] &&
-                    !maybeHips.IsChildOf(outfitRoot.transform))
-                {
-                    avatarHips = maybeHips.gameObject;
-                    break;
-                }
-            }
+            
+            avatarHips = avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
 
             if (avatarHips == null)
             {
@@ -350,15 +326,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (Transform tempHip in child)
                     {
-                        if (tempHip.name.Contains(avatarBoneMappings[HumanBodyBones.Hips]))
+                        if (tempHip.name.Contains(avatarHips.name))
                         {
                             outfitHips = tempHip.gameObject;
                         }
                     }
                 }
 
-                hipsCandidates.Add(avatarBoneMappings[HumanBodyBones.Hips]);
-
+                hipsCandidates.Add(avatarHips.name);
+                
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
                 {
@@ -393,18 +369,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return avatarHips != null && outfitHips != null;
-        }
-
-        private static ImmutableDictionary<HumanBodyBones, string> GetAvatarBoneMappings(Animator avatarAnimator)
-        {
-            var avatarHuman = avatarAnimator.avatar?.humanDescription.human ?? new HumanBone[0];
-            return avatarHuman
-                .Where(hb => !string.IsNullOrEmpty(hb.boneName))
-                .Select(hb => new KeyValuePair<HumanBodyBones, string>(
-                    (HumanBodyBones) Enum.Parse(typeof(HumanBodyBones), hb.humanName.Replace(" ", "")),
-                    hb.boneName
-                ))
-                .ToImmutableDictionary();
         }
     }
 }
