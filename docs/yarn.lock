@@ -1877,6 +1877,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@docusaurus/module-type-aliases@npm:2.4.3":
+  version: 2.4.3
+  resolution: "@docusaurus/module-type-aliases@npm:2.4.3"
+  dependencies:
+    "@docusaurus/react-loadable": 5.5.2
+    "@docusaurus/types": 2.4.3
+    "@types/history": ^4.7.11
+    "@types/react": "*"
+    "@types/react-router-config": "*"
+    "@types/react-router-dom": "*"
+    react-helmet-async: "*"
+    react-loadable: "npm:@docusaurus/react-loadable@5.5.2"
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+  checksum: 22ce1a6a20acc35cdd2ec57e55f29e65dbe0fb3a46aaa8c033ec78bf04cd3087f0523c816c744ed311095512dd686c83e0a8619cc1a2a937c27cd54527739c38
+  languageName: node
+  linkType: hard
+
 "@docusaurus/plugin-content-blog@npm:2.4.1":
   version: 2.4.1
   resolution: "@docusaurus/plugin-content-blog@npm:2.4.1"
@@ -2184,6 +2203,25 @@ __metadata:
     react: ^16.8.4 || ^17.0.0
     react-dom: ^16.8.4 || ^17.0.0
   checksum: d44e91c9153802a5c63a0bd91e56654f901df837ac7b380dff8f165991728e88d29efa7c64c6522d0afdf8ec845613aff5867badb717d29b691392712f655936
+  languageName: node
+  linkType: hard
+
+"@docusaurus/types@npm:2.4.3":
+  version: 2.4.3
+  resolution: "@docusaurus/types@npm:2.4.3"
+  dependencies:
+    "@types/history": ^4.7.11
+    "@types/react": "*"
+    commander: ^5.1.0
+    joi: ^17.6.0
+    react-helmet-async: ^1.3.0
+    utility-types: ^3.10.0
+    webpack: ^5.73.0
+    webpack-merge: ^5.8.0
+  peerDependencies:
+    react: ^16.8.4 || ^17.0.0
+    react-dom: ^16.8.4 || ^17.0.0
+  checksum: c123c45630e885b588f808baa06a97f8408a3381906f65cb92ae75732aedfca6ab2cada94f969c08e043b885b95298616440326259b789010e0986cbcd7a960b
   languageName: node
   linkType: hard
 
@@ -7374,7 +7412,7 @@ __metadata:
   dependencies:
     "@algolia/client-search": ^4.20.0
     "@docusaurus/core": ^2.4.1
-    "@docusaurus/module-type-aliases": 2.4.1
+    "@docusaurus/module-type-aliases": 2.4.3
     "@docusaurus/preset-classic": ^2.4.1
     "@mdx-js/react": ^1.6.22
     "@tsconfig/docusaurus": ^2.0.1
