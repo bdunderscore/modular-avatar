@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
@@ -60,5 +61,14 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             ndmf.AvatarProcessor.ProcessAvatar(avatarGameObject);
         }
+
+        // ReSharper disable once InconsistentNaming
+        // ReSharper disable once MemberCanBeMadeStatic.Global
+        [Obsolete("This is only for compile time compatibility with legacy AAO")]
+        public int callbackOrder => throw new NotImplementedException();
+
+        [Obsolete("This is only for compile time compatibility with legacy AAO")]
+        // ReSharper disable once MemberCanBeMadeStatic.Global
+        public bool OnPreprocessAvatar(GameObject avatarGameObject) => throw new NotImplementedException();
     }
 }
