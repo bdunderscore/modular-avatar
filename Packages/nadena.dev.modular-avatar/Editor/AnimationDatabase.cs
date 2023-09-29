@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnDeactivate(ndmf.BuildContext context) => Commit();
 
-        internal void Commit()
+        private void Commit()
         {
             foreach (var clip in _clips)
             {
@@ -71,7 +71,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnActivate(ndmf.BuildContext context) => Bootstrap(context.AvatarDescriptor);
 
-        internal void Bootstrap(VRCAvatarDescriptor avatarDescriptor)
+        private void Bootstrap(VRCAvatarDescriptor avatarDescriptor)
         {
             foreach (var layer in avatarDescriptor.baseAnimationLayers)
             {
