@@ -36,28 +36,19 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
-                seq.Run("Initialize AnimationDatabase", context =>
+                seq.WithRequiredExtension(typeof(AnimationDatabase), _s3 =>
                 {
-                    // This should be extensionContext however AnimationDatabase can be accessed from 
-                    // ModularAvatar Build Context so we use initialize / finalize pass
-                    ((BuildContext)context).AnimationDatabase = new AnimationDatabase();
-                    ((BuildContext)context).AnimationDatabase.Bootstrap(context.AvatarDescriptor);
-                });
-                seq.WithRequiredExtension(typeof(TrackObjectRenamesContext), _s2 =>
-                {
-                    seq.Run(MergeArmaturePluginPass.Instance);
-                    seq.Run(BoneProxyPluginPass.Instance);
-                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
-                    seq.Run("World Fixed Object",
-                        ctx => new WorldFixedObjectProcessor(ctx.AvatarDescriptor).Process(ctx)
-                    );
-                    seq.Run(ReplaceObjectPluginPass.Instance);
-                });
-                seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
-                seq.Run("Finalize AnimationDatabase", context =>
-                {
-                    ((BuildContext)context).AnimationDatabase.Commit();
-                    ((BuildContext)context).AnimationDatabase = null;
+                    seq.WithRequiredExtension(typeof(TrackObjectRenamesContext), _s2 =>
+                    {
+                        seq.Run(MergeArmaturePluginPass.Instance);
+                        seq.Run(BoneProxyPluginPass.Instance);
+                        seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                        seq.Run("World Fixed Object",
+                            ctx => new WorldFixedObjectProcessor(ctx.AvatarDescriptor).Process(ctx)
+                        );
+                        seq.Run(ReplaceObjectPluginPass.Instance);
+                    });
+                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
                 });
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
@@ -214,7 +205,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
+            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(context.AvatarRootObject, context);
         }
     }
 

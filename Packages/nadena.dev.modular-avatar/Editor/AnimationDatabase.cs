@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -10,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class AnimationDatabase
+    internal class AnimationDatabase : IExtensionContext
     {
         internal class ClipHolder
         {
@@ -30,6 +31,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip =
             new Dictionary<string, HashSet<ClipHolder>>();
+
+
+        public void OnDeactivate(ndmf.BuildContext context) => Commit();
 
         internal void Commit()
         {
@@ -63,6 +67,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 action();
             }
         }
+
+
+        public void OnActivate(ndmf.BuildContext context) => Bootstrap(context.AvatarDescriptor);
 
         internal void Bootstrap(VRCAvatarDescriptor avatarDescriptor)
         {

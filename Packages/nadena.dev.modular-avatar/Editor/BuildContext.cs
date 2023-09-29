@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly nadena.dev.ndmf.BuildContext PluginBuildContext;
 
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
-        internal AnimationDatabase AnimationDatabase;
+        internal AnimationDatabase AnimationDatabase => PluginBuildContext.Extension<AnimationDatabase>();
         internal UnityEngine.Object AssetContainer => PluginBuildContext.AssetContainer;
 
         private bool SaveImmediate = false;
