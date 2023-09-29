@@ -17,7 +17,7 @@ public class ActiveAnimationRetargeterTests : TestBase
         var buildContext = new BuildContext(descriptor);
         var pathMappings = buildContext.PluginBuildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
         new MergeAnimatorProcessor().OnPreprocessAvatar(avatar, buildContext); // we need this for AnimationDatabase
-        buildContext.AnimationDatabase.Bootstrap(descriptor);
+        buildContext.PluginBuildContext.ActivateExtensionContext<AnimationDatabase>();
 
         // get game objects
         var changedChild = avatar.transform.Find("Toggled/Child");
@@ -29,7 +29,7 @@ public class ActiveAnimationRetargeterTests : TestBase
         retargeter.FixupAnimations();
 
         // commit
-        buildContext.AnimationDatabase.Commit();
+        buildContext.PluginBuildContext.DeactivateExtensionContext<AnimationDatabase>();
 
         var clip = findFxClip(avatar, layerName: "retarget");
         var curveBindings = AnimationUtility.GetCurveBindings(clip);
