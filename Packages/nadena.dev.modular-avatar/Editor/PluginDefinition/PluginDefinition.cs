@@ -36,6 +36,13 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
+                seq.Run("Initialize AnimationDatabase", context =>
+                {
+                    // This should be extensionContext however AnimationDatabase can be accessed from 
+                    // ModularAvatar Build Context so we use initialize / finalize pass
+                    ((BuildContext)context).AnimationDatabase = new AnimationDatabase();
+                    ((BuildContext)context).AnimationDatabase.Bootstrap(context.AvatarDescriptor);
+                });
                 seq.WithRequiredExtension(typeof(TrackObjectRenamesContext), _s2 =>
                 {
                     seq.Run(MergeArmaturePluginPass.Instance);
@@ -47,6 +54,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPluginPass.Instance);
                 });
                 seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                seq.Run("Finalize AnimationDatabase", context =>
+                {
+                    ((BuildContext)context).AnimationDatabase.Commit();
+                    ((BuildContext)context).AnimationDatabase = null;
+                });
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {
@@ -170,11 +182,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            // The animation database is currently only used by the merge armature hook; it should probably become
-            // an extension context instead.
-            MAContext(context).AnimationDatabase.Bootstrap(context.AvatarDescriptor);
             new MergeArmatureHook().OnPreprocessAvatar(context, context.AvatarRootObject);
-            MAContext(context).AnimationDatabase.Commit();
         }
     }
 
