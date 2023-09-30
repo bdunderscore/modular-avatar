@@ -36,7 +36,7 @@ With Modular Avatar, you don't need to unpack the original avatar or outfit pref
 
 ## What happened here?
 
-When you click on the `Setup Outfit` option, Modular Avatar will automatically locate the armature object under the outfit, and attach a [Merge Armature](/docs//docs/reference/merge-armature.md) component to it.
+When you click on the `Setup Outfit` option, Modular Avatar will automatically locate the armature object under the outfit, and attach a [Merge Armature](/docs/reference/merge-armature.md) component to it.
 
 ![After setup](after_setup.png)
 
