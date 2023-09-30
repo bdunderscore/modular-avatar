@@ -43,10 +43,10 @@
   "merge_armature.lockmode": "位置追従モード",
   "merge_armature.lockmode.not_locked.title": "追従なし",
   "merge_armature.lockmode.not_locked.body": "統合されるアーマチュアは、統合先のアーマチュアに追従しません。",
-  "merge_armature.lockmode.base_to_merge.title": "アバター  =====> オブジェクト (一方的)",
-  "merge_armature.lockmode.base_to_merge.body": "アバターを動かすと、統合されるアーマチュアも追従しますが、統合されるアーマチュアを動いたらアバターが動きません。通常の衣装追加なら、この設定のほうはボーンの位置調整を保持するのでお勧めです。",
+  "merge_armature.lockmode.base_to_merge.title": "アバター  =====> オブジェクト (片方向)",
+  "merge_armature.lockmode.base_to_merge.body": "アバターを動かすと統合されるアーマチュアも動きますが、統合されるアーマチュアが動かされてもアバターは動きません。ボーンの位置調整を保持するので、通常の衣装追加であればこちらがお勧めです。",
   "merge_armature.lockmode.bidirectional.title": "アバター <=====> オブジェクト (双方向)",
-  "merge_armature.lockmode.bidirectional.body": "アバターと統合されるアーマチュアは常に同じ位置になります。元のアバターを操作するアニメーションを作る時に便利かもしれません。なお、起動するには、すでに全く同位置にする必要があります。",
+  "merge_armature.lockmode.bidirectional.body": "アバターと統合されるアーマチュアは常に同じ位置になります。元のアバターを操作するアニメーションを作る時に便利かもしれません。有効にするためには、統合されるアーマチュアの位置を統合先と同じにしておく必要があります。",
   
   "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
   "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
