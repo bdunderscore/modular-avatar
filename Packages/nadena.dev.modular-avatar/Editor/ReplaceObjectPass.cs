@@ -123,7 +123,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                _buildContext.Extension<TrackObjectRenamesContext>()
+                _buildContext.Extension<AnimationServicesContext>().PathMappings
                     .ReplaceObject(original, replacement);
 
                 // Destroy original

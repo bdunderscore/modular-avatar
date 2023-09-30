@@ -190,15 +190,6 @@ namespace nadena.dev.modular_avatar.core.editor
             };
         }
 
-        public static bool IsTemporaryAsset(Object obj)
-        {
-            var path = AssetDatabase.GetAssetPath(obj);
-            var generatedAssetsFolder = OverridePath ?? generatedAssetsPath;
-
-            return !EditorUtility.IsPersistent(obj) || string.IsNullOrEmpty(path) ||
-                   path.StartsWith(generatedAssetsFolder + "/");
-        }
-
         public static Type FindType(string typeName)
         {
             Type avatarValidation = null;

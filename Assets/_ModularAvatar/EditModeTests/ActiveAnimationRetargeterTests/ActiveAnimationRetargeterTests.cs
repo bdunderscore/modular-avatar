@@ -9,15 +9,15 @@ using VRC.SDK3.Avatars.Components;
 public class ActiveAnimationRetargeterTests : TestBase
 {
     [Test]
-    public void SimpleRetarget() {
+    public void SimpleRetarget()
+    {
         var avatar = CreatePrefab("SimpleRetarget.prefab");
         var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
 
         // initialize context
         var buildContext = new BuildContext(descriptor);
-        var pathMappings = buildContext.PluginBuildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
-        new MergeAnimatorProcessor().OnPreprocessAvatar(avatar, buildContext); // we need this for AnimationDatabase
-        buildContext.AnimationDatabase.Bootstrap(descriptor);
+        var pathMappings = buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>()
+            .PathMappings;
 
         // get game objects
         var changedChild = avatar.transform.Find("Toggled/Child");

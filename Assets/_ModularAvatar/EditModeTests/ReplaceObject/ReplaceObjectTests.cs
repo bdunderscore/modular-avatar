@@ -11,13 +11,13 @@ namespace modular_avatar_tests.ReplaceObject
 {
     public class ReplaceObjectTests : TestBase
     {
-        private TrackObjectRenamesContext pathMappings;
+        private PathMappings pathMappings;
 
         void Process(GameObject root)
         {
             var avDesc = root.GetComponent<VRCAvatarDescriptor>();
             var buildContext = new nadena.dev.ndmf.BuildContext(avDesc, null);
-            pathMappings = buildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
+            pathMappings = buildContext.ActivateExtensionContext<AnimationServicesContext>().PathMappings;
             new ReplaceObjectPass(buildContext).Process();
         }
 

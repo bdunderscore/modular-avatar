@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly BuildContext _context;
         private readonly BoneDatabase _boneDatabase;
-        private readonly TrackObjectRenamesContext _pathMappings;
+        private readonly PathMappings _pathMappings;
         private readonly List<IntermediateObj> _intermediateObjs = new List<IntermediateObj>();
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _context = context;
             _boneDatabase = boneDatabase;
-            _pathMappings = context.PluginBuildContext.Extension<TrackObjectRenamesContext>();
+            _pathMappings = context.PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
 
             while (root != null && root.GetComponent<VRCAvatarDescriptor>() == null)
             {
@@ -74,7 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         Created = new List<GameObject>(),
                     });
                 }
-                
+
                 root = root.parent;
             }
 
@@ -132,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var holder in _context.AnimationDatabase.ClipsForPath(path))
                 {
-                    if (!Util.IsTemporaryAsset(holder.CurrentClip))
+                    if (!_context.PluginBuildContext.IsTemporaryAsset(holder.CurrentClip))
                     {
                         holder.CurrentClip = Object.Instantiate(holder.CurrentClip);
                     }
@@ -152,7 +152,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
         }
-        
+
         private AnimationCurve GetActiveBinding(AnimationClip clip, string path)
         {
             return AnimationUtility.GetEditorCurve(clip,

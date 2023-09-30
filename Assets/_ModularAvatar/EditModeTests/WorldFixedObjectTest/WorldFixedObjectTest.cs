@@ -14,10 +14,10 @@ public class WorldFixedObjectTest : TestBase
         var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
 
         var fixedObject = avatar.transform.Find("FixedObject");
-        
+
         // initialize context
         var buildContext = new BuildContext(descriptor);
-        buildContext.PluginBuildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
+        buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
         new WorldFixedObjectProcessor(descriptor).Process(buildContext);
 
@@ -32,7 +32,7 @@ public class WorldFixedObjectTest : TestBase
         Assert.That(movedFixedObject, Is.Not.Null);
         Assert.That(movedFixedObject, Is.EqualTo(fixedObject));
     }
-    
+
     [Test]
     public void NestedTest()
     {
@@ -41,10 +41,10 @@ public class WorldFixedObjectTest : TestBase
 
         var fixedObject = avatar.transform.Find("FixedObject");
         var nestedFixed = avatar.transform.Find("FixedObject/NestedFixed");
-        
+
         // initialize context
         var buildContext = new BuildContext(descriptor);
-        buildContext.PluginBuildContext.ActivateExtensionContext<TrackObjectRenamesContext>();
+        buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
         new WorldFixedObjectProcessor(descriptor).Process(buildContext);
 
