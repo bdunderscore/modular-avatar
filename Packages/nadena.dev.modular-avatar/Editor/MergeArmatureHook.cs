@@ -40,6 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private ndmf.BuildContext frameworkContext;
         private BuildContext context;
+        private VRCPhysBone[] physBones;
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
@@ -52,6 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             this.frameworkContext = context;
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
+            this.physBones = avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true);
 
             var mergeArmatures =
                 avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
@@ -338,7 +340,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         var targetObjectName = childName.Substring(config.prefix.Length,
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
-                        if (targetObject != null)
+                        // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
+                        if (targetObject != null && !IsAffectedByPhysBone(child))
                         {
                             childNewParent = targetObject.gameObject;
                             shouldZip = true;
@@ -348,6 +351,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 }
             }
+        }
+
+        private bool IsAffectedByPhysBone(Transform target)
+        {
+            return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) && !x.ignoreTransforms.Any(target.IsChildOf));
         }
 
         Transform FindOriginalParent(Transform merged)
