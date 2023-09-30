@@ -192,7 +192,7 @@ GameObject:
   - component: {fileID: 1963453281188716255}
   - component: {fileID: 23230439543150054}
   m_Layer: 0
-  m_Name: DuplicatePBStripping_objRef
+  m_Name: PreserveOutfitPB_SelfRootTransform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
