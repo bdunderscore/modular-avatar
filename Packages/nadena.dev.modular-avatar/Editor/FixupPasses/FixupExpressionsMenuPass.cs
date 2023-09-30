@@ -14,18 +14,18 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private const string DEFAULT_EXP_MENU_GUID = "024fb8ef5b3988c46b446863c92f4522";
         private const string DEFAULT_EXP_PARAM_GUID = "03a6d797deb62f0429471c4e17ea99a7";
-        
+
         internal static void FixupExpressionsMenu(BuildContext context)
         {
             context.AvatarDescriptor.customExpressions = true;
-            
+
             var expressionsMenu = context.AvatarDescriptor.expressionsMenu;
             if (expressionsMenu == null)
             {
                 var defaultExpMenu = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(
                     AssetDatabase.GUIDToAssetPath(DEFAULT_EXP_MENU_GUID)
                 );
-                
+
                 expressionsMenu = Object.Instantiate(defaultExpMenu);
                 context.AvatarDescriptor.expressionsMenu = expressionsMenu;
             }
@@ -35,20 +35,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 var defaultExpParam = AssetDatabase.LoadAssetAtPath<VRCExpressionParameters>(
                     AssetDatabase.GUIDToAssetPath(DEFAULT_EXP_PARAM_GUID)
                 );
-                
+
                 context.AvatarDescriptor.expressionParameters = Object.Instantiate(defaultExpParam);
             }
-            
+
             var parameters = context.AvatarDescriptor.expressionParameters.parameters
                              ?? new VRCExpressionParameters.Parameter[0];
-            var parameterNames = parameters.Select(p=> p.name).ToImmutableHashSet();
+            var parameterNames = parameters.Select(p => p.name).ToImmutableHashSet();
 
-            if (!Util.IsTemporaryAsset(expressionsMenu))
+            if (!context.PluginBuildContext.IsTemporaryAsset(expressionsMenu))
             {
                 expressionsMenu = context.CloneMenu(expressionsMenu);
                 context.AvatarDescriptor.expressionsMenu = expressionsMenu;
             }
-            
+
             // Walk menu recursively
             var visitedMenus = new HashSet<VRCExpressionsMenu>();
             var iconMapping = new Dictionary<Texture2D, Texture2D>();
@@ -68,7 +68,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         control.parameter.name = "";
                     }
 
-                    foreach (var subParam in control.subParameters ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>())
+                    foreach (var subParam in control.subParameters ??
+                                             Array.Empty<VRCExpressionsMenu.Control.Parameter>())
                     {
                         if (subParam != null &&
                             !string.IsNullOrEmpty(subParam.name) &&
@@ -93,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         for (int i = 0; i < control.labels.Length; i++)
                         {
                             var label = control.labels[i];
-                            
+
                             if (label.icon != null)
                             {
                                 if (!iconMapping.TryGetValue(label.icon, out var newIcon))
@@ -110,29 +111,29 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        #if UNITY_ANDROID
+#if UNITY_ANDROID
         private const TextureFormat TargetFormat = TextureFormat.ASTC_4x4;
-        #else
+#else
         private const TextureFormat TargetFormat = TextureFormat.DXT5;
-        #endif
-        
+#endif
+
         private static Texture2D MaybeScaleIcon(BuildContext context, Texture2D original)
         {
             if (original.width <= 256 && original.height <= 256 && IsCompressedFormat(original.format))
             {
                 return original;
             }
-            
+
             var newRatio = Math.Min(256f / original.width, 256f / original.height);
             var newWidth = Math.Min(256, Mathf.RoundToInt(original.width * newRatio));
             var newHeight = Math.Min(256, Mathf.RoundToInt(original.height * newRatio));
 
             var newTex = new Texture2D(newWidth, newHeight, TextureFormat.RGBA32, true);
             context.SaveAsset(newTex);
-            
+
             var tmpRenderTex = RenderTexture.GetTemporary(newWidth, newHeight, 0, RenderTextureFormat.ARGB32);
             var originalActiveRenderTex = RenderTexture.active;
-            
+
             try
             {
                 Graphics.Blit(original, tmpRenderTex);

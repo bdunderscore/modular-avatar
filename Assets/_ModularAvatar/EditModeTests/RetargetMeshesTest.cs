@@ -23,13 +23,13 @@ namespace modular_avatar_tests
 
             var build_context =
                 new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
-            var torc = new TrackObjectRenamesContext();
+            var torc = new AnimationServicesContext();
             torc.OnActivate(build_context);
 
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
 
-            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc);
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc.PathMappings);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
@@ -50,13 +50,13 @@ namespace modular_avatar_tests
 
             var build_context =
                 new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
-            var torc = new TrackObjectRenamesContext();
+            var torc = new AnimationServicesContext();
             torc.OnActivate(build_context);
 
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
 
-            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc);
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc.PathMappings);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
             Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)),

@@ -36,7 +36,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
-                seq.WithRequiredExtension(typeof(TrackObjectRenamesContext), _s2 =>
+                seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
@@ -45,8 +45,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         ctx => new WorldFixedObjectProcessor(ctx.AvatarDescriptor).Process(ctx)
                     );
                     seq.Run(ReplaceObjectPluginPass.Instance);
+                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
                 });
-                seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {
@@ -170,11 +170,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            // The animation database is currently only used by the merge armature hook; it should probably become
-            // an extension context instead.
-            MAContext(context).AnimationDatabase.Bootstrap(context.AvatarDescriptor);
             new MergeArmatureHook().OnPreprocessAvatar(context, context.AvatarRootObject);
-            MAContext(context).AnimationDatabase.Commit();
         }
     }
 

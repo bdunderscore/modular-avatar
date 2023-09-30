@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.Odbc;
+using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -8,28 +10,66 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
-namespace nadena.dev.modular_avatar.core.editor
+namespace nadena.dev.modular_avatar.animation
 {
+    /// <summary>
+    /// The animation database records the set of all clips which are used in the avatar, and which paths they
+    /// manipulate.
+    /// </summary>
     internal class AnimationDatabase
     {
         internal class ClipHolder
         {
-            internal Motion CurrentClip;
+            private readonly AnimationDatabase ParentDatabase;
+
+            private Motion _currentClip;
+
+            internal Motion CurrentClip
+            {
+                get
+                {
+                    ParentDatabase.InvalidateCaches();
+                    return _currentClip;
+                }
+                set
+                {
+                    ParentDatabase.InvalidateCaches();
+                    _currentClip = value;
+                }
+            }
+
             internal Motion OriginalClip { get; }
             internal readonly bool IsProxyAnimation;
 
-            internal ClipHolder(Motion clip)
+            internal ClipHolder(AnimationDatabase parentDatabase, Motion clip)
             {
+                ParentDatabase = parentDatabase;
                 CurrentClip = OriginalClip = clip;
                 IsProxyAnimation = clip != null && Util.IsProxyAnimation(clip);
             }
+
+            /// <summary>
+            /// Returns the current clip without invalidating caches. Do not modify this clip without taking extra
+            /// steps to invalidate caches on the AnimationDatabase.
+            /// </summary>
+            /// <returns></returns>
+            internal Motion GetCurrentClipUnsafe()
+            {
+                return _currentClip;
+            }
         }
+
+        private ndmf.BuildContext _context;
 
         private List<Action> _clipCommitActions = new List<Action>();
         private List<ClipHolder> _clips = new List<ClipHolder>();
 
-        private Dictionary<string, HashSet<ClipHolder>> _pathToClip =
-            new Dictionary<string, HashSet<ClipHolder>>();
+        private Dictionary<string, HashSet<ClipHolder>> _pathToClip = null;
+
+        internal AnimationDatabase()
+        {
+            Debug.Log("Creating animation database");
+        }
 
         internal void Commit()
         {
@@ -64,8 +104,14 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal void Bootstrap(VRCAvatarDescriptor avatarDescriptor)
+        internal void OnActivate(ndmf.BuildContext context)
         {
+            _context = context;
+
+            AnimationUtil.CloneAllControllers(context);
+
+            var avatarDescriptor = context.AvatarDescriptor;
+
             foreach (var layer in avatarDescriptor.baseAnimationLayers)
             {
                 BootstrapLayer(layer);
@@ -78,7 +124,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void BootstrapLayer(VRCAvatarDescriptor.CustomAnimLayer layer)
             {
-                if (!layer.isDefault && layer.animatorController is AnimatorController ac && Util.IsTemporaryAsset(ac))
+                if (!layer.isDefault && layer.animatorController is AnimatorController ac &&
+                    context.IsTemporaryAsset(ac))
                 {
                     BuildReport.ReportingObject(ac, () =>
                     {
@@ -108,7 +155,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
-            if (!Util.IsTemporaryAsset(state.motion))
+            if (!_context.IsTemporaryAsset(state.motion))
             {
                 // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
                 // animation, we'll restore the original in a later pass
@@ -139,6 +186,8 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <returns></returns>
         internal ImmutableArray<ClipHolder> ClipsForPath(string path)
         {
+            HydrateCaches();
+
             if (_pathToClip.TryGetValue(path, out var clips))
             {
                 return clips.ToImmutableArray();
@@ -158,7 +207,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (motion == null)
             {
-                return new ClipHolder(null);
+                return new ClipHolder(this, null);
             }
 
             if (originalToHolder.TryGetValue(motion, out var holder))
@@ -166,13 +215,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 return holder;
             }
 
+            InvalidateCaches();
+
             switch (motion)
             {
                 case AnimationClip clip:
                 {
-                    holder = new ClipHolder(clip);
+                    holder = new ClipHolder(this, clip);
                     processClip(holder);
-                    recordPaths(holder);
                     _clips.Add(holder);
                     break;
                 }
@@ -187,9 +237,26 @@ namespace nadena.dev.modular_avatar.core.editor
             return holder;
         }
 
+        private void InvalidateCaches()
+        {
+            _pathToClip = null;
+        }
+
+        private void HydrateCaches()
+        {
+            if (_pathToClip == null)
+            {
+                _pathToClip = new Dictionary<string, HashSet<ClipHolder>>();
+                foreach (var clip in _clips)
+                {
+                    recordPaths(clip);
+                }
+            }
+        }
+
         private void recordPaths(ClipHolder holder)
         {
-            var clip = holder.CurrentClip as AnimationClip;
+            var clip = holder.GetCurrentClipUnsafe() as AnimationClip;
 
             foreach (var binding in AnimationUtility.GetCurveBindings(clip))
             {
@@ -222,12 +289,12 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<Motion, ClipHolder> originalToHolder
         )
         {
-            if (!Util.IsTemporaryAsset(tree))
+            if (!_context.IsTemporaryAsset(tree))
             {
                 throw new Exception("Blendtree must be a temporary asset");
             }
 
-            var treeHolder = new ClipHolder(tree);
+            var treeHolder = new ClipHolder(this, tree);
 
             var children = tree.children;
             var holders = new ClipHolder[children.Length];

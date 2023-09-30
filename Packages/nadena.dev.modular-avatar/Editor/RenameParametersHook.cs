@@ -232,7 +232,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var queue = new Queue<AnimatorStateMachine>();
 
             // Deep clone the animator
-            if (!Util.IsTemporaryAsset(controller))
+            if (!_context.PluginBuildContext.IsTemporaryAsset(controller))
             {
                 controller = _context.DeepCloneAnimator(controller);
             }

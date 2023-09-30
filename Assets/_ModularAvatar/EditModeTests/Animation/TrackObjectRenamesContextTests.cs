@@ -18,7 +18,7 @@ namespace modular_avatar_tests
             var av = CreateRoot("root");
 
             var bc = CreateContext(av);
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
 
             toc.OnActivate(bc);
             toc.OnDeactivate(bc);
@@ -31,12 +31,12 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var a = CreateChild(root, "a");
 
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
             toc.OnActivate(CreateContext(root));
-            Assert.AreEqual("a", toc.MapPath("a"));
+            Assert.AreEqual("a", toc.PathMappings.MapPath("a"));
             a.name = "b";
-            toc.ClearCache();
-            Assert.AreEqual("b", toc.MapPath("a"));
+            toc.PathMappings.ClearCache();
+            Assert.AreEqual("b", toc.PathMappings.MapPath("a"));
         }
 
         [Test]
@@ -46,13 +46,13 @@ namespace modular_avatar_tests
             var a = CreateChild(root, "a");
             var b = CreateChild(root, "b");
 
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
             toc.OnActivate(CreateContext(root));
 
-            Assert.AreEqual("a", toc.MapPath("a"));
+            Assert.AreEqual("a", toc.PathMappings.MapPath("a"));
             a.transform.parent = b.transform;
-            toc.ClearCache();
-            Assert.AreEqual("b/a", toc.MapPath("a"));
+            toc.PathMappings.ClearCache();
+            Assert.AreEqual("b/a", toc.PathMappings.MapPath("a"));
         }
 
         [Test]
@@ -63,14 +63,14 @@ namespace modular_avatar_tests
             var b = CreateChild(a, "b");
             var c = CreateChild(b, "c");
 
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
             toc.OnActivate(CreateContext(root));
 
-            toc.MarkRemoved(b);
+            toc.PathMappings.MarkRemoved(b);
             c.transform.parent = a.transform;
             UnityObject.DestroyImmediate(b);
 
-            Assert.AreEqual("a/c", toc.MapPath("a/b/c"));
+            Assert.AreEqual("a/c", toc.PathMappings.MapPath("a/b/c"));
         }
 
         [Test]
@@ -82,14 +82,14 @@ namespace modular_avatar_tests
             var c = CreateChild(b, "c");
             var d = CreateChild(c, "d");
 
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
             toc.OnActivate(CreateContext(root));
 
-            toc.MarkTransformLookthrough(b);
-            toc.MarkTransformLookthrough(c);
-            Assert.AreEqual("a/b/c", toc.MapPath("a/b/c"));
-            Assert.AreEqual("a", toc.MapPath("a/b/c", true));
-            Assert.AreEqual("a/b/c/d", toc.MapPath("a/b/c/d", true));
+            toc.PathMappings.MarkTransformLookthrough(b);
+            toc.PathMappings.MarkTransformLookthrough(c);
+            Assert.AreEqual("a/b/c", toc.PathMappings.MapPath("a/b/c"));
+            Assert.AreEqual("a", toc.PathMappings.MapPath("a/b/c", true));
+            Assert.AreEqual("a/b/c/d", toc.PathMappings.MapPath("a/b/c/d", true));
         }
 
         [Test]
@@ -105,10 +105,10 @@ namespace modular_avatar_tests
             var oldIk = descriptor.specialAnimationLayers.First(l =>
                 l.type == VRCAvatarDescriptor.AnimLayerType.IKPose);
 
-            var toc = new TrackObjectRenamesContext();
+            var toc = new AnimationServicesContext();
             var buildContext = CreateContext(root);
             toc.OnActivate(buildContext);
-            toc.MarkTransformLookthrough(child);
+            toc.PathMappings.MarkTransformLookthrough(child);
 
             parent.name = "p2";
 

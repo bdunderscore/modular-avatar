@@ -12,6 +12,6 @@ namespace nadena.dev.modular_avatar.animation
     /// </summary>
     internal interface IOnCommitObjectRenames
     {
-        void OnCommitObjectRenames(BuildContext buildContext, TrackObjectRenamesContext renameContext);
+        void OnCommitObjectRenames(BuildContext buildContext, PathMappings renameContext);
     }
 }

@@ -84,10 +84,10 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class RetargetMeshes
     {
         private BoneDatabase _boneDatabase;
-        private TrackObjectRenamesContext _pathTracker;
+        private PathMappings _pathTracker;
 
         internal void OnPreprocessAvatar(GameObject avatarGameObject, BoneDatabase boneDatabase,
-            TrackObjectRenamesContext pathMappings)
+            PathMappings pathMappings)
         {
             this._boneDatabase = boneDatabase;
             this._pathTracker = pathMappings;

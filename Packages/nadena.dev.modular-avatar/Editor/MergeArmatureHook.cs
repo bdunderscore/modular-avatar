@@ -42,7 +42,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private BuildContext context;
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
-        private TrackObjectRenamesContext PathMappings => frameworkContext.Extension<TrackObjectRenamesContext>();
+        private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
+            .PathMappings;
 
         private HashSet<Transform> mergedObjects = new HashSet<Transform>();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();

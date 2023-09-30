@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace nadena.dev.modular_avatar.animation
                 if (!EditorUtility.IsPersistent(assetContainer) ||
                     string.IsNullOrEmpty(AssetDatabase.GetAssetPath(assetContainer)))
                 {
-                    Debug.Log("Nonpersistent asset container: " + assetContainer.name);
+                    // Debug.Log("Nonpersistent asset container: " + assetContainer.name);
                 }
                 else
                 {

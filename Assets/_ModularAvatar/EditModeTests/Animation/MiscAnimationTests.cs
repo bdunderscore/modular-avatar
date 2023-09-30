@@ -12,8 +12,8 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab("HighQualityCurvesSettingPreserved.prefab");
             var context = new BuildContext(prefab, null);
-            context.ActivateExtensionContext<TrackObjectRenamesContext>();
-            context.DeactivateExtensionContext<TrackObjectRenamesContext>();
+            context.ActivateExtensionContext<AnimationServicesContext>();
+            context.DeactivateExtensionContext<AnimationServicesContext>();
 
             var layer = findFxLayer(prefab, "Base Layer");
 

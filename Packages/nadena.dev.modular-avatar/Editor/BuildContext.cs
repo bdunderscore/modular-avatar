@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.animation;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -14,17 +15,23 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly nadena.dev.ndmf.BuildContext PluginBuildContext;
 
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
-        internal readonly AnimationDatabase AnimationDatabase = new AnimationDatabase();
+
+        internal AnimationDatabase AnimationDatabase =>
+            PluginBuildContext.Extension<AnimationServicesContext>().AnimationDatabase;
+
+        internal PathMappings PathMappings =>
+            PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
+
         internal UnityEngine.Object AssetContainer => PluginBuildContext.AssetContainer;
 
         private bool SaveImmediate = false;
 
         internal readonly Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> ClonedMenus
             = new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
-        
+
         public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
             ctx.Extension<ModularAvatarContext>().BuildContext;
-        
+
         /// <summary>
         /// This dictionary overrides the _original contents_ of ModularAvatarMenuInstallers. Notably, this does not
         /// replace the source menu for the purposes of identifying any other MAMIs that might install to the same
