@@ -14,6 +14,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private static readonly GUIStyle buttonStyle, labelStyle;
         private const float SeparatorSize = 6f;
 
+        internal static bool Suppress = false;
+
         static ESOErrorWindow()
         {
             buttonStyle = EditorStyles.miniButtonRight;
@@ -33,6 +35,8 @@ namespace nadena.dev.modular_avatar.core.editor
             string[] messageGroups
         )
         {
+            if (Suppress) return;
+
             var window = CreateInstance<ESOErrorWindow>();
             window.titleContent = new GUIContent("Setup Outfit");
             window.header = header;
@@ -99,14 +103,14 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal class EasySetupOutfit
+    internal static class EasySetupOutfit
     {
         private const int PRIORITY = 49;
         private static string[] errorMessageGroups;
         private static string errorHeader;
 
         [MenuItem("GameObject/ModularAvatar/Setup Outfit", false, PRIORITY)]
-        static void SetupOutfit(MenuCommand cmd)
+        internal static void SetupOutfit(MenuCommand cmd)
         {
             if (!ValidateSetupOutfit())
             {
@@ -130,6 +134,23 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
                 HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+
+                var avatarRootMatchingArmature = avatarRoot.transform.Find(outfitArmature.gameObject.name);
+                if (merge.prefix == "" && merge.suffix == "" && avatarRootMatchingArmature != null)
+                {
+                    // We have an armature whose names exactly match the root armature - this can cause some serious
+                    // confusion in Unity's humanoid armature matching system. Fortunately, we can avoid this by
+                    // renaming a bone close to the root; this will ensure the number of matching bones is small, and
+                    // Unity's heuristics (apparently) will choose the base avatar's armature as the "true" armature.
+                    outfitArmature.name += ".1";
+
+                    // Also make sure to refresh the avatar's animator humanoid bone cache.
+                    var avatarAnimator = avatarRoot.GetComponent<Animator>();
+                    var humanDescription = avatarAnimator.avatar;
+                    avatarAnimator.avatar = null;
+                    // ReSharper disable once Unity.InefficientPropertyAccess
+                    avatarAnimator.avatar = humanDescription;
+                }
             }
 
             if (outfitRoot != null
@@ -298,7 +319,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 };
                 return false;
             }
-            
+
             avatarHips = avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
 
             if (avatarHips == null)
@@ -334,7 +355,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 hipsCandidates.Add(avatarHips.name);
-                
+
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
                 {
