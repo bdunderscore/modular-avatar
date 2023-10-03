@@ -70,7 +70,7 @@ jobs:
 
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: always()                  # run this step even if previous step failed
+        if: failure()
         with:
           name: NUnit Tests           # Name of the check run which will be created
           path: ${{ steps.gameci.outputs.artifactsPath }}/*.xml   # Path to test results
