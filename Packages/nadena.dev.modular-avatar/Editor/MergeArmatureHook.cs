@@ -325,17 +325,10 @@ namespace nadena.dev.modular_avatar.core.editor
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
                         // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
-                        if (targetObject != null)
+                        if (targetObject != null && !IsAffectedByPhysBone(child))
                         {
-                            if (!IsAffectedByPhysBone(child))
-                            {
-                                childNewParent = targetObject.gameObject;
-                                shouldZip = true;
-                            }
-                            else if (IsHumanoidBone(targetObject))
-                            {
-                                BuildReport.LogFatal("error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
-                            }
+                            childNewParent = targetObject.gameObject;
+                            shouldZip = true;
                         }
                     }
 
@@ -347,23 +340,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool IsAffectedByPhysBone(Transform target)
         {
             return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) && !x.ignoreTransforms.Any(target.IsChildOf));
-        }
-
-        private bool IsHumanoidBone(Transform target)
-        {
-            var animator = target.GetComponentInParent<Animator>();
-            if (animator != null)
-            {
-                foreach (HumanBodyBones bone in Enum.GetValues(typeof(HumanBodyBones)))
-                {
-                    if (bone == HumanBodyBones.LastBone) continue;
-                    if (target == animator.GetBoneTransform(bone))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
     }
 }
