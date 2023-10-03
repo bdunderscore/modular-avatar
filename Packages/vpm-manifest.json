@@ -8,6 +8,15 @@
     },
     "nadena.dev.ndmf": {
       "version": "0.3.0"
+    },
+    "lyuma.av3emulator": {
+      "version": "3.2.2"
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "1.4.1"
+    },
+    "jp.suzuryg.face-emo": {
+      "version": "1.2.1"
     }
   },
   "locked": {
@@ -25,6 +34,22 @@
       "version": "3.8.4",
       "dependencies": {
         "com.vrchat.avatars": "3.1.x"
+      }
+    },
+    "lyuma.av3emulator": {
+      "version": "3.2.2",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.1.0 <3.4.0"
+      }
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "1.4.1",
+      "dependencies": {}
+    },
+    "jp.suzuryg.face-emo": {
+      "version": "1.2.1",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.1.9"
       }
     }
   }
