@@ -32,6 +32,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -44,6 +45,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
             .PathMappings;
+
+        private HashSet<Transform> mergedObjects = new HashSet<Transform>();
+        private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
 
         internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
@@ -158,7 +162,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             BuildReport.ReportingObject(config, () =>
             {
+                mergedObjects.Clear();
+                thisPassAdded.Clear();
                 MergeArmature(config, target);
+                PruneDuplicatePhysBones();
                 UnityEngine.Object.DestroyImmediate(config);
             });
         }
@@ -229,6 +236,8 @@ namespace nadena.dev.modular_avatar.core.editor
             RecursiveMerge(mergeArmature, mergeArmature.gameObject, mergeTargetObject, true);
 
             _activeRetargeter.FixupAnimations();
+
+            thisPassAdded.UnionWith(_activeRetargeter.AddedGameObjects.Select(x => x.transform));
         }
 
         /**
@@ -244,6 +253,12 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 // Error reported by validation framework
                 return;
+            }
+
+            if (zipMerge)
+            {
+                mergedObjects.Add(src.transform);
+                thisPassAdded.Add(src.transform);
             }
 
             bool retain = HasAdditionalComponents(src) || !zipMerge;
@@ -287,6 +302,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 BoneDatabase.AddMergedBone(mergedSrcBone.transform);
                 BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
                 PathMappings.MarkTransformLookthrough(mergedSrcBone);
+                thisPassAdded.Add(mergedSrcBone.transform);
             }
 
             src.transform.SetParent(mergedSrcBone.transform, true);
@@ -340,6 +356,52 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool IsAffectedByPhysBone(Transform target)
         {
             return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) && !x.ignoreTransforms.Any(target.IsChildOf));
+        }
+
+        Transform FindOriginalParent(Transform merged)
+        {
+            while (merged != null && thisPassAdded.Contains(merged)) merged = merged.parent;
+            return merged;
+        }
+
+        /**
+         * Sometimes outfit authors copy the entire armature, including PhysBones components. If we merge these and
+         * end up with multiple PB components referencing the same target, PB refuses to animate the bone. So detect
+         * and prune this case.
+         *
+         * TODO - detect duplicate colliders, contacts, et - these can cause perf issues but usually not quite as large
+         * of a correctness issue.
+         */
+        private void PruneDuplicatePhysBones()
+        {
+            foreach (var obj in mergedObjects)
+            {
+                if (obj.GetComponent<VRCPhysBone>() == null) continue;
+                var baseObj = FindOriginalParent(obj);
+                if (baseObj == null || baseObj.GetComponent<VRCPhysBone>() == null) continue;
+
+                HashSet<Transform> baseTargets = new HashSet<Transform>();
+                foreach (var component in baseObj.GetComponents<VRCPhysBone>())
+                {
+                    var target = component.rootTransform == null ? baseObj.transform : component.rootTransform;
+                    baseTargets.Add(target);
+                }
+
+                foreach (var component in obj.GetComponents<VRCPhysBone>())
+                {
+                    var target = component.rootTransform == null
+                        ? baseObj.transform
+                        : FindOriginalParent(component.rootTransform);
+                    if (baseTargets.Contains(target))
+                    {
+                        Object.DestroyImmediate(component);
+                    }
+                    else
+                    {
+                        BoneDatabase.RetainMergedBone(component.transform);
+                    }
+                }
+            }
         }
     }
 }
