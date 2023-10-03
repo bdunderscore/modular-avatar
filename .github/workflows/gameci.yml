@@ -26,7 +26,7 @@ name: GameCI
 
 on:
   push:
-    branches: [master, dev, 000/plugin]
+    branches: [master, dev, 000/plugin, failing-test]
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
@@ -67,14 +67,11 @@ jobs:
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames Tests
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: failure()                 # run this step even if previous step failed
-        with:
-          name: NUnit Tests           # Name of the check run which will be created
-          path: ${{ steps.gameci.outputs.artifactsPath }}/*.xml   # Path to test results
-          reporter: dotnet-trx        # Format of test results
+          
+      - name: List output files
+        run: |
+          echo path: ${{ steps.gameci.outputs.artifactsPath }}
+          ls -lR ${{ steps.gameci.outputs.artifactsPath }}
 
       - uses: actions/upload-artifact@v3
         if: always()
