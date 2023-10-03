@@ -68,14 +68,6 @@ jobs:
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames Tests
 
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: failure()                 # run this step even if previous step failed
-        with:
-          name: NUnit Tests           # Name of the check run which will be created
-          path: ${{ steps.gameci.outputs.artifactsPath }}/*.xml   # Path to test results
-          reporter: dotnet-trx        # Format of test results
-
       - uses: actions/upload-artifact@v3
         if: always()
         with:
