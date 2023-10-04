@@ -92,6 +92,7 @@
   "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。",
   "error.stack_trace": "スタックトレース（バグを報告する時は必ず添付してください！）",
   "error.merge_armature.merge_into_self": "Merge Armatureに自分自身のオブジェクト、もしくは自分の子をターゲットにしてしています。かわりにアバターのメインArmatureを指定してください。アバター自体のArmatureに追加しないでください。",
+  "error.merge_armature.physbone_on_humanoid_bone": "統合するArmatureのHumanoidボーンがPhysBoneによって制御されており、統合先の対応するHumanoidボーンと位置かPhysBoneの設定が異なるため、正しく統合できません。統合するArmatureの該当HumanoidボーンからPhysBoneを削除してください。",
   "error.internal_error": "内部エラーが発生しました：{0}\n以下のオブジェクトの処理中に発生しました：",
   "error.merge_animator.param_type_mismatch": "パラメーター {0} に複数の種別が設定されています: {1} != {2}",
   "error.rename_params.too_many_synced_params": "同期パラメーターが多すぎます。コスト{0}が制限値の{1}を超えています。",

@@ -46,6 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
             .PathMappings;
 
+        private HashSet<Transform> humanoidBones = new HashSet<Transform>();
         private HashSet<Transform> mergedObjects = new HashSet<Transform>();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
 
@@ -54,6 +55,14 @@ namespace nadena.dev.modular_avatar.core.editor
             this.frameworkContext = context;
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
             this.physBones = avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true);
+
+            if (avatarGameObject.TryGetComponent<Animator>(out var animator))
+            {
+                this.humanoidBones = new HashSet<Transform>(Enum.GetValues(typeof(HumanBodyBones))
+                    .Cast<HumanBodyBones>()
+                    .Where(x => x != HumanBodyBones.LastBone)
+                    .Select(animator.GetBoneTransform));
+            }
 
             var mergeArmatures =
                 avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
@@ -341,10 +350,26 @@ namespace nadena.dev.modular_avatar.core.editor
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
                         // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
-                        if (targetObject != null && !IsAffectedByPhysBone(child))
+                        // Also zip merge when it seems to have been copied from avatar side, including PhysBones.
+                        if (targetObject != null)
                         {
-                            childNewParent = targetObject.gameObject;
-                            shouldZip = true;
+                            if (!TryFindAffectingPhysBone(child, out var physBoneAffectingChild))
+                            {
+                                childNewParent = targetObject.gameObject;
+                                shouldZip = true;
+                            }
+                            else if (Vector3.SqrMagnitude(targetObject.position - child.position) < 0.00001f
+                                && TryFindAffectingPhysBone(targetObject, out var physBoneAffectingTarget)
+                                && ComparePhysBoneProperties(physBoneAffectingTarget, physBoneAffectingChild))
+                            {
+                                childNewParent = targetObject.gameObject;
+                                shouldZip = true;
+                            }
+                            else if (humanoidBones.Contains(targetObject))
+                            {
+                                BuildReport.LogFatal(
+                                    "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
+                            }
                         }
                     }
 
@@ -353,9 +378,39 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsAffectedByPhysBone(Transform target)
+        private bool TryFindAffectingPhysBone(Transform target, out VRCPhysBone physBone)
         {
-            return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) && !x.ignoreTransforms.Any(target.IsChildOf));
+            physBone = physBones.FirstOrDefault(x => target.IsChildOf(x.GetRootTransform())
+                && x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
+            return physBone != null;
+        }
+
+        private bool ComparePhysBoneProperties(VRCPhysBone physBoneA, VRCPhysBone physBoneB)
+        {
+            var serializedA = new SerializedObject(physBoneA);
+            var serializedB = new SerializedObject(physBoneB);
+
+            var propA = serializedA.GetIterator();
+            var enterChildren = true;
+            while (propA.Next(enterChildren))
+            {
+                enterChildren = propA.propertyType == SerializedPropertyType.Generic;
+
+                var propB = serializedB.FindProperty(propA.propertyPath);
+                switch (propA.propertyType)
+                {
+                    case SerializedPropertyType.Generic:
+                    case SerializedPropertyType.ObjectReference:
+                        break;
+                    case SerializedPropertyType.AnimationCurve:
+                        if (!propA.animationCurveValue.Equals(propB.animationCurveValue)) return false;
+                        break;
+                    default:
+                        if (!SerializedProperty.DataEquals(propA, propB)) return false;
+                        break;
+                }
+            }
+            return true;
         }
 
         Transform FindOriginalParent(Transform merged)
