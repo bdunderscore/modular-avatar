@@ -1,4 +1,8 @@
-﻿# Versioning policy
+﻿---
+sidebar_position: 1
+---
+
+# Versioning policy
 
 Modular Avatar subscribes to [Semantic Versioning](https://semver.org/). This means that:
 
