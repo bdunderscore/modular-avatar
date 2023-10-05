@@ -87,6 +87,11 @@ namespace nadena.dev.modular_avatar.core
             return RelativePath(avatar.gameObject, child);
         }
 
+        public static bool IsAvatarRoot(Transform target)
+        {
+            return ndmf.runtime.RuntimeUtil.IsAvatarRoot(target);
+        }
+
         public static VRCAvatarDescriptor FindAvatarInParents(Transform target)
         {
             while (target != null)
@@ -97,6 +102,11 @@ namespace nadena.dev.modular_avatar.core
             }
 
             return null;
+        }
+
+        public static Transform FindAvatarTransformInParents(Transform target)
+        {
+            return ndmf.runtime.RuntimeUtil.FindAvatarInParents(target);
         }
 
         public static void MarkDirty(UnityEngine.Object obj)
