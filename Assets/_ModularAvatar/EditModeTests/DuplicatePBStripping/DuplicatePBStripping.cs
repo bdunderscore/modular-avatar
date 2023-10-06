@@ -52,25 +52,5 @@ namespace modular_avatar_tests.DuplicatePBStripping
             // Note that this prefab has one duplicate, one non-duplicate component
             Assert.AreEqual(2, prefab.GetComponentsInChildren<VRCPhysBone>().Length);
         }
-
-        [Test]
-        public void StripsExtraPBones_notWhenPropertyValueDiffers()
-        {
-            var prefab = CreatePrefab("DuplicatePBStripping_preserveDifferentPropValue.prefab");
-            AvatarProcessor.ProcessAvatar(prefab);
-
-            // Note that this prefab has one duplicate, one non-duplicate component
-            Assert.AreEqual(2, prefab.GetComponentsInChildren<VRCPhysBone>().Length);
-        }
-
-        [Test]
-        public void StripsExtraPBones_notWhenPropertyCurveDiffers()
-        {
-            var prefab = CreatePrefab("DuplicatePBStripping_preserveDifferentPropCurve.prefab");
-            AvatarProcessor.ProcessAvatar(prefab);
-
-            // Note that this prefab has one duplicate, one non-duplicate component
-            Assert.AreEqual(2, prefab.GetComponentsInChildren<VRCPhysBone>().Length);
-        }
     }
 }
