@@ -105,7 +105,7 @@ namespace modular_avatar_tests.ReplaceObject
             BuildReport.Clear();
             Assert.Throws<Exception>(() =>
             {
-                using (BuildReport.CurrentReport.ReportingOnAvatar(root.GetComponent<VRCAvatarDescriptor>()))
+                using (BuildReport.CurrentReport.ReportingOnAvatar(root))
                 {
                     Process(root);
                 }
@@ -125,7 +125,7 @@ namespace modular_avatar_tests.ReplaceObject
             BuildReport.Clear();
             Assert.Throws<Exception>(() =>
             {
-                using (BuildReport.CurrentReport.ReportingOnAvatar(root.GetComponent<VRCAvatarDescriptor>()))
+                using (BuildReport.CurrentReport.ReportingOnAvatar(root))
                 {
                     Process(root);
                 }
