@@ -36,18 +36,6 @@ namespace nadena.dev.modular_avatar.core
     {
         internal static event Action OnChangeAction;
 
-        private void Awake()
-        {
-            if (!RuntimeUtil.isPlaying || this == null) return;
-            RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Awake, this);
-        }
-
-        private void Start()
-        {
-            if (!RuntimeUtil.isPlaying || this == null) return;
-            RuntimeUtil.OnDemandProcessAvatar(RuntimeUtil.OnDemandSource.Start, this);
-        }
-
         protected virtual void OnValidate()
         {
             if (RuntimeUtil.isPlaying) return;
