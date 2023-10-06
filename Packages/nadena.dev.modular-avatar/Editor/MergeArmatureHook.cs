@@ -38,6 +38,8 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MergeArmatureHook
     {
+        private const float DuplicatedBoneMaxSqrDistance = 0.001f * 0.001f;
+
         private ndmf.BuildContext frameworkContext;
         private BuildContext context;
         private VRCPhysBone[] physBones;
@@ -350,17 +352,11 @@ namespace nadena.dev.modular_avatar.core.editor
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
                         // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
-                        // Also zip merge when it seems to have been copied from avatar side, including PhysBones.
+                        // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            if (!TryFindAffectingPhysBone(child, out var physBoneAffectingChild))
-                            {
-                                childNewParent = targetObject.gameObject;
-                                shouldZip = true;
-                            }
-                            else if (Vector3.SqrMagnitude(targetObject.position - child.position) < 0.00001f
-                                && TryFindAffectingPhysBone(targetObject, out var physBoneAffectingTarget)
-                                && ComparePhysBoneProperties(physBoneAffectingTarget, physBoneAffectingChild))
+                            if (!IsAffectedByPhysBone(child) ||
+                                (targetObject.position - child.position).sqrMagnitude < DuplicatedBoneMaxSqrDistance)
                             {
                                 childNewParent = targetObject.gameObject;
                                 shouldZip = true;
@@ -378,39 +374,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool TryFindAffectingPhysBone(Transform target, out VRCPhysBone physBone)
+        private bool IsAffectedByPhysBone(Transform target)
         {
-            physBone = physBones.FirstOrDefault(x => target.IsChildOf(x.GetRootTransform())
-                && x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
-            return physBone != null;
-        }
-
-        private bool ComparePhysBoneProperties(VRCPhysBone physBoneA, VRCPhysBone physBoneB)
-        {
-            var serializedA = new SerializedObject(physBoneA);
-            var serializedB = new SerializedObject(physBoneB);
-
-            var propA = serializedA.GetIterator();
-            var enterChildren = true;
-            while (propA.Next(enterChildren))
-            {
-                enterChildren = propA.propertyType == SerializedPropertyType.Generic;
-
-                var propB = serializedB.FindProperty(propA.propertyPath);
-                switch (propA.propertyType)
-                {
-                    case SerializedPropertyType.Generic:
-                    case SerializedPropertyType.ObjectReference:
-                        break;
-                    case SerializedPropertyType.AnimationCurve:
-                        if (!propA.animationCurveValue.Equals(propB.animationCurveValue)) return false;
-                        break;
-                    default:
-                        if (!SerializedProperty.DataEquals(propA, propB)) return false;
-                        break;
-                }
-            }
-            return true;
+            return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) &&
+                x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
         }
 
         Transform FindOriginalParent(Transform merged)
