@@ -57,7 +57,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _boneDatabase = boneDatabase;
             _pathMappings = context.PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
 
-            while (root != null && root.GetComponent<VRCAvatarDescriptor>() == null)
+            while (root != null && !RuntimeUtil.IsAvatarRoot(root))
             {
                 var originalPath = RuntimeUtil.AvatarRootPath(root.gameObject);
                 System.Diagnostics.Debug.Assert(originalPath != null);

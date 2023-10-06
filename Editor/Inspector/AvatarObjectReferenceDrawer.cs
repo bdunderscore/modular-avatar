@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -34,15 +33,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
             try
             {
-                var avatar = findContainingAvatar(property);
-                if (avatar == null) return false;
+                var avatarTransform = findContainingAvatarTransform(property);
+                if (avatarTransform == null) return false;
 
                 bool isRoot = property.stringValue == AvatarObjectReference.AVATAR_ROOT;
                 bool isNull = string.IsNullOrEmpty(property.stringValue);
                 Transform target;
                 if (isNull) target = null;
-                else if (isRoot) target = avatar.transform;
-                else target = avatar.transform.Find(property.stringValue);
+                else if (isRoot) target = avatarTransform;
+                else target = avatarTransform.Find(property.stringValue);
 
                 var labelRect = position;
                 position = EditorGUI.PrefixLabel(position, label);
@@ -62,14 +61,14 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 property.stringValue = "";
                             }
-                            else if (newTarget == avatar.transform)
+                            else if (newTarget == avatarTransform)
                             {
                                 property.stringValue = AvatarObjectReference.AVATAR_ROOT;
                             }
                             else
                             {
                                 var relPath =
-                                    RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
+                                    RuntimeUtil.RelativePath(avatarTransform.gameObject, ((Transform) newTarget).gameObject);
                                 if (relPath == null) return true;
 
                                 property.stringValue = relPath;
@@ -93,14 +92,14 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 property.stringValue = "";
                             }
-                            else if (newTarget == avatar.transform)
+                            else if (newTarget == avatarTransform)
                             {
                                 property.stringValue = AvatarObjectReference.AVATAR_ROOT;
                             }
                             else
                             {
                                 var relPath =
-                                    RuntimeUtil.RelativePath(avatar.gameObject, ((Transform) newTarget).gameObject);
+                                    RuntimeUtil.RelativePath(avatarTransform.gameObject, ((Transform) newTarget).gameObject);
                                 if (relPath == null) return true;
 
                                 property.stringValue = relPath;
@@ -122,12 +121,12 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private static VRCAvatarDescriptor findContainingAvatar(SerializedProperty property)
+        private static Transform findContainingAvatarTransform(SerializedProperty property)
         {
             // Find containing object, and from that the avatar
             if (property.serializedObject == null) return null;
 
-            VRCAvatarDescriptor commonAvatar = null;
+            Transform commonAvatar = null;
             var targets = property.serializedObject.targetObjects;
             for (int i = 0; i < targets.Length; i++)
             {
@@ -135,7 +134,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (obj == null) return null;
 
                 var transform = obj.transform;
-                var avatar = RuntimeUtil.FindAvatarInParents(transform);
+                var avatar = RuntimeUtil.FindAvatarTransformInParents(transform);
 
                 if (i == 0)
                 {

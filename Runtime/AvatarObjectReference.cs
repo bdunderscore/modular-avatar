@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -72,7 +71,7 @@ namespace nadena.dev.modular_avatar.core
             {
                 referencePath = "";
             }
-            else if (target.GetComponent<VRCAvatarDescriptor>() != null)
+            else if (RuntimeUtil.IsAvatarRoot(target.transform))
             {
                 referencePath = AVATAR_ROOT;
             }

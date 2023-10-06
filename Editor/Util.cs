@@ -29,7 +29,6 @@ using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Object = UnityEngine.Object;
 
@@ -238,7 +237,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var component = ptr.GetComponent<T>();
                 if (component != null) yield return component;
-                if (ptr.GetComponent<VRCAvatarDescriptor>() != null) break;
+                if (RuntimeUtil.IsAvatarRoot(ptr)) break;
                 ptr = ptr.parent;
             }
         }
