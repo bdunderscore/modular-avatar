@@ -19,7 +19,7 @@ public class WorldFixedObjectTest : TestBase
         var buildContext = new BuildContext(descriptor);
         buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
-        new WorldFixedObjectProcessor(descriptor).Process(buildContext);
+        new WorldFixedObjectProcessor().Process(buildContext);
 
         var fixedRoot = avatar.transform.Find("(MA WorldFixedRoot)");
         var movedFixedObject = avatar.transform.Find("(MA WorldFixedRoot)/FixedObject");
@@ -46,7 +46,7 @@ public class WorldFixedObjectTest : TestBase
         var buildContext = new BuildContext(descriptor);
         buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
-        new WorldFixedObjectProcessor(descriptor).Process(buildContext);
+        new WorldFixedObjectProcessor().Process(buildContext);
 
         var fixedRoot = avatar.transform.Find("(MA WorldFixedRoot)");
         var movedFixedObject = avatar.transform.Find("(MA WorldFixedRoot)/FixedObject");

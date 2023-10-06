@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
                     seq.Run("World Fixed Object",
-                        ctx => new WorldFixedObjectProcessor(ctx.AvatarDescriptor).Process(ctx)
+                        ctx => new WorldFixedObjectProcessor().Process(ctx)
                     );
                     seq.Run(ReplaceObjectPluginPass.Instance);
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
