@@ -44,12 +44,24 @@ namespace modular_avatar_tests.DuplicatePBStripping
         }
 
         [Test]
-        public void StripsExtraPBones_notWhenPositionDiffers()
+        public void StripsExtraPBones_near()
         {
-            var prefab = CreatePrefab("DuplicatePBStripping_preserveDifferentPosition.prefab");
+            var prefab = CreatePrefab("DuplicatePBStripping_near.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
 
-            // Note that this prefab has one duplicate, one non-duplicate component
+            // Note that this prefab has a pair of PhysBones whose names match and are just 1mm apart.
+            // They should be merged because some outfit authors copy the entire armature, including PhysBones.
+            Assert.AreEqual(1, prefab.GetComponentsInChildren<VRCPhysBone>().Length);
+        }
+
+        [Test]
+        public void StripsExtraPBones_far()
+        {
+            var prefab = CreatePrefab("DuplicatePBStripping_far.prefab");
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            // Note that this prefab has a pair of PhysBones whose names match but are more than 1mm apart.
+            // They should not be merged to preserve intentionally attached PhysBone, which is not copied from the avatar.
             Assert.AreEqual(2, prefab.GetComponentsInChildren<VRCPhysBone>().Length);
         }
     }
