@@ -356,7 +356,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (targetObject != null)
                         {
                             if (!IsAffectedByPhysBone(child) ||
-                                (targetObject.position - child.position).sqrMagnitude < DuplicatedBoneMaxSqrDistance)
+                                (targetObject.position - child.position).sqrMagnitude <= DuplicatedBoneMaxSqrDistance)
                             {
                                 childNewParent = targetObject.gameObject;
                                 shouldZip = true;
