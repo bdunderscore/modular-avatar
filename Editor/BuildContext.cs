@@ -15,6 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly nadena.dev.ndmf.BuildContext PluginBuildContext;
 
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
+        internal GameObject AvatarRootObject => PluginBuildContext.AvatarRootObject;
         internal Transform AvatarRootTransform => PluginBuildContext.AvatarRootTransform;
 
         internal AnimationDatabase AnimationDatabase =>

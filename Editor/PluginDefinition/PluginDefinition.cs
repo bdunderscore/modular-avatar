@@ -202,7 +202,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
+            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(MAContext(context));
         }
     }
 
