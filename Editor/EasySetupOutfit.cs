@@ -280,16 +280,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 // descriptors when transplanting outfits. Block this (and require that there be only one avdesc) by
                 // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
                 // the avdesc object itself)
-                var nearestAvatar = RuntimeUtil.FindAvatarInParents(xform);
-                if (nearestAvatar == null || nearestAvatar.transform == xform)
+                var nearestAvatarTransform = RuntimeUtil.FindAvatarTransformInParents(xform);
+                if (nearestAvatarTransform == null || nearestAvatarTransform == xform)
                 {
                     errorMessageGroups = new string[]
                         {S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name)};
                     return false;
                 }
 
-                var parent = nearestAvatar.transform.parent;
-                if (parent != null && RuntimeUtil.FindAvatarInParents(parent) != null)
+                var parent = nearestAvatarTransform.parent;
+                if (parent != null && RuntimeUtil.FindAvatarTransformInParents(parent) != null)
                 {
                     errorMessageGroups = new string[]
                     {
@@ -308,7 +308,7 @@ namespace nadena.dev.modular_avatar.core.editor
             avatarHips = outfitHips = null;
             var outfitRoot = obj as GameObject;
             avatarRoot = outfitRoot != null
-                ? RuntimeUtil.FindAvatarInParents(outfitRoot.transform)?.gameObject
+                ? RuntimeUtil.FindAvatarTransformInParents(outfitRoot.transform)?.gameObject
                 : null;
 
             if (avatarRoot == null)

@@ -180,9 +180,8 @@ namespace nadena.dev.modular_avatar.core.editor
         [CanBeNull]
         public Mesh Retarget()
         {
-            var avatar = RuntimeUtil.FindAvatarInParents(renderer.transform);
-            if (avatar == null) throw new System.Exception("Could not find avatar in parents of " + renderer.name);
-            var avatarTransform = avatar.transform;
+            var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(renderer.transform);
+            if (avatarTransform == null) throw new System.Exception("Could not find avatar in parents of " + renderer.name);
 
             var avPos = avatarTransform.position;
             var avRot = avatarTransform.rotation;

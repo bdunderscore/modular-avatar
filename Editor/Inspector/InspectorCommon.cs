@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var target = targets[0] as Component;
             if (target == null) return;
 
-            if (RuntimeUtil.FindAvatarInParents(target.transform) == null)
+            if (RuntimeUtil.FindAvatarTransformInParents(target.transform) == null)
             {
                 EditorGUILayout.HelpBox(Localization.S("hint.not_in_avatar"), MessageType.Warning);
             }

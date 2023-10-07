@@ -356,7 +356,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config)
         {
-            var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarInParents(config.transform));
+            var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarTransformInParents(config.transform));
             if (target == null) return;
 
             Traverse(config.transform, target.transform);
