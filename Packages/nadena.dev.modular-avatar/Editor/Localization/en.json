@@ -168,7 +168,7 @@
   "setup_outfit.err.unknown": "Unknown error",
   "setup_outfit.err.no_selection": "No object selected.",
   "setup_outfit.err.multiple_avatar_descriptors": "Multiple avatar descriptors found in {0} and its parents.",
-  "setup_outfit.err.no_avatar_descriptor": "No avatar descriptor found in {0} or its parents.",
+  "setup_outfit.err.no_avatar_descriptor": "No avatar descriptor found in {0}'s parents. Make sure your outfit is placed inside your avatar.",
   "setup_outfit.err.no_animator": "Your avatar does not have an Animator component.",
   "setup_outfit.err.no_hips": "Your avatar does not have a Hips bone. Setup Outfit only works on humanoid avatars.",
   "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:",

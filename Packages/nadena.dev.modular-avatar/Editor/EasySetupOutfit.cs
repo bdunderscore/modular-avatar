@@ -310,6 +310,15 @@ namespace nadena.dev.modular_avatar.core.editor
             avatarRoot = outfitRoot != null
                 ? RuntimeUtil.FindAvatarInParents(outfitRoot.transform)?.gameObject
                 : null;
+
+            if (avatarRoot == null)
+            {
+                errorMessageGroups = new string[]
+                {
+                    S_f("setup_outfit.err.no_avatar_descriptor", outfitRoot != null ? outfitRoot.name : "<null>")
+                };
+            }
+
             if (outfitRoot == null || avatarRoot == null) return false;
 
             var avatarAnimator = avatarRoot.GetComponent<Animator>();
