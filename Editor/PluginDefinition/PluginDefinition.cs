@@ -186,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            new VisibleHeadAccessoryProcessor(context.AvatarDescriptor).Process(MAContext(context));
+            new VisibleHeadAccessoryProcessor(MAContext(context)).Process();
         }
     }
 

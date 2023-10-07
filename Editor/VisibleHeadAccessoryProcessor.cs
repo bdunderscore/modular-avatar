@@ -2,7 +2,6 @@
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 using UnityEngine.Animations;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -19,21 +18,23 @@ namespace nadena.dev.modular_avatar.core.editor
             InPhysBoneChain
         }
 
-        private VRCAvatarDescriptor _avatar;
+        private BuildContext _context;
+        private Transform _avatarTransform;
         private HashSet<Transform> _activeBones = new HashSet<Transform>();
         private Transform _headBone;
 
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
         private Transform _proxyHead;
 
-        public VisibleHeadAccessoryProcessor(VRCAvatarDescriptor avatar)
+        public VisibleHeadAccessoryProcessor(BuildContext context)
         {
-            _avatar = avatar;
+            _context = context;
+            _avatarTransform = context.AvatarRootTransform;
 
-            var animator = avatar.GetComponent<Animator>();
+            var animator = _avatarTransform.GetComponent<Animator>();
             _headBone = animator != null ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
 
-            foreach (var physBone in avatar.GetComponentsInChildren<VRCPhysBone>(true))
+            foreach (var physBone in _avatarTransform.GetComponentsInChildren<VRCPhysBone>(true))
             {
                 var boneRoot = physBone.rootTransform != null ? physBone.rootTransform : physBone.transform;
                 var ignored = new HashSet<Transform>(physBone.ignoreTransforms);
@@ -56,11 +57,11 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void Process(BuildContext context)
+        public void Process()
         {
             bool didWork = false;
 
-            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
+            foreach (var target in _avatarTransform.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
             {
                 var w = BuildReport.ReportingObject(target, () => Process(target));
                 didWork = didWork || w;
@@ -69,10 +70,10 @@ namespace nadena.dev.modular_avatar.core.editor
             if (didWork)
             {
                 // Process meshes
-                foreach (var smr in _avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                foreach (var smr in _avatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     BuildReport.ReportingObject(smr,
-                        () => new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(context));
+                        () => new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(_context));
                 }
             }
         }

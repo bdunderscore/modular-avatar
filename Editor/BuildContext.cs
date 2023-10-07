@@ -51,6 +51,11 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
+        public BuildContext(GameObject avatarGameObject)
+            : this(new ndmf.BuildContext(avatarGameObject, null))
+        {
+        }
+
         public void SaveAsset(Object obj)
         {
             if (!SaveImmediate || AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) return;
