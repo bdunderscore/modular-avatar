@@ -33,16 +33,16 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.OnHierarchyChanged -= InvalidateCache;
             RuntimeUtil.OnHierarchyChanged += InvalidateCache;
 
-            var avatar = RuntimeUtil.FindAvatarInParents(container.transform);
-            if (avatar == null) return (_cachedReference = null);
+            var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(container.transform);
+            if (avatarTransform == null) return (_cachedReference = null);
 
             if (referencePath == AVATAR_ROOT)
             {
-                _cachedReference = avatar.gameObject;
+                _cachedReference = avatarTransform.gameObject;
                 return _cachedReference;
             }
 
-            _cachedReference = avatar.transform.Find(referencePath)?.gameObject;
+            _cachedReference = avatarTransform.Find(referencePath)?.gameObject;
             if (_cachedReference == null) return null;
             
             // https://github.com/bdunderscore/modular-avatar/issues/308

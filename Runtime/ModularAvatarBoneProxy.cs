@@ -160,20 +160,20 @@ namespace nadena.dev.modular_avatar.core
                 return null;
             }
 
-            var avatar = RuntimeUtil.FindAvatarInParents(transform);
-            if (avatar == null) return null;
+            var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(transform);
+            if (avatarTransform == null) return null;
 
             if (subPath == "$$AVATAR")
             {
-                return avatar.transform;
+                return avatarTransform;
             }
 
             if (boneReference == HumanBodyBones.LastBone)
             {
-                return avatar.transform.Find(subPath);
+                return avatarTransform.Find(subPath);
             }
 
-            var animator = avatar.GetComponent<Animator>();
+            var animator = avatarTransform.GetComponent<Animator>();
             if (animator == null) return null;
             var bone = animator.GetBoneTransform(boneReference);
             if (bone == null) return null;
@@ -183,9 +183,9 @@ namespace nadena.dev.modular_avatar.core
 
         private void UpdateStaticMapping(Transform newTarget)
         {
-            var avatar = RuntimeUtil.FindAvatarInParents(transform);
+            var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(transform);
             var humanBones = new Dictionary<Transform, HumanBodyBones>();
-            var animator = avatar.GetComponent<Animator>();
+            var animator = avatarTransform.GetComponent<Animator>();
             if (animator == null)
             {
                 return;
@@ -200,7 +200,6 @@ namespace nadena.dev.modular_avatar.core
             }
 
             Transform iter = newTarget;
-            Transform avatarTransform = avatar.transform;
 
             if (newTarget == avatarTransform)
             {
