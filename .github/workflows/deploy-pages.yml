@@ -5,7 +5,12 @@ on:
       - ci
       - main
       - dev
-  workflow_dispatch: 
+  workflow_dispatch:
+  release:
+    types:
+      - released
+      - unpublished
+      - edited
 
 permissions:
   contents: read
