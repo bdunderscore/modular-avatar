@@ -103,6 +103,9 @@ jobs:
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
         name: Resolve VPM packages
         if: ${{ matrix.sdk == 'vrcsdk' && steps.setup.outputs.should_test == 'true' }}
+        with:
+          repos: |
+            https://vpm.nadena.dev/vpm-prerelease.json
 
       - if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: "Debug: List project contents"
