@@ -68,7 +68,7 @@ jobs:
 
       - name: Create Zip
         run: |
-          zip ".github/${{env.zipFile}}" ./* -x .github .git '.git/*' '*~/*' '*.ps1*'
+          zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
           mv ".github/${{env.zipFile}}" "${{env.zipFile}}"
 
       - uses: actions/upload-artifact@v3
