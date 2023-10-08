@@ -79,9 +79,13 @@ jobs:
           if [ -e docs~/robots.txt ]; then
             cp docs~/robots.txt docs~/build/robots.txt
           fi
+          
+      - name: Package documentation
+        run: |
+          tar -cf docs.tar -C docs~/build .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact || 'docs' }}
-          path: docs~/build
+          path: docs.tar
