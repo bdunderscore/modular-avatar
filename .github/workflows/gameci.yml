@@ -90,8 +90,8 @@ jobs:
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: Prepare project
         run: |
-          mkdir .github/ProjectRoot/Packages/nadena.dev.ndmf -p
-          mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
+          mkdir .github/ProjectRoot/Packages/nadena.dev.modular-avatar -p
+          mv * .github/ProjectRoot/Packages/nadena.dev.modular-avatar
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.modular-avatar/UnitTests~' 'Packages/nadena.dev.modular-avatar/UnitTests'
           for i in packages-lock manifest; do
