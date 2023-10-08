@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - refactor-structure
     tags:
       - '**'
 
@@ -25,12 +26,12 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           repository: bdunderscore/modular-avatar-images
-          path: image-assets
+          path: .github/image-assets
       - name: Inject logo assets
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          cp -f image-assets/img/logo/ma_logo.png Packages/${{env.packageName}}/Editor/Images/logo.png
-          cp -f image-assets/img/logo/ma_icon.png Packages/${{env.packageName}}/Runtime/Icons/Icon_MA_Script.png
+          cp -f .github/image-assets/img/logo/ma_logo.png Editor/Images/logo.png
+          cp -f .github/image-assets/img/logo/ma_icon.png Runtime/Icons/Icon_MA_Script.png
 
       - name: Check semver syntax
         id: semver-check
@@ -47,7 +48,7 @@ jobs:
         id: version
         uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8
         with:
-          path: "Packages/${{env.packageName}}/package.json"
+          path: "package.json"
           prop_path: "version"
           
       - name: Check tag consistency
@@ -66,27 +67,14 @@ jobs:
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
-        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
-        with:
-          type: "zip"
-          directory: "Packages/${{env.packageName}}/"
-          filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
+        run: |
+          zip ".github/${{env.zipFile}}" ./* -x .github .git '.git/*' '*~/*' '*.ps1*'
+          mv ".github/${{env.zipFile}}" "${{env.zipFile}}"
 
       - uses: actions/upload-artifact@v3
         with:
           name: package-zip
           path: ${{ env.zipFile }}
-#
-#      - name: Create unitypackage
-#        uses: anatawa12/sh-actions/create-unitypackage@cf32b535acd8f4f05a0eb03e0851264122f98f62
-#        with:
-#          output-path: ${{ env.unityPackage }}
-#          package-path: Packages/${{ env.packageName }}
-#
-#      - uses: actions/upload-artifact@v3
-#        with:
-#          name: unitypackage
-#          path: ${{ env.unityPackage }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
