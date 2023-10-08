@@ -42,7 +42,7 @@ jobs:
           path: modular-avatar-images
       - name: Install logo assets
         run: |
-          cp -Rv modular-avatar-images/img/* docs/static/img
+          cp -Rv modular-avatar-images/img/* docs~/static/img
           
       - name: Setup yarn 2.0
         run: |
