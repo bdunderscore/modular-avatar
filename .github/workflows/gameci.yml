@@ -132,7 +132,7 @@ jobs:
           unityVersion: ${{ matrix.unity_version }}
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
-          customParameters: -nographics -assemblyNames nadena.dev.ndmf.UnitTests
+          customParameters: -nographics -assemblyNames Tests
           checkName: ${{ steps.setup.outputs.check_name }}
 
       # For our main "supported" platforms, we report the conclusion of gameci as-is. However, for standalone, we report
