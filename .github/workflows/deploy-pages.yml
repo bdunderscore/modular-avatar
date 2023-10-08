@@ -83,6 +83,12 @@ jobs:
         run: |
           ls -lR docs/build
 
+      - name: Unpack documentation
+        run: |
+          tar -xf docs/build/docs.tar -C docs/build
+          tar -xf docs/build/dev/docs.tar -C docs/build/dev
+          rm -f docs/build/docs.tar docs/build/dev/docs.tar
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
