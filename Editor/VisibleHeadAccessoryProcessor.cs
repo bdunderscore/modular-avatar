@@ -2,7 +2,10 @@
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 using UnityEngine.Animations;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Dynamics.PhysBone.Components;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -34,6 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var animator = _avatarTransform.GetComponent<Animator>();
             _headBone = animator != null ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
 
+#if MA_VRCSDK3_AVATARS
             foreach (var physBone in _avatarTransform.GetComponentsInChildren<VRCPhysBone>(true))
             {
                 var boneRoot = physBone.rootTransform != null ? physBone.rootTransform : physBone.transform;
@@ -55,6 +59,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     Traverse(child, ignored);
                 }
             }
+#endif
         }
 
         public void Process()

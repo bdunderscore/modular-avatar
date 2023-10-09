@@ -4,7 +4,6 @@ using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
