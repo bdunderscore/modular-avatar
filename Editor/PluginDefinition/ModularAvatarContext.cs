@@ -21,8 +21,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnDeactivate(ndmf.BuildContext context)
         {
-            toDispose?.Dispose();
-            toDispose = null;
+            try
+            {
+                toDispose?.Dispose();
+                toDispose = null;
+            }
+            catch (Exception e)
+            {
+                ErrorReportUI.OpenErrorReportUI();
+                throw e;
+            }
         }
     }
 }
