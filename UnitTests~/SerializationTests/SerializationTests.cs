@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.modular_avatar.core;
@@ -65,3 +67,5 @@ namespace _ModularAvatar.EditModeTests.SerializationTests
         }
     }
 }
+
+#endif

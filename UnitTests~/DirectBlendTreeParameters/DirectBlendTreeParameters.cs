@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core.editor;
+﻿#if MA_VRCSDK3_AVATARS
+
+using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor.Animations;
 
@@ -24,3 +26,5 @@ namespace modular_avatar_tests.DirectBlendTreeParameters
         }
     }
 }
+
+#endif

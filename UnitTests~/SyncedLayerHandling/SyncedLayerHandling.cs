@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core.editor;
+﻿#if MA_VRCSDK3_AVATARS
+
+using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using VRC.SDK3.Avatars.Components;
 
@@ -95,3 +97,5 @@ namespace modular_avatar_tests.SyncedLayerHandling
         }
     }
 }
+
+#endif
