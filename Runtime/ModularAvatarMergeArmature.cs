@@ -131,6 +131,8 @@ namespace nadena.dev.modular_avatar.core
 
         private List<(Transform, Transform)> GetBonesForLock()
         {
+            if (this == null) return null;
+            
             var mergeRoot = this.transform;
             var baseRoot = mergeTarget.Get(this);
 
