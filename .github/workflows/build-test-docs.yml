@@ -1,6 +1,9 @@
 name: Build documentation
 
 on:
+  push:
+    branches:
+      - refactor-structure
   pull_request:
   workflow_call:
     inputs:
@@ -39,7 +42,7 @@ jobs:
           path: modular-avatar-images
       - name: Install logo assets
         run: |
-          cp -Rv modular-avatar-images/img/* docs/static/img
+          cp -Rv modular-avatar-images/img/* docs~/static/img
           
       - name: Setup yarn 2.0
         run: |
@@ -48,7 +51,7 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "dir=$(cd docs; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(cd docs~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
     
       - uses: actions/cache@v3
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
@@ -61,24 +64,28 @@ jobs:
       - name: Set baseUri
         if: ${{ inputs.path }}
         run: |
-          BASEURL="/${{ inputs.path }}/" perl -i -p -e "s{baseUrl: '/'}{baseUrl: '\$ENV{BASEURL}'}" docs/docusaurus.config.js
-          cat docs/docusaurus.config.js
+          BASEURL="/${{ inputs.path }}/" perl -i -p -e "s{baseUrl: '/'}{baseUrl: '\$ENV{BASEURL}'}" docs~/docusaurus.config.js
+          cat docs~/docusaurus.config.js
 
       - name: Build docs
         run: |
-          cd docs
+          cd docs~
           yarn install --immutable
           yarn build
           ls -lR build
 
       - name: Set robots.txt
         run: |
-          if [ -e docs/robots.txt ]; then
-            cp docs/robots.txt docs/build/robots.txt
+          if [ -e docs~/robots.txt ]; then
+            cp docs~/robots.txt docs~/build/robots.txt
           fi
+          
+      - name: Package documentation
+        run: |
+          tar -cf docs.tar -C docs~/build .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact || 'docs' }}
-          path: docs/build
+          path: docs.tar

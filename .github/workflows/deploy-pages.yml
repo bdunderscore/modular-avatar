@@ -2,10 +2,12 @@ name: Deploy documentation
 on:
   push:
     branches:
-      - ci
       - main
-      - dev
-  workflow_dispatch: 
+      - docs-snapshot
+  workflow_dispatch: {}
+  release:
+    types:
+      - released
 
 permissions:
   contents: read
@@ -17,17 +19,36 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
-  get_latest_release:
-    name: Get latest release
-    uses: bdunderscore/modular-avatar/.github/workflows/get-latest-release.yml@main
+  snapshot-docs:
+    name: Snapshot documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        # Run on releases only
+        if: ${{ github.event.release }}
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Merge with existing branch
+        # Run on releases only
+        if: ${{ github.event.release }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@nadena.dev"
+          git merge -s ours origin/docs-snapshot
+          git push origin HEAD:docs-snapshot
   
   build-docs:
     name: Build documentation (latest release)
-    needs:
-      - get_latest_release
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    needs:
+      - snapshot-docs
     with:
-      ref: ${{ needs.get_latest_release.outputs.latest_release_tag }}
+      ref: docs-snapshot
     
   build-docs-dev:
     name: Build documentation (main branch)
@@ -61,6 +82,12 @@ jobs:
       - name: Dump file listing
         run: |
           ls -lR docs/build
+
+      - name: Unpack documentation
+        run: |
+          tar -xf docs/build/docs.tar -C docs/build
+          tar -xf docs/build/dev/docs.tar -C docs/build/dev
+          rm -f docs/build/docs.tar docs/build/dev/docs.tar
 
       - name: Setup Pages
         uses: actions/configure-pages@v3

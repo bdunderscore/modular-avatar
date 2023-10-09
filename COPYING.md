@@ -1,12 +1,9 @@
-Source code is licensed under the MIT license, as reproduced below, with some exceptions:
+Files under Editor/images are licensed for redistribution as part of an official
+modular avatar package only. Please replace them with other images (or delete them)
+if you are making modifications.
 
-* Packages/com.vrchat.core.vpm-resolver is distributed under the VRChat Distro license.
-  See [the associated License.md file](Packages/com.vrchat.core.vpm-resolver/License.md) for details.
-* Images under docs/static/img/irasutoya are Copyrighted by, and/or a derivative work of works copyrighted by
-  いらすとや (irasutoya.com). See [their license page](https://www.irasutoya.com/p/terms.html) for license details.
-* The github source code distribution contains placeholder logo assets. The
-  [actual logo assets](https://github.com/bdunderscore/modular-avatar-images) are Copyright (c) Pumo,
-  and for use as part of packaged official modular avatar distributions only.
+All other files are under the MIT license.
+
 ---
 
 MIT License

@@ -1,4 +1,6 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bdunderscore/modular-avatar?label=release)
+![GitHub release (by tag)](https://img.shields.io/github/downloads/bdunderscore/modular-avatar/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/bdunderscore/modular-avatar/total?label=total%20downloads)
 ![GitHub issues](https://img.shields.io/github/issues/bdunderscore/modular-avatar)
 ![Github stars](https://img.shields.io/github/stars/bdunderscore/modular-avatar)
 
