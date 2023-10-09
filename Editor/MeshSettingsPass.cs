@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnPreprocessAvatar()
         {
-            foreach (var mesh in context.AvatarDescriptor.GetComponentsInChildren<Renderer>(true))
+            foreach (var mesh in context.AvatarRootObject.GetComponentsInChildren<Renderer>(true))
             {
                 ProcessMesh(mesh);
             }
@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessMesh(Renderer mesh)
         {
-            MergedSettings settings = MergeSettings(context.AvatarDescriptor.transform, mesh.transform);
+            MergedSettings settings = MergeSettings(context.AvatarRootTransform, mesh.transform);
 
             if (settings.SetAnchor)
             {
