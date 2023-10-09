@@ -33,6 +33,11 @@
             "name": "com.anatawa12.avatar-optimizer",
             "expression": "(,1.5.0-rc.8)",
             "define": "LEGACY_AVATAR_OPTIMIZER"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "MA_VRCSDK3_AVATARS"
         }
     ],
     "noEngineReferences": false
