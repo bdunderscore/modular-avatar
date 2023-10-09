@@ -5,7 +5,6 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using NUnit.Framework;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests.ReplaceObject
 {
@@ -15,8 +14,7 @@ namespace modular_avatar_tests.ReplaceObject
 
         void Process(GameObject root)
         {
-            var avDesc = root.GetComponent<VRCAvatarDescriptor>();
-            var buildContext = new nadena.dev.ndmf.BuildContext(avDesc, null);
+            var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
             pathMappings = buildContext.ActivateExtensionContext<AnimationServicesContext>().PathMappings;
             new ReplaceObjectPass(buildContext).Process();
         }

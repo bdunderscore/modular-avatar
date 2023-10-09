@@ -4,7 +4,6 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 public class ActiveAnimationRetargeterTests : TestBase
 {
@@ -12,10 +11,9 @@ public class ActiveAnimationRetargeterTests : TestBase
     public void SimpleRetarget()
     {
         var avatar = CreatePrefab("SimpleRetarget.prefab");
-        var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
 
         // initialize context
-        var buildContext = new BuildContext(descriptor);
+        var buildContext = new BuildContext(avatar);
         var pathMappings = buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>()
             .PathMappings;
 
