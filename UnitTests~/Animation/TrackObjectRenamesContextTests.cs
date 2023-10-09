@@ -4,7 +4,10 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace modular_avatar_tests
 {
@@ -92,6 +95,7 @@ namespace modular_avatar_tests
             Assert.AreEqual("a/b/c/d", toc.PathMappings.MapPath("a/b/c/d", true));
         }
 
+#if MA_VRCSDK3_AVATARS
         [Test]
         public void TestAnimatorControllerUpdates()
         {
@@ -143,5 +147,6 @@ namespace modular_avatar_tests
                 }
             }
         }
+#endif
     }
 }

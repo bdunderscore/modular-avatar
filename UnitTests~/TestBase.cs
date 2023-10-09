@@ -7,7 +7,10 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace modular_avatar_tests
 {
@@ -94,6 +97,7 @@ namespace modular_avatar_tests
             return obj;
         }
 
+#if MA_VRCSDK3_AVATARS
         protected static AnimationClip findFxClip(GameObject prefab, string layerName)
         {
             var motion = findFxMotion(prefab, layerName) as AnimationClip;
@@ -109,6 +113,7 @@ namespace modular_avatar_tests
 
             return state.motion;
         }
+#endif
 
         protected static AnimatorState FindStateInLayer(AnimatorControllerLayer layer, string stateName)
         {
@@ -120,6 +125,7 @@ namespace modular_avatar_tests
             return null;
         }
 
+#if MA_VRCSDK3_AVATARS
         protected static AnimatorControllerLayer findFxLayer(GameObject prefab, string layerName)
         {
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
@@ -134,5 +140,6 @@ namespace modular_avatar_tests
             Assert.NotNull(layer);
             return layer;
         }
+#endif
     }
 }
