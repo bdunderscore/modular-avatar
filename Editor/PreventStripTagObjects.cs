@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -64,3 +66,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif

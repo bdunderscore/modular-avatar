@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.menu;
 using static nadena.dev.modular_avatar.core.editor.Localization;
@@ -274,3 +276,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif
