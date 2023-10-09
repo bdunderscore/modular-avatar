@@ -1,7 +1,10 @@
 ﻿#if UNITY_EDITOR
 
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
+#endif
 
 namespace nadena.dev.modular_avatar.core
 {
