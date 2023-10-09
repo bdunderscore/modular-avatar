@@ -81,7 +81,7 @@ jobs:
           fi
           echo check_name=$check_name >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           ref: ${{ github.event.pull_request.head.sha }}
