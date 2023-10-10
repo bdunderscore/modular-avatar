@@ -14,6 +14,7 @@ namespace nadena.dev.modular_avatar.core
     /// We can also end up with a loop between install targets; in this case, we break the loop at an arbitrary point.
     /// </summary>
     [AddComponentMenu("Modular Avatar/MA Menu Install Target")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/menu-install-target")]
     internal class ModularAvatarMenuInstallTarget : MenuSourceComponent
     {
         public ModularAvatarMenuInstaller installer;

@@ -28,6 +28,7 @@ namespace nadena.dev.modular_avatar.core
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA PhysBone Blocker")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/physbone-blocker")]
     public class ModularAvatarPBBlocker : AvatarTagComponent
     {
         public override void ResolveReferences()

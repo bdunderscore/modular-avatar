@@ -30,6 +30,7 @@ namespace nadena.dev.modular_avatar.core
 
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Parameters")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/parameters")]
     public class ModularAvatarParameters : AvatarTagComponent
     {
         public List<ParameterConfig> parameters = new List<ParameterConfig>();

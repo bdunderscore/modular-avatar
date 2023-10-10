@@ -5,6 +5,7 @@ namespace nadena.dev.modular_avatar.core
 {
     [AddComponentMenu("Modular Avatar/MA Mesh Settings")]
     [DisallowMultipleComponent]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/mesh-settings")]
     public class ModularAvatarMeshSettings : AvatarTagComponent
     {
         internal static readonly Bounds DEFAULT_BOUNDS = new Bounds(Vector3.zero, Vector3.one * 2);
