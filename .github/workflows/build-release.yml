@@ -85,4 +85,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
-            Packages/${{ env.packageName }}/package.json
+            package.json
