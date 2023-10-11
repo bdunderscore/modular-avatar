@@ -4,6 +4,7 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [AddComponentMenu("Modular Avatar/MA Menu Group")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/menu-group?lang=auto")]
     public class ModularAvatarMenuGroup : MenuSourceComponent
     {
         public GameObject targetObject;

@@ -35,6 +35,7 @@ namespace nadena.dev.modular_avatar.core
     [DisallowMultipleComponent]
     [ExecuteAlways]
     [AddComponentMenu("Modular Avatar/MA Blendshape Sync")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/blendshape-sync?lang=auto")]
     public class ModularAvatarBlendshapeSync : AvatarTagComponent
     {
         public List<BlendshapeBinding> Bindings = new List<BlendshapeBinding>();

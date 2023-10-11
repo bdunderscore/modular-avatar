@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using nadena.dev.modular_avatar.core;
 using NUnit.Framework;
 using UnityEditor;
@@ -52,6 +53,20 @@ namespace modular_avatar_tests
 
             // check the icon
             Assert.That(icon, Is.EqualTo(_iconTexture));
+        }
+
+        [Test]
+        [TestCaseSource(nameof(ComponentTypes))]
+        public void CheckHelpURL(Type type)
+        {
+            // excluded types
+            if (type == typeof(Activator)) return;
+            if (type == typeof(AvatarActivator)) return;
+            if (type == typeof(TestComponent)) return;
+
+            // get icon
+            var helpUrl = type.GetCustomAttribute<HelpURLAttribute>();
+            Assert.That(helpUrl, Is.Not.Null);
         }
 
         /// <returns>All non-abstract MonoBehaviour classes</returns>

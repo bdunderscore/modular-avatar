@@ -11,6 +11,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Menu Item")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/menu-item?lang=auto")]
     public class ModularAvatarMenuItem : AvatarTagComponent, MenuSource
     {
         public VRCExpressionsMenu.Control Control;

@@ -42,6 +42,7 @@ namespace nadena.dev.modular_avatar.core
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Merge Armature")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-armature?lang=auto")]
     public class ModularAvatarMergeArmature : AvatarTagComponent
     {
         public AvatarObjectReference mergeTarget = new AvatarObjectReference();
