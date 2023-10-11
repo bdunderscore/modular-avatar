@@ -18,7 +18,7 @@ addEventListener("fetch", (event) => {
   event.respondWith(handleEvent(event));
 });
 
-const STRIP_SUFFIX_RE = new RegExp('^(/.+)(?:/(?:index\.html)?)$');
+const STRIP_SUFFIX_RE = new RegExp('^(/.+)(?:/(?:index\.html)?|\.html)$');
 
 acceptLanguage.languages(['en-US', 'ja-JP']);
 
@@ -89,7 +89,7 @@ async function handleEvent(event) {
       } catch (e) {
         // Try adding .html
         options.mapRequestToAsset = function(request) {
-          return new Request(url.toString() + ".html", defaultAssetKey);
+          return new Request(url.toString() + ".html", mapRequestToAsset(request));
         };
 
         page = await getAssetFromKV(event, options);
