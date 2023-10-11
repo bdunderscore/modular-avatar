@@ -978,6 +978,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"intl-parse-accept-language@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "intl-parse-accept-language@npm:1.0.0"
+  checksum: c1dcc0f520cb85be391f1cf4b5f691ab19183e5d8e8f5277c0d2210a78a6d01ee907b9bb70f7425c4a8d5a9ed86f8b18a8d53f089025772d89f5cbe39282f266
+  languageName: node
+  linkType: hard
+
 "ip@npm:^2.0.0":
   version: 2.0.0
   resolution: "ip@npm:2.0.0"
@@ -1778,6 +1785,7 @@ __metadata:
   dependencies:
     "@cloudflare/kv-asset-handler": ^0.2.0
     accept-language: ^3.0.18
+    intl-parse-accept-language: ^1.0.0
     wrangler: ^3.11.0
   languageName: unknown
   linkType: soft

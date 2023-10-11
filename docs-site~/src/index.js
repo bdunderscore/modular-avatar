@@ -3,7 +3,7 @@ import {
   mapRequestToAsset,
 } from "@cloudflare/kv-asset-handler";
 
-import acceptLanguage from 'accept-language';
+import { parseAcceptLanguage } from 'intl-parse-accept-language';
 
 /**
  * The DEBUG flag will do two things that help during development:
@@ -19,8 +19,6 @@ addEventListener("fetch", (event) => {
 });
 
 const STRIP_SUFFIX_RE = new RegExp('^(/.+)(?:/(?:index\.html)?|\.html)$');
-
-acceptLanguage.languages(['en-US', 'ja-JP']);
 
 async function handleEvent(event) {
   let options = {};
@@ -46,11 +44,21 @@ async function handleEvent(event) {
     const strip_match = STRIP_SUFFIX_RE.exec(path);
     
     if (url.searchParams.get("lang") === 'auto') {
-      let resolvedLanguage = acceptLanguage.get(event.request.headers.get('Accept-Language'));
-      if (resolvedLanguage === null) {
-        resolvedLanguage = 'en-US';
-      } else {
-        resolvedLanguage = resolvedLanguage.split('-')[0];
+      const languages = parseAcceptLanguage(event.request.headers.get('Accept-Language'));
+      
+      let resolvedLanguage = 'en';
+      if (languages !== null) {
+        for (const language of languages) {
+          if (language === 'ja' || language === 'ja-JP') {
+            resolvedLanguage = 'ja';
+            break;
+          }
+          
+          if (language === 'en' || language.startsWith('en-')) {
+            resolvedLanguage = 'en';
+            break;
+          }
+        }
       }
       
       let destination;

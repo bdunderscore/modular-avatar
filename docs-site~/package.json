@@ -11,6 +11,6 @@
     "publish": "wrangler publish"
   },
   "dependencies": {
-    "accept-language": "^3.0.18"
+    "intl-parse-accept-language": "^1.0.0"
   }
 }
