@@ -120,3 +120,11 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           command: deploy --name modular-avatar-docs --old-asset-ttl 300
           workingDirectory: docs-site~
+          
+      - name: Purge cache
+        uses: nathanvaughn/actions-cloudflare-purge@3b31015a54307a38ea48904fb367eeb0a753a66f
+        with:
+          cf_zone: ${{ secrets.CF_ZONE_ID }}
+          cf_auth: ${{ secrets.CF_API_TOKEN }}
+        hosts: |
+          modular-avatar.nadena.dev
