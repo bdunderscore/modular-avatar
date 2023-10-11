@@ -88,6 +88,7 @@ jobs:
 
       - name: Unpack documentation
         run: |
+          mkdir -p docs-site~/public/dev
           tar -xf docs/build/docs.tar -C docs-site~/public
           tar -xf docs/build/dev/docs.tar -C docs-site~/public/dev
       
