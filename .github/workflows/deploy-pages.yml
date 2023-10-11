@@ -120,3 +120,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           command: deploy --name modular-avatar-docs --old-asset-ttl 300
+          workingDirectory: docs-site~
