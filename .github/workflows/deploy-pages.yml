@@ -113,7 +113,6 @@ jobs:
         run: |
           cd docs-site~
           yarn install --immutable
-          ls -lR build
           
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
