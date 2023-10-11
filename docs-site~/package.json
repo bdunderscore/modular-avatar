@@ -1,0 +1,16 @@
+{
+  "name": "worker-sites-template",
+  "version": "0.0.0",
+  "devDependencies": {
+    "@cloudflare/kv-asset-handler": "^0.2.0",
+    "wrangler": "0.0.30"
+  },
+  "private": true,
+  "scripts": {
+    "start": "wrangler dev",
+    "publish": "wrangler publish"
+  },
+  "dependencies": {
+    "accept-language": "^3.0.18"
+  }
+}
