@@ -83,7 +83,17 @@ async function handleEvent(event) {
         }
       });
     } else {
-      const page = await getAssetFromKV(event, options);
+      let page;
+      try {
+        page = await getAssetFromKV(event, options);
+      } catch (e) {
+        // Try adding .html
+        options.mapRequestToAsset = function(request) {
+          return new Request(url.toString() + ".html", defaultAssetKey);
+        };
+
+        page = await getAssetFromKV(event, options);
+      }
 
       // allow headers to be altered
       response = new Response(page.body, page);
