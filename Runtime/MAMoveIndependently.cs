@@ -10,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
     [ExecuteInEditMode]
     //[AddComponentMenu("")]
     [DisallowMultipleComponent]
-    [HelpURL("https://modular-avatar.nadena.dev/ja/docs/reference/move-independently")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/move-independently?lang=auto")]
     class MAMoveIndependently : MonoBehaviour, IEditorOnly
     {
         private float EPSILON = 0.000001f;

@@ -62,7 +62,7 @@ namespace nadena.dev.modular_avatar.core
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Bone Proxy")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/bone-proxy")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/bone-proxy?lang=auto")]
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
         private Transform _targetCache;

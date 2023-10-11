@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Merge Animator")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-animator")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-animator?lang=auto")]
     public class ModularAvatarMergeAnimator : AvatarTagComponent
     {
         public RuntimeAnimatorController animator;

@@ -4,7 +4,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 namespace nadena.dev.modular_avatar.core
 {
     [AddComponentMenu("Modular Avatar/MA Menu Installer")]
-    [HelpURL("https://modular-avatar.nadena.dev/ja/docs/reference/menu-installer")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/menu-installer?lang=auto")]
     public class ModularAvatarMenuInstaller : AvatarTagComponent
     {
         public VRCExpressionsMenu menuToAppend;
