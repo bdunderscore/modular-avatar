@@ -74,6 +74,7 @@ async function handleEvent(event) {
           Vary: 'Accept-Language',
         },
       });
+      response.headers.set("Cache-Control", "private");
     } else if (strip_match !== null) {
       console.log("=== Redirect");
       response = new Response("Redirecting", {
@@ -82,6 +83,7 @@ async function handleEvent(event) {
           Location: strip_match[1],
         }
       });
+      response.headers.set("Cache-control", "public, max-age=3600");
     } else {
       let page;
       try {
@@ -97,6 +99,7 @@ async function handleEvent(event) {
 
       // allow headers to be altered
       response = new Response(page.body, page);
+      response.headers.set("Cache-control", "public, max-age=3600");
     }
 
     response.headers.set("X-XSS-Protection", "1; mode=block");
