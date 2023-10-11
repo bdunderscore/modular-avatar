@@ -4,20 +4,16 @@ on:
     branches:
       - main
       - docs-snapshot
+      - docs-ci-test
   workflow_dispatch: {}
   release:
     types:
       - released
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
-  group: "pages"
+  group: "pages-cf"
   cancel-in-progress: true
-  
+
 jobs:
   snapshot-docs:
     name: Snapshot documentation
@@ -57,23 +53,30 @@ jobs:
       ref: main
       path: dev
       artifact: docs-dev
+
   deploy-docs:
     name: Deploy documentation
     needs: 
       - build-docs
       - build-docs-dev
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifact
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Download artifact (tagged)
         uses: actions/download-artifact@v3
         with:
           name: docs
           path: docs/build
-      - name: Download artifact
+
+      - name: Download artifact (latest)
         uses: actions/download-artifact@v3
         with:
           name: docs-dev
@@ -85,18 +88,44 @@ jobs:
 
       - name: Unpack documentation
         run: |
-          tar -xf docs/build/docs.tar -C docs/build
-          tar -xf docs/build/dev/docs.tar -C docs/build/dev
-          rm -f docs/build/docs.tar docs/build/dev/docs.tar
+          mkdir -p docs-site~/public/dev
+          tar -xf docs/build/docs.tar -C docs-site~/public
+          tar -xf docs/build/dev/docs.tar -C docs-site~/public/dev
+      
+      - name: Setup yarn 2.0
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+          
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
-          path: docs/build
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-site-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-site-
+          
+      - name: Build CF site
+        run: |
+          cd docs-site~
+          yarn install --immutable
+          
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          command: deploy --name modular-avatar-docs --old-asset-ttl 300
+          workingDirectory: docs-site~
+          
+      - name: Purge cache
+        uses: nathanvaughn/actions-cloudflare-purge@3b31015a54307a38ea48904fb367eeb0a753a66f
+        continue-on-error: true
+        with:
+          cf_zone: ${{ secrets.CF_ZONE_ID }}
+          cf_auth: ${{ secrets.CF_API_TOKEN }}
+          hosts: |
+            modular-avatar.nadena.dev
