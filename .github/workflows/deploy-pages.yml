@@ -127,5 +127,3 @@ jobs:
         with:
           cf_zone: ${{ secrets.CF_ZONE_ID }}
           cf_auth: ${{ secrets.CF_API_TOKEN }}
-          hosts: |
-            modular-avatar.nadena.dev
