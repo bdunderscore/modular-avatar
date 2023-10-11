@@ -113,7 +113,6 @@ jobs:
         run: |
           cd docs-site~
           yarn install --immutable
-          yarn build
           ls -lR build
           
       - name: Deploy to Cloudflare Pages
