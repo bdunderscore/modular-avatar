@@ -76,7 +76,7 @@ async function handleEvent(event) {
       }
       
       response = new Response("Redirecting", {
-        status: 301,
+        status: 302,
         headers: {
           Location: destination,
           Vary: 'Accept-Language',
