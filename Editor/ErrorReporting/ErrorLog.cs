@@ -5,7 +5,6 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using Newtonsoft.Json;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -273,17 +272,17 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             }
         }
 
-        internal IDisposable ReportingOnAvatar(VRCAvatarDescriptor descriptor)
+        internal IDisposable ReportingOnAvatar(GameObject avatarGameObject)
         {
-            if (descriptor != null)
+            if (avatarGameObject != null)
             {
                 AvatarReport report = new AvatarReport();
-                report.objectRef = new ObjectRef(descriptor.gameObject);
+                report.objectRef = new ObjectRef(avatarGameObject);
                 Avatars.Add(report);
                 _currentAvatar = report;
                 _currentAvatar.successful = true;
 
-                _currentAvatar.logs.AddRange(ComponentValidation.ValidateAll(descriptor.gameObject));
+                _currentAvatar.logs.AddRange(ComponentValidation.ValidateAll(avatarGameObject));
             }
 
             return new AvatarReportScope();

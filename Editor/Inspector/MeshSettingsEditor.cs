@@ -41,11 +41,11 @@ namespace nadena.dev.modular_avatar.core.editor
             if (targets.Length == 1)
             {
                 settings = (ModularAvatarMeshSettings) target;
-                var avatar = RuntimeUtil.FindAvatarInParents(settings.transform);
-                if (avatar != null)
+                var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(settings.transform);
+                if (avatarTransform != null)
                 {
                     Component mesh = (Component) target;
-                    merged = MeshSettingsPass.MergeSettings(avatar.transform, mesh.transform);
+                    merged = MeshSettingsPass.MergeSettings(avatarTransform, mesh.transform);
                     haveMerged = true;
                 }
             }

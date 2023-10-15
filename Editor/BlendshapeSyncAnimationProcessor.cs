@@ -42,16 +42,17 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
+        public void OnPreprocessAvatar(BuildContext context)
         {
             _context = context;
+            var avatarGameObject = context.AvatarRootObject;
             var animDb = _context.AnimationDatabase;
 
-            var avatarDescriptor = avatar.GetComponent<VRCAvatarDescriptor>();
+            var avatarDescriptor = context.AvatarDescriptor;
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
             _motionCache = new Dictionary<Motion, Motion>();
 
-            var components = avatarDescriptor.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
+            var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
 
             var layers = avatarDescriptor.baseAnimationLayers;
@@ -77,7 +78,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var component in components)
             {
-                BuildReport.ReportingObject(component, () => ProcessComponent(avatarDescriptor, component));
+                BuildReport.ReportingObject(component, () => ProcessComponent(avatarGameObject, component));
             }
 
             // Walk and transform all clips
@@ -91,9 +92,9 @@ namespace nadena.dev.modular_avatar.core.editor
             });
         }
 
-        private void ProcessComponent(VRCAvatarDescriptor avatarDescriptor, ModularAvatarBlendshapeSync component)
+        private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component)
         {
-            var targetObj = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, component.gameObject);
+            var targetObj = RuntimeUtil.RelativePath(avatarGameObject, component.gameObject);
 
             foreach (var binding in component.Bindings)
             {
@@ -102,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
                 if (refSmr == null) continue;
 
-                var refPath = RuntimeUtil.RelativePath(avatarDescriptor.gameObject, refObj);
+                var refPath = RuntimeUtil.RelativePath(avatarGameObject, refObj);
 
                 var srcBinding = new SummaryBinding(refPath, binding.Blendshape);
 

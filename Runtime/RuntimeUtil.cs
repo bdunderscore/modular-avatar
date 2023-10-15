@@ -63,28 +63,18 @@ namespace nadena.dev.modular_avatar.core
         [CanBeNull]
         public static string RelativePath(GameObject root, GameObject child)
         {
-            if (root == child) return "";
-
-            List<string> pathSegments = new List<string>();
-            while (child != root && child != null)
-            {
-                pathSegments.Add(child.name);
-                child = child.transform.parent?.gameObject;
-            }
-
-            if (child == null && root != null) return null;
-
-            pathSegments.Reverse();
-            return String.Join("/", pathSegments);
+            return ndmf.runtime.RuntimeUtil.RelativePath(root, child);
         }
 
         [CanBeNull]
         public static string AvatarRootPath(GameObject child)
         {
-            if (child == null) return null;
-            var avatar = FindAvatarInParents(child.transform);
-            if (avatar == null) return null;
-            return RelativePath(avatar.gameObject, child);
+            return ndmf.runtime.RuntimeUtil.AvatarRootPath(child);
+        }
+
+        public static bool IsAvatarRoot(Transform target)
+        {
+            return ndmf.runtime.RuntimeUtil.IsAvatarRoot(target);
         }
 
         public static VRCAvatarDescriptor FindAvatarInParents(Transform target)
@@ -97,6 +87,11 @@ namespace nadena.dev.modular_avatar.core
             }
 
             return null;
+        }
+
+        public static Transform FindAvatarTransformInParents(Transform target)
+        {
+            return ndmf.runtime.RuntimeUtil.FindAvatarInParents(target);
         }
 
         public static void MarkDirty(UnityEngine.Object obj)
@@ -154,11 +149,8 @@ namespace nadena.dev.modular_avatar.core
 #endif
         }
 
-#if UNITY_EDITOR
-        public static bool isPlaying => UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
-#else
-        public static bool isPlaying => true;
-#endif
+        public static bool isPlaying => ndmf.runtime.RuntimeUtil.IsPlaying;
+
         public static void InvokeHierarchyChanged()
         {
             OnHierarchyChanged?.Invoke();

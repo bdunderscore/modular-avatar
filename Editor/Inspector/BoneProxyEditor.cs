@@ -50,10 +50,10 @@ namespace nadena.dev.modular_avatar.core.editor
             for (int i = 0; i < targets.Length; i++)
             {
                 var t = (ModularAvatarBoneProxy) targets[i];
-                var av = RuntimeUtil.FindAvatarInParents(t.transform);
+                var avTr = RuntimeUtil.FindAvatarTransformInParents(t.transform);
 
-                if (av != null && parentAvatar == null) parentAvatar = av.gameObject;
-                if (av == null || parentAvatar != av.gameObject)
+                if (avTr != null && parentAvatar == null) parentAvatar = avTr.gameObject;
+                if (avTr == null || parentAvatar != avTr.gameObject)
                 {
                     suppressTarget = true;
                     break;
@@ -91,7 +91,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         var t = (ModularAvatarBoneProxy) targets[i];
                         Undo.RecordObjects(targets, "Set targets");
                         var xform = ((TempObjRef) objRefs[i]).target;
-                        if (RuntimeUtil.FindAvatarInParents(xform)?.gameObject != parentAvatar) continue;
+                        if (RuntimeUtil.FindAvatarTransformInParents(xform)?.gameObject != parentAvatar) continue;
                         t.target = xform;
                     }
                 }

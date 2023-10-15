@@ -263,7 +263,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_window != null) DestroyImmediate(_window);
             _window = ScriptableObject.CreateInstance<BlendshapeSelectWindow>();
-            _window.AvatarRoot = RuntimeUtil.FindAvatarInParents(((ModularAvatarBlendshapeSync) target).transform)
+            _window.AvatarRoot = RuntimeUtil.FindAvatarTransformInParents(((ModularAvatarBlendshapeSync) target).transform)
                 .gameObject;
             _window.OfferBinding += OfferBinding;
             _window.Show();

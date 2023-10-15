@@ -163,7 +163,7 @@ namespace nadena.dev.modular_avatar.core
         public void InferPrefixSuffix()
         {
             // We only infer if targeting the armature (below the Hips bone)
-            var rootAnimator = RuntimeUtil.FindAvatarInParents(transform)?.GetComponent<Animator>();
+            var rootAnimator = RuntimeUtil.FindAvatarTransformInParents(transform)?.GetComponent<Animator>();
             if (rootAnimator == null) return;
 
             var hips = rootAnimator.GetBoneTransform(HumanBodyBones.Hips);

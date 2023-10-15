@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 BuildContext = new BuildContext(context);
             }
 
-            toDispose = BuildReport.CurrentReport.ReportingOnAvatar(context.AvatarDescriptor);
+            toDispose = BuildReport.CurrentReport.ReportingOnAvatar(context.AvatarRootObject);
         }
 
         public void OnDeactivate(ndmf.BuildContext context)

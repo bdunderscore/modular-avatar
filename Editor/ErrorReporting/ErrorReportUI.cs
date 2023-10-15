@@ -110,7 +110,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             GameObject activeAvatarObject = null;
             if (Selection.gameObjects.Length == 1)
             {
-                activeAvatarObject = RuntimeUtil.FindAvatarInParents(Selection.activeGameObject.transform)?.gameObject;
+                activeAvatarObject = RuntimeUtil.FindAvatarTransformInParents(Selection.activeGameObject.transform)?.gameObject;
                 activeAvatar = BuildReport.CurrentReport.Avatars.FirstOrDefault(av =>
                     av.objectRef.path == RuntimeUtil.RelativePath(null, activeAvatarObject)
                     || av.objectRef.path == RuntimeUtil.RelativePath(null, activeAvatarObject) + "(Clone)");
