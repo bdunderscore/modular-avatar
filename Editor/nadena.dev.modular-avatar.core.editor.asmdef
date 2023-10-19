@@ -6,7 +6,9 @@
         "VRC.SDK3A",
         "VRC.SDKBase",
         "nadena.dev.ndmf",
-        "nadena.dev.ndmf.vrchat"
+        "nadena.dev.ndmf.vrchat",
+        "VRM",
+        "VRM10"
     ],
     "includePlatforms": [
         "Editor"
