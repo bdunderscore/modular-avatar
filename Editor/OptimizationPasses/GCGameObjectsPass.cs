@@ -7,6 +7,10 @@ using UnityEngine;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
 
+#if MA_VRM0
+using VRM;
+#endif
+
 namespace nadena.dev.modular_avatar.core.editor
 {
     /// <summary>
@@ -63,6 +67,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         case VRCPhysBone pb:
                             MarkObject(obj);
                             MarkPhysBone(pb);
+                            break;
+#endif
+
+#if MA_VRM0
+                        case VRMSpringBone sb:
+                            MarkObject(obj);
+                            MarkSpringBone(sb);
                             break;
 #endif
 
@@ -144,6 +155,22 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // Mark colliders, etc
             MarkAllReferencedObjects(pb);
+        }
+#endif
+
+#if MA_VRM0
+        private void MarkSpringBone(VRMSpringBone sb)
+        {
+            foreach (var rootBone in sb.RootBones)
+            {
+                foreach (var obj in GameObjects(rootBone.gameObject))
+                {
+                    MarkObject(obj);
+                }
+            }
+
+            // Mark etc
+            MarkAllReferencedObjects(sb);
         }
 #endif
 
