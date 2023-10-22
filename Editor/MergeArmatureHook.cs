@@ -36,6 +36,15 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
+
+#if MA_VRM0
+using VRM;
+#endif
+
+#if MA_VRM1
+using UniVRM10;
+#endif
+
 using Object = UnityEngine.Object;
 
 #endregion
@@ -105,6 +114,35 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ContactBase>(true))
             {
                 if (c.rootTransform == null) c.rootTransform = c.transform;
+                RetainBoneReferences(c);
+            }
+#endif
+
+#if MA_VRM0
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRMSpringBone>(true))
+            {
+                RetainBoneReferences(c);
+            }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRMSpringBoneColliderGroup>(true))
+            {
+                RetainBoneReferences(c);
+            }
+#endif
+
+#if MA_VRM1
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRM10SpringBoneJoint>(true))
+            {
+                RetainBoneReferences(c);
+            }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRM10SpringBoneCollider>(true))
+            {
+                RetainBoneReferences(c);
+            }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRM10SpringBoneColliderGroup>(true))
+            {
                 RetainBoneReferences(c);
             }
 #endif
@@ -477,5 +515,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 #endif
+
+        // TODO - deduplicate VRM0/1 SpringBone components... doesn't break avatars either
     }
 }
