@@ -80,6 +80,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         bool Process(ModularAvatarVisibleHeadAccessory target)
         {
+#if UNITY_ANDROID
+            foreach (var target in _avatar.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
+            {
+                Object.DestroyImmediate(target);
+            }
+            return;
+#endif
             bool didWork = false;
 
             if (Validate(target) == ReadyStatus.Ready)
