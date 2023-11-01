@@ -94,6 +94,7 @@
   "hint.bad_vrcsdk": "Incompatible version of VRCSDK detected.\n\nPlease try upgrading your VRCSDK; if this does not work, check for a newer version of Modular Avatar as well.",
   "error.stack_trace": "Stack trace (provide this when reporting bugs!)",
   "error.merge_armature.merge_into_self": "Your Merge Armature component is referencing itself, or a child of itself, as the merge target. You should reference the avatar's armature instead. Do not put Merge Armature on the avatar's main armature.",
+  "error.merge_armature.physbone_on_humanoid_bone": "Some Humanoid bones in the armature to merge are controlled by PhysBones, and can't be merged properly because its position is different from the corresponding Humanoid bone in the merge target. You should remove the PhysBones on those Humanoid bones in the armature to merge.",
   "error.internal_error": "An internal error has occurred: {0}\nwhen processing:",
   "error.merge_animator.param_type_mismatch": "Parameter {0} has multiple types: {1} != {2}",
   "error.rename_params.too_many_synced_params": "Too many synced parameters: Cost {0} > {1}",
