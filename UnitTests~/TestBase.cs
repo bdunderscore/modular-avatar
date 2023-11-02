@@ -48,7 +48,8 @@ namespace modular_avatar_tests
                 Object.DestroyImmediate(obj);
             }
 
-            Util.DeleteTemporaryAssets();
+            AssetDatabase.DeleteAsset(TEMP_ASSET_PATH);
+            FileUtil.DeleteFileOrDirectory(TEMP_ASSET_PATH);
         }
 
         protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root)
