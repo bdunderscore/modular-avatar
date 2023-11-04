@@ -258,9 +258,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void AdjustBehavior(StateMachineBehaviour behavior)
         {
+#if MA_VRCSDK3_AVATARS
             switch (behavior)
             {
-#if MA_VRCSDK3_AVATARS
                 case VRCAnimatorLayerControl layerControl:
                 {
                     // TODO - need to figure out how to handle cross-layer references. For now this will handle
@@ -268,8 +268,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     layerControl.layer += controllerBaseLayer;
                     break;
                 }
-#endif
             }
+#endif
         }
 
         private static string MapPath(EditorCurveBinding binding, string basePath)
