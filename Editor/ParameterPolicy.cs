@@ -56,6 +56,8 @@ namespace nadena.dev.modular_avatar.core.editor
             "_IsGrabbed",
             "_Angle",
             "_Stretch",
+            "_IsPosed",
+            "_Squish",
         }.ToImmutableList();
 
         public static ImmutableDictionary<string, DetectedParameter> ProbeParameters(GameObject root)
