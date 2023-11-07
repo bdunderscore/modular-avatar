@@ -44,9 +44,12 @@ namespace nadena.dev.modular_avatar.core.editor
             if (innerIsImgui)
             {
                 var throwaway = new InspectorElement();
-                MethodInfo m = typeof(InspectorElement).GetMethod("CreateIMGUIInspectorFromEditor",
-                    BindingFlags.NonPublic | BindingFlags.Instance);
-                inner = m.Invoke(throwaway, new object[] {serializedObject, this, false}) as VisualElement;
+                inner = typeof(InspectorElement).GetMethod("CreateIMGUIInspectorFromEditor",
+                                BindingFlags.NonPublic | BindingFlags.Instance)
+                            ?.Invoke(throwaway, new object[] {serializedObject, this, false}) as VisualElement
+                        ?? typeof(InspectorElement).GetMethod("CreateInspectorElementUsingIMGUI",
+                                BindingFlags.NonPublic | BindingFlags.Instance)
+                            ?.Invoke(throwaway, new object[] { this }) as VisualElement;
             }
 
             _visualElement.Add(inner);
