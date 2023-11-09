@@ -47,7 +47,15 @@
   "merge_armature.lockmode.base_to_merge.body": "アバターを動かすと統合されるアーマチュアも動きますが、統合されるアーマチュアが動かされてもアバターは動きません。ボーンの位置調整を保持するので、通常の衣装追加であればこちらがお勧めです。",
   "merge_armature.lockmode.bidirectional.title": "アバター <=====> オブジェクト (双方向)",
   "merge_armature.lockmode.bidirectional.body": "アバターと統合されるアーマチュアは常に同じ位置になります。元のアバターを操作するアニメーションを作る時に便利かもしれません。有効にするためには、統合されるアーマチュアの位置を統合先と同じにしておく必要があります。",
-  
+  "merge_armature.reset_pos": "位置を元アバターに合わせてリセット",
+  "merge_armature.reset_pos.info": "このコマンドは、衣装のボーンの位置をアバターのボーンの位置に合わせます。非対応衣装を導入するとき、アバウトに合わせるために便利です。",
+  "merge_armature.reset_pos.adjust_rotation": "回転も合わせる",
+  "merge_armature.reset_pos.adjust_scale": "スケールも合わせる",
+  "merge_armature.reset_pos.execute": "実行",
+  "merge_armature.reset_pos.heuristic_scale": "衣装の全体的なスケールをアバターに合わせる",
+  "merge_armature.reset_pos.heuristic_scale.tooltip": "腕の長さを参考に、衣装全体のスケールをアバターに合わせます。非対応衣装を導入するときは推奨です。",
+
+
   "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
   "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
   "merge_animator.animator": "統合されるアニメーター",
