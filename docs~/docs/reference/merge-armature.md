@@ -1,4 +1,4 @@
-﻿Res# Merge Armature
+# Merge Armature
 
 The Merge Armature component merges a tree of GameObjects onto the armature of the avatar.
 
