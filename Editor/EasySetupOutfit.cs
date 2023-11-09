@@ -302,7 +302,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return true;
         }
 
-        private static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips,
+        internal static bool FindBones(Object obj, out GameObject avatarRoot, out GameObject avatarHips,
             out GameObject outfitHips)
         {
             avatarHips = outfitHips = null;
@@ -361,8 +361,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (tempHip.name.Contains(avatarHips.name))
                         {
                             outfitHips = tempHip.gameObject;
+                            // Prefer the first hips we find
+                            break;
                         }
                     }
+
+                    if (outfitHips != null) break;
                 }
 
                 hipsCandidates.Add(avatarHips.name);

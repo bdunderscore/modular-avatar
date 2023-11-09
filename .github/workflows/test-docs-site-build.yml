@@ -1,0 +1,49 @@
+﻿name: Test docs-site yarn installation
+on:
+  push:
+    branches:
+      - ci
+  pull_request:
+
+jobs:
+  build-docs:
+    name: Build documentation site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: actions/checkout@v4
+
+      - name: Setup yarn 2.0
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        if: false
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-site-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-site-
+
+      - name: Build CF site
+        run: |
+          cd docs-site~
+          yarn install --immutable --check-cache
+
+      - name: Display diff on failure
+        if: ${{ failure() }}
+        run: |
+          cd docs-site~
+          env
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && git diff
+
+

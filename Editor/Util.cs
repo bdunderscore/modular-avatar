@@ -25,40 +25,17 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-
-#if MA_VRCSDK3_AVATARS
-using VRC.SDKBase.Editor.BuildPipeline;
-#endif
 
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-
-#if MA_VRCSDK3_AVATARS
-    internal class CleanupTempAssets : IVRCSDKPostprocessAvatarCallback
-    {
-        public int callbackOrder => 99999;
-
-        public void OnPostprocessAvatar()
-        {
-            Util.DeleteTemporaryAssets();
-        }
-    }
-#endif
-
     [InitializeOnLoad]
     internal static class Util
     {
-        private const string generatedAssetsSubdirectory = "999_Modular_Avatar_Generated";
-        private const string generatedAssetsPath = "Assets/" + generatedAssetsSubdirectory;
-
-        [CanBeNull] public static string OverridePath;
-
         static Util()
         {
             RuntimeUtil.delayCall = (cb) => EditorApplication.delayCall += cb.Invoke;
@@ -158,42 +135,6 @@ namespace nadena.dev.modular_avatar.core.editor
             var component = self.GetComponent<T>();
             if (component == null) component = self.AddComponent<T>();
             return component;
-        }
-
-        public static string GenerateAssetPath()
-        {
-            return GetGeneratedAssetsFolder() + "/" + GUID.Generate() + ".asset";
-        }
-
-        private static string GetGeneratedAssetsFolder()
-        {
-            var path = OverridePath ?? generatedAssetsPath;
-
-            var pathParts = path.Split('/');
-
-            for (int i = 1; i < pathParts.Length; i++)
-            {
-                var subPath = string.Join("/", pathParts, 0, i + 1);
-                if (!AssetDatabase.IsValidFolder(subPath))
-                {
-                    AssetDatabase.CreateFolder(string.Join("/", pathParts, 0, i), pathParts[i]);
-                }
-            }
-
-            return path;
-        }
-
-        internal static void DeleteTemporaryAssets()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                AssetDatabase.SaveAssets();
-
-                var subdir = generatedAssetsPath;
-
-                AssetDatabase.DeleteAsset(subdir);
-                FileUtil.DeleteFileOrDirectory(subdir);
-            };
         }
 
         public static Type FindType(string typeName)

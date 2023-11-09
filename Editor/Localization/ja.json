@@ -47,7 +47,15 @@
   "merge_armature.lockmode.base_to_merge.body": "アバターを動かすと統合されるアーマチュアも動きますが、統合されるアーマチュアが動かされてもアバターは動きません。ボーンの位置調整を保持するので、通常の衣装追加であればこちらがお勧めです。",
   "merge_armature.lockmode.bidirectional.title": "アバター <=====> オブジェクト (双方向)",
   "merge_armature.lockmode.bidirectional.body": "アバターと統合されるアーマチュアは常に同じ位置になります。元のアバターを操作するアニメーションを作る時に便利かもしれません。有効にするためには、統合されるアーマチュアの位置を統合先と同じにしておく必要があります。",
-  
+  "merge_armature.reset_pos": "位置を元アバターに合わせてリセット",
+  "merge_armature.reset_pos.info": "このコマンドは、衣装のボーンの位置をアバターのボーンの位置に合わせます。非対応衣装を導入するとき、アバウトに合わせるために便利です。",
+  "merge_armature.reset_pos.adjust_rotation": "回転も合わせる",
+  "merge_armature.reset_pos.adjust_scale": "スケールも合わせる",
+  "merge_armature.reset_pos.execute": "実行",
+  "merge_armature.reset_pos.heuristic_scale": "衣装の全体的なスケールをアバターに合わせる",
+  "merge_armature.reset_pos.heuristic_scale.tooltip": "腕の長さを参考に、衣装全体のスケールをアバターに合わせます。非対応衣装を導入するときは推奨です。",
+
+
   "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
   "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
   "merge_animator.animator": "統合されるアニメーター",
@@ -92,6 +100,7 @@
   "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。",
   "error.stack_trace": "スタックトレース（バグを報告する時は必ず添付してください！）",
   "error.merge_armature.merge_into_self": "Merge Armatureに自分自身のオブジェクト、もしくは自分の子をターゲットにしてしています。かわりにアバターのメインArmatureを指定してください。アバター自体のArmatureに追加しないでください。",
+  "error.merge_armature.physbone_on_humanoid_bone": "統合するArmatureのHumanoidボーンがPhysBoneによって制御されており、統合先の対応するHumanoidボーンと位置が異なるため正しく統合できません。統合するArmatureの該当HumanoidボーンからPhysBoneを削除してください。",
   "error.internal_error": "内部エラーが発生しました：{0}\n以下のオブジェクトの処理中に発生しました：",
   "error.merge_animator.param_type_mismatch": "パラメーター {0} に複数の種別が設定されています: {1} != {2}",
   "error.rename_params.too_many_synced_params": "同期パラメーターが多すぎます。コスト{0}が制限値の{1}を超えています。",

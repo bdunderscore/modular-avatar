@@ -85,6 +85,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         bool Process(ModularAvatarVisibleHeadAccessory target)
         {
+#if UNITY_ANDROID
+            Object.DestroyImmediate(target);
+            return false;
+#endif
+
             bool didWork = false;
 
             if (Validate(target) == ReadyStatus.Ready)

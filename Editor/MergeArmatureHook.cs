@@ -42,13 +42,17 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MergeArmatureHook
     {
+        private const float DuplicatedBoneMaxSqrDistance = 0.001f * 0.001f;
+
         private ndmf.BuildContext frameworkContext;
         private BuildContext context;
+        private VRCPhysBone[] physBones;
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
             .PathMappings;
 
+        private HashSet<Transform> humanoidBones = new HashSet<Transform>();
         private HashSet<Transform> mergedObjects = new HashSet<Transform>();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
 
@@ -56,6 +60,15 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             this.frameworkContext = context;
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
+            this.physBones = avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true);
+
+            if (avatarGameObject.TryGetComponent<Animator>(out var animator))
+            {
+                this.humanoidBones = new HashSet<Transform>(Enum.GetValues(typeof(HumanBodyBones))
+                    .Cast<HumanBodyBones>()
+                    .Where(x => x != HumanBodyBones.LastBone)
+                    .Select(animator.GetBoneTransform));
+            }
 
             var mergeArmatures =
                 avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeArmature>(true);
@@ -346,16 +359,33 @@ namespace nadena.dev.modular_avatar.core.editor
                         var targetObjectName = childName.Substring(config.prefix.Length,
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
+                        // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
+                        // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            childNewParent = targetObject.gameObject;
-                            shouldZip = true;
+                            if (!IsAffectedByPhysBone(child) ||
+                                (targetObject.position - child.position).sqrMagnitude <= DuplicatedBoneMaxSqrDistance)
+                            {
+                                childNewParent = targetObject.gameObject;
+                                shouldZip = true;
+                            }
+                            else if (humanoidBones.Contains(targetObject))
+                            {
+                                BuildReport.LogFatal(
+                                    "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
+                            }
                         }
                     }
 
                     RecursiveMerge(config, childGameObject, childNewParent, shouldZip);
                 }
             }
+        }
+
+        private bool IsAffectedByPhysBone(Transform target)
+        {
+            return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) &&
+                x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
         }
 
         Transform FindOriginalParent(Transform merged)
