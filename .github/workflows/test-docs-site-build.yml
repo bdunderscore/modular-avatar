@@ -1,5 +1,8 @@
 ﻿name: Test docs-site yarn installation
 on:
+  push:
+    branches:
+      - ci
   pull_request:
 
 jobs:
@@ -23,6 +26,7 @@ jobs:
         run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
+        if: false
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -33,12 +37,13 @@ jobs:
       - name: Build CF site
         run: |
           cd docs-site~
-          yarn install --immutable
+          yarn install --immutable --check-cache
 
       - name: Display diff on failure
         if: ${{ failure() }}
         run: |
           cd docs-site~
-          yarn install && git diff
+          env
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && git diff
 
 
