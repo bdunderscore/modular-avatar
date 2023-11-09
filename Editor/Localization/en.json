@@ -59,6 +59,13 @@
   "merge_armature.lockmode.base_to_merge.body": "Moving the base avatar will move the merge armature. If you move the merged armature, it will not affect the base avatar. This is useful when adding normal outfits, where you might want to adjust the position of bones in the outfit.",
   "merge_armature.lockmode.bidirectional.title": "Avatar <=====> Target (Bidirectional)",
   "merge_armature.lockmode.bidirectional.body": "The base armature and the merged armature will always have the same position. This is useful when creating animations that are meant to target the base armature. In order to activate this, your armatures must already be in the exact same position.",
+  "merge_armature.reset_pos": "Reset position to base avatar",
+  "merge_armature.reset_pos.info": "This command will force the position of all bones in the outfit to match that of the base avatar. This can be helpful as a starting point for installing outfits not set up for your current avatar.",
+  "merge_armature.reset_pos.adjust_rotation": "Also set rotation to base avatar",
+  "merge_armature.reset_pos.adjust_scale": "Also set local scale to base avatar",
+  "merge_armature.reset_pos.execute": "Do it!",
+  "merge_armature.reset_pos.heuristic_scale": "Adjust outfit overall scale to match base avatar",
+  "merge_armature.reset_pos.heuristic_scale.tooltip": "Will set the overall scale of the outfit as a whole based on armspan measurements. Recommended for setting up outfits.",
   
   "worldfixed.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
   "worldfixed.normal": "This object will be fixed to world unless you fixed to avatar with constraint.",
