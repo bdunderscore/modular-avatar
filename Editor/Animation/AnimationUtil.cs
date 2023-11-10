@@ -6,7 +6,10 @@ using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 #endregion
 
@@ -47,12 +50,15 @@ namespace nadena.dev.modular_avatar.animation
             // Ensure all of the controllers on the avatar descriptor point to temporary assets.
             // This helps reduce the risk that we'll accidentally modify the original assets.
 
+#if MA_VRCSDK3_AVATARS
             context.AvatarDescriptor.baseAnimationLayers =
                 CloneLayers(context, context.AvatarDescriptor.baseAnimationLayers);
             context.AvatarDescriptor.specialAnimationLayers =
                 CloneLayers(context, context.AvatarDescriptor.specialAnimationLayers);
+#endif
         }
 
+#if MA_VRCSDK3_AVATARS
         private static VRCAvatarDescriptor.CustomAnimLayer[] CloneLayers(
             BuildContext context,
             VRCAvatarDescriptor.CustomAnimLayer[] layers
@@ -167,6 +173,7 @@ namespace nadena.dev.modular_avatar.animation
 
             return controller;
         }
+#endif
 
         public static bool IsProxyAnimation(this Motion m)
         {

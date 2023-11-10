@@ -33,9 +33,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
                 seq.Run(MeshSettingsPluginPass.Instance);
+#if MA_VRCSDK3_AVATARS
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
+#endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
                     seq.Run(MergeArmaturePluginPass.Instance);
@@ -45,14 +47,18 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         ctx => new WorldFixedObjectProcessor().Process(ctx)
                     );
                     seq.Run(ReplaceObjectPluginPass.Instance);
+#if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+#endif
                 });
+#if MA_VRCSDK3_AVATARS
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {
                     var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
                     FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
+#endif
                 seq.Run("Rebind humanoid avatar", ctx =>
                 {
                     // workaround problem with avatar matching
@@ -142,6 +148,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+#if MA_VRCSDK3_AVATARS
     class RenameParametersPluginPass : MAPass<RenameParametersPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -165,6 +172,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             new MenuInstallHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
         }
     }
+#endif
 
     class MergeArmaturePluginPass : MAPass<MergeArmaturePluginPass>
     {
@@ -198,6 +206,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+#if MA_VRCSDK3_AVATARS
     class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -213,6 +222,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             PhysboneBlockerPass.Process(context.AvatarRootObject);
         }
     }
+#endif
 
     class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {

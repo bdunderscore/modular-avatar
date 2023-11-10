@@ -28,7 +28,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDKBase.Editor.BuildPipeline;
+
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor

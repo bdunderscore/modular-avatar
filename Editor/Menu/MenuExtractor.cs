@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -129,3 +131,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif

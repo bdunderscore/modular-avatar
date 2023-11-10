@@ -31,7 +31,11 @@ using nadena.dev.modular_avatar.core.editor;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
+
 using Object = UnityEngine.Object;
 
 #endregion
@@ -275,6 +279,7 @@ namespace nadena.dev.modular_avatar.animation
 
         private void AdjustBehavior(StateMachineBehaviour behavior)
         {
+#if MA_VRCSDK3_AVATARS
             switch (behavior)
             {
                 case VRCAnimatorLayerControl layerControl:
@@ -285,6 +290,7 @@ namespace nadena.dev.modular_avatar.animation
                     break;
                 }
             }
+#endif
         }
 
         private static string MapPath(EditorCurveBinding binding, string basePath)

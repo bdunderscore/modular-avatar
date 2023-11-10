@@ -4,7 +4,6 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests.MergeArmatureTests
 {
@@ -53,7 +52,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             m2_leaf3.AddComponent<TestComponentB>();
 
             nadena.dev.ndmf.BuildContext context =
-                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+                new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
             context.ActivateExtensionContext<AnimationServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
@@ -81,7 +80,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             ma.mangleNames = false;
 
             nadena.dev.ndmf.BuildContext context =
-                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+                new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
             context.ActivateExtensionContext<AnimationServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
@@ -105,7 +104,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             ma.mergeTarget.referencePath = RuntimeUtil.AvatarRootPath(armature);
 
             nadena.dev.ndmf.BuildContext context =
-                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+                new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
             context.ActivateExtensionContext<AnimationServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);

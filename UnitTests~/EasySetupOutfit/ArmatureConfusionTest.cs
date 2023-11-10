@@ -3,7 +3,11 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
+
 using UnityObject = UnityEngine.Object;
 
 public class ArmatureConfusionTest : TestBase
@@ -24,7 +28,9 @@ public class ArmatureConfusionTest : TestBase
         var inner = CreatePrefab("shapell.fbx");
 
         var outerAnimator = outer.GetComponent<Animator>();
+#if MA_VRCSDK3_AVATARS
         outer.AddComponent<VRCAvatarDescriptor>();
+#endif
 
         inner.gameObject.name = "inner";
         inner.transform.parent = outer.transform;

@@ -7,7 +7,11 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
+
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.animation
@@ -110,6 +114,7 @@ namespace nadena.dev.modular_avatar.animation
 
             AnimationUtil.CloneAllControllers(context);
 
+#if MA_VRCSDK3_AVATARS
             var avatarDescriptor = context.AvatarDescriptor;
 
             foreach (var layer in avatarDescriptor.baseAnimationLayers)
@@ -136,6 +141,7 @@ namespace nadena.dev.modular_avatar.animation
                     });
                 }
             }
+#endif
         }
 
         /// <summary>

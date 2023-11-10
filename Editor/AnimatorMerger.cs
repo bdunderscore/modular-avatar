@@ -29,7 +29,11 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
+
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -254,6 +258,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void AdjustBehavior(StateMachineBehaviour behavior)
         {
+#if MA_VRCSDK3_AVATARS
             switch (behavior)
             {
                 case VRCAnimatorLayerControl layerControl:
@@ -264,6 +269,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     break;
                 }
             }
+#endif
         }
 
         private static string MapPath(EditorCurveBinding binding, string basePath)

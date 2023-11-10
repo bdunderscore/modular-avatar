@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core;
+﻿#if MA_VRCSDK3_AVATARS
+
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
@@ -30,3 +32,5 @@ namespace modular_avatar_tests.SimpleArmatureToggle
         }
     }
 }
+
+#endif

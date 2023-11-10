@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Dynamics.PhysBone.Components;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -56,10 +59,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         case Transform t: break;
 
+#if MA_VRCSDK3_AVATARS
                         case VRCPhysBone pb:
                             MarkObject(obj);
                             MarkPhysBone(pb);
                             break;
+#endif
 
                         case AvatarTagComponent _:
                             // Tag components will not be retained at runtime, so pretend they're not there.
@@ -123,6 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+#if MA_VRCSDK3_AVATARS
         private void MarkPhysBone(VRCPhysBone pb)
         {
             var rootTransform = pb.GetRootTransform();
@@ -137,6 +143,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // Mark colliders, etc
             MarkAllReferencedObjects(pb);
         }
+#endif
 
         private void MarkAllReferencedObjects(Component component)
         {

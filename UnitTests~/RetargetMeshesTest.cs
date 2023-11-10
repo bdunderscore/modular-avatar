@@ -2,7 +2,6 @@
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests
 {
@@ -21,8 +20,7 @@ namespace modular_avatar_tests
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
-            var build_context =
-                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            var build_context = new nadena.dev.ndmf.BuildContext(root, null);
             var torc = new AnimationServicesContext();
             torc.OnActivate(build_context);
 
@@ -48,8 +46,7 @@ namespace modular_avatar_tests
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
-            var build_context =
-                new nadena.dev.ndmf.BuildContext(root.GetComponent<VRCAvatarDescriptor>(), null);
+            var build_context = new nadena.dev.ndmf.BuildContext(root, null);
             var torc = new AnimationServicesContext();
             torc.OnActivate(build_context);
 

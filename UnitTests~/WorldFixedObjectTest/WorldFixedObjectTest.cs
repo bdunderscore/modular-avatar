@@ -3,7 +3,6 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine.Animations;
-using VRC.SDK3.Avatars.Components;
 
 public class WorldFixedObjectTest : TestBase
 {
@@ -11,12 +10,11 @@ public class WorldFixedObjectTest : TestBase
     public void SimpleTest()
     {
         var avatar = CreatePrefab("Simple.prefab");
-        var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
 
         var fixedObject = avatar.transform.Find("FixedObject");
 
         // initialize context
-        var buildContext = new BuildContext(descriptor);
+        var buildContext = new BuildContext(avatar);
         buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
         new WorldFixedObjectProcessor().Process(buildContext);
@@ -37,13 +35,12 @@ public class WorldFixedObjectTest : TestBase
     public void NestedTest()
     {
         var avatar = CreatePrefab("Nested.prefab");
-        var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
 
         var fixedObject = avatar.transform.Find("FixedObject");
         var nestedFixed = avatar.transform.Find("FixedObject/NestedFixed");
 
         // initialize context
-        var buildContext = new BuildContext(descriptor);
+        var buildContext = new BuildContext(avatar);
         buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
 
         new WorldFixedObjectProcessor().Process(buildContext);

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -173,3 +175,5 @@ namespace nadena.dev.modular_avatar.core.menu
         public abstract void Visit(NodeContext context);
     }
 }
+
+#endif

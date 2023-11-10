@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
+
+#if MA_VRCSDK3_AVATARS
 using nadena.dev.modular_avatar.core.menu;
+#endif
+
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.editor.ErrorReporting
@@ -20,10 +24,12 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                     return CheckInternal(bs);
                 case ModularAvatarBoneProxy bp:
                     return CheckInternal(bp);
+#if MA_VRCSDK3_AVATARS
                 case ModularAvatarMenuInstaller mi:
                     return CheckInternal(mi);
                 case ModularAvatarMergeAnimator obj:
                     return CheckInternal(obj);
+#endif
                 case ModularAvatarMergeArmature obj:
                     return CheckInternal(obj);
                 default:
@@ -134,6 +140,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             return null;
         }
 
+#if MA_VRCSDK3_AVATARS
         private static List<ErrorLog> CheckInternal(ModularAvatarMenuInstaller mi)
         {
             // TODO - check that target menu is in the avatar
@@ -160,6 +167,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
             return null;
         }
+#endif
 
         private static List<ErrorLog> CheckInternal(ModularAvatarMergeArmature ma)
         {

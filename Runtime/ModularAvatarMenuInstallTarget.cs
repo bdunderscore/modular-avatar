@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core.menu;
+﻿#if MA_VRCSDK3_AVATARS
+
+using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -30,3 +32,5 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 }
+
+#endif

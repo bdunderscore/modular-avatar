@@ -24,7 +24,10 @@
 
 using System;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
+#endif
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -55,4 +58,15 @@ namespace nadena.dev.modular_avatar.core
         {
         }
     }
+    
+#if !MA_VRCSDK3_AVATARS
+
+    /**
+     * Placeholder of VRC.SDKBase.IEditorOnly for environments without VRCSDK
+     */
+    interface IEditorOnly
+    {
+    }
+
+#endif
 }

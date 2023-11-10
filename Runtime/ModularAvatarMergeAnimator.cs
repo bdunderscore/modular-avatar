@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#if MA_VRCSDK3_AVATARS
+
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -49,3 +51,5 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 }
+
+#endif
