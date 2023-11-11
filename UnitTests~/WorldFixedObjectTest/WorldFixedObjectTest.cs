@@ -1,5 +1,6 @@
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine.Animations;
@@ -60,5 +61,26 @@ public class WorldFixedObjectTest : TestBase
         // objects are moved to fixed root
         Assert.That(nestedFixedObject, Is.Not.Null);
         Assert.That(nestedFixedObject, Is.EqualTo(nestedFixed));
+    }
+
+    [Test]
+    public void NameCollisions()
+    {
+        var avatar = CreateRoot("Avatar");
+        var target1 = CreateChild(avatar, "Target");
+        var target2 = CreateChild(avatar, "Target");
+
+        target1.AddComponent<ModularAvatarWorldFixedObject>();
+        target2.AddComponent<ModularAvatarWorldFixedObject>();
+        
+        // initialize context
+        var buildContext = new BuildContext(avatar);
+        var animationServices = buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
+
+        new WorldFixedObjectProcessor().Process(buildContext);
+        
+        Assert.AreSame(target1.transform.parent, target2.transform.parent);
+        Assert.AreNotSame(target1.transform.parent, avatar.transform);
+        Assert.AreNotSame(target1.gameObject.name, target2.gameObject.name);
     }
 }
