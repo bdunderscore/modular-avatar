@@ -41,10 +41,10 @@ Position locking allows the outfit to follow the movement of the base avatar, ev
 testing animations and poses, and for creating screenshots. There are three options for position lock mode:
 
 * Not locked - the outfit will not follow the base avatar in edit mode
-* Base =======> Target (Unidirectional) - When the base avatar moves, the outfit will move too. However, if you move the
+* Base \=\=\=\=\=\=\=\> Target (Unidirectional) - When the base avatar moves, the outfit will move too. However, if you move the
 outfit, the base avatar will not move. This mode will preserve any adjustments you've made to the outfit's fit, and is
 recommended for normal use.
-* Base <======> Target (Bidirectional) - When the base avatar moves, the outfit will move too. If you move the outfit,
+* Base \<\=\=\=\=\=\=\> Target (Bidirectional) - When the base avatar moves, the outfit will move too. If you move the outfit,
 the base avatar will move too. This mode is useful for certain advanced use cases, such as creating a prefab which
 animates the base avatar's hair or animal ears.
 
