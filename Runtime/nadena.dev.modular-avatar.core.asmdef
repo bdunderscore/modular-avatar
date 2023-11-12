@@ -1,8 +1,8 @@
 {
     "name": "nadena.dev.modular-avatar.core",
     "references": [
-        "GUID:2665a8d13d1b3f18800f46e256720795",
-        "GUID:fe747755f7b44e048820525b07f9b956"
+        "Unity.Burst",
+        "nadena.dev.ndmf.runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
