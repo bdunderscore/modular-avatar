@@ -1,10 +1,10 @@
 {
     "name": "nadena.dev.modular-avatar.core.editor",
     "references": [
-        "GUID:fc900867c0f47cd49b6e2ae4ef907300",
-        "GUID:5718fb738711cd34ea54e9553040911d",
-        "GUID:3456780c4fb2d324ab9c633d6f1b0ddb",
-        "GUID:62ced99b048af7f4d8dfe4bed8373d76"
+        "nadena.dev.modular-avatar.core",
+        "VRC.SDK3A",
+        "VRC.SDKBase",
+        "nadena.dev.ndmf"
     ],
     "includePlatforms": [
         "Editor"
