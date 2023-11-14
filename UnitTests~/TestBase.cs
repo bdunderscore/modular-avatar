@@ -86,6 +86,15 @@ namespace modular_avatar_tests
             return go;
         }
 
+        
+        protected GameObject CreateCommonPrefab(string relPath)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/nadena.dev.modular-avatar/UnitTests/_CommonAssets/" + relPath);
+
+            var go = Object.Instantiate(prefab);
+            objects.Add(go);
+            return go;
+        }
 
         protected T LoadAsset<T>(string relPath) where T : UnityEngine.Object
         {
