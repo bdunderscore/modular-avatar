@@ -384,7 +384,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private bool IsAffectedByPhysBone(Transform target)
         {
-            return physBones.Any(x => target.IsChildOf(x.GetRootTransform()) &&
+            return physBones.Any(x => x != null && target.IsChildOf(x.GetRootTransform()) &&
                 x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
         }
 

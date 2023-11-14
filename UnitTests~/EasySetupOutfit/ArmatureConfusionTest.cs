@@ -24,8 +24,8 @@ public class ArmatureConfusionTest : TestBase
         ESOErrorWindow.Suppress = true;
 
         // Arrange for a confused armature
-        var outer = CreatePrefab("shapell.fbx");
-        var inner = CreatePrefab("shapell.fbx");
+        var outer = CreateCommonPrefab("shapell.fbx");
+        var inner = CreateCommonPrefab("shapell.fbx");
 
         var outerAnimator = outer.GetComponent<Animator>();
 #if MA_VRCSDK3_AVATARS

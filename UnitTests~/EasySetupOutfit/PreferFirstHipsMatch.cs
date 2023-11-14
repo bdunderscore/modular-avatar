@@ -10,7 +10,7 @@ public class PreferFirstHipsMatch : TestBase
     [Test]
     public void SetupHeuristicPrefersFirstHipsMatch()
     {
-        var root = CreatePrefab("shapell.fbx");
+        var root = CreateCommonPrefab("shapell.fbx");
         root.AddComponent<VRCAvatarDescriptor>();
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).gameObject;
         var root_armature = root_hips.transform.parent.gameObject;
