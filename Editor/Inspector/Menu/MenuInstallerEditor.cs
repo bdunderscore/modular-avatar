@@ -264,7 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             installTo.objectReferenceValue = null;
 
-                            foreach (var target in targets)
+                            foreach (var target in targets.Cast<Component>().OrderBy(ObjectHierarchyOrder))
                             {
                                 var installer = (ModularAvatarMenuInstaller) target;
                                 var child = new GameObject();
@@ -369,6 +369,20 @@ namespace nadena.dev.modular_avatar.core.editor
             serializedObject.ApplyModifiedProperties();
 
             Localization.ShowLanguageUI();
+        }
+
+        private string ObjectHierarchyOrder(Component arg)
+        {
+            var list = new List<int>();
+            var t = arg.transform;
+            while (t != null)
+            {
+                list.Add(t.GetSiblingIndex());
+                t = t.parent;
+            }
+
+            list.Reverse();
+            return string.Join("", list.Select(n => (char) n));
         }
 
         private void ExtractMenu()
