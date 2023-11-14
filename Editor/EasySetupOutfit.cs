@@ -22,8 +22,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static void InitStyles()
         {
-            buttonStyle = EditorStyles.miniButtonRight;
-            labelStyle = EditorStyles.label;
+            buttonStyle = new GUIStyle(EditorStyles.miniButtonRight);
+            labelStyle = new GUIStyle(EditorStyles.label);
             labelStyle.wordWrap = true;
 
             buttonStyle.fixedWidth = 40f;

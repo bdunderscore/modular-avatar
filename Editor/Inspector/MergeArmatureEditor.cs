@@ -53,14 +53,14 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var val = !propLockMode.hasMultipleDifferentValues && propLockMode.enumValueIndex == (int) index;
 
-            var selectionStyle = val ? (GUIStyle) "flow node 1" : (GUIStyle) "flow node 0";
+            var selectionStyle = new GUIStyle(val ? (GUIStyle) "flow node 1" : (GUIStyle) "flow node 0");
             selectionStyle.padding = new RectOffset(0, 0, 0, 0);
             selectionStyle.margin = new RectOffset(0, 0, 5, 5);
 
-            var boldLabel = EditorStyles.boldLabel;
+            var boldLabel = new GUIStyle(EditorStyles.boldLabel);
             boldLabel.wordWrap = true;
 
-            var normalLabel = EditorStyles.label;
+            var normalLabel = new GUIStyle(EditorStyles.label);
             normalLabel.wordWrap = true;
 
             EditorGUILayout.BeginVertical(selectionStyle);
