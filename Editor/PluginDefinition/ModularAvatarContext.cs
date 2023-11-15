@@ -25,6 +25,13 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 toDispose?.Dispose();
                 toDispose = null;
+
+                if (BuildReport.CurrentReport?.CurrentAvatar?.successful == false)
+                {
+                    // This is a bit of a temporary hack until we have a better way to report errors via NDMF
+                    ErrorReportUI.OpenErrorReportUI();
+                    throw new Exception("Errors occurred during modular avatar processing");
+                }
             }
             catch (Exception e)
             {
