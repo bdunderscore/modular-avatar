@@ -1,4 +1,4 @@
-﻿name: Trigger repo listing generator
+name: Trigger repo listing generator
 
 on:
   release:
@@ -9,7 +9,7 @@ jobs:
   dispatch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.VPM_REPO_TOKEN }}
           script: |
