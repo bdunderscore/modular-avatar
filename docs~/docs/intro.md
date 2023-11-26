@@ -28,11 +28,6 @@ Once you've installed MA, check out one of the tutorials below:
 * [Toggle an object](/docs/tutorials/object_toggle/)
 * [Edit menus](/docs/tutorials/menu/)
 
-## Manual installation
-
-You can also manually install Modular Avatar from unitypackages. The latest packages can be found at the [GitHub releases page](https://github.com/bdunderscore/modular-avatar/releases).
-Note that in some cases it may be necessary to delete the Modular Avatar folder before upgrading.
-
 ## Prerelease versions
 
 To make prerelease versions available in the VCC, [click here](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
