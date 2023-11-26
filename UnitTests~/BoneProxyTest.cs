@@ -41,6 +41,30 @@ namespace modular_avatar_tests
             Assert.IsNull(boneProxy.target);
         }
 
+        [Test]
+        public void TestNameCollision()
+        {
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var src1 = CreateChild(root, "src1");
+            var src_child1 = CreateChild(src1, "child");
+            var src2 = CreateChild(root, "src2");
+            var src_child2 = CreateChild(src2, "child");
+            
+            var bp1 = src_child1.AddComponent<ModularAvatarBoneProxy>();
+            bp1.target = target.transform;
+            
+            var bp2 = src_child2.AddComponent<ModularAvatarBoneProxy>();
+            bp2.target = target.transform;
+            
+            bp1.ClearCache(true);
+            bp2.ClearCache(true);
+            
+            new BoneProxyProcessor().OnPreprocessAvatar(root);
+            
+            Assert.AreNotEqual(src_child1.name, src_child2.name);
+        }
+
         private void AssertAttachmentMode(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
