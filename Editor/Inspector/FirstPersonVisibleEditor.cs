@@ -5,14 +5,14 @@ namespace nadena.dev.modular_avatar.core.editor
     [CustomEditor(typeof(ModularAvatarVisibleHeadAccessory))]
     internal class FirstPersonVisibleEditor : MAEditorBase
     {
-        private VisibleHeadAccessoryProcessor _processor;
+        private VisibleHeadAccessoryValidation _validation;
 
         private void OnEnable()
         {
             var target = (ModularAvatarVisibleHeadAccessory) this.target;
             var avatar = RuntimeUtil.FindAvatarTransformInParents(target.transform);
 
-            if (avatar != null) _processor = new VisibleHeadAccessoryProcessor(new BuildContext(avatar.gameObject));
+            if (avatar != null) _validation = new VisibleHeadAccessoryValidation(avatar.gameObject);
         }
 
         protected override void OnInnerInspectorGUI()
@@ -25,14 +25,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
 #else
 
-            if (_processor != null)
+            if (_validation != null)
             {
-                var status = _processor.Validate(target);
+                var status = _validation.Validate(target);
 
                 switch (status)
                 {
-                    case VisibleHeadAccessoryProcessor.ReadyStatus.Ready:
-                    case VisibleHeadAccessoryProcessor.ReadyStatus.ParentMarked:
+                    case VisibleHeadAccessoryValidation.ReadyStatus.Ready:
+                    case VisibleHeadAccessoryValidation.ReadyStatus.ParentMarked:
                         EditorGUILayout.HelpBox(Localization.S("fpvisible.normal"), MessageType.Info);
                         break;
                     default:
