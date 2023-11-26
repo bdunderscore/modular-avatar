@@ -26,11 +26,6 @@ VRChat Creator CompanionでModular Avatarをインストールすることをお
 * [アニメーターでトグル作成](/docs/tutorials/object_toggle/)
 * [簡易メニュー作成](/docs/tutorials/menu/)
 
-## 手動導入
-
-unitypackageからModular Avatarを手動でインストールすることもできます。最新版のunitypackageは[GitHubリリースページ](https://github.com/bdunderscore/modular-avatar/releases).
-にあります。アップデートする際には、Modular Avatarフォルダを削除する必要がある場合があります。
-
 ## テスト版
 
 VCCでテスト版をインストールできるようにするには、[こちらをクリック](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
