@@ -365,7 +365,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            if (!IsAffectedByPhysBoneWithSameChainsAsTarget(child, targetObject))
+                            if (NotAffectedByPhysBoneOrSimilarChainsAsTarget(child, targetObject))
                             {
                                 childNewParent = targetObject.gameObject;
                                 shouldZip = true;
@@ -383,9 +383,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsAffectedByPhysBoneWithSameChainsAsTarget(Transform child, Transform target)
+        private bool NotAffectedByPhysBoneOrSimilarChainsAsTarget(Transform child, Transform target)
         {
-            if (!physBoneByRootBone.TryGetValue(child, out VRCPhysBoneBase physBone)) return false;
+            // not affected
+            if (!physBoneByRootBone.TryGetValue(child, out VRCPhysBoneBase physBone)) return true;
 
             var ignores = new HashSet<Transform>(physBone.ignoreTransforms.Where(x => x));
 
