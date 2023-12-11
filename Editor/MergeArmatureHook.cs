@@ -62,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
             this.physBones = avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true);
 
-            if (avatarGameObject.TryGetComponent<Animator>(out var animator))
+            if (avatarGameObject.TryGetComponent<Animator>(out var animator) && animator.isHuman)
             {
                 this.humanoidBones = new HashSet<Transform>(Enum.GetValues(typeof(HumanBodyBones))
                     .Cast<HumanBodyBones>()

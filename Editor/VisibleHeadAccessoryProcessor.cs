@@ -26,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public VisibleHeadAccessoryValidation(GameObject avatarRoot)
         {
             var animator = avatarRoot.GetComponent<Animator>();
-            HeadBone = animator != null ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
+            HeadBone = animator != null && animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
             
             var activeBones = ImmutableHashSet.CreateBuilder<Transform>();
 #if MA_VRCSDK3_AVATARS

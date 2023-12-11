@@ -80,14 +80,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // Also retain humanoid bones
             var animator = _root.GetComponent<Animator>();
-            if (animator != null)
+            if (animator != null && animator.isHuman)
             {
-                foreach (var bone_ in Enum.GetValues(typeof(HumanBodyBones)))
+                foreach (HumanBodyBones bone in Enum.GetValues(typeof(HumanBodyBones)))
                 {
-                    var bone = (HumanBodyBones) bone_;
                     if (bone == HumanBodyBones.LastBone) continue;
 
-                    var transform = animator.GetBoneTransform((HumanBodyBones) bone);
+                    var transform = animator.GetBoneTransform(bone);
                     if (transform != null)
                     {
                         MarkObject(transform.gameObject);
@@ -108,23 +107,26 @@ namespace nadena.dev.modular_avatar.core.editor
             // https://github.com/bdunderscore/modular-avatar/issues/308
             // If we have duplicate Armature bones, retain them all in order to deal with some horrible hacks that are
             // in use in the wild.
-            try
+            if (animator.isHuman)
             {
-                var trueArmature = animator?.GetBoneTransform(HumanBodyBones.Hips)?.parent;
-                if (trueArmature != null)
+                try
                 {
-                    foreach (Transform t in _root.transform)
+                    var trueArmature = animator?.GetBoneTransform(HumanBodyBones.Hips)?.parent;
+                    if (trueArmature != null)
                     {
-                        if (t.name == trueArmature.name)
+                        foreach (Transform t in _root.transform)
                         {
-                            MarkObject(t.gameObject);
+                            if (t.name == trueArmature.name)
+                            {
+                                MarkObject(t.gameObject);
+                            }
                         }
                     }
                 }
-            }
-            catch (MissingComponentException e)
-            {
-                // No animator? weird. Move on.
+                catch (MissingComponentException e)
+                {
+                    // No animator? weird. Move on.
+                }
             }
         }
 

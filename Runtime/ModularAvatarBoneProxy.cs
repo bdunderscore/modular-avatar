@@ -175,7 +175,7 @@ namespace nadena.dev.modular_avatar.core
             }
 
             var animator = avatarTransform.GetComponent<Animator>();
-            if (animator == null) return null;
+            if (animator == null || !animator.isHuman) return null;
             var bone = animator.GetBoneTransform(boneReference);
             if (bone == null) return null;
             if (string.IsNullOrWhiteSpace(subPath)) return bone;
@@ -192,12 +192,15 @@ namespace nadena.dev.modular_avatar.core
                 return;
             }
 
-            foreach (var boneTypeObj in Enum.GetValues(typeof(HumanBodyBones)))
+            if (animator.isHuman)
             {
-                var boneType = (HumanBodyBones) boneTypeObj;
-                if (boneType == HumanBodyBones.LastBone) continue;
-                var bone = animator.GetBoneTransform(boneType);
-                if (bone != null) humanBones[bone] = boneType;
+                foreach (var boneTypeObj in Enum.GetValues(typeof(HumanBodyBones)))
+                {
+                    var boneType = (HumanBodyBones)boneTypeObj;
+                    if (boneType == HumanBodyBones.LastBone) continue;
+                    var bone = animator.GetBoneTransform(boneType);
+                    if (bone != null) humanBones[bone] = boneType;
+                }
             }
 
             Transform iter = newTarget;

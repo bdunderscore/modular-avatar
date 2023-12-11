@@ -331,7 +331,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return false;
             }
 
-            avatarHips = avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
+            avatarHips = avatarAnimator.isHuman ? avatarAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject : null;
 
             if (avatarHips == null)
             {
@@ -345,7 +345,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var outfitAnimator = outfitRoot.GetComponent<Animator>();
             if (outfitAnimator != null)
             {
-                outfitHips = outfitAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject;
+                outfitHips = outfitAnimator.isHuman ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject : null;
             }
 
             var hipsCandidates = new List<string>();
