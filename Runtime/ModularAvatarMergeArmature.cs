@@ -175,7 +175,7 @@ namespace nadena.dev.modular_avatar.core
         {
             // We only infer if targeting the armature (below the Hips bone)
             var rootAnimator = RuntimeUtil.FindAvatarTransformInParents(transform)?.GetComponent<Animator>();
-            if (rootAnimator == null) return;
+            if (rootAnimator == null || !rootAnimator.isHuman) return;
 
             var hips = rootAnimator.GetBoneTransform(HumanBodyBones.Hips);
             if (hips == null || hips.transform.parent != mergeTargetObject.transform) return;

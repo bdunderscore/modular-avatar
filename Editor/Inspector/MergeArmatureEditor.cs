@@ -168,15 +168,18 @@ namespace nadena.dev.modular_avatar.core.editor
             var rootAnimator = RuntimeUtil.FindAvatarTransformInParents(mergeTarget.transform)
                 .GetComponent<Animator>();
 
-            foreach (var bone in Enum.GetValues(typeof(HumanBodyBones)).Cast<HumanBodyBones>())
+            if (rootAnimator.isHuman)
             {
-                if (bone != HumanBodyBones.LastBone)
+                foreach (var bone in Enum.GetValues(typeof(HumanBodyBones)).Cast<HumanBodyBones>())
                 {
-                    var xform = rootAnimator.GetBoneTransform(bone);
-                    if (xform != null)
+                    if (bone != HumanBodyBones.LastBone)
                     {
-                        xform_to_bone[xform] = bone;
-                        bone_to_xform[bone] = xform;
+                        var xform = rootAnimator.GetBoneTransform(bone);
+                        if (xform != null)
+                        {
+                            xform_to_bone[xform] = bone;
+                            bone_to_xform[bone] = xform;
+                        }
                     }
                 }
             }
