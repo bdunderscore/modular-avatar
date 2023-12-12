@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private ndmf.BuildContext frameworkContext;
         private BuildContext context;
-        private VRCPhysBone[] physBones;
+        private Dictionary<Transform, VRCPhysBoneBase> physBoneByRootBone;
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
@@ -60,7 +60,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             this.frameworkContext = context;
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
-            this.physBones = avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true);
+            physBoneByRootBone = new Dictionary<Transform, VRCPhysBoneBase>();
+            foreach (var physbone in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneBase>(true))
+                physBoneByRootBone[physbone.GetRootTransform()] = physbone;
 
             if (avatarGameObject.TryGetComponent<Animator>(out var animator) && animator.isHuman)
             {
@@ -363,8 +365,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            if (!IsAffectedByPhysBone(child) ||
-                                (targetObject.position - child.position).sqrMagnitude <= DuplicatedBoneMaxSqrDistance)
+                            if (NotAffectedByPhysBoneOrSimilarChainsAsTarget(child, targetObject))
                             {
                                 childNewParent = targetObject.gameObject;
                                 shouldZip = true;
@@ -382,10 +383,26 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsAffectedByPhysBone(Transform target)
+        private bool NotAffectedByPhysBoneOrSimilarChainsAsTarget(Transform child, Transform target)
         {
-            return physBones.Any(x => x != null && target.IsChildOf(x.GetRootTransform()) &&
-                x.ignoreTransforms.All(y => y == null || !target.IsChildOf(y)));
+            // not affected
+            if (!physBoneByRootBone.TryGetValue(child, out VRCPhysBoneBase physBone)) return true;
+
+            var ignores = new HashSet<Transform>(physBone.ignoreTransforms.Where(x => x));
+
+            return IsSimilarChainInPosition(child, target, ignores);
+        }
+
+        // Returns true if child and target are in similar position and children are recursively.
+        private static bool IsSimilarChainInPosition(Transform child, Transform target, HashSet<Transform> ignores)
+        {
+            if ((target.position - child.position).sqrMagnitude > DuplicatedBoneMaxSqrDistance) return false;
+
+            return child.Cast<Transform>()
+                .Where(t => !ignores.Contains(t))
+                .Select(t => (t, t2: target.Find(t.name)))
+                .Where(t1 => t1.t2)
+                .All(t1 => IsSimilarChainInPosition(t1.t, t1.t2, ignores));
         }
 
         Transform FindOriginalParent(Transform merged)

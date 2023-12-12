@@ -28,6 +28,25 @@ public class MergeArmatureTests : TestBase
     }
 
     [Test]
+    public void DontMergePartiallySamePhysBoneChain()
+    {
+        var root = CreatePrefab("PartiallySamePhysBoneChain.prefab");
+        var physBone = root.transform.Find("GameObject/PhysBone").GetComponent<VRCPhysBone>();
+        var physBoneTarget = root.transform.Find("GameObject/Armature (1)/L_1");
+
+        AvatarProcessor.ProcessAvatar(root);
+
+        var targetHips = root.transform.Find("Armature");
+        
+        Assert.AreEqual(2, targetHips.childCount);
+        Assert.AreEqual("L_1", targetHips.GetChild(0).gameObject.name);
+        Assert.That(targetHips.GetChild(1).gameObject.name, Does.StartWith("L_1$"));
+
+        Assert.That(targetHips.GetChild(1), Is.EqualTo(physBoneTarget));
+        Assert.That(physBone.ignoreTransforms, Is.Empty);
+    }
+
+    [Test]
     public void PhysBonesNRETest()
     {
         var root = LoadShapell();
