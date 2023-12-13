@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class CreateBlendTree : Editor
+    internal static class CreateBlendTree
     {
         [MenuItem("Assets/Create/BlendTree", priority = 411)]
         static void CreateNewBlendTree()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                0,
-               CreateInstance<DoCreateBlendTree>(),
+               Editor.CreateInstance<DoCreateBlendTree>(),
                "New BlendTree.asset",
                EditorGUIUtility.IconContent("BlendTree Icon").image as Texture2D,
                null);
