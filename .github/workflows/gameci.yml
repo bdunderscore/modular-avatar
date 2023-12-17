@@ -45,17 +45,30 @@ jobs:
     name: Unit tests
     strategy:
       matrix:
-        unity_version: [ auto ]
+        unity_major_version: [ 2019, 2022 ]
         sdk: [ vrcsdk ]
     runs-on: ubuntu-latest
     permissions:
       checks: write
       contents: read
     steps:
+      - id: configure
+        name: Configure
+        env:
+          unity_major_version: ${{ matrix.unity_major_version }}
+        run: |
+          if [ $unity_major_version == 2019 ]; then
+            echo "unity_version=2019.4.31f1" >> $GITHUB_ENV
+          elif [ $unity_major_version == 2022 ]; then
+            echo "unity_version=2022.3.6f1" >> $GITHUB_ENV
+          else
+            echo "Invalid unity_major_version: $unity_major_version"
+            exit 1
+          fi 
       - id: setup
         name: Setup
         env:
-          unity_version: ${{ matrix.unity_version }}
+          unity_version: ${{ steps.configure.outputs.unity_version }}
           sdk: ${{ matrix.sdk }}
         run: |
           set -x
@@ -63,13 +76,10 @@ jobs:
           sudo apt-get install xmlstarlet -y
           
           should_test=true
-          if [ $sdk == vrcsdk ] && [ $unity_version != auto ]; then
-            should_test=false
-          fi
           echo should_test=$should_test >> $GITHUB_OUTPUT
           
           can_fail=false
-          if [ $sdk == standalone ] || [ $unity_version != auto ]; then
+          if [ $sdk == standalone ]; then
             can_fail=$should_test
           fi
           echo can_fail=$can_fail >> $GITHUB_OUTPUT
@@ -117,7 +127,7 @@ jobs:
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           path: Library
-          key: Library-${{ matrix.unity_version }}-${{ matrix.sdk }}
+          key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
           restore-keys: Library-
 
       - uses: game-ci/unity-test-runner@v3
@@ -129,7 +139,7 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           testMode: EditMode
-          unityVersion: ${{ matrix.unity_version }}
+          unityVersion: ${{ steps.configure.outputs.unity_version }}
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames Tests
@@ -141,7 +151,7 @@ jobs:
         name: Determine conclusion
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         env:
-          unity_version: ${{ matrix.unity_version }}
+          unity_version: ${{ steps.configure.outputs.unity_version }}
           sdk_platform: ${{ matrix.sdk }}
           gameci_outcome: ${{ steps.gameci.outcome }}
           can_fail: ${{ steps.setup.outputs.can_fail }}
@@ -175,8 +185,8 @@ jobs:
           echo matrix_output=$output >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v3
-        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' && matrix.unity_version == 'auto' }}
+        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' }}
         continue-on-error: true
         with:
-          name: Coverage results ${{ matrix.unity_version }} ${{ matrix.sdk }}
+          name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: ${{ steps.gameci.outputs.coveragePath }}
