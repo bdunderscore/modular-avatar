@@ -120,7 +120,7 @@ jobs:
           key: Library-${{ matrix.unity_version }}-${{ matrix.sdk }}
           restore-keys: Library-
 
-      - uses: game-ci/unity-test-runner@v4
+      - uses: game-ci/unity-test-runner@v3
         id: gameci
         continue-on-error: ${{ steps.setup.outputs.can_fail == 'true' }}
         if: ${{ steps.setup.outputs.should_test == 'true' }}
