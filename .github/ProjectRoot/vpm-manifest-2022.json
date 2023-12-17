@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.vrchat.avatars": {
-      "version": "3.4.2"
+      "version": "3.5.0"
     },
     "nadena.dev.ndmf": {
       "version": "0.3.0"
@@ -9,13 +9,13 @@
   },
   "locked": {
     "com.vrchat.avatars": {
-      "version": "3.4.2",
+      "version": "3.5.0",
       "dependencies": {
-        "com.vrchat.base": "3.4.2"
+        "com.vrchat.base": "3.5.0"
       }
     },
     "com.vrchat.base": {
-      "version": "3.4.2",
+      "version": "3.5.0",
       "dependencies": {}
     }
   }

@@ -58,9 +58,9 @@ jobs:
           unity_major_version: ${{ matrix.unity_major_version }}
         run: |
           if [ $unity_major_version == 2019 ]; then
-            echo "unity_version=2019.4.31f1" >> $GITHUB_ENV
+            echo "unity_version=2019.4.31f1" >> $GITHUB_OUTPUT
           elif [ $unity_major_version == 2022 ]; then
-            echo "unity_version=2022.3.6f1" >> $GITHUB_ENV
+            echo "unity_version=2022.3.6f1" >> $GITHUB_OUTPUT
           else
             echo "Invalid unity_major_version: $unity_major_version"
             exit 1
@@ -104,9 +104,9 @@ jobs:
           mv * .github/ProjectRoot/Packages/nadena.dev.modular-avatar
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.modular-avatar/UnitTests~' 'Packages/nadena.dev.modular-avatar/UnitTests'
-          for i in packages-lock manifest; do
-            if [ -e "$i-${{ matrix.unity_version }}.json" ]; then
-              mv "$i-${{ matrix.unity_version }}.json" Packages/$i.json -v
+          for i in packages-lock manifest vpm-manifest; do
+            if [ -e "$i-${{ matrix.unity_major_version }}.json" ]; then
+              mv "$i-${{ matrix.unity_major_version }}.json" Packages/$i.json -v
             fi
           done
 
@@ -122,6 +122,14 @@ jobs:
         run: |
           ls -lR
           ls -lR Packages/nadena*
+          
+      - if: ${{ steps.setup.outputs.should_test == 'true' }}
+        name: "Debug: List package versions"
+        run: |
+          for i in Packages/*/package.json; do
+            echo $i
+            cat $i | jq .version
+          done
 
       - uses: actions/cache@v3
         if: ${{ steps.setup.outputs.should_test == 'true' }}
