@@ -4,7 +4,7 @@
       "version": "3.4.2"
     },
     "nadena.dev.ndmf": {
-      "version": "0.3.0"
+      "version": "1.3.0-alpha.0"
     }
   },
   "locked": {
@@ -17,6 +17,9 @@
     "com.vrchat.base": {
       "version": "3.4.2",
       "dependencies": {}
+    },
+    "nadena.dev.ndmf": {
+      "version": "1.3.0-alpha.0"
     }
   }
 }

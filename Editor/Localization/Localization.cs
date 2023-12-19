@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using nadena.dev.ndmf.localization;
+using nadena.dev.ndmf.ui;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
@@ -19,13 +21,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static ImmutableDictionary<string, string> SupportedLanguageDisplayNames
             = ImmutableDictionary<string, string>.Empty
-                .Add("en", "English")
-                .Add("ja", "日本語")
+                .Add("en-us", "English")
+                .Add("ja-jp", "日本語")
                 .Add("zh-hans", "简体中文")
-                .Add("ko", "한국어");
+                .Add("ko-kr", "한국어");
 
         private static ImmutableList<string>
-            SupportedLanguages = new string[] {"en", "ja", "zh-hans", "ko"}.ToImmutableList();
+            SupportedLanguages = new string[] {"en-us", "ja-jp", "zh-hans", "ko-kr"}.ToImmutableList();
 
         private static string[] DisplayNames = SupportedLanguages.Select(l =>
         {
@@ -37,49 +39,51 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static string OverrideLanguage { get; set; } = null;
 
-        [MenuItem("Tools/Modular Avatar/Reload localizations")]
-        public static void Reload()
+        public static Localizer L { get; private set; }
+
+        static Localization()
         {
-            Cache.Clear();
-            OnLangChange?.Invoke();
+            Localizer localizer = new Localizer(SupportedLanguages[0], () =>
+            {
+                List<(string, Func<string, string>)> languages = new List<(string, Func<string, string>)>();
+                
+                foreach (var lang in SupportedLanguages)
+                {
+                    languages.Add((lang, LanguageLookup(lang)));
+                }
+
+                return languages;
+            });
+            
+            L = localizer;
+            
+            LanguagePrefs.RegisterLanguageChangeCallback(typeof(Localization), _ => OnLangChange?.Invoke());
         }
 
-        private static ImmutableDictionary<string, string> GetLocalization(string lang)
+        private static Func<string,string> LanguageLookup(string lang)
         {
-            if (Cache.TryGetValue(lang, out var info))
-            {
-                return info;
-            }
-
-            var fallback = lang == FallbackLanguage
-                ? ImmutableDictionary<string, string>.Empty
-                : GetLocalization(FallbackLanguage);
-
             var filename = localizationPathRoot + "/" + lang + ".json";
 
             try
             {
                 var langData = File.ReadAllText(filename);
-                var tmp = JsonConvert.DeserializeObject<Dictionary<string, string>>(langData);
+                var langMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(langData);
 
-                foreach (var kvp in fallback)
-                {
-                    if (!tmp.ContainsKey(kvp.Key))
-                    {
-                        tmp[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                info = tmp.ToImmutableDictionary();
-                Cache[lang] = info;
-                return info;
+                return langMap.GetValueOrDefault;
             }
             catch (Exception e)
             {
                 Debug.LogError("Failed to load language file " + filename);
                 Debug.LogException(e);
-                return ImmutableDictionary<string, string>.Empty;
+                return (k) => null;
             }
+        }
+
+        [MenuItem("Tools/Modular Avatar/Reload localizations")]
+        public static void Reload()
+        {
+            Localizer.ReloadLocalizations();
+            Cache.Clear();
         }
 
         public static GUIContent G(string key)
@@ -107,11 +111,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public static string S(string key, string defValue)
         {
-            var info = GetLocalization(GetSelectedLocalization());
-
-            if (info.TryGetValue(key, out var value))
+            if (L.TryGetLocalizedString(key, out var val))
             {
-                return value;
+                return val;
             }
             else
             {
@@ -121,22 +123,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public static string GetSelectedLocalization()
         {
-            return OverrideLanguage ?? EditorPrefs.GetString("nadena.dev.modularavatar.lang", "en");
+            return LanguagePrefs.Language;
         }
 
         public static void ShowLanguageUI()
         {
             EditorGUILayout.Separator();
-
-            var curLang = GetSelectedLocalization();
-
-            var curIndex = SupportedLanguages.IndexOf(curLang);
-            var newIndex = EditorGUILayout.Popup("Editor Language", curIndex, DisplayNames);
-            if (newIndex != curIndex)
-            {
-                EditorPrefs.SetString("nadena.dev.modularavatar.lang", SupportedLanguages[newIndex]);
-                Reload();
-            }
+            
+            LanguageSwitcher.DrawImmediate();
         }
     }
 }
