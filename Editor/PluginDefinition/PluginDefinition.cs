@@ -15,6 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         public override string QualifiedName => "nadena.dev.modular-avatar";
         public override string DisplayName => "Modular Avatar";
+        public override Texture2D LogoTexture => LogoDisplay.LOGO_ASSET;
 
         protected override void OnUnhandledException(Exception e)
         {
@@ -29,6 +30,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq.Run("Clone animators", AnimationUtil.CloneAllControllers);
 
             seq = InPhase(BuildPhase.Transforming);
+            seq.Run("Validate configuration", 
+                context => ComponentValidation.ValidateAll(context.AvatarRootObject));
             seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
             {
                 seq.Run(ClearEditorOnlyTags.Instance);

@@ -15,29 +15,12 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 BuildContext = new BuildContext(context);
             }
-
-            toDispose = BuildReport.CurrentReport.ReportingOnAvatar(context.AvatarRootObject);
         }
 
         public void OnDeactivate(ndmf.BuildContext context)
         {
-            try
-            {
-                toDispose?.Dispose();
-                toDispose = null;
-
-                if (BuildReport.CurrentReport?.CurrentAvatar?.successful == false)
-                {
-                    // This is a bit of a temporary hack until we have a better way to report errors via NDMF
-                    ErrorReportUI.OpenErrorReportUI();
-                    throw new Exception("Errors occurred during modular avatar processing");
-                }
-            }
-            catch (Exception e)
-            {
-                ErrorReportUI.OpenErrorReportUI();
-                throw e;
-            }
+            toDispose?.Dispose();
+            toDispose = null;
         }
     }
 }

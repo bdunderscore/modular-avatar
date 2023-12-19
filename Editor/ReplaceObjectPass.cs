@@ -47,7 +47,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (targetObject == null)
                 {
-                    BuildReport.LogFatal("replace_object.null_target", new string[0],
+                    BuildReport.LogFatal("error.replace_object.null_target", new string[0],
                         component, targetObject);
                     UnityObject.DestroyImmediate(component.gameObject);
                     continue;
@@ -55,7 +55,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (component.transform.GetComponentsInParent<Transform>().Contains(targetObject.transform))
                 {
-                    BuildReport.LogFatal("replace_object.parent_of_target", new string[0],
+                    BuildReport.LogFatal("error.replace_object.parent_of_target", new string[0],
                         component, targetObject);
                     UnityObject.DestroyImmediate(component.gameObject);
                     continue;
@@ -63,7 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (replacements.TryGetValue(targetObject, out var existingReplacement))
                 {
-                    BuildReport.LogFatal("replace_object.replacing_replacement", new string[0],
+                    BuildReport.LogFatal("error.replace_object.replacing_replacement", new string[0],
                         component, existingReplacement.Item1);
                     UnityObject.DestroyImmediate(component);
                     continue;
