@@ -71,7 +71,7 @@ jobs:
           zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
           mv ".github/${{env.zipFile}}" "${{env.zipFile}}"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: package-zip
           path: ${{ env.zipFile }}
