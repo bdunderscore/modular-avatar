@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -39,7 +40,7 @@ namespace modular_avatar_tests
                 }
             }
 
-            BuildReport.Clear();
+            ErrorReport.Clear();
             objects = new List<GameObject>();
         }
 

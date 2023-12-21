@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.ndmf;
 
 #if MA_VRCSDK3_AVATARS
 using nadena.dev.modular_avatar.core.menu;
@@ -16,64 +17,61 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
         /// </summary>
         /// <param name="tagComponent"></param>
         /// <returns>Null if valid, otherwise a list of configuration errors</returns>
-        internal static List<ErrorLog> CheckComponent(this AvatarTagComponent tagComponent)
+        internal static void CheckComponent(this AvatarTagComponent tagComponent)
         {
-            switch (tagComponent)
+            ErrorReport.WithContextObject(tagComponent, () =>
             {
-                case ModularAvatarBlendshapeSync bs:
-                    return CheckInternal(bs);
-                case ModularAvatarBoneProxy bp:
-                    return CheckInternal(bp);
+                switch (tagComponent)
+                {
+                    case ModularAvatarBlendshapeSync bs:
+                        CheckInternal(bs);
+                        break;
+                    case ModularAvatarBoneProxy bp:
+                        CheckInternal(bp);
+                        break;
 #if MA_VRCSDK3_AVATARS
-                case ModularAvatarMenuInstaller mi:
-                    return CheckInternal(mi);
-                case ModularAvatarMergeAnimator obj:
-                    return CheckInternal(obj);
+                    case ModularAvatarMenuInstaller mi:
+                        CheckInternal(mi);
+                        break;
+                    case ModularAvatarMergeAnimator obj:
+                        CheckInternal(obj);
+                        break;
 #endif
-                case ModularAvatarMergeArmature obj:
-                    return CheckInternal(obj);
-                default:
-                    return null;
-            }
+                    case ModularAvatarMergeArmature obj:
+                        CheckInternal(obj);
+                        break;
+                    default:
+                        return;
+                }
+            });
         }
 
-        internal static List<ErrorLog> ValidateAll(GameObject root)
+        internal static void ValidateAll(GameObject root)
         {
-            List<ErrorLog> logs = new List<ErrorLog>();
             foreach (var component in root.GetComponentsInChildren<AvatarTagComponent>(true))
             {
-                var componentLogs = component.CheckComponent();
-                if (componentLogs != null)
-                {
-                    logs.AddRange(componentLogs);
-                }
+                component.CheckComponent();
             }
-
-            return logs;
         }
 
-        private static List<ErrorLog> CheckInternal(ModularAvatarBlendshapeSync bs)
-        {
+        private static void CheckInternal(ModularAvatarBlendshapeSync bs)
+        { 
             var localMesh = bs.GetComponent<SkinnedMeshRenderer>();
             if (localMesh == null)
             {
-                return new List<ErrorLog>
-                    {new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.no_local_renderer", bs)};
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_local_renderer", bs);
             }
 
             if (localMesh.sharedMesh == null)
             {
-                return new List<ErrorLog>
-                    {new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.no_local_mesh", bs)};
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_local_mesh", bs);
             }
 
             if (bs.Bindings == null || bs.Bindings.Count == 0)
             {
-                return new List<ErrorLog>
-                    {new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.no_bindings", bs)};
+                BuildReport.Log(ErrorSeverity.Information,"validation.blendshape_sync.no_bindings", bs);
             }
 
-            List<ErrorLog> errorLogs = new List<ErrorLog>();
             foreach (var binding in bs.Bindings)
             {
                 var localShape = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
@@ -82,113 +80,82 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
                 if (localMesh.sharedMesh.GetBlendShapeIndex(localShape) == -1)
                 {
-                    errorLogs.Add(new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.missing_local_shape",
-                        new string[] {localShape}, bs));
+                    BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.missing_local_shape",
+                        localShape, bs);
                 }
 
                 var targetObj = binding.ReferenceMesh.Get(bs.transform);
                 if (targetObj == null)
                 {
-                    errorLogs.Add(new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.no_target", bs));
+                    BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_target", bs);
                     continue;
                 }
 
                 var targetRenderer = targetObj.GetComponent<SkinnedMeshRenderer>();
                 if (targetRenderer == null)
                 {
-                    errorLogs.Add(new ErrorLog(ReportLevel.Validation,
-                        "validation.blendshape_sync.missing_target_renderer", bs, targetRenderer));
+                    BuildReport.Log(ErrorSeverity.NonFatal,
+                        "validation.blendshape_sync.missing_target_renderer", bs, targetRenderer);
                     continue;
                 }
 
                 var targetMesh = targetRenderer.sharedMesh;
                 if (targetMesh == null)
                 {
-                    errorLogs.Add(new ErrorLog(ReportLevel.Validation, "validation.blendshape_sync.missing_target_mesh",
-                        bs, targetRenderer));
+                    BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.missing_target_mesh",
+                        bs, targetRenderer);
                     continue;
                 }
 
                 if (targetMesh.GetBlendShapeIndex(binding.Blendshape) == -1)
                 {
-                    errorLogs.Add(new ErrorLog(ReportLevel.Validation,
-                        "validation.blendshape_sync.missing_target_shape", new string[] {binding.Blendshape}, bs,
-                        targetRenderer));
+                    BuildReport.Log(ErrorSeverity.NonFatal,
+                        "validation.blendshape_sync.missing_target_shape", binding.Blendshape, bs,
+                        targetRenderer);
                 }
-            }
-
-            if (errorLogs.Count == 0)
-            {
-                return null;
-            }
-            else
-            {
-                return errorLogs;
             }
         }
 
-        private static List<ErrorLog> CheckInternal(ModularAvatarBoneProxy bp)
+        private static void CheckInternal(ModularAvatarBoneProxy bp)
         {
             if (bp.target == null)
             {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.bone_proxy.no_target", bp)
-                };
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.bone_proxy.no_target", bp);
             }
-
-            return null;
         }
 
 #if MA_VRCSDK3_AVATARS
-        private static List<ErrorLog> CheckInternal(ModularAvatarMenuInstaller mi)
+        private static void CheckInternal(ModularAvatarMenuInstaller mi)
         {
             // TODO - check that target menu is in the avatar
             if (mi.menuToAppend == null && mi.GetComponent<MenuSource>() == null)
             {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.menu_installer.no_menu", mi)
-                };
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.menu_installer.no_menu", mi);
             }
-
-            return null;
         }
 
-        private static List<ErrorLog> CheckInternal(ModularAvatarMergeAnimator ma)
+        private static void CheckInternal(ModularAvatarMergeAnimator ma)
         {
             if (ma.animator == null)
             {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.merge_animator.no_animator", ma)
-                };
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.merge_animator.no_animator", ma);
             }
-
-            return null;
         }
 #endif
 
-        private static List<ErrorLog> CheckInternal(ModularAvatarMergeArmature ma)
+        private static void CheckInternal(ModularAvatarMergeArmature ma)
         {
             if (ma.mergeTargetObject == null)
             {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "validation.merge_armature.no_target", ma)
-                };
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.merge_armature.no_target", ma);
+                return;
             }
 
             if (ma.mergeTargetObject == ma.gameObject || ma.mergeTargetObject.transform.IsChildOf(ma.transform))
             {
-                return new List<ErrorLog>()
-                {
-                    new ErrorLog(ReportLevel.Validation, "error.merge_armature.merge_into_self", ma,
-                        ma.mergeTargetObject)
-                };
+                BuildReport.Log(ErrorSeverity.Error, "error.merge_armature.circular_dependency", ma,
+                    ma.mergeTargetObject);
             }
-
-            return null;
         }
     }
 }

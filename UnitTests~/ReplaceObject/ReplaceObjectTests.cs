@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -100,14 +102,12 @@ namespace modular_avatar_tests.ReplaceObject
             var replaceObject = replacement.AddComponent<ModularAvatarReplaceObject>();
             replaceObject.targetObject.Set(root);
 
-            BuildReport.Clear();
-            Assert.Throws<Exception>(() =>
+            var errors = ErrorReport.CaptureErrors(() =>
             {
-                using (BuildReport.CurrentReport.ReportingOnAvatar(root))
-                {
-                    Process(root);
-                }
+                Process(root);
             });
+            
+            Assert.IsTrue(errors.Any(e => e.TheError.Severity == ErrorSeverity.Error));
         }
 
         [Test]
@@ -119,15 +119,13 @@ namespace modular_avatar_tests.ReplaceObject
 
             var replaceObject = replacement.AddComponent<ModularAvatarReplaceObject>();
             replaceObject.targetObject.Set(null);
-
-            BuildReport.Clear();
-            Assert.Throws<Exception>(() =>
+            
+            var errors = ErrorReport.CaptureErrors(() =>
             {
-                using (BuildReport.CurrentReport.ReportingOnAvatar(root))
-                {
-                    Process(root);
-                }
+                Process(root);
             });
+            
+            Assert.IsTrue(errors.Any(e => e.TheError.Severity == ErrorSeverity.Error));
         }
 
         // Test: child object handling

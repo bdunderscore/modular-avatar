@@ -107,7 +107,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // https://github.com/bdunderscore/modular-avatar/issues/308
             // If we have duplicate Armature bones, retain them all in order to deal with some horrible hacks that are
             // in use in the wild.
-            if (animator.isHuman)
+            if (animator != null && animator.isHuman)
             {
                 try
                 {

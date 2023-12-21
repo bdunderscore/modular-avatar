@@ -145,7 +145,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (visited.Contains(config)) return;
                 if (visitStack.Contains(config))
                 {
-                    BuildReport.LogFatal("merge_armature.circular_dependency", new string[0], config);
+                    BuildReport.LogFatal("error.merge_armature.circular_dependency", new string[0], config);
                     return;
                 }
 
