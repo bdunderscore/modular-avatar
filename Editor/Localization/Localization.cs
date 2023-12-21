@@ -69,7 +69,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 var langData = File.ReadAllText(filename);
                 var langMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(langData);
 
-                return langMap.GetValueOrDefault;
+                // return langMap.GetValueOrDefault; - Unity 2019 doesn't have this extension method
+                return key =>
+                {
+                    if (langMap.TryGetValue(key, out var val)) return val;
+                    else return null;
+                };
             }
             catch (Exception e)
             {
@@ -103,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 return string.Format(S(key, key), format);
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 return S(key, key) + "(" + string.Join(", ", format) + ")";
             }
