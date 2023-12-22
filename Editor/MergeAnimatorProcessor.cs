@@ -25,6 +25,7 @@
 #if MA_VRCSDK3_AVATARS
 
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -67,10 +68,23 @@ namespace nadena.dev.modular_avatar.core.editor
             if (descriptor.specialAnimationLayers != null) InitSessions(descriptor.specialAnimationLayers);
 
             var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
+            Dictionary<VRCAvatarDescriptor.AnimLayerType, List<ModularAvatarMergeAnimator>> byLayerType
+                = new Dictionary<VRCAvatarDescriptor.AnimLayerType, List<ModularAvatarMergeAnimator>>();
 
             foreach (var merge in toMerge)
             {
-                BuildReport.ReportingObject(merge, () => ProcessMergeAnimator(avatarGameObject, context, merge));
+                if (!byLayerType.TryGetValue(merge.layerType, out var components))
+                {
+                    components = new List<ModularAvatarMergeAnimator>();
+                    byLayerType[merge.layerType] = components;
+                }
+
+                components.Add(merge);
+            }
+
+            foreach (var entry in byLayerType)
+            {
+                ProcessLayerType(context, entry.Key, entry.Value);
             }
 
             descriptor.baseAnimationLayers = FinishSessions(descriptor.baseAnimationLayers);
@@ -78,35 +92,57 @@ namespace nadena.dev.modular_avatar.core.editor
             descriptor.customizeAnimationLayers = true;
         }
 
-        private void ProcessMergeAnimator(GameObject avatarGameObject, BuildContext context,
-            ModularAvatarMergeAnimator merge)
+        private void ProcessLayerType(
+            BuildContext context,
+            VRCAvatarDescriptor.AnimLayerType layerType,
+            List<ModularAvatarMergeAnimator> toMerge
+        )
         {
-            if (merge.animator == null) return;
+            // Stable sort
+            var sorted = toMerge.OrderBy(x => x.layerPriority)
+                .ToList();
+            var beforeOriginal = sorted.Where(x => x.layerPriority < 0)
+                .ToList();
+            var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
+                .ToList();
+            
+            var session = new AnimatorCombiner(context, layerType.ToString() + " (merged)");
+            mergeSessions[layerType] = session;
 
+            foreach (var component in beforeOriginal)
+            {
+                MergeSingle(context, session, component);
+            }
+            
+            if (defaultControllers_.TryGetValue(layerType, out var defaultController) && defaultController.layers.Length > 0)
+            {
+                session.AddController("", defaultController, null, forceFirstLayerWeight: true);
+            }
+            
+            foreach (var component in afterOriginal)
+            {
+                MergeSingle(context, session, component);
+            }
+        }
+
+        private void MergeSingle(BuildContext context, AnimatorCombiner session, ModularAvatarMergeAnimator merge)
+        {
             string basePath;
             if (merge.pathMode == MergeAnimatorPathMode.Relative)
             {
-                var relativePath = RuntimeUtil.RelativePath(avatarGameObject, merge.gameObject);
+                var targetObject = merge.relativePathRoot.Get(context.AvatarRootTransform);
+                if (targetObject == null) targetObject = merge.gameObject;
+                
+                var relativePath = RuntimeUtil.RelativePath(context.AvatarRootObject, targetObject);
                 basePath = relativePath != "" ? relativePath + "/" : "";
             }
             else
             {
                 basePath = "";
             }
-
-            if (!mergeSessions.TryGetValue(merge.layerType, out var session))
-            {
-                session = new AnimatorCombiner(context, merge.layerType.ToString() + " (merged)");
-                mergeSessions[merge.layerType] = session;
-                if (defaultControllers_.TryGetValue(merge.layerType, out var defaultController))
-                {
-                    session.AddController("", defaultController, null);
-                }
-            }
-
+            
             bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
-            mergeSessions[merge.layerType]
-                .AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
+            session.AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
 
             if (merge.deleteAttachedAnimator)
             {

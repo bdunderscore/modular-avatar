@@ -51,7 +51,11 @@
   "merge_animator.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_animator.match_avatar_write_defaults": "Match Avatar Write Defaults",
   "merge_animator.match_avatar_write_defaults.tooltip": "Match the write defaults setting used on the avatar's animator. If the avatar's write defaults settings are inconsistent, the settings on the animator will be left alone.",
-   
+  "merge_animator.relative_path_root": "Relative Path Root",
+  "merge_animator.relative_path_root.tooltip": "The root object to use when interpreting relative paths. If not specified, the object this component is attached to will be used.",
+  "merge_animator.layer_priority": "Layer Priority",
+  "merge_animator.layer_priority.tooltip": "Controls the order in which layers are merged into the animator - lower to higher. Negative values are merged before the original layer on the avatar descriptor, while zero and positive numbers are merged after.",
+
   "merge_armature.lockmode": "Position sync mode",
   "merge_armature.lockmode.not_locked.title": "Not locked",
   "merge_armature.lockmode.not_locked.body": "Merged armature does not sync its position with the base avatar.",

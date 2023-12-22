@@ -79,7 +79,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return _combined;
         }
 
-        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, bool forceFirstLayerWeight = false)
         {
             controllerBaseLayer = _layers.Count;
             _cloneMap = new Dictionary<Object, Object>();
@@ -108,6 +108,11 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var layer in layers)
             {
                 insertLayer(basePath, layer, first, writeDefaults, layers);
+                if (first && forceFirstLayerWeight)
+                {
+                    _layers[_layers.Count - 1].defaultWeight = 1;
+                }
+                
                 first = false;
             }
         }
