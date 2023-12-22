@@ -44,6 +44,8 @@ namespace nadena.dev.modular_avatar.core
         public bool deleteAttachedAnimator;
         public MergeAnimatorPathMode pathMode = MergeAnimatorPathMode.Relative;
         public bool matchAvatarWriteDefaults;
+        public AvatarObjectReference relativePathRoot = new AvatarObjectReference();
+        public int layerPriority = 0;
 
         public override void ResolveReferences()
         {

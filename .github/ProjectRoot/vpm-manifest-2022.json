@@ -4,7 +4,7 @@
       "version": "3.5.0"
     },
     "nadena.dev.ndmf": {
-      "version": "1.3.0-alpha.0"
+      "version": "1.3.0-alpha.1"
     }
   },
   "locked": {
@@ -19,7 +19,7 @@
       "dependencies": {}
     },
     "nadena.dev.ndmf": {
-      "version": "1.3.0-alpha.0"
+      "version": "1.3.0-alpha.1"
     }
   }
 }

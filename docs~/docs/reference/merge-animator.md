@@ -32,7 +32,13 @@ As a development convenience, you can check the "Delete attached animator" box t
 
 Animations that move humanoid bones ignore the relative path logic, and will always apply to the overall avatar. As such most humanoid animations (e.g. AFK animations) can be used as-is.
 
-### Absolute path mode
+### Path mode
+
+The path mode option controls how animation paths are interpreted. In "Relative" mode, all paths are relative to a
+specific object, usually the one the Merge Animator component is attached to. This allows you to create gimmicks that
+work when they're moved around in the avatar,
+and makes it easier to record the animations, by using the Unity animator component (as described above). You can
+control which object is used as the root for paths in animations by setting the "Relative Path Root" field.
 
 If you want to animate objects that are already attached to the avatar (that aren't under your object), set the path mode to "Absolute". This will cause the animator to use absolute paths, and will not attempt to interpret paths relative to the Merge Animator component.
 This means you will need to record your animations using the avatar's root animator instead.

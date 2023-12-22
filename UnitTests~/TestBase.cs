@@ -139,8 +139,7 @@ namespace modular_avatar_tests
 #if MA_VRCSDK3_AVATARS
         protected static AnimatorControllerLayer findFxLayer(GameObject prefab, string layerName)
         {
-            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var fx = FindFxController(prefab);
 
             Assert.NotNull(fx);
             var ac = fx.animatorController as AnimatorController;
@@ -150,6 +149,12 @@ namespace modular_avatar_tests
             var layer = ac.layers.FirstOrDefault(l => l.name == layerName);
             Assert.NotNull(layer);
             return layer;
+        }
+
+        internal static VRCAvatarDescriptor.CustomAnimLayer FindFxController(GameObject prefab)
+        {
+            return prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
         }
 #endif
     }
