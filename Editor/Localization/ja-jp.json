@@ -55,7 +55,12 @@
   "merge_armature.reset_pos.heuristic_scale": "衣装の全体的なスケールをアバターに合わせる",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "腕の長さを参考に、衣装全体のスケールをアバターに合わせます。非対応衣装を導入するときは推奨です。",
 
-
+  "merge_blend_tree.blend_tree": "ブレンドツリー",
+  "merge_blend_tree.path_mode": "パスモード",
+  "merge_blend_tree.path_mode.tooltip": "アニメーション内のパスを解釈するモード。相対的にすると、このオブジェクトについているアニメーターでアニメーション編集できます",
+  "merge_blend_tree.relative_path_root": "相対的パースのルート",
+  "merge_blend_tree.relative_path_root.tooltip": "相対的パースはこのオブジェクトを基準に解釈されます。指定がない場合は、このコンポーネントがついているオブジェクトを基準とします。",
+  
   "path_mode.Relative": "相対的（このオブジェクトからのパスを使用）",
   "path_mode.Absolute": "絶対的（アバタールートからのパスを使用）",
   "merge_animator.animator": "統合されるアニメーター",

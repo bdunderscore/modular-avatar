@@ -38,6 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(MeshSettingsPluginPass.Instance);
 #if MA_VRCSDK3_AVATARS
                 seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
 #endif
