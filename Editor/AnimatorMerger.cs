@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -43,6 +44,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly AnimatorController _combined;
         private bool isSaved;
 
+        private DeepClone _deepClone;
+        
         private AnimatorOverrideController _overrideController;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
@@ -65,6 +68,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _combined = context.CreateAnimator();
             isSaved = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(_combined));
             _combined.name = assetName;
+
+            _deepClone = new DeepClone(context.PluginBuildContext);
         }
 
         public AnimatorController Finish()
@@ -112,7 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             AnimatorController controller = overrideController.runtimeAnimatorController as AnimatorController;
             if (controller == null) return;
-            _overrideController = overrideController;
+            _deepClone.OverrideController = overrideController;
             try
             {
                 this.AddController(basePath, controller, writeDefaults);
@@ -163,8 +168,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         for (int i = 0; i < overrideBehaviors.Length; i++)
                         {
-                            overrideBehaviors[i] = deepClone(overrideBehaviors[i], x => x,
-                                new Dictionary<Object, Object>());
+                            overrideBehaviors[i] = _deepClone.DoClone(overrideBehaviors[i]);
                             AdjustBehavior(overrideBehaviors[i]);
                         }
 
@@ -242,7 +246,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return asm;
             }
 
-            asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath), _cloneMap);
+            asm = _deepClone.DoClone(layerStateMachine, basePath, _cloneMap);
 
             foreach (var state in WalkAllStates(asm))
             {
@@ -270,171 +274,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 #endif
-        }
-
-        private static string MapPath(EditorCurveBinding binding, string basePath)
-        {
-            if (binding.type == typeof(Animator) && binding.path == "")
-            {
-                return "";
-            }
-            else
-            {
-                var newPath = binding.path == "" ? basePath : basePath + binding.path;
-                if (newPath.EndsWith("/"))
-                {
-                    newPath = newPath.Substring(0, newPath.Length - 1);
-                }
-
-                return newPath;
-            }
-        }
-
-        private Object customClone(Object o, string basePath)
-        {
-            if (o is AnimationClip clip)
-            {
-                if (basePath == "" || Util.IsProxyAnimation(clip)) return clip;
-
-                AnimationClip newClip = new AnimationClip();
-                newClip.name = "rebased " + clip.name;
-                if (isSaved)
-                {
-                    AssetDatabase.AddObjectToAsset(newClip, _combined);
-                }
-
-                foreach (var binding in AnimationUtility.GetCurveBindings(clip))
-                {
-                    var newBinding = binding;
-                    newBinding.path = MapPath(binding, basePath);
-                    newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
-                        AnimationUtility.GetEditorCurve(clip, binding));
-                }
-
-                foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
-                {
-                    var newBinding = objBinding;
-                    newBinding.path = MapPath(objBinding, basePath);
-                    AnimationUtility.SetObjectReferenceCurve(newClip, newBinding,
-                        AnimationUtility.GetObjectReferenceCurve(clip, objBinding));
-                }
-
-                newClip.wrapMode = clip.wrapMode;
-                newClip.legacy = clip.legacy;
-                newClip.frameRate = clip.frameRate;
-                newClip.localBounds = clip.localBounds;
-                AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(clip));
-
-                return newClip;
-            }
-            else if (o is Texture)
-            {
-                return o;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private T deepClone<T>(T original,
-            Func<Object, Object> visitor,
-            Dictionary<Object, Object> cloneMap
-        ) where T : Object
-        {
-            if (original == null) return null;
-
-            // We want to avoid trying to copy assets not part of the animation system (eg - textures, meshes,
-            // MonoScripts...), so check for the types we care about here
-            switch (original)
-            {
-                // Any object referenced by an animator that we intend to mutate needs to be listed here.
-                case Motion _:
-                case AnimatorController _:
-                case AnimatorState _:
-                case AnimatorStateMachine _:
-                case AnimatorTransitionBase _:
-                case StateMachineBehaviour _:
-                    break; // We want to clone these types
-
-                // Leave textures, materials, and script definitions alone
-                case Texture2D _:
-                case MonoScript _:
-                case Material _:
-                    return original;
-
-                // Also avoid copying unknown scriptable objects.
-                // This ensures compatibility with e.g. avatar remote, which stores state information in a state
-                // behaviour referencing a custom ScriptableObject
-                case ScriptableObject _:
-                    return original;
-
-                default:
-                    throw new Exception($"Unknown type referenced from animator: {original.GetType()}");
-            }
-
-            // When using AnimatorOverrideController, replace the original AnimationClip based on AnimatorOverrideController.
-            if (_overrideController != null && original is AnimationClip srcClip)
-            {
-                T overrideClip = _overrideController[srcClip] as T;
-                if (overrideClip != null)
-                {
-                    original = overrideClip;
-                }
-            }
-
-            if (cloneMap.ContainsKey(original))
-            {
-                return (T) cloneMap[original];
-            }
-
-            var obj = visitor(original);
-            if (obj != null)
-            {
-                cloneMap[original] = obj;
-                return (T) obj;
-            }
-
-            var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
-            if (ctor == null || original is ScriptableObject)
-            {
-                obj = Object.Instantiate(original);
-            }
-            else
-            {
-                obj = (T) ctor.Invoke(Array.Empty<object>());
-                EditorUtility.CopySerialized(original, obj);
-            }
-
-            cloneMap[original] = obj;
-
-            if (isSaved)
-            {
-                AssetDatabase.AddObjectToAsset(obj, _combined);
-            }
-
-            SerializedObject so = new SerializedObject(obj);
-            SerializedProperty prop = so.GetIterator();
-
-            bool enterChildren = true;
-            while (prop.Next(enterChildren))
-            {
-                enterChildren = true;
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.ObjectReference:
-                        prop.objectReferenceValue = deepClone(prop.objectReferenceValue, visitor, cloneMap);
-                        break;
-                    // Iterating strings can get super slow...
-                    case SerializedPropertyType.String:
-                        enterChildren = false;
-                        break;
-                }
-            }
-
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            return (T) obj;
         }
     }
 }
