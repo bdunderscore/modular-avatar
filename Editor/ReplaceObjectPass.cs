@@ -83,8 +83,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 replacement.transform.SetParent(original.transform.parent, true);
                 var siblingIndex = original.transform.GetSiblingIndex();
 
-                // Move children of original parent
+                // Move children of original parent (the List needs to be cloned first because it is being modified)
+                List<Transform> children = new List<Transform>();
                 foreach (Transform child in original.transform)
+                {
+                    children.Add(child);
+                }
+                foreach (Transform child in children)
                 {
                     child.SetParent(replacement.transform, true);
                 }
