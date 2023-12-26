@@ -50,7 +50,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             }
         }
 
-        //[BurstCompile]
+        [BurstCompile]
         struct ComputePosition : IJobParallelFor
         {
             [ReadOnly] public NativeArray<BoneStaticData> _boneStatic;
@@ -115,51 +115,71 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _baseParentBones = new Transform[mergeToBase.Count];
             _mergeParentBones = new Transform[mergeToBase.Count];
 
-            for (int i = 0; i < mergeToBase.Count; i++)
+            try
             {
-                var (mergeBone, baseBone) = mergeToBase[i];
-                var mergeParent = mergeBone.parent;
-                var baseParent = baseBone.parent;
-
-                if (mergeParent == null || baseParent == null)
+                for (int i = 0; i < mergeToBase.Count; i++)
                 {
-                    throw new Exception("Can't handle root objects");
+                    var (mergeBone, baseBone) = mergeToBase[i];
+                    var mergeParent = mergeBone.parent;
+                    var baseParent = baseBone.parent;
+
+                    if (mergeParent == null || baseParent == null)
+                    {
+                        throw new Exception("Can't handle root objects");
+                    }
+
+                    if (SmallScale(mergeParent.localScale) || SmallScale(mergeBone.localScale) ||
+                        SmallScale(baseBone.localScale))
+                    {
+                        throw new Exception("Can't handle near-zero scale bones");
+                    }
+
+                    _baseBones[i] = baseBone;
+                    _mergeBones[i] = mergeBone;
+                    _baseParentBones[i] = baseParent;
+                    _mergeParentBones[i] = mergeParent;
+
+                    _baseState[i] = TransformState.FromTransform(baseBone);
+                    _mergeSavedState[i] = _mergeState[i] = TransformState.FromTransform(mergeBone);
+
+                    // We want to emulate the hierarchy:
+                    // baseParent
+                    //  - baseBone 
+                    //    - v_mergeBone 
+                    //
+                    // However our hierarchy actually is:
+                    // mergeParent
+                    //   - mergeBone
+                    //
+                    // Our question is: What is the local affine transform of mergeBone -> mergeParent space, given a new
+                    // baseBone -> baseParent affine transform?
+
+                    // First, relative to baseBone, what is the local affine transform of mergeBone?
+                    var mat_l = baseBone.worldToLocalMatrix * mergeBone.localToWorldMatrix;
+                    // We also find parent -> mergeParent
+                    var mat_r = mergeParent.worldToLocalMatrix * baseParent.localToWorldMatrix;
+                    // Now we can multiply:
+                    // (baseParent -> mergeParent) * (baseBone -> baseParent) * (mergeBone -> baseBone)
+                    //  = (baseParent -> mergeParent) * (mergeBone -> baseParent)
+                    //  = (mergeBone -> mergeParent)
+
+                    _boneStaticData[i] = new BoneStaticData()
+                    {
+                        _mat_l = mat_r,
+                        _mat_r = mat_l
+                    };
                 }
+            }
+            catch (Exception e)
+            {
+                _boneStaticData.Dispose();
+                _mergeSavedState.Dispose();
+                _baseState.Dispose();
+                _mergeState.Dispose();
+                _fault.Dispose();
+                _wroteAny.Dispose();
 
-                _baseBones[i] = baseBone;
-                _mergeBones[i] = mergeBone;
-                _baseParentBones[i] = baseParent;
-                _mergeParentBones[i] = mergeParent;
-
-                _baseState[i] = TransformState.FromTransform(baseBone);
-                _mergeSavedState[i] = _mergeState[i] = TransformState.FromTransform(mergeBone);
-
-                // We want to emulate the hierarchy:
-                // baseParent
-                //  - baseBone 
-                //    - v_mergeBone 
-                //
-                // However our hierarchy actually is:
-                // mergeParent
-                //   - mergeBone
-                //
-                // Our question is: What is the local affine transform of mergeBone -> mergeParent space, given a new
-                // baseBone -> baseParent affine transform?
-
-                // First, relative to baseBone, what is the local affine transform of mergeBone?
-                var mat_l = baseBone.worldToLocalMatrix * mergeBone.localToWorldMatrix;
-                // We also find parent -> mergeParent
-                var mat_r = mergeParent.worldToLocalMatrix * baseParent.localToWorldMatrix;
-                // Now we can multiply:
-                // (baseParent -> mergeParent) * (baseBone -> baseParent) * (mergeBone -> baseBone)
-                //  = (baseParent -> mergeParent) * (mergeBone -> baseParent)
-                //  = (mergeBone -> mergeParent)
-
-                _boneStaticData[i] = new BoneStaticData()
-                {
-                    _mat_l = mat_r,
-                    _mat_r = mat_l
-                };
+                throw e;
             }
 
             _baseBonesAccessor = new TransformAccessArray(_baseBones);
@@ -168,6 +188,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += Dispose;
 #endif
+        }
+
+        private bool SmallScale(Vector3 scale)
+        {
+            var epsilon = 0.000001f;
+
+            return (scale.x < epsilon || scale.y < epsilon || scale.z < epsilon);
         }
 
         private bool DoCompute(out JobHandle handle)
