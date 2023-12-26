@@ -24,6 +24,7 @@
 
 #if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
@@ -31,6 +32,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDKBase;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -105,20 +107,22 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToList();
             var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
                 .ToList();
-            
+
             var session = new AnimatorCombiner(context, layerType.ToString() + " (merged)");
             mergeSessions[layerType] = session;
+            mergeSessions[layerType].BlendableLayer = BlendableLayerFor(layerType);
 
             foreach (var component in beforeOriginal)
             {
                 MergeSingle(context, session, component);
             }
-            
-            if (defaultControllers_.TryGetValue(layerType, out var defaultController) && defaultController.layers.Length > 0)
+
+            if (defaultControllers_.TryGetValue(layerType, out var defaultController) &&
+                defaultController.layers.Length > 0)
             {
                 session.AddController("", defaultController, null, forceFirstLayerWeight: true);
             }
-            
+
             foreach (var component in afterOriginal)
             {
                 MergeSingle(context, session, component);
@@ -132,7 +136,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var targetObject = merge.relativePathRoot.Get(context.AvatarRootTransform);
                 if (targetObject == null) targetObject = merge.gameObject;
-                
+
                 var relativePath = RuntimeUtil.RelativePath(context.AvatarRootObject, targetObject);
                 basePath = relativePath != "" ? relativePath + "/" : "";
             }
@@ -140,9 +144,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 basePath = "";
             }
-            
+
             bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
-            session.AddController(basePath, (AnimatorController) merge.animator, writeDefaults);
+            session.AddController(basePath, (AnimatorController)merge.animator, writeDefaults);
 
             if (merge.deleteAttachedAnimator)
             {
@@ -155,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
             VRCAvatarDescriptor.CustomAnimLayer[] layers
         )
         {
-            layers = (VRCAvatarDescriptor.CustomAnimLayer[]) layers.Clone();
+            layers = (VRCAvatarDescriptor.CustomAnimLayer[])layers.Clone();
 
             for (int i = 0; i < layers.Length; i++)
             {
@@ -191,8 +195,21 @@ namespace nadena.dev.modular_avatar.core.editor
                     // For non-default layers, ensure we always clone the controller for the benefit of subsequent
                     // processing phases
                     mergeSessions[layer.type] = new AnimatorCombiner(_context, layer.type.ToString());
+                    mergeSessions[layer.type].BlendableLayer = BlendableLayerFor(layer.type);
                     mergeSessions[layer.type].AddController("", controller, null);
                 }
+            }
+        }
+
+        private VRC_AnimatorLayerControl.BlendableLayer? BlendableLayerFor(VRCAvatarDescriptor.AnimLayerType layerType)
+        {
+            if (Enum.TryParse(layerType.ToString(), out VRC_AnimatorLayerControl.BlendableLayer result))
+            {
+                return result;
+            }
+            else
+            {
+                return null;
             }
         }
 

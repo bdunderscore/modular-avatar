@@ -26,19 +26,18 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3825275463613500755}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.023681391, y: 1.0559628, z: -0.6872994}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3646968714803193661}
   - {fileID: 3646968713996568948}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3825275463613500750
 Animator:
-  serializedVersion: 5
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -51,12 +50,10 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &3825275463613500753
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,12 +322,40 @@ MonoBehaviour:
   contentType: 0
   assetBundleUnityVersion: 
   fallbackStatus: 0
+--- !u!114 &3825275463971368602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4167925416990528462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fd7cab7d93b403280f2f9da978d8a4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Bindings:
+  - ReferenceMesh:
+      referencePath: BaseMesh
+    Blendshape: shape_0
+    LocalBlendshape: shape_0_local
+  - ReferenceMesh:
+      referencePath: BaseMesh
+    Blendshape: shape_1
+    LocalBlendshape: shape_1
+  - ReferenceMesh:
+      referencePath: MissingMesh
+    Blendshape: missing_mesh_shape
+    LocalBlendshape: missing_mesh_shape
+  - ReferenceMesh:
+      referencePath: 
+    Blendshape: missing_mesh_shape_2
+    LocalBlendshape: missing_mesh_shape_2
 --- !u!1001 &3825275463173128406
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 3
     m_TransformParent: {fileID: 3825275463613500751}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
@@ -429,9 +454,6 @@ PrefabInstance:
       value: BaseMesh
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14ac2ad30c5d3444ca37f76cea5a7047, type: 3}
 --- !u!4 &3646968714803193661 stripped
 Transform:
@@ -444,7 +466,6 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 3
     m_TransformParent: {fileID: 3825275463613500751}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
@@ -548,52 +569,16 @@ PrefabInstance:
       value: SyncedMesh
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3825275463971368602}
   m_SourcePrefab: {fileID: 100100000, guid: 14ac2ad30c5d3444ca37f76cea5a7047, type: 3}
---- !u!4 &3646968713996568948 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
-    type: 3}
-  m_PrefabInstance: {fileID: 3825275463971368607}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &4167925416990528462 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
     type: 3}
   m_PrefabInstance: {fileID: 3825275463971368607}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3825275463971368602
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+--- !u!4 &3646968713996568948 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 14ac2ad30c5d3444ca37f76cea5a7047,
+    type: 3}
+  m_PrefabInstance: {fileID: 3825275463971368607}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4167925416990528462}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fd7cab7d93b403280f2f9da978d8a4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Bindings:
-  - ReferenceMesh:
-      referencePath: BaseMesh
-    Blendshape: shape_0
-    LocalBlendshape: shape_0_local
-  - ReferenceMesh:
-      referencePath: BaseMesh
-    Blendshape: shape_1
-    LocalBlendshape: shape_1
-  - ReferenceMesh:
-      referencePath: MissingMesh
-    Blendshape: missing_mesh_shape
-    LocalBlendshape: missing_mesh_shape
-  - ReferenceMesh:
-      referencePath: 
-    Blendshape: missing_mesh_shape_2
-    LocalBlendshape: missing_mesh_shape_2

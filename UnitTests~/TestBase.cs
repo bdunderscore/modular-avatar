@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.ui;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -41,6 +42,7 @@ namespace modular_avatar_tests
             }
 
             ErrorReport.Clear();
+            ErrorReportWindow.DISABLE_WINDOW = true;
             objects = new List<GameObject>();
         }
 
@@ -54,6 +56,7 @@ namespace modular_avatar_tests
 
             AssetDatabase.DeleteAsset(TEMP_ASSET_PATH);
             FileUtil.DeleteFileOrDirectory(TEMP_ASSET_PATH);
+            ErrorReportWindow.DISABLE_WINDOW = false;
         }
 
         protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root)
