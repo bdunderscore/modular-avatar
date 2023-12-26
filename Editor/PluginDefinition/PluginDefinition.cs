@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq.Run("Clone animators", AnimationUtil.CloneAllControllers);
 
             seq = InPhase(BuildPhase.Transforming);
-            seq.Run("Validate configuration", 
+            seq.Run("Validate configuration",
                 context => ComponentValidation.ValidateAll(context.AvatarRootObject));
             seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
             {
@@ -83,6 +83,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         UnityEngine.Object.DestroyImmediate(component);
                     }
                 });
+                seq.Run(PruneParametersPass.Instance);
             });
 
             InPhase(BuildPhase.Optimizing)
