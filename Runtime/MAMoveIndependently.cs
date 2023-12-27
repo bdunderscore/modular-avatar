@@ -56,7 +56,6 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
 
         private void OnValidate()
         {
-            Debug.Log("=== OnValidate");
             hideFlags = HideFlags.DontSave;
             _excluded = new HashSet<Transform>();
             if (m_groupedBones == null)
@@ -110,6 +109,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             foreach (Transform child in parent)
             {
                 if (_excluded.Contains(child)) continue;
+                if (child.GetComponent<ScaleProxy>() != null) continue;
 
                 _observed.Add(child);
 
