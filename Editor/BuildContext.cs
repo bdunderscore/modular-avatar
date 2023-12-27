@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -94,7 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (controller == null) return null;
 
-            var merger = new AnimatorCombiner(this, controller.name + " (clone)");
+            var merger = new AnimatorCombiner(PluginBuildContext, controller.name + " (clone)");
             switch (controller)
             {
                 case AnimatorController ac:
@@ -107,12 +108,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     throw new Exception("Unknown RuntimeAnimatorContoller type " + controller.GetType());
             }
 
-            return merger.Finish();
+            var result = merger.Finish();
+
+            ObjectRegistry.RegisterReplacedObject(controller, result);
+
+            return result;
         }
 
         public AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController)
         {
-            var merger = new AnimatorCombiner(this, overrideController.name + " (clone)");
+            var merger = new AnimatorCombiner(PluginBuildContext, overrideController.name + " (clone)");
             merger.AddOverrideController("", overrideController, null);
             return merger.Finish();
         }

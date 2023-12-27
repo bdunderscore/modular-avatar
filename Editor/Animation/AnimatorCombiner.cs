@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  *
- * Copyright (c) 2022-2023 bd_
+ * Copyright (c) 2022 bd_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,37 @@
  * SOFTWARE.
  */
 
-#region
-
+#if MA_VRCSDK3_AVATARS
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-
-#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
-#endif
-
+using VRC.SDKBase;
 using Object = UnityEngine.Object;
-
-#endregion
 
 namespace nadena.dev.modular_avatar.animation
 {
     internal class AnimatorCombiner
     {
         private readonly AnimatorController _combined;
-        private bool isSaved;
 
-        private AnimatorOverrideController _overrideController;
+        private readonly DeepClone _deepClone;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
 
         private Dictionary<String, AnimatorControllerParameter> _parameters =
             new Dictionary<string, AnimatorControllerParameter>();
+
+        private Dictionary<String, AnimatorController> _parameterSource =
+            new Dictionary<string, AnimatorController>();
 
         private Dictionary<KeyValuePair<String, Motion>, Motion> _motions =
             new Dictionary<KeyValuePair<string, Motion>, Motion>();
@@ -62,38 +62,115 @@ namespace nadena.dev.modular_avatar.animation
 
         private Dictionary<Object, Object> _cloneMap;
 
-        private int controllerBaseLayer = 0;
+        private int _controllerBaseLayer = 0;
 
-        public AnimatorCombiner(String assetName, Object assetContainer)
+        public VRC_AnimatorLayerControl.BlendableLayer? BlendableLayer;
+
+        public AnimatorCombiner(ndmf.BuildContext context, String assetName)
         {
             _combined = new AnimatorController();
-            if (assetContainer != null)
+            if (context.AssetContainer != null && EditorUtility.IsPersistent(context.AssetContainer))
             {
-                if (!EditorUtility.IsPersistent(assetContainer) ||
-                    string.IsNullOrEmpty(AssetDatabase.GetAssetPath(assetContainer)))
-                {
-                    // Debug.Log("Nonpersistent asset container: " + assetContainer.name);
-                }
-                else
-                {
-                    AssetDatabase.AddObjectToAsset(_combined, assetContainer);
-                }
+                AssetDatabase.AddObjectToAsset(_combined, context.AssetContainer);
             }
 
-            isSaved = assetContainer != null;
             _combined.name = assetName;
+
+            _deepClone = new DeepClone(context);
         }
 
         public AnimatorController Finish()
         {
+            PruneEmptyLayers();
+
             _combined.parameters = _parameters.Values.ToArray();
             _combined.layers = _layers.ToArray();
             return _combined;
         }
 
-        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults)
+        private void PruneEmptyLayers()
         {
-            controllerBaseLayer = _layers.Count;
+            var originalLayers = _layers;
+            int[] layerIndexMappings = new int[originalLayers.Count];
+
+            List<AnimatorControllerLayer> newLayers = new List<AnimatorControllerLayer>();
+
+            for (int i = 0; i < originalLayers.Count; i++)
+            {
+                if (i > 0 && IsEmptyLayer(originalLayers[i]))
+                {
+                    layerIndexMappings[i] = -1;
+                }
+                else
+                {
+                    layerIndexMappings[i] = newLayers.Count;
+                    newLayers.Add(originalLayers[i]);
+                }
+            }
+
+            foreach (var layer in newLayers)
+            {
+                if (layer.stateMachine == null) continue;
+
+                foreach (var asset in layer.stateMachine.ReferencedAssets(includeScene: false))
+                {
+                    if (asset is AnimatorState alc)
+                    {
+                        alc.behaviours = AdjustStateBehaviors(alc.behaviours);
+                    }
+                    else if (asset is AnimatorStateMachine asm)
+                    {
+                        asm.behaviours = AdjustStateBehaviors(asm.behaviours);
+                    }
+                }
+            }
+
+            _layers = newLayers;
+
+            StateMachineBehaviour[] AdjustStateBehaviors(StateMachineBehaviour[] behaviours)
+            {
+                if (behaviours.Length == 0) return behaviours;
+
+                var newBehaviors = new List<StateMachineBehaviour>();
+                foreach (var b in behaviours)
+                {
+                    if (b is VRCAnimatorLayerControl alc && alc.playable == BlendableLayer)
+                    {
+                        int newLayer = -1;
+                        if (alc.layer >= 0 && alc.layer < layerIndexMappings.Length)
+                        {
+                            newLayer = layerIndexMappings[alc.layer];
+                        }
+
+                        if (newLayer != -1)
+                        {
+                            alc.layer = newLayer;
+                            newBehaviors.Add(alc);
+                        }
+                    }
+                    else
+                    {
+                        newBehaviors.Add(b);
+                    }
+                }
+
+                return newBehaviors.ToArray();
+            }
+        }
+
+        private bool IsEmptyLayer(AnimatorControllerLayer layer)
+        {
+            if (layer.syncedLayerIndex >= 0) return false;
+            if (layer.avatarMask != null) return false;
+
+            return layer.stateMachine == null
+                   || (layer.stateMachine.states.Length == 0 && layer.stateMachine.stateMachines.Length == 0);
+        }
+
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults,
+            bool forceFirstLayerWeight = false)
+        {
+            _controllerBaseLayer = _layers.Count;
             _cloneMap = new Dictionary<Object, Object>();
 
             foreach (var param in controller.parameters)
@@ -102,21 +179,20 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     if (acp.type != param.type)
                     {
-                        /*
-                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch", new[]
-                        {
-                            param.name, acp.type.ToString(),
-                            param.type.ToString()
-                        });
-                        */
-                        // TODO: Error reporting
-                        throw new Exception("Parameter type mismatch");
+                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch",
+                            param.name,
+                            acp.type.ToString(),
+                            param.type.ToString(),
+                            controller,
+                            _parameterSource[param.name]
+                        );
                     }
 
                     continue;
                 }
 
                 _parameters.Add(param.name, param);
+                _parameterSource.Add(param.name, controller);
             }
 
             bool first = true;
@@ -124,6 +200,11 @@ namespace nadena.dev.modular_avatar.animation
             foreach (var layer in layers)
             {
                 insertLayer(basePath, layer, first, writeDefaults, layers);
+                if (first && forceFirstLayerWeight)
+                {
+                    _layers[_layers.Count - 1].defaultWeight = 1;
+                }
+
                 first = false;
             }
         }
@@ -133,14 +214,13 @@ namespace nadena.dev.modular_avatar.animation
         {
             AnimatorController controller = overrideController.runtimeAnimatorController as AnimatorController;
             if (controller == null) return;
-            _overrideController = overrideController;
+            _deepClone.OverrideController = overrideController;
             try
             {
                 this.AddController(basePath, controller, writeDefaults);
             }
             finally
             {
-                _overrideController = null;
             }
         }
 
@@ -176,24 +256,23 @@ namespace nadena.dev.modular_avatar.animation
                     var overrideMotion = layer.GetOverrideMotion(state);
                     if (overrideMotion != null)
                     {
-                        newLayer.SetOverrideMotion((AnimatorState) _cloneMap[state], overrideMotion);
+                        newLayer.SetOverrideMotion((AnimatorState)_cloneMap[state], overrideMotion);
                     }
 
-                    var overrideBehaviors = (StateMachineBehaviour[]) layer.GetOverrideBehaviours(state)?.Clone();
+                    var overrideBehaviors = (StateMachineBehaviour[])layer.GetOverrideBehaviours(state)?.Clone();
                     if (overrideBehaviors != null)
                     {
                         for (int i = 0; i < overrideBehaviors.Length; i++)
                         {
-                            overrideBehaviors[i] = deepClone(overrideBehaviors[i], x => x,
-                                new Dictionary<Object, Object>());
+                            overrideBehaviors[i] = _deepClone.DoClone(overrideBehaviors[i]);
                             AdjustBehavior(overrideBehaviors[i]);
                         }
 
-                        newLayer.SetOverrideBehaviours((AnimatorState) _cloneMap[state], overrideBehaviors);
+                        newLayer.SetOverrideBehaviours((AnimatorState)_cloneMap[state], overrideBehaviors);
                     }
                 }
 
-                newLayer.syncedLayerIndex += controllerBaseLayer;
+                newLayer.syncedLayerIndex += _controllerBaseLayer;
             }
 
             _layers.Add(newLayer);
@@ -263,7 +342,7 @@ namespace nadena.dev.modular_avatar.animation
                 return asm;
             }
 
-            asm = deepClone(layerStateMachine, (obj) => customClone(obj, basePath), _cloneMap);
+            asm = _deepClone.DoClone(layerStateMachine, basePath, _cloneMap);
 
             foreach (var state in WalkAllStates(asm))
             {
@@ -286,166 +365,11 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     // TODO - need to figure out how to handle cross-layer references. For now this will handle
                     // intra-animator cases.
-                    layerControl.layer += controllerBaseLayer;
+                    layerControl.layer += _controllerBaseLayer;
                     break;
                 }
             }
 #endif
-        }
-
-        private static string MapPath(EditorCurveBinding binding, string basePath)
-        {
-            if (binding.type == typeof(Animator) && binding.path == "")
-            {
-                return "";
-            }
-            else
-            {
-                var newPath = binding.path == "" ? basePath : basePath + binding.path;
-                if (newPath.EndsWith("/"))
-                {
-                    newPath = newPath.Substring(0, newPath.Length - 1);
-                }
-
-                return newPath;
-            }
-        }
-
-        private Object customClone(Object o, string basePath)
-        {
-            if (o is AnimationClip clip)
-            {
-                if (basePath == "" || clip.IsProxyAnimation()) return clip;
-
-                AnimationClip newClip = new AnimationClip();
-                newClip.name = clip.name;
-                if (isSaved)
-                {
-                    AssetDatabase.AddObjectToAsset(newClip, _combined);
-                }
-
-                SerializedObject srcSO = new SerializedObject(clip);
-                SerializedObject destSO = new SerializedObject(newClip);
-
-                SerializedProperty iter = srcSO.GetIterator();
-
-                while (iter.Next(false))
-                {
-                    destSO.CopyFromSerializedProperty(iter);
-                }
-
-                destSO.ApplyModifiedPropertiesWithoutUndo();
-
-                return newClip;
-            }
-            else if (o is Texture)
-            {
-                return o;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private T deepClone<T>(T original,
-            Func<Object, Object> visitor,
-            Dictionary<Object, Object> cloneMap
-        ) where T : Object
-        {
-            if (original == null) return null;
-
-            // We want to avoid trying to copy assets not part of the animation system (eg - textures, meshes,
-            // MonoScripts...), so check for the types we care about here
-            switch (original)
-            {
-                // Any object referenced by an animator that we intend to mutate needs to be listed here.
-                case Motion _:
-                case AnimatorController _:
-                case AnimatorState _:
-                case AnimatorStateMachine _:
-                case AnimatorTransitionBase _:
-                case StateMachineBehaviour _:
-                    break; // We want to clone these types
-
-                // Leave textures, materials, and script definitions alone
-                case Texture2D _:
-                case MonoScript _:
-                case Material _:
-                    return original;
-
-                // Also avoid copying unknown scriptable objects.
-                // This ensures compatibility with e.g. avatar remote, which stores state information in a state
-                // behaviour referencing a custom ScriptableObject
-                case ScriptableObject _:
-                    return original;
-
-                default:
-                    throw new Exception($"Unknown type referenced from animator: {original.GetType()}");
-            }
-
-            // When using AnimatorOverrideController, replace the original AnimationClip based on AnimatorOverrideController.
-            if (_overrideController != null && original is AnimationClip srcClip)
-            {
-                T overrideClip = _overrideController[srcClip] as T;
-                if (overrideClip != null)
-                {
-                    original = overrideClip;
-                }
-            }
-
-            if (cloneMap.ContainsKey(original))
-            {
-                return (T) cloneMap[original];
-            }
-
-            var obj = visitor(original);
-            if (obj != null)
-            {
-                cloneMap[original] = obj;
-                return (T) obj;
-            }
-
-            var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
-            if (ctor == null || original is ScriptableObject)
-            {
-                obj = Object.Instantiate(original);
-            }
-            else
-            {
-                obj = (T) ctor.Invoke(Array.Empty<object>());
-                EditorUtility.CopySerialized(original, obj);
-            }
-
-            cloneMap[original] = obj;
-
-            if (isSaved && _combined != null && EditorUtility.IsPersistent(_combined))
-            {
-                AssetDatabase.AddObjectToAsset(obj, _combined);
-            }
-
-            SerializedObject so = new SerializedObject(obj);
-            SerializedProperty prop = so.GetIterator();
-
-            bool enterChildren = true;
-            while (prop.Next(enterChildren))
-            {
-                enterChildren = true;
-                switch (prop.propertyType)
-                {
-                    case SerializedPropertyType.ObjectReference:
-                        prop.objectReferenceValue = deepClone(prop.objectReferenceValue, visitor, cloneMap);
-                        break;
-                    // Iterating strings can get super slow...
-                    case SerializedPropertyType.String:
-                        enterChildren = false;
-                        break;
-                }
-            }
-
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            return (T) obj;
         }
     }
 }

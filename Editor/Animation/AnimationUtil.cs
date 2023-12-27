@@ -29,7 +29,7 @@ namespace nadena.dev.modular_avatar.animation
         {
             if (controller == null) return null;
 
-            var merger = new AnimatorCombiner(controller.name + " (clone)", context.AssetContainer);
+            var merger = new AnimatorCombiner(context, controller.name + " (cloned)");
             switch (controller)
             {
                 case AnimatorController ac:
