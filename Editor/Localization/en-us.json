@@ -232,5 +232,7 @@
   "setup_outfit.err.no_animator": "Your avatar does not have an Animator component.",
   "setup_outfit.err.no_hips": "Your avatar does not have a Hips bone. Setup Outfit only works on humanoid avatars.",
   "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:",
-  "move_independently.group-header": "Objects to move together"
+  "move_independently.group-header": "Objects to move together",
+  "scale_adjuster.scale": "Scale adjustment",
+  "scale_adjuster.adjust_children": "Adjust position of child objects"
 }

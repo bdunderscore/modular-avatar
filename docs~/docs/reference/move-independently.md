@@ -20,4 +20,6 @@ For example, you might move the hips and upper leg objects together, but leave t
 ## Limitations
 
 While this component supports scaling an object independently of its children, non-uniform scales (where the X, Y, and Z
-scales are not all the same) are not fully supported, and may result in unexpected behavior.
+scales are not all the same) are not fully supported, and may result in unexpected behavior. If you need to adjust the
+scale of each axis independently, you should use the [Scale Adjuster](scale-adjuster.md) component in addition to Move
+Independently.
