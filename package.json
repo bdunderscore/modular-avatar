@@ -1,7 +1,7 @@
 {
   "name": "nadena.dev.modular-avatar",
   "displayName": "Modular Avatar",
-  "version": "1.8.4",
+  "version": "1.9.0-rc.0",
   "unity": "2019.4",
   "description": "A suite of tools for assembling your avatar out of reusable components",
   "author": {
@@ -16,6 +16,6 @@
   },
   "vpmDependencies": {
     "com.vrchat.avatars": ">=3.2.0",
-    "nadena.dev.ndmf": ">=1.3.0-alpha.2 <2.0.0-a"
+    "nadena.dev.ndmf": ">=1.3.0-rc.0 <2.0.0-a"
   }
 }
