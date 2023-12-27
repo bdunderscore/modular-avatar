@@ -10,20 +10,20 @@ using BuildContext = nadena.dev.ndmf.BuildContext;
 namespace nadena.dev.modular_avatar.animation
 {
     using UnityObject = UnityEngine.Object;
-    
+
     internal class DeepClone
     {
         private bool _isSaved;
         private UnityObject _combined;
-        
+
         public AnimatorOverrideController OverrideController { get; set; }
-        
+
         public DeepClone(BuildContext context)
         {
-            _isSaved = context.AssetContainer != null;
+            _isSaved = context.AssetContainer != null && EditorUtility.IsPersistent(context.AssetContainer);
             _combined = context.AssetContainer;
-        } 
-        
+        }
+
         public T DoClone<T>(T original,
             string basePath = null,
             Dictionary<UnityObject, UnityObject> cloneMap = null
@@ -79,7 +79,7 @@ namespace nadena.dev.modular_avatar.animation
 
             if (cloneMap.ContainsKey(original))
             {
-                return (T) cloneMap[original];
+                return (T)cloneMap[original];
             }
 
             var obj = visitor?.Invoke(original);
@@ -90,7 +90,8 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     ObjectRegistry.RegisterReplacedObject(original, obj);
                 }
-                return (T) obj;
+
+                return (T)obj;
             }
 
             var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
@@ -100,7 +101,7 @@ namespace nadena.dev.modular_avatar.animation
             }
             else
             {
-                obj = (T) ctor.Invoke(Array.Empty<object>());
+                obj = (T)ctor.Invoke(Array.Empty<object>());
                 EditorUtility.CopySerialized(original, obj);
             }
 
@@ -136,9 +137,9 @@ namespace nadena.dev.modular_avatar.animation
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            return (T) obj;
+            return (T)obj;
         }
-        
+
         private UnityObject CloneWithPathMapping(UnityObject o, string basePath)
         {
             if (o is AnimationClip clip)
@@ -188,7 +189,7 @@ namespace nadena.dev.modular_avatar.animation
                 return null;
             }
         }
-        
+
         private static string MapPath(EditorCurveBinding binding, string basePath)
         {
             if (binding.type == typeof(Animator) && binding.path == "")

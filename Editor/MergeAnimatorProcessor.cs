@@ -27,7 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.modular_avatar.animation;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -108,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
                 .ToList();
 
-            var session = new AnimatorCombiner(context, layerType.ToString() + " (merged)");
+            var session = new AnimatorCombiner(context.PluginBuildContext, layerType.ToString() + " (merged)");
             mergeSessions[layerType] = session;
             mergeSessions[layerType].BlendableLayer = BlendableLayerFor(layerType);
 
@@ -194,7 +194,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // For non-default layers, ensure we always clone the controller for the benefit of subsequent
                     // processing phases
-                    mergeSessions[layer.type] = new AnimatorCombiner(_context, layer.type.ToString());
+                    mergeSessions[layer.type] =
+                        new AnimatorCombiner(_context.PluginBuildContext, layer.type.ToString());
                     mergeSessions[layer.type].BlendableLayer = BlendableLayerFor(layer.type);
                     mergeSessions[layer.type].AddController("", controller, null);
                 }
