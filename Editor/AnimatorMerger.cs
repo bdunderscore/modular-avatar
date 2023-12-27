@@ -1,18 +1,18 @@
 ﻿/*
  * MIT License
- * 
+ *
  * Copyright (c) 2022 bd_
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +27,11 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDKBase;
 
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
@@ -45,7 +47,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private bool isSaved;
 
         private DeepClone _deepClone;
-        
+
         private AnimatorOverrideController _overrideController;
 
         private List<AnimatorControllerLayer> _layers = new List<AnimatorControllerLayer>();
@@ -63,6 +65,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private int controllerBaseLayer = 0;
 
+        public VRC_AnimatorLayerControl.BlendableLayer? BlendableLayer;
+
         public AnimatorCombiner(BuildContext context, String assetName)
         {
             _combined = context.CreateAnimator();
@@ -74,12 +78,94 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public AnimatorController Finish()
         {
+            PruneEmptyLayers();
+
             _combined.parameters = _parameters.Values.ToArray();
             _combined.layers = _layers.ToArray();
             return _combined;
         }
 
-        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults, bool forceFirstLayerWeight = false)
+        private void PruneEmptyLayers()
+        {
+            var originalLayers = _layers;
+            int[] layerIndexMappings = new int[originalLayers.Count];
+
+            List<AnimatorControllerLayer> newLayers = new List<AnimatorControllerLayer>();
+
+            for (int i = 0; i < originalLayers.Count; i++)
+            {
+                if (i > 0 && IsEmptyLayer(originalLayers[i]))
+                {
+                    layerIndexMappings[i] = -1;
+                }
+                else
+                {
+                    layerIndexMappings[i] = newLayers.Count;
+                    newLayers.Add(originalLayers[i]);
+                }
+            }
+
+            foreach (var layer in newLayers)
+            {
+                if (layer.stateMachine == null) continue;
+
+                foreach (var asset in layer.stateMachine.ReferencedAssets(includeScene: false))
+                {
+                    if (asset is AnimatorState alc)
+                    {
+                        alc.behaviours = AdjustStateBehaviors(alc.behaviours);
+                    }
+                    else if (asset is AnimatorStateMachine asm)
+                    {
+                        asm.behaviours = AdjustStateBehaviors(asm.behaviours);
+                    }
+                }
+            }
+
+            _layers = newLayers;
+
+            StateMachineBehaviour[] AdjustStateBehaviors(StateMachineBehaviour[] behaviours)
+            {
+                if (behaviours.Length == 0) return behaviours;
+
+                var newBehaviors = new List<StateMachineBehaviour>();
+                foreach (var b in behaviours)
+                {
+                    if (b is VRCAnimatorLayerControl alc && alc.playable == BlendableLayer)
+                    {
+                        int newLayer = -1;
+                        if (alc.layer >= 0 && alc.layer < layerIndexMappings.Length)
+                        {
+                            newLayer = layerIndexMappings[alc.layer];
+                        }
+
+                        if (newLayer != -1)
+                        {
+                            alc.layer = newLayer;
+                            newBehaviors.Add(alc);
+                        }
+                    }
+                    else
+                    {
+                        newBehaviors.Add(b);
+                    }
+                }
+
+                return newBehaviors.ToArray();
+            }
+        }
+
+        private bool IsEmptyLayer(AnimatorControllerLayer layer)
+        {
+            if (layer.syncedLayerIndex >= 0) return false;
+            if (layer.avatarMask != null) return false;
+
+            return layer.stateMachine == null
+                   || (layer.stateMachine.states.Length == 0 && layer.stateMachine.stateMachines.Length == 0);
+        }
+
+        public void AddController(string basePath, AnimatorController controller, bool? writeDefaults,
+            bool forceFirstLayerWeight = false)
         {
             controllerBaseLayer = _layers.Count;
             _cloneMap = new Dictionary<Object, Object>();
@@ -112,7 +198,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     _layers[_layers.Count - 1].defaultWeight = 1;
                 }
-                
+
                 first = false;
             }
         }
@@ -165,10 +251,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     var overrideMotion = layer.GetOverrideMotion(state);
                     if (overrideMotion != null)
                     {
-                        newLayer.SetOverrideMotion((AnimatorState) _cloneMap[state], overrideMotion);
+                        newLayer.SetOverrideMotion((AnimatorState)_cloneMap[state], overrideMotion);
                     }
 
-                    var overrideBehaviors = (StateMachineBehaviour[]) layer.GetOverrideBehaviours(state)?.Clone();
+                    var overrideBehaviors = (StateMachineBehaviour[])layer.GetOverrideBehaviours(state)?.Clone();
                     if (overrideBehaviors != null)
                     {
                         for (int i = 0; i < overrideBehaviors.Length; i++)
@@ -177,7 +263,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             AdjustBehavior(overrideBehaviors[i]);
                         }
 
-                        newLayer.SetOverrideBehaviours((AnimatorState) _cloneMap[state], overrideBehaviors);
+                        newLayer.SetOverrideBehaviours((AnimatorState)_cloneMap[state], overrideBehaviors);
                     }
                 }
 
