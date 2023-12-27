@@ -123,7 +123,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     var deltaRot = Quaternion.Angle(localRotation, state.childLocalRot);
                     var deltaScale = (localScale - state.childLocalScale).sqrMagnitude;
 
-                    if (deltaPos.sqrMagnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON)
+                    if (deltaPos.magnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON)
                     {
                         Matrix4x4 childNewLocal = parent.worldToLocalMatrix * state.childWorld;
 
@@ -190,9 +190,11 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             var deltaRot = Quaternion.Angle(_priorFrameState.rotation, transform.rotation);
             var deltaScale = (transform.lossyScale - _priorFrameState.lossyScale).sqrMagnitude;
 
-            if (deltaPos.sqrMagnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON) return;
+            if (deltaPos.magnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON) return;
 
             CheckChildren();
+
+            _priorFrameState = transform.localToWorldMatrix;
         }
     }
 }
