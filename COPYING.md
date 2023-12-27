@@ -1,6 +1,8 @@
 Files under Editor/images are licensed for redistribution as part of an official
 modular avatar package only. Please replace them with other images (or delete them)
-if you are making modifications.
+if you are making modifications. If you're interested in using the Modular Avatar
+logo as part of your own asset's advertising, please refer to
+https://modular-avatar.nadena.dev/docs/distributing-prefabs/logo-usage .
 
 All other files are under the MIT license.
 
