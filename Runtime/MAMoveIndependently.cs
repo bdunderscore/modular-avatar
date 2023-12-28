@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
-using UnityEditor;
 using UnityEngine;
 
 #if MA_VRCSDK3_AVATARS
@@ -16,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/move-independently?lang=auto")]
     class MAMoveIndependently : MonoBehaviour, IEditorOnly
     {
-        private float EPSILON = 0.000001f;
+        private float EPSILON = 0.0000001f;
 
         private GameObject[] m_groupedBones;
 
@@ -30,8 +29,6 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             }
         }
 
-        private Matrix4x4 _priorFrameState;
-
         struct ChildState
         {
             internal Vector3 childLocalPos;
@@ -39,7 +36,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             internal Vector3 childLocalScale;
 
             // The child world position, recorded when we first initialized (or after unexpected child movement)
-            internal Matrix4x4 childWorld;
+            internal Matrix4x4 childToRoot;
         }
 
         private Dictionary<Transform, ChildState> _children = new Dictionary<Transform, ChildState>();
@@ -71,7 +68,10 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                 }
             }
 
-            _priorFrameState = transform.localToWorldMatrix;
+            _priorFramePos = transform.localPosition;
+            _priorFrameRot = transform.localRotation;
+            _priorFrameScale = transform.localScale;
+
             _children.Clear();
             CheckChildren();
         }
@@ -104,8 +104,27 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             }
         }
 
+        private Matrix4x4 ParentTransformMatrix(Transform parent)
+        {
+            Matrix4x4 transform = Matrix4x4.TRS(
+                parent.localPosition,
+                parent.localRotation,
+                parent.localScale
+            );
+
+            if (_excluded.Contains(parent))
+            {
+                transform = ParentTransformMatrix(parent.parent) * transform;
+            }
+
+            return transform;
+        }
+
         private void CheckChildren(Transform parent)
         {
+            Matrix4x4 parentToRoot = ParentTransformMatrix(parent);
+            Matrix4x4 rootToParent = parentToRoot.inverse;
+
             foreach (Transform child in parent)
             {
                 if (_excluded.Contains(child)) continue;
@@ -123,35 +142,45 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     var deltaRot = Quaternion.Angle(localRotation, state.childLocalRot);
                     var deltaScale = (localScale - state.childLocalScale).sqrMagnitude;
 
-                    if (deltaPos.magnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON)
+                    if (deltaPos.magnitude > EPSILON || deltaRot > EPSILON || deltaScale > EPSILON)
                     {
-                        Matrix4x4 childNewLocal = parent.worldToLocalMatrix * state.childWorld;
+                        // The child object was moved in between parent updates; reconstruct its childToRoot to correct
+                        // for this.
+                        var oldChildTRS = Matrix4x4.TRS(
+                            state.childLocalPos,
+                            state.childLocalRot,
+                            state.childLocalScale
+                        );
 
-                        var newPosition = childNewLocal.MultiplyPoint(Vector3.zero);
-                        var newRotation = childNewLocal.rotation;
-                        var newScale = childNewLocal.lossyScale;
+                        var newChildTRS = Matrix4x4.TRS(
+                            localPosition,
+                            localRotation,
+                            localScale
+                        );
 
-                        if ((newPosition - localPosition).sqrMagnitude > EPSILON
-                            || Quaternion.Angle(newRotation, localRotation) > EPSILON
-                            || (newScale - localScale).sqrMagnitude > EPSILON)
-                        {
+                        state.childToRoot = state.childToRoot * oldChildTRS.inverse * newChildTRS;
+                    }
+
+                    Matrix4x4 childNewLocal = rootToParent * state.childToRoot;
+
+                    var newPosition = childNewLocal.MultiplyPoint(Vector3.zero);
+                    var newRotation = childNewLocal.rotation;
+                    var newScale = childNewLocal.lossyScale;
 #if UNITY_EDITOR
-                            UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
+                    UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
 #endif
 
-                            child.localPosition = newPosition;
-                            child.localRotation = newRotation;
-                            child.localScale = newScale;
+                    child.localPosition = newPosition;
+                    child.localRotation = newRotation;
+                    child.localScale = newScale;
 
-                            state.childLocalPos = child.localPosition;
-                            state.childLocalRot = child.localRotation;
-                            state.childLocalScale = child.localScale;
-                        }
+                    state.childLocalPos = child.localPosition;
+                    state.childLocalRot = child.localRotation;
+                    state.childLocalScale = child.localScale;
 
-                        _children[child] = state;
+                    _children[child] = state;
 
-                        continue;
-                    }
+                    continue;
                 }
 
                 Matrix4x4 childTRS = Matrix4x4.TRS(localPosition, localRotation, localScale);
@@ -161,7 +190,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     childLocalPos = localPosition,
                     childLocalRot = localRotation,
                     childLocalScale = localScale,
-                    childWorld = parent.localToWorldMatrix * childTRS,
+                    childToRoot = parentToRoot * childTRS,
                 };
 
                 _children[child] = state;
@@ -178,6 +207,9 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             UpdateLoopController.OnMoveIndependentlyUpdate -= OnUpdate;
         }
 
+        private Vector3 _priorFramePos, _priorFrameScale;
+        private Quaternion _priorFrameRot;
+
         void OnUpdate()
         {
             if (this == null)
@@ -186,15 +218,31 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                 return;
             }
 
-            var deltaPos = transform.position - _priorFrameState.MultiplyPoint(Vector3.zero);
-            var deltaRot = Quaternion.Angle(_priorFrameState.rotation, transform.rotation);
-            var deltaScale = (transform.lossyScale - _priorFrameState.lossyScale).sqrMagnitude;
+            var pos = transform.localPosition;
+            var rot = transform.localRotation;
+            var scale = transform.localScale;
 
-            if (deltaPos.magnitude < EPSILON && deltaRot < EPSILON && deltaScale < EPSILON) return;
+            var deltaPos = transform.parent.localToWorldMatrix.MultiplyVector(pos - _priorFramePos);
+            var deltaRot = Quaternion.Angle(rot, _priorFrameRot);
 
-            CheckChildren();
+            var deltaScaleX = Mathf.Abs((scale - _priorFrameScale).x) / _priorFrameScale.x;
+            var deltaScaleY = Mathf.Abs((scale - _priorFrameScale).y) / _priorFrameScale.y;
+            var deltaScaleZ = Mathf.Abs((scale - _priorFrameScale).z) / _priorFrameScale.z;
 
-            _priorFrameState = transform.localToWorldMatrix;
+            if (float.IsNaN(deltaScaleX) || float.IsInfinity(deltaScaleX)) deltaScaleX = 1;
+            if (float.IsNaN(deltaScaleY) || float.IsInfinity(deltaScaleY)) deltaScaleY = 1;
+            if (float.IsNaN(deltaScaleZ) || float.IsInfinity(deltaScaleZ)) deltaScaleZ = 1;
+
+            float maxDeltaScale = Mathf.Max(deltaScaleX, Mathf.Max(deltaScaleY, deltaScaleZ));
+
+            if (deltaPos.magnitude > EPSILON || deltaRot > EPSILON || maxDeltaScale > 0.001)
+            {
+                CheckChildren();
+
+                _priorFramePos = pos;
+                _priorFrameRot = rot;
+                _priorFrameScale = scale;
+            }
         }
     }
 }
