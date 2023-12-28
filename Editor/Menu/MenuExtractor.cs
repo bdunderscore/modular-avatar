@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -119,12 +120,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 type = c.type,
                 name = c.name,
                 icon = c.icon,
-                parameter = new VRCExpressionsMenu.Control.Parameter() {name = c.parameter?.name},
+                parameter = new VRCExpressionsMenu.Control.Parameter() { name = c.parameter?.name },
                 subMenu = c.subMenu,
                 subParameters = c.subParameters?.Select(p =>
-                        new VRCExpressionsMenu.Control.Parameter() {name = p?.name})
-                    .ToArray(),
-                labels = c.labels.ToArray(),
+                        new VRCExpressionsMenu.Control.Parameter() { name = p?.name })
+                    ?.ToArray() ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>(),
+                labels = c.labels?.ToArray() ?? Array.Empty<VRCExpressionsMenu.Control.Label>(),
                 style = c.style,
                 value = c.value,
             };
