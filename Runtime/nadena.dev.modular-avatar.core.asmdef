@@ -2,7 +2,9 @@
     "name": "nadena.dev.modular-avatar.core",
     "references": [
         "Unity.Burst",
-        "nadena.dev.ndmf.runtime"
+        "nadena.dev.ndmf.runtime",
+        "VRM",
+        "VRM10"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
