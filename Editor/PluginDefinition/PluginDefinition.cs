@@ -5,6 +5,10 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
 
+#if MA_VRM0 || MA_VRM1
+using nadena.dev.modular_avatar.core.editor.vrm;
+#endif
+
 [assembly: ExportsPlugin(
     typeof(nadena.dev.modular_avatar.core.editor.plugin.PluginDefinition)
 )]
@@ -55,6 +59,12 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPluginPass.Instance);
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+#endif
+#if MA_VRM0
+                    seq.Run(MergeVRM0FirstPersonPass.Instance);
+#endif
+#if MA_VRM1
+                    seq.Run(MergeVRM1FirstPersonPass.Instance);
 #endif
                 });
 #if MA_VRCSDK3_AVATARS
