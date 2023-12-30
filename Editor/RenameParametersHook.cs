@@ -183,6 +183,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToImmutableDictionary();
             
             var avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
+            if (!avatar) return;
+
             var expParams = avatar.expressionParameters;
 
             if (expParams == null)
