@@ -2,6 +2,7 @@
 
 using nadena.dev.modular_avatar.core.vrm;
 using UnityEditor;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor.vrm
 {
@@ -19,10 +20,10 @@ namespace nadena.dev.modular_avatar.core.editor.vrm
         
         protected override void OnInnerInspectorGUI()
         {
-            EditorGUILayout.PropertyField(_prop_collider_groups);
-            EditorGUILayout.PropertyField(_prop_springs);
+            EditorGUILayout.PropertyField(_prop_collider_groups, G("merge_vrm1_spring_bones.collider_groups"));
+            EditorGUILayout.PropertyField(_prop_springs, G("merge_vrm1_spring_bones.springs"));
             serializedObject.ApplyModifiedProperties();
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
         }
     }
 }
