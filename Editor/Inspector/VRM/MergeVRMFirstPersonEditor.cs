@@ -2,6 +2,7 @@
 
 using nadena.dev.modular_avatar.core.vrm;
 using UnityEditor;
+using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor.vrm
 {
@@ -17,9 +18,9 @@ namespace nadena.dev.modular_avatar.core.editor.vrm
         
         protected override void OnInnerInspectorGUI()
         {
-            EditorGUILayout.PropertyField(_prop_renderers);
+            EditorGUILayout.PropertyField(_prop_renderers, G("merge_vrm_first_person.renderers"));
             serializedObject.ApplyModifiedProperties();
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
         }
     }
 }
