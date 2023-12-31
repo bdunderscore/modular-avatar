@@ -12,12 +12,12 @@ namespace nadena.dev.modular_avatar.core.editor.vrm
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            var processor = new MergeSpringBoneProcessor();
+            var processor = new MergeVRM1SpringBoneProcessor();
             processor.ProcessVRM1(context);
         }
     }
 
-    public class MergeSpringBoneProcessor
+    internal class MergeVRM1SpringBoneProcessor
     {
         public void ProcessVRM1(ndmf.BuildContext context)
         {
