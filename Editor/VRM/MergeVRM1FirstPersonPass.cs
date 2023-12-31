@@ -11,12 +11,12 @@ namespace nadena.dev.modular_avatar.core.editor.vrm
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            var processor = new MergeVrmFirstPersonProcessor();
+            var processor = new MergeVrm1FirstPersonProcessor();
             processor.ProcessVRM1(context);
         }
     }
 
-    public class MergeVrmFirstPersonProcessor
+    internal class MergeVrm1FirstPersonProcessor
     {
         public void ProcessVRM1(ndmf.BuildContext context)
         {
