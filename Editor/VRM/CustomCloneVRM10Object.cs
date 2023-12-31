@@ -6,7 +6,7 @@ using UniVRM10;
 
 namespace nadena.dev.modular_avatar.core.editor.vrm
 {
-    class CustomCloneVRM10Object : CustomClone<VRM10Object>
+    internal class CustomCloneVRM10Object : CustomClone<VRM10Object>
     {
         readonly bool _rename;
         readonly bool _copyThumbnail;

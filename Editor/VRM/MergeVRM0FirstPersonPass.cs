@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor.vrm
         }
     }
 
-    public class MergeVrm0FirstPersonProcessor
+    internal class MergeVrm0FirstPersonProcessor
     {
         public void ProcessVRM0(ndmf.BuildContext context)
         {
