@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Data.Odbc;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -171,9 +172,31 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
                 }
+                else
+                {
+                    RegisterMotionMapping(state.motion, placeholder);
+                }
             }
 
             _clipCommitActions.Add(() => { state.motion = clipHolder.CurrentClip; });
+        }
+
+        private void RegisterMotionMapping(Motion original, Motion replacement)
+        {
+            ObjectRegistry.RegisterReplacedObject(original, replacement);
+
+            if (original is BlendTree originalTree 
+                && replacement is BlendTree replacementTree 
+                && originalTree.children.Length == replacementTree.children.Length)
+            {
+                var originalChildren = originalTree.children;
+                var replacementChildren = replacementTree.children;
+
+                for (var i = 0; i < originalChildren.Length; i++)
+                {
+                    RegisterMotionMapping(originalChildren[i].motion, replacementChildren[i].motion);
+                }
+            }
         }
 
         internal void ForeachClip(Action<ClipHolder> processClip)
