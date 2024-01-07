@@ -112,7 +112,7 @@ jobs:
       - name: Build CF site
         run: |
           cd docs-site~
-          yarn install --immutable
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
           
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
