@@ -2,8 +2,8 @@
   "name": "worker-sites-template",
   "version": "0.0.0",
   "devDependencies": {
-    "@cloudflare/kv-asset-handler": "^0.2.0",
-    "wrangler": "^3.11.0"
+    "@cloudflare/kv-asset-handler": "^0.3.0",
+    "wrangler": "^3.22.3"
   },
   "private": true,
   "scripts": {
