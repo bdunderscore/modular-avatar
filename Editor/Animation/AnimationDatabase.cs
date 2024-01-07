@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Data.Odbc;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -42,14 +43,24 @@ namespace nadena.dev.modular_avatar.animation
                 }
             }
 
-            internal Motion OriginalClip { get; }
-            internal readonly bool IsProxyAnimation;
+            private Motion _originalClip;
+
+            internal Motion OriginalClip
+            {
+                get => _originalClip;
+                set
+                {
+                    _originalClip = value;
+                    IsProxyAnimation = value != null && Util.IsProxyAnimation(value);
+                }
+            }
+
+            internal bool IsProxyAnimation { private set; get; }
 
             internal ClipHolder(AnimationDatabase parentDatabase, Motion clip)
             {
                 ParentDatabase = parentDatabase;
                 CurrentClip = OriginalClip = clip;
-                IsProxyAnimation = clip != null && Util.IsProxyAnimation(clip);
             }
 
             /// <summary>
@@ -156,22 +167,11 @@ namespace nadena.dev.modular_avatar.animation
             Dictionary<Motion, ClipHolder> _originalToHolder = new Dictionary<Motion, ClipHolder>();
 
             if (processClip == null) processClip = (_) => { };
-            var isProxyAnim = Util.IsProxyAnimation(state.motion);
 
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
-            if (!_context.IsTemporaryAsset(state.motion))
-            {
-                // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
-                // animation, we'll restore the original in a later pass
-                var placeholder = Object.Instantiate(state.motion);
-                clipHolder.CurrentClip = placeholder;
-                if (isProxyAnim)
-                {
-                    _clipCommitActions.Add(() => { Object.DestroyImmediate(placeholder); });
-                }
-            }
+            state.motion = clipHolder.CurrentClip;
 
             _clipCommitActions.Add(() => { state.motion = clipHolder.CurrentClip; });
         }
@@ -223,7 +223,20 @@ namespace nadena.dev.modular_avatar.animation
 
             InvalidateCaches();
 
-            switch (motion)
+            Motion cloned = motion;
+            if (!_context.IsTemporaryAsset(motion))
+            {
+                // Protect the original animations from mutations by creating temporary clones; in the case of a proxy
+                // animation, we'll restore the original in a later pass
+                // cloned = Object.Instantiate(motion); - Object.Instantiate can't be used on AnimationClips and BlendTrees
+
+                cloned = (Motion)motion.GetType().GetConstructor(new Type[0]).Invoke(new object[0]);
+                EditorUtility.CopySerialized(motion, cloned);
+
+                ObjectRegistry.RegisterReplacedObject(motion, cloned);
+            }
+
+            switch (cloned)
             {
                 case AnimationClip clip:
                 {
@@ -238,6 +251,8 @@ namespace nadena.dev.modular_avatar.animation
                     break;
                 }
             }
+
+            holder.OriginalClip = motion;
 
             originalToHolder[motion] = holder;
             return holder;
@@ -308,7 +323,10 @@ namespace nadena.dev.modular_avatar.animation
             for (int i = 0; i < children.Length; i++)
             {
                 holders[i] = RegisterMotion(children[i].motion, state, processClip, originalToHolder);
+                children[i].motion = holders[i].CurrentClip;
             }
+
+            tree.children = children;
 
             _clipCommitActions.Add(() =>
             {
