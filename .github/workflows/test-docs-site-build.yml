@@ -20,10 +20,11 @@ jobs:
         run: |
           corepack enable
           corepack prepare yarn@stable --activate
+          yarn --version
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+      #- name: Get yarn cache directory path
+      #  id: yarn-cache-dir-path
+      #  run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
         if: false
@@ -37,7 +38,7 @@ jobs:
       - name: Build CF site
         run: |
           cd docs-site~
-          yarn install --immutable --check-cache
+          YARN_ENABLE_HARDENED_MODE=0 YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
       - name: Display diff on failure
         if: ${{ failure() }}
