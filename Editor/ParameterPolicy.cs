@@ -137,6 +137,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         WalkAnimator(parameters, merger.animator as AnimatorController);
                         break;
                     }
+
+                    case ModularAvatarMergeBlendTree mergeBlendTree:
+                    {
+                        WalkBlendTree(parameters, mergeBlendTree.BlendTree as BlendTree);
+                        break;
+                    }
                 }
             }
 
@@ -241,6 +247,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var state in sm.states)
                 {
+                    WalkBlendTree(parameters, state.state.motion as BlendTree);
+
                     foreach (var behavior in state.state.behaviours)
                     {
                         if (behavior is VRCAvatarParameterDriver driver)
@@ -266,6 +274,51 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsPrefix = false
                 };
                 parameters[param.MapKey] = param;
+            }
+        }
+
+        private static void WalkBlendTree(
+            Dictionary<string, DetectedParameter> parameters,
+            BlendTree blendTree,
+            HashSet<Motion> visited = null
+        )
+        {
+            if (blendTree == null) return;
+            if (visited == null) visited = new HashSet<Motion>();
+            if (visited.Contains(blendTree)) return;
+
+            visited.Add(blendTree);
+
+            if (blendTree.blendType != BlendTreeType.Direct)
+            {
+                Register(blendTree.blendParameter);
+            }
+
+            if (blendTree.blendType != BlendTreeType.Direct && blendTree.blendType != BlendTreeType.Simple1D)
+            {
+                Register(blendTree.blendParameterY);
+            }
+
+            foreach (var child in blendTree.children)
+            {
+                if (blendTree.blendType == BlendTreeType.Direct)
+                {
+                    Register(child.directBlendParameter);
+                }
+
+                WalkBlendTree(parameters, child.motion as BlendTree);
+            }
+
+            void Register(string name)
+            {
+                if (string.IsNullOrEmpty(name)) return;
+                if (parameters.ContainsKey(name)) return;
+
+                parameters.Add(name, new DetectedParameter()
+                {
+                    IsPrefix = false,
+                    OriginalName = name,
+                });
             }
         }
 
