@@ -188,7 +188,7 @@
   "setup_outfit.err.header": "Setup outfit が「{0}」を処理中に失敗しました。",
   "setup_outfit.err.unknown": "原因不明のエラーが発生しました。",
   "setup_outfit.err.no_selection": "オブジェクトが選択されていません。",
-  "setup_outfit.err.multiple_avatar_descriptors": "「{}」とその親に、複数のavatar descriptorを発見しました。",
+  "setup_outfit.err.multiple_avatar_descriptors": "「{0}」とその親に、複数のavatar descriptorを発見しました。",
   "setup_outfit.err.no_avatar_descriptor": "「{0}」の親に、avatar descriptorが見つかりませんでした。衣装のオブジェクトをアバターの中に配置してください。",
   "setup_outfit.err.no_animator": "アバターにAnimatorコンポーネントがありません。",
   "setup_outfit.err.no_hips": "アバターにHipsボーンがありません。なお、Setup Outfitはヒューマノイドアバター以外には対応していません。",
