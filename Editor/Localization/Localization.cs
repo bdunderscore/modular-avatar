@@ -11,6 +11,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [InitializeOnLoad] // ensure that we register languages with NDMF on domain load
     internal static class Localization
     {
         public static event Action OnLangChange;
