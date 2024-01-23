@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UXML 
+        xmlns:ui="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements" 
+        xmlns:ma="nadena.dev.modular_avatar.core.editor"
+>
+    <ui:VisualElement name="ListViewContainer">
+        <ui:ListView virtualization-method="DynamicHeight"
+            reorder-mode="Animated" 
+            reorderable="true"
+            show-add-remove-footer="true"
+            show-border="true"
+            show-foldout-header="false"
+            name="Parameters"
+            item-height="100"
+            binding-path="parameters" 
+            style="flex-grow: 1;"
+        />
+    </ui:VisualElement>
+    
+    <ui:Foldout text="merge_parameter.ui.unregistered_foldout" name="UnregisteredFoldout" value="false" class="ndmf-tr">
+        <!-- The show-add-remove-footer property here somehow also controls the background color
+             of the ListView UI (???). As such, we turn it on here, to get the right theme background color,
+             but then hide the actual footer in USS.
+          -->
+        <ui:ListView
+            reorderable="false"
+            show-add-remove-footer="true"
+            show-border="true"
+            show-foldout-header="false"
+            name="UnregisteredParameters"
+            style="flex-grow: 1;"
+            />
+    </ui:Foldout>
+    
+    <ma:LanguageSwitcherElement/>
+</UXML>

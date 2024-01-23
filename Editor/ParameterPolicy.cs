@@ -3,8 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -20,6 +22,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public float defaultValue;
         public bool saved;
 
+        [FormerlySerializedAs("source")] public Object Source;
+        
         public string MapKey => IsPrefix ? OriginalName + "*" : OriginalName;
     }
 
@@ -96,6 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 OriginalName = bone.parameter,
                                 IsPrefix = true,
+                                Source = bone,
                             };
 
                             parameters[param.MapKey] = param;
@@ -112,6 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             {
                                 OriginalName = contact.parameter,
                                 IsPrefix = false,
+                                Source = contact,
                             };
 
                             parameters[param.MapKey] = param;
@@ -169,7 +175,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 var param = new DetectedParameter()
                 {
                     OriginalName = name,
-                    IsPrefix = false
+                    IsPrefix = false,
+                    Source = menu,
                 };
                 parameters[param.MapKey] = param;
             }
@@ -271,7 +278,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 var param = new DetectedParameter()
                 {
                     OriginalName = parameterName,
-                    IsPrefix = false
+                    IsPrefix = false,
+                    Source = controller
                 };
                 parameters[param.MapKey] = param;
             }
@@ -318,6 +326,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     IsPrefix = false,
                     OriginalName = name,
+                    Source = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GetAssetPath(blendTree))
                 });
             }
         }
@@ -343,6 +352,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         syncType = map.syncType,
                         defaultValue = map.defaultValue,
                         saved = map.saved,
+                        Source = parametersComponent,
                     };
                     newParams[param.MapKey] = param;
                     continue;

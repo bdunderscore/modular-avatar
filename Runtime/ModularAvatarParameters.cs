@@ -14,6 +14,7 @@ namespace nadena.dev.modular_avatar.core
         public bool localOnly;
         public float defaultValue;
         public bool saved;
+        public bool? hasDefaultValue;
     }
 
     /**
