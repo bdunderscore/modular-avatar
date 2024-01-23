@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -30,6 +31,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
         void Process(ModularAvatarWorldFixedObject target)
         {
+            switch (EditorUserBuildSettings.activeBuildTarget)
+            {
+                case BuildTarget.StandaloneWindows:
+                case BuildTarget.StandaloneWindows64:
+                case BuildTarget.StandaloneLinux64: // for CI
+                    break;
+                default:
+                    BuildReport.Log(ErrorSeverity.NonFatal, "world_fixed_object.err.unsupported_platform");
+                    return;
+            }
+            
             var retargeter = new ActiveAnimationRetargeter(
                 _context,
                 new BoneDatabase(),

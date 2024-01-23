@@ -234,5 +234,7 @@
   "setup_outfit.err.no_outfit_hips": "Unable to identify the Hips object for the outfit. Searched for objects containing the following names:",
   "move_independently.group-header": "Objects to move together",
   "scale_adjuster.scale": "Scale adjustment",
-  "scale_adjuster.adjust_children": "Adjust position of child objects"
+  "scale_adjuster.adjust_children": "Adjust position of child objects",
+  "world_fixed_object.err.unsupported_platform": "World Fixed Object is not supported on this platform",
+  "world_fixed_object.err.unsupported_platform:description": "World Fixed Object is not supported on Android builds and will be ignored."
 }
