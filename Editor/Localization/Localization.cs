@@ -41,6 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static string OverrideLanguage { get; set; } = null;
 
         public static Localizer L { get; private set; }
+        public static UIElementLocalizer UI;
 
         static Localization()
         {
@@ -57,6 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor
             });
             
             L = localizer;
+            UI = new UIElementLocalizer(L);
             
             LanguagePrefs.RegisterLanguageChangeCallback(typeof(Localization), _ => OnLangChange?.Invoke());
         }

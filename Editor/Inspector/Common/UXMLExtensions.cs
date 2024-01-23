@@ -12,6 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private static Dictionary<Type, Action<VisualElement>> _localizers =
             new Dictionary<Type, Action<VisualElement>>();
 
+        [Obsolete("Use UIElementLocalizer instead")]
         public static VisualElement Localize(this VisualTreeAsset asset)
         {
             var root = asset.CloneTree();
