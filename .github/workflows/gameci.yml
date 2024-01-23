@@ -131,7 +131,7 @@ jobs:
             cat $i | jq .version
           done
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           path: Library
