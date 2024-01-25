@@ -35,6 +35,9 @@ namespace nadena.dev.modular_avatar.animation
         private ImmutableDictionary<string, string> _originalPathToMappedPath = null;
         private ImmutableDictionary<string, string> _transformOriginalPathToMappedPath = null;
 
+        private static System.Uri AbsoluteUri = new System.Uri("file:///");
+        private static System.Text.RegularExpressions.Regex RelativePath = new System.Text.RegularExpressions.Regex(@"(?:\A|/)\.\.(?:\z|/)");
+
         internal void OnActivate(BuildContext context, AnimationDatabase animationDatabase)
         {
             _animationDatabase = animationDatabase;
@@ -184,7 +187,10 @@ namespace nadena.dev.modular_avatar.animation
             {
                 mappings = BuildMapping(ref _transformOriginalPathToMappedPath, false);
             }
-
+            if (RelativePath.IsMatch(path))
+            {
+                path = CanonicalizePath(path);
+            }
             if (mappings.TryGetValue(path, out var mappedPath))
             {
                 return mappedPath;
@@ -272,6 +278,15 @@ namespace nadena.dev.modular_avatar.animation
             }
 
             return newClip;
+        }
+
+        private string CanonicalizePath(string path)
+        {
+            var absolute = path.StartsWith("/");
+            var uri = new System.Uri("file://" + (absolute ? path : "/" + path));
+            path = AbsoluteUri.MakeRelativeUri(uri).ToString();
+            if (absolute) path = "/" + path;
+            return path;
         }
 
         internal void OnDeactivate(BuildContext context)
