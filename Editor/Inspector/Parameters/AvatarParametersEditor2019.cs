@@ -1,6 +1,5 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,22 +11,10 @@ using Debug = System.Diagnostics.Debug;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomPropertyDrawer(typeof(ParameterSyncType))]
-    internal class ParameterSyncTypeDrawer : EnumDrawer<ParameterSyncType>
-    {
-        protected override string localizationPrefix => "params.syncmode";
-
-        protected override Array enumValues => new object[]
-        {
-            ParameterSyncType.NotSynced,
-            ParameterSyncType.Bool,
-            ParameterSyncType.Float,
-            ParameterSyncType.Int,
-        };
-    }
-
+#if !UNITY_2022_1_OR_NEWER
     [CustomEditor(typeof(ModularAvatarParameters))]
-    internal class AvatarParametersEditor : MAEditorBase
+#endif
+    internal class AvatarParametersEditor2019 : MAEditorBase
     {
         /**********************************************************************
          * | Field name | Remap to / config  |
