@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -14,6 +15,8 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Object = UnityEngine.Object;
+
+using UnityObject = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -25,21 +28,95 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private int internalParamIndex = 0;
 
-        private Dictionary<string, VRCExpressionParameters.Parameter> _syncedParams =
-            new Dictionary<string, VRCExpressionParameters.Parameter>();
+        class ParameterInfo
+        {
+            private static long encounterOrderCounter;
+            
+            public ParameterConfig ResolvedParameter;
+            public List<UnityObject> TypeSources = new List<UnityObject>();
+            public List<UnityObject> DefaultSources = new List<UnityObject>();
+            public ImmutableHashSet<float> ConflictingValues = ImmutableHashSet<float>.Empty;
+            public ImmutableHashSet<ParameterSyncType> ConflictingSyncTypes = ImmutableHashSet<ParameterSyncType>.Empty;
+            
+            public bool TypeConflict, DefaultValueConflict;
+            public long encounterOrder = encounterOrderCounter++;
+
+            public VRCExpressionParameters.ValueType? ValueType
+            {
+                get
+                {
+                    switch (ResolvedParameter.syncType)
+                    {
+                        case ParameterSyncType.Bool: return VRCExpressionParameters.ValueType.Bool;
+                        case ParameterSyncType.Float: return VRCExpressionParameters.ValueType.Float;
+                        case ParameterSyncType.Int: return VRCExpressionParameters.ValueType.Int;
+                        default: return null;
+                    }
+                }
+            }
+            
+            public void MergeSibling(ParameterInfo info)
+            {
+                MergeCommon(info);
+                
+                if (ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
+                {
+                    if (Math.Abs(ResolvedParameter.defaultValue - info.ResolvedParameter.defaultValue) > ParameterConfig.VALUE_EPSILON)
+                    {
+                        DefaultValueConflict = true;
+                        ConflictingValues = ConflictingValues.Add(ResolvedParameter.defaultValue);
+                        ConflictingValues = ConflictingValues.Add(info.ResolvedParameter.defaultValue);
+                    }
+                }
+            }
+
+            public void MergeChild(ParameterInfo info)
+            {
+                MergeCommon(info);
+
+                if (!ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
+                {
+                    ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
+                    ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
+                }
+            }
+            
+            void MergeCommon(ParameterInfo info)
+            {
+                if (ResolvedParameter.syncType == ParameterSyncType.NotSynced)
+                {
+                    ResolvedParameter.syncType = info.ResolvedParameter.syncType;
+                } else if (ResolvedParameter.syncType != info.ResolvedParameter.syncType && info.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
+                {
+                    TypeConflict = true;
+                    ConflictingSyncTypes = ConflictingSyncTypes
+                        .Add(ResolvedParameter.syncType)
+                        .Add(info.ResolvedParameter.syncType);
+                }
+                
+                TypeSources.AddRange(info.TypeSources);
+                DefaultSources.AddRange(info.DefaultSources);
+
+                TypeConflict = TypeConflict || info.TypeConflict;
+                DefaultValueConflict = DefaultValueConflict || info.DefaultValueConflict;
+                
+                ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
+                ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
+                
+                encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
+            }
+        }
 
         public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
             _context = context;
 
-            _syncedParams.Clear();
+            var syncParams = WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
 
-            WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
-
-            SetExpressionParameters(avatar);
+            SetExpressionParameters(avatar, syncParams);
         }
 
-        private void SetExpressionParameters(GameObject avatarRoot)
+        private void SetExpressionParameters(GameObject avatarRoot, ImmutableDictionary<string, ParameterInfo> syncParams)
         {
             var avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
             var expParams = avatar.expressionParameters;
@@ -60,15 +137,61 @@ namespace nadena.dev.modular_avatar.core.editor
             _context.SaveAsset(expParams);
 
             var knownParams = expParams.parameters.Select(p => p.name).ToImmutableHashSet();
-            var parameters = expParams.parameters.ToList();
+            var parameters = expParams.parameters
+                .Select(p => ResolveParameter(p, syncParams))
+                .ToList();
 
-            foreach (var kvp in _syncedParams)
+            foreach (var kvp in syncParams)
             {
                 var name = kvp.Key;
                 var param = kvp.Value;
-                if (!knownParams.Contains(name))
+                
+                if (param.TypeConflict)
                 {
-                    parameters.Add(param);
+                    var t1 = param.ConflictingSyncTypes.First();
+                    var t2 = param.ConflictingSyncTypes.Skip(1).First();
+
+                    List<object> paramList = new List<object> { name, t1, t2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+                    
+                    BuildReport.Log(ErrorSeverity.Error, "error.rename_params.type_conflict", paramList.ToArray());
+                }
+                
+                if (param.DefaultValueConflict)
+                {
+                    var v1 = param.ConflictingValues.First();
+                    var v2 = param.ConflictingValues.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, v1, v2 };
+                    paramList.AddRange(param.DefaultSources.Cast<object>());
+                    
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.default_value_conflict", paramList.ToArray());
+                }
+                
+                if (!knownParams.Contains(name) && param.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
+                {
+                    var converted = new VRCExpressionParameters.Parameter();
+                    converted.name = name;
+                    switch (param.ResolvedParameter.syncType)
+                    {
+                        case ParameterSyncType.Bool:
+                            converted.valueType = VRCExpressionParameters.ValueType.Bool;
+                            break;
+                        case ParameterSyncType.Float:
+                            converted.valueType = VRCExpressionParameters.ValueType.Float;
+                            break;
+                        case ParameterSyncType.Int:
+                            converted.valueType = VRCExpressionParameters.ValueType.Int;
+                            break;
+                        default:
+                            throw new ArgumentException("Unknown parameter sync type " +
+                                                        param.ResolvedParameter.syncType);
+                    }
+                    converted.networkSynced = !param.ResolvedParameter.localOnly;
+                    converted.saved = param.ResolvedParameter.saved;
+                    converted.defaultValue = param.ResolvedParameter.defaultValue;
+                    
+                    parameters.Add(converted);
                 }
             }
 
@@ -86,16 +209,55 @@ namespace nadena.dev.modular_avatar.core.editor
             avatar.expressionParameters = expParams;
         }
 
-        private void WalkTree(
+        private VRCExpressionParameters.Parameter ResolveParameter(
+            VRCExpressionParameters.Parameter parameter, 
+            ImmutableDictionary<string, ParameterInfo> syncParams
+        )
+        {
+            if (!syncParams.TryGetValue(parameter.name, out var info))
+            {
+                return parameter;
+            }
+
+            if (parameter.valueType != info.ValueType && info.ValueType != null)
+            {
+                var list = new List<object>
+                {
+                    parameter.name,
+                    parameter.valueType,
+                    info.ValueType,
+                    _context.AvatarDescriptor.expressionParameters,
+                };
+                list.AddRange(info.TypeSources);
+                
+                BuildReport.Log(ErrorSeverity.Error, "error.rename_params.type_conflict", 
+                    parameter.name,
+                    list
+                );
+            }
+            
+            var newParameter = new VRCExpressionParameters.Parameter();
+            newParameter.defaultValue = info.ResolvedParameter.HasDefaultValue ? info.ResolvedParameter.defaultValue : parameter.defaultValue;
+            newParameter.name = parameter.name;
+            newParameter.valueType = parameter.valueType;
+            newParameter.networkSynced = parameter.networkSynced;
+            newParameter.saved = parameter.saved;
+
+            return newParameter;
+        }
+
+        private ImmutableDictionary<string, ParameterInfo> WalkTree(
             GameObject obj,
             ImmutableDictionary<string, string> remaps,
             ImmutableDictionary<string, string> prefixRemaps
         )
         {
+            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
+            
             var p = obj.GetComponent<ModularAvatarParameters>();
             if (p != null)
             {
-                BuildReport.ReportingObject(p, () => ApplyRemappings(p, ref remaps, ref prefixRemaps));
+                rv = BuildReport.ReportingObject(p, () => ApplyRemappings(p, ref remaps, ref prefixRemaps));
             }
 
             var willPurgeAnimators = false;
@@ -217,10 +379,45 @@ namespace nadena.dev.modular_avatar.core.editor
                 });
             }
 
+            var mergedChildParams = ImmutableDictionary<string, ParameterInfo>.Empty;
             foreach (Transform child in obj.transform)
             {
-                WalkTree(child.gameObject, remaps, prefixRemaps);
+                var childParams = WalkTree(child.gameObject, remaps, prefixRemaps);
+
+                foreach (var kvp in childParams)
+                {
+                    var name = kvp.Key;
+                    var info = kvp.Value;
+                    if (mergedChildParams.TryGetValue(name, out var priorInfo))
+                    {
+                        priorInfo.MergeSibling(info);
+                    }
+                    else
+                    {
+                        mergedChildParams = mergedChildParams.SetItem(name, info);
+                    }
+                }
             }
+            
+            foreach (var kvp in mergedChildParams)
+            {
+                var name = kvp.Key;
+                var info = kvp.Value;
+                
+                var remappedName = remap(remaps, name);
+                info.ResolvedParameter.nameOrPrefix = remappedName;
+                
+                if (rv.TryGetValue(remappedName, out var priorInfo))
+                {
+                    priorInfo.MergeChild(info);
+                }
+                else
+                {
+                    rv = rv.SetItem(remappedName, info);
+                }
+            }
+
+            return rv;
         }
 
         private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
@@ -401,11 +598,13 @@ namespace nadena.dev.modular_avatar.core.editor
             t.conditions = conditions;
         }
 
-        private void ApplyRemappings(ModularAvatarParameters p,
+        private ImmutableDictionary<string, ParameterInfo> ApplyRemappings(ModularAvatarParameters p,
             ref ImmutableDictionary<string, string> remaps,
             ref ImmutableDictionary<string, string> prefixRemaps
         )
         {
+            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
+            
             foreach (var param in p.parameters)
             {
                 bool doRemap = true;
@@ -451,41 +650,34 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!param.isPrefix && param.syncType != ParameterSyncType.NotSynced)
                 {
-                    AddSyncParam(param, remapTo);
+                    if (rv.ContainsKey(remapTo))
+                    {
+                        BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.duplicate_parameter", param.nameOrPrefix);
+                    }
+
+                    ParameterConfig parameterConfig = param;
+                    parameterConfig.nameOrPrefix = remapTo;
+                    parameterConfig.remapTo = null;
+                    var info = new ParameterInfo()
+                    {
+                        ResolvedParameter = parameterConfig,
+                    };
+                    
+                    if (parameterConfig.syncType != ParameterSyncType.NotSynced)
+                    {
+                        info.TypeSources.Add(p);
+                    }
+                    
+                    if (parameterConfig.HasDefaultValue)
+                    {
+                        info.DefaultSources.Add(p);
+                    }
+                    
+                    rv = rv.SetItem(remapTo, info);
                 }
             }
-        }
 
-        private void AddSyncParam(
-            ParameterConfig parameterConfig,
-            string remapTo
-        )
-        {
-            if (_syncedParams.ContainsKey(remapTo)) return;
-
-            VRCExpressionParameters.ValueType type;
-            switch (parameterConfig.syncType)
-            {
-                case ParameterSyncType.Bool:
-                    type = VRCExpressionParameters.ValueType.Bool;
-                    break;
-                case ParameterSyncType.Float:
-                    type = VRCExpressionParameters.ValueType.Float;
-                    break;
-                case ParameterSyncType.Int:
-                    type = VRCExpressionParameters.ValueType.Int;
-                    break;
-                default: throw new Exception("Unknown sync type " + parameterConfig.syncType);
-            }
-
-            _syncedParams[remapTo] = new VRCExpressionParameters.Parameter
-            {
-                name = remapTo,
-                valueType = type,
-                defaultValue = parameterConfig.defaultValue,
-                saved = parameterConfig.saved,
-                networkSynced = !parameterConfig.localOnly
-            };
+            return rv;
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.

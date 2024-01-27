@@ -14,6 +14,8 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public struct ParameterConfig
     {
+        internal const float VALUE_EPSILON = 0.000001f;
+        
         public string nameOrPrefix;
         public string remapTo;
         public bool internalParameter, isPrefix;
@@ -24,6 +26,8 @@ namespace nadena.dev.modular_avatar.core
         public bool saved;
 
         public bool hasExplicitDefaultValue;
+
+        public bool HasDefaultValue => hasExplicitDefaultValue || Mathf.Abs(defaultValue) > VALUE_EPSILON;
     }
 
     /**
@@ -43,8 +47,6 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/parameters?lang=auto")]
     public class ModularAvatarParameters : AvatarTagComponent
     {
-        [SerializeField]
-        private bool migrationCompleted = false;
         public List<ParameterConfig> parameters = new List<ParameterConfig>();
 
         public override void ResolveReferences()
