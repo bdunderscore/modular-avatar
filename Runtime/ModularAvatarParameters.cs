@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core
 {
+    public struct ParameterInitialValue
+    {
+        public bool HasExplicitDefaultSet;
+        public float Value;
+    }
+    
     [Serializable]
     public struct ParameterConfig
     {
@@ -12,8 +19,11 @@ namespace nadena.dev.modular_avatar.core
         public bool internalParameter, isPrefix;
         public ParameterSyncType syncType;
         public bool localOnly;
+
         public float defaultValue;
         public bool saved;
+
+        public bool hasExplicitDefaultValue;
     }
 
     /**
@@ -33,6 +43,8 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/parameters?lang=auto")]
     public class ModularAvatarParameters : AvatarTagComponent
     {
+        [SerializeField]
+        private bool migrationCompleted = false;
         public List<ParameterConfig> parameters = new List<ParameterConfig>();
 
         public override void ResolveReferences()

@@ -1,7 +1,12 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:engine="UnityEditor.UIElements" editor="UnityEditor.UIElements" ma="nadena.dev.modular_avatar.core.editor" editor-extension-mode="False">
+<ui:UXML
+        xmlns:ui="UnityEngine.UIElements" 
+        xmlns:engine="UnityEditor.UIElements"
+        xmlns:ma="nadena.dev.modular_avatar.core.editor" 
+        editor-extension-mode="False"
+>
     <ui:VisualElement name="MiniDisplay">
         <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr"/>
-        <ui:FloatField binding-path="defaultValue"/>
+        <ma:DefaultValueField/>
         <ui:Label text="merge_parameter.ui.saved" class="ndmf-tr"/>
         <ui:Toggle binding-path="saved"/>
     </ui:VisualElement>
@@ -12,7 +17,15 @@
         <engine:PropertyField binding-path="remapTo" label="merge_parameter.ui.remapTo" name="remapTo" class="ndmf-tr" />
         <ui:TextField label="##merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic" name="remapToPlaceholder" enabled="false" class="ndmf-tr unity-base-field__aligned" />
 
-        <engine:PropertyField binding-path="defaultValue" name="defaultValue" label="merge_parameter.ui.defaultValue" class="ndmf-tr ParameterConfig__isPrefix_falseOnly"/>
+        <!-- this field is not visible until it's moved into the PropertyField below -->
+        <ma:DefaultValueField 
+                name="innerDefaultValueField"
+                class="unity-base-field__input unity-property-field__input"
+        /> 
+        
+        <engine:PropertyField binding-path="defaultValue" name="defaultValueProp" label="merge_parameter.ui.defaultValue" class="ndmf-tr ParameterConfig__isPrefix_falseOnly">
+            
+        </engine:PropertyField>
         
         <engine:PropertyField binding-path="saved" label="merge_parameter.ui.saved" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />
         
