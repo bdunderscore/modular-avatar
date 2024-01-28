@@ -141,15 +141,22 @@
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] PhysBone component found on humanoid bone",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "Some Humanoid bones in the armature to merge are controlled by PhysBones, and can't be merged properly because its position is different from the corresponding Humanoid bone in the merge target. You should remove the PhysBones on those Humanoid bones in the armature to merge.",
   
-  "error.internal_error": "An internal error has occurred: {0}\nwhen processing:",
+  "error.internal_error": "[MA-9999] An internal error has occurred: {0}\nwhen processing:",
 
   "error.merge_animator.param_type_mismatch": "[MA-0003] Parameter type mismatch",
   "error.merge_animator.param_type_mismatch:description": "Parameter {0} has multiple types: {1} != {2}",
   
   "error.rename_params.too_many_synced_params": "[MA-0004] Too many synced parameters",
   "error.rename_params.too_many_synced_params:description": "You have too many synced parameters in your avatar. You have assigned {0} bits worth of parameters, but the limit is {1}",
+
+  "error.rename_params.type_conflict": "[MA-0006] Parameter type conflict",
+  "error.rename_params.type_conflict:description": "Parameter {0} has multiple types specified: {1} != {2}",
   
-  "error.replace_object.null_target": "[MA-0005] No target specified",
+  "error.rename_params.default_value_conflict": "[MA-0007] Default value conflict",
+  "error.rename_params.default_value_conflict:description": "Parameter {0} has multiple default values specified: {1} != {2}",
+  "error.rename_params.default_value_conflict:hint": "To avoid unpredictable behavior, leave the default value field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first default value specified in the hierarchy order.",
+  
+  "error.replace_object.null_target": "[MA-0008] No target specified",
   "error.replace_object.null_target:hint": "Replace object needs a target object to replace. Try setting one.",
   
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] No renderer found on this object",

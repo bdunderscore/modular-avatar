@@ -1,19 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core
 {
+    public struct ParameterInitialValue
+    {
+        public bool HasExplicitDefaultSet;
+        public float Value;
+    }
+    
     [Serializable]
     public struct ParameterConfig
     {
+        internal const float VALUE_EPSILON = 0.000001f;
+        
         public string nameOrPrefix;
         public string remapTo;
         public bool internalParameter, isPrefix;
         public ParameterSyncType syncType;
         public bool localOnly;
+
         public float defaultValue;
         public bool saved;
+
+        public bool hasExplicitDefaultValue;
+
+        public bool HasDefaultValue => hasExplicitDefaultValue || Mathf.Abs(defaultValue) > VALUE_EPSILON;
     }
 
     /**

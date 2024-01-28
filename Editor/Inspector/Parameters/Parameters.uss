@@ -28,6 +28,23 @@
     flex-grow: 1;
 }
 
+#defaultValueProp > FloatField > FloatInput {
+    display: none;
+}
+
+#ParameterConfigRoot > DefaultValueField {
+    display: none;
+}
+
+#innerDefaultValueField {
+    flex-grow: 1;
+}
+
+DefaultValueField > TextField {
+    flex-grow: 1;
+    margin-left: 0;
+}
+
 #MiniDisplay {
     flex-direction: row;
     align-self: flex-end;
@@ -37,14 +54,14 @@
     align-self: center;
 }
 
-#MiniDisplay > FloatField {
+#MiniDisplay > DefaultValueField {
     max-width: 60px;
     flex-grow: 0;
     margin-right: 10px;
 }
 
 
-#MiniDisplay > FloatField TextElement {
+#MiniDisplay > DefaultValueField TextElement {
     margin-left: 0px;
 }
 

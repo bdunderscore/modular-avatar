@@ -70,6 +70,25 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 remapTo.style.display = evt.changedProperty.boolValue ? DisplayStyle.None : DisplayStyle.Flex;
                 remapToPlaceholder.style.display = evt.changedProperty.boolValue ? DisplayStyle.Flex : DisplayStyle.None;
             });
+            
+            
+            // This is a bit of a hack, but I'm not sure of another way to properly align property labels with a custom
+            // field, when we only want to manipulate a subset of fields on an object...
+            var defaultValueField = root.Q<VisualElement>("innerDefaultValueField"); // create ahead of time so it's bound...
+            
+            // Then move it into the property field once the property field has created its inner controls
+            var defaultValueProp = root.Q<PropertyField>("defaultValueProp");
+            defaultValueProp.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                var floatField = defaultValueProp.Q<FloatField>();
+                var innerField = floatField?.Q<DefaultValueField>();
+
+                if (floatField != null && innerField == null)
+                {
+                    defaultValueField.RemoveFromHierarchy();
+                    floatField.contentContainer.Add(defaultValueField);
+                }
+            });
 
             return root;
         }
