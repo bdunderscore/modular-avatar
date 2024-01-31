@@ -30,8 +30,6 @@ VRChat Creator CompanionでModular Avatarをインストールすることをお
 
 VCCでテスト版をインストールできるようにするには、[こちらをクリック](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
 
-Then, in your VCC Settings -> Packages window, uncheck the `bd_` repository, check the `bd_ prerelease` repository, and enable `Show pre-release packages`.
-
 そして、VCCの設定画面のPackagesタブで、`bd_`のリポジトリをチェックを外し、`bd_ prerelease`のリポジトリをチェックを入れ、`Show pre-release packages`にチェックを入れてください。
 
 ![Pre-release settings](prerelease.png)
