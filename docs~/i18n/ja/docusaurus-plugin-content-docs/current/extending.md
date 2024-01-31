@@ -27,8 +27,5 @@ namespace nadena.dev.ndmf.sample
 
 ```
 
-In the future, additional APIs will be made available for deeper integration into Modular Avatar. If you have specific
-functionality that you want, please create an issue on [our github](https://github.com/bdunderscore/modular-avatar/issues).
-
 今後、Modular Avatarにより深く拡張するための追加のAPIが提供される予定です。特定の機能が必要な場合は、
 [github](https://github.com/bdunderscore/modular-avatar/issues)にてissueを作成してください。
