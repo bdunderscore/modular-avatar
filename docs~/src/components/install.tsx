@@ -22,8 +22,15 @@ function ModalContent({closeModal}) {
                 <Translate>
                     You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion
                     and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking
-                    the button shown here:
+                    the button shown below.
                 </Translate>
+            </p>
+            <p>
+                <a href="docs/problems/install">
+                    <Translate>
+                        Something went wrong? Click here.
+                    </Translate>
+                </a>
             </p>
             <img src={install_help} alt={translate({message: "Click the plus button to install"})}/>
         </div>
