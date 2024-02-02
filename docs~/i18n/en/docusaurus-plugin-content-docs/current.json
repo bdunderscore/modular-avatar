@@ -14,5 +14,9 @@
   "sidebar.tutorialSidebar.category.Distributing Prefabs": {
     "message": "Distributing Prefabs",
     "description": "The label for category Distributing Prefabs in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Dealing with problems": {
+    "message": "Dealing with problems",
+    "description": "The label for category Dealing with problems in sidebar tutorialSidebar"
   }
 }
