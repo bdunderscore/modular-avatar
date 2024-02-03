@@ -55,6 +55,13 @@ namespace nadena.dev.modular_avatar.core.editor
             "MuteSelf",
             "InStation",
             "Earmuffs",
+            "IsOnFriendsList",
+            "AvatarVersion",
+            "ScaleModified",
+            "ScaleFactor",
+            "ScaleFactorInverse",
+            "EyeHeightAsMeters",
+            "EyeHeightAsPercent",
         }.ToImmutableHashSet();
 
         public static ImmutableList<string> PhysBoneSuffixes = new string[]
