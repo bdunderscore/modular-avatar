@@ -37,6 +37,7 @@
   "merge_parameter.ui.prefix": "PhysBone 前置詞名",
   "merge_parameter.ui.remapTo": "名前を変更",
   "merge_parameter.ui.remapTo.tooltip": "ここに新しい名前を入れることで、このパラメーターの名前を変更できます。これで名前かぶりを回避したり、あるいはあえて複数のギミックを連動できます。",
+  "merge_parameter.ui.remapTo.automatic": "（自動的に設定）",
   "merge_parameter.ui.defaultValue": "初期値",
   "merge_parameter.ui.defaultValue.tooltip": "アバターがリセット、または最初に着た時にこの値が採用されます。",
   "merge_parameter.ui.saved": "保存する",

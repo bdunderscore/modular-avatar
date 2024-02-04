@@ -3,7 +3,6 @@
 using System;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor.Parameters
@@ -64,6 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
             remapToPlaceholder.SetEnabled(false);
 
             remapToPlaceholder.labelElement.AddToClassList("ndmf-tr");
+            Localization.UI.Localize(remapToPlaceholder.labelElement);
             
             root.Q<PropertyField>("internalParameter").RegisterValueChangeCallback(evt =>
             {
