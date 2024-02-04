@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#if MA_VRCSDK3_AVATARS
-#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,9 +32,12 @@ using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using Object = UnityEngine.Object;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
-using Object = UnityEngine.Object;
+#endif
 
 namespace nadena.dev.modular_avatar.animation
 {
@@ -64,7 +65,9 @@ namespace nadena.dev.modular_avatar.animation
 
         private int _controllerBaseLayer = 0;
 
+#if MA_VRCSDK3_AVATARS
         public VRC_AnimatorLayerControl.BlendableLayer? BlendableLayer;
+#endif
 
         public AnimatorCombiner(ndmf.BuildContext context, String assetName)
         {
@@ -134,23 +137,27 @@ namespace nadena.dev.modular_avatar.animation
                 var newBehaviors = new List<StateMachineBehaviour>();
                 foreach (var b in behaviours)
                 {
-                    if (b is VRCAnimatorLayerControl alc && alc.playable == BlendableLayer)
+                    switch (b)
                     {
-                        int newLayer = -1;
-                        if (alc.layer >= 0 && alc.layer < layerIndexMappings.Length)
-                        {
-                            newLayer = layerIndexMappings[alc.layer];
-                        }
+#if MA_VRCSDK3_AVATARS
+                        case VRCAnimatorLayerControl alc when alc.playable == BlendableLayer:
+                            int newLayer = -1;
+                            if (alc.layer >= 0 && alc.layer < layerIndexMappings.Length)
+                            {
+                                newLayer = layerIndexMappings[alc.layer];
+                            }
 
-                        if (newLayer != -1)
-                        {
-                            alc.layer = newLayer;
-                            newBehaviors.Add(alc);
-                        }
-                    }
-                    else
-                    {
-                        newBehaviors.Add(b);
+                            if (newLayer != -1)
+                            {
+                                alc.layer = newLayer;
+                                newBehaviors.Add(alc);
+                            }
+
+                            break;
+#endif
+                        default:
+                            newBehaviors.Add(b);
+                            break;
                     }
                 }
 
