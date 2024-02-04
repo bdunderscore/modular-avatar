@@ -15,7 +15,7 @@
         <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.name" name="f-name" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />
         <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.prefix" name="f-prefix" class="ndmf-tr ParameterConfig__isPrefix_trueOnly" />
         <engine:PropertyField binding-path="remapTo" label="merge_parameter.ui.remapTo" name="remapTo" class="ndmf-tr" />
-        <ui:TextField label="##merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic" name="remapToPlaceholder" enabled="false" class="ndmf-tr unity-base-field__aligned" />
+        <ui:TextField label="merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic" name="remapToPlaceholder" enabled="false" class="ndmf-tr unity-base-field__aligned" />
 
         <!-- this field is not visible until it's moved into the PropertyField below -->
         <ma:DefaultValueField 

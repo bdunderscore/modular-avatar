@@ -38,6 +38,7 @@
   "merge_parameter.ui.prefix": "PhysBone prefix name",
   "merge_parameter.ui.remapTo": "Change name to",
   "merge_parameter.ui.remapTo.tooltip": "Enter a new name here to rename this parameter or prefix. This can be used to resolve name conflicts, or to link up multiple gimmicks.",
+  "merge_parameter.ui.remapTo.automatic": "(automatically determined)",
   "merge_parameter.ui.defaultValue": "Default",
   "merge_parameter.ui.defaultValue.tooltip": "This parameter will be set to this value when the avatar is reset or initially worn",
   "merge_parameter.ui.saved": "Saved",
