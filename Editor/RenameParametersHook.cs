@@ -20,6 +20,11 @@ using UnityObject = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    internal class DefaultValues
+    {
+        public ImmutableDictionary<string, float> InitialValue;
+    }
+    
     internal class RenameParametersHook
     {
         private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
@@ -114,10 +119,17 @@ namespace nadena.dev.modular_avatar.core.editor
             var syncParams = WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
 
             SetExpressionParameters(avatar, syncParams);
+            
+            _context.PluginBuildContext.GetState<DefaultValues>().InitialValue
+                = syncParams.Where(p => p.Value.ResolvedParameter.HasDefaultValue)
+                    .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
         }
 
-        private void SetExpressionParameters(GameObject avatarRoot, ImmutableDictionary<string, ParameterInfo> syncParams)
+        private void SetExpressionParameters(GameObject avatarRoot, ImmutableDictionary<string, ParameterInfo> allParams)
         {
+            var syncParams = allParams.Where(kvp => kvp.Value.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
+                .ToImmutableDictionary();
+            
             var avatar = avatarRoot.GetComponent<VRCAvatarDescriptor>();
             var expParams = avatar.expressionParameters;
 
@@ -648,7 +660,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                if (!param.isPrefix && param.syncType != ParameterSyncType.NotSynced)
+                if (!param.isPrefix)
                 {
                     if (rv.ContainsKey(remapTo))
                     {

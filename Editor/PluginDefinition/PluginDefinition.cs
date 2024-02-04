@@ -40,6 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
+                seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
                 seq.Run(MenuInstallPluginPass.Instance);
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
