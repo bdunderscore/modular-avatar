@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if MA_VRCSDK3_AVATARS
+
+using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -12,3 +14,5 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference RelativePathRoot = new AvatarObjectReference();
     }
 }
+
+#endif
