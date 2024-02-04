@@ -152,7 +152,7 @@ namespace nadena.dev.modular_avatar.core
 
             var oldPatches = new HashSet<ScalePatch>(this.patches);
             var newPatches = new HashSet<ScalePatch>();
-            var avatarRoot = RuntimeUtil.FindAvatarInParents(selfTransform);
+            var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selfTransform);
 
             if (avatarRoot != null)
             {
