@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -236,13 +237,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return PAT_END_NUMBER.Replace(name, "");
         }
 
-        internal static readonly ImmutableDictionary<string, HumanBodyBones> NameToBoneMap;
+        internal static readonly ImmutableDictionary<string, List<HumanBodyBones>> NameToBoneMap;
         internal static readonly ImmutableDictionary<HumanBodyBones, ImmutableList<string>> BoneToNameMap;
 
         static HeuristicBoneMapper()
         {
             var pat_end_side = new Regex(@"[_\.]([LR])$");
-            var nameToBoneMap = new Dictionary<string, HumanBodyBones>();
+            var nameToBoneMap = new Dictionary<string, List<HumanBodyBones>>();
             var boneToNameMap = new Dictionary<HumanBodyBones, ImmutableList<string>>();
 
             for (int i = 0; i < boneNamePatterns.Length; i++)
@@ -263,7 +264,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void RegisterNameForBone(string name, HumanBodyBones bone)
             {
-                nameToBoneMap[name] = bone;
+                if (!nameToBoneMap.TryGetValue(name, out var list))
+                {
+                    list = new List<HumanBodyBones>();
+                    nameToBoneMap[name] = list;
+                }
+                list.Add(bone);
+                
                 if (!boneToNameMap.TryGetValue(bone, out var names))
                 {
                     names = ImmutableList<string>.Empty;
@@ -334,12 +341,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     childName.Length - config.prefix.Length - config.suffix.Length);
 
                 if (!NameToBoneMap.TryGetValue(
-                        NormalizeName(targetObjectName.ToLowerInvariant()), out var bodyBone))
+                        NormalizeName(targetObjectName.ToLowerInvariant()), out var bodyBones))
                 {
                     continue;
                 }
 
-                foreach (var otherName in BoneToNameMap[bodyBone])
+                foreach (var otherName in bodyBones.SelectMany(bone => BoneToNameMap[bone]))
                 {
                     if (lcNameToXform.TryGetValue(otherName, out var targetObject))
                     {
