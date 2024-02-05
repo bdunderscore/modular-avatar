@@ -17,6 +17,11 @@ namespace nadena.dev.modular_avatar.core
         private void DeferredValidate()
         {
             if (this == null) return;
+            
+            if (GetComponent<ModularAvatarPBBlocker>() == null)
+            {
+                gameObject.AddComponent<ModularAvatarPBBlocker>();
+            }
 
             gameObject.hideFlags = HideFlags.HideInHierarchy;
 
