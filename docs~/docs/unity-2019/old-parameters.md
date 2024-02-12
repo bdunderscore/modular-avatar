@@ -43,8 +43,8 @@ Each parameter can be configured with the following options:
 Parameters components can be nested. This lets you build up a complex prefab out of sub-prefabs, some which may be added multiple times, and while avoiding parameter name conflicts.
 
 Parameter renaming will be applied to the following components underneath (or on the same GameObject as) the Parameters component:
-* [Modular Avatar Merge Animator](merge-animator.md)
-* [Modular Avatar Menu Installer](menu-installer.md)
+* [Modular Avatar Merge Animator](/docs/reference/merge-animator)
+* [Modular Avatar Menu Installer](/docs/reference/menu-installer)
 * VRC Physics Bone
 * VRC Contact Receiver
 * Animator (although this is unlikely to be very useful)

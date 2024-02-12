@@ -11,7 +11,7 @@ Modular Avatar はUnity 2019の対応終了を視野に入れています。現�
 
 以下の機能は Unity 2019 と Unity 2022 で挙動が違います。
 
-* 2022では、[MA Parameters](docs/reference/parameters.md)のUIを更新しています。
+* 2022では、[MA Parameters](/docs/reference/parameters)のUIを更新しています。
   [旧UIのドキュメンテーションページはこちらです。](old-parameters.md)
   * Unity 2019ではパラメーターのデフォルト値がゼロの場合、未設定扱いとなります。
     そのため、オーバーライドとしてゼロを設定することができません。 
