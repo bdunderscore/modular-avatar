@@ -1,10 +1,14 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using NUnit.Framework;
+using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -119,6 +123,39 @@ namespace modular_avatar_tests.RenameParametersTests
             
             Assert.AreEqual(expParams.parameters[0].name, "a");
             Assert.IsTrue(Mathf.Abs(expParams.parameters[0].defaultValue - 0.1f) < 0.0001f);
+        }
+
+        [Test]
+        public void AnimatorOnlyParametersTests()
+        {
+            var prefab = CreatePrefab("AnimatorOnlyParameterValues/AOPV.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController as AnimatorController;
+            Assert.NotNull(fx);
+
+            AssertParamStates(fx);
+            
+            var action = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController as AnimatorController;
+            Assert.NotNull(action);
+            
+            AssertParamStates(action);
+            
+            void AssertParamStates(AnimatorController controller)
+            {
+                var parameters = controller.parameters.Select(
+                        p => new KeyValuePair<String, AnimatorControllerParameter>(p.name, p)
+                    ).ToImmutableDictionary();
+                
+                Assert.LessOrEqual(Mathf.Abs(parameters["float"].defaultFloat - 0.5f), 0.005f);
+                Assert.AreEqual(23, parameters["int"].defaultInt);
+                Assert.AreEqual(true, parameters["bool"].defaultBool);
+            }
         }
     }
 }
