@@ -118,7 +118,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
-          command: deploy --name modular-avatar-docs --old-asset-ttl 300
+          command: deploy --name modular-avatar-docs
           workingDirectory: docs-site~
           
       - name: Purge cache
