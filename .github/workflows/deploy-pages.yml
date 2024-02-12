@@ -122,7 +122,7 @@ jobs:
           workingDirectory: docs-site~
           
       - name: Purge cache
-        uses: nathanvaughn/actions-cloudflare-purge@752b6dc9a31b2392c40f7ee9c0556a412383aa5e
+        uses: nathanvaughn/actions-cloudflare-purge@f70c63827b539cf48eb3a29fdaa7547eca4dede4
         continue-on-error: true
         with:
           cf_zone: ${{ secrets.CF_ZONE_ID }}
