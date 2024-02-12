@@ -25,8 +25,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
-using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.util;
 using UnityEditor;
@@ -43,6 +41,7 @@ namespace nadena.dev.modular_avatar.animation
 {
     internal class AnimatorCombiner
     {
+        private readonly ndmf.BuildContext _context;
         private readonly AnimatorController _combined;
 
         private readonly DeepClone _deepClone;
@@ -79,16 +78,209 @@ namespace nadena.dev.modular_avatar.animation
 
             _combined.name = assetName;
 
+            _context = context;
             _deepClone = new DeepClone(context);
         }
 
         public AnimatorController Finish()
         {
+            FixTransitionTypeConflicts();
             PruneEmptyLayers();
 
             _combined.parameters = _parameters.Values.ToArray();
             _combined.layers = _layers.ToArray();
             return _combined;
+        }
+
+        public void MergeTypes(Dictionary<string, AnimatorControllerParameterType> types)
+        {
+            foreach (var p in _parameters.ToList())
+            {
+                if (types.TryGetValue(p.Key, out var outerValue))
+                {
+                    if (outerValue == p.Value.type) continue;
+                    
+                    if (outerValue == AnimatorControllerParameterType.Trigger
+                        || p.Value.type == AnimatorControllerParameterType.Trigger)
+                    {
+                        BuildReport.LogFatal("error.merge_animator.param_type_mismatch",
+                            p.Key,
+                            p.Value.type,
+                            outerValue
+                        );
+                    }
+
+                    _parameters[p.Key].type = AnimatorControllerParameterType.Float;
+                    types[p.Key] = AnimatorControllerParameterType.Float;
+                }
+                else
+                {
+                    types.Add(p.Key, p.Value.type);
+                }
+            }
+        }
+
+        /// <summary>
+        /// When we merge multiple controllers with different types for the same parameter, we merge
+        /// them all into using floats; thanks to VRChat's implicit typecasting, we can do this even for
+        /// parameters registered as being ints or bools in the expressions parameter asset. However,
+        /// we do need to fix any transitions to use the right transition types after this conversion.
+        /// </summary>
+        private void FixTransitionTypeConflicts()
+        {
+            foreach (var layer in _layers)
+            {
+                foreach (var asset in layer.stateMachine.ReferencedAssets(includeScene: false))
+                {
+                    if (asset is AnimatorState s)
+                    {
+                        s.transitions = s.transitions.SelectMany(FixupTransition).ToArray();
+                    }
+                }
+
+                layer.stateMachine.entryTransitions = layer.stateMachine.entryTransitions
+                    .SelectMany(FixupTransition).ToArray();
+                layer.stateMachine.anyStateTransitions = layer.stateMachine.anyStateTransitions
+                    .SelectMany(FixupTransition).ToArray();
+            }
+        }
+
+        private IEnumerable<T> FixupTransition<T>(T t) where T: AnimatorTransitionBase, new()
+        {
+            if (!NeedsFixing(t.conditions))
+            {
+                yield return t;
+                yield break;
+            }
+            
+            AnimatorCondition[][][] combinations = t.conditions.Select(c => FixupCondition(c).ToArray()).ToArray();
+            
+            // Generate the combinatorial explosion of conditions needed to emulate NotEquals with floats...
+            var conditions = ExplodeConditions(combinations).ToArray();
+
+            if (conditions.Length == 1)
+            {
+                t.conditions = conditions[0];
+                yield return t;
+            }
+            else
+            {
+                foreach (var conditionGroup in conditions)
+                {
+                    t.conditions = conditionGroup;
+                    yield return t;
+
+                    var newTransition = new T();
+                    EditorUtility.CopySerialized(t, newTransition);
+                    if (_context.AssetContainer != null)
+                    {
+                        AssetDatabase.AddObjectToAsset(newTransition, _context.AssetContainer);
+                    }
+                    t = newTransition;
+                }
+            }
+        }
+
+        private bool NeedsFixing(AnimatorCondition[] conditions)
+        {
+            return conditions.Any(c =>
+            {
+                if (!_parameters.TryGetValue(c.parameter, out var param)) return false;
+
+                switch (c.mode)
+                {
+                    case AnimatorConditionMode.If when param.type != AnimatorControllerParameterType.Bool:
+                    case AnimatorConditionMode.IfNot when param.type != AnimatorControllerParameterType.Bool:
+                    case AnimatorConditionMode.Equals when param.type != AnimatorControllerParameterType.Int:
+                    case AnimatorConditionMode.NotEqual when param.type != AnimatorControllerParameterType.Int:
+                        return true;
+                    default:
+                        return false;
+                }
+            });
+        }
+
+        private IEnumerable<AnimatorCondition[]> ExplodeConditions(AnimatorCondition[][][] conditions)
+        {
+            int[] indices = new int[conditions.Length];
+
+            while (true)
+            {
+                yield return conditions.SelectMany((group, i_) => group[indices[i_]]).ToArray();
+                
+                // Increment the rightmost possible counter
+                int i;
+                for (i = indices.Length - 1; i >= 0; i--)
+                {
+                    if (indices[i] < conditions[i].Length - 1)
+                    {
+                        indices[i]++;
+                        // Unity 2019.....
+                        // System.Array.Fill(indices, 0, i + 1, indices.Length - i - 1);
+                        for (int j = i + 1; j < indices.Length; j++)
+                        {
+                            indices[j] = 0;
+                        }
+                        break;
+                    }
+                }
+
+                if (i < 0) break;
+            }
+        }
+
+        private IEnumerable<AnimatorCondition[]> FixupCondition(AnimatorCondition c)
+        {
+            if (!_parameters.TryGetValue(c.parameter, out var paramDef))
+            {
+                // Parameter is undefined, don't touch this condition
+                yield return new[] { c };
+                yield break;
+            }
+            
+            switch (c.mode)
+            {
+                case AnimatorConditionMode.If when paramDef.type == AnimatorControllerParameterType.Float:
+                {
+                    c.mode = AnimatorConditionMode.Greater;
+                    c.threshold = 0.5f;
+                    yield return new[] { c };
+                    break;
+                }
+                case AnimatorConditionMode.IfNot when paramDef.type == AnimatorControllerParameterType.Float:
+                {
+                    c.mode = AnimatorConditionMode.Less;
+                    c.threshold = 0.5f;
+                    yield return new[] { c };
+                    break;
+                }
+                case AnimatorConditionMode.Equals when paramDef.type == AnimatorControllerParameterType.Float:
+                {
+                    var c1 = c;
+                    var c2 = c;
+                    c1.mode = AnimatorConditionMode.Greater;
+                    c1.threshold -= 0.1f;
+                    c2.mode = AnimatorConditionMode.Less;
+                    c2.threshold += 0.1f;
+                    yield return new[] { c1, c2 };
+                    break;
+                }
+                case AnimatorConditionMode.NotEqual when paramDef.type == AnimatorControllerParameterType.Float:
+                {
+                    var origThresh = c.threshold;
+                    c.mode = AnimatorConditionMode.Greater;
+                    c.threshold = origThresh + 0.1f;
+                    yield return new[] { c };
+
+                    c.mode = AnimatorConditionMode.Less;
+                    c.threshold = origThresh - 0.1f;
+                    yield return new[] { c };
+                    break;
+                }
+                default:
+                    yield return new[] { c };
+                    break;
+            }
         }
 
         private void PruneEmptyLayers()
@@ -184,7 +376,9 @@ namespace nadena.dev.modular_avatar.animation
             {
                 if (_parameters.TryGetValue(param.name, out var acp))
                 {
-                    if (acp.type != param.type)
+                    if (acp.type != param.type && 
+                        (acp.type == AnimatorControllerParameterType.Trigger ||
+                         param.type == AnimatorControllerParameterType.Trigger))
                     {
                         BuildReport.LogFatal("error.merge_animator.param_type_mismatch",
                             param.name,
@@ -195,8 +389,19 @@ namespace nadena.dev.modular_avatar.animation
                         );
                     }
 
+                    acp.type = AnimatorControllerParameterType.Float;
+
                     continue;
                 }
+
+                var clonedParameter = new AnimatorControllerParameter()
+                {
+                    name = param.name,
+                    type = param.type,
+                    defaultBool = param.defaultBool,
+                    defaultFloat = param.defaultFloat,
+                    defaultInt = param.defaultInt
+                };
 
                 _parameters.Add(param.name, param);
                 _parameterSource.Add(param.name, controller);

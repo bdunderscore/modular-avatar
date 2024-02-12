@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
+using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests
 {
@@ -16,9 +17,9 @@ namespace modular_avatar_tests
             
             AvatarProcessor.ProcessAvatar(root);
             
-            var fxController = FindFxController(root);
+            var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX);
                       
-            var layerNames = (FindFxController(root).animatorController as AnimatorController)
+            var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
                 .layers.Select(l => l.name).ToArray();
             
             Assert.AreEqual(new []

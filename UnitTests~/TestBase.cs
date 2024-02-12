@@ -156,8 +156,13 @@ namespace modular_avatar_tests
 
         internal static VRCAvatarDescriptor.CustomAnimLayer FindFxController(GameObject prefab)
         {
+            return FindController(prefab, VRCAvatarDescriptor.AnimLayerType.FX);
+        }
+        
+        internal static VRCAvatarDescriptor.CustomAnimLayer FindController(GameObject prefab, VRCAvatarDescriptor.AnimLayerType layerType)
+        {
             return prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+                .FirstOrDefault(l => l.type == layerType);
         }
 #endif
     }

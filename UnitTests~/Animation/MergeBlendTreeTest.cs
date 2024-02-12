@@ -45,7 +45,7 @@ namespace modular_avatar_tests
             
             AvatarProcessor.ProcessAvatar(root);
 
-            var fxController = FindFxController(root).animatorController as AnimatorController;
+            var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController;
             var fx = findFxLayer(root, MergeBlendTreePass.BlendTreeLayerName);
             Assert.AreSame(fxController.layers[0].stateMachine, fx.stateMachine);
             Assert.AreEqual(1, fx.stateMachine.states.Length);
@@ -112,7 +112,7 @@ namespace modular_avatar_tests
 
             AvatarProcessor.ProcessAvatar(root);
             
-            var layerNames = (FindFxController(root).animatorController as AnimatorController)
+            var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
                 .layers.Select(l => l.name).ToArray();
             
             Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
