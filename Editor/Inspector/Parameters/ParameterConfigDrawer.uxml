@@ -27,14 +27,12 @@
             
         </engine:PropertyField>
         
-        <engine:PropertyField binding-path="saved" label="merge_parameter.ui.saved" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />
-        
-        <ui:Foldout text="merge_parameter.ui.details" class="ndmf-tr" value="false">
-            <engine:PropertyField binding-path="internalParameter" label="merge_parameter.ui.internalParameter" name="internalParameter" class="ndmf-tr" />
-            <engine:PropertyField binding-path="isPrefix" label="merge_parameter.ui.isPrefix" name="isPrefix" class="ndmf-tr" />
-            <engine:PropertyField binding-path="syncType" label="merge_parameter.ui.syncType" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />
-            <engine:PropertyField binding-path="localOnly" label="merge_parameter.ui.localOnly" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />    
-        </ui:Foldout>
+        <engine:PropertyField binding-path="saved" label="merge_parameter.ui.saved" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />"
+    
+        <engine:PropertyField binding-path="internalParameter" label="merge_parameter.ui.internalParameter" name="internalParameter" class="ndmf-tr" />
+        <engine:PropertyField binding-path="isPrefix" label="merge_parameter.ui.isPrefix" name="isPrefix" class="ndmf-tr" />
+        <engine:PropertyField binding-path="syncType" label="merge_parameter.ui.syncType" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />
+        <engine:PropertyField binding-path="localOnly" label="merge_parameter.ui.localOnly" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />
         
     </ui:Foldout>
 
