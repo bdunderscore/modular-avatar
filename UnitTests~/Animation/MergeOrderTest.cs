@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -26,3 +28,5 @@ namespace modular_avatar_tests
         }
     }
 }
+
+#endif

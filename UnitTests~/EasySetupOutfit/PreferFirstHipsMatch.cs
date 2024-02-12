@@ -3,7 +3,6 @@ using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 public class PreferFirstHipsMatch : TestBase
 {
@@ -11,7 +10,9 @@ public class PreferFirstHipsMatch : TestBase
     public void SetupHeuristicPrefersFirstHipsMatch()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-        root.AddComponent<VRCAvatarDescriptor>();
+#if MA_VRCSDK3_AVATARS
+        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+#endif
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).gameObject;
         var root_armature = root_hips.transform.parent.gameObject;
         var root_secondary = CreateChild(root, "PBC");

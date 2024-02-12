@@ -83,7 +83,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         UnityEngine.Object.DestroyImmediate(component);
                     }
                 });
+#if MA_VRCSDK3_AVATARS
                 seq.Run(PruneParametersPass.Instance);
+#endif
             });
 
             InPhase(BuildPhase.Optimizing)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using BestHTTP.SecureProtocol.Org.BouncyCastle.Utilities;
 using nadena.dev.modular_avatar.animation;
@@ -169,3 +171,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif

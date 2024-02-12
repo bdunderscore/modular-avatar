@@ -15,6 +15,7 @@
     "precompiledReferences": [
         "Newtonsoft.Json.dll",
         "System.Collections.Immutable.dll",
+        "System.Memory.dll",
         "VRCSDKBase.dll",
         "VRCSDKBase-Editor.dll",
         "VRCSDK3A.dll",

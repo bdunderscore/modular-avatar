@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if MA_VRCSDK3_AVATARS
+
+using UnityEditor;
 using UnityEditor.Animations;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -35,3 +37,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif

@@ -46,7 +46,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private ndmf.BuildContext frameworkContext;
         private BuildContext context;
+#if MA_VRCSDK3_AVATARS
         private Dictionary<Transform, VRCPhysBoneBase> physBoneByRootBone;
+#endif
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
         private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
@@ -60,9 +62,11 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             this.frameworkContext = context;
             this.context = context.Extension<ModularAvatarContext>().BuildContext;
+#if MA_VRCSDK3_AVATARS
             physBoneByRootBone = new Dictionary<Transform, VRCPhysBoneBase>();
             foreach (var physbone in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneBase>(true))
                 physBoneByRootBone[physbone.GetRootTransform()] = physbone;
+#endif
 
             if (avatarGameObject.TryGetComponent<Animator>(out var animator) && animator.isHuman)
             {
@@ -390,12 +394,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private bool NotAffectedByPhysBoneOrSimilarChainsAsTarget(Transform child, Transform target)
         {
+#if MA_VRCSDK3_AVATARS
             // not affected
             if (!physBoneByRootBone.TryGetValue(child, out VRCPhysBoneBase physBone)) return true;
 
             var ignores = new HashSet<Transform>(physBone.ignoreTransforms.Where(x => x));
 
             return IsSimilarChainInPosition(child, target, ignores);
+#else
+            return IsSimilarChainInPosition(child, target, new HashSet<Transform>());
+#endif
         }
 
         // Returns true if child and target are in similar position and children are recursively.

@@ -4,9 +4,12 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using ModularAvatarMergeArmature = nadena.dev.modular_avatar.core.ModularAvatarMergeArmature;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
-using ModularAvatarMergeArmature = nadena.dev.modular_avatar.core.ModularAvatarMergeArmature;
+#endif
 
 public class MergeArmatureTests : TestBase
 {
@@ -26,6 +29,8 @@ public class MergeArmatureTests : TestBase
 
         Assert.NotNull(targetHips.GetChild(1).GetComponent<BoxCollider>());
     }
+
+#if MA_VRCSDK3_AVATARS
 
     [Test]
     public void DontMergePartiallySamePhysBoneChain()
@@ -92,6 +97,8 @@ public class MergeArmatureTests : TestBase
             Assert.AreSame(root_bone, outfit_bone);
         }
     }
+
+#endif
 
     private static GameObject LoadShapell()
     {
