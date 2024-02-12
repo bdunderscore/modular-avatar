@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -99,7 +98,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -154,7 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -209,7 +206,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -266,7 +262,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -648,7 +643,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -703,7 +697,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -758,7 +751,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -813,7 +805,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -868,7 +859,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -923,7 +913,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -978,7 +967,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -1036,7 +1024,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -1094,7 +1081,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -1150,7 +1136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 
@@ -1208,7 +1193,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71a96d4ea0c344f39e277d82035bf9bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  migrationCompleted: 0
   parameters:
   - nameOrPrefix: a
     remapTo: 

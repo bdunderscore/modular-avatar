@@ -84,6 +84,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                 }
+
+                ResolvedParameter.saved = info.ResolvedParameter.saved;
             }
             
             void MergeCommon(ParameterInfo info)
@@ -107,6 +109,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
+                
+                ResolvedParameter.saved = ResolvedParameter.saved || info.ResolvedParameter.saved;
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
             }
@@ -208,6 +212,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             expParams.parameters = parameters.ToArray();
+     
             if (expParams.CalcTotalCost() > VRCExpressionParameters.MAX_PARAMETER_COST)
             {
                 BuildReport.LogFatal("error.rename_params.too_many_synced_params", new[]
@@ -253,8 +258,8 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.name = parameter.name;
             newParameter.valueType = parameter.valueType;
             newParameter.networkSynced = parameter.networkSynced;
-            newParameter.saved = parameter.saved;
-
+            newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
+            
             return newParameter;
         }
 

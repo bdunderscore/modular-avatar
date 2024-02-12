@@ -129,7 +129,7 @@ namespace modular_avatar_tests.RenameParametersTests
         public void AnimatorOnlyParametersTests()
         {
             var prefab = CreatePrefab("AnimatorOnlyParameterValues/AOPV.prefab");
-            
+
             AvatarProcessor.ProcessAvatar(prefab);
 
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
@@ -138,24 +138,42 @@ namespace modular_avatar_tests.RenameParametersTests
             Assert.NotNull(fx);
 
             AssertParamStates(fx);
-            
+
             var action = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController as AnimatorController;
             Assert.NotNull(action);
-            
+
             AssertParamStates(action);
-            
+
             void AssertParamStates(AnimatorController controller)
             {
                 var parameters = controller.parameters.Select(
-                        p => new KeyValuePair<String, AnimatorControllerParameter>(p.name, p)
-                    ).ToImmutableDictionary();
-                
+                    p => new KeyValuePair<String, AnimatorControllerParameter>(p.name, p)
+                ).ToImmutableDictionary();
+
                 Assert.LessOrEqual(Mathf.Abs(parameters["float"].defaultFloat - 0.5f), 0.005f);
                 Assert.AreEqual(23, parameters["int"].defaultInt);
                 Assert.AreEqual(true, parameters["bool"].defaultBool);
             }
+        }
+
+        public void SavedParameterResolution()
+        {
+            var prefab = CreatePrefab("SavedParamResolution.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            var expParams = prefab.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Select(p => new KeyValuePair<string, VRCExpressionParameters.Parameter>(p.name, p))
+                .ToImmutableDictionary();
+            
+            Assert.IsTrue(expParams["a"].saved);
+            Assert.IsTrue(expParams["b"].saved);
+            Assert.IsFalse(expParams["c"].saved);
+            Assert.IsTrue(expParams["d"].saved);
+            Assert.IsFalse(expParams["e"].saved);
+            Assert.IsTrue(expParams["f"].saved);
         }
     }
 }
