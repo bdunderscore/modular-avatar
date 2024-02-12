@@ -161,6 +161,20 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             layers = (VRCAvatarDescriptor.CustomAnimLayer[])layers.Clone();
 
+            // Ensure types are consistent across layers
+            Dictionary<string, AnimatorControllerParameterType> types =
+                new Dictionary<string, AnimatorControllerParameterType>();
+            // Learn types...
+            foreach (var session in mergeSessions.Values)
+            {
+                session.MergeTypes(types);
+            }
+            // And propagate them
+            foreach (var session in mergeSessions.Values)
+            {
+                session.MergeTypes(types);
+            }
+            
             for (int i = 0; i < layers.Length; i++)
             {
                 if (mergeSessions.TryGetValue(layers[i].type, out var session))

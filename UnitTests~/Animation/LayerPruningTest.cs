@@ -19,7 +19,7 @@ namespace modular_avatar_tests
             var prefab = CreatePrefab("LayerPruningTest.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
             
-            var fxController = (AnimatorController) FindFxController(prefab).animatorController;
+            var fxController = (AnimatorController) FindController(prefab, VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
             var l0 = fxController.layers[0];
             var l1 = fxController.layers[1];
             var l2 = fxController.layers[2];
