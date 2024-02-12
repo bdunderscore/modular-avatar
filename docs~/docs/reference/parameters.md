@@ -27,7 +27,8 @@ unclear which should be used.
 
 For the "Saved" option, generally speaking the parameter will be saved if any MA Parameters component sets it to be
 saved. However, there is an exception; see the section on "Nesting" for more information. Note also that the "Saved"
-setting in MA Parameters will override any setting in the Expressions Parameters asset, if any.
+setting will be enabled if either MA Parameters or the original Expression Parameters asset enables saving for the
+parameter.
 
 ### Renaming parameters
 
