@@ -1,12 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
+using nadena.dev.modular_avatar.ui;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
+    internal class ArmatureLockConfig
+#if UNITY_EDITOR
+        : UnityEditor.ScriptableSingleton<ArmatureLockConfig>
+#endif
+    {
+#if !UNITY_EDITOR
+        internal static ArmatureLockConfig instance { get; } = new ArmatureLockConfig();
+#endif
+
+        [SerializeField]
+        private bool _globalEnable = true;
+        
+        internal bool GlobalEnable
+        {
+            get => _globalEnable;
+            set
+            {
+                if (value == _globalEnable) return;
+                
+                #if UNITY_EDITOR
+                Undo.RecordObject(this, "Toggle Edit Mode Bone Sync");
+                Menu.SetChecked(UnityMenuItems.TopMenu_EditModeBoneSync, value);
+                #endif
+                
+                _globalEnable = value;
+
+                if (!value)
+                {
+                    // Run prepare one last time to dispose of lock structures
+                    UpdateLoopController.InvokeArmatureLockPrepare();
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        static void Init()
+        {
+            EditorApplication.delayCall += () => {
+                Menu.SetChecked(UnityMenuItems.TopMenu_EditModeBoneSync, instance._globalEnable);
+            };
+        }
+        
+        [MenuItem(UnityMenuItems.TopMenu_EditModeBoneSync, false, UnityMenuItems.TopMenu_EditModeBoneSyncOrder)]
+        static void ToggleBoneSync()
+        {
+            instance.GlobalEnable = !instance.GlobalEnable;
+        }
+#endif
+    }
+
     internal class ArmatureLockController : IDisposable
     {
         private static long lastMovedFrame = 0;
@@ -23,6 +76,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private readonly GetTransformsDelegate _getTransforms;
         private IArmatureLock _lock;
 
+        private bool GlobalEnable => ArmatureLockConfig.instance.GlobalEnable;
         private bool _updateActive;
 
         private bool UpdateActive
@@ -71,6 +125,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             set
             {
                 if (Enabled == value) return;
+
                 _enabled = value;
                 if (_enabled) UpdateActive = true;
             }
@@ -108,12 +163,6 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private void VoidPrepare()
         {
-            if (_mama == null || !_mama.gameObject.scene.IsValid())
-            {
-                UpdateActive = false;
-                return;
-            }
-            
             UpdateLoopPrepare();
         }
         
@@ -132,6 +181,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         
         private void UpdateLoopPrepare()
         {
+            if (_mama == null || !_mama.gameObject.scene.IsValid())
+            {
+                UpdateActive = false;
+                return;
+            }
+            
             if (!Enabled)
             {
                 UpdateActive = false;
@@ -139,7 +194,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _lock = null;
                 return;
             }
-            
+
+            if (!GlobalEnable)
+            {
+                _lock?.Dispose();
+                _lock = null;
+                return;
+            }
             
             if (_curMode == _mode)
             {
@@ -151,6 +212,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private bool DoFinish()
         {
             LockResult result;
+            
+            if (!GlobalEnable)
+            {
+                _lock?.Dispose();
+                _lock = null;
+                return true;
+            }
 
             var wasPrepared = IsPrepared;
             IsPrepared = false;

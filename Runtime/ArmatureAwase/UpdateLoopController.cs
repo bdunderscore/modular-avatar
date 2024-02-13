@@ -12,15 +12,22 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         [UnityEditor.InitializeOnLoadMethod]
         private static void Init()
         {
-#if UNITY_EDITOR
             UnityEditor.EditorApplication.update += () =>
             {
-                OnArmatureLockPrepare?.Invoke();
-                OnArmatureLockUpdate?.Invoke();
+                if (ArmatureLockConfig.instance.GlobalEnable)
+                {
+                    OnArmatureLockPrepare?.Invoke();
+                    OnArmatureLockUpdate?.Invoke();
+                }
+
                 OnMoveIndependentlyUpdate?.Invoke();
             };
-#endif
         }
 #endif
+
+        internal static void InvokeArmatureLockPrepare()
+        {
+            OnArmatureLockPrepare?.Invoke();
+        }
     }
 }
