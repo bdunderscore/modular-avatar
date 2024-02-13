@@ -74,6 +74,7 @@ namespace nadena.dev.modular_avatar.core
             base.OnValidate();
             MigrateLockConfig();
             RuntimeUtil.delayCall(SetLockMode);
+            Debug.Log("$$$ OnValidate");
         }
 
         internal void ResetArmatureLock()
@@ -106,7 +107,7 @@ namespace nadena.dev.modular_avatar.core
                 }
             }
 
-            _lockController.Enabled = isActiveAndEnabled;
+            _lockController.Enabled = enabled;
         }
 
         private void MigrateLockConfig()
@@ -126,7 +127,8 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnDisable()
         {
-            _lockController.Enabled = false;
+            // we use enabled instead of activeAndEnabled to ensure we track even when the GameObject is disabled
+            _lockController.Enabled = enabled;
         }
 
         protected override void OnDestroy()

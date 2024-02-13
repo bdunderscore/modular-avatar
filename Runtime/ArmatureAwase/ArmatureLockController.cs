@@ -34,13 +34,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_EDITOR
                 if (value)
                 {
-                    UpdateLoopController.OnArmatureLockPrepare += DoPrepare;
-                    UpdateLoopController.OnArmatureLockUpdate += VoidFinish;
+                    UpdateLoopController.OnArmatureLockPrepare += UpdateLoopPrepare;
+                    UpdateLoopController.OnArmatureLockUpdate += UpdateLoopFinish;
                 }
                 else
                 {
-                    UpdateLoopController.OnArmatureLockPrepare -= DoPrepare;
-                    UpdateLoopController.OnArmatureLockUpdate -= VoidFinish;
+                    UpdateLoopController.OnArmatureLockPrepare -= UpdateLoopPrepare;
+                    UpdateLoopController.OnArmatureLockUpdate -= UpdateLoopFinish;
                 }
 
                 _updateActive = value;
@@ -106,20 +106,31 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return RebuildLock() && (_lock?.IsStable() ?? false);
         }
 
-        private void VoidFinish()
+        private void VoidPrepare()
+        {
+            if (_mama == null || !_mama.gameObject.scene.IsValid())
+            {
+                UpdateActive = false;
+                return;
+            }
+            
+            UpdateLoopPrepare();
+        }
+        
+        private void UpdateLoopFinish()
         {
             DoFinish();
         }
 
         internal bool Update()
         {
-            DoPrepare();
+            UpdateLoopPrepare();
             return DoFinish();
         }
 
         private bool IsPrepared = false;
         
-        private void DoPrepare()
+        private void UpdateLoopPrepare()
         {
             if (!Enabled)
             {
