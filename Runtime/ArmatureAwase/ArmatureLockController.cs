@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -35,11 +34,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_EDITOR
                 if (value)
                 {
-                    UpdateLoopController.OnArmatureLockUpdate += VoidUpdate;
+                    UpdateLoopController.OnArmatureLockPrepare += DoPrepare;
+                    UpdateLoopController.OnArmatureLockUpdate += VoidFinish;
                 }
                 else
                 {
-                    UpdateLoopController.OnArmatureLockUpdate -= VoidUpdate;
+                    UpdateLoopController.OnArmatureLockPrepare -= DoPrepare;
+                    UpdateLoopController.OnArmatureLockUpdate -= VoidFinish;
                 }
 
                 _updateActive = value;
@@ -105,24 +106,49 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return RebuildLock() && (_lock?.IsStable() ?? false);
         }
 
-        private void VoidUpdate()
+        private void VoidFinish()
         {
-            Update();
+            DoFinish();
         }
 
         internal bool Update()
         {
-            LockResult result;
+            DoPrepare();
+            return DoFinish();
+        }
+
+        private bool IsPrepared = false;
+        
+        private void DoPrepare()
+        {
             if (!Enabled)
             {
                 UpdateActive = false;
                 _lock?.Dispose();
                 _lock = null;
-                return true;
+                return;
             }
-
+            
+            
             if (_curMode == _mode)
             {
+                _lock?.Prepare();
+                IsPrepared = _lock != null;
+            }
+        }
+
+        private bool DoFinish()
+        {
+            LockResult result;
+
+            var wasPrepared = IsPrepared;
+            IsPrepared = false;
+            
+            if (!Enabled) return true;
+            
+            if (_curMode == _mode)
+            {
+                if (!wasPrepared) _lock?.Prepare();
                 result = _lock?.Execute() ?? LockResult.Failed;
                 if (result == LockResult.Success)
                 {
@@ -134,6 +160,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             if (!RebuildLock()) return false;
 
+            _lock?.Prepare();
             result = (_lock?.Execute() ?? LockResult.Failed);
 
             return result != LockResult.Failed;
