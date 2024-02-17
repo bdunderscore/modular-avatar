@@ -4,6 +4,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal static class UpdateLoopController
     {
+        internal static event Action OnArmatureLockPrepare;
         internal static event Action OnArmatureLockUpdate;
         internal static event Action OnMoveIndependentlyUpdate;
 
@@ -11,14 +12,22 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         [UnityEditor.InitializeOnLoadMethod]
         private static void Init()
         {
-#if UNITY_EDITOR
             UnityEditor.EditorApplication.update += () =>
             {
-                OnArmatureLockUpdate?.Invoke();
+                if (ArmatureLockConfig.instance.GlobalEnable)
+                {
+                    OnArmatureLockPrepare?.Invoke();
+                    OnArmatureLockUpdate?.Invoke();
+                }
+
                 OnMoveIndependentlyUpdate?.Invoke();
             };
-#endif
         }
 #endif
+
+        internal static void InvokeArmatureLockPrepare()
+        {
+            OnArmatureLockPrepare?.Invoke();
+        }
     }
 }

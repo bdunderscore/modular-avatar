@@ -4,11 +4,11 @@ using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine;
+using UnityEngine.Jobs;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
-using UnityEngine.Jobs;
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
@@ -29,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private TransformAccessArray _baseBonesAccessor, _mergeBonesAccessor;
 
         private bool _disposed;
-        private JobHandle LastOp;
+        private JobHandle LastOp, LastPrepare;
 
         [BurstCompile]
         struct WriteBone : IJobParallelForTransform
@@ -197,13 +197,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return (scale.x < epsilon || scale.y < epsilon || scale.z < epsilon);
         }
 
-        private bool DoCompute(out JobHandle handle)
+        public void Prepare()
         {
-            handle = default;
-            if (_disposed) return false;
-
+            if (_disposed) return;
+            
             LastOp.Complete();
 
+            
             _fault.Value = 0;
             _wroteAny.Value = 0;
 
@@ -216,7 +216,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _state = _mergeState
             }.Schedule(_mergeBonesAccessor);
             var readAll = JobHandle.CombineDependencies(jobReadBase, jobReadMerged);
-            LastOp = handle = new ComputePosition
+            LastOp = LastPrepare = new ComputePosition
             {
                 _boneStatic = _boneStaticData,
                 _mergeState = _mergeState,
@@ -225,6 +225,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _fault = _fault.GetParallel(),
                 _wroteAny = _wroteAny.GetParallel(),
             }.Schedule(_baseBones.Length, 32, readAll);
+        }
+
+        private bool CheckConsistency()
+        {
+            if (_disposed) return false;
 
             // Validate parents while that job is running
             for (int i = 0; i < _baseBones.Length; i++)
@@ -246,9 +251,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         public bool IsStable()
         {
-            if (!DoCompute(out var compute)) return false;
+            Prepare();
+            if (!CheckConsistency()) return false;
 
-            compute.Complete();
+            LastPrepare.Complete();
 
             return _fault.Value == 0 && _wroteAny.Value == 0;
         }
@@ -259,14 +265,14 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// <returns>True if successful, false if cached data was invalidated and needs recreating</returns>
         public LockResult Execute()
         {
-            if (!DoCompute(out var compute)) return LockResult.Failed;
-
+            if (!CheckConsistency()) return LockResult.Failed;
+            
             var commit = new WriteBone()
             {
                 _fault = _fault,
                 _values = _mergeSavedState,
                 _shouldWrite = _wroteAny
-            }.Schedule(_mergeBonesAccessor, compute);
+            }.Schedule(_mergeBonesAccessor, LastPrepare);
 
             commit.Complete();
 

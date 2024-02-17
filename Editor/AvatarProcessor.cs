@@ -24,6 +24,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
 
@@ -45,7 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ApplyToCurrentAvatar();
         }
 
-        [MenuItem("Tools/Modular Avatar/Manual bake avatar", true)]
+        [MenuItem(UnityMenuItems.TopMenu_ManualBakeAvatar, true, UnityMenuItems.TopMenu_ManualBakeAvatarOrder)]
         private static bool ValidateApplyToCurrentAvatar()
         {
             return ndmf.AvatarProcessor.CanProcessObject(Selection.activeGameObject);

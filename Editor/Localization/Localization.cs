@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.ui;
 using Newtonsoft.Json;
@@ -87,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        [MenuItem("Tools/Modular Avatar/Reload localizations")]
+        [MenuItem(UnityMenuItems.TopMenu_ReloadLocalizations, false, UnityMenuItems.TopMenu_ReloadLocalizationsOrder)]
         public static void Reload()
         {
             Localizer.ReloadLocalizations();

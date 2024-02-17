@@ -20,6 +20,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private NativeIntPtr WroteAny;
 
         private JobHandle LastOp;
+        private JobHandle LastPrepare;
 
         public BidirectionalArmatureLock(IReadOnlyList<(Transform, Transform)> bones)
         {
@@ -142,21 +143,20 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _disposed = true;
         }
 
-        private bool DoCompute(out JobHandle handle)
+        public void Prepare()
         {
-            handle = default;
-
-            if (_disposed) return false;
-
-            WroteAny.Value = 0;
-
+            if (_disposed) return;
+            
             LastOp.Complete();
+            
+            WroteAny.Value = 0;
 
             var readBase = new ReadBone()
             {
                 _state = BaseBones,
             }.Schedule(_baseBoneAccess);
-            LastOp = handle = new Compute()
+
+            LastOp = LastPrepare = new Compute()
             {
                 BaseBones = BaseBones,
                 MergeBones = MergeBones,
@@ -165,7 +165,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 ShouldWriteMerge = ShouldWriteMerge,
                 WroteAny = WroteAny.GetParallel(),
             }.Schedule(_mergeBoneAccess, readBase);
+        }
 
+        private bool CheckConsistency()
+        {
+            if (_disposed) return false;
+            
             // Check parents haven't changed
             for (int i = 0; i < _baseBones.Length; i++)
             {
@@ -186,27 +191,27 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         public bool IsStable()
         {
-            if (!DoCompute(out var compute)) return false;
-
-            compute.Complete();
-
+            Prepare();
+            if (!CheckConsistency()) return false;
+            LastPrepare.Complete();
+            
             return WroteAny.Value == 0;
         }
 
         public LockResult Execute()
         {
-            if (!DoCompute(out var compute)) return LockResult.Failed;
+            if (!CheckConsistency()) return LockResult.Failed;
 
             var commitBase = new Commit()
             {
                 BoneState = BaseBones,
                 ShouldWrite = ShouldWriteBase,
-            }.Schedule(_baseBoneAccess, compute);
+            }.Schedule(_baseBoneAccess, LastPrepare);
             var commitMerge = new Commit()
             {
                 BoneState = MergeBones,
                 ShouldWrite = ShouldWriteMerge,
-            }.Schedule(_mergeBoneAccess, compute);
+            }.Schedule(_mergeBoneAccess, LastPrepare);
 
             commitBase.Complete();
             commitMerge.Complete();
