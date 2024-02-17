@@ -208,6 +208,18 @@ public class ConvertTransitionTypes : TestBase
         var action_layer = action.layers.First(l => l.name == "l");
         AssertSingleTransition(action_layer.stateMachine.anyStateTransitions[0], ("bool", AnimatorConditionMode.Greater, 0));
     }
+
+    [Test]
+    public void ParametersDoesntAffectTypeResolution()
+    {
+        var prefab = CreatePrefab("ParametersDoesntAffectTypeResolution.prefab");
+        
+        AvatarProcessor.ProcessAvatar(prefab);
+        
+        var fx = (AnimatorController) FindFxController(prefab).animatorController;
+        
+        Assert.AreEqual(fx.parameters[0].type, AnimatorControllerParameterType.Bool);
+    }
     
     void AssertTransitions(AnimatorControllerLayer layer, string src, string dest, int index,
         params (string, AnimatorConditionMode, float)[] conditions)
