@@ -376,6 +376,8 @@ namespace nadena.dev.modular_avatar.animation
             {
                 if (_parameters.TryGetValue(param.name, out var acp))
                 {
+                    if (acp.type == param.type) continue;
+                    
                     if (acp.type != param.type && 
                         (acp.type == AnimatorControllerParameterType.Trigger ||
                          param.type == AnimatorControllerParameterType.Trigger))
@@ -403,7 +405,7 @@ namespace nadena.dev.modular_avatar.animation
                     defaultInt = param.defaultInt
                 };
 
-                _parameters.Add(param.name, param);
+                _parameters.Add(param.name, clonedParameter);
                 _parameterSource.Add(param.name, controller);
             }
 

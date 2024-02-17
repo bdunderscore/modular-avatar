@@ -1,8 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -155,8 +155,11 @@ public class ConvertTransitionTypes : TestBase
     public void NoConversionWhenConsistent()
     {
         var prefab = CreatePrefab("ConvertTransitionTypes.prefab");
-        
-        UnityEngine.Object.DestroyImmediate(prefab.transform.Find("2").gameObject);
+
+        var merge1 = prefab.transform.Find("1").GetComponent<ModularAvatarMergeAnimator>();
+        var merge2 = prefab.transform.Find("2").GetComponent<ModularAvatarMergeAnimator>();
+
+        merge2.animator = merge1.animator;
         
         AvatarProcessor.ProcessAvatar(prefab);
 
