@@ -225,16 +225,15 @@ namespace nadena.dev.modular_avatar.core.editor
             },
             new[] {"UpperChest", "UChest"},
         };
+        
+        internal static readonly Regex Regex_VRM_Bone = new Regex(@"^([LRC])_(.*)$");
 
         internal static string NormalizeName(string name)
         {
-            name = name.ToLowerInvariant()
-                .Replace("_", "")
-                .Replace(".", "")
-                .Replace(" ", "");
-            name = Regex.Replace(name, "[0-9]", "");
+            name = name.ToLowerInvariant();
+            name = Regex.Replace(name, "[0-9 ._]", "");
 
-            return PAT_END_NUMBER.Replace(name, "");
+            return name;
         }
 
         internal static readonly ImmutableDictionary<string, List<HumanBodyBones>> NameToBoneMap;
@@ -257,6 +256,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var altName = name.Substring(0, name.Length - 2);
                         altName = match.Groups[1] + "." + altName;
+                        RegisterNameForBone(NormalizeName(altName), bone);
+                    }
+                    else
+                    {
+                        // VRM pattern: J_Bip_C_[non-sided bone, e.g. hips]
+                        var altName = "C." + name;
                         RegisterNameForBone(NormalizeName(altName), bone);
                     }
                 }
@@ -295,16 +300,21 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static Dictionary<Transform, Transform> AssignBoneMappings(
             ModularAvatarMergeArmature config,
             GameObject src,
-            GameObject newParent
+            GameObject newParent,
+            List<Transform> skipped = null,
+            HashSet<Transform> unassigned = null
         )
         {
-            HashSet<Transform> unassigned = new HashSet<Transform>();
             Dictionary<Transform, Transform> mappings = new Dictionary<Transform, Transform>();
             List<Transform> heuristicAssignmentPass = new List<Transform>();
 
-            foreach (Transform child in newParent.transform)
+            if (unassigned == null)
             {
-                unassigned.Add(child);
+                unassigned = new HashSet<Transform>();
+                foreach (Transform child in newParent.transform)
+                {
+                    unassigned.Add(child);
+                }
             }
 
             foreach (Transform child in src.transform)
@@ -339,9 +349,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 var childName = child.gameObject.name;
                 var targetObjectName = childName.Substring(config.prefix.Length,
                     childName.Length - config.prefix.Length - config.suffix.Length);
-
+                
                 if (!NameToBoneMap.TryGetValue(
-                        NormalizeName(targetObjectName.ToLowerInvariant()), out var bodyBones))
+                        NormalizeName(targetObjectName), out var bodyBones))
                 {
                     continue;
                 }
@@ -356,21 +366,34 @@ namespace nadena.dev.modular_avatar.core.editor
                         break;
                     }
                 }
+
+                if (!mappings.ContainsKey(child) && bodyBones.Contains(HumanBodyBones.UpperChest) && skipped != null)
+                {
+                    // Avatars are often missing UpperChest bones, try skipping over this...
+                    skipped.Add(child);
+
+                    foreach (var kvp in AssignBoneMappings(config, child.gameObject, newParent, skipped, unassigned))
+                    {
+                        mappings.Add(kvp.Key, kvp.Value);
+                    }
+                }
             }
 
             return mappings;
         }
 
-        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config)
+        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config, List<Transform> skipped = null)
         {
             var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarTransformInParents(config.transform));
             if (target == null) return;
 
+            if (skipped == null) skipped = new List<Transform>();
+            
             Traverse(config.transform, target.transform);
-
+            
             void Traverse(Transform src, Transform dst)
             {
-                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject);
+                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject, skipped: skipped);
 
                 foreach (var pair in mappings)
                 {
