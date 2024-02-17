@@ -160,7 +160,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ForcePositionToBaseAvatar()
         {
-            var mama = (ModularAvatarMergeArmature) target;
+            var mama = (ModularAvatarMergeArmature)target;
+            
+            ForcePositionToBaseAvatar(mama);
+        }
+
+        private void ForcePositionToBaseAvatar(ModularAvatarMergeArmature mama, bool suppressRootScale = false) {
             var mergeTarget = mama.mergeTarget.Get(mama);
             var xform_to_bone = new Dictionary<Transform, HumanBodyBones>();
             var bone_to_xform = new Dictionary<HumanBodyBones, Transform>();
@@ -183,7 +188,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            if (posReset_heuristicRootScale)
+            if (posReset_heuristicRootScale && !suppressRootScale)
             {
                 AdjustRootScale();
             }
@@ -219,14 +224,9 @@ namespace nadena.dev.modular_avatar.core.editor
             void Walk(Transform t_merge, Transform t_target)
             {
                 Undo.RecordObject(t_merge, "Merge Armature: Force outfit position");
-
-                Debug.Log("=== Processing: " + t_merge.gameObject.name);
-
-                if (!t_merge.IsChildOf(mama.transform))
-                {
-                    throw new ArgumentException("t_merge not a child of mama.transform");
-                }
-
+                
+                Debug.Log("Merge: " + t_merge.gameObject.name + " => " + t_target.gameObject.name);
+                
                 t_merge.position = t_target.position;
                 if (posReset_adjustScale)
                 {
@@ -241,11 +241,24 @@ namespace nadena.dev.modular_avatar.core.editor
                     t_merge.localRotation = t_target.localRotation;
                 }
 
-                foreach (Transform t_child in t_merge)
+                Queue<Transform> traversalQueue = new Queue<Transform>();
+                traversalQueue.Enqueue(t_merge);
+
+                while (traversalQueue.Count > 0)
                 {
-                    if (TryMatchChildBone(t_target, t_child, out var t_target_child))
+                    foreach (Transform t_child in traversalQueue.Dequeue())
                     {
-                        Walk(t_child, t_target_child);
+                        var mama_child = t_child.GetComponent<ModularAvatarMergeArmature>();
+                        if (mama_child != null)
+                        {
+                            traversalQueue.Enqueue(t_child);
+                            continue;
+                        }
+                    
+                        if (TryMatchChildBone(t_target, t_child, out var t_target_child))
+                        {
+                            Walk(t_child, t_target_child);
+                        }
                     }
                 }
             }

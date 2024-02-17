@@ -138,7 +138,28 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+
+                List<Transform> subRoots = new List<Transform>();
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots);
+                Debug.Log("Skipped: " + subRoots.Count);
+
+                // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
+                // help with this
+                foreach (var subRoot in subRoots)
+                {
+                    Debug.Log("$$$ Add subconfig to " + RuntimeUtil.RelativePath(avatarRoot, subRoot.gameObject));
+                    var subConfig = Undo.AddComponent<ModularAvatarMergeArmature>(subRoot.gameObject);
+                    var parentConfig = subConfig.transform.parent.GetComponentInParent<ModularAvatarMergeArmature>();
+                    var parentMapping = parentConfig.MapBone(parentConfig.transform);
+                    
+                    subConfig.mergeTarget = new AvatarObjectReference();
+                    subConfig.mergeTarget.referencePath =
+                        RuntimeUtil.RelativePath(avatarRoot, parentMapping.gameObject);
+                    subConfig.LockMode = ArmatureLockMode.BaseToMerge;
+                    subConfig.prefix = merge.prefix;
+                    subConfig.suffix = merge.suffix;
+                    subConfig.mangleNames = false;
+                }
 
                 var avatarRootMatchingArmature = avatarRoot.transform.Find(outfitArmature.gameObject.name);
                 if (merge.prefix == "" && merge.suffix == "" && avatarRootMatchingArmature != null)

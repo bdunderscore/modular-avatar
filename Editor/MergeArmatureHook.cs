@@ -121,8 +121,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var config in mergeArmatures)
             {
-                // TODO - assert that we're not nesting merge armatures?
-
                 var target = config.mergeTargetObject;
                 if (target == null)
                 {
@@ -147,6 +145,11 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var next in mergeArmatures)
             {
                 TopoLoop(next);
+            }
+
+            foreach (var next in mergeArmatures)
+            {
+                UnityEngine.Object.DestroyImmediate(next);
             }
 
             void TopoLoop(ModularAvatarMergeArmature config)
@@ -196,7 +199,6 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
                 PruneDuplicatePhysBones();
 #endif
-                UnityEngine.Object.DestroyImmediate(config);
             });
         }
 
@@ -360,6 +362,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 foreach (Transform child in children)
                 {
+                    if (child.GetComponent <ModularAvatarMergeArmature>() != null)
+                    {
+                        continue;
+                    }
+                    
                     var childGameObject = child.gameObject;
                     var childName = childGameObject.name;
                     GameObject childNewParent = mergedSrcBone;
