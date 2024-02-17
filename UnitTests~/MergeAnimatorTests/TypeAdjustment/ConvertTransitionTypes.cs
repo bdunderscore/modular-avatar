@@ -1,8 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -132,13 +132,34 @@ public class ConvertTransitionTypes : TestBase
         Assert.AreEqual(AnimatorControllerParameterType.Float, p_types["float"]);
         Assert.AreEqual(AnimatorControllerParameterType.Float, p_types["int2"]);
     }
+
+    [Test]
+    public void SubStateMachineHandling()
+    {
+        var prefab = CreatePrefab("ConvertTransitionTypes.prefab");
+        
+        AvatarProcessor.ProcessAvatar(prefab);
+
+        var layer = findFxLayer(prefab, "sub_state_machine");
+        
+        AssertSingleTransition(layer.stateMachine.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+
+        var ssm1 = layer.stateMachine.stateMachines[0].stateMachine;
+        AssertSingleTransition(ssm1.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+        
+        var ssm2 = ssm1.stateMachines[0].stateMachine;
+        AssertSingleTransition(ssm2.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+    }
     
     [Test]
     public void NoConversionWhenConsistent()
     {
         var prefab = CreatePrefab("ConvertTransitionTypes.prefab");
-        
-        UnityEngine.Object.DestroyImmediate(prefab.transform.Find("2").gameObject);
+
+        var merge1 = prefab.transform.Find("1").GetComponent<ModularAvatarMergeAnimator>();
+        var merge2 = prefab.transform.Find("2").GetComponent<ModularAvatarMergeAnimator>();
+
+        merge2.animator = merge1.animator;
         
         AvatarProcessor.ProcessAvatar(prefab);
 
@@ -192,15 +213,6 @@ public class ConvertTransitionTypes : TestBase
         params (string, AnimatorConditionMode, float)[] conditions)
     {
         var srcState = FindStateInLayer(layer, src);
-        
-        foreach (var s in layer.stateMachine.states)
-        {
-            Debug.Log("$$$ State: " + s.state.name);
-            foreach (var t0 in s.state.transitions)
-            {
-                Debug.Log("$$$   => " + t0.destinationState.name);
-            }
-        }
 
         var transitions = srcState.transitions.Where(t2 => t2.destinationState.name == dest)
             .ToArray();

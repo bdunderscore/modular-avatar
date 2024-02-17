@@ -130,18 +130,18 @@ namespace nadena.dev.modular_avatar.animation
         {
             foreach (var layer in _layers)
             {
-                foreach (var asset in layer.stateMachine.ReferencedAssets(includeScene: false))
+                foreach (var asm in layer.stateMachine.ReachableStateMachines())
                 {
-                    if (asset is AnimatorState s)
+                    foreach (ChildAnimatorState s in asm.states)
                     {
-                        s.transitions = s.transitions.SelectMany(FixupTransition).ToArray();
+                        s.state.transitions = s.state.transitions.SelectMany(FixupTransition).ToArray();
                     }
+                    
+                    asm.entryTransitions = asm.entryTransitions
+                        .SelectMany(FixupTransition).ToArray();
+                    asm.anyStateTransitions = asm.anyStateTransitions
+                        .SelectMany(FixupTransition).ToArray();
                 }
-
-                layer.stateMachine.entryTransitions = layer.stateMachine.entryTransitions
-                    .SelectMany(FixupTransition).ToArray();
-                layer.stateMachine.anyStateTransitions = layer.stateMachine.anyStateTransitions
-                    .SelectMany(FixupTransition).ToArray();
             }
         }
 
@@ -376,6 +376,8 @@ namespace nadena.dev.modular_avatar.animation
             {
                 if (_parameters.TryGetValue(param.name, out var acp))
                 {
+                    if (acp.type == param.type) continue;
+                    
                     if (acp.type != param.type && 
                         (acp.type == AnimatorControllerParameterType.Trigger ||
                          param.type == AnimatorControllerParameterType.Trigger))
@@ -403,7 +405,7 @@ namespace nadena.dev.modular_avatar.animation
                     defaultInt = param.defaultInt
                 };
 
-                _parameters.Add(param.name, param);
+                _parameters.Add(param.name, clonedParameter);
                 _parameterSource.Add(param.name, controller);
             }
 

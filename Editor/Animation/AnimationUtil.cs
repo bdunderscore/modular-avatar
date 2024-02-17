@@ -189,20 +189,18 @@ namespace nadena.dev.modular_avatar.animation
                    || path.StartsWith("Packages/com.vrchat.");
         }
 
+        
         /// <summary>
-        /// Enumerates all states in an animator controller
+        /// Enumerates all state machines and sub-state machines starting from a specific starting ASM
         /// </summary>
         /// <param name="ac"></param>
         /// <returns></returns>
-        internal static IEnumerable<AnimatorState> States(AnimatorController ac)
+        internal static IEnumerable<AnimatorStateMachine> ReachableStateMachines(this AnimatorStateMachine asm)
         {
             HashSet<AnimatorStateMachine> visitedStateMachines = new HashSet<AnimatorStateMachine>();
             Queue<AnimatorStateMachine> pending = new Queue<AnimatorStateMachine>();
-
-            foreach (var layer in ac.layers)
-            {
-                if (layer.stateMachine != null) pending.Enqueue(layer.stateMachine);
-            }
+            
+            pending.Enqueue(asm);
 
             while (pending.Count > 0)
             {
@@ -215,10 +213,7 @@ namespace nadena.dev.modular_avatar.animation
                     if (child.stateMachine != null) pending.Enqueue(child.stateMachine);
                 }
 
-                foreach (var state in next.states)
-                {
-                    yield return state.state;
-                }
+                yield return next;
             }
         }
     }
