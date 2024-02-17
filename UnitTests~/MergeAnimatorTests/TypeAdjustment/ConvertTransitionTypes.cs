@@ -132,6 +132,24 @@ public class ConvertTransitionTypes : TestBase
         Assert.AreEqual(AnimatorControllerParameterType.Float, p_types["float"]);
         Assert.AreEqual(AnimatorControllerParameterType.Float, p_types["int2"]);
     }
+
+    [Test]
+    public void SubStateMachineHandling()
+    {
+        var prefab = CreatePrefab("ConvertTransitionTypes.prefab");
+        
+        AvatarProcessor.ProcessAvatar(prefab);
+
+        var layer = findFxLayer(prefab, "sub_state_machine");
+        
+        AssertSingleTransition(layer.stateMachine.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+
+        var ssm1 = layer.stateMachine.stateMachines[0].stateMachine;
+        AssertSingleTransition(ssm1.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+        
+        var ssm2 = ssm1.stateMachines[0].stateMachine;
+        AssertSingleTransition(ssm2.entryTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
+    }
     
     [Test]
     public void NoConversionWhenConsistent()
@@ -192,15 +210,6 @@ public class ConvertTransitionTypes : TestBase
         params (string, AnimatorConditionMode, float)[] conditions)
     {
         var srcState = FindStateInLayer(layer, src);
-        
-        foreach (var s in layer.stateMachine.states)
-        {
-            Debug.Log("$$$ State: " + s.state.name);
-            foreach (var t0 in s.state.transitions)
-            {
-                Debug.Log("$$$   => " + t0.destinationState.name);
-            }
-        }
 
         var transitions = srcState.transitions.Where(t2 => t2.destinationState.name == dest)
             .ToArray();

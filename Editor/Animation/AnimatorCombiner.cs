@@ -130,18 +130,18 @@ namespace nadena.dev.modular_avatar.animation
         {
             foreach (var layer in _layers)
             {
-                foreach (var asset in layer.stateMachine.ReferencedAssets(includeScene: false))
+                foreach (var asm in layer.stateMachine.ReachableStateMachines())
                 {
-                    if (asset is AnimatorState s)
+                    foreach (ChildAnimatorState s in asm.states)
                     {
-                        s.transitions = s.transitions.SelectMany(FixupTransition).ToArray();
+                        s.state.transitions = s.state.transitions.SelectMany(FixupTransition).ToArray();
                     }
+                    
+                    asm.entryTransitions = asm.entryTransitions
+                        .SelectMany(FixupTransition).ToArray();
+                    asm.anyStateTransitions = asm.anyStateTransitions
+                        .SelectMany(FixupTransition).ToArray();
                 }
-
-                layer.stateMachine.entryTransitions = layer.stateMachine.entryTransitions
-                    .SelectMany(FixupTransition).ToArray();
-                layer.stateMachine.anyStateTransitions = layer.stateMachine.anyStateTransitions
-                    .SelectMany(FixupTransition).ToArray();
             }
         }
 
