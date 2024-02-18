@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using Unity.Burst;
@@ -9,6 +11,8 @@ using UnityEngine.Jobs;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
@@ -203,6 +207,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             
             LastOp.Complete();
 
+            _baseBonesAccessor.SetTransforms(_baseBones);
+            _mergeBonesAccessor.SetTransforms(_mergeBones);
             
             _fault.Value = 0;
             _wroteAny.Value = 0;
@@ -293,7 +299,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         public void Dispose()
         {
             if (_disposed) return;
-
+            
             LastOp.Complete();
             _boneStaticData.Dispose();
             _mergeSavedState.Dispose();
@@ -301,8 +307,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _mergeState.Dispose();
             _fault.Dispose();
             _wroteAny.Dispose();
-            _baseBonesAccessor.Dispose();
-            _mergeBonesAccessor.Dispose();
+            // work around crashes caused by destroying TransformAccessArray from within Undo processing
+            DeferDestroy.DeferDestroyObj(_baseBonesAccessor);
+            DeferDestroy.DeferDestroyObj(_mergeBonesAccessor);
             _disposed = true;
 
 #if UNITY_EDITOR

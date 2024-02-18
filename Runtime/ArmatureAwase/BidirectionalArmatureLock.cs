@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using Unity.Burst;
@@ -6,6 +8,8 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Jobs;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
@@ -131,8 +135,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             LastOp.Complete();
 
-            _baseBoneAccess.Dispose();
-            _mergeBoneAccess.Dispose();
+            // work around crashes caused by destroying TransformAccessArray from within Undo processing
+            DeferDestroy.DeferDestroyObj(_baseBoneAccess);
+            DeferDestroy.DeferDestroyObj(_mergeBoneAccess);
             BaseBones.Dispose();
             MergeBones.Dispose();
             SavedMerge.Dispose();
