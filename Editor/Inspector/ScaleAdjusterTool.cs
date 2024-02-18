@@ -127,10 +127,30 @@ namespace nadena.dev.modular_avatar.core.editor
         private static Vector3 _gizmoScale;
         private static Quaternion _handleRotation;
 
+        private static bool _toolHidden;
+
+        private static bool ToolHidden
+        {
+            get => _toolHidden;
+            set
+            {
+                if (_toolHidden && !value)
+                {
+                    Tools.hidden = false;
+                } else if (value)
+                {
+                    Tools.hidden = true;
+                }
+
+                _toolHidden = value;
+            }
+        }
+        
+        
         private static void OnSelectionChanged()
         {
             _selection.Clear();
-            Tools.hidden = false;
+            ToolHidden = false;
             _active = null;
         }
 
@@ -140,7 +160,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (_active == true)
                 {
-                    Tools.hidden = false;
+                    ToolHidden = false;
                     _active = null;
                 }
 
@@ -149,10 +169,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (ShouldEnable())
             {
-                Tools.hidden = true;
+                ToolHidden = true;
             }
             else
             {
+                ToolHidden = false;
+
                 return;
             }
 
