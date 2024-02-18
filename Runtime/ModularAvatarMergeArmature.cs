@@ -74,7 +74,6 @@ namespace nadena.dev.modular_avatar.core
             base.OnValidate();
             MigrateLockConfig();
             RuntimeUtil.delayCall(SetLockMode);
-            Debug.Log("$$$ OnValidate");
         }
 
         internal void ResetArmatureLock()
