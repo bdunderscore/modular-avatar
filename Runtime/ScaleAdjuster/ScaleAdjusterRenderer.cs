@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     internal class ScaleAdjusterRenderer : MonoBehaviour, IEditorOnly
     {
-        private static event Action OnPreInspector;
+        private static event Action OnClearAllOverrides;
         private static int RecreateHierarchyIndexCount = 0;
 
         #if UNITY_EDITOR
@@ -72,9 +72,10 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnDestroy()
         {
-            ClearOverrides();
+            ClearAllOverrides();
         }
 
+        #if UNITY_EDITOR
         private void Update()
         {
             if (myRenderer == null)
@@ -124,7 +125,7 @@ namespace nadena.dev.modular_avatar.core
                 myRenderer.SetBlendShapeWeight(i, parentRenderer.GetBlendShapeWeight(i));
             }
 
-            ClearOverrides();
+            ClearAllOverrides();
 
             myRenderer.enabled = parentRenderer.enabled;
         }
@@ -136,7 +137,7 @@ namespace nadena.dev.modular_avatar.core
                 return;
             }
 
-            ClearOverrides();
+            ClearAllOverrides();
 
             if (!parentRenderer.enabled || !parentRenderer.gameObject.activeInHierarchy)
             {
@@ -145,23 +146,25 @@ namespace nadena.dev.modular_avatar.core
 
             parentRenderer.enabled = false;
             wasActive = true;
-            OnPreInspector += ClearOverrides;
+            var objName = parentRenderer.gameObject.name;
+            OnClearAllOverrides += ClearLocalOverride;
+            // Sometimes - e.g. around domain reloads or undo operations - the parent renderer's enabled field might get
+            // re-disabled; re-enabler it in delayCall in this case.
+            UnityEditor.EditorApplication.delayCall += ClearLocalOverride;
+        }
+        #endif
+
+        private void ClearLocalOverride()
+        {
+            if (parentRenderer != null)
+            {
+                parentRenderer.enabled = true;
+            }
         }
 
         private void OnPostRender()
         {
-            ClearOverrides();
-        }
-
-        private void ClearOverrides()
-        {
-            if (this == null) return;
-
-            if (wasActive && parentRenderer != null)
-            {
-                parentRenderer.enabled = true;
-                wasActive = false;
-            }
+            ClearAllOverrides();
         }
 
         public void ClearBoneCache()
@@ -171,8 +174,8 @@ namespace nadena.dev.modular_avatar.core
 
         internal static void ClearAllOverrides()
         {
-            OnPreInspector?.Invoke();
-            OnPreInspector = null;
+            OnClearAllOverrides?.Invoke();
+            OnClearAllOverrides = null;
         }
     }
 }
