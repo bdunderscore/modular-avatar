@@ -1,7 +1,12 @@
-﻿#if UNITY_EDITOR
+﻿
+#region
+
+using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -11,9 +16,16 @@ namespace nadena.dev.modular_avatar.core
 #if UNITY_EDITOR
         void OnValidate()
         {
+            base.OnDestroy();
             EditorApplication.delayCall += DeferredValidate;
         }
 
+        void OnDestroy()
+        {
+            ScaleAdjusterRenderer.InvalidateAll();
+            base.OnDestroy();
+        }
+        
         private void DeferredValidate()
         {
             if (this == null) return;
@@ -23,8 +35,16 @@ namespace nadena.dev.modular_avatar.core
                 gameObject.AddComponent<ModularAvatarPBBlocker>();
             }
 
+            var avatar = ndmf.runtime.RuntimeUtil.FindAvatarInParents(transform);
+            ClearOverrides(avatar);
+
             gameObject.hideFlags = HideFlags.HideInHierarchy;
 
+#if MODULAR_AVATAR_DEBUG_HIDDEN
+            gameObject.hideFlags = HideFlags.None;
+#endif
+            hideFlags = HideFlags.None;
+            
             var parentObject = transform.parent;
             var parentScaleAdjuster =
                 parentObject != null ? parentObject.GetComponent<ModularAvatarScaleAdjuster>() : null;
@@ -60,8 +80,19 @@ namespace nadena.dev.modular_avatar.core
                 while (root.parent != null) root = root.parent;
             }
 
+            ClearOverrides(root);
+
+            DestroyImmediate(gameObject);
+        }
+
+        private void ClearOverrides(Transform root)
+        {
+            // This clears bone overrides that date back to the 1.9.0-rc.2 implementation, to ease rc.2 -> rc.3
+            // migrations. It'll be removed in 1.10.
             foreach (var smr in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
+                if (smr.GetComponent<ScaleAdjusterRenderer>()) continue;
+
                 var bones = smr.bones;
                 bool changed = false;
 
@@ -79,8 +110,6 @@ namespace nadena.dev.modular_avatar.core
                     smr.bones = bones;
                 }
             }
-
-            DestroyImmediate(gameObject);
         }
 #endif
     }
