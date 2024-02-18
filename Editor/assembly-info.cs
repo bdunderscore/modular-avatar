@@ -1,4 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿#region
+
+using System.Runtime.CompilerServices;
+
+#endregion
 
 [assembly: InternalsVisibleTo("net.fushizen.xdress")]
 [assembly: InternalsVisibleTo("net.fushizen.xdress.editor")]
+[assembly: InternalsVisibleTo("nadena.dev.modular-avatar.harmony-patches")]

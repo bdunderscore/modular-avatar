@@ -1,0 +1,28 @@
+{
+    "name": "nadena.dev.modular-avatar.harmony-patches",
+    "rootNamespace": "",
+    "references": [
+        "nadena.dev.modular-avatar.core",
+        "nadena.dev.modular-avatar.core.editor",
+        "VRC.SDKBase.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "VRCSDK_HAS_HARMONY"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.base",
+            "expression": "(3.4.999,)",
+            "define": "VRCSDK_HAS_HARMONY"
+        }
+    ],
+    "noEngineReferences": false
+}
