@@ -33,12 +33,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 UnityEngine.Object.DestroyImmediate(sar.gameObject);
             }
             
+            if (boneMappings.Count == 0)
+            {
+                return;
+            }
+
             foreach (var smr in context.AvatarRootObject.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 var bones = smr.bones;
                 for (int i = 0; i < bones.Length; i++)
                 {
-                    if (boneMappings.TryGetValue(bones[i], out var newBone))
+                    if (bones[i] != null && boneMappings.TryGetValue(bones[i], out var newBone))
                     {
                         bones[i] = newBone;
                     }
