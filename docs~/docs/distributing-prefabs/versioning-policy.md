@@ -16,7 +16,8 @@ In general, using the latest version of modular avatar under the same major vers
 
 All `internal` class names and method names are not considered stable APIs and are subject to change at any time,
 including patch releases (1.0.0 -> 1.0.1). In particular, the "qualified name" of NDMF passes is also not considered
-API stable, nor is the order in which Modular Avatar passes will run.
+API stable, nor is the order in which Modular Avatar passes will run. The "Qualified Name" of the plugin itself, 
+`nadena.dev.modular-avatar`, is however considered stable and will not change.
 
 If you have a use case for depending on specific Modular Avatar passes, please file a feature request with details of
 your use case on the github, and I'll consider adding a stable API for adding those pass dependencies.
