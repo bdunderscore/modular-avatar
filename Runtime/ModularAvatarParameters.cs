@@ -5,12 +5,6 @@ using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core
 {
-    public struct ParameterInitialValue
-    {
-        public bool HasExplicitDefaultSet;
-        public float Value;
-    }
-    
     [Serializable]
     public struct ParameterConfig
     {
