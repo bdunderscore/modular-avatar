@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class DefaultValues
     {
-        public ImmutableDictionary<string, float> InitialValue;
+        public ImmutableDictionary<string, float> InitialValueOverrides;
     }
     
     internal class RenameParametersHook
@@ -63,6 +63,10 @@ namespace nadena.dev.modular_avatar.core.editor
             public void MergeSibling(ParameterInfo info)
             {
                 MergeCommon(info);
+
+                ResolvedParameter.m_overrideAnimatorDefaults =
+                    (ResolvedParameter.m_overrideAnimatorDefaults && ResolvedParameter.HasDefaultValue) ||
+                    (info.ResolvedParameter.m_overrideAnimatorDefaults && info.ResolvedParameter.HasDefaultValue);
                 
                 if (ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
                 {
@@ -73,6 +77,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         ConflictingValues = ConflictingValues.Add(info.ResolvedParameter.defaultValue);
                     }
                 }
+                
+                    
             }
 
             public void MergeChild(ParameterInfo info)
@@ -83,6 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
+                    ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
 
                 ResolvedParameter.saved = info.ResolvedParameter.saved;
@@ -123,9 +130,11 @@ namespace nadena.dev.modular_avatar.core.editor
             var syncParams = WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
 
             SetExpressionParameters(avatar, syncParams);
-            
-            _context.PluginBuildContext.GetState<DefaultValues>().InitialValue
-                = syncParams.Where(p => p.Value.ResolvedParameter.HasDefaultValue)
+
+            _context.PluginBuildContext.GetState<DefaultValues>().InitialValueOverrides
+                = syncParams.Where(p =>
+                        p.Value.ResolvedParameter.HasDefaultValue &&
+                        p.Value.ResolvedParameter.OverrideAnimatorDefaults)
                     .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
         }
 
