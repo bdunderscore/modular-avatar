@@ -51,6 +51,7 @@
   "merge_parameter.ui.unregistered_foldout": "未登録パラメーター",
   "merge_parameter.ui.add_button": "追加",
   "merge_parameter.ui.details": "パラメーターの詳細設定",
+  "merge_parameter.ui.overrideAnimatorDefaults": "アニメーターの初期値を設定",
   
   "merge_armature.merge_target": "統合先",
   "merge_armature.merge_target.tooltip": "このオブジェクトを統合先のアーマチュアに統合します",

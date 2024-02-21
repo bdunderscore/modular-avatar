@@ -52,6 +52,7 @@
   "merge_parameter.ui.unregistered_foldout": "Unregistered Parameters",
   "merge_parameter.ui.add_button": "Add",
   "merge_parameter.ui.details": "Parameter Configuration",
+  "merge_parameter.ui.overrideAnimatorDefaults": "Override Animator Defaults",
 
   "merge_armature.merge_target": "Merge Target",
   "merge_armature.merge_target.tooltip": "The armature (or subtree) to merge this object into",
