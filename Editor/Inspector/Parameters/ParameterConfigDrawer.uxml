@@ -15,7 +15,9 @@
         <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.name" name="f-name" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />
         <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.prefix" name="f-prefix" class="ndmf-tr ParameterConfig__isPrefix_trueOnly" />
         <engine:PropertyField binding-path="remapTo" label="merge_parameter.ui.remapTo" name="remapTo" class="ndmf-tr" />
-        <ui:TextField label="merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic" name="remapToPlaceholder" enabled="false" class="ndmf-tr unity-base-field__aligned" />
+        <ui:TextField label="merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic"
+                      name="remapToPlaceholder" enabled="false"
+                      class="ndmf-tr unity-base-field__aligned disabledPlaceholder"/>
 
         <!-- this field is not visible until it's moved into the PropertyField below -->
         <ma:DefaultValueField 
@@ -31,9 +33,15 @@
     
         <engine:PropertyField binding-path="internalParameter" label="merge_parameter.ui.internalParameter" name="internalParameter" class="ndmf-tr" />
         <engine:PropertyField binding-path="isPrefix" label="merge_parameter.ui.isPrefix" name="isPrefix" class="ndmf-tr" />
-        <engine:PropertyField binding-path="syncType" label="merge_parameter.ui.syncType" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />
-        <engine:PropertyField binding-path="localOnly" label="merge_parameter.ui.localOnly" class="ParameterConfig__isPrefix_falseOnly ndmf-tr" />
+
+        <engine:PropertyField binding-path="syncType" label="merge_parameter.ui.syncType"
+                              class="ParameterConfig__isPrefix_falseOnly ndmf-tr" name="syncType"/>
+        <engine:PropertyField binding-path="m_overrideAnimatorDefaults" name="overrideDefaults"
+                              label="merge_parameter.ui.overrideAnimatorDefaults"
+                              class="ParameterConfig__isPrefix_falseOnly ndmf-tr"/>
+        <!-- <ui:Toggle label="merge_parameter.ui.overrideAnimatorDefaults"  value="true" enabled="false" name="overridePlaceholder" class="ParameterConfig__isPrefix_falseOnly ParameterConfig__animatorOnly_trueOnly ndmf-tr" /> -->
         
+        <engine:PropertyField binding-path="localOnly" label="merge_parameter.ui.localOnly" class="ParameterConfig__isPrefix_falseOnly ParameterConfig__animatorOnly_falseOnly ndmf-tr" />
     </ui:Foldout>
 
 </ui:UXML>

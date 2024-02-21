@@ -1,19 +1,19 @@
 ﻿VisualElement {}
 
-.ParameterConfig__isPrefix_falseOnly {
-    display: flex;
-}
-
-.ParameterConfig__isPrefix_trueOnly {
+.ParameterConfig__isPrefix_true .ParameterConfig__isPrefix_falseOnly {
     display: none;
 }
 
-.ParameterConfig__isPrefix .ParameterConfig__isPrefix_falseOnly {
+.ParameterConfig__isPrefix_false .ParameterConfig__isPrefix_trueOnly {
     display: none;
 }
 
-.ParameterConfig__isPrefix .ParameterConfig__isPrefix_trueOnly  {
-    display: flex;
+.ParameterConfig__animatorOnly_true .ParameterConfig__animatorOnly_falseOnly {
+    display: none;
+}
+
+.ParameterConfig__animatorOnly_false .ParameterConfig__animatorOnly_trueOnly {
+    display: none;
 }
 
 #defaultValueGroup {

@@ -1,8 +1,13 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using UnityEditor.Animations;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -10,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            var values = context.GetState<DefaultValues>()?.InitialValue
+            var values = context.GetState<DefaultValues>()?.InitialValueOverrides
                          ?? ImmutableDictionary<string, float>.Empty;
 
             foreach (var layer in context.AvatarDescriptor.baseAnimationLayers
@@ -19,7 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (layer.isDefault || layer.animatorController == null) continue;
                 
                 // We should have converted anything that's not an AnimationController by now
-                var controller = layer.animatorController as UnityEditor.Animations.AnimatorController;
+                var controller = layer.animatorController as AnimatorController;
                 if (controller == null || !context.IsTemporaryAsset(controller))
                 {
                     throw new Exception("Leaked unexpected controller: " + layer.animatorController + " (type " + layer.animatorController?.GetType() + ")");

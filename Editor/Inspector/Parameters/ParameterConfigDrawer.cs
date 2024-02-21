@@ -47,22 +47,48 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 var value = evt.changedProperty.boolValue;
                 if (value)
                 {
-                    root.AddToClassList("ParameterConfig__isPrefix");
+                    root.AddToClassList("ParameterConfig__isPrefix_true");
+                    root.RemoveFromClassList("ParameterConfig__isPrefix_false");
                 }
                 else
                 {
-                    root.RemoveFromClassList("ParameterConfig__isPrefix");
+                    root.AddToClassList("ParameterConfig__isPrefix_false");
+                    root.RemoveFromClassList("ParameterConfig__isPrefix_true");
                 }
 
                 isPrefix = value;
                 evaluateMiniDisplay();
             });
-   
+            
+            var syncTypeProp = root.Q<PropertyField>("syncType");
+            // TODO: This callback is not actually invoked on initial bind...
+            syncTypeProp.RegisterValueChangeCallback(evt =>
+            {
+                var value = (ParameterSyncType) evt.changedProperty.enumValueIndex;
+                if (value == ParameterSyncType.NotSynced)
+                {
+                    root.AddToClassList("ParameterConfig__animatorOnly_true");
+                    root.RemoveFromClassList("ParameterConfig__animatorOnly_false");
+                }
+                else
+                {
+                    root.AddToClassList("ParameterConfig__animatorOnly_false");
+
+                    root.RemoveFromClassList("ParameterConfig__animatorOnly_true");
+                }
+            });
+
+            /*
+            var overridePlaceholder = root.Q<Toggle>("overridePlaceholder");
+            overridePlaceholder.labelElement.AddToClassList("ndmf-tr");
+            overridePlaceholder.SetEnabled(false);
+            */
+            
             var remapTo = root.Q<PropertyField>("remapTo");
             var remapToPlaceholder = root.Q<TextField>("remapToPlaceholder");
-            remapToPlaceholder.SetEnabled(false);
-
             remapToPlaceholder.labelElement.AddToClassList("ndmf-tr");
+            remapToPlaceholder.SetEnabled(false);
+            
             Localization.UI.Localize(remapToPlaceholder.labelElement);
             
             root.Q<PropertyField>("internalParameter").RegisterValueChangeCallback(evt =>

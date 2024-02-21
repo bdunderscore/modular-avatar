@@ -30,6 +30,10 @@ saved. However, there is an exception; see the section on "Nesting" for more inf
 setting will be enabled if either MA Parameters or the original Expression Parameters asset enables saving for the
 parameter.
 
+Normally, the default values you set will only affect the Expressions Parameters settings for your avatar. However,
+you can override the default values for the _animator_ itself by either setting the "Parameter Type" to "Animator Only",
+or by enabling the "Override Animator Defaults" checkbox (note that this is ignored for animator only parameters).
+
 ### Renaming parameters
 
 By setting the "Change name to" field you can _rename_ a parameter. That is, if you have a parameter "foo", which has
