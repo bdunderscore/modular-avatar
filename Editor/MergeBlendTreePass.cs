@@ -1,14 +1,17 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+#region
+
 using System;
 using System.Collections.Generic;
-using BestHTTP.SecureProtocol.Org.BouncyCastle.Utilities;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -19,6 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private AnimatorController _controller;
         private BlendTree _rootBlendTree;
+        private GameObject _mergeHost;
         private HashSet<string> _parameterNames;
 
         protected override void Execute(ndmf.BuildContext context)
@@ -34,27 +38,33 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             List<AnimatorControllerParameter> parameters = new List<AnimatorControllerParameter>(_parameterNames.Count + 1);
-            if (_controller != null)
+            if (_mergeHost != null)
             {
                 _parameterNames.Remove(ALWAYS_ONE);
 
                 parameters.Add(new AnimatorControllerParameter()
                 {
-                    defaultFloat = 1,
                     name = ALWAYS_ONE,
-                    type = AnimatorControllerParameterType.Float
+                    type = AnimatorControllerParameterType.Float,
+                    defaultFloat = 1
                 });
-
+                
                 foreach (var name in _parameterNames)
                 {
                     parameters.Add(new AnimatorControllerParameter()
                     {
                         name = name,
-                        type = AnimatorControllerParameterType.Float
+                        type = AnimatorControllerParameterType.Float,
+                        defaultFloat = 0
                     });
                 }
 
-                _controller.parameters = parameters.ToArray();
+                var paramsAnimator = new AnimatorController();
+                paramsAnimator.parameters = parameters.ToArray();
+
+                var paramsComponent = _mergeHost.AddComponent<ModularAvatarMergeAnimator>();
+                paramsComponent.animator = paramsAnimator;
+                paramsComponent.layerPriority = Int32.MaxValue;
             }
         }
 
@@ -166,6 +176,8 @@ namespace nadena.dev.modular_avatar.core.editor
             
             mergeObject.transform.SetParent(context.AvatarRootTransform, false);
             mergeObject.transform.SetSiblingIndex(0);
+
+            _mergeHost = mergeObject;
 
             return _rootBlendTree;
         }
