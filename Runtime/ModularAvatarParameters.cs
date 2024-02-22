@@ -36,7 +36,7 @@ namespace nadena.dev.modular_avatar.core
 
         internal bool OverrideAnimatorDefaults
         {
-            get => m_overrideAnimatorDefaults || syncType == ParameterSyncType.NotSynced && hasExplicitDefaultValue;
+            get => m_overrideAnimatorDefaults || syncType == ParameterSyncType.NotSynced && HasDefaultValue;
             set => m_overrideAnimatorDefaults = value;
         }
 
