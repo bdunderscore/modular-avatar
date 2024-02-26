@@ -115,11 +115,19 @@ namespace nadena.dev.modular_avatar.core.editor
             return result;
         }
 
-        public AnimatorController ConvertAnimatorController(AnimatorOverrideController overrideController)
+        public AnimatorController ConvertAnimatorController(RuntimeAnimatorController anyController)
         {
-            var merger = new AnimatorCombiner(PluginBuildContext, overrideController.name + " (clone)");
-            merger.AddOverrideController("", overrideController, null);
-            return merger.Finish();
+            switch (anyController)
+            {
+                case AnimatorController ac:
+                    return ac;
+                case AnimatorOverrideController aoc:
+                    var merger = new AnimatorCombiner(PluginBuildContext, anyController.name + " (clone)");
+                    merger.AddOverrideController("", aoc, null);
+                    return merger.Finish();
+                default:
+                    throw new Exception("Unknown RuntimeAnimatorContoller type " + anyController.GetType());
+            }
         }
 
 #if MA_VRCSDK3_AVATARS
