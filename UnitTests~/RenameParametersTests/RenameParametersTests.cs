@@ -6,12 +6,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using VRC.SDK3.Dynamics.Contact.Components;
 using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
 namespace modular_avatar_tests.RenameParametersTests
@@ -158,6 +160,7 @@ namespace modular_avatar_tests.RenameParametersTests
             }
         }
 
+        [Test]
         public void SavedParameterResolution()
         {
             var prefab = CreatePrefab("SavedParamResolution.prefab");
@@ -174,6 +177,77 @@ namespace modular_avatar_tests.RenameParametersTests
             Assert.IsTrue(expParams["d"].saved);
             Assert.IsFalse(expParams["e"].saved);
             Assert.IsTrue(expParams["f"].saved);
+        }
+
+        [Test]
+        public void TestMultipleRemappings()
+        {
+            var av = CreateRoot("avatar");
+
+            var parameters = av.AddComponent<ModularAvatarParameters>();
+
+            parameters.parameters = new List<ParameterConfig>()
+            {
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "a",
+                    remapTo = "z",
+                    syncType = ParameterSyncType.Float
+                },
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "b",
+                    remapTo = "z",
+                    syncType = ParameterSyncType.Float
+                },
+            };
+
+            var c1 = av.AddComponent<VRCContactReceiver>();
+            c1.parameter = "a";
+            
+            var c2 = av.AddComponent<VRCContactReceiver>();
+            c2.parameter = "a";
+
+            var context = CreateContext(av);
+            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            
+            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            
+            Assert.IsEmpty(errors);
+            
+            Assert.AreEqual("z", c1.parameter);
+            Assert.AreEqual("z", c2.parameter);
+        }
+        
+        [Test]
+        public void TestMultipleRemappings_WithConflict()
+        {
+            var av = CreateRoot("avatar");
+
+            var parameters = av.AddComponent<ModularAvatarParameters>();
+
+            parameters.parameters = new List<ParameterConfig>()
+            {
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "a",
+                    remapTo = "z",
+                    syncType = ParameterSyncType.Float
+                },
+                new ParameterConfig()
+                {
+                    nameOrPrefix = "b",
+                    remapTo = "z",
+                    syncType = ParameterSyncType.Int
+                },
+            };
+
+            var context = CreateContext(av);
+            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            
+            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            
+            Assert.IsNotEmpty(errors);
         }
     }
 }
