@@ -13,7 +13,7 @@ using UnityEngine.Jobs;
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
-    internal class BidirectionalArmatureLock : IDisposable, IArmatureLock
+    internal class BidirectionalArmatureLock : ArmatureLock, IDisposable
     {
         private bool _disposed;
         private TransformAccessArray _baseBoneAccess, _mergeBoneAccess;
@@ -129,7 +129,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_disposed) return;
 
@@ -148,12 +148,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _disposed = true;
         }
 
-        public void Prepare()
+        public override void Prepare()
         {
             if (_disposed) return;
-            
+
             LastOp.Complete();
-            
+
             WroteAny.Value = 0;
 
             var readBase = new ReadBone()
@@ -175,7 +175,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private bool CheckConsistency()
         {
             if (_disposed) return false;
-            
+
             // Check parents haven't changed
             for (int i = 0; i < _baseBones.Length; i++)
             {
@@ -194,16 +194,16 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return true;
         }
 
-        public bool IsStable()
+        public override bool IsStable()
         {
             Prepare();
             if (!CheckConsistency()) return false;
             LastPrepare.Complete();
-            
+
             return WroteAny.Value == 0;
         }
 
-        public LockResult Execute()
+        public override LockResult Execute()
         {
             if (!CheckConsistency()) return LockResult.Failed;
 
