@@ -82,6 +82,9 @@ namespace nadena.dev.modular_avatar.core
 
             ClearOverrides(root);
 
+            // Avoid logspam on Unity 2019
+            if (PrefabUtility.IsPartOfPrefabInstance(gameObject)) return;
+
             DestroyImmediate(gameObject);
         }
 
