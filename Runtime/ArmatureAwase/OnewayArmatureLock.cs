@@ -16,7 +16,7 @@ using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
-    internal class OnewayArmatureLock : IDisposable, IArmatureLock
+    internal class OnewayArmatureLock : ArmatureLock, IDisposable
     {
         struct BoneStaticData
         {
@@ -189,9 +189,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _baseBonesAccessor = new TransformAccessArray(_baseBones);
             _mergeBonesAccessor = new TransformAccessArray(_mergeBones);
 
-#if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload += Dispose;
-#endif
+            EnableAssemblyReloadCallback = true;
         }
 
         private bool SmallScale(Vector3 scale)
@@ -201,15 +199,15 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return (scale.x < epsilon || scale.y < epsilon || scale.z < epsilon);
         }
 
-        public void Prepare()
+        public override void Prepare()
         {
             if (_disposed) return;
-            
+
             LastOp.Complete();
 
             _baseBonesAccessor.SetTransforms(_baseBones);
             _mergeBonesAccessor.SetTransforms(_mergeBones);
-            
+
             _fault.Value = 0;
             _wroteAny.Value = 0;
 
@@ -255,7 +253,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return true;
         }
 
-        public bool IsStable()
+        public override bool IsStable()
         {
             Prepare();
             if (!CheckConsistency()) return false;
@@ -269,10 +267,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// Executes the armature lock job.
         /// </summary>
         /// <returns>True if successful, false if cached data was invalidated and needs recreating</returns>
-        public LockResult Execute()
+        public override LockResult Execute()
         {
             if (!CheckConsistency()) return LockResult.Failed;
-            
+
             var commit = new WriteBone()
             {
                 _fault = _fault,
@@ -296,10 +294,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_disposed) return;
-            
+
             LastOp.Complete();
             _boneStaticData.Dispose();
             _mergeSavedState.Dispose();
@@ -312,9 +310,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             DeferDestroy.DeferDestroyObj(_mergeBonesAccessor);
             _disposed = true;
 
-#if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload -= Dispose;
-#endif
+            EnableAssemblyReloadCallback = false;
         }
     }
 }

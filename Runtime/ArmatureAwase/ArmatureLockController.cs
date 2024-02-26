@@ -18,21 +18,20 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         internal static ArmatureLockConfig instance { get; } = new ArmatureLockConfig();
 #endif
 
-        [SerializeField]
-        private bool _globalEnable = true;
-        
+        [SerializeField] private bool _globalEnable = true;
+
         internal bool GlobalEnable
         {
             get => _globalEnable;
             set
             {
                 if (value == _globalEnable) return;
-                
-                #if UNITY_EDITOR
+
+#if UNITY_EDITOR
                 Undo.RecordObject(this, "Toggle Edit Mode Bone Sync");
                 Menu.SetChecked(UnityMenuItems.TopMenu_EditModeBoneSync, value);
-                #endif
-                
+#endif
+
                 _globalEnable = value;
 
                 if (!value)
@@ -47,11 +46,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         [InitializeOnLoadMethod]
         static void Init()
         {
-            EditorApplication.delayCall += () => {
+            EditorApplication.delayCall += () =>
+            {
                 Menu.SetChecked(UnityMenuItems.TopMenu_EditModeBoneSync, instance._globalEnable);
             };
         }
-        
+
         [MenuItem(UnityMenuItems.TopMenu_EditModeBoneSync, false, UnityMenuItems.TopMenu_EditModeBoneSyncOrder)]
         static void ToggleBoneSync()
         {
@@ -74,7 +74,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private readonly ModularAvatarMergeArmature _mama;
         private readonly GetTransformsDelegate _getTransforms;
-        private IArmatureLock _lock;
+        private ArmatureLock _lock;
 
         private bool GlobalEnable => ArmatureLockConfig.instance.GlobalEnable;
         private bool _updateActive;
@@ -134,7 +134,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         public ArmatureLockController(ModularAvatarMergeArmature mama, GetTransformsDelegate getTransforms)
         {
 #if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload += Dispose;
+            AssemblyReloadEvents.beforeAssemblyReload += OnDomainUnload;
 #endif
 
             this._mama = mama;
@@ -165,7 +165,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             UpdateLoopPrepare();
         }
-        
+
         private void UpdateLoopFinish()
         {
             DoFinish();
@@ -178,7 +178,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         }
 
         private bool IsPrepared = false;
-        
+
         private void UpdateLoopPrepare()
         {
             if (_mama == null || !_mama.gameObject.scene.IsValid())
@@ -186,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 UpdateActive = false;
                 return;
             }
-            
+
             if (!Enabled)
             {
                 UpdateActive = false;
@@ -201,7 +201,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _lock = null;
                 return;
             }
-            
+
             if (_curMode == _mode)
             {
                 _lock?.Prepare();
@@ -212,7 +212,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private bool DoFinish()
         {
             LockResult result;
-            
+
             if (!GlobalEnable)
             {
                 _lock?.Dispose();
@@ -222,9 +222,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             var wasPrepared = IsPrepared;
             IsPrepared = false;
-            
+
             if (!Enabled) return true;
-            
+
             if (_curMode == _mode)
             {
                 if (!wasPrepared) _lock?.Prepare();
@@ -287,12 +287,19 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _lock?.Dispose();
             _lock = null;
 
-#if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload -= Dispose;
-#endif
+            #if UNITY_EDITOR
+            AssemblyReloadEvents.beforeAssemblyReload -= OnDomainUnload;
+            #endif
 
             _controllers.Remove(_mama);
             UpdateActive = false;
+        }
+
+        private void OnDomainUnload()
+        {
+            // Unity 2019 does not call deferred callbacks before domain unload completes,
+            // so we need to make sure to immediately destroy all our TransformAccessArrays.
+            DeferDestroy.DestroyImmediate(this);
         }
     }
 }
