@@ -1,6 +1,5 @@
 {
     "name": "nadena.dev.modular-avatar.harmony-patches",
-    "rootNamespace": "",
     "references": [
         "nadena.dev.modular-avatar.core",
         "nadena.dev.modular-avatar.core.editor",
@@ -20,7 +19,7 @@
     "versionDefines": [
         {
             "name": "com.vrchat.base",
-            "expression": "(3.4.999,)",
+            "expression": "(3.3.99999,)",
             "define": "VRCSDK_HAS_HARMONY"
         }
     ],
