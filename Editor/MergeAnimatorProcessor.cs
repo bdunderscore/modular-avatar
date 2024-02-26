@@ -131,6 +131,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MergeSingle(BuildContext context, AnimatorCombiner session, ModularAvatarMergeAnimator merge)
         {
+            if (merge.animator == null)
+            {
+                return;
+            }
+            
             string basePath;
             if (merge.pathMode == MergeAnimatorPathMode.Relative)
             {
@@ -146,7 +151,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
-            session.AddController(basePath, (AnimatorController)merge.animator, writeDefaults);
+            var controller = _context.ConvertAnimatorController(merge.animator);
+            session.AddController(basePath, controller, writeDefaults);
 
             if (merge.deleteAttachedAnimator)
             {
