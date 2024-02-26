@@ -18,13 +18,15 @@ namespace nadena.dev.modular_avatar.core
         private static event Action OnClearAllOverrides;
         private static int RecreateHierarchyIndexCount = 0;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
         static void Setup()
         {
             UnityEditor.EditorApplication.hierarchyChanged += InvalidateAll;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += ClearAllOverrides;
+            UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += (scene, path) => ClearAllOverrides();
         }
-        #endif
+#endif
 
         internal static void InvalidateAll()
         {
@@ -40,7 +42,7 @@ namespace nadena.dev.modular_avatar.core
 
         internal Dictionary<Transform, Transform> BoneMappings = new Dictionary<Transform, Transform>();
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this)) return;
@@ -61,8 +63,8 @@ namespace nadena.dev.modular_avatar.core
                 }
             };
         }
-        #endif
-        
+#endif
+
         private Transform MapBone(Transform bone)
         {
             if (bone == null) return null;
@@ -75,7 +77,7 @@ namespace nadena.dev.modular_avatar.core
             ClearAllOverrides();
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         private void Update()
         {
             if (myRenderer == null)
@@ -152,7 +154,7 @@ namespace nadena.dev.modular_avatar.core
             // re-disabled; re-enabler it in delayCall in this case.
             UnityEditor.EditorApplication.delayCall += ClearLocalOverride;
         }
-        #endif
+#endif
 
         private void ClearLocalOverride()
         {

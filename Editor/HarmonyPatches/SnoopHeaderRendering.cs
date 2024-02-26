@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
     /// </summary>
     internal class SnoopHeaderRendering
     {
-        internal static void Patch(Harmony harmony)
+        internal static void Patch1(Harmony harmony)
         {
             var t_orig = AccessTools.TypeByName("UnityEditor.UIElements.EditorElement");
             var m_orig = AccessTools.Method(t_orig, "HeaderOnGUI");
@@ -24,9 +24,14 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             var m_prefix = AccessTools.Method(typeof(SnoopHeaderRendering), "Prefix");
 
             harmony.Patch(original: m_orig, prefix: new HarmonyMethod(m_prefix));
+        }
 
+        internal static void Patch2(Harmony harmony)
+        {
             var t_GUIUtility = typeof(GUIUtility);
             var m_ProcessEvent = AccessTools.Method(t_GUIUtility, "ProcessEvent");
+
+            var m_prefix = AccessTools.Method(typeof(SnoopHeaderRendering), "Prefix");
 
             harmony.Patch(original: m_ProcessEvent, prefix: new HarmonyMethod(m_prefix));
         }
