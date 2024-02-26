@@ -160,6 +160,7 @@ namespace modular_avatar_tests.RenameParametersTests
             }
         }
 
+        [Test]
         public void SavedParameterResolution()
         {
             var prefab = CreatePrefab("SavedParamResolution.prefab");
