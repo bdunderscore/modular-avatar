@@ -609,7 +609,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ref ImmutableDictionary<string, string> prefixRemaps
         )
         {
-            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
+            ImmutableDictionary<string, ParameterInfo> parameterInfos = ImmutableDictionary<string, ParameterInfo>.Empty;
             
             foreach (var param in p.parameters)
             {
@@ -656,11 +656,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!param.isPrefix)
                 {
-                    if (rv.ContainsKey(remapTo))
-                    {
-                        BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.duplicate_parameter", param.nameOrPrefix);
-                    }
-
                     ParameterConfig parameterConfig = param;
                     parameterConfig.nameOrPrefix = remapTo;
                     parameterConfig.remapTo = null;
@@ -679,11 +674,18 @@ namespace nadena.dev.modular_avatar.core.editor
                         info.DefaultSources.Add(p);
                     }
                     
-                    rv = rv.SetItem(remapTo, info);
+                    if (parameterInfos.TryGetValue(remapTo, out var existing))
+                    {
+                        existing.MergeSibling(info);
+                    }
+                    else
+                    {
+                        parameterInfos = parameterInfos.SetItem(remapTo, info);
+                    } 
                 }
             }
 
-            return rv;
+            return parameterInfos;
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.
