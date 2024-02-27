@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using UnityEditor;
 using UnityEngine;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using Object = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -104,7 +108,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
             serializedObject.UpdateIfRequiredOrScript();
             var p_attachmentMode = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.attachmentMode));
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(p_attachmentMode, G("boneproxy.attachment"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+                foreach (var target in targets)
+                {
+                    var t = (ModularAvatarBoneProxy)target;
+                    Undo.RecordObject(t.transform, "");
+                    t.Update();
+                }
+            }
 
             foldout = EditorGUILayout.Foldout(foldout, G("boneproxy.foldout.advanced"));
             if (foldout)
@@ -122,7 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             serializedObject.ApplyModifiedProperties();
 
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
         }
 
         private void CheckAttachmentMode(ModularAvatarBoneProxy boneProxy)
