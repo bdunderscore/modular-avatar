@@ -15,24 +15,24 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.0.0",
-    "@docusaurus/preset-classic": "^3.0.0",
-    "@mdx-js/react": "^3.0.0",
-    "clsx": "^2.0.0",
-    "prism-react-renderer": "^2.2.0",
+    "@docusaurus/core": "^3.1.1",
+    "@docusaurus/preset-classic": "^3.1.1",
+    "@mdx-js/react": "^3.0.1",
+    "clsx": "^2.1.0",
+    "prism-react-renderer": "^2.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-loadable": "^5.5.0",
-    "react-medium-image-zoom": "^5.1.8",
+    "react-medium-image-zoom": "^5.1.10",
     "react-modal": "^3.16.1",
-    "react-player": "^2.13.0",
-    "search-insights": "^2.10.0"
+    "react-player": "^2.14.1",
+    "search-insights": "^2.13.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.0.0",
+    "@docusaurus/module-type-aliases": "3.1.1",
     "@tsconfig/docusaurus": "^2.0.2",
-    "@types/react": "^18.2.37",
-    "typescript": "^5.2.2"
+    "@types/react": "^18.2.59",
+    "typescript": "^5.3.3"
   },
   "resolutions": {
     "@algolia/client-search": "4.20.0",
