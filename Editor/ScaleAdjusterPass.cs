@@ -22,6 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     UnityEngine.Object.DestroyImmediate(component);
                     
                     proxyTransform.localScale = parentAdjuster.Scale;
+                    parentAdjuster.scaleProxy = null; // prevent destruction of the ScaleProxy itself
                     UnityEngine.Object.DestroyImmediate(parentAdjuster);
                 
                     boneMappings.Add(proxyTransform.parent, proxyTransform);
