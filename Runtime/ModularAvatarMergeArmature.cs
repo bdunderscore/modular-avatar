@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core
@@ -59,6 +60,27 @@ namespace nadena.dev.modular_avatar.core
 
         private ArmatureLockController _lockController;
 
+        internal Transform MapBone(Transform bone)
+        {
+            var relPath = RuntimeUtil.RelativePath(gameObject, bone.gameObject);
+            
+            if (relPath == null) throw new ArgumentException("Bone is not a child of this component");
+            if (relPath == "") return mergeTarget.Get(this).transform;
+            
+            var segments = relPath.Split('/');
+            
+            var pointer = mergeTarget.Get(this).transform;
+            foreach (var segment in segments)
+            {
+                if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)) return null;
+                var targetObjectName = segment.Substring(prefix.Length,
+                    segment.Length - prefix.Length - suffix.Length);
+                pointer = pointer.Find(targetObjectName);
+            }
+
+            return pointer;
+        }
+        
         internal Transform FindCorrespondingBone(Transform bone, Transform baseParent)
         {
             var childName = bone.gameObject.name;
@@ -162,6 +184,9 @@ namespace nadena.dev.modular_avatar.core
             {
                 foreach (Transform t in merge)
                 {
+                    var subMerge = t.GetComponent<ModularAvatarMergeArmature>();
+                    if (subMerge != null && subMerge != this) continue;
+                    
                     var baseChild = FindCorrespondingBone(t, baseBone);
                     if (baseChild != null)
                     {
@@ -196,6 +221,12 @@ namespace nadena.dev.modular_avatar.core
 
             prefix = mergeName.Substring(0, prefixLength);
             suffix = mergeName.Substring(mergeName.Length - suffixLength);
+
+            if (prefix == "J_Bip_C_")
+            {
+                // VRM workaround
+                prefix = "J_Bip_";
+            }
 
             if (!string.IsNullOrEmpty(prefix) || !string.IsNullOrEmpty(suffix))
             {

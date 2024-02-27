@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -138,7 +142,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge);
+
+                List<Transform> subRoots = new List<Transform>();
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots);
+
+                // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
+                // help with this
+                foreach (var subRoot in subRoots)
+                {
+                    var subConfig = Undo.AddComponent<ModularAvatarMergeArmature>(subRoot.gameObject);
+                    var parentTransform = subConfig.transform.parent;
+                    var parentConfig = parentTransform.GetComponentInParent<ModularAvatarMergeArmature>();
+                    var parentMapping = parentConfig.MapBone(parentTransform);
+                    
+                    subConfig.mergeTarget = new AvatarObjectReference();
+                    subConfig.mergeTarget.referencePath =
+                        RuntimeUtil.RelativePath(avatarRoot, parentMapping.gameObject);
+                    subConfig.LockMode = ArmatureLockMode.BaseToMerge;
+                    subConfig.prefix = merge.prefix;
+                    subConfig.suffix = merge.suffix;
+                    subConfig.mangleNames = false;
+                }
 
                 var avatarRootMatchingArmature = avatarRoot.transform.Find(outfitArmature.gameObject.name);
                 if (merge.prefix == "" && merge.suffix == "" && avatarRootMatchingArmature != null)
