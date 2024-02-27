@@ -11,7 +11,7 @@ using VRC.SDKBase;
 namespace nadena.dev.modular_avatar.core
 {
     [ExecuteInEditMode]
-    //[AddComponentMenu("")]
+    [AddComponentMenu("")]
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     internal class ScaleAdjusterRenderer : MonoBehaviour, IEditorOnly
     {
