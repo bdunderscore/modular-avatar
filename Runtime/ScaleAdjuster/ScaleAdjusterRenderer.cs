@@ -120,11 +120,14 @@ namespace nadena.dev.modular_avatar.core
             myRenderer.motionVectorGenerationMode = parentRenderer.motionVectorGenerationMode;
             myRenderer.allowOcclusionWhenDynamic = parentRenderer.allowOcclusionWhenDynamic;
 
-            var blendShapeCount = myRenderer.sharedMesh.blendShapeCount;
-
-            for (int i = 0; i < blendShapeCount; i++)
+            if (myRenderer.sharedMesh != null)
             {
-                myRenderer.SetBlendShapeWeight(i, parentRenderer.GetBlendShapeWeight(i));
+                var blendShapeCount = myRenderer.sharedMesh.blendShapeCount;
+
+                for (int i = 0; i < blendShapeCount; i++)
+                {
+                    myRenderer.SetBlendShapeWeight(i, parentRenderer.GetBlendShapeWeight(i));
+                }
             }
 
             ClearAllOverrides();
