@@ -1,7 +1,7 @@
 ﻿#region
 
 using System;
-using UnityEngine;
+using UnityEditor;
 
 #endregion
 
@@ -33,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 return;
             }
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += () => obj.Dispose();
+            EditorApplication.delayCall += () => obj.Dispose();
 #endif
         }
     }
