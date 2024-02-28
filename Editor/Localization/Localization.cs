@@ -26,10 +26,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Add("en-us", "English")
                 .Add("ja-jp", "日本語")
                 .Add("zh-hans", "简体中文")
+                .Add("zh-hant", "繁體中文")
                 .Add("ko-kr", "한국어");
 
         private static ImmutableList<string>
-            SupportedLanguages = new string[] {"en-us", "ja-jp", "zh-hans", "ko-kr"}.ToImmutableList();
+            SupportedLanguages = new string[] {"en-us", "ja-jp", "zh-hans", "zh-hant", "ko-kr"}.ToImmutableList();
 
         private static string[] DisplayNames = SupportedLanguages.Select(l =>
         {
