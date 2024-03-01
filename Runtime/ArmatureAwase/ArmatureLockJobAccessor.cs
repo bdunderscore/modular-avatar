@@ -39,23 +39,23 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         internal void Destroy()
         {
-            _in_baseBone.Dispose();
+            if (_in_baseBone.IsCreated) _in_baseBone.Dispose();
             _in_baseBone = default;
-            _in_targetBone.Dispose();
+            if (_in_targetBone.IsCreated) _in_targetBone.Dispose();
             _in_targetBone = default;
-            _out_baseBone.Dispose();
+            if (_out_baseBone.IsCreated) _out_baseBone.Dispose();
             _out_baseBone = default;
-            _out_targetBone.Dispose();
+            if (_out_targetBone.IsCreated) _out_targetBone.Dispose();
             _out_targetBone = default;
-            _out_dirty_baseBone.Dispose();
+            if (_out_dirty_baseBone.IsCreated) _out_dirty_baseBone.Dispose();
             _out_dirty_baseBone = default;
-            _out_dirty_targetBone.Dispose();
+            if (_out_dirty_targetBone.IsCreated) _out_dirty_targetBone.Dispose();
             _out_dirty_targetBone = default;
-            _boneToJobIndex.Dispose();
+            if (_boneToJobIndex.IsCreated) _boneToJobIndex.Dispose();
             _boneToJobIndex = default;
-            _abortFlag.Dispose();
+            if (_abortFlag.IsCreated) _abortFlag.Dispose();
             _abortFlag = default;
-            _didAnyWriteFlag.Dispose();
+            if (_didAnyWriteFlag.IsCreated) _didAnyWriteFlag.Dispose();
             _didAnyWriteFlag = default;
         }
 

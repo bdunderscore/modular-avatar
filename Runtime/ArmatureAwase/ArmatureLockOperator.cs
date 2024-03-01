@@ -213,7 +213,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private long CycleStartHierarchyIndex = -1;
         private int _nextCheckIndex = 0;
-        
+
         private void SingleUpdate(int? jobIndex)
         {
             if (!_isInit || _jobs.Count == 0) return;
@@ -256,9 +256,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 {
                     LastCheckedHierarchy = CycleStartHierarchyIndex;
                 }
+
                 Profiler.EndSample();
             }
-            
+
             // Before committing, do a spot check of any bones that moved, to see if their parents changed.
             // This is needed because the hierarchyChanged event fires after Update ...
 
@@ -277,7 +278,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                     if (_accessor._out_dirty_targetBone[b] != 0 || _accessor._out_dirty_baseBone[b] != 0)
                     {
                         anyDirty = true;
-                        
+
                         if (_jobs[job].BoneChanged(b - curBoneBase))
                         {
                             _accessor._abortFlag[job] = 1;
@@ -341,11 +342,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             [BurstCompile]
             public void Execute(int index, TransformAccess transform)
             {
+#if UNITY_2021_1_OR_NEWER
                 if (!transform.isValid)
                 {
                     _abortFlag[_boneToJobIndex[index]] = 1;
                     return;
                 }
+#endif
 
                 _bone[index] = _bone2[index] = new TransformState
                 {
@@ -392,7 +395,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             [BurstCompile]
             public void Execute(int index, TransformAccess transform)
             {
+#if UNITY_2021_1_OR_NEWER
                 if (!transform.isValid) return;
+#endif
 
                 var jobIndex = _boneToJobIndex[index];
                 if (jobIndexFilter >= 0 && jobIndex != jobIndexFilter) return;
