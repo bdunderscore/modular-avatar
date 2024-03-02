@@ -76,10 +76,10 @@
   "merge_animator.path_mode.tooltip": "在動畫中路徑的工作模式。\n使用相對路徑可以讓你在當前對象上錄制動畫。",
   "merge_animator.match_avatar_write_defaults": "配合 Avatar 的 WriteDefaults 設定",
   "merge_animator.match_avatar_write_defaults.tooltip": "使用與 Avatar 一樣的 WriteDefaults 設定。\n如果設定存在衝突，將保持目標 Animator 的設定。",
-  "merge_animator.relative_path_root": "Relative Path Root",
-  "merge_animator.relative_path_root.tooltip": "The root object to use when interpreting relative paths. If not specified, the object this component is attached to will be used.",
-  "merge_animator.layer_priority": "Layer Priority",
-  "merge_animator.layer_priority.tooltip": "Controls the order in which layers are merged into the animator - lower to higher. Negative values are merged before the original layer on the avatar descriptor, while zero and positive numbers are merged after.",
+  "merge_animator.relative_path_root": "相對路徑根對象",
+  "merge_animator.relative_path_root.tooltip": "解析相對路徑時使用的根對象。如果未指定，則使用當前對象。",
+  "merge_animator.layer_priority": "動畫層優先級",
+  "merge_animator.layer_priority.tooltip": "控制動畫層合併到目標動畫控制器中的順序，由小到大。負值將合併於原有動畫層之前，0 或正值將合併於之後。",
 
   "merge_armature.lockmode": "位置同步模式",
   "merge_armature.lockmode.not_locked.title": "不同步",
@@ -98,9 +98,9 @@
 
   "merge_blend_tree.blend_tree": "Blend Tree",
   "merge_blend_tree.path_mode": "路徑模式",
-  "merge_blend_tree.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
-  "merge_blend_tree.relative_path_root": "Relative Path Root",
-  "merge_blend_tree.relative_path_root.tooltip": "The root object to use when interpreting relative paths. If not specified, the object this component is attached to will be used.",
+  "merge_blend_tree.path_mode.tooltip": "在動畫中路徑的工作模式。\n使用相對路徑可以讓你在當前對象上錄制動畫。",
+  "merge_blend_tree.relative_path_root": "相對路徑根對象",
+  "merge_blend_tree.relative_path_root.tooltip": "解析相對路徑時使用的跟對象。如果未指定，則使用當前對象",
 
   "worldfixed.quest": "此組件未生效，因為它與 Oculus Quest 不相容。",
   "worldfixed.normal": "當前對象將會固定於世界，除非你使用約束將它綁在 Avatar 內。",
