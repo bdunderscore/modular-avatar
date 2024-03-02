@@ -101,15 +101,17 @@ namespace nadena.dev.modular_avatar.core
                 if (child == null)
                 {
                     var childObj = new GameObject(ADJUSTER_OBJECT);
+                    Undo.RegisterCreatedObjectUndo(childObj, "");
 
                     var childSmr = childObj.AddComponent<SkinnedMeshRenderer>();
                     EditorUtility.CopySerialized(smr, childSmr);
 
+                    childObj.transform.SetParent(smr.transform, false);
+                    childObj.transform.localPosition = Vector3.zero;
+                    childObj.transform.localRotation = Quaternion.identity;
+                    childObj.transform.localScale = Vector3.one;
+
                     child = childObj.AddComponent<ScaleAdjusterRenderer>();
-                    child.transform.SetParent(smr.transform, false);
-                    child.transform.localPosition = Vector3.zero;
-                    child.transform.localRotation = Quaternion.identity;
-                    child.transform.localScale = Vector3.one;
                 }
 
                 child.BoneMappings[transform] = scaleProxy;

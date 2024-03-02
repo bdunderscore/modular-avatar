@@ -3,8 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using VRC.SDKBase;
+using Object = System.Object;
 
 #endregion
 
@@ -15,16 +20,24 @@ namespace nadena.dev.modular_avatar.core
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     internal class ScaleAdjusterRenderer : MonoBehaviour, IEditorOnly
     {
-        private static event Action OnClearAllOverrides;
+        internal static Dictionary<ScaleAdjusterRenderer, GameObject> originalParent =
+            new Dictionary<ScaleAdjusterRenderer, GameObject>(new ObjectIdentityComparer<ScaleAdjusterRenderer>());
+
+        internal static Dictionary<GameObject, GameObject> proxyObjects = new Dictionary<GameObject, GameObject>(
+            new ObjectIdentityComparer<GameObject>());
+
+        internal static Dictionary<GameObject, ScaleAdjusterRenderer> originalObjects =
+            new Dictionary<GameObject, ScaleAdjusterRenderer>(
+                new ObjectIdentityComparer<GameObject>()
+            );
+        
         private static int RecreateHierarchyIndexCount = 0;
 
 #if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
+        [InitializeOnLoadMethod]
         static void Setup()
         {
-            UnityEditor.EditorApplication.hierarchyChanged += InvalidateAll;
-            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += ClearAllOverrides;
-            UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += (scene, path) => ClearAllOverrides();
+            EditorApplication.hierarchyChanged += InvalidateAll;
         }
 #endif
 
@@ -32,7 +45,7 @@ namespace nadena.dev.modular_avatar.core
         {
             RecreateHierarchyIndexCount++;
         }
-
+        
         private SkinnedMeshRenderer myRenderer;
         private SkinnedMeshRenderer parentRenderer;
 
@@ -40,28 +53,42 @@ namespace nadena.dev.modular_avatar.core
         private bool redoBoneMappings = true;
         private int lastRecreateHierarchyIndex = -1;
 
-        internal Dictionary<Transform, Transform> BoneMappings = new Dictionary<Transform, Transform>();
+        internal Dictionary<Transform, Transform> BoneMappings = new Dictionary<Transform, Transform>(
+            new ObjectIdentityComparer<Transform>()
+        );
+        
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this)) return;
+            if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
             redoBoneMappings = true;
 
-            UnityEditor.EditorApplication.delayCall += () =>
+            EditorApplication.delayCall += () =>
             {
                 if (this == null) return;
 
-#if MODULAR_AVATAR_DEBUG_HIDDEN
-                gameObject.hideFlags = HideFlags.None;
-#else
-                gameObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild;
-#endif
+                // We hide this in Harmony, not here, so it is eligible for click-to-select.
+                gameObject.hideFlags = HideFlags.DontSaveInBuild;
+
                 if (BoneMappings == null)
                 {
                     BoneMappings = new Dictionary<Transform, Transform>();
                 }
+                
+                Configure();
             };
+
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            redoBoneMappings = true;
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.ExitingEditMode)
+            {
+                ClearHooks();
+            }
         }
 #endif
 
@@ -74,12 +101,76 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnDestroy()
         {
-            ClearAllOverrides();
+            ClearHooks();
+            #if UNITY_EDITOR
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            #endif
         }
 
+        private void Configure()
+        {
+            if (originalParent.TryGetValue(this, out var prevParent) && transform.parent?.gameObject == prevParent)
+            {
+                return;
+            }
+
+            if (prevParent != null)
+            {
+                ClearHooks();
+            }
+
+            if (transform.parent == null)
+            {
+                return;
+            }
+
+#if UNITY_EDITOR
+            AssemblyReloadEvents.beforeAssemblyReload += ClearHooks;
+#endif
+
+            var parent = transform.parent.gameObject;
+
+            proxyObjects[gameObject] = parent;
+            originalObjects[parent] = this;
+            originalParent[this] = parent;
+        }
+
+        private void ClearHooks()
+        {
+            if (originalParent.TryGetValue(this, out var prevParent))
+            {
+                if (parentRenderer != null)
+                {
+                    CameraHooks.UnregisterProxy(parentRenderer);
+                }
+
+                if ((Object)prevParent != null)
+                {
+                    originalObjects.Remove(prevParent);
+                }
+
+                originalParent.Remove(this);
+                if (gameObject != null)
+                {
+                    proxyObjects.Remove(gameObject);
+                }
+                else
+                {
+                    CleanDeadObjects();
+                }
+            }
+        }
+        
 #if UNITY_EDITOR
         private void Update()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (transform.parent == null)
+            {
+                DestroyImmediate(gameObject);
+                return;
+            }
+            
             if (myRenderer == null)
             {
                 myRenderer = GetComponent<SkinnedMeshRenderer>();
@@ -89,20 +180,24 @@ namespace nadena.dev.modular_avatar.core
             {
                 parentRenderer = transform.parent.GetComponent<SkinnedMeshRenderer>();
             }
+            
+            CameraHooks.RegisterProxy(parentRenderer, myRenderer);
+
+            Configure();
 
             myRenderer.sharedMaterials = parentRenderer.sharedMaterials;
             myRenderer.sharedMesh = parentRenderer.sharedMesh;
             myRenderer.localBounds = parentRenderer.localBounds;
             if (redoBoneMappings || lastRecreateHierarchyIndex != RecreateHierarchyIndexCount)
             {
-                var deadBones = BoneMappings.Keys.Where(k => BoneMappings[k] == null)
-                    .ToList();
-                deadBones.ForEach(k => { BoneMappings.Remove(k); });
+                CleanDeadObjects(BoneMappings);
 
                 if (BoneMappings.Count == 0)
                 {
+                    #if UNITY_2022_3_OR_NEWER
                     DestroyImmediate(gameObject);
                     return;
+                    #endif
                 }
 
                 myRenderer.rootBone = MapBone(parentRenderer.rootBone);
@@ -129,58 +224,37 @@ namespace nadena.dev.modular_avatar.core
                     myRenderer.SetBlendShapeWeight(i, parentRenderer.GetBlendShapeWeight(i));
                 }
             }
-
-            ClearAllOverrides();
-
-            myRenderer.enabled = parentRenderer.enabled;
         }
 
-        public void OnWillRenderObject()
-        {
-            if (myRenderer == null || parentRenderer == null)
-            {
-                return;
-            }
-
-            ClearAllOverrides();
-
-            if (!parentRenderer.enabled || !parentRenderer.gameObject.activeInHierarchy)
-            {
-                return;
-            }
-
-            parentRenderer.enabled = false;
-            wasActive = true;
-            var objName = parentRenderer.gameObject.name;
-            OnClearAllOverrides += ClearLocalOverride;
-            // Sometimes - e.g. around domain reloads or undo operations - the parent renderer's enabled field might get
-            // re-disabled; re-enabler it in delayCall in this case.
-            UnityEditor.EditorApplication.delayCall += ClearLocalOverride;
-        }
 #endif
-
-        private void ClearLocalOverride()
-        {
-            if (parentRenderer != null)
-            {
-                parentRenderer.enabled = true;
-            }
-        }
-
-        private void OnPostRender()
-        {
-            ClearAllOverrides();
-        }
 
         public void ClearBoneCache()
         {
             redoBoneMappings = true;
         }
 
-        internal static void ClearAllOverrides()
+        private static void CleanDeadObjects()
         {
-            OnClearAllOverrides?.Invoke();
-            OnClearAllOverrides = null;
+            CleanDeadObjects(originalParent);
+            CleanDeadObjects(originalObjects);
+            CleanDeadObjects(proxyObjects);
+        }
+
+        private static int lastCleanedFrame = 0;
+        private static void CleanDeadObjects<K, V>(IDictionary<K, V> dict)
+            where K: UnityEngine.Object
+            where V: UnityEngine.Object
+        {
+            // Avoid any O(n^2) behavior if we have lots of cleanup calls happening at the same instant
+            if (Time.frameCount == lastCleanedFrame) return;
+            lastCleanedFrame = Time.frameCount;
+            
+            var dead = dict.Where(kvp => kvp.Key == null || kvp.Value == null).ToList();
+            
+            foreach (var kvp in dead)
+            {
+                dict.Remove(kvp.Key);
+            }
         }
     }
 }
