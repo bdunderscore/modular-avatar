@@ -308,10 +308,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
                 // the avdesc object itself)
                 var nearestAvatarTransform = RuntimeUtil.FindAvatarTransformInParents(xform);
-                if (nearestAvatarTransform == null || nearestAvatarTransform == xform)
+                if (nearestAvatarTransform == null)
                 {
                     errorMessageGroups = new string[]
-                        { S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name) };
+                    {
+                        S_f("setup_outfit.err.no_avatar_descriptor", xform.gameObject.name)
+                    };
+                    return false;
+                }
+                
+                if (nearestAvatarTransform == xform)
+                {
+                    errorMessageGroups = new string[]
+                        { S_f("setup_outfit.err.run_on_avatar_itself", xform.gameObject.name) };
                     return false;
                 }
 
@@ -320,7 +329,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     errorMessageGroups = new string[]
                     {
-                        S_f("setup_outfit.err.no_avatar_descriptor", xform.gameObject.name)
+                        S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name)
                     };
                     return false;
                 }
