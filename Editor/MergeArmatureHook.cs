@@ -22,6 +22,12 @@
  * SOFTWARE.
  */
 
+#region
+
+#if MA_VRCSDK3_AVATARS
+using VRC.Dynamics;
+using VRC.SDK3.Dynamics.PhysBone.Components;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,17 +36,14 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
-
-#if MA_VRCSDK3_AVATARS
-using VRC.Dynamics;
-using VRC.SDK3.Dynamics.PhysBone.Components;
-#endif
-
 using Object = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class MergeArmatureHook
+    internal class
+        MergeArmatureHook
     {
         private const float DuplicatedBoneMaxSqrDistance = 0.001f * 0.001f;
 
@@ -149,7 +152,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var next in mergeArmatures)
             {
-                UnityEngine.Object.DestroyImmediate(next);
+                Object.DestroyImmediate(next);
             }
 
             void TopoLoop(ModularAvatarMergeArmature config)
@@ -372,7 +375,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     GameObject childNewParent = mergedSrcBone;
                     bool shouldZip = false;
 
-                    if (childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix))
+                    if (childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix)
+                                                            && childName.Length > config.prefix.Length +
+                                                            config.suffix.Length)
                     {
                         var targetObjectName = childName.Substring(config.prefix.Length,
                             childName.Length - config.prefix.Length - config.suffix.Length);

@@ -75,7 +75,8 @@ namespace nadena.dev.modular_avatar.core
             var pointer = mergeTarget.Get(this).transform;
             foreach (var segment in segments)
             {
-                if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)) return null;
+                if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)
+                                                || segment.Length == prefix.Length + suffix.Length) return null;
                 var targetObjectName = segment.Substring(prefix.Length,
                     segment.Length - prefix.Length - suffix.Length);
                 pointer = pointer.Find(targetObjectName);
@@ -88,7 +89,8 @@ namespace nadena.dev.modular_avatar.core
         {
             var childName = bone.gameObject.name;
 
-            if (!childName.StartsWith(prefix) || !childName.EndsWith(suffix)) return null;
+            if (!childName.StartsWith(prefix) || !childName.EndsWith(suffix)
+                                              || childName.Length == prefix.Length + suffix.Length) return null;
             var targetObjectName = childName.Substring(prefix.Length,
                 childName.Length - prefix.Length - suffix.Length);
             return baseParent.Find(targetObjectName);
