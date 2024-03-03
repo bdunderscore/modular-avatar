@@ -65,6 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
             mergeSessions.Clear();
 
             var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
+            if (!descriptor) return;
 
             if (descriptor.baseAnimationLayers != null) InitSessions(descriptor.baseAnimationLayers);
             if (descriptor.specialAnimationLayers != null) InitSessions(descriptor.specialAnimationLayers);
