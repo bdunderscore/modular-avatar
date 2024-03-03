@@ -13,14 +13,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
     ///  deciding whether to abort updates, and if not, what the transforms should be set to, and writing out the
     ///  results.
     ///
-    ///  This means that the interesting operation in the graph is one that takes as inputs:
-    ///    NativeArray<TransformState> baseBonePositions
-    ///    NativeArray<TransformState> targetBonePositions
-    ///    NativeArray<int> statusWordPointer // which task is each bone associated with?
-    ///  and has outputs:
-    ///    NativeArray<TransformState> newBaseBonePositions
-    ///    NativeArray<TransformState> newTargetBonePositions
-    ///    NativeAtomicArray<int> statusWord  // array of status words for each task
+    ///  This struct handles these common inputs and outputs for different armature lock types.
     /// </summary>
     internal struct ArmatureLockJobAccessor
     {
@@ -59,17 +52,44 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _didAnyWriteFlag = default;
         }
 
+        /// <summary>
+        /// Initial transform states
+        /// </summary>
         public NativeArray<TransformState> _in_baseBone, _in_targetBone;
 
+        /// <summary>
+        /// Transform states to write out (if _out_dirty is set)
+        /// </summary>
         public NativeArray<TransformState> _out_baseBone, _out_targetBone;
+        
+        /// <summary>
+        /// Flags indicating whether the given bone should be written back to its transform
+        /// </summary>
         public NativeArray<int> _out_dirty_baseBone, _out_dirty_targetBone;
 
+        /// <summary>
+        /// Indexed by the job index (via _boneToJobIndex). If set to a nonzero value, none of the bones in this
+        /// particular job (e.g. a single MergeArmature component) will be committed.
+        ///
+        /// Note: This array is written simultaneously from multiple threads. Jobs may set this to 1, but otherwise
+        /// shouldn't read this value.
+        /// </summary>
         [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
         public NativeArray<int> _abortFlag;
 
+        /// <summary>
+        /// Indexed by the job index (via _boneToJobIndex). Should be set to a nonzero value when any bone in the job
+        /// has changes that need to be written out.
+        ///
+        /// Note: This array is written simultaneously from multiple threads. Jobs may set this to 1, but otherwise
+        /// shouldn't read this value.
+        /// </summary>
         [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
         public NativeArray<int> _didAnyWriteFlag;
 
+        /// <summary>
+        /// Maps from bone index to job index.
+        /// </summary>
         [FormerlySerializedAs("_statusWordIndex")]
         public NativeArray<int> _boneToJobIndex;
     }
