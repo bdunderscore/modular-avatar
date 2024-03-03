@@ -2,7 +2,9 @@
     "name": "nadena.dev.modular-avatar.core",
     "references": [
         "Unity.Burst",
-        "nadena.dev.ndmf.runtime"
+        "nadena.dev.ndmf.runtime",
+        "VRM",
+        "VRM10"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -22,6 +24,16 @@
             "name": "com.vrchat.avatars",
             "expression": "",
             "define": "MA_VRCSDK3_AVATARS"
+        },
+        {
+            "name": "com.vrmc.univrm",
+            "expression": "",
+            "define": "MA_VRM0"
+        },
+        {
+            "name": "com.vrmc.vrm",
+            "expression": "",
+            "define": "MA_VRM1"
         }
     ],
     "noEngineReferences": false
