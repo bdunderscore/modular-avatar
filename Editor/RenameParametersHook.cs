@@ -166,7 +166,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(p => ResolveParameter(p, syncParams))
                 .ToList();
 
-            foreach (var kvp in syncParams)
+            foreach (var kvp in syncParams.OrderBy(kvp => kvp.Value.encounterOrder))
             {
                 var name = kvp.Key;
                 var param = kvp.Value;
