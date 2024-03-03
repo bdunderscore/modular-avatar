@@ -1,33 +1,37 @@
-﻿using System;
+﻿#region
+
+using System;
+using System.Collections.Generic;
+using Unity.Jobs;
+using UnityEditor;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal static class UpdateLoopController
     {
-        internal static event Action OnArmatureLockPrepare;
-        internal static event Action OnArmatureLockUpdate;
+        internal static event Action UpdateCallbacks;
         internal static event Action OnMoveIndependentlyUpdate;
 
 #if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
+        [InitializeOnLoadMethod]
         private static void Init()
         {
-            UnityEditor.EditorApplication.update += () =>
-            {
-                if (ArmatureLockConfig.instance.GlobalEnable)
-                {
-                    OnArmatureLockPrepare?.Invoke();
-                    OnArmatureLockUpdate?.Invoke();
-                }
+            EditorApplication.update += Update;
+        }
 
-                OnMoveIndependentlyUpdate?.Invoke();
-            };
+        private static List<JobHandle> jobs = new List<JobHandle>();
+
+        private static void Update()
+        {
+            if (ArmatureLockConfig.instance.GlobalEnable)
+            {
+                UpdateCallbacks?.Invoke();
+            }
+
+            OnMoveIndependentlyUpdate?.Invoke();
         }
 #endif
-
-        internal static void InvokeArmatureLockPrepare()
-        {
-            OnArmatureLockPrepare?.Invoke();
-        }
     }
 }

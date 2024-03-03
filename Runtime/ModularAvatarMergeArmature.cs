@@ -22,12 +22,15 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.Serialization;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -109,26 +112,24 @@ namespace nadena.dev.modular_avatar.core
             SetLockMode();
         }
 
-        private void SetLockMode()
+        internal void SetLockMode()
         {
             if (this == null) return;
 
             if (_lockController == null)
             {
                 _lockController = ArmatureLockController.ForMerge(this, GetBonesForLock);
+                _lockController.WhenUnstable += OnUnstableLock;
             }
 
-            if (_lockController.Mode != LockMode)
-            {
-                _lockController.Mode = LockMode;
-
-                if (!_lockController.IsStable())
-                {
-                    _lockController.Mode = LockMode = ArmatureLockMode.NotLocked;
-                }
-            }
+            _lockController.Mode = LockMode;
 
             _lockController.Enabled = enabled;
+        }
+
+        private void OnUnstableLock()
+        {
+            _lockController.Mode = LockMode = ArmatureLockMode.NotLocked;
         }
 
         private void MigrateLockConfig()
@@ -190,7 +191,7 @@ namespace nadena.dev.modular_avatar.core
                     var baseChild = FindCorrespondingBone(t, baseBone);
                     if (baseChild != null)
                     {
-                        mergeBones.Add((t, baseChild));
+                        mergeBones.Add((baseChild, t));
                         ScanHierarchy(t, baseChild);
                     }
                 }

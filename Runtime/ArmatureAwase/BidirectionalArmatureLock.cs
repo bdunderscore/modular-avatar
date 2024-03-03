@@ -1,233 +1,107 @@
 ﻿#region
 
-using System;
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Jobs;
 
 #endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
-    internal class BidirectionalArmatureLock : ArmatureLock, IDisposable
+    internal class BidirectionalArmatureLockOperator : ArmatureLockOperator<BidirectionalArmatureLockOperator>
     {
-        private bool _disposed;
-        private TransformAccessArray _baseBoneAccess, _mergeBoneAccess;
-        private readonly Transform[] _baseBones, _mergeBones, _baseParentBones, _mergeParentBones;
+        private NativeArray<TransformState> SavedState;
+        protected override bool WritesBaseBones => true;
 
-        private NativeArray<TransformState> BaseBones, MergeBones, SavedMerge;
-        private NativeArray<bool> ShouldWriteBase, ShouldWriteMerge;
-        private NativeIntPtr WroteAny;
-
-        private JobHandle LastOp;
-        private JobHandle LastPrepare;
-
-        public BidirectionalArmatureLock(IReadOnlyList<(Transform, Transform)> bones)
+        protected override void Reinit(List<(Transform, Transform)> transforms, List<int> problems)
         {
-            _baseBones = new Transform[bones.Count];
-            _mergeBones = new Transform[bones.Count];
-            _baseParentBones = new Transform[bones.Count];
-            _mergeParentBones = new Transform[bones.Count];
+            if (SavedState.IsCreated) SavedState.Dispose();
 
-            BaseBones = new NativeArray<TransformState>(_baseBones.Length, Allocator.Persistent);
-            MergeBones = new NativeArray<TransformState>(_baseBones.Length, Allocator.Persistent);
-            SavedMerge = new NativeArray<TransformState>(_baseBones.Length, Allocator.Persistent);
+            SavedState = new NativeArray<TransformState>(transforms.Count, Allocator.Persistent);
 
-            for (int i = 0; i < _baseBones.Length; i++)
+            for (int i = 0; i < transforms.Count; i++)
             {
-                var (mergeBone, baseBone) = bones[i];
-                _baseBones[i] = baseBone;
-                _mergeBones[i] = mergeBone;
-                _baseParentBones[i] = baseBone.parent;
-                _mergeParentBones[i] = mergeBone.parent;
+                var (baseBone, mergeBone) = transforms[i];
+                SavedState[i] = TransformState.FromTransform(mergeBone);
 
-                var mergeState = TransformState.FromTransform(mergeBone);
-                SavedMerge[i] = mergeState;
-                MergeBones[i] = mergeState;
-                BaseBones[i] = TransformState.FromTransform(baseBone);
+                if (TransformState.Differs(TransformState.FromTransform(baseBone), SavedState[i]))
+                {
+                    problems.Add(i);
+                }
             }
+        }
 
-            _baseBoneAccess = new TransformAccessArray(_baseBones);
-            _mergeBoneAccess = new TransformAccessArray(_mergeBones);
+        protected override JobHandle Compute(ArmatureLockJobAccessor accessor, int? jobIndex, JobHandle dependency)
+        {
+            return new ComputeOperator()
+            {
+                base_in = accessor._in_baseBone,
+                merge_in = accessor._in_targetBone,
+                base_out = accessor._out_baseBone,
+                merge_out = accessor._out_targetBone,
 
-            ShouldWriteBase = new NativeArray<bool>(_baseBones.Length, Allocator.Persistent);
-            ShouldWriteMerge = new NativeArray<bool>(_baseBones.Length, Allocator.Persistent);
-            WroteAny = new NativeIntPtr(Allocator.Persistent);
+                SavedState = SavedState,
+                baseDirty = accessor._out_dirty_baseBone,
+                mergeDirty = accessor._out_dirty_targetBone,
+                boneToJobIndex = accessor._boneToJobIndex,
+                wroteAny = accessor._didAnyWriteFlag,
+
+                singleJobIndex = jobIndex ?? -1
+            }.Schedule(accessor._in_baseBone.Length, 16, dependency);
+        }
+
+        protected override void DerivedDispose()
+        {
+            SavedState.Dispose();
         }
 
         [BurstCompile]
-        struct Compute : IJobParallelForTransform
+        private struct ComputeOperator : IJobParallelFor
         {
-            public NativeArray<TransformState> BaseBones, SavedMerge;
+            public int singleJobIndex;
 
-            [WriteOnly] public NativeArray<TransformState> MergeBones;
+            public NativeArray<TransformState> base_in, merge_in, base_out, merge_out;
 
-            [WriteOnly] public NativeArray<bool> ShouldWriteBase, ShouldWriteMerge;
+            public NativeArray<TransformState> SavedState;
 
-            [WriteOnly] public NativeIntPtr.Parallel WroteAny;
+            [WriteOnly] public NativeArray<int> baseDirty, mergeDirty;
+            [ReadOnly] public NativeArray<int> boneToJobIndex;
 
-            public void Execute(int index, TransformAccess mergeTransform)
+            [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction] [WriteOnly]
+            public NativeArray<int> wroteAny;
+
+            [BurstCompile]
+            public void Execute(int index)
             {
-                var baseBone = BaseBones[index];
-                var mergeBone = new TransformState()
-                {
-                    localPosition = mergeTransform.localPosition,
-                    localRotation = mergeTransform.localRotation,
-                    localScale = mergeTransform.localScale,
-                };
-                MergeBones[index] = mergeBone;
+                var jobIndex = boneToJobIndex[index];
 
-                var saved = SavedMerge[index];
+                if (singleJobIndex != -1 && jobIndex != singleJobIndex) return;
+
+                var baseBone = base_in[index];
+                var mergeBone = merge_in[index];
+                var saved = SavedState[index];
 
                 if (TransformState.Differs(saved, mergeBone))
                 {
-                    ShouldWriteBase[index] = true;
-                    ShouldWriteMerge[index] = false;
+                    baseDirty[index] = 1;
+                    mergeDirty[index] = 0;
 
-                    var mergeToBase = mergeBone;
-                    BaseBones[index] = mergeToBase;
-                    SavedMerge[index] = mergeBone;
-                    WroteAny.SetOne();
+                    SavedState[index] = base_out[index] = merge_in[index];
+
+                    wroteAny[jobIndex] = 1;
                 }
                 else if (TransformState.Differs(saved, baseBone))
                 {
-                    ShouldWriteMerge[index] = true;
-                    ShouldWriteBase[index] = false;
+                    mergeDirty[index] = 1;
+                    baseDirty[index] = 0;
 
-                    MergeBones[index] = baseBone;
-                    SavedMerge[index] = baseBone;
-                    WroteAny.SetOne();
+                    SavedState[index] = merge_out[index] = base_in[index];
+
+                    wroteAny[jobIndex] = 1;
                 }
-                else
-                {
-                    ShouldWriteBase[index] = false;
-                    ShouldWriteMerge[index] = false;
-                }
-            }
-        }
-
-        [BurstCompile]
-        struct Commit : IJobParallelForTransform
-        {
-            [ReadOnly] public NativeArray<TransformState> BoneState;
-            [ReadOnly] public NativeArray<bool> ShouldWrite;
-
-            public void Execute(int index, TransformAccess transform)
-            {
-                if (ShouldWrite[index])
-                {
-                    var boneState = BoneState[index];
-
-                    transform.localPosition = boneState.localPosition;
-                    transform.localRotation = boneState.localRotation;
-                    transform.localScale = boneState.localScale;
-                }
-            }
-        }
-
-        public override void Dispose()
-        {
-            if (_disposed) return;
-
-            LastOp.Complete();
-
-            // work around crashes caused by destroying TransformAccessArray from within Undo processing
-            DeferDestroy.DeferDestroyObj(_baseBoneAccess);
-            DeferDestroy.DeferDestroyObj(_mergeBoneAccess);
-            BaseBones.Dispose();
-            MergeBones.Dispose();
-            SavedMerge.Dispose();
-            ShouldWriteBase.Dispose();
-            ShouldWriteMerge.Dispose();
-            WroteAny.Dispose();
-
-            _disposed = true;
-        }
-
-        public override void Prepare()
-        {
-            if (_disposed) return;
-
-            LastOp.Complete();
-
-            WroteAny.Value = 0;
-
-            var readBase = new ReadBone()
-            {
-                _state = BaseBones,
-            }.Schedule(_baseBoneAccess);
-
-            LastOp = LastPrepare = new Compute()
-            {
-                BaseBones = BaseBones,
-                MergeBones = MergeBones,
-                SavedMerge = SavedMerge,
-                ShouldWriteBase = ShouldWriteBase,
-                ShouldWriteMerge = ShouldWriteMerge,
-                WroteAny = WroteAny.GetParallel(),
-            }.Schedule(_mergeBoneAccess, readBase);
-        }
-
-        private bool CheckConsistency()
-        {
-            if (_disposed) return false;
-
-            // Check parents haven't changed
-            for (int i = 0; i < _baseBones.Length; i++)
-            {
-                if (_baseBones[i] == null || _mergeBones[i] == null || _baseParentBones[i] == null ||
-                    _mergeParentBones[i] == null)
-                {
-                    return false;
-                }
-
-                if (_baseBones[i].parent != _baseParentBones[i] || _mergeBones[i].parent != _mergeParentBones[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public override bool IsStable()
-        {
-            Prepare();
-            if (!CheckConsistency()) return false;
-            LastPrepare.Complete();
-
-            return WroteAny.Value == 0;
-        }
-
-        public override LockResult Execute()
-        {
-            if (!CheckConsistency()) return LockResult.Failed;
-
-            var commitBase = new Commit()
-            {
-                BoneState = BaseBones,
-                ShouldWrite = ShouldWriteBase,
-            }.Schedule(_baseBoneAccess, LastPrepare);
-            var commitMerge = new Commit()
-            {
-                BoneState = MergeBones,
-                ShouldWrite = ShouldWriteMerge,
-            }.Schedule(_mergeBoneAccess, LastPrepare);
-
-            commitBase.Complete();
-            commitMerge.Complete();
-
-            if (WroteAny.Value == 0)
-            {
-                return LockResult.NoOp;
-            }
-            else
-            {
-                return LockResult.Success;
             }
         }
     }

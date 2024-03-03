@@ -1,58 +1,132 @@
 ﻿#region
 
-using System;
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Jobs;
 #if UNITY_EDITOR
-using UnityEditor;
 #endif
 
 #endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
-    internal class OnewayArmatureLock : ArmatureLock, IDisposable
+    internal class OnewayArmatureLockOperator : ArmatureLockOperator<OnewayArmatureLockOperator>
     {
+        private Transform[] _baseBones, _mergeBones, _baseParentBones, _mergeParentBones;
+        private NativeArray<BoneStaticData> _boneStaticData;
+        public NativeArray<TransformState> _mergeSavedState;
+
+        private List<(Transform, Transform)> _transforms;
+        protected override bool WritesBaseBones => false;
+
+        protected override void Reinit(List<(Transform, Transform)> transforms, List<int> problems)
+        {
+            if (_boneStaticData.IsCreated) _boneStaticData.Dispose();
+            if (_mergeSavedState.IsCreated) _mergeSavedState.Dispose();
+            
+            _transforms = transforms;
+
+            _boneStaticData = new NativeArray<BoneStaticData>(transforms.Count, Allocator.Persistent);
+
+            _baseBones = new Transform[_transforms.Count];
+            _mergeBones = new Transform[_transforms.Count];
+            _baseParentBones = new Transform[_transforms.Count];
+            _mergeParentBones = new Transform[_transforms.Count];
+            _mergeSavedState = new NativeArray<TransformState>(_transforms.Count, Allocator.Persistent);
+
+            for (int i = 0; i < transforms.Count; i++)
+            {
+                var (baseBone, mergeBone) = transforms[i];
+                var mergeParent = mergeBone.parent;
+                var baseParent = baseBone.parent;
+
+                if (mergeParent == null || baseParent == null)
+                {
+                    problems.Add(i);
+                    continue;
+                }
+
+                if (SmallScale(mergeParent.localScale) || SmallScale(mergeBone.localScale) ||
+                    SmallScale(baseBone.localScale))
+                {
+                    problems.Add(i);
+                    continue;
+                }
+
+                _baseBones[i] = baseBone;
+                _mergeBones[i] = mergeBone;
+                _baseParentBones[i] = baseParent;
+                _mergeParentBones[i] = mergeParent;
+
+                _mergeSavedState[i] = TransformState.FromTransform(mergeBone);
+
+                // We want to emulate the hierarchy:
+                // baseParent
+                //  - baseBone 
+                //    - v_mergeBone 
+                //
+                // However our hierarchy actually is:
+                // mergeParent
+                //   - mergeBone
+                //
+                // Our question is: What is the local affine transform of mergeBone -> mergeParent space, given a new
+                // baseBone -> baseParent affine transform?
+
+                // First, relative to baseBone, what is the local affine transform of mergeBone?
+                var mat_l = baseBone.worldToLocalMatrix * mergeBone.localToWorldMatrix;
+                // We also find parent -> mergeParent
+                var mat_r = mergeParent.worldToLocalMatrix * baseParent.localToWorldMatrix;
+                // Now we can multiply:
+                // (baseParent -> mergeParent) * (baseBone -> baseParent) * (mergeBone -> baseBone)
+                //  = (baseParent -> mergeParent) * (mergeBone -> baseParent)
+                //  = (mergeBone -> mergeParent)
+
+                _boneStaticData[i] = new BoneStaticData()
+                {
+                    _mat_l = mat_r,
+                    _mat_r = mat_l
+                };
+            }
+        }
+
+        private bool SmallScale(Vector3 scale)
+        {
+            var epsilon = 0.000001f;
+
+            return (scale.x < epsilon || scale.y < epsilon || scale.z < epsilon);
+        }
+
+        protected override JobHandle Compute(ArmatureLockJobAccessor accessor, int? jobIndex, JobHandle dependency)
+        {
+            return new ComputePosition()
+            {
+                _baseState = accessor._in_baseBone,
+                _mergeState = accessor._in_targetBone,
+                _mergeSavedState = _mergeSavedState,
+                _boneStatic = _boneStaticData,
+                _fault = accessor._abortFlag,
+                _wroteAny = accessor._didAnyWriteFlag,
+                _wroteBone = accessor._out_dirty_targetBone,
+                jobIndexLimit = jobIndex ?? -1,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _outputState = accessor._out_targetBone,
+            }.Schedule(accessor._in_baseBone.Length, 32, dependency);
+        }
+
+        protected override void DerivedDispose()
+        {
+            if (_boneStaticData.IsCreated) _boneStaticData.Dispose();
+            if (_mergeSavedState.IsCreated) _mergeSavedState.Dispose();
+        }
+
         struct BoneStaticData
         {
             public Matrix4x4 _mat_l, _mat_r;
         }
 
-        private NativeArray<BoneStaticData> _boneStaticData;
-        private NativeArray<TransformState> _mergeSavedState;
-        private NativeArray<TransformState> _baseState, _mergeState;
-
-        private NativeIntPtr _fault, _wroteAny;
-
-        private readonly Transform[] _baseBones, _mergeBones, _baseParentBones, _mergeParentBones;
-        private TransformAccessArray _baseBonesAccessor, _mergeBonesAccessor;
-
-        private bool _disposed;
-        private JobHandle LastOp, LastPrepare;
-
-        [BurstCompile]
-        struct WriteBone : IJobParallelForTransform
-        {
-            [ReadOnly] public NativeIntPtr _fault, _shouldWrite;
-
-            [ReadOnly] public NativeArray<TransformState> _values;
-
-            public void Execute(int index, TransformAccess transform)
-            {
-                if (_fault.Value == 0 && _shouldWrite.Value != 0)
-                {
-                    var val = _values[index];
-                    transform.localPosition = val.localPosition;
-                    transform.localRotation = val.localRotation;
-                    transform.localScale = val.localScale;
-                }
-            }
-        }
 
         [BurstCompile]
         struct ComputePosition : IJobParallelFor
@@ -63,11 +137,23 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             [ReadOnly] public NativeArray<TransformState> _baseState;
 
             public NativeArray<TransformState> _mergeSavedState;
+            public NativeArray<TransformState> _outputState;
+            public NativeArray<int> _wroteBone;
 
-            public NativeIntPtr.Parallel _fault, _wroteAny;
+            public int jobIndexLimit;
+
+            [ReadOnly] public NativeArray<int> _boneToJobIndex;
+
+            // job indexed
+            [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
+            public NativeArray<int> _fault, _wroteAny;
 
             public void Execute(int index)
             {
+                var jobIndex = _boneToJobIndex[index];
+
+                if (jobIndexLimit >= 0 && jobIndex >= jobIndexLimit) return;
+
                 var boneStatic = _boneStatic[index];
                 var mergeState = _mergeState[index];
                 var baseState = _baseState[index];
@@ -79,8 +165,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 if (TransformState.Differs(mergeSaved, mergeState))
                 {
-                    TransformState.Differs(mergeSaved, mergeState);
-                    _fault.Increment();
+                    _fault[jobIndex] = 1;
                 }
 
                 var relTransform = boneStatic._mat_l * Matrix4x4.TRS(basePos, baseRot, baseScale) * boneStatic._mat_r;
@@ -98,219 +183,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 if (TransformState.Differs(mergeSaved, newState))
                 {
-                    _wroteAny.SetOne();
+                    _wroteAny[jobIndex] = 1;
+                    _wroteBone[index] = 1;
                     _mergeSavedState[index] = newState;
+                    _outputState[index] = newState;
                 }
             }
-        }
-
-        public OnewayArmatureLock(IReadOnlyList<(Transform, Transform)> mergeToBase)
-        {
-            _boneStaticData = new NativeArray<BoneStaticData>(mergeToBase.Count, Allocator.Persistent);
-            _mergeSavedState = new NativeArray<TransformState>(mergeToBase.Count, Allocator.Persistent);
-            _baseState = new NativeArray<TransformState>(mergeToBase.Count, Allocator.Persistent);
-            _mergeState = new NativeArray<TransformState>(mergeToBase.Count, Allocator.Persistent);
-
-            _fault = new NativeIntPtr(Allocator.Persistent);
-            _wroteAny = new NativeIntPtr(Allocator.Persistent);
-
-            _baseBones = new Transform[mergeToBase.Count];
-            _mergeBones = new Transform[mergeToBase.Count];
-            _baseParentBones = new Transform[mergeToBase.Count];
-            _mergeParentBones = new Transform[mergeToBase.Count];
-
-            try
-            {
-                for (int i = 0; i < mergeToBase.Count; i++)
-                {
-                    var (mergeBone, baseBone) = mergeToBase[i];
-                    var mergeParent = mergeBone.parent;
-                    var baseParent = baseBone.parent;
-
-                    if (mergeParent == null || baseParent == null)
-                    {
-                        throw new Exception("Can't handle root objects");
-                    }
-
-                    if (SmallScale(mergeParent.localScale) || SmallScale(mergeBone.localScale) ||
-                        SmallScale(baseBone.localScale))
-                    {
-                        throw new Exception("Can't handle near-zero scale bones");
-                    }
-
-                    _baseBones[i] = baseBone;
-                    _mergeBones[i] = mergeBone;
-                    _baseParentBones[i] = baseParent;
-                    _mergeParentBones[i] = mergeParent;
-
-                    _baseState[i] = TransformState.FromTransform(baseBone);
-                    _mergeSavedState[i] = _mergeState[i] = TransformState.FromTransform(mergeBone);
-
-                    // We want to emulate the hierarchy:
-                    // baseParent
-                    //  - baseBone 
-                    //    - v_mergeBone 
-                    //
-                    // However our hierarchy actually is:
-                    // mergeParent
-                    //   - mergeBone
-                    //
-                    // Our question is: What is the local affine transform of mergeBone -> mergeParent space, given a new
-                    // baseBone -> baseParent affine transform?
-
-                    // First, relative to baseBone, what is the local affine transform of mergeBone?
-                    var mat_l = baseBone.worldToLocalMatrix * mergeBone.localToWorldMatrix;
-                    // We also find parent -> mergeParent
-                    var mat_r = mergeParent.worldToLocalMatrix * baseParent.localToWorldMatrix;
-                    // Now we can multiply:
-                    // (baseParent -> mergeParent) * (baseBone -> baseParent) * (mergeBone -> baseBone)
-                    //  = (baseParent -> mergeParent) * (mergeBone -> baseParent)
-                    //  = (mergeBone -> mergeParent)
-
-                    _boneStaticData[i] = new BoneStaticData()
-                    {
-                        _mat_l = mat_r,
-                        _mat_r = mat_l
-                    };
-                }
-            }
-            catch (Exception e)
-            {
-                _boneStaticData.Dispose();
-                _mergeSavedState.Dispose();
-                _baseState.Dispose();
-                _mergeState.Dispose();
-                _fault.Dispose();
-                _wroteAny.Dispose();
-
-                throw e;
-            }
-
-            _baseBonesAccessor = new TransformAccessArray(_baseBones);
-            _mergeBonesAccessor = new TransformAccessArray(_mergeBones);
-
-            EnableAssemblyReloadCallback = true;
-        }
-
-        private bool SmallScale(Vector3 scale)
-        {
-            var epsilon = 0.000001f;
-
-            return (scale.x < epsilon || scale.y < epsilon || scale.z < epsilon);
-        }
-
-        public override void Prepare()
-        {
-            if (_disposed) return;
-
-            LastOp.Complete();
-
-            _baseBonesAccessor.SetTransforms(_baseBones);
-            _mergeBonesAccessor.SetTransforms(_mergeBones);
-
-            _fault.Value = 0;
-            _wroteAny.Value = 0;
-
-            var jobReadBase = new ReadBone
-            {
-                _state = _baseState
-            }.Schedule(_baseBonesAccessor);
-            var jobReadMerged = new ReadBone
-            {
-                _state = _mergeState
-            }.Schedule(_mergeBonesAccessor);
-            var readAll = JobHandle.CombineDependencies(jobReadBase, jobReadMerged);
-            LastOp = LastPrepare = new ComputePosition
-            {
-                _boneStatic = _boneStaticData,
-                _mergeState = _mergeState,
-                _baseState = _baseState,
-                _mergeSavedState = _mergeSavedState,
-                _fault = _fault.GetParallel(),
-                _wroteAny = _wroteAny.GetParallel(),
-            }.Schedule(_baseBones.Length, 32, readAll);
-        }
-
-        private bool CheckConsistency()
-        {
-            if (_disposed) return false;
-
-            // Validate parents while that job is running
-            for (int i = 0; i < _baseBones.Length; i++)
-            {
-                if (_baseBones[i] == null || _mergeBones[i] == null || _baseParentBones[i] == null ||
-                    _mergeParentBones[i] == null)
-                {
-                    return false;
-                }
-
-                if (_baseBones[i].parent != _baseParentBones[i] || _mergeBones[i].parent != _mergeParentBones[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public override bool IsStable()
-        {
-            Prepare();
-            if (!CheckConsistency()) return false;
-
-            LastPrepare.Complete();
-
-            return _fault.Value == 0 && _wroteAny.Value == 0;
-        }
-
-        /// <summary>
-        /// Executes the armature lock job.
-        /// </summary>
-        /// <returns>True if successful, false if cached data was invalidated and needs recreating</returns>
-        public override LockResult Execute()
-        {
-            if (!CheckConsistency()) return LockResult.Failed;
-
-            var commit = new WriteBone()
-            {
-                _fault = _fault,
-                _values = _mergeSavedState,
-                _shouldWrite = _wroteAny
-            }.Schedule(_mergeBonesAccessor, LastPrepare);
-
-            commit.Complete();
-
-            if (_fault.Value != 0)
-            {
-                return LockResult.Failed;
-            }
-            else if (_wroteAny.Value == 0)
-            {
-                return LockResult.NoOp;
-            }
-            else
-            {
-                return LockResult.Success;
-            }
-        }
-
-        public override void Dispose()
-        {
-            if (_disposed) return;
-
-            LastOp.Complete();
-            _boneStaticData.Dispose();
-            _mergeSavedState.Dispose();
-            _baseState.Dispose();
-            _mergeState.Dispose();
-            _fault.Dispose();
-            _wroteAny.Dispose();
-            // work around crashes caused by destroying TransformAccessArray from within Undo processing
-            DeferDestroy.DeferDestroyObj(_baseBonesAccessor);
-            DeferDestroy.DeferDestroyObj(_mergeBonesAccessor);
-            _disposed = true;
-
-            EnableAssemblyReloadCallback = false;
         }
     }
 }
