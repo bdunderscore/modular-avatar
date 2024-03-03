@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -320,7 +324,9 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (Transform child in src.transform)
             {
                 var childName = child.gameObject.name;
-                if (childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix))
+                if (childName.StartsWith(config.prefix) && childName.EndsWith(config.suffix)
+                                                        && childName.Length >
+                                                        config.prefix.Length + config.suffix.Length)
                 {
                     var targetObjectName = childName.Substring(config.prefix.Length,
                         childName.Length - config.prefix.Length - config.suffix.Length);
