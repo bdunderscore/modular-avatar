@@ -22,20 +22,57 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         internal static readonly T Instance = new T();
 
         private static long LastHierarchyChange = 0;
-        private ArmatureLockJobAccessor _accessor;
 
-        private TransformAccessArray _baseBones, _targetBones;
+        private TransformAccessArray _baseBones, _baseParentBones, _targetBones, _targetParentBones;
 
         private int _commitFilter;
 
         private bool _isDisposed = false;
-        private bool _isInit = false, _isValid = false;
 
-        private ImmutableList<ArmatureLockJob> _jobs = ImmutableList<ArmatureLockJob>.Empty;
         private JobHandle _lastJob;
-        private List<ArmatureLockJob> _requestedJobs = new List<ArmatureLockJob>();
+        private List<ArmatureLockJob> _jobs = new List<ArmatureLockJob>();
         private long LastCheckedHierarchy = -1;
 
+        protected readonly NativeMemoryManager _memoryManager = new NativeMemoryManager();
+
+        private bool _transformAccessDirty = true;
+        private Transform[] _baseTransforms = Array.Empty<Transform>(), _targetTransforms = Array.Empty<Transform>();
+
+        private Transform[] _baseParentTransforms = Array.Empty<Transform>(),
+            _targetParentTransforms = Array.Empty<Transform>();
+
+        protected Transform[] BaseTransforms => _baseTransforms;
+        protected Transform[] TargetTransforms => _targetTransforms;
+
+        // Managed by _memoryManager
+        private NativeArrayRef<TransformState> _in_baseBone, _in_targetBone, _out_baseBone, _out_targetBone;
+        private NativeArrayRef<TransformState> _in_baseParentBone, _in_targetParentBone;
+
+        private NativeArrayRef<bool> _out_dirty_baseBone, _out_dirty_targetBone;
+        private NativeArrayRef<int> _boneToJobIndex;
+
+        // Not managed by _memoryManager (since they're not indexed by bone)
+        private NativeArray<bool> _abortFlag, _didAnyWriteFlag;
+
+        private ArmatureLockJobAccessor GetAccessor()
+        {
+            return new ArmatureLockJobAccessor()
+            {
+                _in_baseBone = _in_baseBone,
+                _in_targetBone = _in_targetBone,
+                _in_baseParentBone = _in_baseParentBone,
+                _in_targetParentBone = _in_targetParentBone,
+                _out_baseBone = _out_baseBone,
+                _out_targetBone = _out_targetBone,
+                _out_dirty_baseBone = _out_dirty_baseBone,
+                _out_dirty_targetBone = _out_dirty_targetBone,
+                _abortFlag = _abortFlag,
+                _didAnyWriteFlag = _didAnyWriteFlag,
+                _boneToJobIndex = _boneToJobIndex,
+                _in_boneInUse = _memoryManager.InUseMask,
+            };
+        }
+        
         static ArmatureLockOperator()
         {
             Instance = new T();
@@ -49,6 +86,18 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += () => DeferDestroy.DestroyImmediate(this);
 #endif
+            _memoryManager.OnSegmentMove += MoveTransforms;
+
+            _in_baseBone = _memoryManager.CreateArray<TransformState>();
+            _in_targetBone = _memoryManager.CreateArray<TransformState>();
+            _out_baseBone = _memoryManager.CreateArray<TransformState>();
+            _out_targetBone = _memoryManager.CreateArray<TransformState>();
+            _in_baseParentBone = _memoryManager.CreateArray<TransformState>();
+            _in_targetParentBone = _memoryManager.CreateArray<TransformState>();
+
+            _out_dirty_baseBone = _memoryManager.CreateArray<bool>();
+            _out_dirty_targetBone = _memoryManager.CreateArray<bool>();
+            _boneToJobIndex = _memoryManager.CreateArray<int>();
         }
 
         protected abstract bool WritesBaseBones { get; }
@@ -57,14 +106,17 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             if (_isDisposed) return;
             _isDisposed = true;
-
-            if (!_isInit) return;
-
+            
             _lastJob.Complete();
-            DeferDestroy.DeferDestroyObj(_baseBones);
-            DeferDestroy.DeferDestroyObj(_targetBones);
+            if (_baseBones.isCreated) DeferDestroy.DeferDestroyObj(_baseBones);
+            if (_targetBones.isCreated) DeferDestroy.DeferDestroyObj(_targetBones);
+            if (_baseParentBones.isCreated) DeferDestroy.DeferDestroyObj(_baseParentBones);
+            if (_targetParentBones.isCreated) DeferDestroy.DeferDestroyObj(_targetParentBones);
             DerivedDispose();
-            _accessor.Destroy();
+
+            _memoryManager.Dispose();
+            if (_abortFlag.IsCreated) _abortFlag.Dispose();
+            if (_didAnyWriteFlag.IsCreated) _didAnyWriteFlag.Dispose();
         }
 
 #if UNITY_EDITOR
@@ -72,7 +124,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             EditorApplication.hierarchyChanged += () => { LastHierarchyChange += 1; };
             UpdateLoopController.UpdateCallbacks += Instance.Update;
-            ArmatureLockConfig.instance.OnGlobalEnableChange += Instance.Invalidate;
+            // TODO: On global enable, reset all jobs to init state?
+            //ArmatureLockConfig.instance.OnGlobalEnableChange += Instance.Invalidate;
 
             EditorApplication.playModeStateChanged += (change) =>
             {
@@ -87,10 +140,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #endif
 
         /// <summary>
-        /// Initialize the lock operator with a particular list of transforms.
+        /// (Re-)initialize state for a single job
         /// </summary>
         /// <param name="transforms"></param>
-        protected abstract void Reinit(List<(Transform, Transform)> transforms, List<int> problems);
+        protected abstract bool SetupJob(ISegment segment);
 
         /// <summary>
         /// Computes the new positions and status words for a given range of bones.
@@ -103,92 +156,111 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         public ArmatureLockJob RegisterLock(IEnumerable<(Transform, Transform)> transforms)
         {
+            if (_isDisposed) throw new ObjectDisposedException("ArmatureLockOperator");
+
+            var immutableTransforms = transforms.ToImmutableList();
+
+            var segment = _memoryManager.Allocate(immutableTransforms.Count());
+            
             ArmatureLockJob job = null;
             job = new ArmatureLockJob(
-                transforms.ToImmutableList(),
+                segment,
+                immutableTransforms,
                 () => RemoveJob(job),
                 () => UpdateSingle(job)
             );
 
-            _requestedJobs.Add(job);
-            Invalidate();
+            EnsureTransformCapacity(_memoryManager.AllocatedLength);
+
+            for (int i = 0; i < job.Transforms.Count(); i++)
+            {
+                var (baseBone, mergeBone) = job.Transforms[i];
+                _baseTransforms[i + segment.Offset] = baseBone;
+                _baseParentTransforms[i + segment.Offset] = baseBone.parent;
+                _targetTransforms[i + segment.Offset] = mergeBone;
+                _targetParentTransforms[i + segment.Offset] = mergeBone.parent;
+            }
+
+            int jobIndex = _jobs.IndexOf(null);
+            if (jobIndex >= 0)
+            {
+                _jobs[jobIndex] = job;
+            }
+            else
+            {
+                jobIndex = _jobs.Count();
+                _jobs.Add(job);
+            }
+
+            EnsureJobFlagCapacity(jobIndex);
+
+            for (int i = 0; i < segment.Length; i++)
+            {
+                _boneToJobIndex.Array[segment.Offset + i] = jobIndex;
+            }
+
+            _transformAccessDirty = true;
+
+            bool ok = false;
+            try
+            {
+                ok = SetupJob(segment);
+            }
+            finally
+            {
+                if (!ok)
+                {
+                    // Initial setup failed; roll things back
+                    job.IsValid = false;
+                    RemoveJob(job);
+                }
+            }
 
             return job;
         }
 
-        private void Invalidate()
+        private void RemoveJob(ArmatureLockJob job)
         {
-            _isValid = false;
+            int index = _jobs.IndexOf(job);
+
+            if (index < 0) return;
+
+            _jobs[index] = null;
+
+            _memoryManager.Free(job.Segment);
         }
 
-        private void MaybeRevalidate()
+        private void EnsureJobFlagCapacity(int jobIndex)
         {
-            if (!_isValid)
-            {
-                // Do an update to make sure all the old jobs are in sync first, before we reset our state.
-                if (_isInit) SingleUpdate(null);
-                Reset();
-            }
+            if (_abortFlag.IsCreated && _abortFlag.Length > jobIndex) return;
+
+            if (_abortFlag.IsCreated) _abortFlag.Dispose();
+            if (_didAnyWriteFlag.IsCreated) _didAnyWriteFlag.Dispose();
+
+            int targetSize = Math.Max(16, (int)(_abortFlag.Length * 1.5f));
+            _abortFlag = new NativeArray<bool>(targetSize, Allocator.Persistent);
+            _didAnyWriteFlag = new NativeArray<bool>(targetSize, Allocator.Persistent);
         }
 
-        private void Reset()
+        private void EnsureTransformCapacity(int targetLength)
         {
-            if (_isDisposed) return;
+            if (targetLength == _baseTransforms.Length) return;
 
-            _lastJob.Complete();
-
-            if (_isInit)
-            {
-                _accessor.Destroy();
-                _baseBones.Dispose();
-                _targetBones.Dispose();
-            }
-
-            _isInit = true;
-
-            // TODO: toposort?
-            int[] boneToJobIndex = null;
-
-            List<int> problems = new List<int>();
-            do
-            {
-                var failed = problems.Select(p => _jobs[boneToJobIndex[p]]).Distinct().ToList();
-                foreach (var job in failed)
-                {
-                    job.IsValid = false;
-                    _requestedJobs.Remove(job);
-                }
-
-                problems.Clear();
-
-                _jobs = _requestedJobs.ToImmutableList();
-
-                _accessor.Destroy();
-                if (_baseBones.isCreated) _baseBones.Dispose();
-                if (_targetBones.isCreated) _targetBones.Dispose();
-
-                _baseBones = _targetBones = default;
-
-                var bones = _jobs.SelectMany(j => j.Transforms).ToList();
-                boneToJobIndex = _jobs.SelectMany((i, j) => Enumerable.Repeat(j, i.Transforms.Count)).ToArray();
-
-                var baseBones = bones.Select(t => t.Item1).ToArray();
-                var targetBones = bones.Select(t => t.Item2).ToArray();
-
-                _accessor.Allocate(
-                    bones.Count,
-                    _jobs.Count
-                );
-
-                _baseBones = new TransformAccessArray(baseBones);
-                _targetBones = new TransformAccessArray(targetBones);
-
-                Reinit(_jobs.SelectMany(j => j.Transforms).ToList(), problems);
-            } while (problems.Count > 0);
-
-            _isValid = true;
+            Array.Resize(ref _baseTransforms, targetLength);
+            Array.Resize(ref _baseParentTransforms, targetLength);
+            Array.Resize(ref _targetTransforms, targetLength);
+            Array.Resize(ref _targetParentTransforms, targetLength);
         }
 
+        private void MoveTransforms(int oldoffset, int newoffset, int length)
+        {
+            Array.Copy(_baseTransforms, oldoffset, _baseTransforms, newoffset, length);
+            Array.Copy(_baseParentTransforms, oldoffset, _baseParentTransforms, newoffset, length);
+            Array.Copy(_targetTransforms, oldoffset, _targetTransforms, newoffset, length);
+            Array.Copy(_targetParentTransforms, oldoffset, _targetParentTransforms, newoffset, length);
+            _transformAccessDirty = true;
+        }
+        
         public void Update()
         {
             InternalUpdate();
@@ -206,8 +278,6 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             if (_isDisposed) return;
 
-            MaybeRevalidate();
-
             SingleUpdate(jobIndex);
         }
 
@@ -216,19 +286,52 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private void SingleUpdate(int? jobIndex)
         {
-            if (!_isInit || _jobs.Count == 0) return;
+            if (_jobs.Count == 0) return;
+
+            if (_isDisposed) return;
 
             Profiler.BeginSample("InternalUpdate");
             _lastJob.Complete();
 
+            if (_transformAccessDirty)
+            {
+                Profiler.BeginSample("RecreateTransformAccess");
+
+                if (_baseBones.isCreated && _baseBones.length == _baseTransforms.Length)
+                {
+                    _baseBones.SetTransforms(_baseTransforms);
+                    _baseParentBones.SetTransforms(_baseParentTransforms);
+                    _targetBones.SetTransforms(_targetTransforms);
+                    _targetParentBones.SetTransforms(_targetParentTransforms);
+                }
+                else
+                {
+                    if (_baseBones.isCreated) _baseBones.Dispose();
+                    if (_targetBones.isCreated) _targetBones.Dispose();
+                    if (_baseParentBones.isCreated) _baseParentBones.Dispose();
+                    if (_targetParentBones.isCreated) _targetParentBones.Dispose();
+
+                    _baseBones = new TransformAccessArray(_baseTransforms);
+                    _baseParentBones = new TransformAccessArray(_baseParentTransforms);
+                    _targetBones = new TransformAccessArray(_targetTransforms);
+                    _targetParentBones = new TransformAccessArray(_targetParentTransforms);
+                }
+
+                _transformAccessDirty = false;
+
+                Profiler.EndSample();
+            }
+
+            var accessor = GetAccessor();
+            
             for (int i = 0; i < _jobs.Count; i++)
             {
-                _accessor._abortFlag[i] = 0;
-                _accessor._didAnyWriteFlag[i] = 0;
+                accessor._abortFlag[i] = (_jobs[i] == null) || !_jobs[i].IsValid;
+                accessor._didAnyWriteFlag[i] = false;
             }
 
             _lastJob = ReadTransforms(jobIndex);
-            _lastJob = Compute(_accessor, jobIndex, _lastJob);
+            _lastJob = Compute(accessor, jobIndex, _lastJob);
 
             if (LastCheckedHierarchy != LastHierarchyChange)
             {
@@ -245,10 +348,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                     var job = _jobs[_nextCheckIndex % _jobs.Count];
                     _nextCheckIndex = (1 + _nextCheckIndex) % _jobs.Count;
 
-                    if (job.HierarchyChanged)
+                    if (job != null && job.HierarchyChanged)
                     {
                         job.IsValid = false;
-                        Invalidate();
                     }
                 } while (_nextCheckIndex != startCheckIndex && !_lastJob.IsCompleted);
 
@@ -269,19 +371,21 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             bool anyDirty = false;
             for (int job = 0; job < _jobs.Count; job++)
             {
+                if (accessor._abortFlag[job]) continue;
+                
                 int curBoneBase = boneBase;
                 boneBase += _jobs[job].Transforms.Count;
-                if (_accessor._didAnyWriteFlag[job] == 0) continue;
+                if (!accessor._didAnyWriteFlag[job]) continue;
 
                 for (int b = curBoneBase; b < boneBase; b++)
                 {
-                    if (_accessor._out_dirty_targetBone[b] != 0 || _accessor._out_dirty_baseBone[b] != 0)
+                    if (accessor._out_dirty_targetBone[b] || accessor._out_dirty_baseBone[b])
                     {
                         anyDirty = true;
 
                         if (_jobs[job].BoneChanged(b - curBoneBase))
                         {
-                            _accessor._abortFlag[job] = 1;
+                            accessor._abortFlag[job] = true;
                             _jobs[job].IsValid = false;
                             break;
                         }
@@ -299,96 +403,139 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             for (int i = 0; i < _jobs.Count; i++)
             {
-                if (_accessor._abortFlag[i] != 0)
+                if (_jobs[i] == null) continue;
+
+                if (accessor._abortFlag[i])
                 {
-                    Invalidate();
+                    _jobs[i].IsValid = false;
                 }
                 else
                 {
                     _jobs[i].MarkLoop();
+                    _jobs[i].WroteAny = accessor._didAnyWriteFlag[i];
                 }
-
-                _jobs[i].WroteAny = _accessor._didAnyWriteFlag[i] != 0;
-            }
-
-            if (!_isValid)
-            {
-                Reset();
             }
 
             Profiler.EndSample();
         }
 
-        private void RemoveJob(ArmatureLockJob job)
+        protected virtual void DerivedDispose()
         {
-            if (_requestedJobs.Remove(job)) Invalidate();
+            // default no-op
         }
-
-        protected abstract void DerivedDispose();
 
         #region Job logic
 
         [BurstCompile]
+        struct CopyTransformState : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<TransformState> _in;
+            [WriteOnly] public NativeArray<TransformState> _out;
+
+            public void Execute(int index)
+            {
+                _out[index] = _in[index];
+            }
+        }
+        
+        [BurstCompile]
         struct ReadTransformsJob : IJobParallelForTransform
         {
-            public NativeArray<TransformState> _bone;
-            public NativeArray<TransformState> _bone2;
+            [WriteOnly] public NativeArray<TransformState> _bone;
 
             [ReadOnly] public NativeArray<int> _boneToJobIndex;
+            [ReadOnly] public NativeArray<bool> _boneInUse;
 
-            [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction]
-            public NativeArray<int> _abortFlag;
+            [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction] [WriteOnly]
+            public NativeArray<bool> _abortFlag;
 
             [BurstCompile]
             public void Execute(int index, TransformAccess transform)
             {
+                if (!_boneInUse[index]) return;
+
 #if UNITY_2021_1_OR_NEWER
                 if (!transform.isValid)
                 {
-                    _abortFlag[_boneToJobIndex[index]] = 1;
+                    _abortFlag[_boneToJobIndex[index]] = true;
                     return;
                 }
 #endif
 
-                _bone[index] = _bone2[index] = new TransformState
+                _bone[index] = new TransformState
                 {
                     localPosition = transform.localPosition,
                     localRotation = transform.localRotation,
-                    localScale = transform.localScale
+                    localScale = transform.localScale,
+                    localToWorldMatrix = transform.localToWorldMatrix,
                 };
             }
         }
 
         JobHandle ReadTransforms(int? jobIndex)
         {
+            var accessor = GetAccessor();
+            
             var baseRead = new ReadTransformsJob()
             {
-                _bone = _accessor._in_baseBone,
-                _bone2 = _accessor._out_baseBone,
-                _boneToJobIndex = _accessor._boneToJobIndex,
-                _abortFlag = _accessor._abortFlag
+                _bone = accessor._in_baseBone,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _abortFlag = accessor._abortFlag,
+                _boneInUse = accessor._in_boneInUse,
             }.ScheduleReadOnly(_baseBones, 32);
+
+            baseRead = new CopyTransformState()
+            {
+                _in = accessor._in_baseBone,
+                _out = accessor._out_baseBone
+            }.Schedule(accessor._in_baseBone.Length, 32, baseRead);
 
             var targetRead = new ReadTransformsJob()
             {
-                _bone = _accessor._in_targetBone,
-                _bone2 = _accessor._out_targetBone,
-                _boneToJobIndex = _accessor._boneToJobIndex,
-                _abortFlag = _accessor._abortFlag
-            }.ScheduleReadOnly(_targetBones, 32, baseRead);
+                _bone = accessor._in_targetBone,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _abortFlag = accessor._abortFlag,
+                _boneInUse = accessor._in_boneInUse,
+            }.ScheduleReadOnly(_targetBones, 32);
 
-            return JobHandle.CombineDependencies(baseRead, targetRead);
+            targetRead = new CopyTransformState()
+            {
+                _in = accessor._in_targetBone,
+                _out = accessor._out_targetBone
+            }.Schedule(accessor._in_targetBone.Length, 32, targetRead);
+
+            var baseParentRead = new ReadTransformsJob()
+            {
+                _bone = accessor._in_baseParentBone,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _abortFlag = accessor._abortFlag,
+                _boneInUse = accessor._in_boneInUse,
+            }.ScheduleReadOnly(_baseParentBones, 32);
+
+            var targetParentRead = new ReadTransformsJob()
+            {
+                _bone = accessor._in_targetParentBone,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _abortFlag = accessor._abortFlag,
+                _boneInUse = accessor._in_boneInUse,
+            }.ScheduleReadOnly(_targetParentBones, 32);
+
+            return JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(baseRead, targetRead),
+                JobHandle.CombineDependencies(baseParentRead, targetParentRead)
+            );
         }
 
         [BurstCompile]
         struct CommitTransformsJob : IJobParallelForTransform
         {
             [ReadOnly] public NativeArray<TransformState> _boneState;
-            [ReadOnly] public NativeArray<int> _dirtyBoneFlag;
+            [ReadOnly] public NativeArray<bool> _dirtyBoneFlag;
             [ReadOnly] public NativeArray<int> _boneToJobIndex;
+            [ReadOnly] public NativeArray<bool> _boneInUse;
 
             [NativeDisableContainerSafetyRestriction] [NativeDisableParallelForRestriction] [ReadOnly]
-            public NativeArray<int> _abortFlag;
+            public NativeArray<bool> _abortFlag;
 
             public int jobIndexFilter;
 
@@ -398,11 +545,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #if UNITY_2021_1_OR_NEWER
                 if (!transform.isValid) return;
 #endif
+                if (!_boneInUse[index]) return;
 
                 var jobIndex = _boneToJobIndex[index];
                 if (jobIndexFilter >= 0 && jobIndex != jobIndexFilter) return;
-                if (_abortFlag[jobIndex] != 0) return;
-                if (_dirtyBoneFlag[index] == 0) return;
+                if (_abortFlag[jobIndex]) return;
+                if (!_dirtyBoneFlag[index]) return;
 
                 transform.localPosition = _boneState[index].localPosition;
                 transform.localRotation = _boneState[index].localRotation;
@@ -412,24 +560,28 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         JobHandle CommitTransforms(int? jobIndex, JobHandle prior)
         {
+            var accessor = GetAccessor();
+            
             JobHandle job = new CommitTransformsJob()
             {
-                _boneState = _accessor._out_targetBone,
-                _dirtyBoneFlag = _accessor._out_dirty_targetBone,
-                _boneToJobIndex = _accessor._boneToJobIndex,
-                _abortFlag = _accessor._abortFlag,
-                jobIndexFilter = jobIndex ?? -1
+                _boneState = accessor._out_targetBone,
+                _dirtyBoneFlag = accessor._out_dirty_targetBone,
+                _boneToJobIndex = accessor._boneToJobIndex,
+                _abortFlag = accessor._abortFlag,
+                jobIndexFilter = jobIndex ?? -1,
+                _boneInUse = accessor._in_boneInUse,
             }.Schedule(_targetBones, prior);
 
             if (WritesBaseBones)
             {
                 var job2 = new CommitTransformsJob()
                 {
-                    _boneState = _accessor._out_baseBone,
-                    _dirtyBoneFlag = _accessor._out_dirty_baseBone,
-                    _boneToJobIndex = _accessor._boneToJobIndex,
-                    _abortFlag = _accessor._abortFlag,
-                    jobIndexFilter = jobIndex ?? -1
+                    _boneState = accessor._out_baseBone,
+                    _dirtyBoneFlag = accessor._out_dirty_baseBone,
+                    _boneToJobIndex = accessor._boneToJobIndex,
+                    _abortFlag = accessor._abortFlag,
+                    jobIndexFilter = jobIndex ?? -1,
+                    _boneInUse = accessor._in_boneInUse,
                 }.Schedule(_baseBones, prior);
 
                 return JobHandle.CombineDependencies(job, job2);

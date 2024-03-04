@@ -19,13 +19,19 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         public Quaternion localRotation;
         public Vector3 localScale;
 
+        // Read on FromTransform, not written back in ToTransform
+        public Matrix4x4 localToWorldMatrix;
+
+        public Matrix4x4 worldToLocalMatrix => localToWorldMatrix.inverse;
+        
         internal static TransformState FromTransform(Transform mergeBone)
         {
             return new TransformState
             {
                 localPosition = mergeBone.localPosition,
                 localRotation = mergeBone.localRotation,
-                localScale = mergeBone.localScale
+                localScale = mergeBone.localScale,
+                localToWorldMatrix = mergeBone.localToWorldMatrix,
             };
         }
 
