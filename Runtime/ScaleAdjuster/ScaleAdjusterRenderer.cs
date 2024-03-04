@@ -1,12 +1,11 @@
 ﻿#region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using System.Collections.Generic;
+using System.Linq;
+using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
 using UnityEngine;
 using VRC.SDKBase;
 using Object = System.Object;
@@ -51,6 +50,7 @@ namespace nadena.dev.modular_avatar.core
 
         private bool wasActive = false;
         private bool redoBoneMappings = true;
+        private bool hasRelevantBones = false;
         private int lastRecreateHierarchyIndex = -1;
 
         internal Dictionary<Transform, Transform> BoneMappings = new Dictionary<Transform, Transform>(
@@ -119,11 +119,16 @@ namespace nadena.dev.modular_avatar.core
                 ClearHooks();
             }
 
+            if (!hasRelevantBones)
+            {
+                return;
+            }
+            
             if (transform.parent == null)
             {
                 return;
             }
-
+            
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += ClearHooks;
 #endif
@@ -133,6 +138,8 @@ namespace nadena.dev.modular_avatar.core
             proxyObjects[gameObject] = parent;
             originalObjects[parent] = this;
             originalParent[this] = parent;
+
+            CheckBoneUsage(); // register the proxy if needed
         }
 
         private void ClearHooks()
@@ -180,15 +187,13 @@ namespace nadena.dev.modular_avatar.core
             {
                 parentRenderer = transform.parent.GetComponent<SkinnedMeshRenderer>();
             }
-            
-            CameraHooks.RegisterProxy(parentRenderer, myRenderer);
 
             Configure();
-
+            
             myRenderer.sharedMaterials = parentRenderer.sharedMaterials;
-            myRenderer.sharedMesh = parentRenderer.sharedMesh;
             myRenderer.localBounds = parentRenderer.localBounds;
-            if (redoBoneMappings || lastRecreateHierarchyIndex != RecreateHierarchyIndexCount)
+            if (redoBoneMappings || lastRecreateHierarchyIndex != RecreateHierarchyIndexCount
+                                 || myRenderer.sharedMesh != parentRenderer.sharedMesh)
             {
                 CleanDeadObjects(BoneMappings);
 
@@ -200,11 +205,16 @@ namespace nadena.dev.modular_avatar.core
                     #endif
                 }
 
+                myRenderer.sharedMesh = parentRenderer.sharedMesh;
                 myRenderer.rootBone = MapBone(parentRenderer.rootBone);
                 myRenderer.bones = parentRenderer.bones.Select(MapBone).ToArray();
                 redoBoneMappings = false;
                 lastRecreateHierarchyIndex = RecreateHierarchyIndexCount;
+
+                CheckBoneUsage();
             }
+
+            if (!hasRelevantBones) return;
 
             myRenderer.quality = parentRenderer.quality;
             myRenderer.shadowCastingMode = parentRenderer.shadowCastingMode;
@@ -225,8 +235,38 @@ namespace nadena.dev.modular_avatar.core
                 }
             }
         }
-
 #endif
+        private void CheckBoneUsage()
+        {
+            hasRelevantBones = false;
+            if (myRenderer.sharedMesh != null)
+            {
+                var weights = myRenderer.sharedMesh.GetAllBoneWeights();
+                var parentBones = parentRenderer.bones;
+                foreach (var weight in weights)
+                {
+                    if (weight.weight < 0.0001f) continue;
+                    if (weight.boneIndex < 0 || weight.boneIndex >= parentBones.Length) continue;
+
+                    var bone = parentBones[weight.boneIndex];
+                    if (BoneMappings.ContainsKey(bone))
+                    {
+                        hasRelevantBones = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasRelevantBones)
+            {
+                CameraHooks.RegisterProxy(parentRenderer, myRenderer);
+            }
+            else
+            {
+                CameraHooks.UnregisterProxy(parentRenderer);
+                myRenderer.enabled = false;
+            }
+        }
 
         public void ClearBoneCache()
         {
