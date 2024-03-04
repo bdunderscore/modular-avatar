@@ -15,6 +15,8 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         protected override void Execute(ndmf.BuildContext context)
         {
+            if (!context.AvatarDescriptor) return;
+
             var values = context.GetState<DefaultValues>()?.InitialValueOverrides
                          ?? ImmutableDictionary<string, float>.Empty;
 
