@@ -22,12 +22,15 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.Serialization;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -72,7 +75,8 @@ namespace nadena.dev.modular_avatar.core
             var pointer = mergeTarget.Get(this).transform;
             foreach (var segment in segments)
             {
-                if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)) return null;
+                if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)
+                                                || segment.Length == prefix.Length + suffix.Length) return null;
                 var targetObjectName = segment.Substring(prefix.Length,
                     segment.Length - prefix.Length - suffix.Length);
                 pointer = pointer.Find(targetObjectName);
@@ -85,7 +89,8 @@ namespace nadena.dev.modular_avatar.core
         {
             var childName = bone.gameObject.name;
 
-            if (!childName.StartsWith(prefix) || !childName.EndsWith(suffix)) return null;
+            if (!childName.StartsWith(prefix) || !childName.EndsWith(suffix)
+                                              || childName.Length == prefix.Length + suffix.Length) return null;
             var targetObjectName = childName.Substring(prefix.Length,
                 childName.Length - prefix.Length - suffix.Length);
             return baseParent.Find(targetObjectName);
@@ -109,26 +114,24 @@ namespace nadena.dev.modular_avatar.core
             SetLockMode();
         }
 
-        private void SetLockMode()
+        internal void SetLockMode()
         {
             if (this == null) return;
 
             if (_lockController == null)
             {
                 _lockController = ArmatureLockController.ForMerge(this, GetBonesForLock);
+                _lockController.WhenUnstable += OnUnstableLock;
             }
 
-            if (_lockController.Mode != LockMode)
-            {
-                _lockController.Mode = LockMode;
-
-                if (!_lockController.IsStable())
-                {
-                    _lockController.Mode = LockMode = ArmatureLockMode.NotLocked;
-                }
-            }
+            _lockController.Mode = LockMode;
 
             _lockController.Enabled = enabled;
+        }
+
+        private void OnUnstableLock()
+        {
+            _lockController.Mode = LockMode = ArmatureLockMode.NotLocked;
         }
 
         private void MigrateLockConfig()
@@ -190,7 +193,7 @@ namespace nadena.dev.modular_avatar.core
                     var baseChild = FindCorrespondingBone(t, baseBone);
                     if (baseChild != null)
                     {
-                        mergeBones.Add((t, baseChild));
+                        mergeBones.Add((baseChild, t));
                         ScanHierarchy(t, baseChild);
                     }
                 }

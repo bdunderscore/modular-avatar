@@ -10,8 +10,6 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            ScaleAdjusterRenderer.ClearAllOverrides();
-
             Dictionary<Transform, Transform> boneMappings = new Dictionary<Transform, Transform>();
             foreach (var component in context.AvatarRootObject.GetComponentsInChildren<ScaleProxy>())
             {

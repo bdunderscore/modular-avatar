@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.ui;
 using UnityEngine;
@@ -6,12 +8,14 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+#endregion
+
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal class ArmatureLockConfig
 #if UNITY_EDITOR
-        : UnityEditor.ScriptableSingleton<ArmatureLockConfig>
+        : ScriptableSingleton<ArmatureLockConfig>
 #endif
     {
 #if !UNITY_EDITOR
@@ -19,6 +23,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #endif
 
         [SerializeField] private bool _globalEnable = true;
+        internal event Action OnGlobalEnableChange;
 
         internal bool GlobalEnable
         {
@@ -34,11 +39,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 _globalEnable = value;
 
-                if (!value)
-                {
-                    // Run prepare one last time to dispose of lock structures
-                    UpdateLoopController.InvokeArmatureLockPrepare();
-                }
+                OnGlobalEnableChange?.Invoke();
             }
         }
 
@@ -60,64 +61,53 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 #endif
     }
 
+
     internal class ArmatureLockController : IDisposable
     {
+        public delegate IReadOnlyList<(Transform, Transform)> GetTransformsDelegate();
+
         private static long lastMovedFrame = 0;
-        public static bool MovedThisFrame => Time.frameCount == lastMovedFrame;
 
         // Undo operations can reinitialize the MAMA component, which destroys critical lock controller state.
         // Avoid this issue by keeping a static reference to the controller for each MAMA component.
         private static Dictionary<ModularAvatarMergeArmature, ArmatureLockController>
             _controllers = new Dictionary<ModularAvatarMergeArmature, ArmatureLockController>();
 
-        public delegate IReadOnlyList<(Transform, Transform)> GetTransformsDelegate();
+        private readonly GetTransformsDelegate _getTransforms;
 
         private readonly ModularAvatarMergeArmature _mama;
-        private readonly GetTransformsDelegate _getTransforms;
-        private ArmatureLock _lock;
-
-        private bool GlobalEnable => ArmatureLockConfig.instance.GlobalEnable;
-        private bool _updateActive;
-
-        private bool UpdateActive
-        {
-            get => _updateActive;
-            set
-            {
-                if (UpdateActive == value) return;
-#if UNITY_EDITOR
-                if (value)
-                {
-                    UpdateLoopController.OnArmatureLockPrepare += UpdateLoopPrepare;
-                    UpdateLoopController.OnArmatureLockUpdate += UpdateLoopFinish;
-                }
-                else
-                {
-                    UpdateLoopController.OnArmatureLockPrepare -= UpdateLoopPrepare;
-                    UpdateLoopController.OnArmatureLockUpdate -= UpdateLoopFinish;
-                }
-
-                _updateActive = value;
-#endif
-            }
-        }
 
         private ArmatureLockMode _curMode, _mode;
+
+        private bool _enabled;
+        private ArmatureLockJob _job;
+
+        public ArmatureLockController(ModularAvatarMergeArmature mama, GetTransformsDelegate getTransforms)
+        {
+#if UNITY_EDITOR
+            AssemblyReloadEvents.beforeAssemblyReload += OnDomainUnload;
+#endif
+
+            _mama = mama;
+            _getTransforms = getTransforms;
+        }
+
+        public static bool MovedThisFrame => Time.frameCount == lastMovedFrame;
+
+        private bool GlobalEnable => ArmatureLockConfig.instance.GlobalEnable;
 
         public ArmatureLockMode Mode
         {
             get => _mode;
             set
             {
-                if (value == _mode) return;
+                if (value == _mode && _job != null) return;
 
                 _mode = value;
 
-                UpdateActive = true;
+                RebuildLock();
             }
         }
-
-        private bool _enabled;
 
         public bool Enabled
         {
@@ -127,19 +117,24 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 if (Enabled == value) return;
 
                 _enabled = value;
-                if (_enabled) UpdateActive = true;
+
+                RebuildLock();
             }
         }
 
-        public ArmatureLockController(ModularAvatarMergeArmature mama, GetTransformsDelegate getTransforms)
+        public void Dispose()
         {
+            _job?.Dispose();
+            _job = null;
+
 #if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload += OnDomainUnload;
+            AssemblyReloadEvents.beforeAssemblyReload -= OnDomainUnload;
 #endif
 
-            this._mama = mama;
-            this._getTransforms = getTransforms;
+            _controllers.Remove(_mama);
         }
+
+        internal event Action WhenUnstable;
 
         public static ArmatureLockController ForMerge(ModularAvatarMergeArmature mama,
             GetTransformsDelegate getTransforms)
@@ -153,102 +148,32 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             return controller;
         }
 
-        public bool IsStable()
+        internal void CheckLockJob()
         {
-            if (Mode == ArmatureLockMode.NotLocked) return true;
-
-            if (_curMode == _mode && _lock?.IsStable() == true) return true;
-            return RebuildLock() && (_lock?.IsStable() ?? false);
-        }
-
-        private void VoidPrepare()
-        {
-            UpdateLoopPrepare();
-        }
-
-        private void UpdateLoopFinish()
-        {
-            DoFinish();
-        }
-
-        internal bool Update()
-        {
-            UpdateLoopPrepare();
-            return DoFinish();
-        }
-
-        private bool IsPrepared = false;
-
-        private void UpdateLoopPrepare()
-        {
-            if (_mama == null || !_mama.gameObject.scene.IsValid())
+            if (_mama == null || !_mama.gameObject.scene.IsValid() || !Enabled)
             {
-                UpdateActive = false;
+                _job?.Dispose();
                 return;
             }
 
-            if (!Enabled)
+            if (_curMode != _mode || _job == null || !_job.IsValid)
             {
-                UpdateActive = false;
-                _lock?.Dispose();
-                _lock = null;
-                return;
-            }
-
-            if (!GlobalEnable)
-            {
-                _lock?.Dispose();
-                _lock = null;
-                return;
-            }
-
-            if (_curMode == _mode)
-            {
-                _lock?.Prepare();
-                IsPrepared = _lock != null;
-            }
-        }
-
-        private bool DoFinish()
-        {
-            LockResult result;
-
-            if (!GlobalEnable)
-            {
-                _lock?.Dispose();
-                _lock = null;
-                return true;
-            }
-
-            var wasPrepared = IsPrepared;
-            IsPrepared = false;
-
-            if (!Enabled) return true;
-
-            if (_curMode == _mode)
-            {
-                if (!wasPrepared) _lock?.Prepare();
-                result = _lock?.Execute() ?? LockResult.Failed;
-                if (result == LockResult.Success)
+                if (_job != null && _job.FailedOnStartup)
                 {
-                    lastMovedFrame = Time.frameCount;
+                    WhenUnstable?.Invoke();
+                    Enabled = false;
+                    _job?.Dispose();
+                    return;
                 }
 
-                if (result != LockResult.Failed) return true;
+                RebuildLock();
             }
-
-            if (!RebuildLock()) return false;
-
-            _lock?.Prepare();
-            result = (_lock?.Execute() ?? LockResult.Failed);
-
-            return result != LockResult.Failed;
         }
 
         private bool RebuildLock()
         {
-            _lock?.Dispose();
-            _lock = null;
+            _job?.Dispose();
+            _job = null;
 
             var xforms = _getTransforms();
             if (xforms == null)
@@ -261,38 +186,32 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 switch (Mode)
                 {
                     case ArmatureLockMode.BidirectionalExact:
-                        _lock = new BidirectionalArmatureLock(_getTransforms());
+                        _job = BidirectionalArmatureLockOperator.Instance.RegisterLock(xforms);
                         break;
                     case ArmatureLockMode.BaseToMerge:
-                        _lock = new OnewayArmatureLock(_getTransforms());
+                        _job = OnewayArmatureLockOperator.Instance.RegisterLock(xforms);
                         break;
                     default:
-                        UpdateActive = false;
+                        Enabled = false;
                         break;
                 }
             }
             catch (Exception)
             {
-                _lock = null;
+                _job = null;
                 return false;
+            }
+
+            if (_job != null)
+            {
+#if UNITY_EDITOR
+                _job.OnInvalidation += () => { EditorApplication.delayCall += CheckLockJob; };
+#endif
             }
 
             _curMode = _mode;
 
             return true;
-        }
-
-        public void Dispose()
-        {
-            _lock?.Dispose();
-            _lock = null;
-
-            #if UNITY_EDITOR
-            AssemblyReloadEvents.beforeAssemblyReload -= OnDomainUnload;
-            #endif
-
-            _controllers.Remove(_mama);
-            UpdateActive = false;
         }
 
         private void OnDomainUnload()

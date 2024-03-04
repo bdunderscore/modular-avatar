@@ -1,6 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿#region
+
+using System.Runtime.CompilerServices;
 using Unity.Burst;
+using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
@@ -14,7 +19,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         public Quaternion localRotation;
         public Vector3 localScale;
 
-        public static TransformState FromTransform(Transform mergeBone)
+        internal static TransformState FromTransform(Transform mergeBone)
         {
             return new TransformState
             {
@@ -24,10 +29,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             };
         }
 
-        public void ToTransform(Transform bone)
+        internal void ToTransform(Transform bone)
         {
 #if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(bone, UnityEditor.Undo.GetCurrentGroupName());
+            Undo.RecordObject(bone, Undo.GetCurrentGroupName());
 #endif
             bone.localPosition = localPosition;
             bone.localRotation = localRotation;
@@ -36,7 +41,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         [BurstCompile]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Differs(TransformState self, TransformState other)
+        internal static bool Differs(TransformState self, TransformState other)
         {
             var deltaMergePos = (self.localPosition - other.localPosition).sqrMagnitude;
             var deltaMergeRot = self.localRotation * Quaternion.Inverse(other.localRotation);

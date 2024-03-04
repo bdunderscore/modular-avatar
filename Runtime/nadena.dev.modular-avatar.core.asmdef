@@ -1,5 +1,6 @@
 {
     "name": "nadena.dev.modular-avatar.core",
+    "rootNamespace": "",
     "references": [
         "Unity.Burst",
         "nadena.dev.ndmf.runtime"
@@ -13,7 +14,8 @@
         "VRCSDK3A.dll",
         "VRC.Dynamics.dll",
         "VRC.SDK3.Dynamics.Contact.dll",
-        "VRC.SDK3.Dynamics.PhysBone.dll"
+        "VRC.SDK3.Dynamics.PhysBone.dll",
+        "System.Collections.Immutable.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
-using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -248,6 +247,48 @@ namespace modular_avatar_tests.RenameParametersTests
             var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
             
             Assert.IsNotEmpty(errors);
+        }
+
+        [Test]
+        public void ParameterOrderTest()
+        {
+            var av = CreateRoot("avatar");
+
+            var rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+            var paramsAsset = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+
+            var desc = av.GetComponent<VRCAvatarDescriptor>();
+            desc.expressionsMenu = rootMenu;
+            desc.expressionParameters = paramsAsset;
+
+            var c1 = CreateChild(av, "a");
+            var c2 = CreateChild(av, "b");
+            var c3 = CreateChild(av, "c");
+            var c4 = CreateChild(av, "d");
+
+            AddParam(c1, "A");
+            AddParam(c2, "B");
+            AddParam(c3, "C");
+            AddParam(c4, "D");
+            
+            AvatarProcessor.ProcessAvatar(av);
+
+            paramsAsset = desc.expressionParameters;
+            
+            Assert.AreEqual("A", paramsAsset.parameters[0].name);
+            Assert.AreEqual("B", paramsAsset.parameters[1].name);
+            Assert.AreEqual("C", paramsAsset.parameters[2].name);
+            Assert.AreEqual("D", paramsAsset.parameters[3].name);
+
+            void AddParam(GameObject child, String name)
+            {
+                var param = child.AddComponent<ModularAvatarParameters>();
+                param.parameters.Add(new ParameterConfig()
+                {
+                    nameOrPrefix = name,
+                    syncType = ParameterSyncType.Float
+                });
+            }
         }
     }
 }

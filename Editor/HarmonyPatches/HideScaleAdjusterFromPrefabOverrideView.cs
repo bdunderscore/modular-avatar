@@ -39,20 +39,17 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         [UsedImplicitly]
         private static void Postfix(GameObject prefabInstance, object __result)
         {
-            var ignoredObjects = prefabInstance.GetComponentsInChildren<ScaleAdjusterRenderer>()
-                .Select(sar => sar.gameObject)
-                .ToImmutableHashSet();
             List<AddedGameObject> added = p_AddedGameObjects.GetValue(__result) as List<AddedGameObject>;
 
             if (added == null) return;
-            added.RemoveAll(obj => ignoredObjects.Contains(obj.instanceGameObject));
+            added.RemoveAll(obj => ScaleAdjusterRenderer.proxyObjects.ContainsKey(obj.instanceGameObject));
 
             List<ObjectOverride> objectOverrides = p_ObjectOverrides.GetValue(__result) as List<ObjectOverride>;
             if (objectOverrides == null) return;
             objectOverrides.RemoveAll(oo =>
             {
                 var c = oo.instanceObject as Component;
-                return c != null && ignoredObjects.Contains(c.gameObject);
+                return c != null && ScaleAdjusterRenderer.proxyObjects.ContainsKey(c.gameObject);
             });
         }
     }
