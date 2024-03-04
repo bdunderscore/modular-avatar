@@ -58,11 +58,11 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
                 if ((bool)m_TryGetGameObject.Invoke(obj, args))
                 {
                     var go = args[0] as GameObject;
-                    if (go != null && ScaleAdjusterRenderer.proxyObjects.ContainsKey(go))
+                    if (go != null && ProxyManager.ProxyToOriginalObject.TryGetValue(go, out var original))
                     {
                         list.Add(ctor_PickingObject.Invoke(new[]
                         {
-                            go.transform.parent.gameObject,
+                            original,
                             p_materialIndex.GetValue(obj)
                         }));
                         continue;

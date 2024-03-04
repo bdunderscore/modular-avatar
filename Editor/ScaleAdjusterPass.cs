@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿#region
+
+using System.Collections.Generic;
 using nadena.dev.ndmf;
-using UnityEditor.EditorTools;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -11,25 +13,30 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override void Execute(ndmf.BuildContext context)
         {
             Dictionary<Transform, Transform> boneMappings = new Dictionary<Transform, Transform>();
-            foreach (var component in context.AvatarRootObject.GetComponentsInChildren<ScaleProxy>())
+
+            foreach (var adjuster in context.AvatarRootObject.GetComponentsInChildren<ModularAvatarScaleAdjuster>(true))
             {
-                var proxyTransform = component.transform;
-                var parentAdjuster = component.transform.parent?.GetComponent<ModularAvatarScaleAdjuster>();
-                if (parentAdjuster != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(component);
-                    
-                    proxyTransform.localScale = parentAdjuster.Scale;
-                    parentAdjuster.scaleProxy = null; // prevent destruction of the ScaleProxy itself
-                    UnityEngine.Object.DestroyImmediate(parentAdjuster);
-                
-                    boneMappings.Add(proxyTransform.parent, proxyTransform);
-                }
+                var proxyObject = new GameObject("ScaleProxy");
+                var proxyTransform = proxyObject.transform;
+
+                proxyTransform.SetParent(adjuster.transform, false);
+                proxyTransform.localPosition = Vector3.zero;
+                proxyTransform.localRotation = Quaternion.identity;
+                proxyTransform.localScale = adjuster.Scale;
+
+                boneMappings.Add(adjuster.transform, proxyTransform);
+
+                Object.DestroyImmediate(adjuster);
             }
-                        
+
+            // Legacy cleanup
             foreach (var sar in context.AvatarRootObject.GetComponentsInChildren<ScaleAdjusterRenderer>())
             {
-                UnityEngine.Object.DestroyImmediate(sar.gameObject);
+                Object.DestroyImmediate(sar.gameObject);
+            }
+            foreach (var sar in context.AvatarRootObject.GetComponentsInChildren<ScaleProxy>())
+            {
+                Object.DestroyImmediate(sar.gameObject);
             }
             
             if (boneMappings.Count == 0)

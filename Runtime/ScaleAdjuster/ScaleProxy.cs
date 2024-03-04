@@ -16,13 +16,12 @@ namespace nadena.dev.modular_avatar.core
 #if UNITY_EDITOR
         void OnValidate()
         {
-            base.OnDestroy();
+            base.OnValidate();
             EditorApplication.delayCall += DeferredValidate;
         }
 
         void OnDestroy()
         {
-            ScaleAdjusterRenderer.InvalidateAll();
             base.OnDestroy();
         }
         
@@ -30,44 +29,12 @@ namespace nadena.dev.modular_avatar.core
         {
             if (this == null) return;
             
-            if (GetComponent<ModularAvatarPBBlocker>() == null)
+            // Avoid logspam on Unity 2019
+            if (PrefabUtility.IsPartOfPrefabInstance(gameObject)) return;
+
+            if (!ProxyManager.ShouldRetain(gameObject))
             {
-                gameObject.AddComponent<ModularAvatarPBBlocker>();
-            }
-
-            var avatar = ndmf.runtime.RuntimeUtil.FindAvatarInParents(transform);
-            ClearOverrides(avatar);
-
-            gameObject.hideFlags = HideFlags.HideInHierarchy;
-
-#if MODULAR_AVATAR_DEBUG_HIDDEN
-            gameObject.hideFlags = HideFlags.None;
-#endif
-            hideFlags = HideFlags.None;
-            
-            var parentObject = transform.parent;
-            var parentScaleAdjuster =
-                parentObject != null ? parentObject.GetComponent<ModularAvatarScaleAdjuster>() : null;
-
-            if (parentScaleAdjuster == null || parentScaleAdjuster.scaleProxy != transform)
-            {
-                if (PrefabUtility.IsPartOfPrefabAsset(this))
-                {
-                    var path = AssetDatabase.GetAssetPath(this);
-                    var root = PrefabUtility.LoadPrefabContents(path);
-
-                    foreach (var obj in root.GetComponentsInChildren<ScaleProxy>())
-                    {
-                        obj.DeferredValidate();
-                    }
-
-                    PrefabUtility.SaveAsPrefabAsset(root, path);
-                    PrefabUtility.UnloadPrefabContents(root);
-                }
-                else
-                {
-                    SelfDestruct();
-                }
+                SelfDestruct();
             }
         }
 
@@ -79,10 +46,9 @@ namespace nadena.dev.modular_avatar.core
                 root = transform;
                 while (root.parent != null) root = root.parent;
             }
-
+            
             ClearOverrides(root);
 
-            // Avoid logspam on Unity 2019
             if (PrefabUtility.IsPartOfPrefabInstance(gameObject)) return;
 
             DestroyImmediate(gameObject);
