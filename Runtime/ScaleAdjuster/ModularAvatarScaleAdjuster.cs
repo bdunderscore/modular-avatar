@@ -1,6 +1,8 @@
 ﻿#region
 
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -25,105 +27,100 @@ namespace nadena.dev.modular_avatar.core
             set
             {
                 m_Scale = value;
-                Update();
+                PreCull();
             }
         }
 
         [SerializeField] [FormerlySerializedAs("scaleProxy")]
         internal Transform legacyScaleProxy;
 
-        internal Transform scaleProxy;
+        internal Transform scaleProxyParent, scaleProxyChild;
 
+        [NonSerialized]
         private bool initialized = false;
 
 #if UNITY_EDITOR
-        void OnValidate()
+        void Awake()
         {
-            base.OnValidate();
+            ProxyManager.RegisterAdjuster(this);
             initialized = false;
         }
-        
-        private void Update()
+
+        void OnValidate()
         {
-            if (scaleProxy == null || initialized == false)
+            ProxyManager.RegisterAdjuster(this);
+            initialized = false;
+        }
+
+        internal void PreCull()
+        {
+            if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
+
+            if (scaleProxyParent == null || initialized == false)
             {
                 InitializeProxy();
             }
 
+            var xform = transform;
+            scaleProxyParent.position = transform.position;
+            scaleProxyParent.rotation = transform.rotation;
+            scaleProxyParent.localScale = transform.localScale;
+            scaleProxyChild.localScale = m_Scale;
+
+            ProxyManager.RegisterBone(xform, scaleProxyChild);
+            
             if (legacyScaleProxy != null && !PrefabUtility.IsPartOfPrefabAsset(legacyScaleProxy))
             {
                 DestroyImmediate(legacyScaleProxy.gameObject);
                 legacyScaleProxy = null;
             }
-            
-            scaleProxy.localScale = m_Scale;
         }
 
         private void InitializeProxy()
         {
-            if (scaleProxy == null)
+            if (scaleProxyParent == null)
             {
-                scaleProxy = new GameObject(gameObject.name + " (Scale Proxy)").transform;
-                scaleProxy.SetParent(transform, false);
-                scaleProxy.localPosition = Vector3.zero;
-                scaleProxy.localRotation = Quaternion.identity;
-                scaleProxy.localScale = m_Scale;
-                scaleProxy.gameObject.AddComponent<ScaleProxy>();
-                PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+                scaleProxyParent = new GameObject(gameObject.name + " (Scale Proxy)").transform;
+                scaleProxyChild = new GameObject("Child").transform;
+
+                scaleProxyChild.transform.SetParent(scaleProxyParent, false);
+
+#if MODULAR_AVATAR_DEBUG_HIDDEN
+                scaleProxyParent.gameObject.hideFlags = HideFlags.DontSave;
+                scaleProxyChild.gameObject.hideFlags = HideFlags.DontSave;
+#else
+                scaleProxyParent.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                scaleProxyChild.gameObject.hideFlags = HideFlags.HideAndDontSave;
+#endif
+
+                if (scaleProxyParent.gameObject.scene != gameObject.scene && gameObject.scene.IsValid())
+                {
+                    SceneManager.MoveGameObjectToScene(scaleProxyParent.gameObject, gameObject.scene);
+                }
             }
-
-            ConfigureRenderers();
-
+            
             initialized = true;
         }
 
         private void OnDestroy()
         {
-            if (scaleProxy != null)
+            ProxyManager.UnregisterAdjuster(this);
+
+            if (scaleProxyParent != null)
             {
-                DestroyImmediate(scaleProxy.gameObject);
+                DestroyImmediate(scaleProxyParent.gameObject);
             }
 
-            ScaleAdjusterRenderer.InvalidateAll();
+            if (transform != null)
+            {
+                ProxyManager.UnregisterBone(transform);
+            }
+
             base.OnDestroy();
         }
-
-
-        private void ConfigureRenderers()
-        {
-            var avatar = RuntimeUtil.FindAvatarInParents(transform);
-            if (avatar == null) return;
-            foreach (var smr in avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-            {
-                if (smr.GetComponent<ScaleAdjusterRenderer>() != null) continue;
-
-                var child = smr.transform.Find(ADJUSTER_OBJECT)?.GetComponent<ScaleAdjusterRenderer>();
-                if (child == null)
-                {
-                    var childObj = new GameObject(ADJUSTER_OBJECT);
-                    Undo.RegisterCreatedObjectUndo(childObj, "");
-
-                    var childSmr = childObj.AddComponent<SkinnedMeshRenderer>();
-                    EditorUtility.CopySerialized(smr, childSmr);
-
-                    childObj.transform.SetParent(smr.transform, false);
-                    childObj.transform.localPosition = Vector3.zero;
-                    childObj.transform.localRotation = Quaternion.identity;
-                    childObj.transform.localScale = Vector3.one;
-
-                    child = childObj.AddComponent<ScaleAdjusterRenderer>();
-                }
-
-                child.BoneMappings[transform] = scaleProxy;
-                child.ClearBoneCache();
-            }
-        }
-#endif
-
-#if !UNITY_EDITOR
-        private void Update()
-        {
-            // placeholder to make builds work
+#else
+        internal void PreCull() {
+            // build time stub
         }
 #endif
     }

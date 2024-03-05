@@ -18,8 +18,9 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             var m_orig = AccessTools.Method(t_HandleUtility, "FilterInstanceIDs");
 
             var m_prefix = AccessTools.Method(typeof(HandleUtilityPatches), "Prefix_FilterInstanceIDs");
+            var m_postfix = AccessTools.Method(typeof(HandleUtilityPatches), "Postfix_FilterInstanceIDs");
 
-            h.Patch(original: m_orig, prefix: new HarmonyMethod(m_prefix));
+            h.Patch(original: m_orig, prefix: new HarmonyMethod(m_prefix), postfix: new HarmonyMethod(m_postfix));
         }
 
         [UsedImplicitly]
@@ -34,13 +35,41 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             return true;
         }
 
+        private static void Postfix_FilterInstanceIDs(
+            ref IEnumerable<GameObject> gameObjects,
+            ref int[] parentInstanceIDs,
+            ref int[] childInstanceIDs
+        )
+        {
+            HashSet<int> newChildInstanceIDs = null;
+
+            foreach (var parent in gameObjects)
+            {
+                foreach (var renderer in parent.GetComponentsInChildren<Renderer>())
+                {
+                    if (renderer is SkinnedMeshRenderer smr &&
+                        ProxyManager.OriginalToProxyRenderer.TryGetValue(smr, out var proxy) &&
+                        proxy != null)
+                    {
+                        if (newChildInstanceIDs == null) newChildInstanceIDs = new HashSet<int>(childInstanceIDs);
+                        newChildInstanceIDs.Add(proxy.GetInstanceID());
+                    }
+                }
+            }
+
+            if (newChildInstanceIDs != null)
+            {
+                childInstanceIDs = newChildInstanceIDs.ToArray();
+            }
+        }
+
         private static IEnumerable<GameObject> RemapObjects(IEnumerable<GameObject> objs)
         {
             return objs.Select(
                 obj =>
                 {
                     if (obj == null) return obj;
-                    if (ScaleAdjusterRenderer.originalObjects.TryGetValue(obj, out var proxy) && proxy != null)
+                    if (ProxyManager.OriginalToProxyObject.TryGetValue(obj, out var proxy) && proxy != null)
                     {
                         return proxy.gameObject;
                     }

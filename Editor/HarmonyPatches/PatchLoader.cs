@@ -13,7 +13,6 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
     {
         private static readonly Action<Harmony>[] patches = new Action<Harmony>[]
         {
-            HideScaleAdjusterFromPrefabOverrideView.Patch,
             HierarchyViewPatches.Patch,
             #if UNITY_2022_3_OR_NEWER
             HandleUtilityPatches.Patch_FilterInstanceIDs,

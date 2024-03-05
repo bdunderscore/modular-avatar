@@ -143,7 +143,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             var pptrValue = p_pptrValue.GetValue(hierarchyProperty);
             if (pptrValue == null) return false;
 
-            var skip = ScaleAdjusterRenderer.proxyObjects.ContainsKey((GameObject)pptrValue);
+            var skip = ProxyManager.ProxyToOriginalObject.ContainsKey((GameObject)pptrValue);
             if (skip) skipped++;
 
             return skip;
@@ -163,7 +163,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         {
             if (pptrObject == null || isSceneHeader) return true;
 
-            if (hasChildren && ScaleAdjusterRenderer.originalObjects.ContainsKey((GameObject)pptrObject))
+            if (hasChildren && ProxyManager.ProxyToOriginalObject.ContainsKey((GameObject)pptrObject))
             {
                 // See if there are any other children...
                 hasChildren = ((GameObject)pptrObject).transform.childCount > 1;
