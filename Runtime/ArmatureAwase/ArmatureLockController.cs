@@ -196,8 +196,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                         break;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Debug.LogException(e);
                 _job = null;
                 return false;
             }
