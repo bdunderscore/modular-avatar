@@ -15,7 +15,7 @@
   "menuinstall.menu_icon_uncompressed": "選單圖示未設定壓縮。",
   "menuinstall.srcmenu": "安裝的選單",
 
-  "params.syncmode.NotSynced": "僅動畫控制器（不同步）",
+  "params.syncmode.NotSynced": "僅 Animator（不同步）",
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
@@ -38,7 +38,7 @@
   "merge_parameter.ui.prefix": "PhysBone 前綴名稱",
   "merge_parameter.ui.remapTo": "將名稱更改為",
   "merge_parameter.ui.remapTo.tooltip": "在這裡輸入一個新名稱以重新命名此參數或前綴。這可以用來解決名稱衝突或連結多種功能模塊。",
-  "merge_parameter.ui.remapTo.automatic": "(automatically determined)",
+  "merge_parameter.ui.remapTo.automatic": "（自動鎖定）",
   "merge_parameter.ui.defaultValue": "默認值",
   "merge_parameter.ui.defaultValue.tooltip": "當重置 Avatar 或第一次使用時，此參數將被設定為該值",
   "merge_parameter.ui.saved": "保存",
@@ -52,7 +52,7 @@
   "merge_parameter.ui.unregistered_foldout": "未註冊的參數",
   "merge_parameter.ui.add_button": "添加",
   "merge_parameter.ui.details": "參數設定",
-  "merge_parameter.ui.overrideAnimatorDefaults": "Override Animator Defaults",
+  "merge_parameter.ui.overrideAnimatorDefaults": "覆蓋 Animator 默認值",
 
   "merge_armature.merge_target": "合併目標",
   "merge_armature.merge_target.tooltip": "將當前對象合併到合併目標中",
@@ -75,11 +75,11 @@
   "merge_animator.path_mode": "路徑模式",
   "merge_animator.path_mode.tooltip": "在動畫中路徑的工作模式。\n使用相對路徑可以讓你在當前對象上錄制動畫。",
   "merge_animator.match_avatar_write_defaults": "配合 Avatar 的 WriteDefaults 設定",
-  "merge_animator.match_avatar_write_defaults.tooltip": "使用與 Avatar 一樣的 WriteDefaults 設定。\n如果設定存在衝突，將保持目標 Animator 的設定。",
+  "merge_animator.match_avatar_write_defaults.tooltip": "使用與 Avatar 一樣的 Write Defaults 設定。\n如果設定存在衝突，將保持目標 Animator 的設定。",
   "merge_animator.relative_path_root": "相對路徑根對象",
   "merge_animator.relative_path_root.tooltip": "解析相對路徑時使用的根對象。如果未指定，則使用當前對象。",
   "merge_animator.layer_priority": "動畫層優先級",
-  "merge_animator.layer_priority.tooltip": "控制動畫層合併到目標動畫控制器中的順序，由小到大。負值將合併於原有動畫層之前，0 或正值將合併於之後。",
+  "merge_animator.layer_priority.tooltip": "控制動畫層合併到目標 Animator 中的順序，由小到大。負值將合併於原有動畫層之前，0 或正值將合併於之後。",
 
   "merge_armature.lockmode": "位置同步模式",
   "merge_armature.lockmode.not_locked.title": "不同步",
@@ -109,8 +109,8 @@
   "fpvisible.quest": "此組件未生效，因為它與 Oculus Quest 不相容。",
   "fpvisible.InPhysBoneChain": "當前對象由 PhysicsBone 控制，可能無法在第一人稱視角中可見；請指定 PhysicsBone 鏈的起點。",
   "blendshape.mesh": "網格",
-  "blendshape.source": "源形態鍵",
-  "blendshape.target": "目標形態鍵",
+  "blendshape.source": "源 blendshape",
+  "blendshape.target": "目標 blendshape",
   "hint.not_in_avatar": "此組件需要放置於你的 Avatar 內才能工作",
   "boneproxy.err.MovingTarget": "您不能指定將由其他 Modular Avatar 組件移動的目標對象",
   "boneproxy.err.NotInAvatar": "你必須指定一個在 Avatar 內的對象",
@@ -122,7 +122,7 @@
   "mesh_settings.header_probe_anchor": "Anchor Override 設定",
   "mesh_settings.inherit_probe_anchor": "Anchor Override 模式",
   "mesh_settings.probe_anchor": "Anchor Override",
-  "mesh_settings.probe_anchor.tooltip": "設定用於當前對象和子對象內的渲染器的 Anchor Override。",
+  "mesh_settings.probe_anchor.tooltip": "設定用於當前對象和子對象內的渲染器的錨點覆蓋。",
   "mesh_settings.header_bounds": "Bounds 設定",
   "mesh_settings.inherit_bounds": "Bounds 模式",
   "mesh_settings.root_bone": "Root Bone",
@@ -149,40 +149,40 @@
   "error.merge_animator.param_type_mismatch:description": "參數 {0} 具有多種類型：{1} != {2}",
 
   "error.rename_params.too_many_synced_params": "太多同步參數：Cost {0} > {1}",
-  "error.rename_params.too_many_synced_params:description": "You have too many synced parameters in your avatar. You have assigned {0} bits worth of parameters, but the limit is {1}",
+  "error.rename_params.too_many_synced_params:description": "在你的 Avatar 中有太多同步參數。你已使用 {0} bits 的參數，但限制為 {1}。",
 
-  "error.rename_params.type_conflict": "[MA-0006] Parameter type conflict",
-  "error.rename_params.type_conflict:description": "Parameter {0} has multiple types specified: {1} != {2}",
+  "error.rename_params.type_conflict": "[MA-0006] 參數類型衝突",
+  "error.rename_params.type_conflict:description": "參數 {0} 指定了多種類型：{1} != {2}",
   
-  "error.rename_params.default_value_conflict": "[MA-0007] Default value conflict",
-  "error.rename_params.default_value_conflict:description": "Parameter {0} has multiple default values specified: {1} != {2}",
+  "error.rename_params.default_value_conflict": "[MA-0007] 默認值衝突",
+  "error.rename_params.default_value_conflict:description": "參數 {0} 指定了多個默認值：{1} != {2}",
   "error.rename_params.default_value_conflict:hint": "To avoid unpredictable behavior, leave the default value field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first default value specified in the hierarchy order.",
   
   "error.replace_object.null_target": "[MA-0008] 未指定替代對象",
   "error.replace_object.null_target:hint": "Replace object 需要一個對象來替代。嘗試指定一個。",
  
-  "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此物件上找不到渲染器（Renderer）",
-  "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync acts on a Skinned Mesh Renderer on the same GameObject. Did you attach it to the right object?",
+  "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此物件上找不到 Renderer",
+  "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用於相同物件上的 Skinned Mesh Renderer。你是否將它附加到正確的對象上？",
 
-  "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此物件的渲染器上找不到網格（Mesh）",
+  "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此物件的 Renderer 上找不到網格（Mesh）",
   "validation.blendshape_sync.no_local_mesh:hint": "It looks like the configuration for the Skinned Mesh Renderer on this object might be broken. Try recreating the object from its original prefab or FBX.",
 
-  "validation.blendshape_sync.no_bindings": "[MA-1002] 在此物件上找不到形態鍵（BlendShapes）",
-  "validation.blendshape_sync.no_bindings:hint": "Blendshape Sync 需要知道要同步哪些 blendshapes。點擊「+」新增。",
+  "validation.blendshape_sync.no_bindings": "[MA-1002] 在此物件上找不到 BlendShape",
+  "validation.blendshape_sync.no_bindings:hint": "Blendshape Sync 必需知道要同步哪些 blendshapes。點擊「+」新增。",
 
-  "validation.blendshape_sync.missing_local_shape": "[MA-1003] 找不到目標形態鍵",
-  "validation.blendshape_sync.missing_local_shape:description": "找不到目標形態鍵：{0}",
-  "validation.blendshape_sync.missing_local_shape:hint": "The blendshape configured to 'receive' the value from the target object is missing. Try changing the blendshape name indicated in red.",
+  "validation.blendshape_sync.missing_local_shape": "[MA-1003] 找不到目標 BlendShape",
+  "validation.blendshape_sync.missing_local_shape:description": "找不到目標 BlendShape：{0}",
+  "validation.blendshape_sync.missing_local_shape:hint": "The blendshape configured to 'receive' the value from the target object is missing.請嘗試更換被標紅的 Blendshape。",
 
-  "validation.blendshape_sync.missing_target_shape": "[MA-1004] 找不到源形態鍵",
-  "validation.blendshape_sync.missing_target_shape:description": "找不到源形態鍵：{0}",
-  "validation.blendshape_sync.missing_target_shape:hint": "The blendshape configured to 'send' the value to the local object is missing. Try changing the blendshape name indicated in red.",
+  "validation.blendshape_sync.missing_target_shape": "[MA-1004] 找不到源 BlendShape",
+  "validation.blendshape_sync.missing_target_shape:description": "找不到源 BlendShape：{0}",
+  "validation.blendshape_sync.missing_target_shape:hint": "The blendshape configured to 'send' the value to the local object is missing.請嘗試更換被標紅的 Blendshape。",
 
   "validation.blendshape_sync.no_target": "[MA-1005] 未指定目標對象（網格）",
   "validation.blendshape_sync.no_target:hint": "Blendshape Sync 需要知道要從哪個對象同步 Blendshape。請嘗試在「網格」中設定一個對象。",
 
   "validation.blendshape_sync.missing_target_renderer": "[MA-1006] 在目標對象上找不到渲染器（Renderer）",
-  "validation.blendshape_sync.missing_target_renderer:hint": "Blendshape Sync receives blendshape values from a Skinned Mesh Renderer on the target object. Did you attach it to the right object?",
+  "validation.blendshape_sync.missing_target_renderer:hint": "Blendshape Sync 會從目標對象上的 Skinned Mesh Renderer 接收 blendshape 的值。你是否將它附加到正確的對象上？",
 
   "validation.blendshape_sync.missing_target_mesh": "[MA-1007] 在目標對象的渲染器上找不到網格（Mesh）",
   "validation.blendshape_sync.missing_target_mesh:hint": "目標對象上的 Skinned Mesh Renderer 設定可能有問題。請嘗試從原預置件或 FBX 重新設定對象。",
@@ -199,7 +199,7 @@
   "validation.merge_armature.no_target": "[MA-1400] 未指定合併目標",
   "validation.merge_armature.no_target:hint": "Merge Armature 需要知道要合併到哪個骨架。請嘗試在「合併目標」中設定一個對象。",
     
-  "validation.merge_armature.target_is_child": "MA-1500] 合併目標不能是此對象的子級",
+  "validation.merge_armature.target_is_child": "[MA-1500] 合併目標不能是此對象的子級",
   "validation.merge_armature.target_is_child:hint": "Merge Armature 不能合併一個骨架到其自身。請嘗試將「合併目標」設定為其他對象。",
     
   "submenu_source.Children": "子對象",
@@ -259,7 +259,8 @@
   "setup_outfit.err.header": "對 {0} 進行 Setup Outfit 失敗",
   "setup_outfit.err.unknown": "未知錯誤",
   "setup_outfit.err.no_selection": "沒有選擇對象。",
-  "setup_outfit.err.multiple_avatar_descriptors": "在 {0} 裡有多個 VRC Avatar Descriptor。",
+  "setup_outfit.err.run_on_avatar_itself": "Setup outfit 必須在服裝物件上運行，而不是在 Avatar 本身。\n\n你是想製作一個混種 Avatar 嗎？如果是，請從裡 Avatar 中移除 Avatar descriptor 組件，然後對其執行 Setup outfit。",
+  "setup_outfit.err.multiple_avatar_descriptors": "在 {0} 和其父級中有多個 Avatar descriptor。\n\n你是想製作一個混種 Avatar 嗎？如果是，請從裡 Avatar 中移除 Avatar descriptor 組件，然後對其執行 Setup outfit。",
   "setup_outfit.err.no_avatar_descriptor": "在 {0} 的父級中找不到 VRC Avatar Descriptor。請確保你的服裝放置在 Avatar 裡。",
   "setup_outfit.err.no_animator": "你的 Avatar 沒有 Animator 組件。",
   "setup_outfit.err.no_hips": "你的 Avatar 沒有 Hips 骨骼。Setup Outfit 只能用於 humanoid Avatars。",
@@ -268,5 +269,5 @@
   "scale_adjuster.scale": "調整比例",
   "scale_adjuster.adjust_children": "調整子集的位置",
   "world_fixed_object.err.unsupported_platform": "此平台不支援 World Fixed Object 組件。",
-  "world_fixed_object.err.unsupported_platform:description": "此組件未生效。因為在 Android 環境下不支援 World Fixed Object"
+  "world_fixed_object.err.unsupported_platform:description": "此組件未生效。因為在 Android 環境下不支援 World Fixed Object。"
 }
