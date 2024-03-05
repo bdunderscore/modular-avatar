@@ -81,7 +81,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private List<INativeArrayRef> arrays = new List<INativeArrayRef>();
         public NativeArrayRef<bool> InUseMask { get; private set; }
 
-        public event ISegment.DefragmentCallback OnSegmentMove;
+        public event AllocationMap.DefragmentCallback OnSegmentMove;
 
         private int _allocatedLength = 1;
         public int AllocatedLength => _allocatedLength;

@@ -190,9 +190,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             {
                 jobIndex = _jobs.Count();
                 _jobs.Add(job);
-            }
+            } 
 
-            EnsureJobFlagCapacity(jobIndex);
+            EnsureJobFlagCapacity();
 
             for (int i = 0; i < segment.Length; i++)
             {
@@ -230,14 +230,16 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _memoryManager.Free(job.Segment);
         }
 
-        private void EnsureJobFlagCapacity(int jobIndex)
+        private void EnsureJobFlagCapacity()
         {
-            if (_abortFlag.IsCreated && _abortFlag.Length > jobIndex) return;
+            if (_abortFlag.IsCreated && _abortFlag.Length >= _jobs.Count) return;
 
+            var priorLength = _abortFlag.Length;
+            
             if (_abortFlag.IsCreated) _abortFlag.Dispose();
             if (_didAnyWriteFlag.IsCreated) _didAnyWriteFlag.Dispose();
 
-            int targetSize = Math.Max(16, (int)(_abortFlag.Length * 1.5f));
+            int targetSize = Math.Max(Math.Max(16, _jobs.Count), (int)(priorLength * 1.5f));
             _abortFlag = new NativeArray<bool>(targetSize, Allocator.Persistent);
             _didAnyWriteFlag = new NativeArray<bool>(targetSize, Allocator.Persistent);
         }
@@ -292,6 +294,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             Profiler.BeginSample("InternalUpdate");
             _lastJob.Complete();
+
+            EnsureJobFlagCapacity();
 
             if (_transformAccessDirty)
             {

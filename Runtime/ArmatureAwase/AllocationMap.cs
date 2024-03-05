@@ -9,15 +9,15 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal interface ISegment
     {
-        public delegate void DefragmentCallback(int oldOffset, int newOffset, int length);
-
-        public DefragmentCallback Defragment { get; set; }
-        public int Offset { get; }
-        public int Length { get; }
+        AllocationMap.DefragmentCallback Defragment { get; set; }
+        int Offset { get; }
+        int Length { get; }
     }
 
     internal class AllocationMap
     {
+        public delegate void DefragmentCallback(int oldOffset, int newOffset, int length);
+
         // Visible for unit tests
         internal class Segment : ISegment
         {
@@ -25,7 +25,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             public int _length;
             public bool _inUse;
 
-            public ISegment.DefragmentCallback Defragment { get; set; }
+            public AllocationMap.DefragmentCallback Defragment { get; set; }
             public int Offset => _offset;
             public int Length => _length;
 
@@ -121,7 +121,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// and then the callback associated with the segment (if any) is also invoked.
         /// </summary>
         /// <param name="callback"></param>
-        public void Defragment(ISegment.DefragmentCallback callback)
+        public void Defragment(AllocationMap.DefragmentCallback callback)
         {
             int offset = 0;
 
@@ -144,6 +144,6 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 offset += seg.Length;
             }
-        }
+        } 
     }
 }
