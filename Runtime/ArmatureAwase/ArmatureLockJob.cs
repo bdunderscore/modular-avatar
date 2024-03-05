@@ -23,8 +23,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         internal ImmutableList<(Transform, Transform)> RecordedParents;
         internal ImmutableList<(Transform, Transform)> Transforms;
 
-        internal ArmatureLockJob(ImmutableList<(Transform, Transform)> transforms, Action dispose, Action update)
+        internal ISegment Segment { get; private set; }
+
+        internal ArmatureLockJob(ISegment Segment, ImmutableList<(Transform, Transform)> transforms, Action dispose,
+            Action update)
         {
+            this.Segment = Segment;
             Transforms = transforms;
             RecordedParents = transforms.Select(((tuple, _) => (tuple.Item1.parent, tuple.Item2.parent)))
                 .ToImmutableList();
