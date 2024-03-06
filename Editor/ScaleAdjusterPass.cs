@@ -44,7 +44,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            foreach (var smr in context.AvatarRootObject.GetComponentsInChildren<SkinnedMeshRenderer>())
+            foreach (var smr in context.AvatarRootObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var bones = smr.bones;
                 for (int i = 0; i < bones.Length; i++)
