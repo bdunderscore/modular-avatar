@@ -280,7 +280,7 @@ namespace nadena.dev.modular_avatar.core
                     CopyRendererStates(original, proxy);
 
                     statesToRestore.Add((original, original.enabled));
-                    original.enabled = false;
+                    original.forceRenderingOff = true;
                 }
             }
         }
@@ -328,7 +328,7 @@ namespace nadena.dev.modular_avatar.core
         {
             foreach (var (original, state) in statesToRestore)
             {
-                original.enabled = state;
+                original.forceRenderingOff = false;
             }
             
             statesToRestore.Clear();
