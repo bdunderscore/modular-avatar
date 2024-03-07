@@ -154,7 +154,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var parentTransform = subConfig.transform.parent;
                     var parentConfig = parentTransform.GetComponentInParent<ModularAvatarMergeArmature>();
                     var parentMapping = parentConfig.MapBone(parentTransform);
-                    
+
                     subConfig.mergeTarget = new AvatarObjectReference();
                     subConfig.mergeTarget.referencePath =
                         RuntimeUtil.RelativePath(avatarRoot, parentMapping.gameObject);
@@ -316,7 +316,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     };
                     return false;
                 }
-                
+
                 if (nearestAvatarTransform == xform)
                 {
                     errorMessageGroups = new string[]
@@ -386,6 +386,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 outfitHips = outfitAnimator.isHuman
                     ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject
                     : null;
+
+                if (outfitHips.transform.parent == outfitRoot.transform)
+                {
+                    // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
+                    // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
+                    // assume the outfit's humanoid rig is broken and move on to heuristic matching.
+                    outfitHips = null;
+                }
             }
 
             var hipsCandidates = new List<string>();
