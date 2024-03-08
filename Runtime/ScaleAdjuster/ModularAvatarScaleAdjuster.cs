@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core
         [SerializeField] [FormerlySerializedAs("scaleProxy")]
         internal Transform legacyScaleProxy;
 
-        internal Transform scaleProxyParent, scaleProxyChild;
+        internal Transform scaleProxyChild;
 
         [NonSerialized]
         private bool initialized = false;
@@ -56,15 +56,14 @@ namespace nadena.dev.modular_avatar.core
         {
             if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
 
-            if (scaleProxyParent == null || initialized == false)
+            if (scaleProxyChild == null || initialized == false)
             {
                 InitializeProxy();
             }
 
+            UpdateProxyParent(scaleProxyChild, transform);
+
             var xform = transform;
-            scaleProxyParent.position = transform.position;
-            scaleProxyParent.rotation = transform.rotation;
-            scaleProxyParent.localScale = transform.localScale;
             scaleProxyChild.localScale = m_Scale;
 
             ProxyManager.RegisterBone(xform, scaleProxyChild);
@@ -76,27 +75,60 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
+        private void UpdateProxyParent(Transform proxyChild, Transform trueParent)
+        {
+            while (trueParent != null)
+            {
+                Transform parent = proxyChild.parent;
+                if (parent == null)
+                {
+                    GameObject obj = new GameObject();
+                    proxyChild.transform.SetParent(obj.transform, false);
+                    #if MODULAR_AVATAR_DEBUG_HIDDEN
+                    obj.hideFlags = HideFlags.DontSave;
+                    #else
+                    obj.hideFlags = HideFlags.HideAndDontSave;
+                    #endif
+                    parent = obj.transform;
+                    
+                    if (obj.scene != gameObject.scene && gameObject.scene.IsValid())
+                    {
+                        SceneManager.MoveGameObjectToScene(obj, gameObject.scene);
+                    }
+                }
+
+                parent.gameObject.name = "Proxy object for " + trueParent.gameObject.name;
+                parent.localPosition = trueParent.localPosition;
+                parent.localRotation = trueParent.localRotation;
+                parent.localScale = trueParent.localScale;
+
+                proxyChild = parent;
+                trueParent = trueParent.parent;
+            }
+
+            if (proxyChild.parent != null)
+            {
+                // Reparent to root
+                proxyChild.SetParent(null, false);
+                
+                // Destroy old hierarchy
+                Transform parent = proxyChild.parent;
+                while (parent.parent != null) parent = parent.parent;
+                DestroyImmediate(parent.gameObject);
+            }
+        }
+
         private void InitializeProxy()
         {
-            if (scaleProxyParent == null)
+            if (scaleProxyChild == null)
             {
-                scaleProxyParent = new GameObject(gameObject.name + " (Scale Proxy)").transform;
                 scaleProxyChild = new GameObject("Child").transform;
 
-                scaleProxyChild.transform.SetParent(scaleProxyParent, false);
-
 #if MODULAR_AVATAR_DEBUG_HIDDEN
-                scaleProxyParent.gameObject.hideFlags = HideFlags.DontSave;
                 scaleProxyChild.gameObject.hideFlags = HideFlags.DontSave;
 #else
-                scaleProxyParent.gameObject.hideFlags = HideFlags.HideAndDontSave;
                 scaleProxyChild.gameObject.hideFlags = HideFlags.HideAndDontSave;
 #endif
-
-                if (scaleProxyParent.gameObject.scene != gameObject.scene && gameObject.scene.IsValid())
-                {
-                    SceneManager.MoveGameObjectToScene(scaleProxyParent.gameObject, gameObject.scene);
-                }
             }
             
             initialized = true;
@@ -106,9 +138,11 @@ namespace nadena.dev.modular_avatar.core
         {
             ProxyManager.UnregisterAdjuster(this);
 
-            if (scaleProxyParent != null)
+            if (scaleProxyChild != null)
             {
-                DestroyImmediate(scaleProxyParent.gameObject);
+                Transform parent = scaleProxyChild.parent;
+                while (parent.parent != null) parent = parent.parent;
+                DestroyImmediate(parent.gameObject);
             }
 
             if (transform != null)
