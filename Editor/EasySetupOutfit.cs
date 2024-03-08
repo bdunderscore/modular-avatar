@@ -386,8 +386,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 outfitHips = outfitAnimator.isHuman
                     ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips)?.gameObject
                     : null;
-
-                if (outfitHips.transform.parent == outfitRoot.transform)
+                
+                if (outfitHips != null && outfitHips.transform.parent == outfitRoot.transform)
                 {
                     // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
                     // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
