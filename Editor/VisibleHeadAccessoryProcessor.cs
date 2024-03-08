@@ -1,12 +1,19 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
+using Object = UnityEngine.Object;
 
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -95,6 +102,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
         private Transform _proxyHead;
 
+        private Dictionary<Transform, Transform> _boneShims = new Dictionary<Transform, Transform>();
+
         public VisibleHeadAccessoryProcessor(BuildContext context)
         {
             _context = context;
@@ -135,9 +144,9 @@ namespace nadena.dev.modular_avatar.core.editor
             
             if (_validator.Validate(target) == VisibleHeadAccessoryValidation.ReadyStatus.Ready)
             {
-                var proxy = CreateProxy();
+                var shim = CreateShim(target.transform.parent);
 
-                target.transform.SetParent(proxy, true);
+                target.transform.SetParent(shim, true);
 
                 didWork = true;
             }
@@ -148,11 +157,68 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     _visibleBones.Add(xform);
                 }
+
+                ProcessAnimations();
             }
 
             Object.DestroyImmediate(target);
 
             return didWork;
+        }
+
+        private void ProcessAnimations()
+        {
+            var animdb = _context.AnimationDatabase;
+            var paths = _context.PathMappings;
+            Dictionary<string, string> pathMappings = new Dictionary<string, string>();
+
+            foreach (var kvp in _boneShims)
+            {
+                var orig = paths.GetObjectIdentifier(kvp.Key.gameObject);
+                var shim = paths.GetObjectIdentifier(kvp.Value.gameObject);
+
+                pathMappings[orig] = shim;
+            }
+
+            animdb.ForeachClip(motion =>
+            {
+                if (!(motion.CurrentClip is AnimationClip clip)) return;
+
+                var bindings = AnimationUtility.GetCurveBindings(clip);
+                foreach (var binding in bindings)
+                {
+                    if (binding.type != typeof(Transform)) continue;
+                    if (!pathMappings.TryGetValue(binding.path, out var newPath)) continue;
+
+                    var newBinding = binding;
+                    newBinding.path = newPath;
+                    AnimationUtility.SetEditorCurve(clip, newBinding, AnimationUtility.GetEditorCurve(clip, binding));
+                }
+            });
+        }
+
+        private Transform CreateShim(Transform target)
+        {
+            if (_boneShims.TryGetValue(target.transform, out var shim)) return shim;
+
+            if (target == _headBone) return CreateProxy();
+            if (target.parent == null)
+            {
+                // parent is not the head bone...?
+                throw new ArgumentException("Failed to find head bone");
+            }
+
+            var parentShim = CreateShim(target.parent);
+
+            GameObject obj = new GameObject(target.gameObject.name);
+            obj.transform.SetParent(parentShim, false);
+            obj.transform.localPosition = target.localPosition;
+            obj.transform.localRotation = target.localRotation;
+            obj.transform.localScale = target.localScale;
+
+            _boneShims[target] = obj.transform;
+
+            return obj.transform;
         }
 
         private Transform CreateProxy()
