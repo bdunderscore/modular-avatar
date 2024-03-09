@@ -22,10 +22,13 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -37,11 +40,13 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
 #endif
 
+#endregion
+
 namespace nadena.dev.modular_avatar.animation
 {
     internal class AnimatorCombiner
     {
-        private readonly ndmf.BuildContext _context;
+        private readonly BuildContext _context;
         private readonly AnimatorController _combined;
 
         private readonly DeepClone _deepClone;
@@ -68,7 +73,7 @@ namespace nadena.dev.modular_avatar.animation
         public VRC_AnimatorLayerControl.BlendableLayer? BlendableLayer;
 #endif
 
-        public AnimatorCombiner(ndmf.BuildContext context, String assetName)
+        public AnimatorCombiner(BuildContext context, String assetName)
         {
             _combined = new AnimatorController();
             if (context.AssetContainer != null && EditorUtility.IsPersistent(context.AssetContainer))
@@ -141,6 +146,18 @@ namespace nadena.dev.modular_avatar.animation
                         .SelectMany(FixupTransition).ToArray();
                     asm.anyStateTransitions = asm.anyStateTransitions
                         .SelectMany(FixupTransition).ToArray();
+
+                    foreach (var stateMachine in asm.stateMachines)
+                    {
+                        var ssm = stateMachine.stateMachine;
+
+                        var stateMachineTransitions = asm.GetStateMachineTransitions(ssm);
+                        if (stateMachineTransitions.Length > 0)
+                        {
+                            asm.SetStateMachineTransitions(ssm,
+                                stateMachineTransitions.SelectMany(FixupTransition).ToArray());
+                        }
+                    }
                 }
             }
         }
