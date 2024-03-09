@@ -181,6 +181,23 @@ public class ConvertTransitionTypes : TestBase
     }
 
     [Test]
+    public void SubStateMachineExitTransitions()
+    {
+        var prefab = CreatePrefab("ConvertTransitionTypes.prefab");
+        
+        AvatarProcessor.ProcessAvatar(prefab);
+        
+        var layer = findFxLayer(prefab, "sub_state_machine");
+
+        var rootStateMachine = layer.stateMachine;
+        var ssm1 = layer.stateMachine.stateMachines[0].stateMachine;
+        var exitTransitions = rootStateMachine.GetStateMachineTransitions(ssm1);
+        
+        AssertSingleTransition(exitTransitions[0], ("int", AnimatorConditionMode.Greater, 0.1f));
+        AssertSingleTransition(exitTransitions[1], ("int", AnimatorConditionMode.Less, -0.1f));
+    }
+
+    [Test]
     public void CrossLayerTypeConsistency()
     {
         var prefab = CreatePrefab("CrossLayerTypeConsistency.prefab");
