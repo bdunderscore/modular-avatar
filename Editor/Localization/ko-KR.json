@@ -99,7 +99,7 @@
   "worldfixed.normal": "This object will be fixed to world unless you fixed to avatar with constraint.",
   "fpvisible.normal": "이 오브젝트는 일인칭 시점에서 보일 것입니다.",
   "fpvisible.NotUnderHead": "Head 본(Bone) 내의 오브젝트가 아닌 경우 작동하지 않습니다.",
-  "fpvisible.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
+  "fpvisible.quest": "이 컴포넌트는 오큘러스 퀘스트 단독 버전과 호환되지 않으며 영향을 미치지 않습니다.",
   "fpvisible.InPhysBoneChain": "이 객체는 Physics Bone 체인에 의해 컨트롤되므로 체인의 세부적인 선택이 불가능합니다. 대신 체인의 시작 부분을 선택하세요.",
   "blendshape.mesh": "메시",
   "blendshape.source": "소스 블렌드쉐이프",
