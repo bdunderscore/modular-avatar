@@ -171,7 +171,7 @@
   "validation.merge_animator.no_animator:hint": "Merge Animator needs to know which animator to merge. Try setting the 'Animator to merge' field.",
   "validation.merge_armature.no_target": "ターゲットオブジェクトが未設定、もしくは存在しません。",
   "validation.merge_armature.no_target:hint": "Merge Armature needs to know which armature to merge. Try setting the 'Merge Target' field.",
-  "validation.merge_armature.target_is_child": "[MA-1500] Merge target cannot be a child of this object",
+  "validation.merge_armature.target_is_child": "[MA-1500] マージターゲットをこのオブジェクトの子にすることができません",
   "validation.merge_armature.target_is_child:hint": "Merge Armature cannot merge an armature into itself. Try setting the 'Merge Target' field to a different object.",
   "submenu_source.Children": "子オブジェクトから生成",
   "submenu_source.MenuAsset": "Expressions Menu アセットを指定",
