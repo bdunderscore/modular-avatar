@@ -27,7 +27,7 @@ files: [
     # Where translations will be placed
     # e.g. "/resources/%two_letters_code%/%original_file_name%"
     #
-    "translation": "/Editor/Localization/%locale%.json",
+    "translation": "/Editor/Localization/%osx_locale%.json",
 
     #
     # Files or directories for ignore
