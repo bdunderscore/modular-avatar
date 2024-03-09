@@ -131,7 +131,7 @@
   "error.merge_armature.circular_dependency": "[MA-0001] Merge Armatureに循環参照があります",
   "error.merge_armature.circular_dependency:description": "Merge Armature コンポーネントは、自分自身、または自分の子をマージターゲットとして参照しています。",
   "error.merge_armature.circular_dependency:hint": "Merge Armature は通常、ターゲットフィールドにアバター本体の Armature オブジェクトを指定する必要があります。衣装自体を指定しないでください。",
-  "error.merge_armature.physbone_on_humanoid_bone": "統合するArmatureのHumanoidボーンがPhysBoneによって制御されており、統合先の対応するHumanoidボーンと位置が異なるため正しく統合できません。統合するArmatureの該当HumanoidボーンからPhysBoneを削除してください。",
+  "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] ヒューマノイドボーンにPhysBoneコンポーネントを検出",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "一部のヒューマノイドボーンは、PhysBonesによって制御されています。 マージ対象の対応するヒューマノイドボーンとは位置が異なるため、適切にマージすることはできません。マージするにはヒューマノイドボーンのPhysBonesを取り除く必要があります。",
   "error.internal_error": "内部エラーが発生しました：{0}\n以下のオブジェクトの処理中に発生しました：",
   "error.merge_animator.param_type_mismatch": "[MA-0003] パラメータの型が競合しています",
