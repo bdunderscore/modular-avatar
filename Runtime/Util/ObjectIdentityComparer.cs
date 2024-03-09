@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace nadena.dev.modular_avatar.JacksonDunstan.NativeCollections
+#endregion
+
+namespace nadena.dev.modular_avatar
 {
     internal class ObjectIdentityComparer<T> : IEqualityComparer<T>
     {
