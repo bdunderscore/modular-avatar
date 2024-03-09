@@ -1,9 +1,9 @@
-{
+﻿{
   "test0.test_a": "test_a",
   "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "進階設定",
   "boneproxy.target": "目標",
-  "menuinstall.help.hint_set_menu": "此\u00A0Prefab\u00A0的選單預設會安裝到\u00A0Avatar\u00A0的頂部選單中。如果不需要，可以選擇其他選單或取消勾選此元件。",
+  "menuinstall.help.hint_set_menu": "此 Prefab 的選單預設會安裝到 Avatar 的頂部選單中。如果不需要，可以選擇其他選單或取消勾選此元件。",
   "menuinstall.help.hint_bad_menu": "選擇的選單不屬於此 Avatar。",
   "menuinstall.installto": "安裝到",
   "menuinstall.installto.tooltip": "當前 Prefab 的選單將會安裝到此選單",
@@ -14,12 +14,10 @@
   "menuinstall.menu_icon_too_large": "選單圖示過大，圖示應小於 256 像素。",
   "menuinstall.menu_icon_uncompressed": "選單圖示未設定壓縮。",
   "menuinstall.srcmenu": "安裝的選單",
-
   "params.syncmode.NotSynced": "僅 Animator（不同步）",
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   自動檢測參數   ",
   "params.internal": "內部",
@@ -32,7 +30,6 @@
   "params.remapto": "字段名映射到",
   "params.remapto.tooltip": "輸入新的字段名以防止參數名稱衝突",
   "params.devmode": "顯示 Prefab 開發者選項",
-
   "params.__comment1__": "=== Unity 2022 only strings ===",
   "merge_parameter.ui.name": "參數名稱",
   "merge_parameter.ui.prefix": "PhysBone 前綴名稱",
@@ -53,7 +50,6 @@
   "merge_parameter.ui.add_button": "添加",
   "merge_parameter.ui.details": "參數設定",
   "merge_parameter.ui.overrideAnimatorDefaults": "覆蓋 Animator 預設值",
-
   "merge_armature.merge_target": "合併目標",
   "merge_armature.merge_target.tooltip": "將當前對象合併到合併目標中",
   "merge_armature.prefix": "骨骼前綴",
@@ -79,8 +75,7 @@
   "merge_animator.relative_path_root": "相對路徑根對象",
   "merge_animator.relative_path_root.tooltip": "解析相對路徑時使用的根對象。\n如果未指定，則使用當前對象。",
   "merge_animator.layer_priority": "動畫層優先級",
-  "merge_animator.layer_priority.tooltip": "控制動畫層合併到目標\u00A0Animator\u00A0中的順序，\n由小到大。負值將合併於原有動畫層之前，\n0\u00A0或正值將合併於之後。",
-
+  "merge_animator.layer_priority.tooltip": "控制動畫層合併到目標 Animator 中的順序，\n由小到大。負值將合併於原有動畫層之前，\n0 或正值將合併於之後。",
   "merge_armature.lockmode": "位置同步模式",
   "merge_armature.lockmode.not_locked.title": "不同步",
   "merge_armature.lockmode.not_locked.body": "Avatar 骨骼和合併目標骨骼不進行位置同步",
@@ -95,13 +90,11 @@
   "merge_armature.reset_pos.execute": "執行",
   "merge_armature.reset_pos.heuristic_scale": "根據 Avatar 調整服裝的整體比例",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "以臂展作為參考，調整服裝的整體比例。\n推薦用於非 Avatar 對應的服裝。",
-
   "merge_blend_tree.blend_tree": "Blend Tree",
   "merge_blend_tree.path_mode": "路徑模式",
   "merge_blend_tree.path_mode.tooltip": "在動畫中路徑的工作模式。\n使用相對路徑可以讓你在當前對象上錄制動畫。",
   "merge_blend_tree.relative_path_root": "相對路徑根對象",
   "merge_blend_tree.relative_path_root.tooltip": "解析相對路徑時使用的根對象。\n如果未指定，則使用當前對象。",
-
   "worldfixed.quest": "此元件未生效，因為它與 Oculus Quest 不相容。",
   "worldfixed.normal": "當前對象將會固定於世界，除非你使用約束將它綁在 Avatar 內。",
   "fpvisible.normal": "當前對象將在第一人稱視角中可見。",
@@ -135,73 +128,51 @@
   "pb_blocker.help": "當前對象不會受到附加的父對象的 PhysBones 的影響。",
   "hint.bad_vrcsdk": "檢測到不相容的 VRCSDK 版本。\n\n請嘗試升級 VRCSDK；如果這不起作用，請嘗試新版本的 Modular Avatar。",
   "error.stack_trace": "Stack trace（報告錯誤時提供此資訊！）",
-
   "error.merge_armature.circular_dependency": "[MA-0001] 在 Merge armature 中存在循環引用",
   "error.merge_armature.circular_dependency:description": "你的 Merge Armature 元件正在將自身或其子級作為合併目標。",
   "error.merge_armature.circular_dependency:hint": "通常應在 Merge Armature 的合併目標欄位指定 Avatar 本身的 Armture。不要指定服裝本身！",
-
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] 在 Humanoid 骨骼上有 PhysBones 元件",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "在要合併的骨架中，某些 Humanoid 骨骼受到 PhysBones 控制，其位置與合併目標中相應的 Humanoid 骨骼不同。你應該在要合併的骨架中，移除這些 Humanoid 骨骼上的 PhysBones。",
-
   "error.internal_error": "[MA-9999] 發生內部錯誤：{0}\nwhen processing:",
-
   "error.merge_animator.param_type_mismatch": "[MA-0003] 參數類型不符",
   "error.merge_animator.param_type_mismatch:description": "參數 {0} 具有多種類型：{1} != {2}",
-
   "error.rename_params.too_many_synced_params": "太多同步參數：Cost {0} > {1}",
   "error.rename_params.too_many_synced_params:description": "在你的 Avatar 中有太多同步參數。你已使用 {0} bits 的參數，但限制為 {1}。",
-
   "error.rename_params.type_conflict": "[MA-0006] 參數類型衝突",
   "error.rename_params.type_conflict:description": "參數 {0} 指定了多種類型：{1} != {2}",
-  
   "error.rename_params.default_value_conflict": "[MA-0007] 預設值衝突",
   "error.rename_params.default_value_conflict:description": "參數 {0} 指定了多個預設值：{1} != {2}",
   "error.rename_params.default_value_conflict:hint": "為了避免不可預測的行為，請將 MA Parameters 元件中所有預設值留空，只留一個。如果存在多個值，Modular Avatar 將選擇第一個預設值。",
-  
   "error.replace_object.null_target": "[MA-0008] 未指定替代對象",
   "error.replace_object.null_target:hint": "Replace object 需要一個對象來替代。嘗試指定一個。",
- 
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此物件上找不到 Renderer",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用於相同物件上的 Skinned Mesh Renderer。你是否將它附加到正確的對象上？",
-
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此物件的 Renderer 上找不到網格（Mesh）",
   "validation.blendshape_sync.no_local_mesh:hint": "當前對象上的 Skinned Mesh Renderer 配置可能有問題。請嘗試從原 Prefab 或 FBX 重新設定對象。",
-
   "validation.blendshape_sync.no_bindings": "[MA-1002] 在此物件上找不到 BlendShape",
   "validation.blendshape_sync.no_bindings:hint": "Blendshape Sync 必需知道要同步哪些 blendshapes。點擊「+」新增。",
-
   "validation.blendshape_sync.missing_local_shape": "[MA-1003] 找不到目標 BlendShape",
   "validation.blendshape_sync.missing_local_shape:description": "找不到目標 BlendShape：{0}",
   "validation.blendshape_sync.missing_local_shape:hint": "配置為從目標對象「接收」值的 BlendShape 缺失。請嘗試更換被標紅的 Blendshape。",
-
   "validation.blendshape_sync.missing_target_shape": "[MA-1004] 找不到源 BlendShape",
   "validation.blendshape_sync.missing_target_shape:description": "找不到源 BlendShape：{0}",
   "validation.blendshape_sync.missing_target_shape:hint": "配置為向本地對象「發送」值的 BlendShape 缺失。請嘗試更換被標紅的 Blendshape。",
-
   "validation.blendshape_sync.no_target": "[MA-1005] 未指定目標對象（網格）",
   "validation.blendshape_sync.no_target:hint": "Blendshape Sync 需要知道要從哪個對象同步 Blendshape。請嘗試在「網格」中設定一個對象。",
-
   "validation.blendshape_sync.missing_target_renderer": "[MA-1006] 在目標對象上找不到 Renderer",
   "validation.blendshape_sync.missing_target_renderer:hint": "Blendshape Sync 會從目標對象上的 Skinned Mesh Renderer 接收 blendshape 的值。你是否將它附加到正確的對象上？",
-
   "validation.blendshape_sync.missing_target_mesh": "[MA-1007] 在目標對象的渲染器上找不到網格（Mesh）",
   "validation.blendshape_sync.missing_target_mesh:hint": "目標對象上的 Skinned Mesh Renderer 配置可能有問題。請嘗試從原 Prefab 或 FBX 重新設定對象。",
-
   "validation.bone_proxy.no_target": "[MA-1100] 未指定目標對象，或未找到目標對象",
   "validation.bone_proxy.no_target:hint": "Bone Proxy 需要知道要將當前對象綁定到哪個目標對象。請嘗試在「目標」中設定一個當前對象應該綁定到的目標對象。",
-
   "validation.menu_installer.no_menu": "[MA-1200] 未指定安裝的選單",
   "validation.menu_installer.no_menu:hint": "Menu Installer 需要知道要將此 Prefab 安裝到哪個選單。請嘗試設定「Prefab 開發者選項」裡的「安裝的選單」，或是新增一個「MA Menu Item」元件。",
-  
   "validation.merge_animator.no_animator": "[MA-1300] 未指定要合併的目標 Animator",
   "validation.merge_animator.no_animator:hint": "Merge Animator 需要知道要合併到哪個 Animator。請嘗試在「合併的目標 Animator」中設定一個對象。",
-
   "validation.merge_armature.no_target": "[MA-1400] 未指定合併目標",
   "validation.merge_armature.no_target:hint": "Merge Armature 需要知道要合併到哪個骨架。請嘗試在「合併目標」中設定一個對象。",
-    
   "validation.merge_armature.target_is_child": "[MA-1500] 合併目標不能是此對象的子級",
   "validation.merge_armature.target_is_child:hint": "Merge Armature 不能合併一個骨架到其自身。請嘗試將「合併目標」設定為其他對象。",
-    
   "submenu_source.Children": "子對象",
   "submenu_source.MenuAsset": "選單資源文件 (Expressions Menu)",
   "menuitem.showcontents": "顯示選單內容",
