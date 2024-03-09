@@ -212,7 +212,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 {
                     // Initial setup failed; roll things back
                     job.IsValid = false;
-                    RemoveJob(job);
+                    job.Dispose();
                 }
             }
 
