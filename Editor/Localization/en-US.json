@@ -14,10 +14,12 @@
   "menuinstall.menu_icon_too_large": "The icon set in the menu is too large than 256 pixels.",
   "menuinstall.menu_icon_uncompressed": "The icon set in the menu is not set for compression.",
   "menuinstall.srcmenu": "Menu to Install",
+  
   "params.syncmode.NotSynced": "Animator Only",
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
+  
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   Autodetected Parameters   ",
   "params.internal": "Internal",
@@ -30,6 +32,7 @@
   "params.remapto": "Remap to",
   "params.remapto.tooltip": "Enter a new name for this parameter here to resolve name conflicts",
   "params.devmode": "Show Prefab Developer Options",
+
   "params.__comment1__": "=== Unity 2022 only strings ===",
   "merge_parameter.ui.name": "Parameter name",
   "merge_parameter.ui.prefix": "PhysBone prefix name",
@@ -50,6 +53,7 @@
   "merge_parameter.ui.add_button": "Add",
   "merge_parameter.ui.details": "Parameter Configuration",
   "merge_parameter.ui.overrideAnimatorDefaults": "Override Animator Defaults",
+
   "merge_armature.merge_target": "Merge Target",
   "merge_armature.merge_target.tooltip": "The armature (or subtree) to merge this object into",
   "merge_armature.prefix": "Prefix",
@@ -76,6 +80,7 @@
   "merge_animator.relative_path_root.tooltip": "The root object to use when interpreting relative paths. If not specified, the object this component is attached to will be used.",
   "merge_animator.layer_priority": "Layer Priority",
   "merge_animator.layer_priority.tooltip": "Controls the order in which layers are merged into the animator - lower to higher. Negative values are merged before the original layer on the avatar descriptor, while zero and positive numbers are merged after.",
+
   "merge_armature.lockmode": "Position sync mode",
   "merge_armature.lockmode.not_locked.title": "Not locked",
   "merge_armature.lockmode.not_locked.body": "Merged armature does not sync its position with the base avatar.",
@@ -90,11 +95,13 @@
   "merge_armature.reset_pos.execute": "Do it!",
   "merge_armature.reset_pos.heuristic_scale": "Adjust outfit overall scale to match base avatar",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "Will set the overall scale of the outfit as a whole based on armspan measurements. Recommended for setting up outfits.",
+  
   "merge_blend_tree.blend_tree": "Blend Tree",
   "merge_blend_tree.path_mode": "Path Mode",
   "merge_blend_tree.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_blend_tree.relative_path_root": "Relative Path Root",
   "merge_blend_tree.relative_path_root.tooltip": "The root object to use when interpreting relative paths. If not specified, the object this component is attached to will be used.",
+  
   "worldfixed.quest": "This component is not compatible with the standalone Oculus Quest and will have no effect.",
   "worldfixed.normal": "This object will be fixed to world unless you fixed to avatar with constraint.",
   "fpvisible.normal": "This object will be visible in your first person view.",
@@ -128,51 +135,73 @@
   "pb_blocker.help": "This object will not be affected by PhysBones attached to parents.",
   "hint.bad_vrcsdk": "Incompatible version of VRCSDK detected.\n\nPlease try upgrading your VRCSDK; if this does not work, check for a newer version of Modular Avatar as well.",
   "error.stack_trace": "Stack trace (provide this when reporting bugs!)",
+  
   "error.merge_armature.circular_dependency": "[MA-0001] Circular reference in merge armature",
   "error.merge_armature.circular_dependency:description": "Your Merge Armature component is referencing itself, or a child of itself, as the merge target.",
   "error.merge_armature.circular_dependency:hint": "Merge Armature should typically specify the Armature object of the avatar itself under its Target field. Don't specify the outfit itself!",
+  
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] PhysBone component found on humanoid bone",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "Some Humanoid bones in the armature to merge are controlled by PhysBones, and can't be merged properly because its position is different from the corresponding Humanoid bone in the merge target. You should remove the PhysBones on those Humanoid bones in the armature to merge.",
+  
   "error.internal_error": "[MA-9999] An internal error has occurred: {0}\nwhen processing:",
+
   "error.merge_animator.param_type_mismatch": "[MA-0003] Parameter type mismatch",
   "error.merge_animator.param_type_mismatch:description": "Parameter {0} has multiple types: {1} != {2}",
+  
   "error.rename_params.too_many_synced_params": "[MA-0004] Too many synced parameters",
   "error.rename_params.too_many_synced_params:description": "You have too many synced parameters in your avatar. You have assigned {0} bits worth of parameters, but the limit is {1}",
+
   "error.rename_params.type_conflict": "[MA-0006] Parameter type conflict",
   "error.rename_params.type_conflict:description": "Parameter {0} has multiple types specified: {1} != {2}",
+  
   "error.rename_params.default_value_conflict": "[MA-0007] Default value conflict",
   "error.rename_params.default_value_conflict:description": "Parameter {0} has multiple default values specified: {1} != {2}",
   "error.rename_params.default_value_conflict:hint": "To avoid unpredictable behavior, leave the default value field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first default value specified in the hierarchy order.",
+  
   "error.replace_object.null_target": "[MA-0008] No target specified",
   "error.replace_object.null_target:hint": "Replace object needs a target object to replace. Try setting one.",
+  
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] No renderer found on this object",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync acts on a Skinned Mesh Renderer on the same GameObject. Did you attach it to the right object?",
+  
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] No mesh found on the renderer on this object",
   "validation.blendshape_sync.no_local_mesh:hint": "It looks like the configuration for the Skinned Mesh Renderer on this object might be broken. Try recreating the object from its original prefab or FBX.",
+  
   "validation.blendshape_sync.no_bindings": "[MA-1002] No blendshape bindings found on this object",
   "validation.blendshape_sync.no_bindings:hint": "Blendshape Sync needs to know which blendshapes to sync. Click the '+' button to add one.",
+  
   "validation.blendshape_sync.missing_local_shape": "[MA-1003] Missing local blendshape",
   "validation.blendshape_sync.missing_local_shape:description": "Missing local blendshape: {0}",
   "validation.blendshape_sync.missing_local_shape:hint": "The blendshape configured to 'receive' the value from the target object is missing. Try changing the blendshape name indicated in red.",
+  
   "validation.blendshape_sync.missing_target_shape": "[MA-1004] Missing target blendshape",
   "validation.blendshape_sync.missing_target_shape:description": "Missing target blendshape: {0}",
   "validation.blendshape_sync.missing_target_shape:hint": "The blendshape configured to 'send' the value to the local object is missing. Try changing the blendshape name indicated in red.",
+  
   "validation.blendshape_sync.no_target": "[MA-1005] No target object specified",
   "validation.blendshape_sync.no_target:hint": "Blendshape Sync needs to know which object to sync blendshapes from. Try setting the Mesh field.",
+  
   "validation.blendshape_sync.missing_target_renderer": "[MA-1006] No renderer found on the target object",
   "validation.blendshape_sync.missing_target_renderer:hint": "Blendshape Sync receives blendshape values from a Skinned Mesh Renderer on the target object. Did you attach it to the right object?",
+  
   "validation.blendshape_sync.missing_target_mesh": "[MA-1007] No mesh found on the renderer on the target object",
   "validation.blendshape_sync.missing_target_mesh:hint": "It looks like the configuration for the Skinned Mesh Renderer on the target object might be broken. Try recreating the object from its original prefab or FBX.",
+  
   "validation.bone_proxy.no_target": "[MA-1100] No target object specified (or target object not found)",
   "validation.bone_proxy.no_target:hint": "Bone Proxy needs to know which object to bind this Bone Proxy to. Try setting the target field to the object this object should follow.",
+  
   "validation.menu_installer.no_menu": "[MA-1200] No menu to install specified",
-  "validation.menu_installer.no_menu:hint": "Menu Installer needs to know which menu to install. Try setting the 'Menu to install' field inside 'Prefab Developer Options', or attaching a MA Menu Item component.",
+  "validation.menu_installer.no_menu:hint": "Menu Installer needs to know which menu to install this prefab to. Try setting the 'Menu to install' field inside 'Prefab Developer Options', or attaching a MA Menu Item component.",
+  
   "validation.merge_animator.no_animator": "[MA-1300] No animator to merge specified",
   "validation.merge_animator.no_animator:hint": "Merge Animator needs to know which animator to merge. Try setting the 'Animator to merge' field.",
+  
   "validation.merge_armature.no_target": "[MA-1400] No merge target specified",
-  "validation.merge_armature.no_target:hint": "Merge Armature needs to know which armature to merge into. Try setting the 'Merge Target' field.",
+  "validation.merge_armature.no_target:hint": "Merge Armature needs to know which armature to merge. Try setting the 'Merge Target' field.",
+  
   "validation.merge_armature.target_is_child": "[MA-1500] Merge target cannot be a child of this object",
   "validation.merge_armature.target_is_child:hint": "Merge Armature cannot merge an armature into itself. Try setting the 'Merge Target' field to a different object.",
+  
   "submenu_source.Children": "Children",
   "submenu_source.MenuAsset": "Expressions Menu Asset",
   "menuitem.showcontents": "Show menu contents",
