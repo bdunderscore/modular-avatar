@@ -1,6 +1,4 @@
 ﻿{
-  "test0.test_a": "test_a",
-  "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "詳細設定",
   "boneproxy.target": "ターゲット",
   "menuinstall.help.hint_set_menu": "このプレハブは自動的にアバターの一番上のメニューに導入されます。不要な場合は別のメニューを指定するか、コンポーネントの有効状態を切ってください。",
@@ -18,7 +16,6 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   自動検出されたパラメーター   ",
   "params.internal": "内部値",
   "params.pb_prefix": "PhysBones前置詞",
@@ -30,7 +27,6 @@
   "params.remapto": "変更後の名前",
   "params.remapto.tooltip": "ここに新しい名前を入れることで、名前かぶりを解消できます",
   "params.devmode": "プレハブ開発者向け設定を表示",
-  "params.__comment1__": "=== Unity 2022 only strings ===",
   "merge_parameter.ui.name": "パラメーター名",
   "merge_parameter.ui.prefix": "PhysBone 前置詞名",
   "merge_parameter.ui.remapTo": "名前を変更",
