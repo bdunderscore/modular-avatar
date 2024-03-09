@@ -3,13 +3,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.modular_avatar.JacksonDunstan.NativeCollections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 #endregion
 
@@ -90,7 +89,7 @@ namespace nadena.dev.modular_avatar.core
         internal static ImmutableDictionary<SkinnedMeshRenderer, SkinnedMeshRenderer> OriginalToProxyRenderer =>
             _originalToReplacementRenderer;
 
-        internal static ImmutableHashSet<GameObject> RetainedObjects;
+        internal static ImmutableHashSet<GameObject> RetainedObjects = ImmutableHashSet<GameObject>.Empty;
 
         internal static bool ShouldRetain(GameObject obj) => RetainedObjects.Contains(obj);
 
@@ -220,7 +219,7 @@ namespace nadena.dev.modular_avatar.core
             for (var i = 0; i < weights.Length; i++)
             {
                 var bone = bones[weights[i].boneIndex];
-                if (_capturedBones.ContainsKey(bone)) return true;
+                if (bone != null && _capturedBones.ContainsKey(bone)) return true;
             }
 
             return false;
