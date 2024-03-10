@@ -227,7 +227,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             _jobs[index] = null;
 
-            _memoryManager.Free(job.Segment);
+            job.Segment.Dispose();
         }
 
         private void EnsureJobFlagCapacity()

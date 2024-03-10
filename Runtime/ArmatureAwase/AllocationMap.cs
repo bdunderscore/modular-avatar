@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
-    internal interface ISegment
+    internal interface ISegment : IDisposable
     {
         AllocationMap.DefragmentCallback Defragment { get; set; }
         int Offset { get; }
@@ -25,15 +25,23 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             public int _length;
             public bool _inUse;
 
-            public AllocationMap.DefragmentCallback Defragment { get; set; }
+            private Action<Segment> _onDispose;
+            public DefragmentCallback Defragment { get; set; }
             public int Offset => _offset;
             public int Length => _length;
 
-            internal Segment(int offset, int length, bool inUse)
+            internal Segment(Action<Segment> onDispose, int offset, int length, bool inUse)
             {
+                _onDispose = onDispose;
                 _offset = offset;
                 _length = length;
                 _inUse = inUse;
+            }
+
+            public void Dispose()
+            {
+                _onDispose?.Invoke(this);
+                _onDispose = null;
             }
         }
 
@@ -62,6 +70,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 if (segment._length > requestedLength)
                 {
                     var remaining = new Segment(
+                        FreeSegment,
                         segment._offset + requestedLength,
                         segment._length - requestedLength,
                         false
@@ -77,6 +86,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             // Add a new in-use segment at the end
             var newSegment = new Segment(
+                FreeSegment,
                 segments.Count == 0 ? 0 : segments[segments.Count - 1]._offset + segments[segments.Count - 1]._length,
                 requestedLength,
                 true
@@ -113,7 +123,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             }
 
             // Replace with a fresh segment object to avoid any issues with leaking old references to the segment
-            segments[index] = new Segment(s._offset, s._length, false);
+            segments[index] = new Segment(FreeSegment, s._offset, s._length, false);
         }
 
         /// <summary>
@@ -121,7 +131,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// and then the callback associated with the segment (if any) is also invoked.
         /// </summary>
         /// <param name="callback"></param>
-        public void Defragment(AllocationMap.DefragmentCallback callback)
+        public void Defragment(DefragmentCallback callback)
         {
             int offset = 0;
 
