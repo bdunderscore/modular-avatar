@@ -54,6 +54,12 @@ namespace nadena.dev.modular_avatar.core
 
         internal void PreCull()
         {
+            if (this == null)
+            {
+                EditorApplication.delayCall += () => ProxyManager.UnregisterAdjuster(this);
+                return;
+            }
+            
             if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
 
             if (scaleProxyChild == null || initialized == false)
