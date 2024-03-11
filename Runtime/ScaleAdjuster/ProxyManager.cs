@@ -102,9 +102,13 @@ namespace nadena.dev.modular_avatar.core
                 // Give each adjuster a chance to initialize the bone mappings first
                 foreach (var adj in _capturedAdjusters)
                 {
+                    if (adj == null)
+                    {
+                        _capturedAdjusters = _adjusters = _adjusters.Remove(adj);
+                    }
                     adj.PreCull();
                 }
-
+                
                 foreach (var kvp in _originalToReplacementBone)
                 {
                     if (kvp.Key == null || kvp.Value == null)
@@ -255,6 +259,10 @@ namespace nadena.dev.modular_avatar.core
 
             foreach (var adj in _capturedAdjusters)
             {
+                if (adj == null)
+                {
+                    _capturedAdjusters = _capturedAdjusters.Remove(adj);
+                }
                 adj.PreCull(); // update scale
             }
 
