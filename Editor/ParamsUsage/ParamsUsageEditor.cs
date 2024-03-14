@@ -38,10 +38,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OnEnable()
         {
+            #if UNITY_2022_1_OR_NEWER
             ObjectChangeEvents.changesPublished += OnChangesPublished;
+            #endif
             Recalculate();
         }
 
+#if UNITY_2022_1_OR_NEWER
         private void OnChangesPublished(ref ObjectChangeEventStream stream)
         {
             Recalculate();
@@ -51,6 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             ObjectChangeEvents.changesPublished -= OnChangesPublished;
         }
+#endif
 
         protected override VisualElement CreateInnerInspectorGUI()
         {

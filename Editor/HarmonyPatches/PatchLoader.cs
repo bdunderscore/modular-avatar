@@ -17,8 +17,8 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             #if UNITY_2022_3_OR_NEWER
             HandleUtilityPatches.Patch_FilterInstanceIDs,
             PickingObjectPatch.Patch,
-            #endif
             InjectParamsUsageUI.Patch,
+            #endif
         };
 
         [InitializeOnLoadMethod]
