@@ -1,12 +1,19 @@
-﻿using System;
+﻿#region
+
+using System;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core.ArmatureAwase;
+using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
+using Object = UnityEngine.Object;
+
+#endregion
 
 [assembly: ExportsPlugin(
-    typeof(nadena.dev.modular_avatar.core.editor.plugin.PluginDefinition)
+    typeof(PluginDefinition)
 )]
 
 namespace nadena.dev.modular_avatar.core.editor.plugin
@@ -16,6 +23,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         public override string QualifiedName => "nadena.dev.modular-avatar";
         public override string DisplayName => "Modular Avatar";
         public override Texture2D LogoTexture => LogoDisplay.LOGO_ASSET;
+
+        // 00a0e9
+        public override Color? ThemeColor => new Color(0x00 / 255f, 0xa0 / 255f, 0xe9 / 255f, 1);
 
         protected override void OnUnhandledException(Exception e)
         {
@@ -82,11 +92,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 {
                     foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
                     {
-                        UnityEngine.Object.DestroyImmediate(component);
+                        Object.DestroyImmediate(component);
                     }
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<ArmatureAwase.MAMoveIndependently>(true))
+                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
                     {
-                        UnityEngine.Object.DestroyImmediate(component);
+                        Object.DestroyImmediate(component);
                     }
                 });
 #if MA_VRCSDK3_AVATARS
@@ -140,7 +150,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             {
                 foreach (var component in obj.GetComponentsInChildren<AvatarTagComponent>(true))
                 {
-                    UnityEngine.Object.DestroyImmediate(component);
+                    Object.DestroyImmediate(component);
                 }
             }
             else

@@ -1,9 +1,11 @@
 {
     "name": "nadena.dev.modular-avatar.harmony-patches",
+    "rootNamespace": "",
     "references": [
         "nadena.dev.modular-avatar.core",
         "nadena.dev.modular-avatar.core.editor",
-        "VRC.SDKBase.Editor"
+        "VRC.SDKBase.Editor",
+        "nadena.dev.modular-avatar.param-introspection"
     ],
     "includePlatforms": [
         "Editor"

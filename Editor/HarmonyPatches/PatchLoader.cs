@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             HandleUtilityPatches.Patch_FilterInstanceIDs,
             PickingObjectPatch.Patch,
             #endif
+            InjectParamsUsageUI.Patch,
         };
 
         [InitializeOnLoadMethod]
@@ -36,6 +37,8 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
                     Debug.LogException(e);
                 }
             }
+
+            AssemblyReloadEvents.beforeAssemblyReload += () => { harmony.UnpatchAll(); };
         }
     }
 }
