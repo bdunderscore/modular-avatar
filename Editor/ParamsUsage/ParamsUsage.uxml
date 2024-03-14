@@ -1,0 +1,35 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ui:Label text="ma_info.param_usage_ui.header" class="header ndmf-tr"/>
+
+        <ui:VisualElement name="Outerbox">
+            <ui:VisualElement name="UsageBox">
+                <ui:VisualElement name="OtherObjects" style="background-color: #888888; flex-grow: 1;"/>
+                <ui:VisualElement name="UnusedSpace" style="width: auto; background-color: #eeeeee; flex-grow: 1;"/>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="Legend">
+                <ui:VisualElement class="retained">
+                    <ui:VisualElement class="Entry" name="OtherObjects" style="display: none">
+                        <ui:VisualElement class="IconOuter">
+                            <ui:VisualElement class="IconInner" style="background-color: #888888"/>
+                        </ui:VisualElement>
+
+                        <ui:Label class="description" text="Other objects on this avatar (xx)"/>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="Entry" name="UnusedSpace" style="display: none">
+                        <ui:VisualElement class="IconOuter">
+                            <ui:VisualElement class="IconInner" style="background-color: #eeeeee"/>
+                        </ui:VisualElement>
+
+                        <ui:Label class="description" text="Free parameter space (xx)"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>

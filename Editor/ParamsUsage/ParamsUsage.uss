@@ -1,0 +1,75 @@
+﻿Label.header {
+    -unity-font-style: bold;
+    margin-top: 10px;
+}
+
+#Outerbox {
+    margin-top: 4px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-color: black;
+
+    padding: 4px;
+}
+
+#root-box {
+    margin-bottom: 12px;
+}
+
+#UsageBox {
+    height: 16px;
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+
+#UsageBox VisualElement {
+    flex-grow: 0;
+}
+
+#UsageBox VisualElement.Hovering {
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    /*border-left-width: 4px;
+    border-right-width: 4px;
+    margin: -4px;
+     */
+    margin-top: -4px;
+    margin-bottom: -4px;
+
+    border-color: black;
+}
+
+.Entry {
+    flex-direction: row;
+}
+
+.IconOuter {
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-color: grey;
+
+    padding: 1px;
+    margin-right: 4px;
+
+    align-items: center;
+    justify-content: center;
+
+    height: 16px;
+    width: 16px;
+}
+
+.IconInner {
+    height: 100%;
+    width: 100%;
+}
+
+.Entry.Hovering {
+    margin-left: -4px;
+    margin-right: -4px;
+    border-left-width: 4px;
+    border-right-width: 4px;
+}

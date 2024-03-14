@@ -1,5 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,8 +20,33 @@ using Object = UnityEngine.Object;
 
 using UnityObject = UnityEngine.Object;
 
+#endregion
+
 namespace nadena.dev.modular_avatar.core.editor
 {
+    internal class ParameterRenameMappings
+    {
+        public static ParameterRenameMappings Get(ndmf.BuildContext ctx)
+        {
+            return ctx.GetState<ParameterRenameMappings>();
+        }
+
+        public Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string> Remappings =
+            new Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string>();
+
+        private int internalParamIndex;
+
+        public string Remap(ModularAvatarParameters p, ParameterNamespace ns, string s)
+        {
+            var tuple = (p, ns, s);
+
+            if (Remappings.TryGetValue(tuple, out var mapping)) return mapping;
+
+            return s + "$$Internal_" + internalParamIndex++;
+        }
+    }
+
+    
     internal class DefaultValues
     {
         public ImmutableDictionary<string, float> InitialValueOverrides;
@@ -609,6 +636,8 @@ namespace nadena.dev.modular_avatar.core.editor
             ref ImmutableDictionary<string, string> prefixRemaps
         )
         {
+            var remapper = ParameterRenameMappings.Get(_context.PluginBuildContext);
+            
             ImmutableDictionary<string, ParameterInfo> parameterInfos = ImmutableDictionary<string, ParameterInfo>.Empty;
             
             foreach (var param in p.parameters)
@@ -618,7 +647,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 var remapTo = param.remapTo;
                 if (param.internalParameter)
                 {
-                    remapTo = param.nameOrPrefix + "$$Internal_" + internalParamIndex++;
+                    remapTo = remapper.Remap(p,
+                        param.isPrefix ? ParameterNamespace.PhysBonesPrefix : ParameterNamespace.Animator,
+                        param.nameOrPrefix);
                 }
                 else if (string.IsNullOrWhiteSpace(remapTo))
                 {

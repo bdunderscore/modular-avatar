@@ -1,10 +1,12 @@
 {
     "name": "nadena.dev.modular-avatar.core.editor",
+    "rootNamespace": "",
     "references": [
         "nadena.dev.modular-avatar.core",
         "VRC.SDK3A",
         "VRC.SDKBase",
-        "nadena.dev.ndmf"
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.vrchat"
     ],
     "includePlatforms": [
         "Editor"

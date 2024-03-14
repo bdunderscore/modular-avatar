@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using nadena.dev.ndmf.localization;
 using UnityEngine.UIElements;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -21,6 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal void Localize(VisualElement elem)
         {
             WalkTree(elem);
+            LanguagePrefs.ApplyFontPreferences(elem);
         }
 
         private void WalkTree(VisualElement elem)
