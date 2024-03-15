@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
@@ -50,7 +50,8 @@ namespace nadena.dev.modular_avatar.animation
                 case AnimatorTransitionBase _:
                 case StateMachineBehaviour _:
                     break; // We want to clone these types
-
+                    
+                case AudioClip _: //Used in VRC Animator Play Audio State Behavior
                 // Leave textures, materials, and script definitions alone
                 case Texture2D _:
                 case MonoScript _:
