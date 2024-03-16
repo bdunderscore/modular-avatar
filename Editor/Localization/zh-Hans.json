@@ -208,7 +208,6 @@
   "action.toggle_object.header.object": "要显示 / 隐藏的对象",
   "action.toggle_object.header.show": "显示",
   "menu_tree.title": "选择菜单",
-  "menuitem.param.controlled_by_action": "< 由 Action 控制 >",
   "control_group.foldout.actions": "Actions",
   "control_group.foldout.menu_items": "相关菜单项",
   "control_group.is_saved": "保存",
