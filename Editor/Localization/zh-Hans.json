@@ -1,6 +1,4 @@
 ﻿{
-  "test0.test_a": "test_a",
-  "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "高级设置",
   "boneproxy.target": "目标",
   "menuinstall.help.hint_set_menu": "此预制件的菜单默认会安装到 Avatar 的顶部菜单中。如果不需要，可以选择其他菜单或取消勾选此组件。",
