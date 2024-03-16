@@ -110,6 +110,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(ctx)
                 .GroupBy(p => p.Plugin)
                 .Select(group => (group.Key, group.Sum(p => p.BitUsage)))
+                .Where((kv, index) => kv.Item2 > 0)
                 .OrderBy(group => group.Key.DisplayName)
                 .ToList();
 
