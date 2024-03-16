@@ -12,6 +12,7 @@ using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -479,7 +480,9 @@ namespace nadena.dev.modular_avatar.core.editor
             // Deep clone the animator
             if (!_context.PluginBuildContext.IsTemporaryAsset(controller))
             {
+                Profiler.BeginSample("DeepCloneAnimator");
                 controller = _context.DeepCloneAnimator(controller);
+                Profiler.EndSample();
             }
 
             var parameters = controller.parameters;
@@ -501,6 +504,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            Profiler.BeginSample("Walk animator graph");
             while (queue.Count > 0)
             {
                 var sm = queue.Dequeue();
@@ -541,6 +545,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     ProcessState(st.state, remaps);
                 }
             }
+            Profiler.EndSample();
         }
 
         private void ProcessState(AnimatorState state, ImmutableDictionary<string, string> remaps)
