@@ -178,7 +178,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                if (InstallTargets.Count == 1 && (InstallTargets[0] is VRCExpressionsMenu || InstallTargets[0] == null))
+                if (commonAvatar != null && InstallTargets.Count == 1 && (InstallTargets[0] is VRCExpressionsMenu || InstallTargets[0] == null))
                 {
                     var displayValue = installTo.objectReferenceValue;
                     if (displayValue == null) displayValue = commonAvatar.expressionsMenu;
