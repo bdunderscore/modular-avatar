@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using NUnit.Framework;
 
@@ -64,6 +65,64 @@ namespace UnitTests.ArmatureAwase
             var s4 = map.Allocate(20);
             
             AssertSegment(s4, 0, 20, true);
+        }
+
+        enum Op
+        {
+            Allocate, Deallocate, Defrag
+        }
+
+        [Test]
+        public void SegmentRandomOps()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                AllocationMap map = new AllocationMap();
+                
+                List<ISegment> segments = new List<ISegment>();
+                List<(Op, int)> ops = new List<(Op, int)>();
+
+                try
+                {
+                    Random r = new Random();
+                    for (int j = 0; j < 100; j++)
+                    {
+                        switch (r.Next(0, segments.Count == 0 ? 1 : 3))
+                        {
+                            case 0:
+                            {
+                                int segSize = r.Next(1, 16);
+                                ISegment s = map.Allocate(segSize);
+                                ops.Add((Op.Allocate, segSize));
+                                segments.Add(s);
+                                break;
+                            }
+                            case 1:
+                            {
+                                int idx = r.Next(0, segments.Count);
+                                ISegment s = segments[idx];
+                                map.FreeSegment(s);
+                                ops.Add((Op.Deallocate, idx));
+                                segments.RemoveAt(idx);
+                                break;
+                            }
+                            case 2:
+                            {
+                                ops.Add((Op.Defrag, 0));
+                                map.Defragment((src, dst, length) => {});
+                                break;
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    var trace = string.Join("\n", ops.ConvertAll(op => $"{op.Item1} {op.Item2}"));
+                    Assert.Fail($"Failed at iteration {i} with exception {e}\n{trace}");
+                    throw;
+                }
+            }
         }
 
         private void AssertSegment(ISegment segment, int offset, int length, bool inUse)

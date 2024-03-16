@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using UnityEngine;
 
 #endregion
 
@@ -102,7 +104,13 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             if (s == null) throw new ArgumentException("Passed a foreign segment???");
 
             int index = segments.BinarySearch(s, Comparer<Segment>.Create((a, b) => a._offset.CompareTo(b._offset)));
-            if (index < 0 || segments[index] != s) throw new Exception("Segment not found in FreeSegment");
+            if (index < 0 || segments[index] != s)
+            {
+                var segmentDump = string.Join("\n", segments.ConvertAll(seg => $"{seg._offset} {seg._length} {seg._inUse} id={RuntimeHelpers.GetHashCode(seg)}"));
+                segmentDump += "\n\nTarget segment " + s._offset + " " + s._length + " " + s._inUse + " id=" + RuntimeHelpers.GetHashCode(s);
+                
+                throw new Exception("Segment not found in FreeSegment\nCurrent segments:\n" + segmentDump);
+            }
 
             if (index == segments.Count - 1)
             {
