@@ -104,8 +104,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var ctx = serializedObject.context as GameObject;
 
+            if (ctx == null) return;
+
             var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(ctx.transform)?.gameObject;
-            if (ctx == null || avatarRoot == null) return;
+            if (avatarRoot == null) return;
 
             var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(ctx)
                 .GroupBy(p => p.Plugin)
