@@ -43,7 +43,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (Remappings.TryGetValue(tuple, out var mapping)) return mapping;
 
-            return s + "$$Internal_" + internalParamIndex++;
+            mapping = s + "$$Internal_" + internalParamIndex++;
+            Remappings[tuple] = mapping;
+            
+            return mapping;
         }
     }
 
@@ -155,7 +158,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _context = context;
 
-            var syncParams = WalkTree(avatar, ImmutableDictionary<string, string>.Empty, ImmutableDictionary<string, string>.Empty);
+            var syncParams = WalkTree(avatar);
 
             SetExpressionParameters(avatar, syncParams);
 
@@ -301,19 +304,18 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private ImmutableDictionary<string, ParameterInfo> WalkTree(
-            GameObject obj,
-            ImmutableDictionary<string, string> remaps,
-            ImmutableDictionary<string, string> prefixRemaps
+            GameObject obj
         )
         {
-            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
+            var paramInfo = ndmf.ParameterInfo.ForContext(_context.PluginBuildContext);
             
+            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
             var p = obj.GetComponent<ModularAvatarParameters>();
             if (p != null)
             {
-                rv = BuildReport.ReportingObject(p, () => ApplyRemappings(p, ref remaps, ref prefixRemaps));
+                rv = BuildReport.ReportingObject(p, () => CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true)));
             }
-
+            
             var willPurgeAnimators = false;
             foreach (var merger in obj.GetComponents<ModularAvatarMergeAnimator>())
             {
@@ -324,6 +326,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            // Note: To match prior behavior, we use all mappings that apply to this gameobject when updating components
+            // other than MA Parameters, not just ones from components listed prior.
             foreach (var component in obj.GetComponents<Component>())
             {
                 BuildReport.ReportingObject(component, () =>
@@ -332,9 +336,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         case VRCPhysBone bone:
                         {
-                            if (bone.parameter != null && prefixRemaps.TryGetValue(bone.parameter, out var newVal))
+                            var remaps = paramInfo.GetParameterRemappingsAt(obj);
+                            if (bone.parameter != null && remaps.TryGetValue((ParameterNamespace.PhysBonesPrefix, bone.parameter), out var newVal))
                             {
-                                bone.parameter = newVal;
+                                bone.parameter = newVal.ParameterName;
                             }
 
                             break;
@@ -342,9 +347,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         case VRCContactReceiver contact:
                         {
-                            if (contact.parameter != null && remaps.TryGetValue(contact.parameter, out var newVal))
+                            if (contact.parameter != null && paramInfo.GetParameterRemappingsAt(obj)
+                                    .TryGetValue((ParameterNamespace.Animator, contact.parameter), out var newVal))
                             {
-                                contact.parameter = newVal;
+                                contact.parameter = newVal.ParameterName;
                             }
 
                             break;
@@ -361,7 +367,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             var controller = merger.animator as AnimatorController;
                             if (controller != null)
                             {
-                                ProcessAnimator(ref controller, remaps);
+                                ProcessAnimator(ref controller, paramInfo.GetParameterRemappingsAt(obj));
                                 merger.animator = controller;
                             }
 
@@ -374,7 +380,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             if (bt != null)
                             {
                                 merger.BlendTree = bt = new DeepClone(_context.PluginBuildContext).DoClone(bt);
-                                ProcessBlendtree(bt, remaps);
+                                ProcessBlendtree(bt, paramInfo.GetParameterRemappingsAt(obj));
                             }
 
                             break;
@@ -384,7 +390,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (installer.menuToAppend != null && installer.enabled)
                             {
-                                ProcessMenuInstaller(installer, remaps);
+                                ProcessMenuInstaller(installer, paramInfo.GetParameterRemappingsAt(obj));
                             }
 
                             break;
@@ -392,18 +398,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         case ModularAvatarMenuItem menuItem:
                         {
+                            var remaps = paramInfo.GetParameterRemappingsAt(obj);
                             if (menuItem.Control.parameter?.name != null &&
-                                remaps.TryGetValue(menuItem.Control.parameter.name, out var newVal))
+                                remaps.TryGetValue((ParameterNamespace.Animator, menuItem.Control.parameter.name), out var newVal))
                             {
-                                menuItem.Control.parameter.name = newVal;
+                                menuItem.Control.parameter.name = newVal.ParameterName;
                             }
 
                             foreach (var subParam in menuItem.Control.subParameters ??
                                                      Array.Empty<VRCExpressionsMenu.Control.Parameter>())
                             {
-                                if (subParam?.name != null && remaps.TryGetValue(subParam.name, out var subNewVal))
+                                if (subParam?.name != null && remaps.TryGetValue((ParameterNamespace.Animator, subParam.name), out var subNewVal))
                                 {
-                                    subParam.name = subNewVal;
+                                    subParam.name = subNewVal.ParameterName;
                                 }
                             }
 
@@ -416,7 +423,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var mergedChildParams = ImmutableDictionary<string, ParameterInfo>.Empty;
             foreach (Transform child in obj.transform)
             {
-                var childParams = WalkTree(child.gameObject, remaps, prefixRemaps);
+                var childParams = WalkTree(child.gameObject);
 
                 foreach (var kvp in childParams)
                 {
@@ -438,16 +445,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 var name = kvp.Key;
                 var info = kvp.Value;
                 
-                var remappedName = remap(remaps, name);
-                info.ResolvedParameter.nameOrPrefix = remappedName;
+                info.ResolvedParameter.nameOrPrefix = name;
                 
-                if (rv.TryGetValue(remappedName, out var priorInfo))
+                if (rv.TryGetValue(name, out var priorInfo))
                 {
                     priorInfo.MergeChild(info);
                 }
                 else
                 {
-                    rv = rv.SetItem(remappedName, info);
+                    rv = rv.SetItem(name, info);
                 }
             }
 
@@ -455,7 +461,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
-            ImmutableDictionary<string, string> remaps)
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> remapped =
                 new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
@@ -472,7 +478,7 @@ namespace nadena.dev.modular_avatar.core.editor
             });
         }
 
-        private void ProcessAnimator(ref AnimatorController controller, ImmutableDictionary<string, string> remaps)
+        private void ProcessAnimator(ref AnimatorController controller, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             var visited = new HashSet<AnimatorStateMachine>();
             var queue = new Queue<AnimatorStateMachine>();
@@ -488,9 +494,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var parameters = controller.parameters;
             for (int i = 0; i < parameters.Length; i++)
             {
-                if (remaps.TryGetValue(parameters[i].name, out var newName))
+                if (remaps.TryGetValue((ParameterNamespace.Animator, parameters[i].name), out var newName))
                 {
-                    parameters[i].name = newName;
+                    parameters[i].name = newName.ParameterName;
                 }
             }
 
@@ -548,7 +554,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Profiler.EndSample();
         }
 
-        private void ProcessState(AnimatorState state, ImmutableDictionary<string, string> remaps)
+        private void ProcessState(AnimatorState state, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             state.mirrorParameter = remap(remaps, state.mirrorParameter);
             state.timeParameter = remap(remaps, state.timeParameter);
@@ -574,7 +580,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessBlendtree(BlendTree blendTree, ImmutableDictionary<string, string> remaps)
+        private void ProcessBlendtree(BlendTree blendTree, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             blendTree.blendParameter = remap(remaps, blendTree.blendParameter);
             blendTree.blendParameterY = remap(remaps, blendTree.blendParameterY);
@@ -595,7 +601,7 @@ namespace nadena.dev.modular_avatar.core.editor
             blendTree.children = children;
         }
 
-        private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<string, string> remaps)
+        private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             var parameters = driver.parameters;
             for (int i = 0; i < parameters.Count; i++)
@@ -608,7 +614,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessTransition(AnimatorStateTransition t, ImmutableDictionary<string, string> remaps)
+        private void ProcessTransition(AnimatorStateTransition t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             var conditions = t.conditions;
 
@@ -622,7 +628,7 @@ namespace nadena.dev.modular_avatar.core.editor
             t.conditions = conditions;
         }
 
-        private void ProcessTransition(AnimatorTransition t, ImmutableDictionary<string, string> remaps)
+        private void ProcessTransition(AnimatorTransition t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             var conditions = t.conditions;
 
@@ -636,9 +642,8 @@ namespace nadena.dev.modular_avatar.core.editor
             t.conditions = conditions;
         }
 
-        private ImmutableDictionary<string, ParameterInfo> ApplyRemappings(ModularAvatarParameters p,
-            ref ImmutableDictionary<string, string> remaps,
-            ref ImmutableDictionary<string, string> prefixRemaps
+        private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps
         )
         {
             var remapper = ParameterRenameMappings.Get(_context.PluginBuildContext);
@@ -647,77 +652,40 @@ namespace nadena.dev.modular_avatar.core.editor
             
             foreach (var param in p.parameters)
             {
-                bool doRemap = true;
-
-                var remapTo = param.remapTo;
-                if (param.internalParameter)
+                if (param.isPrefix) continue;
+                
+                var remapTo = param.nameOrPrefix;
+                
+                if (remaps.TryGetValue((ParameterNamespace.Animator, param.nameOrPrefix), out var mapping))
                 {
-                    remapTo = remapper.Remap(p,
-                        param.isPrefix ? ParameterNamespace.PhysBonesPrefix : ParameterNamespace.Animator,
-                        param.nameOrPrefix);
-                }
-                else if (string.IsNullOrWhiteSpace(remapTo))
-                {
-                    doRemap = false;
-                    remapTo = param.nameOrPrefix;
-                }
-                // Apply outer scope remaps (only if not an internal parameter)
-                // Note that this continues the else chain above.
-                else if (param.isPrefix && prefixRemaps.TryGetValue(remapTo, out var outerScope))
-                {
-                    remapTo = outerScope;
-                }
-                else if (remaps.TryGetValue(remapTo, out outerScope))
-                {
-                    remapTo = outerScope;
+                    remapTo = mapping.ParameterName;
                 }
 
-                if (doRemap)
+                ParameterConfig parameterConfig = param;
+                parameterConfig.nameOrPrefix = remapTo;
+                parameterConfig.remapTo = remapTo;
+                var info = new ParameterInfo()
                 {
-                    if (param.isPrefix)
-                    {
-                        prefixRemaps = prefixRemaps.Add(param.nameOrPrefix, remapTo);
-                        foreach (var suffix in ParameterPolicy.PhysBoneSuffixes)
-                        {
-                            var suffixKey = param.nameOrPrefix + suffix;
-                            var suffixValue = remapTo + suffix;
-                            remaps = remaps.SetItem(suffixKey, suffixValue);
-                        }
-                    }
-                    else
-                    {
-                        remaps = remaps.SetItem(param.nameOrPrefix, remapTo);
-                    }
+                    ResolvedParameter = parameterConfig,
+                };
+                    
+                if (parameterConfig.syncType != ParameterSyncType.NotSynced)
+                {
+                    info.TypeSources.Add(p);
                 }
-
-                if (!param.isPrefix)
+                    
+                if (parameterConfig.HasDefaultValue)
                 {
-                    ParameterConfig parameterConfig = param;
-                    parameterConfig.nameOrPrefix = remapTo;
-                    parameterConfig.remapTo = null;
-                    var info = new ParameterInfo()
-                    {
-                        ResolvedParameter = parameterConfig,
-                    };
+                    info.DefaultSources.Add(p);
+                }
                     
-                    if (parameterConfig.syncType != ParameterSyncType.NotSynced)
-                    {
-                        info.TypeSources.Add(p);
-                    }
-                    
-                    if (parameterConfig.HasDefaultValue)
-                    {
-                        info.DefaultSources.Add(p);
-                    }
-                    
-                    if (parameterInfos.TryGetValue(remapTo, out var existing))
-                    {
-                        existing.MergeSibling(info);
-                    }
-                    else
-                    {
-                        parameterInfos = parameterInfos.SetItem(remapTo, info);
-                    } 
+                if (parameterInfos.TryGetValue(remapTo, out var existing))
+                {
+                    existing.MergeSibling(info);
+                }
+                else
+                {
+                    parameterInfos = parameterInfos.SetItem(remapTo, info);
                 }
             }
 
@@ -725,20 +693,20 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.
-        private T remap<T>(ImmutableDictionary<string, string> remaps, T x)
+        private T remap<T>(ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps, T x)
             where T : class
         {
             bool tmp = false;
             return remap(remaps, x, ref tmp);
         }
 
-        private T remap<T>(ImmutableDictionary<string, string> remaps, T x, ref bool anyRemapped)
+        private T remap<T>(ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps, T x, ref bool anyRemapped)
             where T : class
         {
-            if (x is string s && remaps.TryGetValue(s, out var newS))
+            if (x is string s && remaps.TryGetValue((ParameterNamespace.Animator, s), out var newS))
             {
                 anyRemapped = true;
-                return (T) (object) newS;
+                return (T) (object) newS.ParameterName;
             }
 
             return x;
