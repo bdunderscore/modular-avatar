@@ -112,6 +112,7 @@
   "boneproxy.attachment.AsChildKeepWorldPose": "자식으로서; 위치와 회전 유지",
   "boneproxy.attachment.AsChildKeepPosition": "자식으로서; 위치 유지",
   "boneproxy.attachment.AsChildKeepRotation": "자식으로서; 회전 유지",
+  "mesh_settings.inherit_mode.Set": "설정",
   "pb_blocker.help": "이 오브젝트는 부모에 첨부된 PhysBones의 영향을 받지 않습니다.",
   "hint.bad_vrcsdk": "호환되지 않는 VRCSDK 버전이 감지되었습니다.\n\nVRCSDK 를 업그레이드 해 보세요. 그래도 작동하지 않는다면 최신버전의 Modular Avatar 로 업데이트할 수 있는지 확인하세요.",
   "error.stack_trace": "스택 추적 (버그를 보고할 때 제공하세요!)",
@@ -130,5 +131,15 @@
   "validation.menu_installer.no_menu": "설치할 메뉴가 지정되지 않았습니다",
   "validation.merge_animator.no_animator": "병합할 애니메이터가 지정되지 않았습니다",
   "validation.merge_armature.no_target": "병합 대상이 지정되지 않았습니다",
-  "validation.merge_armature.target_is_child": "병합 대상은 이 오브젝트의 하위가 될 수 없습니다"
+  "validation.merge_armature.target_is_child": "병합 대상은 이 오브젝트의 하위가 될 수 없습니다",
+  "menuitem.prop.icon": "아이콘",
+  "menuitem.prop.type": "타입",
+  "menuitem.prop.label": "라벨",
+  "menuitem.prop.is_saved": "저장됨",
+  "menuitem.prop.is_synced": "동기화 됨",
+  "menuitem.misc.no_icon": "(아이콘 없음)",
+  "menuitem.label.parameters": "파라미터",
+  "action.toggle_object.header.show": "표시",
+  "menu_tree.title": "메뉴 선택",
+  "control_group.is_synced": "동기화됨"
 }
