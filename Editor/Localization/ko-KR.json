@@ -141,5 +141,9 @@
   "menuitem.label.parameters": "파라미터",
   "action.toggle_object.header.show": "표시",
   "menu_tree.title": "메뉴 선택",
-  "control_group.is_synced": "동기화됨"
+  "control_group.foldout.actions": "Actions",
+  "control_group.is_saved": "저장됨",
+  "control_group.is_synced": "동기화됨",
+  "setup_outfit.err.unknown": "알 수 없는 오류",
+  "ma_info.param_usage_ui.other_objects": "이 아바타안의 다른 오브젝트들"
 }
