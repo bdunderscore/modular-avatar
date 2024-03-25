@@ -237,5 +237,9 @@
   "scale_adjuster.scale": "调整比例",
   "scale_adjuster.adjust_children": "调整子级的位置",
   "world_fixed_object.err.unsupported_platform": "此平台不支持 World Fixed Object 组件。",
-  "world_fixed_object.err.unsupported_platform:description": "此组件未生效。因为在 Android 平台下不支持 World Fixed Object。"
+  "world_fixed_object.err.unsupported_platform:description": "此组件未生效。因为在 Android 平台下不支持 World Fixed Object。",
+  "ma_info.param_usage_ui.header": "Expressions 参数使用情况",
+  "ma_info.param_usage_ui.other_objects": "此 Avatar 上的其他对象",
+  "ma_info.param_usage_ui.free_space": "未使用的参数空间 ({0} bits)",
+  "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)"
 }
