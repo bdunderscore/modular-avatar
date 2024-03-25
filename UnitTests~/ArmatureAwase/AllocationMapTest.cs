@@ -91,7 +91,7 @@ namespace UnitTests.ArmatureAwase
                         {
                             case 0:
                             {
-                                int segSize = r.Next(1, 16);
+                                int segSize = r.Next(0, 16);
                                 ISegment s = map.Allocate(segSize);
                                 ops.Add((Op.Allocate, segSize));
                                 segments.Add(s);

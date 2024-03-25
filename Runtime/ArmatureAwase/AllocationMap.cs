@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -24,19 +25,24 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         internal class Segment : ISegment
         {
             public int _offset;
-            public int _length;
+            public int _requestedLength, _trueLength;
             public bool _inUse;
 
             private Action<Segment> _onDispose;
             public DefragmentCallback Defragment { get; set; }
             public int Offset => _offset;
-            public int Length => _length;
+            public int Length => _requestedLength;
 
-            internal Segment(Action<Segment> onDispose, int offset, int length, bool inUse)
+            internal Segment(Action<Segment> onDispose, int offset, int requestedLength, int trueLength, bool inUse)
             {
+                if (trueLength < 0 || requestedLength > trueLength)
+                {
+                    throw new ArgumentException("TrueLength: " + trueLength + " requested " + requestedLength);
+                }
                 _onDispose = onDispose;
                 _offset = offset;
-                _length = length;
+                _requestedLength = requestedLength;
+                _trueLength = trueLength;
                 _inUse = inUse;
             }
 
@@ -56,29 +62,33 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// </summary>
         List<Segment> segments = new List<Segment>();
 
-        public ISegment Allocate(int requestedLength)
+        public ISegment Allocate(int requested)
         {
+            int needed = Math.Max(1, requested);
+            
             for (int i = 0; i < segments.Count; i++)
             {
                 var segment = segments[i];
                 if (segment._inUse) continue;
 
-                if (segment._length == requestedLength)
+                if (segment._trueLength == needed)
                 {
                     segment._inUse = true;
                     return segment;
                 }
 
-                if (segment._length > requestedLength)
+                if (segment._trueLength > needed)
                 {
                     var remaining = new Segment(
                         FreeSegment,
-                        segment._offset + requestedLength,
-                        segment._length - requestedLength,
+                        segment._offset + needed,
+                        segment._trueLength - needed,
+                        segment._trueLength - needed,
                         false
                     );
 
-                    segment._length = requestedLength;
+                    segment._trueLength = needed;
+                    segment._requestedLength = requested;
                     segment._inUse = true;
                     segments.Insert(i + 1, remaining);
 
@@ -89,8 +99,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             // Add a new in-use segment at the end
             var newSegment = new Segment(
                 FreeSegment,
-                segments.Count == 0 ? 0 : segments[segments.Count - 1]._offset + segments[segments.Count - 1]._length,
-                requestedLength,
+                segments.Count == 0 ? 0 : segments[segments.Count - 1]._offset + segments[segments.Count - 1]._trueLength,
+                requested,
+                needed,
                 true
             );
             segments.Add(newSegment);
@@ -106,8 +117,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             int index = segments.BinarySearch(s, Comparer<Segment>.Create((a, b) => a._offset.CompareTo(b._offset)));
             if (index < 0 || segments[index] != s)
             {
-                var segmentDump = string.Join("\n", segments.ConvertAll(seg => $"{seg._offset} {seg._length} {seg._inUse} id={RuntimeHelpers.GetHashCode(seg)}"));
-                segmentDump += "\n\nTarget segment " + s._offset + " " + s._length + " " + s._inUse + " id=" + RuntimeHelpers.GetHashCode(s);
+                var segmentDump = string.Join("\n", segments.ConvertAll(seg => $"{seg._offset} {seg._requestedLength}/{seg._trueLength} {seg._inUse} id={RuntimeHelpers.GetHashCode(seg)}"));
+                segmentDump += "\n\nTarget segment " + s._offset + " " + s._requestedLength + "/" + s._trueLength + " " + s._inUse + " id=" + RuntimeHelpers.GetHashCode(s);
                 
                 throw new Exception("Segment not found in FreeSegment\nCurrent segments:\n" + segmentDump);
             }
@@ -124,14 +135,15 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 if (!next._inUse)
                 {
                     next._offset = s._offset;
-                    next._length += s._length;
+                    next._trueLength += s._trueLength;
+                    next._requestedLength = next._trueLength;
                     segments.RemoveAt(index);
                     return;
                 }
             }
 
             // Replace with a fresh segment object to avoid any issues with leaking old references to the segment
-            segments[index] = new Segment(FreeSegment, s._offset, s._length, false);
+            segments[index] = new Segment(FreeSegment, s._offset, s._requestedLength, s._trueLength, false);
         }
 
         /// <summary>
@@ -155,12 +167,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 if (seg._offset != offset)
                 {
-                    callback(seg._offset, offset, seg._length);
-                    seg.Defragment?.Invoke(seg._offset, offset, seg._length);
+                    callback(seg._offset, offset, seg._requestedLength);
+                    seg.Defragment?.Invoke(seg._offset, offset, seg._requestedLength);
                     seg._offset = offset;
                 }
 
-                offset += seg.Length;
+                offset += seg._trueLength;
             }
         } 
     }
