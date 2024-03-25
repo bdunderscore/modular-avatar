@@ -480,6 +480,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessAnimator(ref AnimatorController controller, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
+            if (remaps.IsEmpty) return;
+            
             var visited = new HashSet<AnimatorStateMachine>();
             var queue = new Queue<AnimatorStateMachine>();
 
@@ -614,32 +616,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessTransition(AnimatorStateTransition t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessTransition(AnimatorTransitionBase t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
+            bool dirty = false;
             var conditions = t.conditions;
 
             for (int i = 0; i < conditions.Length; i++)
             {
                 var cond = conditions[i];
-                cond.parameter = remap(remaps, cond.parameter);
+                cond.parameter = remap(remaps, cond.parameter, ref dirty);
                 conditions[i] = cond;
             }
 
-            t.conditions = conditions;
-        }
-
-        private void ProcessTransition(AnimatorTransition t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
-        {
-            var conditions = t.conditions;
-
-            for (int i = 0; i < conditions.Length; i++)
-            {
-                var cond = conditions[i];
-                cond.parameter = remap(remaps, cond.parameter);
-                conditions[i] = cond;
-            }
-
-            t.conditions = conditions;
+            if (dirty) t.conditions = conditions;
         }
 
         private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
