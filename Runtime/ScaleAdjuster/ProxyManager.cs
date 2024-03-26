@@ -191,7 +191,10 @@ namespace nadena.dev.modular_avatar.core
 
         private static Transform MapBone(Transform srcBone)
         {
-            if (_capturedBones.TryGetValue(srcBone, out var newBone) && newBone != null)
+            if (srcBone == null)
+            {
+                return null;
+            } else if (_capturedBones.TryGetValue(srcBone, out var newBone) && newBone != null)
             {
                 return newBone;
             }
