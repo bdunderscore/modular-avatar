@@ -92,11 +92,16 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
 
             if (editor.targets.Length != 1) return;
 
-            if (editor.target is GameObject obj)
-            {
-                var elem = new ParamsUsageUI();
-                container.Add(elem);
-            }
+            if (editor.target is not GameObject obj) return;
+
+            Component defComponent = obj.GetComponent<AvatarTagComponent>();
+#if MA_VRCSDK3_AVATARS
+            if (defComponent == null) defComponent = obj.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+#endif
+            if (defComponent == null) return;
+
+            var elem = new ParamsUsageUI();
+            container.Add(elem);
         }
     }
 }
