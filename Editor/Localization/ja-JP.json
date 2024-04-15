@@ -129,6 +129,8 @@
   "error.merge_armature.circular_dependency:hint": "Merge Armature は通常、ターゲットフィールドにアバター本体の Armature オブジェクトを指定する必要があります。衣装自体を指定しないでください。",
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] ヒューマノイドボーンにPhysBoneコンポーネントを検出",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "一部のヒューマノイドボーンは、PhysBonesによって制御されています。 マージ対象の対応するヒューマノイドボーンとは位置が異なるため、適切にマージすることはできません。マージするにはヒューマノイドボーンのPhysBonesを取り除く必要があります。",
+  "error.merge_blend_tree.missing_tree": "[MA-0009] ブレンドツリーが指定されていません",
+  "error.merge_blend_tree.missing_tree:hint": "Merge Blend Treeが動作するには、どのブレンドツリーを統合するかを指定する必要があります。「ブレンドツリー」欄を設定してみてください。",
   "error.internal_error": "[MA-9999] 内部エラーが発生しました：{0}\n以下のオブジェクトの処理中に発生しました：",
   "error.merge_animator.param_type_mismatch": "[MA-0003] パラメータの型が競合しています",
   "error.merge_animator.param_type_mismatch:description": "パラメータ {0} には複数の型が指定されています: {1} != {2}",
