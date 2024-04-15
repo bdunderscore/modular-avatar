@@ -133,6 +133,8 @@
   "error.merge_armature.circular_dependency:hint": "Merge Armature should typically specify the Armature object of the avatar itself under its Target field. Don't specify the outfit itself!",
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] PhysBone component found on humanoid bone",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "Some Humanoid bones in the armature to merge are controlled by PhysBones, and can't be merged properly because its position is different from the corresponding Humanoid bone in the merge target. You should remove the PhysBones on those Humanoid bones in the armature to merge.",
+  "error.merge_blend_tree.missing_tree": "[MA-0009] No blend tree specified",
+  "error.merge_blend_tree.missing_tree:hint": "Merge Blend Tree needs to know which blend tree to merge. Try setting the 'Blend Tree' field.",
   "error.internal_error": "[MA-9999] An internal error has occurred: {0}\nwhen processing:",
   "error.merge_animator.param_type_mismatch": "[MA-0003] Parameter type mismatch",
   "error.merge_animator.param_type_mismatch:description": "Parameter {0} has multiple types: {1} != {2}",
