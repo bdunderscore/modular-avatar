@@ -31,6 +31,7 @@ namespace nadena.dev.modular_avatar.core
         {
             lock (_lock)
             {
+                if (_adjusters.Contains(adjuster)) return;
                 _adjusters = _adjusters.Add(adjuster);
                 _dirty = true;
             }
