@@ -112,13 +112,15 @@ namespace nadena.dev.modular_avatar.core
                 trueParent = trueParent.parent;
             }
 
+            // Clean up any additional parentage we might not want
             if (proxyChild.parent != null)
             {
+                Transform parent = proxyChild.parent;
+                
                 // Reparent to root
                 proxyChild.SetParent(null, false);
                 
                 // Destroy old hierarchy
-                Transform parent = proxyChild.parent;
                 while (parent.parent != null) parent = parent.parent;
                 DestroyImmediate(parent.gameObject);
             }

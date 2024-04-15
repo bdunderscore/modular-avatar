@@ -31,6 +31,7 @@ namespace nadena.dev.modular_avatar.core
         {
             lock (_lock)
             {
+                if (_adjusters.Contains(adjuster)) return;
                 _adjusters = _adjusters.Add(adjuster);
                 _dirty = true;
             }
@@ -121,7 +122,17 @@ namespace nadena.dev.modular_avatar.core
                 _dirty = false;
             }
 
-            var avatarRoots = _capturedBones.Keys.Select(RuntimeUtil.FindAvatarTransformInParents).ToImmutableHashSet();
+            var avatarRoots = _capturedBones.Keys.Select(bone =>
+            {
+                var root = RuntimeUtil.FindAvatarTransformInParents(bone);
+                if (root == null)
+                {
+                    root = bone;
+                    while (root.parent != null) root = root.parent;
+                }
+
+                return root;
+            }).ToImmutableHashSet();
             var potentialRenderers = avatarRoots.SelectMany(r => r.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 .ToList();
 
@@ -191,7 +202,10 @@ namespace nadena.dev.modular_avatar.core
 
         private static Transform MapBone(Transform srcBone)
         {
-            if (_capturedBones.TryGetValue(srcBone, out var newBone) && newBone != null)
+            if (srcBone == null)
+            {
+                return null;
+            } else if (_capturedBones.TryGetValue(srcBone, out var newBone) && newBone != null)
             {
                 return newBone;
             }

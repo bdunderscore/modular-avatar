@@ -64,6 +64,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private int internalParamIndex = 0;
 
+        // TODO: Move into NDMF
+        private ImmutableList<string> PhysBoneSuffixes = ImmutableList<string>.Empty
+            .Add("_IsGrabbed")
+            .Add("_IsPosed")
+            .Add("_Angle")
+            .Add("_Stretch")
+            .Add("_Squish");
+        
         class ParameterInfo
         {
             private static long encounterOrderCounter;
@@ -252,7 +260,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             expParams.parameters = parameters.ToArray();
-     
+
+            /*
             if (expParams.CalcTotalCost() > VRCExpressionParameters.MAX_PARAMETER_COST)
             {
                 BuildReport.LogFatal("error.rename_params.too_many_synced_params", new[]
@@ -262,6 +271,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 );
             }
+            */
 
             avatar.expressionParameters = expParams;
         }
@@ -367,7 +377,19 @@ namespace nadena.dev.modular_avatar.core.editor
                             var controller = merger.animator as AnimatorController;
                             if (controller != null)
                             {
-                                ProcessAnimator(ref controller, paramInfo.GetParameterRemappingsAt(obj));
+                                var mappings = paramInfo.GetParameterRemappingsAt(obj);
+                                var remap = mappings.SelectMany(item =>
+                                {
+                                    if (item.Key.Item1 == ParameterNamespace.Animator) return new[] { item };
+
+                                    return PhysBoneSuffixes.Select(suffix =>
+                                        new KeyValuePair<(ParameterNamespace, string), ParameterMapping>(
+                                            (ParameterNamespace.Animator, item.Key.Item2 + suffix),
+                                            new ParameterMapping(item.Value.ParameterName + suffix, item.Value.IsHidden)
+                                        )
+                                    );
+                                }).ToImmutableDictionary();
+                                ProcessAnimator(ref controller, remap);
                                 merger.animator = controller;
                             }
 
