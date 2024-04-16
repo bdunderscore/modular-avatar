@@ -134,7 +134,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var outfitRoot = cmd.context as GameObject;
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
-
+            
             if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
             {
                 var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
@@ -182,6 +182,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            FixAPose(avatarRoot, outfitArmature);
+
             if (outfitRoot != null
                 && outfitRoot.GetComponent<ModularAvatarMeshSettings>() == null
                 && outfitRoot.GetComponentInParent<ModularAvatarMeshSettings>() == null)
@@ -211,6 +213,73 @@ namespace nadena.dev.modular_avatar.core.editor
                 meshSettings.RootBone = new AvatarObjectReference();
                 meshSettings.RootBone.referencePath = RuntimeUtil.RelativePath(avatarRoot, rootBone.gameObject);
                 meshSettings.Bounds = bounds;
+            }
+        }
+
+        private static void FixAPose(GameObject avatarRoot, Transform outfitArmature)
+        {
+            var mergeArmature = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
+            if (mergeArmature == null) return;
+
+            var mergeTarget = mergeArmature.mergeTarget.Get(mergeArmature)?.transform;
+            if (mergeTarget == null) return;
+
+            var rootAnimator = avatarRoot.GetComponent<Animator>();
+            if (rootAnimator == null) return;
+
+            FixSingleArm(HumanBodyBones.LeftShoulder);
+            FixSingleArm(HumanBodyBones.RightShoulder);
+            FixSingleArm(HumanBodyBones.LeftUpperArm);
+            FixSingleArm(HumanBodyBones.RightUpperArm);
+
+            void FixSingleArm(HumanBodyBones arm)
+            {
+                var lowerArm = (HumanBodyBones)((int)arm + 2);
+
+                // check if the rotation of the arm differs, but distances and origin point are the same
+                var avatarArm = rootAnimator.GetBoneTransform(arm);
+                var outfitArm = avatarToOutfit(avatarArm);
+
+                var avatarLowerArm = rootAnimator.GetBoneTransform(lowerArm);
+                var outfitLowerArm = avatarToOutfit(avatarLowerArm);
+
+                if (outfitArm == null) return;
+                if (outfitLowerArm == null) return;
+
+                if ((avatarArm.position - outfitArm.position).magnitude > 0.01f) return;
+
+                // check relative distance to lower arm as well
+                var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
+                var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
+
+                if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.01f) return;
+
+                // Rotate the outfit arm to ensure these two points match. We assume that we need only rotate along the
+                // forward (Z+) axis of the avatar root.
+                var forward = avatarRoot.transform.forward;
+
+                var relRot = Quaternion.FromToRotation(
+                    outfitLowerArm.position - outfitArm.position,
+                    avatarLowerArm.position - avatarArm.position
+                );
+                outfitArm.rotation = relRot * outfitArm.rotation;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(outfitArm);
+                EditorUtility.SetDirty(outfitArm);
+            }
+
+            Transform avatarToOutfit(Transform avBone)
+            {
+                if (avBone == null) return null;
+                if (!avBone.IsChildOf(mergeTarget)) return null;
+                var parts = RuntimeUtil.RelativePath(mergeTarget.gameObject, avBone.gameObject)
+                    .Split("/");
+                var outfitPath = string.Join("/", parts.Select(p => mergeArmature.prefix + p + mergeArmature.suffix));
+                var candidate = outfitArmature.transform.Find(outfitPath);
+
+                var merger = candidate.GetComponentInParent<ModularAvatarMergeArmature>();
+                if (merger != mergeArmature) return null;
+
+                return candidate;
             }
         }
 
