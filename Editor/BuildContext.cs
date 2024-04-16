@@ -141,7 +141,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var control in newMenu.controls)
             {
-                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu && control.subMenu != newMenu)
                 {
                     control.subMenu = CloneMenu(control.subMenu);
                 }
