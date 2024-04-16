@@ -270,7 +270,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (!avBone.IsChildOf(mergeTarget)) return null;
                 var parts = RuntimeUtil.RelativePath(mergeTarget.gameObject, avBone.gameObject)
                     .Split('/');
-                var outfitPath = string.Join('/', parts.Select(p => mergeArmature.prefix + p + mergeArmature.suffix));
+                var outfitPath = string.Join("/", parts.Select(p => mergeArmature.prefix + p + mergeArmature.suffix));
                 var candidate = outfitArmature.transform.Find(outfitPath);
 
                 var merger = candidate.GetComponentInParent<ModularAvatarMergeArmature>();
