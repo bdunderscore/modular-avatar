@@ -246,18 +246,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (outfitArm == null) return;
                 if (outfitLowerArm == null) return;
 
-                if ((avatarArm.position - outfitArm.position).magnitude > 0.01f) return;
+                if ((avatarArm.position - outfitArm.position).magnitude > 0.001f) return;
 
                 // check relative distance to lower arm as well
                 var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
                 var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
 
-                if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.01f) return;
+                if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.001f) return;
 
-                // Rotate the outfit arm to ensure these two points match. We assume that we need only rotate along the
-                // forward (Z+) axis of the avatar root.
-                var forward = avatarRoot.transform.forward;
-
+                // Rotate the outfit arm to ensure these two points match.
                 var relRot = Quaternion.FromToRotation(
                     outfitLowerArm.position - outfitArm.position,
                     avatarLowerArm.position - avatarArm.position
