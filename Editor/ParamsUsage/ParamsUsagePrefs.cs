@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    #if UNITY_2022_3_OR_NEWER
     [FilePath("modular-avatar/ParamsUsagePrefs.asset", FilePathAttribute.Location.PreferencesFolder)]
     internal sealed class ParamsUsagePrefs : ScriptableSingleton<ParamsUsagePrefs>
     {
@@ -28,4 +29,12 @@ namespace nadena.dev.modular_avatar.core.editor
             Menu.SetChecked(UnityMenuItems.TopMenu_EnableInfo, ParamsUsagePrefs.instance.enableInfoMenu);
         }
     }
+    #else
+    internal sealed class ParamsUsagePrefs
+    {
+        public static ParamsUsagePrefs instance => new ParamsUsagePrefs();
+        public static event Action<bool> OnChange_EnableInfoMenu;
+        public bool enableInfoMenu => false;
+    }
+    #endif
 }
