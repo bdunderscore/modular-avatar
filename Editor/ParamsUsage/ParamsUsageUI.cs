@@ -47,11 +47,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 (self) => self.OnLanguageChangedCallback());
         }
 
+        private void OnChange_EnableState(bool enableState)
+        {
+            if (_editor != null)
+            {
+                Rebuild();
+            }
+        }
+
         private void OnLanguageChangedCallback()
         {
             if (_editor != null)
             {
-                BuildContent();
+                Rebuild();
             }
         }
 
@@ -66,6 +74,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 Object.DestroyImmediate(_editor);
                 _editor = null;
             }
+            
+            ParamsUsagePrefs.OnChange_EnableInfoMenu -= OnChange_EnableState;
         }
 
         private void OnAttach(AttachToPanelEvent evt)
@@ -73,11 +83,19 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_recursing) return;
 
             Rebuild();
+            
+            ParamsUsagePrefs.OnChange_EnableInfoMenu += OnChange_EnableState;
         }
 
         private void Rebuild()
         {
             if (parent == null) return;
+
+            if (!ParamsUsagePrefs.instance.enableInfoMenu)
+            {
+                Clear();
+                return;
+            }
 
             SetRedrawSensor();
 
