@@ -36,23 +36,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void OnEnable()
+#if UNITY_2022_1_OR_NEWER
+        private bool _delayPending = false;
+
+        private void DelayRecalculate()
         {
-            #if UNITY_2022_1_OR_NEWER
-            ObjectChangeEvents.changesPublished += OnChangesPublished;
-            #endif
+            _delayPending = false;
             Recalculate();
         }
-
-#if UNITY_2022_1_OR_NEWER
+        
         private void OnChangesPublished(ref ObjectChangeEventStream stream)
         {
-            Recalculate();
-        }
-
-        private void OnDisable()
-        {
-            ObjectChangeEvents.changesPublished -= OnChangesPublished;
+            if (!_delayPending) EditorApplication.delayCall += DelayRecalculate;
+            _delayPending = true;
         }
 #endif
 
@@ -65,7 +61,18 @@ namespace nadena.dev.modular_avatar.core.editor
             _legendContainer = _root.Q<VisualElement>("Legend");
             _usageBoxContainer = _root.Q<VisualElement>("UsageBox");
 
-            Recalculate();
+#if UNITY_2022_1_OR_NEWER
+            _root.RegisterCallback<AttachToPanelEvent>(_evt =>
+            {
+                ObjectChangeEvents.changesPublished += OnChangesPublished;
+                Recalculate();
+            });
+            
+            _root.RegisterCallback<DetachFromPanelEvent>(_evt =>
+            {
+                ObjectChangeEvents.changesPublished -= OnChangesPublished;
+            });
+#endif
 
             return _root;
         }
@@ -101,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private void Recalculate()
         {
             if (_root == null || !_visible) return;
-
+            
             var ctx = serializedObject.context as GameObject;
 
             if (ctx == null) return;
