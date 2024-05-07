@@ -273,6 +273,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 var outfitPath = string.Join("/", parts.Select(p => mergeArmature.prefix + p + mergeArmature.suffix));
                 var candidate = outfitArmature.transform.Find(outfitPath);
 
+                if (candidate == null) return null;
+
                 var merger = candidate.GetComponentInParent<ModularAvatarMergeArmature>();
                 if (merger != mergeArmature) return null;
 
