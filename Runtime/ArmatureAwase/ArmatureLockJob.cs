@@ -63,7 +63,6 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 if (transitioned)
                 {
-                    Debug.Log("Invalidated job!");
 #if UNITY_EDITOR
                     EditorApplication.delayCall += () => OnInvalidation?.Invoke();
 #endif
