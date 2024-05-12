@@ -17,7 +17,6 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         private Action _dispose;
 
         private bool _isValid = true;
-        private long _lastHierarchyCheck = -1;
         private Action _update;
 
         internal ImmutableList<(Transform, Transform)> RecordedParents;

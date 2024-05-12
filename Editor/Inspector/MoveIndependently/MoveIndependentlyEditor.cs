@@ -24,7 +24,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override VisualElement CreateInnerInspectorGUI()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var root = uxml.Localize();
+#pragma warning restore CS0618 // Type or member is obsolete
             root.styleSheets.Add(uss);
 
             var container = root.Q<VisualElement>("group-container");

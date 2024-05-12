@@ -14,15 +14,10 @@ namespace nadena.dev.modular_avatar.core
     internal sealed class ScaleProxy : AvatarTagComponent
     {
 #if UNITY_EDITOR
-        void OnValidate()
+        protected override void OnValidate()
         {
             base.OnValidate();
             EditorApplication.delayCall += DeferredValidate;
-        }
-
-        void OnDestroy()
-        {
-            base.OnDestroy();
         }
         
         private void DeferredValidate()
