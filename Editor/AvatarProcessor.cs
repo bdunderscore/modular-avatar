@@ -22,11 +22,15 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using System.Runtime.CompilerServices;
 using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 [assembly: InternalsVisibleTo("Tests")]
 
@@ -34,13 +38,13 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     public class AvatarProcessor
     {
-        [MenuItem("GameObject/ModularAvatar/Manual bake avatar", true, 100)]
+        [MenuItem(UnityMenuItems.GameObject_ManualBake, true, UnityMenuItems.GameObject_ManualBakeOrder)]
         static bool ValidateApplyToCurrentAvatarGameobject()
         {
             return ValidateApplyToCurrentAvatar();
         }
 
-        [MenuItem("GameObject/ModularAvatar/Manual bake avatar", false, 100)]
+        [MenuItem(UnityMenuItems.GameObject_ManualBake, false, UnityMenuItems.GameObject_ManualBakeOrder)]
         static void ApplyToCurrentAvatarGameobject()
         {
             ApplyToCurrentAvatar();

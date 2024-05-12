@@ -1,7 +1,9 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +14,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class ParamsUsageEditor : MAEditorBase
+    internal class ParamsUsageWindow : EditorWindow
     {
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
@@ -32,11 +34,59 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (_visible == value) return;
                 _visible = value;
 
-                if (_visible) Recalculate();
+#if UNITY_2022_1_OR_NEWER
+                if (_visible)
+                {
+                    Recalculate();
+                    ObjectChangeEvents.changesPublished += OnChangesPublished;
+                }
+                else
+                {
+                    ObjectChangeEvents.changesPublished -= OnChangesPublished;
+                }
+#endif
+            }
+        }
+
+        private void OnBecameVisible()
+        {
+            Visible = true;
+        }
+
+        private void OnBecameInvisible()
+        {
+            Visible = false;
+        }
+
+        private void OnSelectionChange()
+        {
+            if (Visible)
+            {
+                Recalculate();
             }
         }
 
 #if UNITY_2022_1_OR_NEWER
+        [MenuItem(UnityMenuItems.TopMenu_EnableInfo, false, UnityMenuItems.TopMenu_EnableInfoOrder)]
+        public static void ShowWindow()
+        {
+            var window = GetWindow<ParamsUsageWindow>();
+            window.titleContent = new GUIContent("MA Information");
+            window.Show();
+        }
+
+        [MenuItem(UnityMenuItems.GameObject_EnableInfo, false, UnityMenuItems.GameObject_EnableInfoOrder)]
+        public static void ShowWindowFromGameObject()
+        {
+            ShowWindow();
+        }
+
+        [MenuItem(UnityMenuItems.GameObject_EnableInfo, true, UnityMenuItems.GameObject_EnableInfoOrder)]
+        public static bool ValidateShowWindowFromGameObject()
+        {
+            return Selection.gameObjects.Length == 1;
+        }
+        
         private bool _delayPending = false;
 
         private void DelayRecalculate()
@@ -47,40 +97,46 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void OnChangesPublished(ref ObjectChangeEventStream stream)
         {
+            if (_root == null || !_visible) return;
             if (!_delayPending) EditorApplication.delayCall += DelayRecalculate;
             _delayPending = true;
         }
 #endif
 
-        protected override VisualElement CreateInnerInspectorGUI()
+        bool GUIIsReady()
         {
+            try
+            {
+                return uxml != null && EditorStyles.label != null;
+            }
+            catch (NullReferenceException _)
+            {
+                return false;
+            }
+        }
+
+        protected void CreateGUI()
+        {
+            if (!GUIIsReady())
+            {
+                // After domain reload, the uxml field (and EditorStyles, etc) isn't initialized immediately.
+                // Try again in the next frame.
+                EditorApplication.delayCall += CreateGUI;
+                return;
+            }
+            
             _root = uxml.CloneTree();
+
+            rootVisualElement.Add(_root);
             _root.styleSheets.Add(uss);
             Localization.L.LocalizeUIElements(_root);
-
+ 
             _legendContainer = _root.Q<VisualElement>("Legend");
             _usageBoxContainer = _root.Q<VisualElement>("UsageBox");
 
-#if UNITY_2022_1_OR_NEWER
-            _root.RegisterCallback<AttachToPanelEvent>(_evt =>
-            {
-                ObjectChangeEvents.changesPublished += OnChangesPublished;
-                Recalculate();
-            });
-            
-            _root.RegisterCallback<DetachFromPanelEvent>(_evt =>
-            {
-                ObjectChangeEvents.changesPublished -= OnChangesPublished;
-            });
-#endif
-
-            return _root;
+            Recalculate(); 
         }
 
-        protected override void OnInnerInspectorGUI()
-        {
-            // no-op
-        }
 
         private static IEnumerable<Color> Colors()
         {
@@ -108,15 +164,25 @@ namespace nadena.dev.modular_avatar.core.editor
         private void Recalculate()
         {
             if (_root == null || !_visible) return;
-            
-            var ctx = serializedObject.context as GameObject;
 
-            if (ctx == null) return;
+            var objects = Selection.gameObjects;
+            var target = objects.Length == 1 ? objects[0] : null;
+            var avatarRoot = target != null
+                ? RuntimeUtil.FindAvatarTransformInParents(target.transform)?.gameObject
+                : null;
 
-            var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(ctx.transform)?.gameObject;
-            if (avatarRoot == null) return;
+            var outerbox = _root.Q<VisualElement>("Outerbox");
+            if (avatarRoot == null)
+            {
+                outerbox.AddToClassList("no-data");
+                return;
+            }
+            else
+            {
+                outerbox.RemoveFromClassList("no-data");
+            }
 
-            var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(ctx)
+            var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(target)
                 .GroupBy(p => p.Plugin)
                 .Select(group => (group.Key, group.Sum(p => p.BitUsage)))
                 .Where((kv, index) => kv.Item2 > 0)
