@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -37,7 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static void DisplayLogo()
         {
-            if (LOGO_ASSET == null) return;
+            if (LOGO_ASSET == null || EditorStyles.label == null) return; 
 
             var height = TARGET_HEIGHT;
             var width = ImageWidth(height);

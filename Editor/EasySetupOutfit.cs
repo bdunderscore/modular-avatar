@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -114,11 +115,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal static class EasySetupOutfit
     {
-        private const int PRIORITY = 49;
         private static string[] errorMessageGroups;
         private static string errorHeader;
 
-        [MenuItem("GameObject/ModularAvatar/Setup Outfit", false, PRIORITY)]
+        [MenuItem(UnityMenuItems.GameObject_SetupOutfit, false, UnityMenuItems.GameObject_SetupOutfitOrder)]
         internal static void SetupOutfit(MenuCommand cmd)
         {
             if (!ValidateSetupOutfit())

@@ -242,5 +242,6 @@
   "ma_info.param_usage_ui.header": "Expressions Parameter 使用状況",
   "ma_info.param_usage_ui.other_objects": "このアバター内の他のオブジェクト",
   "ma_info.param_usage_ui.free_space": "未使用領域 ({0} 個のビット)",
-  "ma_info.param_usage_ui.bits_template": "{0} ({1} 個のビットを使用中)"
+  "ma_info.param_usage_ui.bits_template": "{0} ({1} 個のビットを使用中)",
+  "ma_info.param_usage_ui.no_data": "[ NO DATA ]"
 }

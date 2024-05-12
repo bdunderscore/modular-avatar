@@ -5,10 +5,12 @@
 
 #Outerbox {
     margin-top: 4px;
+    margin-bottom: 8px;
+
     border-top-width: 1px;
     border-bottom-width: 1px;
-    border-left-width: 1px;
-    border-right-width: 1px;
+    /*border-left-width: 1px;
+    border-right-width: 1px;*/
     border-color: black;
 
     padding: 4px;
@@ -16,6 +18,11 @@
 
 #root-box {
     margin-bottom: 12px;
+}
+
+#Footer {
+    margin-left: 15px;
+    margin-right: 15px;
 }
 
 #UsageBox {
@@ -72,4 +79,33 @@
     margin-right: -4px;
     border-left-width: 4px;
     border-right-width: 4px;
+}
+
+/* NO DATA display */
+#Outerbox Toggle {
+    display: flex;
+}
+
+/* Why doesn't #Outerbox.no-data > .unity-foldout__content > * work here? */
+#Outerbox.no-data #UsageBox {
+    display: none;
+}
+
+#Outerbox.no-data #Legend {
+    display: none;
+}
+
+#NoData {
+    display: none;
+}
+
+#Outerbox.no-data #NoData {
+    font-size: 150%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }

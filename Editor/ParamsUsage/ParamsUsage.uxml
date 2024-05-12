@@ -1,8 +1,12 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
     <ui:VisualElement name="root-box">
-        <ui:Label text="ma_info.param_usage_ui.header" class="header ndmf-tr"/>
+        <ma:LogoImage/>
 
-        <ui:VisualElement name="Outerbox">
+        <ui:Foldout text="ma_info.param_usage_ui.header" class="header ndmf-tr" name="Outerbox">
+            <ui:VisualElement name="NoData">
+                <ui:Label text="ma_info.param_usage_ui.no_data" class="ndmf-tr"/>
+            </ui:VisualElement>
+
             <ui:VisualElement name="UsageBox">
                 <ui:VisualElement name="OtherObjects" style="background-color: #888888; flex-grow: 1;"/>
                 <ui:VisualElement name="UnusedSpace" style="width: auto; background-color: #eeeeee; flex-grow: 1;"/>
@@ -28,8 +32,10 @@
                 </ui:VisualElement>
 
             </ui:VisualElement>
-        </ui:VisualElement>
+        </ui:Foldout>
 
-        <ma:LanguageSwitcherElement/>
+        <ui:VisualElement name="Footer">
+            <ma:LanguageSwitcherElement/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </UXML>
