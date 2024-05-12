@@ -62,8 +62,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private BuildContext _context;
 
-        private int internalParamIndex = 0;
-
         // TODO: Move into NDMF
         private ImmutableList<string> PhysBoneSuffixes = ImmutableList<string>.Empty
             .Add("_IsGrabbed")
@@ -325,13 +323,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 rv = BuildReport.ReportingObject(p, () => CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true)));
             }
-            
-            var willPurgeAnimators = false;
+
             foreach (var merger in obj.GetComponents<ModularAvatarMergeAnimator>())
             {
                 if (merger.deleteAttachedAnimator)
                 {
-                    willPurgeAnimators = true;
                     break;
                 }
             }
