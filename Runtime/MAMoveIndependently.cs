@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
-
 #if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
 #endif
@@ -128,7 +127,6 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             foreach (Transform child in parent)
             {
                 if (_excluded.Contains(child)) continue;
-                if (child.GetComponent<ScaleProxy>() != null) continue;
 
                 _observed.Add(child);
 
