@@ -17,14 +17,18 @@
 }
 
 .buttons {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
   align-items: center;
   justify-content: center;
+  column-gap: 2rem;
+  row-gap: 1rem;
 }
 
-.button {
-    margin-right: 1rem;
-    margin-left: 1rem;
+@media screen and (max-width: 996px) {
+  .buttons {
+    grid-auto-flow: row;
+  }
 }
 
 div.logo {
