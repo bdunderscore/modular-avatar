@@ -12,6 +12,10 @@ using Object = UnityEngine.Object;
 
 #endregion
 
+#if MA_VRM0 || MA_VRM1
+using nadena.dev.modular_avatar.core.editor.vrm;
+#endif
+
 [assembly: ExportsPlugin(
     typeof(PluginDefinition)
 )]
@@ -57,6 +61,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
                     seq.Run(MergeArmaturePluginPass.Instance);
+#if MA_VRM1
+                    seq.Run(MergeVRM1SpringBonesPass.Instance);
+#endif
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
                     seq.Run("World Fixed Object",
@@ -125,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    abstract class MAPass<T> : Pass<T> where T : Pass<T>, new()
+    internal abstract class MAPass<T> : Pass<T> where T : Pass<T>, new()
     {
         protected BuildContext MAContext(ndmf.BuildContext context)
         {
