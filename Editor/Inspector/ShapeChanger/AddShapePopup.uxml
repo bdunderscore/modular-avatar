@@ -1,0 +1,11 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="add-shape-popup">
+        <ui:VisualElement class="add-shape-popup">
+            <ui:Label text="Select Blendshape"/>
+            <ui:VisualElement class="vline"/>
+            <ui:ScrollView show-horizontal-scroller="false" name="scroll-view">
+                <ui:Label text="&lt;none remaining>" class="placeholder"/>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

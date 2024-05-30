@@ -1,5 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.animation
 {
@@ -17,11 +26,15 @@ namespace nadena.dev.modular_avatar.animation
     /// </summary>
     internal sealed class AnimationServicesContext : IExtensionContext
     {
+        private BuildContext _context;
         private AnimationDatabase _animationDatabase;
         private PathMappings _pathMappings;
+        private Dictionary<GameObject, string> _selfProxies = new();
 
         public void OnActivate(BuildContext context)
         {
+            _context = context;
+            
             _animationDatabase = new AnimationDatabase();
             _animationDatabase.OnActivate(context);
 
@@ -63,6 +76,97 @@ namespace nadena.dev.modular_avatar.animation
                 }
 
                 return _pathMappings;
+            }
+        }
+
+        /// <summary>
+        /// Returns a parameter which proxies the "activeSelf" state of the specified GameObject.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="paramName"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool TryGetActiveSelfProxy(GameObject obj, out string paramName)
+        {
+            if (_selfProxies.TryGetValue(obj, out paramName)) return !string.IsNullOrEmpty(paramName);
+
+            var path = PathMappings.GetObjectIdentifier(obj);
+            var clips = AnimationDatabase.ClipsForPath(path);
+            if (clips == null || clips.IsEmpty)
+            {
+                _selfProxies[obj] = "";
+                return false;
+            }
+
+            var iid = obj.GetInstanceID();
+            paramName = $"_MA/ActiveSelf/{iid}";
+
+            var binding = EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive");
+
+            bool hadAnyClip = false;
+            foreach (var clip in clips)
+            {
+                Motion newMotion = ProcessActiveSelf(clip.CurrentClip, paramName, binding);
+                if (newMotion != clip.CurrentClip)
+                {
+                    clip.SetCurrentNoInvalidate(newMotion);
+                    hadAnyClip = true;
+                }
+            }
+
+            if (hadAnyClip)
+            {
+                _selfProxies[obj] = paramName;
+                return true;
+            }
+            else
+            {
+                _selfProxies[obj] = "";
+                return false;
+            }
+        }
+
+        private Motion ProcessActiveSelf(Motion motion, string paramName, EditorCurveBinding binding)
+        {
+            if (motion is AnimationClip clip)
+            {
+                var curve = AnimationUtility.GetEditorCurve(clip, binding);
+                if (curve == null) return motion;
+
+                var newClip = new AnimationClip();
+                EditorUtility.CopySerialized(motion, newClip);
+
+                newClip.SetCurve("", typeof(Animator), paramName, curve);
+                return newClip;
+            }
+            else if (motion is BlendTree bt)
+            {
+                bool anyChanged = false;
+
+                var motions = bt.children.Select(c => // c is struct ChildMotion
+                {
+                    var newMotion = ProcessActiveSelf(c.motion, paramName, binding);
+                    anyChanged |= newMotion != c.motion;
+                    c.motion = newMotion;
+                    return c;
+                }).ToArray();
+
+                if (anyChanged)
+                {
+                    var newBt = new BlendTree();
+                    EditorUtility.CopySerialized(bt, newBt);
+
+                    newBt.children = motions;
+                    return newBt;
+                }
+                else
+                {
+                    return bt;
+                }
+            }
+            else
+            {
+                return motion;
             }
         }
     }

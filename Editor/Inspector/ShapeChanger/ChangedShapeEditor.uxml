@@ -1,0 +1,8 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:VisualElement class="changed-shape-editor">
+        <ui:Label text="&lt;shape name>" binding-path="ShapeName" name="f-name"/>
+        <ed:PropertyField binding-path="ChangeType" label="" name="f-change-type"/>
+        <ed:PropertyField binding-path="Value" label="" name="f-value" class="f-value"/>
+        <ui:VisualElement name="f-value-delete" class="f-value"/>
+    </ui:VisualElement>
+</UXML>
