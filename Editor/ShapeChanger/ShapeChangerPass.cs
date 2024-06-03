@@ -303,13 +303,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 },
                 new ChildMotion()
                 {
-                    motion = delTree,
+                    motion = AnimResult(info.ShapeKey, 100),
                     timeScale = 1,
                     threshold = 0.6f
                 },
                 new ChildMotion()
                 {
-                    motion = delTree,
+                    motion = AnimResult(info.ShapeKey, 100),
                     timeScale = 1,
                     threshold = 1
                 },
@@ -366,6 +366,8 @@ namespace nadena.dev.modular_avatar.core.editor
             childMotions.Add(initMotion);
             paramNames.Add(MergeBlendTreePass.ALWAYS_ONE);
             initialValues[MergeBlendTreePass.ALWAYS_ONE] = 1;
+            initialValues[setParam] = 0;
+            initialValues[delParam] = 0;
 
             foreach (var group in groups)
             {
@@ -455,18 +457,15 @@ namespace nadena.dev.modular_avatar.core.editor
             var paramList = animController.parameters.ToList();
             var paramSet = paramList.Select(p => p.name).ToHashSet();
 
-            foreach (var paramName in FindParams(bt))
+            foreach (var paramName in initialValues.Keys.Except(paramSet))
             {
-                if (!paramSet.Contains(paramName))
+                paramList.Add(new AnimatorControllerParameter()
                 {
-                    paramList.Add(new AnimatorControllerParameter()
-                    {
-                        name = paramName,
-                        type = AnimatorControllerParameterType.Float,
-                        defaultFloat = 0, // TODO
-                    });
-                    paramSet.Add(paramName);
-                }
+                    name = paramName,
+                    type = AnimatorControllerParameterType.Float,
+                    defaultFloat = initialValues[paramName], // TODO
+                });
+                paramSet.Add(paramName);
             }
 
             animController.parameters = paramList.ToArray();
@@ -558,7 +557,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         shapeKeys[key] = info;
 
                         // Add initial state
-                        info.setObjects.Add(new ActionGroupKey(asc, key, null, shape));
+                        var agk = new ActionGroupKey(asc, key, null, shape);
+                        agk.IsDelete = false;
+                        agk.InitiallyActive = true;
+                        agk.Value = renderer.GetBlendShapeWeight(shapeId);
+                        info.setObjects.Add(agk);
                     }
 
                     var action = new ActionGroupKey(asc, key, changer.gameObject, shape);
