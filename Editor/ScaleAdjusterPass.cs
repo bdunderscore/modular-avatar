@@ -30,14 +30,14 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             // Legacy cleanup
-            foreach (var sar in context.AvatarRootObject.GetComponentsInChildren<ScaleAdjusterRenderer>())
+            /*foreach (var sar in context.AvatarRootObject.GetComponentsInChildren<ScaleAdjusterRenderer>())
             {
                 Object.DestroyImmediate(sar.gameObject);
             }
             foreach (var sar in context.AvatarRootObject.GetComponentsInChildren<ScaleProxy>())
             {
                 Object.DestroyImmediate(sar.gameObject);
-            }
+            }*/
             
             if (boneMappings.Count == 0)
             {

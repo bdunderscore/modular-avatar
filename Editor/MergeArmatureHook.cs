@@ -85,10 +85,10 @@ namespace nadena.dev.modular_avatar.core.editor
             TopoProcessMergeArmatures(mergeArmatures);
 
 #if MA_VRCSDK3_AVATARS
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ScaleProxy>(true))
+            /*foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ScaleProxy>(true))
             {
                 BoneDatabase.AddMergedBone(c.transform);
-            }
+            }*/
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
             {

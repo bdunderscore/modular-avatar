@@ -39,8 +39,7 @@ namespace modular_avatar_tests
             if (type == typeof(Activator)) return;
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
-            if (type == typeof(ScaleProxy)) return;
-            if (type == typeof(ScaleAdjusterRenderer)) return;
+            if (type == typeof(ModularAvatarShapeChanger)) return;
 
             // get icon
             var component = (MonoBehaviour) _gameObject.AddComponent(type);
@@ -65,8 +64,6 @@ namespace modular_avatar_tests
             if (type == typeof(Activator)) return;
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
-            if (type == typeof(ScaleProxy)) return;
-            if (type == typeof(ScaleAdjusterRenderer)) return;
 
             // get icon
             var helpUrl = type.GetCustomAttribute<HelpURLAttribute>();
