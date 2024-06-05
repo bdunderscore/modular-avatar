@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
         // Licensed under the MIT License
         private static string[][] boneNamePatterns = new[]
         {
-            new[] {"Hips", "Hip"},
+            new[] {"Hips", "Hip", "pelvis"},
             new[]
             {
                 "LeftUpperLeg", "UpperLeg_Left", "UpperLeg_L", "Leg_Left", "Leg_L", "ULeg_L", "Left leg", "LeftUpLeg",
@@ -36,17 +36,17 @@ namespace nadena.dev.modular_avatar.core.editor
             },
             new[]
             {
-                "LeftLowerLeg", "LowerLeg_Left", "LowerLeg_L", "Knee_Left", "Knee_L", "LLeg_L", "Left knee", "LeftLeg"
+                "LeftLowerLeg", "LowerLeg_Left", "LowerLeg_L", "Knee_Left", "Knee_L", "LLeg_L", "Left knee", "LeftLeg", "leg_L"
             },
             new[]
             {
                 "RightLowerLeg", "LowerLeg_Right", "LowerLeg_R", "Knee_Right", "Knee_R", "LLeg_R", "Right knee",
-                "RightLeg"
+                "RightLeg", "leg_R"
             },
             new[] {"LeftFoot", "Foot_Left", "Foot_L", "Ankle_L", "Foot.L.001", "Left ankle", "heel.L", "heel"},
             new[] {"RightFoot", "Foot_Right", "Foot_R", "Ankle_R", "Foot.R.001", "Right ankle", "heel.R", "heel"},
-            new[] {"Spine"},
-            new[] {"Chest", "Bust"},
+            new[] {"Spine", "spine01"},
+            new[] {"Chest", "Bust", "spine02"},
             new[] {"Neck"},
             new[] {"Head"},
             new[] {"LeftShoulder", "Shoulder_Left", "Shoulder_L"},
@@ -60,8 +60,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 "RightUpperArm", "UpperArm_Right", "UpperArm_R", "Arm_Right", "Arm_R", "UArm_R", "Right arm",
                 "UpperRightArm"
             },
-            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm", "Elbow_L"},
-            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm", "Elbow_R"},
+            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm", "Elbow_L", "forearm_L"},
+            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm", "Elbow_R", "forearm_R"},
             new[] {"LeftHand", "Hand_Left", "Hand_L", "Left wrist", "Wrist_L"},
             new[] {"RightHand", "Hand_Right", "Hand_R", "Right wrist", "Wrist_R"},
             new[]
@@ -80,152 +80,152 @@ namespace nadena.dev.modular_avatar.core.editor
             new[]
             {
                 "LeftThumbProximal", "ProximalThumb_Left", "ProximalThumb_L", "Thumb1_L", "ThumbFinger1_L",
-                "LeftHandThumb1", "Thumb Proximal.L", "Thunb1_L"
+                "LeftHandThumb1", "Thumb Proximal.L", "Thunb1_L", "finger01_01_L"
             },
             new[]
             {
                 "LeftThumbIntermediate", "IntermediateThumb_Left", "IntermediateThumb_L", "Thumb2_L", "ThumbFinger2_L",
-                "LeftHandThumb2", "Thumb Intermediate.L", "Thunb2_L"
+                "LeftHandThumb2", "Thumb Intermediate.L", "Thunb2_L", "finger01_02_L"
             },
             new[]
             {
                 "LeftThumbDistal", "DistalThumb_Left", "DistalThumb_L", "Thumb3_L", "ThumbFinger3_L", "LeftHandThumb3",
-                "Thumb Distal.L", "Thunb3_L"
+                "Thumb Distal.L", "Thunb3_L", "finger01_03_L"
             },
             new[]
             {
                 "LeftIndexProximal", "ProximalIndex_Left", "ProximalIndex_L", "Index1_L", "IndexFinger1_L",
-                "LeftHandIndex1", "Index Proximal.L"
+                "LeftHandIndex1", "Index Proximal.L", "finger02_01_L"
             },
             new[]
             {
                 "LeftIndexIntermediate", "IntermediateIndex_Left", "IntermediateIndex_L", "Index2_L", "IndexFinger2_L",
-                "LeftHandIndex2", "Index Intermediate.L"
+                "LeftHandIndex2", "Index Intermediate.L", "finger02_02_L"
             },
             new[]
             {
                 "LeftIndexDistal", "DistalIndex_Left", "DistalIndex_L", "Index3_L", "IndexFinger3_L", "LeftHandIndex3",
-                "Index Distal.L"
+                "Index Distal.L", "finger02_03_L"
             },
             new[]
             {
                 "LeftMiddleProximal", "ProximalMiddle_Left", "ProximalMiddle_L", "Middle1_L", "MiddleFinger1_L",
-                "LeftHandMiddle1", "Middle Proximal.L"
+                "LeftHandMiddle1", "Middle Proximal.L", "finger03_01_L"
             },
             new[]
             {
                 "LeftMiddleIntermediate", "IntermediateMiddle_Left", "IntermediateMiddle_L", "Middle2_L",
-                "MiddleFinger2_L", "LeftHandMiddle2", "Middle Intermediate.L"
+                "MiddleFinger2_L", "LeftHandMiddle2", "Middle Intermediate.L", "finger03_02_L"
             },
             new[]
             {
                 "LeftMiddleDistal", "DistalMiddle_Left", "DistalMiddle_L", "Middle3_L", "MiddleFinger3_L",
-                "LeftHandMiddle3", "Middle Distal.L"
+                "LeftHandMiddle3", "Middle Distal.L", "finger03_03_L"
             },
             new[]
             {
                 "LeftRingProximal", "ProximalRing_Left", "ProximalRing_L", "Ring1_L", "RingFinger1_L", "LeftHandRing1",
-                "Ring Proximal.L"
+                "Ring Proximal.L", "finger04_01_L"
             },
             new[]
             {
                 "LeftRingIntermediate", "IntermediateRing_Left", "IntermediateRing_L", "Ring2_L", "RingFinger2_L",
-                "LeftHandRing2", "Ring Intermediate.L"
+                "LeftHandRing2", "Ring Intermediate.L", "finger04_02_L"
             },
             new[]
             {
                 "LeftRingDistal", "DistalRing_Left", "DistalRing_L", "Ring3_L", "RingFinger3_L", "LeftHandRing3",
-                "Ring Distal.L"
+                "Ring Distal.L", "finger04_03_L"
             },
             new[]
             {
                 "LeftLittleProximal", "ProximalLittle_Left", "ProximalLittle_L", "Little1_L", "LittleFinger1_L",
-                "LeftHandPinky1", "Little Proximal.L"
+                "LeftHandPinky1", "Little Proximal.L", "finger05_01_L"
             },
             new[]
             {
                 "LeftLittleIntermediate", "IntermediateLittle_Left", "IntermediateLittle_L", "Little2_L",
-                "LittleFinger2_L", "LeftHandPinky2", "Little Intermediate.L"
+                "LittleFinger2_L", "LeftHandPinky2", "Little Intermediate.L", "finger05_02_L"
             },
             new[]
             {
                 "LeftLittleDistal", "DistalLittle_Left", "DistalLittle_L", "Little3_L", "LittleFinger3_L",
-                "LeftHandPinky3", "Little Distal.L"
+                "LeftHandPinky3", "Little Distal.L", "finger05_03_L"
             },
             new[]
             {
                 "RightThumbProximal", "ProximalThumb_Right", "ProximalThumb_R", "Thumb1_R", "ThumbFinger1_R",
-                "RightHandThumb1", "Thumb Proximal.R", "Thunb1_R"
+                "RightHandThumb1", "Thumb Proximal.R", "Thunb1_R", "finger01_01_R"
             },
             new[]
             {
                 "RightThumbIntermediate", "IntermediateThumb_Right", "IntermediateThumb_R", "Thumb2_R",
-                "ThumbFinger2_R", "RightHandThumb2", "Thumb Intermediate.R", "Thunb2_R"
+                "ThumbFinger2_R", "RightHandThumb2", "Thumb Intermediate.R", "Thunb2_R", "finger01_02_R"
             },
             new[]
             {
                 "RightThumbDistal", "DistalThumb_Right", "DistalThumb_R", "Thumb3_R", "ThumbFinger3_R",
-                "RightHandThumb3", "Thumb Distal.R", "Thunb3_R"
+                "RightHandThumb3", "Thumb Distal.R", "Thunb3_R", "finger01_03_R"
             },
             new[]
             {
                 "RightIndexProximal", "ProximalIndex_Right", "ProximalIndex_R", "Index1_R", "IndexFinger1_R",
-                "RightHandIndex1", "Index Proximal.R"
+                "RightHandIndex1", "Index Proximal.R", "finger02_01_R"
             },
             new[]
             {
                 "RightIndexIntermediate", "IntermediateIndex_Right", "IntermediateIndex_R", "Index2_R",
-                "IndexFinger2_R", "RightHandIndex2", "Index Intermediate.R"
+                "IndexFinger2_R", "RightHandIndex2", "Index Intermediate.R", "finger02_02_R"
             },
             new[]
             {
                 "RightIndexDistal", "DistalIndex_Right", "DistalIndex_R", "Index3_R", "IndexFinger3_R",
-                "RightHandIndex3", "Index Distal.R"
+                "RightHandIndex3", "Index Distal.R", "finger02_03_R"
             },
             new[]
             {
                 "RightMiddleProximal", "ProximalMiddle_Right", "ProximalMiddle_R", "Middle1_R", "MiddleFinger1_R",
-                "RightHandMiddle1", "Middle Proximal.R"
+                "RightHandMiddle1", "Middle Proximal.R", "finger03_01_R"
             },
             new[]
             {
                 "RightMiddleIntermediate", "IntermediateMiddle_Right", "IntermediateMiddle_R", "Middle2_R",
-                "MiddleFinger2_R", "RightHandMiddle2", "Middle Intermediate.R"
+                "MiddleFinger2_R", "RightHandMiddle2", "Middle Intermediate.R", "finger03_02_R"
             },
             new[]
             {
                 "RightMiddleDistal", "DistalMiddle_Right", "DistalMiddle_R", "Middle3_R", "MiddleFinger3_R",
-                "RightHandMiddle3", "Middle Distal.R"
+                "RightHandMiddle3", "Middle Distal.R", "finger03_03_R"
             },
             new[]
             {
                 "RightRingProximal", "ProximalRing_Right", "ProximalRing_R", "Ring1_R", "RingFinger1_R",
-                "RightHandRing1", "Ring Proximal.R"
+                "RightHandRing1", "Ring Proximal.R", "finger04_01_R"
             },
             new[]
             {
                 "RightRingIntermediate", "IntermediateRing_Right", "IntermediateRing_R", "Ring2_R", "RingFinger2_R",
-                "RightHandRing2", "Ring Intermediate.R"
+                "RightHandRing2", "Ring Intermediate.R", "finger04_02_R"
             },
             new[]
             {
                 "RightRingDistal", "DistalRing_Right", "DistalRing_R", "Ring3_R", "RingFinger3_R", "RightHandRing3",
-                "Ring Distal.R"
+                "Ring Distal.R", "finger04_03_R"
             },
             new[]
             {
                 "RightLittleProximal", "ProximalLittle_Right", "ProximalLittle_R", "Little1_R", "LittleFinger1_R",
-                "RightHandPinky1", "Little Proximal.R"
+                "RightHandPinky1", "Little Proximal.R", "finger05_01_R"
             },
             new[]
             {
                 "RightLittleIntermediate", "IntermediateLittle_Right", "IntermediateLittle_R", "Little2_R",
-                "LittleFinger2_R", "RightHandPinky2", "Little Intermediate.R"
+                "LittleFinger2_R", "RightHandPinky2", "Little Intermediate.R", "finger05_02_R"
             },
             new[]
             {
                 "RightLittleDistal", "DistalLittle_Right", "DistalLittle_R", "Little3_R", "LittleFinger3_R",
-                "RightHandPinky3", "Little Distal.R"
+                "RightHandPinky3", "Little Distal.R", "finger05_03_R"
             },
             new[] {"UpperChest", "UChest"},
         };
