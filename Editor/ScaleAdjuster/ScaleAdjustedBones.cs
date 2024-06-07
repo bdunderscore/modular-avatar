@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -12,6 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
     internal class ScaleAdjustedBones
     {
         private static int editorFrameCount = 0;
+        private static int lastUpdateFrame = 0;
         private static int lastMutatingUpdate = 0;
         private static int mutatingUpdateCount = 0;
 
@@ -32,6 +34,16 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
         private Dictionary<Component, BoneState> _bones = new(new ObjectIdentityComparer<Component>());
         //private List<BoneState> _states = new List<BoneState>();
 
+        public void Clear()
+        {
+            foreach (var state in _bones.Values)
+            {
+                if (state.proxy != null) Object.DestroyImmediate(state.proxy.gameObject);
+            }
+
+            _bones.Clear();
+        }
+        
         public BoneState GetBone(Component src, bool force = true)
         {
             if (src == null) return null;
@@ -70,6 +82,13 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
 
         public void Update()
         {
+            if (lastUpdateFrame == editorFrameCount)
+            {
+                return;
+            }
+
+            lastUpdateFrame = editorFrameCount;
+            
             if (lastMutatingUpdate != editorFrameCount)
             {
                 mutatingUpdateCount++;
