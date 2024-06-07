@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using nadena.dev.modular_avatar.core.editor.ScaleAdjuster;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.rq;
@@ -16,7 +17,6 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ScaleAdjusterPreview : IRenderFilter
     {
-        private ScaleAdjustedBones _bones = new ScaleAdjustedBones();
         
         [InitializeOnLoadMethod]
         private static void StaticInit()
@@ -64,6 +64,23 @@ namespace nadena.dev.modular_avatar.core.editor
                 return targets.Select(r => (IImmutableList<Renderer>)ImmutableList.Create(r)).ToImmutableList();
             });
 
+        public Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
+        {
+            return Task.FromResult((IRenderFilterNode)new ScaleAdjusterPreviewNode());
+        }
+    }
+
+    internal class ScaleAdjusterPreviewNode : IRenderFilterNode
+    {
+        private static ScaleAdjustedBones _bones = new ScaleAdjustedBones();
+
+        public ScaleAdjusterPreviewNode()
+        {
+        }
+
+        public ulong Reads => IRenderFilterNode.Shapes;
+        public ulong WhatChanged => IRenderFilterNode.Shapes;
+
         public void OnFrame(Renderer original, Renderer proxy)
         {
             if (proxy is SkinnedMeshRenderer p_smr && original is SkinnedMeshRenderer o_smr)
@@ -78,6 +95,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _bones.Update();
         }
-    }
 
+        public void Dispose()
+        {
+            _bones.Clear();
+        }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,6 +9,7 @@ using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.rq;
 using nadena.dev.ndmf.rq.unity.editor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -31,6 +33,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             // TODO: observe avatar root
                             ctx.Observe(changer);
+                            if (!ctx.ActiveAndEnabled(changer)) continue;
+                            
                             var target = ctx.Observe(changer.targetRenderer.Get(changer));
                             var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
 
@@ -59,138 +63,171 @@ namespace nadena.dev.modular_avatar.core.editor
                         .ToImmutableList();
                 });
 
-        private bool IsChangerActive(ModularAvatarShapeChanger changer, ComputeContext context)
-        {
-            if (context != null)
-            {
-                if (!context.ActiveAndEnabled(changer)) return false;
-            }
-            else
-            {
-                if (!changer.isActiveAndEnabled) return false;
-            }
-            
-            var changerRenderer = context != null
-                ? context.GetComponent<Renderer>(changer.gameObject)
-                : changer.GetComponent<Renderer>();
-            context?.Observe(changerRenderer);
 
-            if (changerRenderer == null) return false;
-            return changerRenderer.enabled && (context?.ActiveAndEnabled(changer) ?? changer.isActiveAndEnabled);
+        public async Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context)
+        {
+            var node = new Node();
+
+            try
+            {
+                await node.Init(proxyPairs, context);
+            }
+            catch (Exception e)
+            {
+                // dispose
+                throw;
+            }
+
+            return node;
         }
 
-
-        public async Task MutateMeshData(IList<MeshState> states, ComputeContext context)
+        private class Node : IRenderFilterNode
         {
-            var targetGroups = await context.Observe(InternalTargetGroups);
+            private Mesh _generatedMesh = null;
+            private ImmutableList<ModularAvatarShapeChanger> _changers;
 
-            var state = states[0];
-            var renderer = state.Original;
-            if (renderer == null) return;
-            if (!targetGroups.TryGetValue(renderer, out var changers)) return;
-            if (!(renderer is SkinnedMeshRenderer smr)) return;
-
-            HashSet<int> toDelete = new HashSet<int>();
-
-            foreach (var changer in changers)
+            private bool IsChangerActive(ModularAvatarShapeChanger changer, ComputeContext context)
             {
-                if (!IsChangerActive(changer, context)) continue;
+                if (changer == null) return false;
 
-                foreach (var shape in changer.Shapes)
+                if (context != null)
                 {
-                    if (shape.ChangeType == ShapeChangeType.Delete)
-                    {
-                        var index = state.Mesh.GetBlendShapeIndex(shape.ShapeName);
-                        if (index < 0) continue;
-                        toDelete.Add(index);
-                    }
+                    return context.ActiveAndEnabled(changer);
+                }
+                else
+                {
+                    return changer.isActiveAndEnabled;
                 }
             }
 
-            if (toDelete.Count > 0)
+            public async Task Init(IEnumerable<(Renderer, Renderer)> renderers, ComputeContext context)
             {
-                var mesh = Object.Instantiate(state.Mesh);
+                var targetGroups = await context.Observe(InternalTargetGroups);
 
-                var bsPos = new Vector3[mesh.vertexCount];
-                bool[] targetVertex = new bool[mesh.vertexCount];
-                foreach (var bs in toDelete)
+                var (original, proxy) = renderers.First();
+
+                if (original == null || proxy == null) return;
+                if (!targetGroups.TryGetValue(original, out _changers)) return;
+                if (!(proxy is SkinnedMeshRenderer smr)) return;
+
+                HashSet<int> toDelete = new HashSet<int>();
+                var mesh = smr.sharedMesh;
+
+                foreach (var changer in _changers)
                 {
-                    int frames = mesh.GetBlendShapeFrameCount(bs);
-                    for (int f = 0; f < frames; f++)
-                    {
-                        mesh.GetBlendShapeFrameVertices(bs, f, bsPos, null, null);
+                    if (!IsChangerActive(changer, context)) continue;
 
-                        for (int i = 0; i < bsPos.Length; i++)
+                    foreach (var shape in changer.Shapes)
+                    {
+                        if (shape.ChangeType == ShapeChangeType.Delete)
                         {
-                            if (bsPos[i].sqrMagnitude > 0.0001f)
+                            var index = mesh.GetBlendShapeIndex(shape.ShapeName);
+                            if (index < 0) continue;
+                            toDelete.Add(index);
+                        }
+                    }
+                }
+
+                if (toDelete.Count > 0)
+                {
+                    mesh = Object.Instantiate(mesh);
+
+                    var bsPos = new Vector3[mesh.vertexCount];
+                    bool[] targetVertex = new bool[mesh.vertexCount];
+                    foreach (var bs in toDelete)
+                    {
+                        int frames = mesh.GetBlendShapeFrameCount(bs);
+                        for (int f = 0; f < frames; f++)
+                        {
+                            mesh.GetBlendShapeFrameVertices(bs, f, bsPos, null, null);
+
+                            for (int i = 0; i < bsPos.Length; i++)
                             {
-                                targetVertex[i] = true;
+                                if (bsPos[i].sqrMagnitude > 0.0001f)
+                                {
+                                    targetVertex[i] = true;
+                                }
                             }
                         }
                     }
-                }
 
-                List<int> tris = new List<int>();
-                for (int subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
-                {
-                    tris.Clear();
-
-                    var baseVertex = (int)mesh.GetBaseVertex(subMesh);
-                    mesh.GetTriangles(tris, subMesh, false);
-
-                    for (int i = 0; i < tris.Count; i += 3)
+                    List<int> tris = new List<int>();
+                    for (int subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
                     {
-                        if (targetVertex[tris[i] + baseVertex] || targetVertex[tris[i + 1] + baseVertex] ||
-                            targetVertex[tris[i + 2] + baseVertex])
+                        tris.Clear();
+
+                        var baseVertex = (int)mesh.GetBaseVertex(subMesh);
+                        mesh.GetTriangles(tris, subMesh, false);
+
+                        for (int i = 0; i < tris.Count; i += 3)
                         {
-                            tris.RemoveRange(i, 3);
-                            i -= 3;
+                            if (targetVertex[tris[i] + baseVertex] || targetVertex[tris[i + 1] + baseVertex] ||
+                                targetVertex[tris[i + 2] + baseVertex])
+                            {
+                                tris.RemoveRange(i, 3);
+                                i -= 3;
+                            }
                         }
+
+                        mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
                     }
 
-                    mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
+                    smr.sharedMesh = mesh;
+                    _generatedMesh = mesh;
+                }
+            }
+
+
+            public ulong Reads => IRenderFilterNode.Shapes | IRenderFilterNode.Mesh;
+            public ulong WhatChanged => IRenderFilterNode.Shapes | IRenderFilterNode.Mesh;
+
+            public void Dispose()
+            {
+                if (_generatedMesh != null) Object.DestroyImmediate(_generatedMesh);
+            }
+
+            public void OnFrame(Renderer original, Renderer proxy)
+            {
+                if (_changers == null) return; // can happen transiently as we disable the last component
+                if (!(proxy is SkinnedMeshRenderer smr)) return;
+
+                Mesh mesh;
+                if (_generatedMesh != null)
+                {
+                    smr.sharedMesh = _generatedMesh;
+                    mesh = _generatedMesh;
+                }
+                else
+                {
+                    mesh = smr.sharedMesh;
                 }
 
-                state.Mesh = mesh;
-                state.OnDispose += () =>
+                if (mesh == null) return;
+
+                foreach (var changer in _changers)
                 {
-                    if (mesh != null) Object.Destroy(mesh);
-                };
-            }
-        }
+                    if (!IsChangerActive(changer, null)) continue;
 
-
-        public void OnFrame(Renderer original, Renderer proxy)
-        {
-            if (!InternalTargetGroups.TryGetValue(out var targetGroups)) return;
-            if (!targetGroups.TryGetValue(original, out var changers)) return;
-            if (!(proxy is SkinnedMeshRenderer smr)) return;
-
-            var mesh = smr.sharedMesh;
-            if (mesh == null) return;
-
-            foreach (var changer in changers)
-            {
-                if (!IsChangerActive(changer, null)) continue;
-
-                foreach (var shape in changer.Shapes)
-                {
-                    var index = mesh.GetBlendShapeIndex(shape.ShapeName);
-                    if (index < 0) continue;
-
-                    float setToValue = -1;
-
-                    switch (shape.ChangeType)
+                    foreach (var shape in changer.Shapes)
                     {
-                        case ShapeChangeType.Delete:
-                            setToValue = 100;
-                            break;
-                        case ShapeChangeType.Set:
-                            setToValue = shape.Value;
-                            break;
-                    }
+                        var index = mesh.GetBlendShapeIndex(shape.ShapeName);
+                        if (index < 0) continue;
 
-                    smr.SetBlendShapeWeight(index, setToValue);
+                        float setToValue = -1;
+
+                        switch (shape.ChangeType)
+                        {
+                            case ShapeChangeType.Delete:
+                                setToValue = 100;
+                                break;
+                            case ShapeChangeType.Set:
+                                setToValue = shape.Value;
+                                break;
+                        }
+
+                        smr.SetBlendShapeWeight(index, setToValue);
+                    }
                 }
             }
         }
