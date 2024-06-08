@@ -57,7 +57,7 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
             if (!force) return null;
 
             var proxyObj = new GameObject(src.name);
-            proxyObj.hideFlags = HideFlags.DontSave;
+            proxyObj.hideFlags = HideFlags.HideAndDontSave;
             proxyObj.AddComponent<SelfDestructComponent>().KeepAlive = this;
 
 #if MODULAR_AVATAR_DEBUG_HIDDEN
@@ -120,7 +120,8 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
                     continue;
                 }
 
-                if (entry.original.gameObject.scene != entry.proxy.gameObject.scene)
+                if (entry.original.gameObject.scene != entry.proxy.gameObject.scene &&
+                    entry.proxy.transform.parent == null)
                 {
                     SceneManager.MoveGameObjectToScene(entry.proxy.gameObject, entry.original.gameObject.scene);
                 }
