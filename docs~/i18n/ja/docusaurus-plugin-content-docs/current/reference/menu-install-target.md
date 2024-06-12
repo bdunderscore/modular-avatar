@@ -13,4 +13,4 @@ MA Menu Installerコンポーネントからメニューを「引っ張り」、
 ## 何をするもの？
 
 このコンポーネントは、選択されたメニューインストーラーの「インストール先」設定を上書きし、Menu Install Targetの位置にインストールさせます。
-これでMenu Installerを仕様したアセットを[オブジェクト型メニューシステム](/docs/tutorials/menu)に併用できるようになります。
+これでMenu Installerを仕様したアセットを[オブジェクト型メニューシステム](/ja/docs/tutorials/menu)に併用できるようになります。
