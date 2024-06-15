@@ -534,7 +534,6 @@ namespace nadena.dev.modular_avatar.animation
                     if (child.stateMachine == null) continue;
 
                     if (visited.Contains(child.stateMachine)) continue;
-                    visited.Add(child.stateMachine);
                     foreach (var state in VisitStateMachine(child.stateMachine))
                     {
                         yield return state;
