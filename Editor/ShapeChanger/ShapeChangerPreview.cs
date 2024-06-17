@@ -17,61 +17,51 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     public class ShapeChangerPreview : IRenderFilter
     {
-        private static ReactiveValue<ImmutableDictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>>>
-            InternalTargetGroups
-                = ReactiveValue<ImmutableDictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>>>.Create(
-                    "ShapeChangerPreview.TargetGroups", async ctx =>
-                    {
-                        var allChangers =
-                            await ctx.Observe(CommonQueries.GetComponentsByType<ModularAvatarShapeChanger>());
-
-                        Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder> groups =
-                            new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
-                                new ObjectIdentityComparer<Renderer>());
-
-                        foreach (var changer in allChangers)
-                        {
-                            // TODO: observe avatar root
-                            ctx.Observe(changer);
-                            if (!ctx.ActiveAndEnabled(changer)) continue;
-                            
-                            var target = ctx.Observe(changer.targetRenderer.Get(changer));
-                            var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
-
-                            if (renderer == null) continue;
-
-                            if (!groups.TryGetValue(renderer, out var group))
-                            {
-                                group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
-                                groups[renderer] = group;
-                            }
-
-                            group.Add(changer);
-                        }
-
-                        return groups.ToImmutableDictionary(p => p.Key, p => p.Value.ToImmutable());
-                    });
-
-        public ReactiveValue<IImmutableList<IImmutableList<Renderer>>> TargetGroups { get; } =
-            ReactiveValue<IImmutableList<IImmutableList<Renderer>>>.Create(
+        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; }
+            = ReactiveValue<ImmutableList<RenderGroup>>.Create(
                 "ShapeChangerPreview.TargetGroups", async ctx =>
                 {
-                    var targetGroups = await ctx.Observe(InternalTargetGroups);
+                    var allChangers =
+                        await ctx.Observe(CommonQueries.GetComponentsByType<ModularAvatarShapeChanger>());
 
-                    return targetGroups.Keys
-                        .Select(v => (IImmutableList<Renderer>)ImmutableList.Create(v))
+                    Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder> groups =
+                        new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
+                            new ObjectIdentityComparer<Renderer>());
+
+                    foreach (var changer in allChangers)
+                    {
+                        // TODO: observe avatar root
+                        ctx.Observe(changer);
+                        if (!ctx.ActiveAndEnabled(changer)) continue;
+
+                        var target = ctx.Observe(changer.targetRenderer.Get(changer));
+                        var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
+
+                        if (renderer == null) continue;
+
+                        if (!groups.TryGetValue(renderer, out var group))
+                        {
+                            group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
+                            groups[renderer] = group;
+                        }
+
+                        group.Add(changer);
+                    }
+
+                    return groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
                         .ToImmutableList();
                 });
 
-
-        public async Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs,
+        public async Task<IRenderFilterNode> Instantiate(
+            RenderGroup group,
+            IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)
         {
             var node = new Node();
 
             try
             {
-                await node.Init(proxyPairs, context);
+                await node.Init(group, proxyPairs, context);
             }
             catch (Exception e)
             {
@@ -101,15 +91,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            public async Task Init(IEnumerable<(Renderer, Renderer)> renderers, ComputeContext context)
+            public async Task Init(RenderGroup group, IEnumerable<(Renderer, Renderer)> renderers,
+                ComputeContext context)
             {
-                var targetGroups = await context.Observe(InternalTargetGroups);
-
                 var (original, proxy) = renderers.First();
 
                 if (original == null || proxy == null) return;
-                if (!targetGroups.TryGetValue(original, out _changers)) return;
                 if (!(proxy is SkinnedMeshRenderer smr)) return;
+
+                _changers = group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
 
                 HashSet<int> toDelete = new HashSet<int>();
                 var mesh = smr.sharedMesh;
@@ -179,8 +169,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
 
-            public ulong Reads => IRenderFilterNode.Shapes | IRenderFilterNode.Mesh;
-            public ulong WhatChanged => IRenderFilterNode.Shapes | IRenderFilterNode.Mesh;
+            public RenderAspects Reads => RenderAspects.Shapes | RenderAspects.Mesh;
+            public RenderAspects WhatChanged => RenderAspects.Shapes | RenderAspects.Mesh;
 
             public void Dispose()
             {

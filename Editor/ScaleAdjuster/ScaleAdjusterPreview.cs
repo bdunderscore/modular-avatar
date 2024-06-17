@@ -37,15 +37,15 @@ namespace nadena.dev.modular_avatar.core.editor
             return null;
         }
 
-        public ReactiveValue<IImmutableList<IImmutableList<Renderer>>> TargetGroups { get; } =
-            ReactiveValue<IImmutableList<IImmutableList<Renderer>>>.Create(
+        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; } =
+            ReactiveValue<ImmutableList<RenderGroup>>.Create(
             "Scale Adjuster: Find targets",
             async ctx =>
             {
                 var scaleAdjusters = await ctx.Observe(CommonQueries.GetComponentsByType<ModularAvatarScaleAdjuster>());
 
-                HashSet<Renderer> targets = new HashSet<Renderer>();
-
+                ImmutableList<RenderGroup>.Builder result = ImmutableList.CreateBuilder<RenderGroup>();
+                
                 foreach (var adjuster in scaleAdjusters)
                 {
                     // Find parent object
@@ -57,14 +57,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     foreach (var renderer in renderers)
                     {
-                        targets.Add(renderer);
+                        if (renderer is SkinnedMeshRenderer smr)
+                        {
+                            result.Add(RenderGroup.For(renderer));
+                        }
                     }
                 }
 
-                return targets.Select(r => (IImmutableList<Renderer>)ImmutableList.Create(r)).ToImmutableList();
+                return result.ToImmutable();
             });
 
-        public Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
+        public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context)
         {
             return Task.FromResult((IRenderFilterNode)new ScaleAdjusterPreviewNode());
         }
@@ -78,8 +82,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
-        public ulong Reads => IRenderFilterNode.Shapes;
-        public ulong WhatChanged => IRenderFilterNode.Shapes;
+        public RenderAspects Reads => RenderAspects.Shapes;
+        public RenderAspects WhatChanged => RenderAspects.Shapes;
 
         public void OnFrame(Renderer original, Renderer proxy)
         {
