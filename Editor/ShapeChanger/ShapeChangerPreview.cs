@@ -57,11 +57,11 @@ namespace nadena.dev.modular_avatar.core.editor
             IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)
         {
-            var node = new Node();
+            var node = new Node(group);
 
             try
             {
-                await node.Init(group, proxyPairs, context);
+                await node.Init(proxyPairs, context);
             }
             catch (Exception e)
             {
@@ -74,9 +74,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private class Node : IRenderFilterNode
         {
+            private readonly RenderGroup _group;
+            
             private Mesh _generatedMesh = null;
             private ImmutableList<ModularAvatarShapeChanger> _changers;
+            private HashSet<int> _toDelete;
 
+            internal Node(RenderGroup group)
+            {
+                _group = group;
+            }
+            
             private bool IsChangerActive(ModularAvatarShapeChanger changer, ComputeContext context)
             {
                 if (changer == null) return false;
@@ -91,33 +99,73 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            public async Task Init(RenderGroup group, IEnumerable<(Renderer, Renderer)> renderers,
-                ComputeContext context)
+            private HashSet<int> GetToDeleteSet(SkinnedMeshRenderer proxy, ComputeContext context)
             {
-                var (original, proxy) = renderers.First();
+                _changers = _group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
 
-                if (original == null || proxy == null) return;
-                if (!(proxy is SkinnedMeshRenderer smr)) return;
-
-                _changers = group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
-
-                HashSet<int> toDelete = new HashSet<int>();
-                var mesh = smr.sharedMesh;
+                var toDelete = new HashSet<int>();
+                var mesh = context.Observe(proxy.sharedMesh);
 
                 foreach (var changer in _changers)
                 {
+                    context.Observe(changer);
+
                     if (!IsChangerActive(changer, context)) continue;
 
                     foreach (var shape in changer.Shapes)
-                    {
                         if (shape.ChangeType == ShapeChangeType.Delete)
                         {
                             var index = mesh.GetBlendShapeIndex(shape.ShapeName);
                             if (index < 0) continue;
                             toDelete.Add(index);
                         }
-                    }
                 }
+
+                return toDelete;
+            }
+
+            public async Task Init(
+                IEnumerable<(Renderer, Renderer)> renderers,
+                ComputeContext context
+            )
+            {
+                var (original, proxy) = renderers.First();
+
+                if (original == null || proxy == null) return;
+                if (!(proxy is SkinnedMeshRenderer smr)) return;
+
+                await Init(smr, context, GetToDeleteSet(smr, context));
+            }
+
+            public async Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs,
+                ComputeContext context, RenderAspects updatedAspects)
+            {
+                if ((updatedAspects & RenderAspects.Mesh) != 0) return null;
+
+                var (original, proxy) = proxyPairs.First();
+
+                if (original == null || proxy == null) return null;
+                if (!(proxy is SkinnedMeshRenderer smr)) return null;
+
+                var toDelete = GetToDeleteSet(smr, context);
+                if (toDelete.Count == _toDelete.Count && toDelete.All(_toDelete.Contains))
+                {
+                    return this;
+                }
+
+                var node = new Node(_group);
+                await node.Init(smr, context, toDelete);
+                return node;
+            }
+
+            public async Task Init(
+                SkinnedMeshRenderer proxy,
+                ComputeContext context,
+                HashSet<int> toDelete
+            )
+            {
+                _toDelete = toDelete;
+                var mesh = proxy.sharedMesh;
 
                 if (toDelete.Count > 0)
                 {
@@ -162,8 +210,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
                     }
-
-                    smr.sharedMesh = mesh;
+                    
                     _generatedMesh = mesh;
                 }
             }
