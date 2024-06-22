@@ -82,8 +82,21 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
-        public RenderAspects Reads => RenderAspects.Shapes;
-        public RenderAspects WhatChanged => RenderAspects.Shapes;
+        public RenderAspects Reads => 0;
+
+        // We only change things in OnFrame, so downstream nodes will need to keep track of changes to these bones and
+        // blendshapes themselves.
+        public RenderAspects WhatChanged => 0;
+
+        public Task<IRenderFilterNode> Refresh
+        (
+            IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context,
+            RenderAspects updatedAspects
+        )
+        {
+            return Task.FromResult((IRenderFilterNode)this);
+        }
 
         public void OnFrame(Renderer original, Renderer proxy)
         {
