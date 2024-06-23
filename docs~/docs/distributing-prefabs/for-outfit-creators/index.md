@@ -101,6 +101,8 @@ Merge Armature will attempt to avoid creating duplicate bones; it'll merge the o
 possible. In particular, bones which contain components (other than Transform) will _not_ be merged, and will instead
 be moved to be a child of the corresponding base avatar bone.
 
+<div style={{"clear": "both"}}/>
+
 #### Creating a Mesh Settings component
 
 <div style={{float: "right", "max-width": "45%"}}>
@@ -110,7 +112,7 @@ be moved to be a child of the corresponding base avatar bone.
 Setup Outfit will also create a mesh settings component. This will configure a default light probe anchor, set to be
 consistent with the base avatar's meshes, and a reasonable bounding box, for all meshes in the outfit.
 
-<div style={{"clear": "both"}}></div>
+<div style={{"clear": "both"}}/>
 
 ### Before/after
 

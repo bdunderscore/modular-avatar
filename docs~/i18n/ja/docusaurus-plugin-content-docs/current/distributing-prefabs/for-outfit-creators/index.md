@@ -94,6 +94,8 @@ Setup Outfitは、ArmatureオブジェクトにMerge Armatureコンポーネン�
 Merge Armatureは、ボーンの重複を回避するために、可能な限り衣装のボーンを素体のボーンに統合します。ただし、Transform以外のコンポーネントを含むボーンは統合されず、
 代わりにアバターの対応するボーンの子に移動されます。
 
+<div style={{"clear": "both"}}/>
+
 #### Mesh Settings コンポーネントの作成
 
 <div style={{float: "right", "max-width": "45%"}}>
