@@ -48,6 +48,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 foreach (var adjuster in scaleAdjusters)
                 {
+                    if (adjuster == null) continue;
+                    
                     // Find parent object
                     // TODO: Reactive helper
                     var root = FindAvatarRootObserving(ctx, adjuster.gameObject);
