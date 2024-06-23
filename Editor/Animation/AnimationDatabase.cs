@@ -80,37 +80,12 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-        internal class PlayAudioHolder
-        {
-            private VRCAnimatorPlayAudio _currentPlayAudio;
-
-            internal VRCAnimatorPlayAudio CurrentPlayAudio
-            {
-                get
-                {
-                    return _currentPlayAudio;
-                }
-                set
-                {
-                    _currentPlayAudio = value;
-                }
-            }
-
-            internal PlayAudioHolder(VRCAnimatorPlayAudio audio)
-            {
-                CurrentPlayAudio = audio;
-            }
-        }
-#endif
-
-
         private BuildContext _context;
 
         private List<Action> _clipCommitActions = new List<Action>();
         private List<ClipHolder> _clips = new List<ClipHolder>();
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-        private List<PlayAudioHolder> _playAudios = new List<PlayAudioHolder>();
+        private HashSet<VRCAnimatorPlayAudio> _playAudios = new HashSet<VRCAnimatorPlayAudio>();
 #endif
 
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip = null;
@@ -203,13 +178,11 @@ namespace nadena.dev.modular_avatar.animation
             if (processClip == null) processClip = (_) => { };
 
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-            Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder> _originalToAudioHolder = new Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder>();
-
             foreach (var behavior in state.behaviours)
             {
                 if (behavior is VRCAnimatorPlayAudio playAudio)
                 {
-                    var audioHolder = RegisterPlayAudio(playAudio, _originalToAudioHolder);
+                    _playAudios.Add(playAudio);
                 }
             }
 #endif
@@ -231,7 +204,7 @@ namespace nadena.dev.modular_avatar.animation
         }
 
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-        internal void ForeachPlayAudio(Action<PlayAudioHolder> processPlayAudio)
+        internal void ForeachPlayAudio(Action<VRCAnimatorPlayAudio> processPlayAudio)
         {
             foreach (var playAudioHolder in _playAudios)
             {
@@ -313,30 +286,6 @@ namespace nadena.dev.modular_avatar.animation
             originalToHolder[motion] = holder;
             return holder;
         }
-
-#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-        private PlayAudioHolder RegisterPlayAudio(
-            VRCAnimatorPlayAudio playAudio,
-            Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder> originalToHolder
-        )
-        {
-            if (playAudio == null)
-            {
-                return new PlayAudioHolder(null);
-            }
-
-            if (originalToHolder.TryGetValue(playAudio, out var holder))
-            {
-                return holder;
-            }
-
-            holder = new PlayAudioHolder(playAudio);
-            _playAudios.Add(holder);
-
-            originalToHolder[playAudio] = holder;
-            return holder;
-        }
-#endif
 
         private void InvalidateCaches()
         {

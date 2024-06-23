@@ -167,7 +167,6 @@ namespace nadena.dev.modular_avatar.animation
                     if (!dict.ContainsKey(origPath))
                     {
                         dict = dict.Add(origPath, newPath);
-                        Debug.Log($"Mapping {origPath} -> {newPath}");
                     }
                 }
             }
@@ -281,9 +280,7 @@ namespace nadena.dev.modular_avatar.animation
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
         private VRCAnimatorPlayAudio ApplyMappingsToPlayAudio(VRCAnimatorPlayAudio audio)
         {
-            Debug.Log($"SourcePath: {audio.SourcePath}");
             audio.SourcePath = MapPath(audio.SourcePath, true);
-            Debug.Log($"DestPath: {audio.SourcePath}");
             return audio;
         }
 #endif
@@ -301,12 +298,9 @@ namespace nadena.dev.modular_avatar.animation
             });
 
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-            _animationDatabase.ForeachPlayAudio(holder =>
+            _animationDatabase.ForeachPlayAudio(playAudio =>
             {
-                if (holder.CurrentPlayAudio is VRCAnimatorPlayAudio playAudio)
-                {
-                    holder.CurrentPlayAudio = ApplyMappingsToPlayAudio(playAudio);
-                }
+                ApplyMappingsToPlayAudio(playAudio);
             });
 #endif
 
