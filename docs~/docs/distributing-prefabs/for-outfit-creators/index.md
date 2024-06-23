@@ -23,7 +23,7 @@ that your customers have Modular Avatar installed to use your prefab. You can of
 with Modular Avatar components and one without, to cater to both audiences.
 
 Please note that "Modular Avatar Compatible" outfits are not eligible for using the Modular Avatar logo. See the
-[Logo Usage guidelines](logo-usage.md) for details.
+[Logo Usage guidelines](../logo-usage.md) for details.
 
 ## How to check for compatibility/debugging tips
 
@@ -238,7 +238,7 @@ customers can now simply add this prefab to their avatar, and the outfit will be
 Outfit again; it'll see that things are already configured and skip processing.
 
 Outfits configured this way may be eligible to use the Modular Avatar logo in their advertising. See the [Logo Usage
-Guidelines](/distributing-prefabs/logo-usage.md) for detailed requirements.
+Guidelines](../logo-usage.md) for detailed requirements.
 
 You can however go a step further and set up additional things to make things more convenient for your customers.
 Here's some examples.
