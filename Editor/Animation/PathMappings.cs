@@ -8,6 +8,9 @@ using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+using VRC.SDK3.Avatars.Components;
+#endif
 
 #endregion
 
@@ -164,6 +167,7 @@ namespace nadena.dev.modular_avatar.animation
                     if (!dict.ContainsKey(origPath))
                     {
                         dict = dict.Add(origPath, newPath);
+                        Debug.Log($"Mapping {origPath} -> {newPath}");
                     }
                 }
             }
@@ -274,6 +278,16 @@ namespace nadena.dev.modular_avatar.animation
             return newClip;
         }
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        private VRCAnimatorPlayAudio ApplyMappingsToPlayAudio(VRCAnimatorPlayAudio audio)
+        {
+            Debug.Log($"SourcePath: {audio.SourcePath}");
+            audio.SourcePath = MapPath(audio.SourcePath, true);
+            Debug.Log($"DestPath: {audio.SourcePath}");
+            return audio;
+        }
+#endif
+
         internal void OnDeactivate(BuildContext context)
         {
             Dictionary<AnimationClip, AnimationClip> clipCache = new Dictionary<AnimationClip, AnimationClip>();
@@ -285,6 +299,16 @@ namespace nadena.dev.modular_avatar.animation
                     holder.CurrentClip = ApplyMappingsToClip(clip, clipCache);
                 }
             });
+
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+            _animationDatabase.ForeachPlayAudio(holder =>
+            {
+                if (holder.CurrentPlayAudio is VRCAnimatorPlayAudio playAudio)
+                {
+                    holder.CurrentPlayAudio = ApplyMappingsToPlayAudio(playAudio);
+                }
+            });
+#endif
 
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {

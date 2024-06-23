@@ -80,10 +80,38 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        internal class PlayAudioHolder
+        {
+            private VRCAnimatorPlayAudio _currentPlayAudio;
+
+            internal VRCAnimatorPlayAudio CurrentPlayAudio
+            {
+                get
+                {
+                    return _currentPlayAudio;
+                }
+                set
+                {
+                    _currentPlayAudio = value;
+                }
+            }
+
+            internal PlayAudioHolder(VRCAnimatorPlayAudio audio)
+            {
+                CurrentPlayAudio = audio;
+            }
+        }
+#endif
+
+
         private BuildContext _context;
 
         private List<Action> _clipCommitActions = new List<Action>();
         private List<ClipHolder> _clips = new List<ClipHolder>();
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        private List<PlayAudioHolder> _playAudios = new List<PlayAudioHolder>();
+#endif
 
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip = null;
 
@@ -174,6 +202,18 @@ namespace nadena.dev.modular_avatar.animation
 
             if (processClip == null) processClip = (_) => { };
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+            Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder> _originalToAudioHolder = new Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder>();
+
+            foreach (var behavior in state.behaviours)
+            {
+                if (behavior is VRCAnimatorPlayAudio playAudio)
+                {
+                    var audioHolder = RegisterPlayAudio(playAudio, _originalToAudioHolder);
+                }
+            }
+#endif
+
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
@@ -189,6 +229,16 @@ namespace nadena.dev.modular_avatar.animation
                 processClip(clipHolder);
             }
         }
+
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        internal void ForeachPlayAudio(Action<PlayAudioHolder> processPlayAudio)
+        {
+            foreach (var playAudioHolder in _playAudios)
+            {
+                processPlayAudio(playAudioHolder);
+            }
+        }
+#endif
 
         /// <summary>
         /// Returns a list of clips which touched the given _original_ path. This path is subject to basepath remapping,
@@ -263,6 +313,30 @@ namespace nadena.dev.modular_avatar.animation
             originalToHolder[motion] = holder;
             return holder;
         }
+
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        private PlayAudioHolder RegisterPlayAudio(
+            VRCAnimatorPlayAudio playAudio,
+            Dictionary<VRCAnimatorPlayAudio, PlayAudioHolder> originalToHolder
+        )
+        {
+            if (playAudio == null)
+            {
+                return new PlayAudioHolder(null);
+            }
+
+            if (originalToHolder.TryGetValue(playAudio, out var holder))
+            {
+                return holder;
+            }
+
+            holder = new PlayAudioHolder(playAudio);
+            _playAudios.Add(holder);
+
+            originalToHolder[playAudio] = holder;
+            return holder;
+        }
+#endif
 
         private void InvalidateCaches()
         {
