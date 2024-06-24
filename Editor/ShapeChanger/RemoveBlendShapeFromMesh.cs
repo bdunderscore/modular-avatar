@@ -144,6 +144,8 @@ namespace nadena.dev.modular_avatar.core.editor
             List<BoneWeight1> boneWeights = new(origBoneWeights.Length);
             List<byte> bonesPerVertex = new(origBonesPerVertex.Length);
 
+            if (bonesPerVertex.Count == 0) return; // no bones in this mesh
+
             int ptr = 0;
             for (int i = 0; i < toRetain.Length; i++)
             {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -14,6 +15,51 @@ using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    /// <summary>
+    ///     Reserve an animator layer for Shape Changer's use. We do this here so that we can take advantage of MergeAnimator's
+    ///     layer reference correction logic; this can go away once we have a more unified animation services API.
+    /// </summary>
+    internal class ShapeChangerPrePass : Pass<ShapeChangerPrePass>
+    {
+        internal const string TAG_PATH = "__MA/ShapeChanger/PrepassPlaceholder";
+
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            if (context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>() != null)
+            {
+                var clip = new AnimationClip();
+                clip.name = "MA Shape Changer Defaults";
+
+                var curve = new AnimationCurve();
+                curve.AddKey(0, 0);
+                clip.SetCurve(TAG_PATH, typeof(Transform), "localPosition.x", curve);
+
+                // Merge using a null blend tree. This also ensures that we initialize the Merge Blend Tree system.
+                var bt = new BlendTree();
+                bt.name = "MA Shape Changer Defaults";
+                bt.blendType = BlendTreeType.Direct;
+                bt.children = new[]
+                {
+                    new ChildMotion
+                    {
+                        motion = clip,
+                        timeScale = 1,
+                        cycleOffset = 0,
+                        directBlendParameter = MergeBlendTreePass.ALWAYS_ONE
+                    }
+                };
+                bt.useAutomaticThresholds = false;
+
+                // This is a hack and a half - put in a dummy path so we can find the cloned clip later on...
+                var obj = new GameObject("MA SC Defaults");
+                obj.transform.SetParent(context.AvatarRootTransform);
+                var mambt = obj.AddComponent<ModularAvatarMergeBlendTree>();
+                mambt.BlendTree = bt;
+                mambt.PathMode = MergeAnimatorPathMode.Absolute;
+            }
+        }
+    }
+    
     internal class ShapeChangerPass
     {
         struct ShapeKey
@@ -48,6 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
             public string DeleteParam { get; set; }
 
             public bool alwaysDeleted;
+            public float currentState;
 
             // Objects which trigger deletion of this shape key. 
             public List<GameObject> deletionObjects = new List<GameObject>();
@@ -56,6 +103,9 @@ namespace nadena.dev.modular_avatar.core.editor
             public ShapeKeyInfo(ShapeKey key)
             {
                 ShapeKey = key;
+                currentState = (EditorUtility.InstanceIDToObject(key.RendererInstanceId) as SkinnedMeshRenderer)
+                               ?.GetBlendShapeWeight(key.ShapeIndex)
+                               ?? 0;
             }
         }
         
@@ -132,6 +182,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext context;
         private Dictionary<string, float> initialValues = new();
 
+        private AnimationClip _initialStateClip;
+        
         public ShapeChangerPass(ndmf.BuildContext context)
         {
             this.context = context;
@@ -141,12 +193,44 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             Dictionary<ShapeKey, ShapeKeyInfo> shapes = FindShapes(context);
 
+            ProcessInitialStates(shapes);
+            
             foreach (var groups in shapes.Values)
             {
                 ProcessShapeKey(groups);
             }
 
             ProcessMeshDeletion(shapes);
+        }
+
+        private void ProcessInitialStates(Dictionary<ShapeKey, ShapeKeyInfo> shapes)
+        {
+            var clips = context.Extension<AnimationServicesContext>().AnimationDatabase;
+            var initialStateHolder = clips.ClipsForPath(ShapeChangerPrePass.TAG_PATH).FirstOrDefault();
+            if (initialStateHolder == null) return;
+
+            _initialStateClip = new AnimationClip();
+            _initialStateClip.name = "MA Shape Changer Defaults";
+            initialStateHolder.CurrentClip = _initialStateClip;
+
+            foreach (var (key, info) in shapes)
+            {
+                if (info.alwaysDeleted) continue;
+
+                var curve = new AnimationCurve();
+                curve.AddKey(0, info.currentState);
+                curve.AddKey(1, info.currentState);
+
+                var renderer = (SkinnedMeshRenderer)EditorUtility.InstanceIDToObject(key.RendererInstanceId);
+
+                var binding = EditorCurveBinding.FloatCurve(
+                    RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject),
+                    typeof(SkinnedMeshRenderer),
+                    $"blendShape.{key.ShapeKeyName}"
+                );
+
+                AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+            }
         }
 
         #region Mesh processing
@@ -565,9 +649,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var action = new ActionGroupKey(asc, key, changer.gameObject, shape);
+                    var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (action.IsDelete)
                     {
+                        if (isCurrentlyActive) info.currentState = 100;
+
                         if (action.ControllingObject == null)
                         {
                             // always active?
@@ -580,7 +667,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         continue;
                     }
-                    
+
+                    if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
+
                     // TODO: lift controlling object resolution out of loop?
                     if (action.ControllingObject == null)
                     {
