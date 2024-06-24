@@ -496,7 +496,7 @@ namespace nadena.dev.modular_avatar.animation
                         for (int i = 0; i < overrideBehaviors.Length; i++)
                         {
                             overrideBehaviors[i] = _deepClone.DoClone(overrideBehaviors[i]);
-                            AdjustBehavior(overrideBehaviors[i]);
+                            AdjustBehavior(overrideBehaviors[i], basePath);
                         }
 
                         newLayer.SetOverrideBehaviours((AnimatorState)_cloneMap[state], overrideBehaviors);
@@ -578,7 +578,7 @@ namespace nadena.dev.modular_avatar.animation
             {
                 foreach (var behavior in state.behaviours)
                 {
-                    AdjustBehavior(behavior);
+                    AdjustBehavior(behavior, basePath);
                 }
             }
 
@@ -586,7 +586,7 @@ namespace nadena.dev.modular_avatar.animation
             return asm;
         }
 
-        private void AdjustBehavior(StateMachineBehaviour behavior)
+        private void AdjustBehavior(StateMachineBehaviour behavior, string basePath)
         {
 #if MA_VRCSDK3_AVATARS
             switch (behavior)
@@ -598,6 +598,16 @@ namespace nadena.dev.modular_avatar.animation
                     layerControl.layer += _controllerBaseLayer;
                     break;
                 }
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+                case VRCAnimatorPlayAudio playAudio:
+                {
+                    if (!string.IsNullOrEmpty(playAudio.SourcePath) && !string.IsNullOrEmpty(basePath) && !playAudio.SourcePath.StartsWith(basePath))
+                    {
+                        playAudio.SourcePath = $"{basePath}/{playAudio.SourcePath}";
+                    }
+                    break;
+                }
+#endif
             }
 #endif
         }

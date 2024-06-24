@@ -84,6 +84,9 @@ namespace nadena.dev.modular_avatar.animation
 
         private List<Action> _clipCommitActions = new List<Action>();
         private List<ClipHolder> _clips = new List<ClipHolder>();
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        private HashSet<VRCAnimatorPlayAudio> _playAudios = new HashSet<VRCAnimatorPlayAudio>();
+#endif
 
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip = null;
 
@@ -174,6 +177,16 @@ namespace nadena.dev.modular_avatar.animation
 
             if (processClip == null) processClip = (_) => { };
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+            foreach (var behavior in state.behaviours)
+            {
+                if (behavior is VRCAnimatorPlayAudio playAudio)
+                {
+                    _playAudios.Add(playAudio);
+                }
+            }
+#endif
+
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
@@ -189,6 +202,16 @@ namespace nadena.dev.modular_avatar.animation
                 processClip(clipHolder);
             }
         }
+
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        internal void ForeachPlayAudio(Action<VRCAnimatorPlayAudio> processPlayAudio)
+        {
+            foreach (var playAudioHolder in _playAudios)
+            {
+                processPlayAudio(playAudioHolder);
+            }
+        }
+#endif
 
         /// <summary>
         /// Returns a list of clips which touched the given _original_ path. This path is subject to basepath remapping,
