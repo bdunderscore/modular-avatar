@@ -7,9 +7,7 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-using VRC.SDK3.Avatars.Components;
 #endif
 
 #endregion
@@ -17,8 +15,6 @@ using VRC.SDK3.Avatars.Components;
 namespace nadena.dev.modular_avatar.animation
 {
     #region
-
-    using UnityObject = Object;
 
     #endregion
 
@@ -277,14 +273,6 @@ namespace nadena.dev.modular_avatar.animation
             return newClip;
         }
 
-#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
-        private VRCAnimatorPlayAudio ApplyMappingsToPlayAudio(VRCAnimatorPlayAudio audio)
-        {
-            audio.SourcePath = MapPath(audio.SourcePath, true);
-            return audio;
-        }
-#endif
-
         internal void OnDeactivate(BuildContext context)
         {
             Dictionary<AnimationClip, AnimationClip> clipCache = new Dictionary<AnimationClip, AnimationClip>();
@@ -300,7 +288,8 @@ namespace nadena.dev.modular_avatar.animation
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
             _animationDatabase.ForeachPlayAudio(playAudio =>
             {
-                ApplyMappingsToPlayAudio(playAudio);
+                if (playAudio == null) return;
+                playAudio.SourcePath = MapPath(playAudio.SourcePath, true);
             });
 #endif
 
