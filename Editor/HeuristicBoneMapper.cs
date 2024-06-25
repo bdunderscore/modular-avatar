@@ -235,7 +235,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static string NormalizeName(string name)
         {
             name = name.ToLowerInvariant();
-            name = Regex.Replace(name, "[0-9 ._]", "");
+            name = Regex.Replace(name, "^bone_|[0-9 ._]", "");
 
             return name;
         }
