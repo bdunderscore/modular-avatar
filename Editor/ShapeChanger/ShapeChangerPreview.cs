@@ -17,40 +17,38 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     public class ShapeChangerPreview : IRenderFilter
     {
-        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; }
-            = ReactiveValue<ImmutableList<RenderGroup>>.Create(
-                "ShapeChangerPreview.TargetGroups", async ctx =>
+        public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
+        {
+            var allChangers = ctx.GetComponentsByType<ModularAvatarShapeChanger>();
+
+            var groups =
+                new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
+                    new ObjectIdentityComparer<Renderer>());
+
+            foreach (var changer in allChangers)
+            {
+                if (changer == null) continue;
+
+                // TODO: observe avatar root
+                if (!ctx.ActiveAndEnabled(changer)) continue;
+
+                var target = ctx.Observe(changer.targetRenderer.Get(changer));
+                var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
+
+                if (renderer == null) continue;
+
+                if (!groups.TryGetValue(renderer, out var group))
                 {
-                    var allChangers =
-                        await ctx.Observe(CommonQueries.GetComponentsByType<ModularAvatarShapeChanger>());
+                    group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
+                    groups[renderer] = group;
+                }
 
-                    Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder> groups =
-                        new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
-                            new ObjectIdentityComparer<Renderer>());
-
-                    foreach (var changer in allChangers)
-                    {
-                        // TODO: observe avatar root
-                        ctx.Observe(changer);
-                        if (!ctx.ActiveAndEnabled(changer)) continue;
-
-                        var target = ctx.Observe(changer.targetRenderer.Get(changer));
-                        var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
-
-                        if (renderer == null) continue;
-
-                        if (!groups.TryGetValue(renderer, out var group))
-                        {
-                            group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
-                            groups[renderer] = group;
-                        }
-
-                        group.Add(changer);
-                    }
-
-                    return groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
-                        .ToImmutableList();
-                });
+                group.Add(changer);
+            }
+            
+            return groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
+                .ToImmutableList();
+        }
 
         public async Task<IRenderFilterNode> Instantiate(
             RenderGroup group,
@@ -104,15 +102,24 @@ namespace nadena.dev.modular_avatar.core.editor
                 _changers = _group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
 
                 var toDelete = new HashSet<int>();
-                var mesh = context.Observe(proxy.sharedMesh);
+                var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
+                {
+                    if (a != b)
+                    {
+                        Debug.Log($"mesh changed {a.GetInstanceID()} -> {b.GetInstanceID()}");
+                        return false;
+                    }
+
+                    return true;
+                });
 
                 foreach (var changer in _changers)
                 {
-                    context.Observe(changer);
+                    var shapes = context.Observe(changer, c => c.Shapes.ToImmutableList(), Enumerable.SequenceEqual);
 
                     if (!IsChangerActive(changer, context)) continue;
 
-                    foreach (var shape in changer.Shapes)
+                    foreach (var shape in shapes)
                         if (shape.ChangeType == ShapeChangeType.Delete)
                         {
                             var index = mesh.GetBlendShapeIndex(shape.ShapeName);
