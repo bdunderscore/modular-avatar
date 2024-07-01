@@ -10,6 +10,8 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using EditorCurveBinding = UnityEditor.EditorCurveBinding;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -19,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
     ///     Reserve an animator layer for Shape Changer's use. We do this here so that we can take advantage of MergeAnimator's
     ///     layer reference correction logic; this can go away once we have a more unified animation services API.
     /// </summary>
-    internal class ShapeChangerPrePass : Pass<ShapeChangerPrePass>
+    internal class PropertyOverlayPrePass : Pass<PropertyOverlayPrePass>
     {
         internal const string TAG_PATH = "__MA/ShapeChanger/PrepassPlaceholder";
 
@@ -60,79 +62,85 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
     
-    internal class ShapeChangerPass
+    internal class PropertyOverlayPass
     {
-        struct ShapeKey
+        struct TargetProp
         {
-            public int RendererInstanceId;
-            public int ShapeIndex;
-            public string ShapeKeyName; // not equated
+            public Object TargetObject;
+            public string PropertyName;
 
-            public bool Equals(ShapeKey other)
+            public bool Equals(TargetProp other)
             {
-                return RendererInstanceId == other.RendererInstanceId && ShapeIndex == other.ShapeIndex;
+                return Equals(TargetObject, other.TargetObject) && PropertyName == other.PropertyName;
             }
 
             public override bool Equals(object obj)
             {
-                return obj is ShapeKey other && Equals(other);
+                return obj is TargetProp other && Equals(other);
             }
 
             public override int GetHashCode()
             {
                 unchecked
                 {
-                    return (RendererInstanceId * 397) ^ ShapeIndex;
+                    var hashCode = (TargetObject != null ? TargetObject.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ (PropertyName != null ? PropertyName.GetHashCode() : 0);
+                    return hashCode;
                 }
+            }
+
+            public void ApplyImmediate(float value)
+            {
+                var renderer = (SkinnedMeshRenderer)TargetObject;
+                renderer.SetBlendShapeWeight(renderer.sharedMesh.GetBlendShapeIndex(
+                    PropertyName.Substring("blendShape.".Length)
+                ), value);
             }
         }
 
-        class ShapeKeyInfo
+        class PropGroup
         {
-            public ShapeKey ShapeKey { get; }
-            public string SetParam { get; set; }
-            public string DeleteParam { get; set; }
+            public TargetProp TargetProp { get; }
+            public string ControlParam { get; set; }
 
             public bool alwaysDeleted;
             public float currentState;
 
             // Objects which trigger deletion of this shape key. 
-            public List<GameObject> deletionObjects = new List<GameObject>();
-            public List<ActionGroupKey> setObjects = new List<ActionGroupKey>();
+            public List<ActionGroupKey> actionGroups = new List<ActionGroupKey>();
 
-            public ShapeKeyInfo(ShapeKey key)
+            public PropGroup(TargetProp key, float currentState)
             {
-                ShapeKey = key;
-                currentState = (EditorUtility.InstanceIDToObject(key.RendererInstanceId) as SkinnedMeshRenderer)
-                               ?.GetBlendShapeWeight(key.ShapeIndex)
-                               ?? 0;
+                TargetProp = key;
+                this.currentState = currentState;
             }
         }
         
         class ActionGroupKey
         {
-            public ActionGroupKey(AnimationServicesContext asc, ShapeKey key, GameObject controllingObject,
-                ChangedShape shape)
+            public ActionGroupKey(AnimationServicesContext asc, TargetProp key, GameObject controllingObject, float value)
             {
-                ShapeKey = key;
+                TargetProp = key;
                 InitiallyActive = controllingObject?.activeInHierarchy == true;
 
                 var origControlling = controllingObject?.name ?? "<null>";
                 while (controllingObject != null && !asc.TryGetActiveSelfProxy(controllingObject, out _))
                 {
                     controllingObject = controllingObject.transform.parent?.gameObject;
+                    if (controllingObject != null && RuntimeUtil.IsAvatarRoot(controllingObject.transform))
+                    {
+                        controllingObject = null;
+                    }
                 }
 
                 var newControlling = controllingObject?.name ?? "<null>";
                 Debug.Log("AGK: Controlling object " + origControlling + " => " + newControlling);
 
                 ControllingObject = controllingObject;
-                IsDelete = shape.ChangeType == ShapeChangeType.Delete;
-                Value = IsDelete ? 100 : shape.Value;
+                Value = value;
             }
 
-            public ShapeKey ShapeKey;
-            public bool IsDelete;
+            public TargetProp TargetProp;
             public float Value;
 
             public float ConditionKey;
@@ -158,22 +166,22 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public GameObject ControllingObject;
             public bool InitiallyActive;
+            public bool IsDelete;
 
             public override string ToString()
             {
                 var obj = ControllingObject?.name ?? "<null>";
 
-                return $"AGK: {ShapeKey.RendererInstanceId}:{ShapeKey.ShapeIndex} ({ShapeKey.ShapeKeyName})={Value} " +
+                return $"AGK: {TargetProp}={Value} " +
                        $"range={ConditionKey}/{Guard} controlling object={obj}";
             }
 
             public bool TryMerge(ActionGroupKey other)
             {
-                if (!ShapeKey.Equals(other.ShapeKey)) return false;
+                if (!TargetProp.Equals(other.TargetProp)) return false;
                 if (Mathf.Abs(Value - other.Value) > 0.001f) return false;
                 if (ControllingObject != other.ControllingObject) return false;
-
-                IsDelete |= other.IsDelete;
+                if (IsDelete || other.IsDelete) return false;
 
                 return true;
             }
@@ -184,49 +192,100 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private AnimationClip _initialStateClip;
         
-        public ShapeChangerPass(ndmf.BuildContext context)
+        public PropertyOverlayPass(ndmf.BuildContext context)
         {
             this.context = context;
         }
 
         internal void Execute()
         {
-            Dictionary<ShapeKey, ShapeKeyInfo> shapes = FindShapes(context);
-
-            ProcessInitialStates(shapes);
+            Dictionary<TargetProp, PropGroup> shapes = FindShapes(context);
+            PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
+            
+            ProcessInitialStates(initialStates);
             
             foreach (var groups in shapes.Values)
             {
                 ProcessShapeKey(groups);
             }
 
-            ProcessMeshDeletion(shapes);
+            ProcessMeshDeletion(deletedShapes);
         }
 
-        private void ProcessInitialStates(Dictionary<ShapeKey, ShapeKeyInfo> shapes)
+        private void PreprocessShapes(Dictionary<TargetProp, PropGroup> shapes, out Dictionary<TargetProp, float> initialStates, out HashSet<TargetProp> deletedShapes)
+        {
+            // For each shapekey, determine 1) if we can just set an initial state and skip and 2) if we can delete the
+            // corresponding mesh. If we can't, delete ops are merged into the main list of operations.
+            
+            initialStates = new Dictionary<TargetProp, float>();
+            deletedShapes = new HashSet<TargetProp>();
+
+            foreach (var (key, info) in shapes.ToList())
+            {
+                var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
+                if (deletions.Any(d => d.ControllingObject == null))
+                {
+                    // always deleted
+                    shapes.Remove(key);
+                    deletedShapes.Add(key);
+                    continue;
+                }
+                
+                // Move deleted shapes to the end of the list, so they override all Set actions
+                info.actionGroups = info.actionGroups.Where(agk => !agk.IsDelete).Concat(deletions).ToList();
+
+                var initialState = info.actionGroups.Where(agk => agk.InitiallyActive)
+                    .Select(agk => agk.Value)
+                    .Prepend(info.currentState) // use scene state if everything is disabled
+                    .Last();
+
+                initialStates[key] = initialState;
+                
+                // If we're now constant-on, we can skip animation generation
+                if (info.actionGroups[^1].ControllingObject == null)
+                {
+                    shapes.Remove(key);
+                }
+            }
+        }
+
+        private void ProcessInitialStates(Dictionary<TargetProp, float> initialStates)
         {
             var clips = context.Extension<AnimationServicesContext>().AnimationDatabase;
-            var initialStateHolder = clips.ClipsForPath(ShapeChangerPrePass.TAG_PATH).FirstOrDefault();
+            var initialStateHolder = clips.ClipsForPath(PropertyOverlayPrePass.TAG_PATH).FirstOrDefault();
             if (initialStateHolder == null) return;
 
             _initialStateClip = new AnimationClip();
             _initialStateClip.name = "MA Shape Changer Defaults";
             initialStateHolder.CurrentClip = _initialStateClip;
 
-            foreach (var (key, info) in shapes)
+            foreach (var (key, initialState) in initialStates)
             {
-                if (info.alwaysDeleted) continue;
-
                 var curve = new AnimationCurve();
-                curve.AddKey(0, info.currentState);
-                curve.AddKey(1, info.currentState);
+                curve.AddKey(0, initialState);
+                curve.AddKey(1, initialState);
 
-                var renderer = (SkinnedMeshRenderer)EditorUtility.InstanceIDToObject(key.RendererInstanceId);
-
+                string path;
+                Type componentType;
+                if (key.TargetObject is GameObject go)
+                {
+                    path = RuntimeUtil.RelativePath(context.AvatarRootObject, go);
+                    componentType = typeof(GameObject);
+                }
+                else if (key.TargetObject is SkinnedMeshRenderer smr)
+                {
+                    path = RuntimeUtil.RelativePath(context.AvatarRootObject, smr.gameObject);
+                    componentType = typeof(SkinnedMeshRenderer);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid target object: " + key.TargetObject);
+                }
+                
                 var binding = EditorCurveBinding.FloatCurve(
-                    RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject),
-                    typeof(SkinnedMeshRenderer),
-                    $"blendShape.{key.ShapeKeyName}"
+                    path,
+                    componentType,
+                    key.PropertyName
                 );
 
                 AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
@@ -235,18 +294,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private void ProcessMeshDeletion(Dictionary<ShapeKey, ShapeKeyInfo> shapes)
+        private void ProcessMeshDeletion(HashSet<TargetProp> deletedKeys)
         {
-            ImmutableDictionary<int /* renderer */, List<ShapeKeyInfo>> renderers = shapes.Values.GroupBy(
-                v => v.ShapeKey.RendererInstanceId
-            ).ToImmutableDictionary(
-                g => g.Key,
-                g => g.ToList()
-            );
+            ImmutableDictionary<SkinnedMeshRenderer, List<TargetProp>> renderers = deletedKeys
+                .GroupBy(
+                    v => (SkinnedMeshRenderer) v.TargetObject
+                ).ToImmutableDictionary(
+                    g => (SkinnedMeshRenderer) g.Key,
+                    g => g.ToList()
+                );
 
-            foreach (var (rendererId, infos) in renderers)
+            foreach (var (renderer, infos) in renderers)
             {
-                var renderer = (SkinnedMeshRenderer)EditorUtility.InstanceIDToObject(rendererId);
                 if (renderer == null) continue;
 
                 var mesh = renderer.sharedMesh;
@@ -254,30 +313,33 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(
                     mesh,
-                    infos.Where(i => i.alwaysDeleted).Select(i => i.ShapeKey.ShapeIndex)
+                    infos
+                        .Select(i => mesh.GetBlendShapeIndex(i.PropertyName.Substring("blendShape.".Length)))
+                        .Where(k => k >= 0)
+                        .ToList()
                 );
             }
         }
 
         #endregion
 
-        private void ProcessShapeKey(ShapeKeyInfo info)
+        private void ProcessShapeKey(PropGroup info)
         {
             // TODO: prune non-animated keys
 
             // Check if this is non-animated and skip most processing if so
             if (info.alwaysDeleted) return;
-            if (info.setObjects[^1].ControllingObject == null)
+            if (info.actionGroups[^1].ControllingObject == null)
             {
-                var renderer = (SkinnedMeshRenderer)EditorUtility.InstanceIDToObject(info.ShapeKey.RendererInstanceId);
-                renderer.SetBlendShapeWeight(info.ShapeKey.ShapeIndex, info.setObjects[0].Value);
+                info.TargetProp.ApplyImmediate(info.actionGroups[0].Value);
+                
                 return;
             }
 
             // This value is the first non-subnormal float32
             float shift = BitConverter.Int32BitsToSingle(0x00800000);
 
-            foreach (var group in info.setObjects)
+            foreach (var group in info.actionGroups)
             {
                 group.ConditionKey = shift;
                 shift *= 4;
@@ -288,15 +350,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            info.SetParam =
-                $"_MA/ShapeChanger/{info.ShapeKey.RendererInstanceId}/{info.ShapeKey.ShapeIndex}/set";
-            info.DeleteParam = $"_MA/ShapeChanger/{info.ShapeKey.RendererInstanceId}/{info.ShapeKey.ShapeIndex}/delete";
+            info.ControlParam =
+                $"_MA/ShapeChanger/{info.TargetProp.TargetObject.GetInstanceID()}/{info.TargetProp.PropertyName}/set";
 
             var summationTree = BuildSummationTree(info);
             var applyTree = BuildApplyTree(info);
             var merged = BuildMergeTree(summationTree, applyTree);
 
-            ApplyController(merged, "ShapeChanger Apply: " + info.ShapeKey.ShapeKeyName);
+            ApplyController(merged, "ShapeChanger Apply: " + info.TargetProp.PropertyName);
         }
 
         private BlendTree BuildMergeTree(BlendTree summationTree, BlendTree applyTree)
@@ -325,20 +386,20 @@ namespace nadena.dev.modular_avatar.core.editor
             return bt;
         }
 
-        private BlendTree BuildApplyTree(ShapeKeyInfo info)
+        private BlendTree BuildApplyTree(PropGroup info)
         {
-            var groups = info.setObjects;
+            var groups = info.actionGroups;
 
             var setTree = new BlendTree();
             setTree.blendType = BlendTreeType.Simple1D;
-            setTree.blendParameter = info.SetParam;
+            setTree.blendParameter = info.ControlParam;
             setTree.useAutomaticThresholds = false;
 
             var childMotions = new List<ChildMotion>();
 
             childMotions.Add(new ChildMotion()
             {
-                motion = AnimResult(groups.First().ShapeKey, 0),
+                motion = AnimResult(groups.First().TargetProp, 0),
                 timeScale = 1,
                 threshold = 0,
             });
@@ -352,84 +413,61 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 childMotions.Add(new ChildMotion()
                 {
-                    motion = AnimResult(group.ShapeKey, group.Value),
+                    motion = AnimResult(group.TargetProp, group.Value),
                     timeScale = 1,
                     threshold = lo,
                 });
                 childMotions.Add(new ChildMotion()
                 {
-                    motion = AnimResult(group.ShapeKey, group.Value),
+                    motion = AnimResult(group.TargetProp, group.Value),
                     timeScale = 1,
                     threshold = hi,
                 });
             }
 
             setTree.children = childMotions.ToArray();
-
-            var delTree = new BlendTree();
-            delTree.blendType = BlendTreeType.Simple1D;
-            delTree.blendParameter = info.DeleteParam;
-            delTree.useAutomaticThresholds = false;
-
-            delTree.children = new[]
-            {
-                new ChildMotion()
-                {
-                    motion = setTree,
-                    timeScale = 1,
-                    threshold = 0
-                },
-                new ChildMotion()
-                {
-                    motion = setTree,
-                    timeScale = 1,
-                    threshold = 0.4f
-                },
-                new ChildMotion()
-                {
-                    motion = AnimResult(info.ShapeKey, 100),
-                    timeScale = 1,
-                    threshold = 0.6f
-                },
-                new ChildMotion()
-                {
-                    motion = AnimResult(info.ShapeKey, 100),
-                    timeScale = 1,
-                    threshold = 1
-                },
-            };
-
-            return delTree;
+            
+            return setTree;
         }
 
-        private Motion AnimResult(ShapeKey key, float value)
+        private Motion AnimResult(TargetProp key, float value)
         {
-            var renderer = EditorUtility.InstanceIDToObject(key.RendererInstanceId) as SkinnedMeshRenderer;
-            if (renderer == null) throw new InvalidOperationException("Failed to get object");
-
-            var obj = renderer.gameObject;
-            var path = RuntimeUtil.RelativePath(context.AvatarRootObject, obj);
+            string path;
+            Type componentType;
+            
+            if (key.TargetObject is GameObject go)
+            {
+                path = RuntimeUtil.RelativePath(context.AvatarRootObject, go);
+                componentType = typeof(GameObject);
+            }
+            else if (key.TargetObject is SkinnedMeshRenderer smr)
+            {
+                path = RuntimeUtil.RelativePath(context.AvatarRootObject, smr.gameObject);
+                componentType = typeof(SkinnedMeshRenderer);
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid target object: " + key.TargetObject);
+            }
 
             var clip = new AnimationClip();
-            clip.name = $"Set {obj.name}:{key.ShapeKeyName}={value}";
+            clip.name = $"Set {path}:{key.PropertyName}={value}";
 
             var curve = new AnimationCurve();
             curve.AddKey(0, value);
             curve.AddKey(1, value);
 
-            var binding =
-                EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), $"blendShape.{key.ShapeKeyName}");
+            var binding = EditorCurveBinding.FloatCurve(path, componentType, key.PropertyName);
             AnimationUtility.SetEditorCurve(clip, binding, curve);
 
             return clip;
         }
 
-        private BlendTree BuildSummationTree(ShapeKeyInfo info)
+        private BlendTree BuildSummationTree(PropGroup info)
         {
-            var groups = info.setObjects;
+            var groups = info.actionGroups;
 
-            var setParam = info.SetParam;
-            var delParam = info.DeleteParam;
+            var setParam = info.ControlParam;
             
             var asc = context.Extension<AnimationServicesContext>();
 
@@ -443,7 +481,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // TODO eliminate excess motion field
             var initMotion = new ChildMotion()
             {
-                motion = AnimParam((setParam, 0), (delParam, 0)),
+                motion = AnimParam((setParam, 0)),
                 directBlendParameter = MergeBlendTreePass.ALWAYS_ONE,
                 timeScale = 1,
             };
@@ -451,7 +489,6 @@ namespace nadena.dev.modular_avatar.core.editor
             paramNames.Add(MergeBlendTreePass.ALWAYS_ONE);
             initialValues[MergeBlendTreePass.ALWAYS_ONE] = 1;
             initialValues[setParam] = 0;
-            initialValues[delParam] = 0;
 
             foreach (var group in groups)
             {
@@ -478,26 +515,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     directBlendParameter = controllingParam,
                     timeScale = 1,
                 };
-                childMotions.Add(childMotion);
-                paramNames.Add(controllingParam);
-            }
-
-            foreach (var delController in info.deletionObjects)
-            {
-                if (!asc.TryGetActiveSelfProxy(delController, out var controllingParam))
-                {
-                    throw new InvalidOperationException("Failed to get active self proxy");
-                }
-
-                initialValues[controllingParam] = delController.activeSelf ? 1 : 0;
-
-                var childMotion = new ChildMotion()
-                {
-                    motion = AnimParam(delParam, 1),
-                    directBlendParameter = controllingParam,
-                    timeScale = 1,
-                };
-
                 childMotions.Add(childMotion);
                 paramNames.Add(controllingParam);
             }
@@ -557,32 +574,6 @@ namespace nadena.dev.modular_avatar.core.editor
             animController.layers = layers.ToArray();
         }
 
-        private static IEnumerable<string> FindParams(BlendTree bt)
-        {
-            if (bt == null) yield break;
-
-            if (bt.blendType == BlendTreeType.Direct)
-            {
-                foreach (var child in bt.children)
-                {
-                    yield return child.directBlendParameter;
-                }
-            }
-            else
-            {
-                yield return bt.blendParameter;
-            }
-
-            foreach (var child in bt.children)
-            {
-                foreach (var param in FindParams(child.motion as BlendTree))
-                {
-                    yield return param;
-                }
-            }
-        }
-
-
         private AnimationClip AnimParam(string param, float val)
         {
             return AnimParam((param, val));
@@ -605,13 +596,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return clip;
         }
 
-        private Dictionary<ShapeKey, ShapeKeyInfo> FindShapes(ndmf.BuildContext context)
+        private Dictionary<TargetProp, PropGroup> FindShapes(ndmf.BuildContext context)
         {
             var asc = context.Extension<AnimationServicesContext>();
 
             var changers = context.AvatarRootObject.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
 
-            Dictionary<ShapeKey, ShapeKeyInfo> shapeKeys = new();
+            Dictionary<TargetProp, PropGroup> shapeKeys = new();
 
             foreach (var changer in changers)
             {
@@ -628,42 +619,35 @@ namespace nadena.dev.modular_avatar.core.editor
                     var shapeId = mesh.GetBlendShapeIndex(shape.ShapeName);
                     if (shapeId < 0) continue;
 
-                    var key = new ShapeKey
+                    var key = new TargetProp
                     {
-                        RendererInstanceId = rendererInstanceId,
-                        ShapeIndex = shapeId,
-                        ShapeKeyName = shape.ShapeName,
+                        TargetObject = renderer,
+                        PropertyName = "blendShape." + shape.ShapeName,
                     };
 
+                    var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
                     if (!shapeKeys.TryGetValue(key, out var info))
                     {
-                        info = new ShapeKeyInfo(key);
+                        info = new PropGroup(key, renderer.GetBlendShapeWeight(shapeId));
                         shapeKeys[key] = info;
 
                         // Add initial state
-                        var agk = new ActionGroupKey(asc, key, null, shape);
-                        agk.IsDelete = false;
+                        var agk = new ActionGroupKey(asc, key, null, value);
                         agk.InitiallyActive = true;
                         agk.Value = renderer.GetBlendShapeWeight(shapeId);
-                        info.setObjects.Add(agk);
+                        info.actionGroups.Add(agk);
                     }
 
-                    var action = new ActionGroupKey(asc, key, changer.gameObject, shape);
+                    var action = new ActionGroupKey(asc, key, changer.gameObject, value);
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
-                    if (action.IsDelete)
+                    if (shape.ChangeType == ShapeChangeType.Delete)
                     {
+                        action.IsDelete = true;
+                        
                         if (isCurrentlyActive) info.currentState = 100;
 
-                        if (action.ControllingObject == null)
-                        {
-                            // always active?
-                            info.alwaysDeleted |= changer.gameObject.activeInHierarchy;
-                        }
-                        else
-                        {
-                            info.deletionObjects.Add(action.ControllingObject);
-                        }
+                        info.actionGroups.Add(action); // Never merge
 
                         continue;
                     }
@@ -676,7 +660,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (action.InitiallyActive)
                         {
                             // always active control
-                            info.setObjects.Clear();
+                            info.actionGroups.Clear();
                         }
                         else
                         {
@@ -686,18 +670,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     Debug.Log("Trying merge: " + action);
-                    if (info.setObjects.Count == 0)
+                    if (info.actionGroups.Count == 0)
                     {
-                        info.setObjects.Add(action);
+                        info.actionGroups.Add(action);
                     }
-                    else if (!info.setObjects[^1].TryMerge(action))
+                    else if (!info.actionGroups[^1].TryMerge(action))
                     {
                         Debug.Log("Failed merge");
-                        info.setObjects.Add(action);
+                        info.actionGroups.Add(action);
                     }
                     else
                     {
-                        Debug.Log("Post merge: " + info.setObjects[^1]);
+                        Debug.Log("Post merge: " + info.actionGroups[^1]);
                     }
                 }
             }

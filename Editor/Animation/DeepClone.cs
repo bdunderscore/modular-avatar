@@ -191,7 +191,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        private static string MapPath(EditorCurveBinding binding, string basePath)
+        private static string MapPath(UnityEditor.EditorCurveBinding binding, string basePath)
         {
             if (binding.type == typeof(Animator) && binding.path == "")
             {

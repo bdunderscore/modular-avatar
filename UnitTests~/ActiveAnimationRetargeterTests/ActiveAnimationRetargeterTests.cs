@@ -6,6 +6,7 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using EditorCurveBinding = UnityEditor.EditorCurveBinding;
 
 public class ActiveAnimationRetargeterTests : TestBase
 {
