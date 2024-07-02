@@ -37,37 +37,30 @@ namespace nadena.dev.modular_avatar.core.editor
             return null;
         }
 
-        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; } =
-            ReactiveValue<ImmutableList<RenderGroup>>.Create(
-            "Scale Adjuster: Find targets",
-            async ctx =>
+        public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
+        {
+            var scaleAdjusters = ctx.GetComponentsByType<ModularAvatarScaleAdjuster>();
+
+            var result = ImmutableList.CreateBuilder<RenderGroup>();
+
+            foreach (var adjuster in scaleAdjusters)
             {
-                var scaleAdjusters = await ctx.Observe(CommonQueries.GetComponentsByType<ModularAvatarScaleAdjuster>());
+                if (adjuster == null) continue;
 
-                ImmutableList<RenderGroup>.Builder result = ImmutableList.CreateBuilder<RenderGroup>();
-                
-                foreach (var adjuster in scaleAdjusters)
-                {
-                    if (adjuster == null) continue;
-                    
-                    // Find parent object
-                    // TODO: Reactive helper
-                    var root = FindAvatarRootObserving(ctx, adjuster.gameObject);
-                    if (root == null) continue;
+                // Find parent object
+                // TODO: Reactive helper
+                var root = FindAvatarRootObserving(ctx, adjuster.gameObject);
+                if (root == null) continue;
 
-                    var renderers = ctx.GetComponentsInChildren<Renderer>(root, true);
+                var renderers = ctx.GetComponentsInChildren<Renderer>(root, true);
 
-                    foreach (var renderer in renderers)
-                    {
-                        if (renderer is SkinnedMeshRenderer smr)
-                        {
-                            result.Add(RenderGroup.For(renderer));
-                        }
-                    }
-                }
+                foreach (var renderer in renderers)
+                    if (renderer is SkinnedMeshRenderer smr)
+                        result.Add(RenderGroup.For(renderer));
+            }
 
-                return result.ToImmutable();
-            });
+            return result.ToImmutable();
+        }
 
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)

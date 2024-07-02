@@ -22,6 +22,26 @@ namespace nadena.dev.modular_avatar.core
         public string ShapeName;
         public ShapeChangeType ChangeType;
         public float Value;
+
+        public bool Equals(ChangedShape other)
+        {
+            return ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ChangedShape other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ShapeName, (int)ChangeType, Value);
+        }
+
+        public override string ToString()
+        {
+            return $"{ShapeName} {ChangeType} {Value}";
+        }
     }
 
     [AddComponentMenu("Modular Avatar/MA Shape Changer")]
