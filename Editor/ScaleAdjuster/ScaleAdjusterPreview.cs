@@ -65,7 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)
         {
-            return Task.FromResult((IRenderFilterNode)new ScaleAdjusterPreviewNode());
+            return new ScaleAdjusterPreviewNode().Refresh(proxyPairs, context, 0);
         }
     }
 
@@ -83,6 +83,9 @@ namespace nadena.dev.modular_avatar.core.editor
         // blendshapes themselves.
         public RenderAspects WhatChanged => 0;
 
+        private readonly Dictionary<Transform, ModularAvatarScaleAdjuster> _boneOverrides
+            = new(new ObjectIdentityComparer<Transform>()); 
+        
         public Task<IRenderFilterNode> Refresh
         (
             IEnumerable<(Renderer, Renderer)> proxyPairs,
@@ -90,6 +93,23 @@ namespace nadena.dev.modular_avatar.core.editor
             RenderAspects updatedAspects
         )
         {
+            var pair = proxyPairs.First();
+            Renderer original = pair.Item1;
+            Renderer proxy = pair.Item2;
+
+            if (original != null && proxy != null && original is SkinnedMeshRenderer smr)
+            {
+                _boneOverrides.Clear();
+
+                foreach (var bone in smr.bones)
+                {
+                    var sa = bone?.GetComponent<ModularAvatarScaleAdjuster>();
+                    if (sa != null) {
+                        _boneOverrides.Add(bone, sa);
+                    }
+                }
+            }
+            
             return Task.FromResult((IRenderFilterNode)this);
         }
 
@@ -100,8 +120,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 p_smr.rootBone = _bones.GetBone(o_smr.rootBone)?.proxy ?? o_smr.rootBone;
                 p_smr.bones = o_smr.bones.Select(b =>
                 {
-                    var sa = (Component)b?.GetComponent<ModularAvatarScaleAdjuster>();
-                    return _bones.GetBone(sa ?? b, true)?.proxy ?? b;
+                    _boneOverrides.TryGetValue(b, out var sa);
+                    
+                    return _bones.GetBone(sa, true)?.proxy ?? b;
                 }).ToArray();
             }
 
