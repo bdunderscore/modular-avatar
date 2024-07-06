@@ -120,7 +120,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 p_smr.rootBone = _bones.GetBone(o_smr.rootBone)?.proxy ?? o_smr.rootBone;
                 p_smr.bones = o_smr.bones.Select(b =>
                 {
-                    _boneOverrides.TryGetValue(b, out var sa);
+                    ModularAvatarScaleAdjuster sa = null;
+                    if (b != null) _boneOverrides.TryGetValue(b, out sa);
                     
                     return _bones.GetBone(sa, true)?.proxy ?? b;
                 }).ToArray();
