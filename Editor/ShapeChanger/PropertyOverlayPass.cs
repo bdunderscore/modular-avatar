@@ -276,6 +276,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     path = RuntimeUtil.RelativePath(context.AvatarRootObject, smr.gameObject);
                     componentType = typeof(SkinnedMeshRenderer);
+
+                    if (key.PropertyName.StartsWith("blendShape."))
+                    {
+                        var blendShape = key.PropertyName.Substring("blendShape.".Length);
+                        var index = smr.sharedMesh?.GetBlendShapeIndex(blendShape);
+
+                        if (index != null && index >= 0) smr.SetBlendShapeWeight(index.Value, initialState);
+                    }
                 }
                 else
                 {
@@ -336,98 +344,146 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            // This value is the first non-subnormal float32
-            float shift = BitConverter.Int32BitsToSingle(0x00800000);
+            var asm = GenerateStateMachine(info);
+            ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
+        }
 
-            foreach (var group in info.actionGroups)
+        private AnimatorStateMachine GenerateStateMachine(PropGroup info)
+        {
+            var asc = context.Extension<AnimationServicesContext>();
+            var asm = new AnimatorStateMachine();
+            asm.name = "MA Shape Changer " + info.TargetProp.TargetObject.name;
+
+            var x = 200;
+            var y = 0;
+            var yInc = 60;
+
+            asm.anyStatePosition = new Vector3(-200, 0);
+
+            var initial = new AnimationClip();
+            var initialState = new AnimatorState();
+            initialState.motion = initial;
+            initialState.writeDefaultValues = false;
+            initialState.name = "<default>";
+            asm.defaultState = initialState;
+
+            asm.entryPosition = new Vector3(0, 0);
+
+            var states = new List<ChildAnimatorState>();
+            states.Add(new ChildAnimatorState
             {
-                group.ConditionKey = shift;
-                shift *= 4;
+                position = new Vector3(x, y),
+                state = initialState
+            });
 
-                if (!group.ConditionKeyIsValid)
+            var lastConstant = info.actionGroups.FindLastIndex(agk => agk.ControllingObject == null);
+            var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
+            var entryTransitions = new List<AnimatorTransition>();
+
+            transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
+
+            foreach (var group in info.actionGroups.Skip(lastConstant))
+            {
+                y += yInc;
+
+                var clip = AnimResult(group.TargetProp, group.Value);
+
+                if (group.ControllingObject == null)
                 {
-                    throw new ArithmeticException("Floating point overflow - too many shape key controls");
+                    clip.name = "Property Overlay constant " + group.Value;
+                    initialState.motion = clip;
+                }
+                else
+                {
+                    clip.name = "Property Overlay controlled by " + group.ControllingObject.name + " " + group.Value;
+
+                    var conditions = GetTransitionConditions(asc, group);
+
+                    foreach (var (st, transitions) in transitionBuffer)
+                    {
+                        var transition = new AnimatorStateTransition
+                        {
+                            isExit = true,
+                            hasExitTime = false,
+                            duration = 0,
+                            hasFixedDuration = true,
+                            conditions = (AnimatorCondition[])conditions.Clone()
+                        };
+                        transitions.Add(transition);
+                    }
+
+                    var state = new AnimatorState();
+                    state.name = group.ControllingObject.name;
+                    state.motion = clip;
+                    state.writeDefaultValues = false;
+                    states.Add(new ChildAnimatorState
+                    {
+                        position = new Vector3(x, y),
+                        state = state
+                    });
+
+                    var transitionList = new List<AnimatorStateTransition>();
+                    transitionBuffer.Add((state, transitionList));
+                    entryTransitions.Add(new AnimatorTransition
+                    {
+                        destinationState = state,
+                        conditions = conditions
+                    });
+
+                    foreach (var cond in conditions)
+                    {
+                        var inverted = new AnimatorCondition
+                        {
+                            parameter = cond.parameter,
+                            mode = AnimatorConditionMode.Less,
+                            threshold = cond.threshold
+                        };
+                        transitionList.Add(new AnimatorStateTransition
+                        {
+                            isExit = true,
+                            hasExitTime = false,
+                            duration = 0,
+                            hasFixedDuration = true,
+                            conditions = new[] { inverted }
+                        });
+                    }
                 }
             }
 
-            info.ControlParam =
-                $"_MA/ShapeChanger/{info.TargetProp.TargetObject.GetInstanceID()}/{info.TargetProp.PropertyName}/set";
+            foreach (var (st, transitions) in transitionBuffer) st.transitions = transitions.ToArray();
 
-            var summationTree = BuildSummationTree(info);
-            var applyTree = BuildApplyTree(info);
-            var merged = BuildMergeTree(summationTree, applyTree);
+            asm.states = states.ToArray();
+            entryTransitions.Reverse();
+            asm.entryTransitions = entryTransitions.ToArray();
+            asm.exitPosition = new Vector3(500, 0);
 
-            ApplyController(merged, "ShapeChanger Apply: " + info.TargetProp.PropertyName);
+            return asm;
         }
 
-        private BlendTree BuildMergeTree(BlendTree summationTree, BlendTree applyTree)
+        private AnimatorCondition[] GetTransitionConditions(AnimationServicesContext asc, ActionGroupKey group)
         {
-            var bt = new BlendTree();
-            bt.blendType = BlendTreeType.Direct;
-            bt.blendParameter = MergeBlendTreePass.ALWAYS_ONE;
-            bt.useAutomaticThresholds = false;
+            var conditions = new List<AnimatorCondition>();
 
-            bt.children = new[]
+            var controller = group.ControllingObject.transform;
+            while (controller != null && !RuntimeUtil.IsAvatarRoot(controller))
             {
-                new ChildMotion()
+                if (asc.TryGetActiveSelfProxy(controller.gameObject, out var paramName))
                 {
-                    motion = summationTree,
-                    directBlendParameter = MergeBlendTreePass.ALWAYS_ONE,
-                    timeScale = 1,
-                },
-                new ChildMotion()
-                {
-                    motion = applyTree,
-                    directBlendParameter = MergeBlendTreePass.ALWAYS_ONE,
-                    timeScale = 1,
-                },
-            };
+                    initialValues[paramName] = controller.gameObject.activeSelf ? 1 : 0;
+                    conditions.Add(new AnimatorCondition
+                    {
+                        parameter = paramName,
+                        mode = AnimatorConditionMode.Greater,
+                        threshold = 0.5f
+                    });
+                }
 
-            return bt;
-        }
-
-        private BlendTree BuildApplyTree(PropGroup info)
-        {
-            var groups = info.actionGroups;
-
-            var setTree = new BlendTree();
-            setTree.blendType = BlendTreeType.Simple1D;
-            setTree.blendParameter = info.ControlParam;
-            setTree.useAutomaticThresholds = false;
-
-            var childMotions = new List<ChildMotion>();
-
-            childMotions.Add(new ChildMotion()
-            {
-                motion = AnimResult(groups.First().TargetProp, 0),
-                timeScale = 1,
-                threshold = 0,
-            });
-
-            foreach (var group in groups)
-            {
-                var lo = group.ConditionKey;
-                var hi = group.Guard;
-
-                Debug.Log("Threshold: [" + lo + ", " + hi + "]: " + group);
-
-                childMotions.Add(new ChildMotion()
-                {
-                    motion = AnimResult(group.TargetProp, group.Value),
-                    timeScale = 1,
-                    threshold = lo,
-                });
-                childMotions.Add(new ChildMotion()
-                {
-                    motion = AnimResult(group.TargetProp, group.Value),
-                    timeScale = 1,
-                    threshold = hi,
-                });
+                controller = controller.parent;
             }
 
-            setTree.children = childMotions.ToArray();
-            
-            return setTree;
+            if (conditions.Count == 0) throw new InvalidOperationException("No controlling object found for " + group);
+
+            return conditions.ToArray();
         }
 
         private Motion AnimResult(TargetProp key, float value)
@@ -463,68 +519,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return clip;
         }
 
-        private BlendTree BuildSummationTree(PropGroup info)
-        {
-            var groups = info.actionGroups;
-
-            var setParam = info.ControlParam;
-            
-            var asc = context.Extension<AnimationServicesContext>();
-
-            BlendTree bt = new BlendTree();
-            bt.blendType = BlendTreeType.Direct;
-
-            HashSet<string> paramNames = new HashSet<string>();
-
-            var childMotions = new List<ChildMotion>();
-
-            // TODO eliminate excess motion field
-            var initMotion = new ChildMotion()
-            {
-                motion = AnimParam((setParam, 0)),
-                directBlendParameter = MergeBlendTreePass.ALWAYS_ONE,
-                timeScale = 1,
-            };
-            childMotions.Add(initMotion);
-            paramNames.Add(MergeBlendTreePass.ALWAYS_ONE);
-            initialValues[MergeBlendTreePass.ALWAYS_ONE] = 1;
-            initialValues[setParam] = 0;
-
-            foreach (var group in groups)
-            {
-                Debug.Log("Group: " + group);
-                string controllingParam;
-                if (group.ControllingObject == null)
-                {
-                    controllingParam = MergeBlendTreePass.ALWAYS_ONE;
-                }
-                else
-                {
-                    // TODO: path evaluation
-                    if (!asc.TryGetActiveSelfProxy(group.ControllingObject, out controllingParam))
-                    {
-                        throw new InvalidOperationException("Failed to get active self proxy");
-                    }
-
-                    initialValues[controllingParam] = group.ControllingObject.activeSelf ? 1 : 0;
-                }
-
-                var childMotion = new ChildMotion()
-                {
-                    motion = AnimParam(setParam, group.ConditionKey),
-                    directBlendParameter = controllingParam,
-                    timeScale = 1,
-                };
-                childMotions.Add(childMotion);
-                paramNames.Add(controllingParam);
-            }
-
-            bt.children = childMotions.ToArray();
-
-            return bt;
-        }
-
-        private void ApplyController(BlendTree bt, string stateName)
+        private void ApplyController(AnimatorStateMachine asm, string layerName)
         {
             var fx = context.AvatarDescriptor.baseAnimationLayers
                 .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
@@ -543,18 +538,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 throw new InvalidOperationException("FX layer is not an animator controller");
             }
 
-            var stateMachine = new AnimatorStateMachine();
-            var layers = animController.layers.ToList();
-            layers.Add(
-                new AnimatorControllerLayer() { defaultWeight = 1, name = stateName, stateMachine = stateMachine }
-            );
-            var state = new AnimatorState();
-            state.name = stateName;
-            state.motion = bt;
-            state.writeDefaultValues = true;
-            stateMachine.states = new[] { new ChildAnimatorState() { state = state } };
-            stateMachine.defaultState = state;
-
             var paramList = animController.parameters.ToList();
             var paramSet = paramList.Select(p => p.name).ToHashSet();
 
@@ -571,7 +554,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             animController.parameters = paramList.ToArray();
 
-            animController.layers = layers.ToArray();
+            animController.layers = animController.layers.Append(
+                new AnimatorControllerLayer
+                {
+                    stateMachine = asm,
+                    name = "MA Shape Changer " + layerName,
+                    defaultWeight = 1
+                }
+            ).ToArray();
         }
 
         private AnimationClip AnimParam(string param, float val)
