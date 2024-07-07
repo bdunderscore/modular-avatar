@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -56,6 +57,8 @@ namespace nadena.dev.modular_avatar.core
             cloned.subMenu = null;
             cloned.name = gameObject.name;
 
+            FilterSubParameters(cloned);
+
             if (cloned.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
             {
                 switch (this.MenuSource)
@@ -76,6 +79,32 @@ namespace nadena.dev.modular_avatar.core
             }
 
             context.PushControl(cloned);
+        }
+
+        private void FilterSubParameters(VirtualControl control)
+        {
+            var maxSubParams = 0;
+            switch (control.type)
+            {
+                case VRCExpressionsMenu.Control.ControlType.Toggle:
+                case VRCExpressionsMenu.Control.ControlType.Button:
+                case VRCExpressionsMenu.Control.ControlType.SubMenu:
+                default:
+                    maxSubParams = 0;
+                    break;
+                case VRCExpressionsMenu.Control.ControlType.RadialPuppet:
+                    maxSubParams = 1;
+                    break;
+                case VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet:
+                    maxSubParams = 2;
+                    break;
+                case VRCExpressionsMenu.Control.ControlType.FourAxisPuppet:
+                    maxSubParams = 4;
+                    break;
+            }
+
+            if (control.subParameters.Length > maxSubParams)
+                control.subParameters = control.subParameters.Take(maxSubParams).ToArray();
         }
     }
 }

@@ -670,6 +670,34 @@ namespace modular_avatar_tests.VirtualMenuTests
                 .SubmenuNode.Controls[0].parameter.name);
         }
 
+        [Test]
+        public void UnusedSubParametersAreStripped()
+        {
+            var root = CreatePrefab("UnusedSubParametersAreStripped.prefab");
+            
+            BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
+            var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
+            
+            // Button
+            Assert.AreEqual(0, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[0].subParameters.Length);
+            
+            // Toggle
+            Assert.AreEqual(0, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[1].subParameters.Length);
+            
+            // SubMenu
+            Assert.AreEqual(0, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[2].subParameters.Length);
+            
+            // Two Axis
+            Assert.AreEqual(2, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[3].subParameters.Length);
+            
+            // Radial
+            Assert.AreEqual(1, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[4].subParameters.Length);
+            
+            // Four Axis
+            Assert.AreEqual(4, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[5].subParameters.Length);
+        }
+
         ModularAvatarMenuInstaller CreateInstaller(string name)
         {
             GameObject obj = new GameObject();
@@ -688,6 +716,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             var control = GenerateTestControl();
             control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
             control.subMenu = menu;
+            control.subParameters = Array.Empty<VRCExpressionsMenu.Control.Parameter>();
 
             return control;
         }
@@ -719,13 +748,23 @@ namespace modular_avatar_tests.VirtualMenuTests
                     icon = testTex
                 }
             };
-            control.subParameters = new[]
+            if (control.type == VRCExpressionsMenu.Control.ControlType.RadialPuppet 
+                || control.type == VRCExpressionsMenu.Control.ControlType.FourAxisPuppet
+                || control.type == VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet)
             {
-                new VRCExpressionsMenu.Control.Parameter()
+                control.subParameters = new[]
                 {
-                    name = "Test Sub Parameter " + GUID.Generate()
-                }
-            };
+                    new VRCExpressionsMenu.Control.Parameter()
+                    {
+                        name = "Test Sub Parameter " + GUID.Generate()
+                    }
+                };
+            } else 
+            {
+                control.subParameters = Array.Empty<VRCExpressionsMenu.Control.Parameter>();
+            }
+         
+
             control.value = 0.42f;
             control.style = VRCExpressionsMenu.Control.Style.Style3;
 
@@ -742,9 +781,22 @@ namespace modular_avatar_tests.VirtualMenuTests
             Assert.AreEqual(expected.labels.Length, actual.labels.Length);
             Assert.AreEqual(expected.labels[0].name, actual.labels[0].name);
             Assert.AreEqual(expected.labels[0].icon, actual.labels[0].icon);
-            Assert.AreEqual(expected.subParameters.Length, actual.subParameters.Length);
-            Assert.AreEqual(expected.subParameters[0].name, actual.subParameters[0].name);
-            Assert.AreNotSame(expected.subParameters[0], actual.subParameters[0]);
+            switch (expected.type)
+            {
+                case VRCExpressionsMenu.Control.ControlType.Button:
+                case VRCExpressionsMenu.Control.ControlType.Toggle:
+                case VRCExpressionsMenu.Control.ControlType.SubMenu:
+                    Assert.AreEqual(0, actual.subParameters.Length);
+                    break;
+                default:
+                {
+                    Assert.AreEqual(expected.subParameters.Length, actual.subParameters.Length);
+                    Assert.AreEqual(expected.subParameters[0].name, actual.subParameters[0].name);
+                    Assert.AreNotSame(expected.subParameters[0], actual.subParameters[0]);
+                    break;
+                }
+            }
+            
             Assert.AreEqual(expected.value, actual.value);
             Assert.AreEqual(expected.style, actual.style);
         }
