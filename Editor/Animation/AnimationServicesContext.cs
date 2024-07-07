@@ -7,6 +7,7 @@ using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 #endregion
 
@@ -29,6 +30,8 @@ namespace nadena.dev.modular_avatar.animation
         private BuildContext _context;
         private AnimationDatabase _animationDatabase;
         private PathMappings _pathMappings;
+        private ReadableProperty _readableProperty;
+        
         private Dictionary<GameObject, string> _selfProxies = new();
 
         public void OnActivate(BuildContext context)
@@ -40,6 +43,8 @@ namespace nadena.dev.modular_avatar.animation
 
             _pathMappings = new PathMappings();
             _pathMappings.OnActivate(context, _animationDatabase);
+
+            _readableProperty = new ReadableProperty(_context, _animationDatabase, this);
         }
 
         public void OnDeactivate(BuildContext context)
@@ -79,6 +84,17 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
+        // HACK: This is a temporary crutch until we rework the entire animator services system
+        public void AddPropertyDefinition(AnimatorControllerParameter paramDef)
+        {
+            var fx = (AnimatorController)
+                _context.AvatarDescriptor.baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController;
+
+            fx.parameters = fx.parameters.Concat(new[] { paramDef }).ToArray();
+        }
+
         /// <summary>
         /// Returns a parameter which proxies the "activeSelf" state of the specified GameObject.
         /// </summary>
@@ -98,76 +114,8 @@ namespace nadena.dev.modular_avatar.animation
                 return false;
             }
 
-            var iid = obj.GetInstanceID();
-            paramName = $"_MA/ActiveSelf/{iid}";
-
-            var binding = EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive");
-
-            bool hadAnyClip = false;
-            foreach (var clip in clips)
-            {
-                Motion newMotion = ProcessActiveSelf(clip.CurrentClip, paramName, binding);
-                if (newMotion != clip.CurrentClip)
-                {
-                    clip.SetCurrentNoInvalidate(newMotion);
-                    hadAnyClip = true;
-                }
-            }
-
-            if (hadAnyClip)
-            {
-                _selfProxies[obj] = paramName;
-                return true;
-            }
-            else
-            {
-                _selfProxies[obj] = "";
-                return false;
-            }
-        }
-
-        private Motion ProcessActiveSelf(Motion motion, string paramName, EditorCurveBinding binding)
-        {
-            if (motion is AnimationClip clip)
-            {
-                var curve = AnimationUtility.GetEditorCurve(clip, binding);
-                if (curve == null) return motion;
-
-                var newClip = new AnimationClip();
-                EditorUtility.CopySerialized(motion, newClip);
-
-                newClip.SetCurve("", typeof(Animator), paramName, curve);
-                return newClip;
-            }
-            else if (motion is BlendTree bt)
-            {
-                bool anyChanged = false;
-
-                var motions = bt.children.Select(c => // c is struct ChildMotion
-                {
-                    var newMotion = ProcessActiveSelf(c.motion, paramName, binding);
-                    anyChanged |= newMotion != c.motion;
-                    c.motion = newMotion;
-                    return c;
-                }).ToArray();
-
-                if (anyChanged)
-                {
-                    var newBt = new BlendTree();
-                    EditorUtility.CopySerialized(bt, newBt);
-
-                    newBt.children = motions;
-                    return newBt;
-                }
-                else
-                {
-                    return bt;
-                }
-            }
-            else
-            {
-                return motion;
-            }
+            paramName = _readableProperty.ForActiveSelf(_pathMappings.GetObjectIdentifier(obj));
+            return true;
         }
     }
 }

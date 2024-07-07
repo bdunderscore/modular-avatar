@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using EditorCurveBinding = UnityEditor.EditorCurveBinding;
 
 namespace ShapeChangerTests
 {

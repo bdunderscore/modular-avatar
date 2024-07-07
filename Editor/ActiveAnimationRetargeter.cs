@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using UnityEditor;
 using UnityEngine;
+using EditorCurveBinding = UnityEditor.EditorCurveBinding;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor

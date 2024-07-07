@@ -33,6 +33,7 @@ namespace nadena.dev.modular_avatar.animation
         private HashSet<GameObject> _transformLookthroughObjects = new HashSet<GameObject>();
         private ImmutableDictionary<string, string> _originalPathToMappedPath = null;
         private ImmutableDictionary<string, string> _transformOriginalPathToMappedPath = null;
+        private ImmutableDictionary<string, GameObject> _pathToObject = null;
 
         internal void OnActivate(BuildContext context, AnimationDatabase animationDatabase)
         {
@@ -51,6 +52,7 @@ namespace nadena.dev.modular_avatar.animation
         {
             _originalPathToMappedPath = null;
             _transformOriginalPathToMappedPath = null;
+            _pathToObject = null;
         }
 
         /// <summary>
@@ -194,7 +196,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        private string MapPath(EditorCurveBinding binding)
+        private string MapPath(UnityEditor.EditorCurveBinding binding)
         {
             if (binding.type == typeof(Animator) && binding.path == "")
             {
@@ -296,6 +298,24 @@ namespace nadena.dev.modular_avatar.animation
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {
                 listener.OnCommitObjectRenames(context, this);
+            }
+        }
+
+        public GameObject PathToObject(string path)
+        {
+            if (_pathToObject == null)
+            {
+                _pathToObject = _objectToOriginalPaths.SelectMany(kvp => kvp.Value.Select(p => (p, kvp.Key)))
+                    .ToImmutableDictionary(t => t.p, t => t.Key);
+            }
+            
+            if (_pathToObject.TryGetValue(path, out var obj))
+            {
+                return obj;
+            }
+            else
+            {
+                return null;
             }
         }
     }

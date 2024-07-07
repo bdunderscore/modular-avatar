@@ -48,7 +48,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(MeshSettingsPluginPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 #if MA_VRCSDK3_AVATARS
-                seq.Run(ShapeChangerPrePass.Instance);
+                seq.Run(PropertyOverlayPrePass.Instance);
                 seq.Run(RenameParametersPluginPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
@@ -57,7 +57,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
-                    seq.Run("Shape Changer", ctx => new ShapeChangerPass(ctx).Execute())
+                    seq.Run("Shape Changer", ctx => new PropertyOverlayPass(ctx).Execute())
                         .PreviewingWith(new ShapeChangerPreview());
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
