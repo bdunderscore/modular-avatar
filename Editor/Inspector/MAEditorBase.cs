@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
+using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     // This class performs common setup for Modular Avatar editors, including ensuring that only one instance of the\
     // logo is rendered per container.
-    public abstract class MAEditorBase : UnityEditor.Editor
+    public abstract class MAEditorBase : Editor
     {
         private MAVisualElement _visualElement;
         private bool _suppressOnceDefaultMargins;
@@ -44,12 +46,32 @@ namespace nadena.dev.modular_avatar.core.editor
             if (innerIsImgui)
             {
                 var throwaway = new InspectorElement();
-                inner = typeof(InspectorElement).GetMethod("CreateIMGUIInspectorFromEditor",
-                                BindingFlags.NonPublic | BindingFlags.Instance)
-                            ?.Invoke(throwaway, new object[] {serializedObject, this, false}) as VisualElement
-                        ?? typeof(InspectorElement).GetMethod("CreateInspectorElementUsingIMGUI",
-                                BindingFlags.NonPublic | BindingFlags.Instance)
-                            ?.Invoke(throwaway, new object[] { this }) as VisualElement;
+
+                var m_CreateIMGUIInspectorFromEditor = typeof(InspectorElement)
+                    .GetMethod("CreateIMGUIInspectorFromEditor", BindingFlags.NonPublic | BindingFlags.Instance);
+                var m_CreateInspectorElementUsingIMGUI = typeof(InspectorElement)
+                    .GetMethod("CreateInspectorElementUsingIMGUI", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                Debug.Log($"CreateIMGUIInspectorFromEditor found: {m_CreateIMGUIInspectorFromEditor != null}");
+                Debug.Log($"CreateInspectorElementUsingIMGUI found: {m_CreateInspectorElementUsingIMGUI != null}");
+
+                if (m_CreateIMGUIInspectorFromEditor != null)
+                {
+                    inner = m_CreateIMGUIInspectorFromEditor.Invoke(throwaway,
+                        new object[] { serializedObject, this, false }) as VisualElement;
+                }
+                else if (m_CreateInspectorElementUsingIMGUI != null)
+                {
+                    inner = m_CreateInspectorElementUsingIMGUI.Invoke(throwaway,
+                        new object[] { this }) as VisualElement;
+                }
+                else
+                {
+                    Debug.Log(
+                        "Neither CreateIMGUIInspectorFromEditor nor CreateInspectorElementUsingIMGUI found, for inspector " +
+                        GetType());
+                    inner = new VisualElement();
+                }
             }
 
             _visualElement.Add(inner);
