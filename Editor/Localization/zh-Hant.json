@@ -203,7 +203,7 @@
   "menuitem.label.control_labels": "設定名稱",
   "menuitem.misc.multiple": "（複數設定）",
   "menuitem.misc.no_icon": "（無圖示）",
-  "menuitem.misc.extract": "提取到物件",
+  "menuitem.misc.extract": "提取為物件",
   "menuitem.label.parameters": "參數",
   "action.toggle_object.header.object": "要顯示 / 隱藏的物件",
   "action.toggle_object.header.show": "顯示",
