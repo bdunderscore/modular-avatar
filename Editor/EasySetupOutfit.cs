@@ -482,7 +482,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    if (outfitHips != null) break;
+                    if (outfitHips != null) return true; // found an exact match, bail outgit
                 }
 
                 hipsCandidates.Add(avatarHips.name);
