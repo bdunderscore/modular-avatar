@@ -62,7 +62,8 @@ jobs:
             ${{ runner.os }}-yarn-docs-
 
       - name: Set baseUri
-        if: ${{ inputs.path }}
+        # disable this for now as the main branch snapshot isn't ready for this baseUrl change
+        if: ${{ inputs.path && inputs.ref != 'main' }}
         run: |
           BASEURL="/${{ inputs.path }}/" perl -i -p -e "s{baseUrl: '/'}{baseUrl: '\$ENV{BASEURL}'}" docs~/docusaurus.config.js
           cat docs~/docusaurus.config.js
