@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -23,6 +24,9 @@ namespace nadena.dev.modular_avatar.animation
             _asc = asc;
         }
 
+        public IEnumerable<(EditorCurveBinding, string)> BoundProperties =>
+            _alreadyBound.Select(kv => (kv.Key, kv.Value));
+        
         /// <summary>
         ///     Creates an animator parameter which tracks the effective value of a property on a component. This only
         ///     tracks FX layer properties.

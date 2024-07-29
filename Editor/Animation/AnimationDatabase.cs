@@ -299,12 +299,12 @@ namespace nadena.dev.modular_avatar.animation
                 _pathToClip = new Dictionary<string, HashSet<ClipHolder>>();
                 foreach (var clip in _clips)
                 {
-                    recordPaths(clip);
+                    RecordPaths(clip);
                 }
             }
         }
 
-        private void recordPaths(ClipHolder holder)
+        private void RecordPaths(ClipHolder holder)
         {
             var clip = holder.GetCurrentClipUnsafe() as AnimationClip;
 
