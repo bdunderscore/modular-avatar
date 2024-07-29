@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // TODO: observe avatar root
                 if (!ctx.ActiveAndEnabled(changer)) continue;
 
-                var target = ctx.Observe(changer.targetRenderer.Get(changer));
+                var target = ctx.Observe(changer, _ => changer.targetRenderer.Get(changer));
                 var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
 
                 if (renderer == null) continue;
