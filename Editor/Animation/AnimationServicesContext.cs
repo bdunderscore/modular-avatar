@@ -84,6 +84,8 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
+        public IEnumerable<(EditorCurveBinding, string)> BoundReadableProperties => _readableProperty.BoundProperties;
+
         // HACK: This is a temporary crutch until we rework the entire animator services system
         public void AddPropertyDefinition(AnimatorControllerParameter paramDef)
         {
