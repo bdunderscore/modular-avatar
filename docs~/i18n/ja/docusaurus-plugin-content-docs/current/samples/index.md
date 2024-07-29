@@ -17,10 +17,10 @@ Modular Avatarには、機能の使い方を見せるためのサンプルプレ
 
 指ペンプレハブは以下の機能のサンプルとなっています。
 
-* [Merge Animator](/ja/docs/reference/merge-animator)でアニメーターをインストール
-* [同期パラメーター](/ja/docs/reference/parameters)の自動設定
-* [メニュー](/ja/docs/reference/menu-installer)の自動インストール
-* [Bone Proxy](/ja/docs/reference/bone-proxy)で、様々のアバターに対応した、アバターのボーンにオブジェクトを導入する方法
+* [Merge Animator](/docs/reference/merge-animator)でアニメーターをインストール
+* [同期パラメーター](/docs/reference/parameters)の自動設定
+* [メニュー](/docs/reference/menu-installer)の自動インストール
+* [Bone Proxy](/docs/reference/bone-proxy)で、様々のアバターに対応した、アバターのボーンにオブジェクトを導入する方法
 
 ## 拍手(Clap) {#clap}
 
