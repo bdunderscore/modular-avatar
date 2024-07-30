@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var proxyObject = new GameObject("ScaleProxy");
                 var proxyTransform = proxyObject.transform;
+                proxyObject.AddComponent<ModularAvatarPBBlocker>();
 
                 proxyTransform.SetParent(adjuster.transform, false);
                 proxyTransform.localPosition = Vector3.zero;
