@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
                     seq.Run("Shape Changer", ctx => new PropertyOverlayPass(ctx).Execute())
-                        .PreviewingWith(new ShapeChangerPreview());
+                        .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview());
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);

@@ -27,7 +27,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void Execute(ndmf.BuildContext context)
         {
-            if (context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>() != null)
+            var hasShapeChanger = context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>() != null;
+            var hasObjectSwitcher =
+                context.AvatarRootObject.GetComponentInChildren<ModularAvatarObjectToggle>() != null;
+            if (hasShapeChanger || hasObjectSwitcher)
             {
                 var clip = new AnimationClip();
                 clip.name = "MA Shape Changer Defaults";
@@ -200,6 +203,8 @@ namespace nadena.dev.modular_avatar.core.editor
         internal void Execute()
         {
             Dictionary<TargetProp, PropGroup> shapes = FindShapes(context);
+            FindObjectToggles(shapes, context);
+            
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
             ProcessInitialStates(initialStates);
@@ -222,6 +227,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var (key, info) in shapes.ToList())
             {
+                if (info.actionGroups.Count == 0)
+                {
+                    // never active control; ignore it entirely
+                    shapes.Remove(key);
+                    continue;
+                }
+                
                 var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
                 if (deletions.Any(d => d.ControllingObject == null))
                 {
@@ -251,6 +263,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessInitialStates(Dictionary<TargetProp, float> initialStates)
         {
+            // We need to track _two_ initial states: the initial state we'll apply at build time (which applies
+            // when animations are disabled) and the animation base state. Confusingly, the animation base state
+            // should be the state that is currently applied to the object...
+            
             var clips = context.Extension<AnimationServicesContext>().AnimationDatabase;
             var initialStateHolder = clips.ClipsForPath(PropertyOverlayPrePass.TAG_PATH).FirstOrDefault();
             if (initialStateHolder == null) return;
@@ -261,12 +277,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var (key, initialState) in initialStates)
             {
-                var curve = new AnimationCurve();
-                curve.AddKey(0, initialState);
-                curve.AddKey(1, initialState);
-
                 string path;
                 Type componentType;
+
+                var applied = false;
+                float animBaseState = 0;
+                
                 if (key.TargetObject is GameObject go)
                 {
                     path = RuntimeUtil.RelativePath(context.AvatarRootObject, go);
@@ -282,13 +298,42 @@ namespace nadena.dev.modular_avatar.core.editor
                         var blendShape = key.PropertyName.Substring("blendShape.".Length);
                         var index = smr.sharedMesh?.GetBlendShapeIndex(blendShape);
 
-                        if (index != null && index >= 0) smr.SetBlendShapeWeight(index.Value, initialState);
+                        if (index != null && index >= 0)
+                        {
+                            animBaseState = smr.GetBlendShapeWeight(index.Value);
+                            smr.SetBlendShapeWeight(index.Value, initialState);
+                        }
+
+                        applied = true;
                     }
                 }
                 else
                 {
                     throw new InvalidOperationException("Invalid target object: " + key.TargetObject);
                 }
+
+                if (!applied)
+                {
+                    var serializedObject = new SerializedObject(key.TargetObject);
+                    var prop = serializedObject.FindProperty(key.PropertyName);
+
+                    if (prop != null)
+                        switch (prop.propertyType)
+                        {
+                            case SerializedPropertyType.Boolean:
+                                animBaseState = prop.boolValue ? 1 : 0;
+                                prop.boolValue = initialState > 0.5f;
+                                break;
+                            case SerializedPropertyType.Float:
+                                animBaseState = prop.floatValue;
+                                prop.floatValue = initialState;
+                                break;
+                        }
+                }
+
+                var curve = new AnimationCurve();
+                curve.AddKey(0, animBaseState);
+                curve.AddKey(1, animBaseState);
                 
                 var binding = EditorCurveBinding.FloatCurve(
                     path,
@@ -516,6 +561,16 @@ namespace nadena.dev.modular_avatar.core.editor
             var binding = EditorCurveBinding.FloatCurve(path, componentType, key.PropertyName);
             AnimationUtility.SetEditorCurve(clip, binding, curve);
 
+            if (key.TargetObject is GameObject obj && key.PropertyName == "m_IsActive")
+            {
+                var asc = context.Extension<AnimationServicesContext>();
+                if (asc.TryGetActiveSelfProxy(obj, out var propName))
+                {
+                    binding = EditorCurveBinding.FloatCurve("", typeof(Animator), propName);
+                    AnimationUtility.SetEditorCurve(clip, binding, curve);
+                }
+            }
+
             return clip;
         }
 
@@ -586,6 +641,57 @@ namespace nadena.dev.modular_avatar.core.editor
             return clip;
         }
 
+        private void FindObjectToggles(Dictionary<TargetProp, PropGroup> objectGroups, ndmf.BuildContext context)
+        {
+            var asc = context.Extension<AnimationServicesContext>();
+
+            var toggles = this.context.AvatarRootObject.GetComponentsInChildren<ModularAvatarObjectToggle>(true);
+
+            foreach (var toggle in toggles)
+            {
+                if (toggle.Objects == null) continue;
+
+                foreach (var obj in toggle.Objects)
+                {
+                    var target = obj.Object.Get(toggle);
+                    if (target == null) continue;
+
+                    // Make sure we generate an animator prop for each controlled object, as we intend to generate
+                    // animations for them.
+                    asc.ForceGetActiveSelfProxy(target);
+
+                    var key = new TargetProp
+                    {
+                        TargetObject = target,
+                        PropertyName = "m_IsActive"
+                    };
+
+                    if (!objectGroups.TryGetValue(key, out var group))
+                    {
+                        group = new PropGroup(key, target.activeSelf ? 1 : 0);
+                        objectGroups[key] = group;
+                    }
+
+                    var value = obj.Active ? 1 : 0;
+                    var action = new ActionGroupKey(asc, key, toggle.gameObject, value);
+
+                    if (action.ControllingObject == null)
+                    {
+                        if (action.InitiallyActive)
+                            // always active control
+                            group.actionGroups.Clear();
+                        else
+                            // never active control
+                            continue;
+                    }
+
+                    if (group.actionGroups.Count == 0)
+                        group.actionGroups.Add(action);
+                    else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
+                }
+            }
+        }
+        
         private Dictionary<TargetProp, PropGroup> FindShapes(ndmf.BuildContext context)
         {
             var asc = context.Extension<AnimationServicesContext>();
