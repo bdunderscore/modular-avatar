@@ -119,16 +119,12 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private struct ControlCondition
-        {
-            public string Parameter, DebugName;
-            public bool IsConstant, InitiallyActive;
-        }
-        
         class ActionGroupKey
         {
-            public ActionGroupKey(AnimationServicesContext asc, TargetProp key, GameObject controllingObject, float value)
+            public ActionGroupKey(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, float value)
             {
+                var asc = context.Extension<AnimationServicesContext>();
+                
                 TargetProp = key;
 
                 var conditions = new List<ControlCondition>();
@@ -143,7 +139,9 @@ namespace nadena.dev.modular_avatar.core.editor
                             Parameter = paramName,
                             DebugName = cursor.gameObject.name,
                             IsConstant = false,
-                            InitiallyActive = cursor.gameObject.activeSelf
+                            InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
+                            ParameterValueLo = 0.5f,
+                            ParameterValueHi = 1.5f
                         });
                     else if (!cursor.gameObject.activeSelf)
                         conditions = new List<ControlCondition>
@@ -153,9 +151,14 @@ namespace nadena.dev.modular_avatar.core.editor
                                 Parameter = "",
                                 DebugName = cursor.gameObject.name,
                                 IsConstant = true,
-                                InitiallyActive = false
+                                InitialValue = 0,
+                                ParameterValueLo = 0.5f,
+                                ParameterValueHi = 1.5f
                             }
                         };
+
+                    foreach (var mami in cursor.GetComponents<ModularAvatarMenuItem>())
+                        conditions.Add(ParameterAssignerPass.AssignMenuItemParameter(context, mami));
 
                     cursor = cursor.parent;
                 }
@@ -210,6 +213,7 @@ namespace nadena.dev.modular_avatar.core.editor
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
             ProcessInitialStates(initialStates);
+            ProcessInitialAnimatorVariables(shapes);
             
             foreach (var groups in shapes.Values)
             {
@@ -217,6 +221,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             ProcessMeshDeletion(deletedShapes);
+        }
+
+        private void ProcessInitialAnimatorVariables(Dictionary<TargetProp, PropGroup> shapes)
+        {
+            foreach (var group in shapes.Values)
+            foreach (var agk in group.actionGroups)
+            foreach (var condition in agk.ControllingConditions)
+            {
+                if (condition.IsConstant) continue;
+
+                if (!initialValues.ContainsKey(condition.Parameter))
+                    initialValues[condition.Parameter] = condition.InitialValue;
+            }
         }
 
         private void PreprocessShapes(Dictionary<TargetProp, PropGroup> shapes, out Dictionary<TargetProp, float> initialStates, out HashSet<TargetProp> deletedShapes)
@@ -483,7 +500,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         var inverted = new AnimatorCondition
                         {
                             parameter = cond.parameter,
-                            mode = AnimatorConditionMode.Less,
+                            mode = cond.mode == AnimatorConditionMode.Greater
+                                ? AnimatorConditionMode.Less
+                                : AnimatorConditionMode.Greater,
                             threshold = cond.threshold
                         };
                         transitionList.Add(new AnimatorStateTransition
@@ -520,7 +539,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     parameter = condition.Parameter,
                     mode = AnimatorConditionMode.Greater,
-                    threshold = 0.5f
+                    threshold = condition.ParameterValueLo
+                });
+
+                conditions.Add(new AnimatorCondition
+                {
+                    parameter = condition.Parameter,
+                    mode = AnimatorConditionMode.Less,
+                    threshold = condition.ParameterValueHi
                 });
             }
 
@@ -672,7 +698,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var value = obj.Active ? 1 : 0;
-                    var action = new ActionGroupKey(asc, key, toggle.gameObject, value);
+                    var action = new ActionGroupKey(context, key, toggle.gameObject, value);
 
                     if (action.IsConstant)
                     {
@@ -727,12 +753,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         shapeKeys[key] = info;
 
                         // Add initial state
-                        var agk = new ActionGroupKey(asc, key, null, value);
+                        var agk = new ActionGroupKey(context, key, null, value);
                         agk.Value = renderer.GetBlendShapeWeight(shapeId);
                         info.actionGroups.Add(agk);
                     }
 
-                    var action = new ActionGroupKey(asc, key, changer.gameObject, value);
+                    var action = new ActionGroupKey(context, key, changer.gameObject, value);
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (shape.ChangeType == ShapeChangeType.Delete)

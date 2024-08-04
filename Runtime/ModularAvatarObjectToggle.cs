@@ -13,7 +13,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Object Toggle")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/object-toggle?lang=auto")]
-    public class ModularAvatarObjectToggle : AvatarTagComponent
+    public class ModularAvatarObjectToggle : ReactiveComponent
     {
         [SerializeField] private List<ToggledObject> m_objects = new();
 

@@ -173,6 +173,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         p.Value.ResolvedParameter.HasDefaultValue &&
                         p.Value.ResolvedParameter.OverrideAnimatorDefaults)
                     .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
+
+            // clean up all parameters objects before the ParameterAssignerPass runs
+            foreach (var p in avatar.GetComponentsInChildren<ModularAvatarParameters>())
+                UnityObject.DestroyImmediate(p);
         }
 
         private void SetExpressionParameters(GameObject avatarRoot, ImmutableDictionary<string, ParameterInfo> allParams)
