@@ -116,8 +116,20 @@ namespace nadena.dev.modular_avatar.animation
                 return false;
             }
 
-            paramName = _readableProperty.ForActiveSelf(_pathMappings.GetObjectIdentifier(obj));
+            paramName = _readableProperty.ForActiveSelf(path);
             return true;
+        }
+
+        public string ForceGetActiveSelfProxy(GameObject obj)
+        {
+            if (_selfProxies.TryGetValue(obj, out var paramName) && !string.IsNullOrEmpty(paramName)) return paramName;
+
+            var path = PathMappings.GetObjectIdentifier(obj);
+
+            paramName = _readableProperty.ForActiveSelf(path);
+            _selfProxies[obj] = paramName;
+
+            return paramName;
         }
     }
 }

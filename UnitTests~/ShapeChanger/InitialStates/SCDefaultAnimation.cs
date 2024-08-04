@@ -26,6 +26,9 @@ namespace ShapeChangerTests
             Assert.NotNull(subBt);
             var clip = subBt.children[0].motion as AnimationClip;
             Assert.NotNull(clip);
+            
+            var smr = root.transform.Find("test mesh").GetComponent<SkinnedMeshRenderer>();
+            var sharedMesh = smr.sharedMesh;
 
             var bindings = AnimationUtility.GetCurveBindings(clip);
             var curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
@@ -33,8 +36,8 @@ namespace ShapeChangerTests
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key1"
             ));
-            Assert.AreEqual(10.0f, curve.keys[0].value, 0.1f);
-            Assert.AreEqual(10.0f, curve.keys[1].value, 0.1f);
+            Assert.AreEqual(7.0f, curve.keys[0].value, 0.1f);
+            Assert.AreEqual(7.0f, curve.keys[1].value, 0.1f);
             
             curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
                 "test mesh",
@@ -49,14 +52,12 @@ namespace ShapeChangerTests
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key3"
             ));
-            Assert.AreEqual(100.0f, curve.keys[0].value, 0.1f);
-            Assert.AreEqual(100.0f, curve.keys[1].value, 0.1f);
+            Assert.AreEqual(6.0f, curve.keys[0].value, 0.1f);
+            Assert.AreEqual(6.0f, curve.keys[1].value, 0.1f);
             
             // Check actual blendshape states
-            var smr = root.transform.Find("test mesh").GetComponent<SkinnedMeshRenderer>();
-            var sharedMesh = smr.sharedMesh;
             Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
-            Assert.AreEqual(0.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
+            Assert.AreEqual(5.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
             Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key3")), 0.1f);
         }
     }
