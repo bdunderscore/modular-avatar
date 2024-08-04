@@ -50,6 +50,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PropertyOverlayPrePass.Instance);
                 seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(ParameterAssignerPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
