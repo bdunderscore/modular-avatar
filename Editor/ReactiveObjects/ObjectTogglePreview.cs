@@ -9,6 +9,22 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ObjectSwitcherPreview : IRenderFilter
     {
+        static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
+            () => "Object Switcher",
+            qualifiedName: "nadena.dev.modular-avatar/ObjectSwitcherPreview",
+            true
+        );
+        
+        public IEnumerable<TogglablePreviewNode> GetPreviewControlNodes()
+        {
+            yield return EnableNode;
+        }
+
+        public bool IsEnabled(ComputeContext context)
+        {
+            return context.Observe(EnableNode.IsEnabled);
+        }
+
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
             var allToggles = context.GetComponentsByType<ModularAvatarObjectToggle>();
@@ -93,7 +109,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _controllers = controllers;
             }
-
+            
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context,
                 RenderAspects updatedAspects)
             {
