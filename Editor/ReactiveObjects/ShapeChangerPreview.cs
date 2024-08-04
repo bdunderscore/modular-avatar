@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -15,6 +16,22 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     public class ShapeChangerPreview : IRenderFilter
     {
+        private static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
+            () => "Shape Changer",
+            qualifiedName: "nadena.dev.modular-avatar/ShapeChangerPreview",
+            true
+        );
+
+        public IEnumerable<TogglablePreviewNode> GetPreviewControlNodes()
+        {
+            yield return EnableNode;
+        }
+
+        public bool IsEnabled(ComputeContext context)
+        {
+            return context.Observe(EnableNode.IsEnabled);
+        }
+        
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
         {
             var allChangers = ctx.GetComponentsByType<ModularAvatarShapeChanger>();
