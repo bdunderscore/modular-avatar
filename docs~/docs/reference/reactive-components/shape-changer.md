@@ -5,6 +5,9 @@
 The Shape Changer component modifies the shape keys (blendshapes) of another renderer on the avatar, when the Shape 
 Changer component is enabled.
 
+Shape Changer is a type of [Reactive Component](./index.md). See that page for general rules and behavior of reactive
+components.
+
 ## When should I use it?
 
 This component is intended to be used on outfit meshes, in order to delete or shrink parts of the avatar base model
