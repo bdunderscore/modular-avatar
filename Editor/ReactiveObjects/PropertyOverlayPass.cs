@@ -118,72 +118,77 @@ namespace nadena.dev.modular_avatar.core.editor
                 this.currentState = currentState;
             }
         }
-        
+
         class ActionGroupKey
         {
-            public ActionGroupKey(AnimationServicesContext asc, TargetProp key, GameObject controllingObject, float value)
+            public ActionGroupKey(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, float value)
             {
+                var asc = context.Extension<AnimationServicesContext>();
+                
                 TargetProp = key;
-                InitiallyActive = controllingObject?.activeInHierarchy == true;
 
-                var origControlling = controllingObject?.name ?? "<null>";
-                while (controllingObject != null && !asc.TryGetActiveSelfProxy(controllingObject, out _))
+                var conditions = new List<ControlCondition>();
+
+                var cursor = controllingObject?.transform;
+
+                while (cursor != null && !RuntimeUtil.IsAvatarRoot(cursor))
                 {
-                    controllingObject = controllingObject.transform.parent?.gameObject;
-                    if (controllingObject != null && RuntimeUtil.IsAvatarRoot(controllingObject.transform))
-                    {
-                        controllingObject = null;
-                    }
+                    if (asc.TryGetActiveSelfProxy(cursor.gameObject, out var paramName))
+                        conditions.Add(new ControlCondition
+                        {
+                            Parameter = paramName,
+                            DebugName = cursor.gameObject.name,
+                            IsConstant = false,
+                            InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
+                            ParameterValueLo = 0.5f,
+                            ParameterValueHi = 1.5f
+                        });
+                    else if (!cursor.gameObject.activeSelf)
+                        conditions = new List<ControlCondition>
+                        {
+                            new ControlCondition
+                            {
+                                Parameter = "",
+                                DebugName = cursor.gameObject.name,
+                                IsConstant = true,
+                                InitialValue = 0,
+                                ParameterValueLo = 0.5f,
+                                ParameterValueHi = 1.5f
+                            }
+                        };
+
+                    foreach (var mami in cursor.GetComponents<ModularAvatarMenuItem>())
+                        conditions.Add(ParameterAssignerPass.AssignMenuItemParameter(context, mami));
+
+                    cursor = cursor.parent;
                 }
 
-                var newControlling = controllingObject?.name ?? "<null>";
-                Debug.Log("AGK: Controlling object " + origControlling + " => " + newControlling);
-
-                ControllingObject = controllingObject;
+                ControllingConditions = conditions;
+                
                 Value = value;
             }
 
             public TargetProp TargetProp;
             public float Value;
 
-            public float ConditionKey;
-            // When constructing the 1D blend tree to interpret the sum-of-condition-keys value, we need to ensure that
-            // all valid values are solidly between two control points with the same animation clip, to avoid undesired
-            // interpolation. This is done by constructing a "guard band":
-            //   [ valid range ] [ guard band ] [ valid range ]
-            //
-            // The valid range must contain all values that could be created by valid summations. We therefore reserve
-            // a "guard band" in between; by reserving the exponent below each valid stop, we can put our guard bands
-            // in there.
-            //  [ valid ] [ guard ] [ valid ]
-            //  ^-r0      ^-g0    ^-g1
-            //                      ^- r1
-            // g0 = r1 / 2 = r0 * 2
-            // g1 = BitDecrement(r1) (we don't actually use this currently as r0-g0 is enough)
+            public readonly List<ControlCondition> ControllingConditions;
 
-            public float Guard => ConditionKey * 2;
-
-            public bool ConditionKeyIsValid => float.IsFinite(ConditionKey)
-                                               && float.IsFinite(Guard)
-                                               && ConditionKey > 0;
-
-            public GameObject ControllingObject;
-            public bool InitiallyActive;
+            public bool InitiallyActive =>
+                ControllingConditions.Count == 0 || ControllingConditions.All(c => c.InitiallyActive);
             public bool IsDelete;
+
+            public bool IsConstant => ControllingConditions.Count == 0 || ControllingConditions.All(c => c.IsConstant);
 
             public override string ToString()
             {
-                var obj = ControllingObject?.name ?? "<null>";
-
-                return $"AGK: {TargetProp}={Value} " +
-                       $"range={ConditionKey}/{Guard} controlling object={obj}";
+                return $"AGK: {TargetProp}={Value}";
             }
 
             public bool TryMerge(ActionGroupKey other)
             {
                 if (!TargetProp.Equals(other.TargetProp)) return false;
                 if (Mathf.Abs(Value - other.Value) > 0.001f) return false;
-                if (ControllingObject != other.ControllingObject) return false;
+                if (!ControllingConditions.SequenceEqual(other.ControllingConditions)) return false;
                 if (IsDelete || other.IsDelete) return false;
 
                 return true;
@@ -208,6 +213,7 @@ namespace nadena.dev.modular_avatar.core.editor
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
             ProcessInitialStates(initialStates);
+            ProcessInitialAnimatorVariables(shapes);
             
             foreach (var groups in shapes.Values)
             {
@@ -215,6 +221,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             ProcessMeshDeletion(deletedShapes);
+        }
+
+        private void ProcessInitialAnimatorVariables(Dictionary<TargetProp, PropGroup> shapes)
+        {
+            foreach (var group in shapes.Values)
+            foreach (var agk in group.actionGroups)
+            foreach (var condition in agk.ControllingConditions)
+            {
+                if (condition.IsConstant) continue;
+
+                if (!initialValues.ContainsKey(condition.Parameter))
+                    initialValues[condition.Parameter] = condition.InitialValue;
+            }
         }
 
         private void PreprocessShapes(Dictionary<TargetProp, PropGroup> shapes, out Dictionary<TargetProp, float> initialStates, out HashSet<TargetProp> deletedShapes)
@@ -235,7 +254,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 
                 var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
-                if (deletions.Any(d => d.ControllingObject == null))
+                if (deletions.Any(d => d.ControllingConditions.Count == 0))
                 {
                     // always deleted
                     shapes.Remove(key);
@@ -254,7 +273,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 initialStates[key] = initialState;
                 
                 // If we're now constant-on, we can skip animation generation
-                if (info.actionGroups[^1].ControllingObject == null)
+                if (info.actionGroups[^1].IsConstant)
                 {
                     shapes.Remove(key);
                 }
@@ -382,7 +401,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // Check if this is non-animated and skip most processing if so
             if (info.alwaysDeleted) return;
-            if (info.actionGroups[^1].ControllingObject == null)
+            if (info.actionGroups[^1].IsConstant)
             {
                 info.TargetProp.ApplyImmediate(info.actionGroups[0].Value);
                 
@@ -421,7 +440,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 state = initialState
             });
 
-            var lastConstant = info.actionGroups.FindLastIndex(agk => agk.ControllingObject == null);
+            var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
             var entryTransitions = new List<AnimatorTransition>();
 
@@ -433,14 +452,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var clip = AnimResult(group.TargetProp, group.Value);
 
-                if (group.ControllingObject == null)
+                if (group.IsConstant)
                 {
                     clip.name = "Property Overlay constant " + group.Value;
                     initialState.motion = clip;
                 }
                 else
                 {
-                    clip.name = "Property Overlay controlled by " + group.ControllingObject.name + " " + group.Value;
+                    clip.name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
+                                group.Value;
 
                     var conditions = GetTransitionConditions(asc, group);
 
@@ -458,7 +478,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var state = new AnimatorState();
-                    state.name = group.ControllingObject.name;
+                    state.name = group.ControllingConditions[0].DebugName;
                     state.motion = clip;
                     state.writeDefaultValues = false;
                     states.Add(new ChildAnimatorState
@@ -480,7 +500,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         var inverted = new AnimatorCondition
                         {
                             parameter = cond.parameter,
-                            mode = AnimatorConditionMode.Less,
+                            mode = cond.mode == AnimatorConditionMode.Greater
+                                ? AnimatorConditionMode.Less
+                                : AnimatorConditionMode.Greater,
                             threshold = cond.threshold
                         };
                         transitionList.Add(new AnimatorStateTransition
@@ -509,24 +531,27 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var conditions = new List<AnimatorCondition>();
 
-            var controller = group.ControllingObject.transform;
-            while (controller != null && !RuntimeUtil.IsAvatarRoot(controller))
+            foreach (var condition in group.ControllingConditions)
             {
-                if (asc.TryGetActiveSelfProxy(controller.gameObject, out var paramName))
-                {
-                    initialValues[paramName] = controller.gameObject.activeSelf ? 1 : 0;
-                    conditions.Add(new AnimatorCondition
-                    {
-                        parameter = paramName,
-                        mode = AnimatorConditionMode.Greater,
-                        threshold = 0.5f
-                    });
-                }
+                if (condition.IsConstant) continue;
 
-                controller = controller.parent;
+                conditions.Add(new AnimatorCondition
+                {
+                    parameter = condition.Parameter,
+                    mode = AnimatorConditionMode.Greater,
+                    threshold = condition.ParameterValueLo
+                });
+
+                conditions.Add(new AnimatorCondition
+                {
+                    parameter = condition.Parameter,
+                    mode = AnimatorConditionMode.Less,
+                    threshold = condition.ParameterValueHi
+                });
             }
 
-            if (conditions.Count == 0) throw new InvalidOperationException("No controlling object found for " + group);
+            if (conditions.Count == 0)
+                throw new InvalidOperationException("No controlling parameters found for " + group);
 
             return conditions.ToArray();
         }
@@ -673,9 +698,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var value = obj.Active ? 1 : 0;
-                    var action = new ActionGroupKey(asc, key, toggle.gameObject, value);
+                    var action = new ActionGroupKey(context, key, toggle.gameObject, value);
 
-                    if (action.ControllingObject == null)
+                    if (action.IsConstant)
                     {
                         if (action.InitiallyActive)
                             // always active control
@@ -728,13 +753,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         shapeKeys[key] = info;
 
                         // Add initial state
-                        var agk = new ActionGroupKey(asc, key, null, value);
-                        agk.InitiallyActive = true;
+                        var agk = new ActionGroupKey(context, key, null, value);
                         agk.Value = renderer.GetBlendShapeWeight(shapeId);
                         info.actionGroups.Add(agk);
                     }
 
-                    var action = new ActionGroupKey(asc, key, changer.gameObject, value);
+                    var action = new ActionGroupKey(context, key, changer.gameObject, value);
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
@@ -751,7 +775,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
 
                     // TODO: lift controlling object resolution out of loop?
-                    if (action.ControllingObject == null)
+                    if (action.IsConstant)
                     {
                         if (action.InitiallyActive)
                         {

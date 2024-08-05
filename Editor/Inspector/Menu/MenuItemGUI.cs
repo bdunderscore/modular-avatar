@@ -1,13 +1,16 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -32,6 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _submenu;
 
         private readonly ParameterGUI _parameterGUI;
+        private readonly SerializedProperty _parameterName;
 
         private readonly SerializedProperty _subParamsRoot;
         private readonly SerializedProperty _labelsRoot;
@@ -46,8 +50,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _prop_submenuSource;
         private readonly SerializedProperty _prop_otherObjSource;
 
+        private readonly SerializedProperty _prop_isSynced;
+        private readonly SerializedProperty _prop_isSaved;
+        private readonly SerializedProperty _prop_isDefault;
+        
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
+
+        private readonly HashSet<string> _knownParameters = new();
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -62,9 +72,11 @@ namespace nadena.dev.modular_avatar.core.editor
             _parameterReference = parameterReference;
             _redraw = redraw;
 
+            InitKnownParameters();
+
             var gameObjects = new SerializedObject(
                 obj.targetObjects.Select(o =>
-                    (UnityEngine.Object) ((ModularAvatarMenuItem) o).gameObject
+                    (Object) ((ModularAvatarMenuItem) o).gameObject
                 ).ToArray()
             );
 
@@ -74,19 +86,45 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _texture = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.icon));
             _type = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.type));
-            var parameter = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
+            _parameterName = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
                 .FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter.name));
+            
             _value = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
             _submenu = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
-            _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
+            _parameterGUI = new ParameterGUI(parameterReference, _parameterName, redraw);
 
             _subParamsRoot = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subParameters));
             _labelsRoot = control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.labels));
 
             _prop_submenuSource = obj.FindProperty(nameof(ModularAvatarMenuItem.MenuSource));
             _prop_otherObjSource = obj.FindProperty(nameof(ModularAvatarMenuItem.menuSource_otherObjectChildren));
+
+            _prop_isSynced = obj.FindProperty(nameof(ModularAvatarMenuItem.isSynced));
+            _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
+            _prop_isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
+            
             _previewGUI = new MenuPreviewGUI(redraw);
+        }
+
+        private void InitKnownParameters()
+        {
+            if (_parameterReference == null) return;
+
+            var rootParameters = ParameterInfo.ForUI.GetParametersForObject(
+                RuntimeUtil.FindAvatarInParents(_parameterReference.transform).gameObject
+            ).Select(p => p.EffectiveName).ToHashSet();
+
+            var remaps = ParameterInfo.ForUI.GetParameterRemappingsAt(_parameterReference);
+            foreach (var remap in remaps)
+            {
+                if (remap.Key.Item1 != ParameterNamespace.Animator) continue;
+                if (rootParameters.Contains(remap.Value.ParameterName)) _knownParameters.Add(remap.Key.Item2);
+            }
+
+            foreach (var rootParam in rootParameters)
+                if (!remaps.ContainsKey((ParameterNamespace.Animator, rootParam)))
+                    _knownParameters.Add(rootParam);
         }
 
         /// <summary>
@@ -99,25 +137,48 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _obj = _control.serializedObject;
             _parameterReference = parameterReference;
+            InitKnownParameters();
+            
             _redraw = redraw;
             _name = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.name));
             _texture = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.icon));
             _type = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.type));
-            var parameter = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
+            _parameterName = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter))
                 .FindPropertyRelative(nameof(VRCExpressionsMenu.Control.parameter.name));
+            
             _value = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.value));
             _submenu = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subMenu));
 
-            _parameterGUI = new ParameterGUI(parameterReference, parameter, redraw);
+            _parameterGUI = new ParameterGUI(parameterReference, _parameterName, redraw);
 
             _subParamsRoot = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.subParameters));
             _labelsRoot = _control.FindPropertyRelative(nameof(VRCExpressionsMenu.Control.labels));
+
+            _prop_isSynced = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSynced));
+            _prop_isSaved = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSaved));
+            _prop_isDefault = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isDefault));
 
             _prop_submenuSource = null;
             _prop_otherObjSource = null;
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
+        private void DrawHorizontalToggleProp(SerializedProperty prop, GUIContent label)
+        {
+            var toggleSize = EditorStyles.toggle.CalcSize(new GUIContent());
+            var labelSize = EditorStyles.label.CalcSize(label);
+            var width = toggleSize.x + labelSize.x + 4;
+
+            var rect = EditorGUILayout.GetControlRect(GUILayout.Width(width));
+            EditorGUI.BeginProperty(rect, label, prop);
+
+            prop.boolValue = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
+
+            EditorGUI.EndProperty();
+        }
+
+        private float lastWidth;
+        
         public void DoGUI()
         {
             EditorGUILayout.BeginHorizontal();
@@ -135,6 +196,18 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
 
             _parameterGUI.DoGUI(true);
+
+            var paramName = _parameterName.stringValue;
+            if (!_parameterName.hasMultipleDifferentValues && !_knownParameters.Contains(paramName))
+            {
+                EditorGUILayout.BeginHorizontal();
+                DrawHorizontalToggleProp(_prop_isDefault, new GUIContent("Default"));
+                GUILayout.FlexibleSpace();
+                DrawHorizontalToggleProp(_prop_isSaved, new GUIContent("Saved"));
+                GUILayout.FlexibleSpace();
+                DrawHorizontalToggleProp(_prop_isSynced, new GUIContent("Synced"));
+                EditorGUILayout.EndHorizontal();
+            }
 
             EditorGUILayout.EndVertical();
 

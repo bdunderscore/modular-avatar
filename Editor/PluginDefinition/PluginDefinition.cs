@@ -1,14 +1,12 @@
 ﻿#region
 
 using System;
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.ArmatureAwase;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.fluent;
-using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -52,10 +50,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PropertyOverlayPrePass.Instance);
                 seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(ParameterAssignerPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
-                seq.Run(MenuInstallPluginPass.Instance);
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
@@ -74,6 +72,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(GameObjectDelayDisablePass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
+                seq.Run(MenuInstallPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {

@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.ndmf;
-using UnityEditor;
 using UnityEngine;
 
 #endregion
@@ -54,6 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly,
                     IsHidden = p.internalParameter,
+                    DefaultValue = p.defaultValue
                 };
             });
         }
@@ -76,7 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        remapTo = p.nameOrPrefix + "$" + GUID.Generate();
+                        remapTo = p.nameOrPrefix + "$" + _component.GetInstanceID();
                     }
                 }
                 else if (string.IsNullOrEmpty(p.remapTo))

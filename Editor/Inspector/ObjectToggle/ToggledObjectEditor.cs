@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
     [CustomPropertyDrawer(typeof(ToggledObject))]
     public class ToggledObjectEditor : PropertyDrawer
     {
-        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/ObjectSwitcher/";
+        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/ObjectToggle/";
         private const string UxmlPath = Root + "ToggledObjectEditor.uxml";
         private const string UssPath = Root + "ObjectSwitcherStyles.uss";
 

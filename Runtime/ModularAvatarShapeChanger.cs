@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Shape Changer")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
-    public class ModularAvatarShapeChanger : AvatarTagComponent
+    public class ModularAvatarShapeChanger : ReactiveComponent
     {
         [SerializeField] [FormerlySerializedAs("targetRenderer")]
         private AvatarObjectReference m_targetRenderer;

@@ -11,6 +11,8 @@ namespace nadena.dev.modular_avatar.core
         public static string AVATAR_ROOT = "$$$AVATAR_ROOT$$$";
         public string referencePath;
 
+        [SerializeField] internal GameObject targetObject;
+        
         private bool _cacheValid;
         private string _cachedPath;
         private GameObject _cachedReference;
@@ -18,7 +20,7 @@ namespace nadena.dev.modular_avatar.core
         public GameObject Get(Component container)
         {
             bool cacheValid = _cacheValid || ReferencesLockedAtFrame == Time.frameCount;
-
+            
             if (cacheValid && _cachedPath == referencePath && _cachedReference != null) return _cachedReference;
 
             _cacheValid = true;
@@ -35,6 +37,9 @@ namespace nadena.dev.modular_avatar.core
 
             var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(container.transform);
             if (avatarTransform == null) return (_cachedReference = null);
+
+            if (targetObject != null && targetObject.transform.IsChildOf(avatarTransform))
+                return _cachedReference = targetObject;
 
             if (referencePath == AVATAR_ROOT)
             {
@@ -82,6 +87,7 @@ namespace nadena.dev.modular_avatar.core
 
             _cachedReference = target;
             _cacheValid = true;
+            targetObject = target;
         }
 
         private void InvalidateCache()
@@ -92,7 +98,12 @@ namespace nadena.dev.modular_avatar.core
 
         protected bool Equals(AvatarObjectReference other)
         {
-            return referencePath == other.referencePath;
+            return GetDirectTarget() == other.GetDirectTarget() && referencePath == other.referencePath;
+        }
+
+        private GameObject GetDirectTarget()
+        {
+            return targetObject != null ? targetObject : null;
         }
 
         public override bool Equals(object obj)

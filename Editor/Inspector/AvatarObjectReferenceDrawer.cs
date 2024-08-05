@@ -29,19 +29,28 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var color = GUI.contentColor;
 
+            var targetObjectProp = property.FindPropertyRelative(nameof(AvatarObjectReference.targetObject));
             property = property.FindPropertyRelative(nameof(AvatarObjectReference.referencePath));
 
             try
             {
                 var avatarTransform = findContainingAvatarTransform(property);
                 if (avatarTransform == null) return false;
-
+                
                 bool isRoot = property.stringValue == AvatarObjectReference.AVATAR_ROOT;
                 bool isNull = string.IsNullOrEmpty(property.stringValue);
                 Transform target;
                 if (isNull) target = null;
                 else if (isRoot) target = avatarTransform;
                 else target = avatarTransform.Find(property.stringValue);
+
+                if (targetObjectProp.objectReferenceValue is GameObject go &&
+                    (go.transform == avatarTransform || go.transform.IsChildOf(avatarTransform)))
+                {
+                    target = go.transform;
+                    isNull = false;
+                    isRoot = target == avatarTransform;
+                }
 
                 var labelRect = position;
                 position = EditorGUI.PrefixLabel(position, label);
@@ -73,6 +82,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                 property.stringValue = relPath;
                             }
+
+                            targetObjectProp.objectReferenceValue = ((Transform)newTarget)?.gameObject;
                         }
                     }
                     else
@@ -104,6 +115,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                 property.stringValue = relPath;
                             }
+
+                            targetObjectProp.objectReferenceValue = ((Transform)newTarget)?.gameObject;
                         }
                         else
                         {
