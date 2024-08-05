@@ -230,7 +230,8 @@ Modular Avatarをサポートするための最低限の要件について話し
 
 多くのアバターには、素体メッシュの一部を縮小したり非表示にしたりするためのシェープキーが含まれています。これにより、衣装が素体メッシュに
 めり込むことを防ぐことができます。Modular Avatarには、この処理を自動化する機能があります。
-[Shape Changer](../../reference/shape-changer.md)コンポーネントを設定することで、Modular Avatarは対応するオブジェクトが有効になると、
+[Shape Changer](../../reference/reactive-components/shape-changer.md)コンポーネントを設定することで、Modular
+Avatarは対応するオブジェクトが有効になると、
 シェープキーを自動的に縮小または非表示にします。また、アニメーションによって衣装の一部がオン/オフになる場合にも応答し、
 Shape Changerオブジェクトが常に有効であれば、メッシュの一部を削除することさえできます。
 
