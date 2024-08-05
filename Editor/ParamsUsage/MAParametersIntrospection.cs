@@ -53,6 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly,
                     IsHidden = p.internalParameter,
+                    DefaultValue = p.defaultValue
                 };
             });
         }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -34,6 +33,8 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
         {
+            var menuItemPreviewCondition = new MenuItemPreviewCondition(ctx);
+            
             var allChangers = ctx.GetComponentsByType<ModularAvatarShapeChanger>();
 
             var groups =
@@ -46,6 +47,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // TODO: observe avatar root
                 if (!ctx.ActiveAndEnabled(changer)) continue;
+
+                var mami = ctx.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
+                if (mami != null && !menuItemPreviewCondition.IsEnabledForPreview(mami)) continue;
 
                 var target = ctx.Observe(changer, _ => changer.targetRenderer.Get(changer));
                 var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);

@@ -27,6 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
+            var menuItemPreview = new MenuItemPreviewCondition(context);
             var allToggles = context.GetComponentsByType<ModularAvatarObjectToggle>();
 
             var objectGroups =
@@ -36,10 +37,10 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var toggle in allToggles)
             {
                 if (!context.ActiveAndEnabled(toggle)) continue;
-
+                
                 var mami = context.GetComponent<ModularAvatarMenuItem>(toggle.gameObject);
                 if (mami != null)
-                    if (!context.Observe(mami, _ => mami.isDefault))
+                    if (!menuItemPreview.IsEnabledForPreview(mami))
                         continue;
 
                 context.Observe(toggle,
