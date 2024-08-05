@@ -35,6 +35,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var toggle in allToggles)
             {
+                if (!context.ActiveAndEnabled(toggle)) continue;
+
+                var mami = context.GetComponent<ModularAvatarMenuItem>(toggle.gameObject);
+                if (mami != null)
+                    if (!context.Observe(mami, _ => mami.isDefault))
+                        continue;
+
                 context.Observe(toggle,
                     t => t.Objects.Select(o => o.Object.referencePath).ToList(),
                     (x, y) => x.SequenceEqual(y)
@@ -69,24 +76,45 @@ namespace nadena.dev.modular_avatar.core.editor
                 // the child. We do this by simply looking at how many times we observe each renderer.
                 .GroupBy(r => r)
                 .Select(g => g.Key)
-                .ToList();
+                .ToHashSet();
 
             var renderGroups = new List<RenderGroup>();
-
+            
             foreach (var r in affectedRenderers)
             {
-                var switchers = new List<(ModularAvatarObjectToggle, int)>();
-
+                var shouldEnable = true;
+                
                 var obj = r.gameObject;
+                context.ActiveInHierarchy(obj); // observe path changes & object state changes
+                
                 while (obj != null)
                 {
+                    var enableAtNode = obj.activeSelf;
+                    
                     var group = objectGroups.GetValueOrDefault(obj);
-                    if (group != null) switchers.AddRange(group);
+                    if (group == null && !obj.activeSelf)
+                    {
+                        // always inactive
+                        shouldEnable = false;
+                        break;
+                    }
+
+                    if (group != null)
+                    {
+                        var (toggle, index) = group[^1];
+                        enableAtNode = context.Observe(toggle, t => t.Objects[index].Active);
+                    }
+
+                    if (!enableAtNode)
+                    {
+                        shouldEnable = false;
+                        break;
+                    }
 
                     obj = obj.transform.parent?.gameObject;
                 }
 
-                renderGroups.Add(RenderGroup.For(r).WithData(switchers.ToImmutableList()));
+                if (shouldEnable) renderGroups.Add(RenderGroup.For(r));
             }
 
             return renderGroups.ToImmutableList();
@@ -95,48 +123,17 @@ namespace nadena.dev.modular_avatar.core.editor
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)
         {
-            var data = group.GetData<ImmutableList<(ModularAvatarObjectToggle, int)>>();
-            return new Node(data).Refresh(proxyPairs, context, 0);
+            return Task.FromResult<IRenderFilterNode>(new Node());
         }
 
         private class Node : IRenderFilterNode
         {
             public RenderAspects WhatChanged => 0;
 
-            private readonly ImmutableList<(ModularAvatarObjectToggle, int)> _controllers;
-
-            public Node(ImmutableList<(ModularAvatarObjectToggle, int)> controllers)
-            {
-                _controllers = controllers;
-            }
-            
-            public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context,
-                RenderAspects updatedAspects)
-            {
-                foreach (var controller in _controllers)
-                {
-                    // Ensure we get awoken whenever there's a change in a controlling component, or its enabled state.
-                    context.Observe(controller.Item1);
-                    context.ActiveAndEnabled(controller.Item1);
-                }
-
-                return Task.FromResult<IRenderFilterNode>(this);
-            }
-
+      
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                var shouldEnable = true;
-                foreach (var (controller, index) in _controllers)
-                {
-                    if (controller == null) continue;
-                    if (!controller.gameObject.activeInHierarchy) continue;
-                    if (controller.Objects == null || index >= controller.Objects.Count) continue;
-
-                    var obj = controller.Objects[index];
-                    shouldEnable = obj.Active;
-                }
-
-                proxy.gameObject.SetActive(shouldEnable);
+                proxy.gameObject.SetActive(true);
             }
         }
     }
