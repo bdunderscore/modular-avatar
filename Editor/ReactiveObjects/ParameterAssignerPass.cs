@@ -51,9 +51,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             name = paramName,
                             valueType = wantedType,
-                            saved = false,
-                            defaultValue = 0,
-                            networkSynced = true
+                            saved = mami.isSaved,
+                            defaultValue = -1,
+                            networkSynced = mami.isSynced
                         };
                         newParameters[paramName] = existingNewParam;
                     }
@@ -61,11 +61,20 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         existingNewParam.valueType = wantedType;
                     }
+
+                    // TODO: warn on inconsistent configuration
+                    existingNewParam.saved = existingNewParam.saved || mami.isSaved;
+                    existingNewParam.networkSynced = existingNewParam.networkSynced || mami.isSynced;
+                    existingNewParam.defaultValue = mami.isDefault ? mami.Control.value : existingNewParam.defaultValue;
                 }
             }
 
             if (newParameters.Count > 0)
             {
+                foreach (var p in newParameters)
+                    if (p.Value.defaultValue < 0)
+                        p.Value.defaultValue = 0;
+
                 var expParams = context.AvatarDescriptor.expressionParameters;
                 if (!context.IsTemporaryAsset(expParams))
                 {
