@@ -196,7 +196,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        private string MapPath(UnityEditor.EditorCurveBinding binding)
+        private string MapPath(EditorCurveBinding binding)
         {
             if (binding.type == typeof(Animator) && binding.path == "")
             {
@@ -261,10 +261,10 @@ namespace nadena.dev.modular_avatar.animation
                     AnimationUtility.GetObjectReferenceCurve(originalClip, objBinding));
             }
 
-            newClip.wrapMode = newClip.wrapMode;
-            newClip.legacy = newClip.legacy;
-            newClip.frameRate = newClip.frameRate;
-            newClip.localBounds = newClip.localBounds;
+            newClip.wrapMode = originalClip.wrapMode;
+            newClip.legacy = originalClip.legacy;
+            newClip.frameRate = originalClip.frameRate;
+            newClip.localBounds = originalClip.localBounds;
             AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(originalClip));
 
             if (clipCache != null)
