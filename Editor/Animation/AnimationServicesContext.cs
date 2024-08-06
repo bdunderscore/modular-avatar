@@ -97,30 +97,7 @@ namespace nadena.dev.modular_avatar.animation
             fx.parameters = fx.parameters.Concat(new[] { paramDef }).ToArray();
         }
 
-        /// <summary>
-        /// Returns a parameter which proxies the "activeSelf" state of the specified GameObject.
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="paramName"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public bool TryGetActiveSelfProxy(GameObject obj, out string paramName)
-        {
-            if (_selfProxies.TryGetValue(obj, out paramName)) return !string.IsNullOrEmpty(paramName);
-
-            var path = PathMappings.GetObjectIdentifier(obj);
-            var clips = AnimationDatabase.ClipsForPath(path);
-            if (clips == null || clips.IsEmpty)
-            {
-                _selfProxies[obj] = "";
-                return false;
-            }
-
-            paramName = _readableProperty.ForActiveSelf(path);
-            return true;
-        }
-
-        public string ForceGetActiveSelfProxy(GameObject obj)
+        public string GetActiveSelfProxy(GameObject obj)
         {
             if (_selfProxies.TryGetValue(obj, out var paramName) && !string.IsNullOrEmpty(paramName)) return paramName;
 
@@ -130,6 +107,13 @@ namespace nadena.dev.modular_avatar.animation
             _selfProxies[obj] = paramName;
 
             return paramName;
+        }
+
+        public bool ObjectHasAnimations(GameObject obj)
+        {
+            var path = PathMappings.GetObjectIdentifier(obj);
+            var clips = AnimationDatabase.ClipsForPath(path);
+            return clips != null && !clips.IsEmpty;
         }
     }
 }

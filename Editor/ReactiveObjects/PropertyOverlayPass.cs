@@ -133,30 +133,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 while (cursor != null && !RuntimeUtil.IsAvatarRoot(cursor))
                 {
-                    if (asc.TryGetActiveSelfProxy(cursor.gameObject, out var paramName))
-                        conditions.Add(new ControlCondition
-                        {
-                            Parameter = paramName,
-                            DebugName = cursor.gameObject.name,
-                            IsConstant = false,
-                            InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
-                            ParameterValueLo = 0.5f,
-                            ParameterValueHi = 1.5f
-                        });
-                    else if (!cursor.gameObject.activeSelf)
-                        conditions = new List<ControlCondition>
-                        {
-                            new ControlCondition
-                            {
-                                Parameter = "",
-                                DebugName = cursor.gameObject.name,
-                                IsConstant = true,
-                                InitialValue = 0,
-                                ParameterValueLo = 0.5f,
-                                ParameterValueHi = 1.5f
-                            }
-                        };
-
+                    conditions.Add(new ControlCondition
+                    {
+                        Parameter = asc.GetActiveSelfProxy(cursor.gameObject),
+                        DebugName = cursor.gameObject.name,
+                        IsConstant = false,
+                        InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
+                        ParameterValueLo = 0.5f,
+                        ParameterValueHi = 1.5f,
+                        ReferenceObject = cursor.gameObject
+                    });
+                    
                     foreach (var mami in cursor.GetComponents<ModularAvatarMenuItem>())
                         conditions.Add(ParameterAssignerPass.AssignMenuItemParameter(context, mami));
 
@@ -178,6 +165,7 @@ namespace nadena.dev.modular_avatar.core.editor
             public bool IsDelete;
 
             public bool IsConstant => ControllingConditions.Count == 0 || ControllingConditions.All(c => c.IsConstant);
+            public bool IsConstantOn => IsConstant && InitiallyActive;
 
             public override string ToString()
             {
@@ -198,6 +186,9 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext context;
         private Dictionary<string, float> initialValues = new();
 
+        // Properties that are being driven, either by foreign animations or Object Toggles
+        private HashSet<string> activeProps = new();
+        
         private AnimationClip _initialStateClip;
         
         public PropertyOverlayPass(ndmf.BuildContext context)
@@ -209,6 +200,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             Dictionary<TargetProp, PropGroup> shapes = FindShapes(context);
             FindObjectToggles(shapes, context);
+
+            AnalyzeConstants(shapes);
             
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
@@ -221,6 +214,38 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             ProcessMeshDeletion(deletedShapes);
+        }
+
+        private void AnalyzeConstants(Dictionary<TargetProp, PropGroup> shapes)
+        {
+            HashSet<GameObject> toggledObjects = new();
+
+            foreach (var targetProp in shapes.Keys)
+                if (targetProp is { TargetObject: GameObject go, PropertyName: "m_IsActive" })
+                    toggledObjects.Add(go);
+
+            foreach (var group in shapes.Values)
+            {
+                foreach (var actionGroup in group.actionGroups)
+                {
+                    foreach (var condition in actionGroup.ControllingConditions)
+                        if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
+                            condition.IsConstant = true;
+
+                    var firstAlwaysOn =
+                        actionGroup.ControllingConditions.FindIndex(c => c.InitiallyActive && c.IsConstant);
+                    if (firstAlwaysOn > 0) actionGroup.ControllingConditions.RemoveRange(0, firstAlwaysOn - 1);
+                }
+
+                // Remove any action groups with always-off conditions
+                group.actionGroups.RemoveAll(agk =>
+                    agk.ControllingConditions.Any(c => !c.InitiallyActive && c.IsConstant));
+            }
+
+            // Remove shapes with no action groups
+            foreach (var kvp in shapes.ToList())
+                if (kvp.Value.actionGroups.Count == 0)
+                    shapes.Remove(kvp.Key);
         }
 
         private void ProcessInitialAnimatorVariables(Dictionary<TargetProp, PropGroup> shapes)
@@ -254,7 +279,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 
                 var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
-                if (deletions.Any(d => d.ControllingConditions.Count == 0))
+                if (deletions.Any(d => d.ControllingConditions.All(c => c.IsConstantActive)))
                 {
                     // always deleted
                     shapes.Remove(key);
@@ -589,11 +614,9 @@ namespace nadena.dev.modular_avatar.core.editor
             if (key.TargetObject is GameObject obj && key.PropertyName == "m_IsActive")
             {
                 var asc = context.Extension<AnimationServicesContext>();
-                if (asc.TryGetActiveSelfProxy(obj, out var propName))
-                {
-                    binding = EditorCurveBinding.FloatCurve("", typeof(Animator), propName);
-                    AnimationUtility.SetEditorCurve(clip, binding, curve);
-                }
+                var propName = asc.GetActiveSelfProxy(obj);
+                binding = EditorCurveBinding.FloatCurve("", typeof(Animator), propName);
+                AnimationUtility.SetEditorCurve(clip, binding, curve);
             }
 
             return clip;
@@ -683,7 +706,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     // Make sure we generate an animator prop for each controlled object, as we intend to generate
                     // animations for them.
-                    asc.ForceGetActiveSelfProxy(target);
+                    asc.GetActiveSelfProxy(target);
 
                     var key = new TargetProp
                     {
@@ -699,16 +722,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var value = obj.Active ? 1 : 0;
                     var action = new ActionGroupKey(context, key, toggle.gameObject, value);
-
-                    if (action.IsConstant)
-                    {
-                        if (action.InitiallyActive)
-                            // always active control
-                            group.actionGroups.Clear();
-                        else
-                            // never active control
-                            continue;
-                    }
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);
@@ -730,7 +743,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 var renderer = changer.targetRenderer.Get(changer)?.GetComponent<SkinnedMeshRenderer>();
                 if (renderer == null) continue;
 
-                int rendererInstanceId = renderer.GetInstanceID();
                 var mesh = renderer.sharedMesh;
 
                 if (mesh == null) continue;
@@ -773,21 +785,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
-
-                    // TODO: lift controlling object resolution out of loop?
-                    if (action.IsConstant)
-                    {
-                        if (action.InitiallyActive)
-                        {
-                            // always active control
-                            info.actionGroups.Clear();
-                        }
-                        else
-                        {
-                            // never active control
-                            continue;
-                        }
-                    }
 
                     Debug.Log("Trying merge: " + action);
                     if (info.actionGroups.Count == 0)
