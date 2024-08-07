@@ -6,10 +6,11 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using BuildContext = nadena.dev.ndmf.BuildContext;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.animation
 {
-    using UnityObject = UnityEngine.Object;
+    using UnityObject = Object;
 
     internal class DeepClone
     {
@@ -32,7 +33,7 @@ namespace nadena.dev.modular_avatar.animation
             if (original == null) return null;
             if (cloneMap == null) cloneMap = new Dictionary<UnityObject, UnityObject>();
 
-            Func<UnityObject, UnityObject> visitor = null;
+            System.Func<UnityObject, UnityObject> visitor = null;
             if (basePath != null)
             {
                 visitor = o => CloneWithPathMapping(o, basePath);
@@ -161,7 +162,10 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     var newBinding = binding;
                     newBinding.path = MapPath(binding, basePath);
-                    newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
+                    // https://github.com/bdunderscore/modular-avatar/issues/950
+                    // It's reported that sometimes using SetObjectReferenceCurve right after SetCurve might cause the
+                    // curves to be forgotten; use SetEditorCurve instead.
+                    AnimationUtility.SetEditorCurve(newClip, newBinding,
                         AnimationUtility.GetEditorCurve(clip, binding));
                 }
 
@@ -191,7 +195,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        private static string MapPath(UnityEditor.EditorCurveBinding binding, string basePath)
+        private static string MapPath(EditorCurveBinding binding, string basePath)
         {
             if (binding.type == typeof(Animator) && binding.path == "")
             {
