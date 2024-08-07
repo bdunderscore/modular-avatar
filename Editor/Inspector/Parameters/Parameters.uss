@@ -1,116 +1,136 @@
 ﻿VisualElement {}
 
-.ParameterConfig__isPrefix_true .ParameterConfig__isPrefix_falseOnly {
-    display: none;
+
+/* I hate CSS precedence rules... */
+.horizontal .no-left-margin {
+    margin-left: 0 !important;
 }
 
-.ParameterConfig__isPrefix_false .ParameterConfig__isPrefix_trueOnly {
-    display: none;
+.horizontal .no-left-margin.unity-label {
+    margin-left: 0 !important;
 }
 
-.ParameterConfig__animatorOnly_true .ParameterConfig__animatorOnly_falseOnly {
-    display: none;
+.horizontal .no-left-margin Label.unity-label {
+    margin-left: 0 !important;
 }
 
-.ParameterConfig__animatorOnly_false .ParameterConfig__animatorOnly_trueOnly {
-    display: none;
+.horizontal > Label {
+    height: auto;
 }
 
-#defaultValueGroup {
-    display: flex;
-    flex-direction: row;
+.horizontal > * {
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-#defaultValueGroup > .unity-base-field__input {
-    flex-grow: 1;
-}
-#defaultValueGroup > .unity-base-field__input > * {
-    flex-grow: 1;
-}
-
-#defaultValueProp > FloatField > FloatInput {
-    display: none;
-}
-
-#ParameterConfigRoot > DefaultValueField {
-    display: none;
+.v-separator {
+    width: 1px;
+    height: 100%;
+    margin-left: 8px;
+    margin-right: 8px;
+    justify-content: center;
+    align-content: center;
+    flex-shrink: 0;
 }
 
-#innerDefaultValueField {
-    flex-grow: 1;
+.v-separator VisualElement {
+    width: 100%;
+    height: 80%;
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
-DefaultValueField > TextField {
-    flex-grow: 1;
-    margin-left: 0;
-}
-
-#MiniDisplay {
-    flex-direction: row;
-    align-self: flex-end;
-}
-
-#MiniDisplay > * {
-    align-self: center;
-}
-
-#MiniDisplay > DefaultValueField {
-    max-width: 60px;
-    flex-grow: 0;
-    margin-right: 10px;
-}
-
-
-#MiniDisplay > DefaultValueField TextElement {
+.horizontal TextField {
     margin-left: 0px;
 }
 
-
-#MiniDisplay > Toggle {
-    margin-right: 5px;
+.horizontal TextField Label.unity-label {
+    margin-left: 0px !important;
 }
 
-#ParameterConfigRoot > Toggle .unity-toggle__text {
-    flex-grow: 1;
-}
-
-#UnregisteredParameters #unity-list-view__footer {
-    display: none;
-}
-
-#UnregisteredParameters Label {
+.horizontal Label {
+    padding-top: 0;
+    padding-bottom: 0;
     align-self: center;
 }
 
-.DetectedParameter {
+.horizontal {
     flex-direction: row;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    align-content: center;
 }
 
-.DetectedParameter > Label {
+.horizontal > * {
+    height: 100%;
+}
+
+.no-label Label.unity-base-field__label {
+    display: none;
+}
+
+#Root .horizontal #f-rename-destination {
     flex-grow: 1;
 }
 
-.SourceButton {
-    flex-grow:0;
-    align-self: flex-end;
-    height: 24px;
-    width: 24px;
-    padding: 1px;
+.inner-label > Label {
+    margin-left: 6px;
+    display: none;
 }
 
-/* Vertically align the reorder handle with the foldout chevron */
-#Parameters #unity-list-view__reorderable-handle {
-    padding-top: 10px;
+.small-label Label.unity-label {
+    min-width: 0;
+    margin-left: 4px;
 }
 
-#ParameterConfigRoot .unity-foldout__input > #unity-checkmark {
-    margin-top: 4px;
-    align-self: flex-start;
+VisualElement.small-label > * {
+    flex-grow: 0;
 }
 
-#ParameterConfigRoot .unity-foldout__input > Label {
-    margin-top: 4px;
-    align-self: flex-start;
+VisualElement.small-label > PropertyField {
+    flex-direction: row;
+}
+
+#Root #f-name {
+    flex-grow: 1;
+}
+
+#Root DefaultValueField {
+    width: 60px;
+    flex-grow: 0;
+}
+
+.st-internal-parameter .hide-with-internal-param {
+    display: none;
+}
+
+DefaultValueField DropdownField {
+    display: none;
+}
+
+.st-ty-Bool DefaultValueField DropdownField {
+    display: flex;
+}
+
+.st-ty-Bool DefaultValueField TextField {
+    display: none;
+}
+
+.st-ty-NotSynced DefaultValueField {
+    display: none;
+}
+
+.st-pb-prefix .st-pb-prefix__hide {
+    display: none;
+}
+
+#f-remap-to {
+    flex-grow: 1;
+}
+
+/** Ghostly text for the renameTo text box **/
+Label#f-default-param {
+    position: absolute;
+    width: 100%;
+    height: 100%
+    margin: 0 0 0 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.4) !important;
 }
