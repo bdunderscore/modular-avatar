@@ -308,8 +308,13 @@ namespace nadena.dev.modular_avatar.animation
         {
             if (_pathToObject == null)
             {
-                _pathToObject = _objectToOriginalPaths.SelectMany(kvp => kvp.Value.Select(p => (p, kvp.Key)))
-                    .ToImmutableDictionary(t => t.p, t => t.Key);
+                var builder = ImmutableDictionary.CreateBuilder<string, GameObject>();
+
+                foreach (var kvp in _objectToOriginalPaths)
+                foreach (var p in kvp.Value)
+                    builder[p] = kvp.Key;
+
+                _pathToObject = builder.ToImmutable();
             }
             
             if (_pathToObject.TryGetValue(path, out var obj))
