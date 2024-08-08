@@ -115,7 +115,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     obj = obj.transform.parent?.gameObject;
                 }
 
-                if (shouldEnable) renderGroups.Add(RenderGroup.For(r));
+                if (shouldEnable != r.gameObject.activeInHierarchy)
+                    renderGroups.Add(RenderGroup.For(r).WithData(shouldEnable));
             }
 
             return renderGroups.ToImmutableList();
@@ -124,17 +125,22 @@ namespace nadena.dev.modular_avatar.core.editor
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context)
         {
-            return Task.FromResult<IRenderFilterNode>(new Node());
+            return Task.FromResult<IRenderFilterNode>(new Node(group.GetData<bool>()));
         }
 
         private class Node : IRenderFilterNode
         {
             public RenderAspects WhatChanged => 0;
+            private readonly bool _shouldEnable;
 
+            public Node(bool shouldEnable)
+            {
+                _shouldEnable = shouldEnable;
+            }
       
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                proxy.gameObject.SetActive(true);
+                proxy.gameObject.SetActive(_shouldEnable);
             }
         }
     }
