@@ -131,6 +131,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var cursor = controllingObject?.transform;
 
+                // Only look at the menu item we're directly attached to, to avoid submenus causing issues...
+                var mami = cursor?.GetComponent<ModularAvatarMenuItem>();
+                if (mami != null)
+                {
+                    var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(context, mami);
+                    if (mami_condition != null) conditions.Add(mami_condition);
+                }
+
                 while (cursor != null && !RuntimeUtil.IsAvatarRoot(cursor))
                 {
                     conditions.Add(new ControlCondition
@@ -143,9 +151,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         ParameterValueHi = 1.5f,
                         ReferenceObject = cursor.gameObject
                     });
-                    
-                    foreach (var mami in cursor.GetComponents<ModularAvatarMenuItem>())
-                        conditions.Add(ParameterAssignerPass.AssignMenuItemParameter(context, mami));
 
                     cursor = cursor.parent;
                 }
@@ -203,6 +208,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             AnalyzeConstants(shapes);
             
+            ResolveToggleInitialStates(shapes);
+            
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
             ProcessInitialStates(initialStates);
@@ -218,6 +225,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void AnalyzeConstants(Dictionary<TargetProp, PropGroup> shapes)
         {
+            var asc = context.Extension<AnimationServicesContext>();
             HashSet<GameObject> toggledObjects = new();
 
             foreach (var targetProp in shapes.Keys)
@@ -230,16 +238,21 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (var condition in actionGroup.ControllingConditions)
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
-                            condition.IsConstant = true;
+                            condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
-                    var firstAlwaysOn =
-                        actionGroup.ControllingConditions.FindIndex(c => c.InitiallyActive && c.IsConstant);
-                    if (firstAlwaysOn > 0) actionGroup.ControllingConditions.RemoveRange(0, firstAlwaysOn - 1);
+                    var i = 0;
+                    // Remove redundant conditions
+                    actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive && (i++ != 0));
                 }
 
                 // Remove any action groups with always-off conditions
                 group.actionGroups.RemoveAll(agk =>
                     agk.ControllingConditions.Any(c => !c.InitiallyActive && c.IsConstant));
+                
+                // Remove all action groups up until the last one where we're always on
+                var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantOn);
+                if (lastAlwaysOnGroup > 0)
+                    group.actionGroups.RemoveRange(0, lastAlwaysOnGroup - 1);
             }
 
             // Remove shapes with no action groups
@@ -305,8 +318,81 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private void ResolveToggleInitialStates(Dictionary<TargetProp, PropGroup> groups)
+        {
+            var asc = context.Extension<AnimationServicesContext>();
+            
+            Dictionary<string, bool> propStates = new Dictionary<string, bool>();
+            Dictionary<string, bool> nextPropStates = new Dictionary<string, bool>();
+            int loopLimit = 5;
+
+            bool unsettled = true;
+            while (unsettled && loopLimit-- > 0)
+            {
+                unsettled = false;
+
+                foreach (var group in groups.Values)
+                {
+                    if (group.TargetProp.PropertyName != "m_IsActive") continue;
+                    if (!(group.TargetProp.TargetObject is GameObject targetObject)) continue;
+
+                    var pathKey = asc.GetActiveSelfProxy(targetObject);
+
+                    bool state;
+                    if (!propStates.TryGetValue(pathKey, out state)) state = targetObject.activeSelf;
+
+                    foreach (var actionGroup in group.actionGroups)
+                    {
+                        bool evaluated = true;
+                        foreach (var condition in actionGroup.ControllingConditions)
+                        {
+                            if (!propStates.TryGetValue(condition.Parameter, out var propCondition))
+                            {
+                                propCondition = condition.InitiallyActive;
+                            }
+
+                            if (!propCondition)
+                            {
+                                evaluated = false;
+                                break;
+                            }
+                        }
+
+                        if (evaluated)
+                        {
+                            state = actionGroup.Value > 0.5f;
+                        }
+                    }
+
+                    nextPropStates[pathKey] = state;
+
+                    if (!propStates.TryGetValue(pathKey, out var oldState) || oldState != state)
+                    {
+                        unsettled = true;
+                    }
+                }
+                
+                propStates = nextPropStates;
+                nextPropStates = new();
+            }
+
+            foreach (var group in groups.Values)
+            {
+                foreach (var action in group.actionGroups)
+                {
+                    foreach (var condition in action.ControllingConditions)
+                    {
+                        if (propStates.TryGetValue(condition.Parameter, out var state))
+                            condition.InitialValue = state ? 1.0f : 0.0f;
+                    }
+                }
+            }
+        }
+
         private void ProcessInitialStates(Dictionary<TargetProp, float> initialStates)
         {
+            var asc = context.Extension<AnimationServicesContext>();
+            
             // We need to track _two_ initial states: the initial state we'll apply at build time (which applies
             // when animations are disabled) and the animation base state. Confusingly, the animation base state
             // should be the state that is currently applied to the object...
@@ -362,6 +448,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var prop = serializedObject.FindProperty(key.PropertyName);
 
                     if (prop != null)
+                    {
                         switch (prop.propertyType)
                         {
                             case SerializedPropertyType.Boolean:
@@ -373,6 +460,9 @@ namespace nadena.dev.modular_avatar.core.editor
                                 prop.floatValue = initialState;
                                 break;
                         }
+
+                        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                    }
                 }
 
                 var curve = new AnimationCurve();
@@ -386,6 +476,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 );
 
                 AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+
+                if (componentType == typeof(GameObject) && key.PropertyName == "m_IsActive")
+                {
+                    binding = EditorCurveBinding.FloatCurve(
+                        "",
+                        typeof(Animator),
+                        asc.GetActiveSelfProxy((GameObject)key.TargetObject)
+                    );
+                    
+                    AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+                }
             }
         }
 
@@ -464,6 +565,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 position = new Vector3(x, y),
                 state = initialState
             });
+            asc.AnimationDatabase.RegisterState(states[^1].state);
 
             var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
@@ -511,6 +613,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         position = new Vector3(x, y),
                         state = state
                     });
+                    asc.AnimationDatabase.RegisterState(states[^1].state);
 
                     var transitionList = new List<AnimatorStateTransition>();
                     transitionBuffer.Add((state, transitionList));
