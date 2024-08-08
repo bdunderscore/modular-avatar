@@ -488,6 +488,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 position = new Vector3(x, y),
                 state = initialState
             });
+            asc.AnimationDatabase.RegisterState(states[^1].state);
 
             var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
@@ -535,6 +536,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         position = new Vector3(x, y),
                         state = state
                     });
+                    asc.AnimationDatabase.RegisterState(states[^1].state);
 
                     var transitionList = new List<AnimatorStateTransition>();
                     transitionBuffer.Add((state, transitionList));
