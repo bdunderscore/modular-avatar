@@ -307,6 +307,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessInitialStates(Dictionary<TargetProp, float> initialStates)
         {
+            var asc = context.Extension<AnimationServicesContext>();
+            
             // We need to track _two_ initial states: the initial state we'll apply at build time (which applies
             // when animations are disabled) and the animation base state. Confusingly, the animation base state
             // should be the state that is currently applied to the object...
@@ -386,6 +388,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 );
 
                 AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+
+                if (componentType == typeof(GameObject) && key.PropertyName == "m_IsActive")
+                {
+                    binding = EditorCurveBinding.FloatCurve(
+                        "",
+                        typeof(Animator),
+                        asc.GetActiveSelfProxy((GameObject)key.TargetObject)
+                    );
+                    
+                    AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+                }
             }
         }
 
