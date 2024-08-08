@@ -208,6 +208,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             AnalyzeConstants(shapes);
             
+            ResolveToggleInitialStates(shapes);
+            
             PreprocessShapes(shapes, out var initialStates, out var deletedShapes);
             
             ProcessInitialStates(initialStates);
@@ -316,6 +318,77 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private void ResolveToggleInitialStates(Dictionary<TargetProp, PropGroup> groups)
+        {
+            var asc = context.Extension<AnimationServicesContext>();
+            
+            Dictionary<string, bool> propStates = new Dictionary<string, bool>();
+            Dictionary<string, bool> nextPropStates = new Dictionary<string, bool>();
+            int loopLimit = 5;
+
+            bool unsettled = true;
+            while (unsettled && loopLimit-- > 0)
+            {
+                unsettled = false;
+
+                foreach (var group in groups.Values)
+                {
+                    if (group.TargetProp.PropertyName != "m_IsActive") continue;
+                    if (!(group.TargetProp.TargetObject is GameObject targetObject)) continue;
+
+                    var pathKey = asc.GetActiveSelfProxy(targetObject);
+
+                    bool state;
+                    if (!propStates.TryGetValue(pathKey, out state)) state = targetObject.activeSelf;
+
+                    foreach (var actionGroup in group.actionGroups)
+                    {
+                        bool evaluated = true;
+                        foreach (var condition in actionGroup.ControllingConditions)
+                        {
+                            if (!propStates.TryGetValue(condition.Parameter, out var propCondition))
+                            {
+                                propCondition = condition.InitiallyActive;
+                            }
+
+                            if (!propCondition)
+                            {
+                                evaluated = false;
+                                break;
+                            }
+                        }
+
+                        if (evaluated)
+                        {
+                            state = actionGroup.Value > 0.5f;
+                        }
+                    }
+
+                    nextPropStates[pathKey] = state;
+
+                    if (!propStates.TryGetValue(pathKey, out var oldState) || oldState != state)
+                    {
+                        unsettled = true;
+                    }
+                }
+                
+                propStates = nextPropStates;
+                nextPropStates = new();
+            }
+
+            foreach (var group in groups.Values)
+            {
+                foreach (var action in group.actionGroups)
+                {
+                    foreach (var condition in action.ControllingConditions)
+                    {
+                        if (propStates.TryGetValue(condition.Parameter, out var state))
+                            condition.InitialValue = state ? 1.0f : 0.0f;
+                    }
+                }
+            }
+        }
+
         private void ProcessInitialStates(Dictionary<TargetProp, float> initialStates)
         {
             var asc = context.Extension<AnimationServicesContext>();
@@ -375,6 +448,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var prop = serializedObject.FindProperty(key.PropertyName);
 
                     if (prop != null)
+                    {
                         switch (prop.propertyType)
                         {
                             case SerializedPropertyType.Boolean:
@@ -386,6 +460,9 @@ namespace nadena.dev.modular_avatar.core.editor
                                 prop.floatValue = initialState;
                                 break;
                         }
+
+                        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                    }
                 }
 
                 var curve = new AnimationCurve();
