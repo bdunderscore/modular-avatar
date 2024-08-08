@@ -218,6 +218,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void AnalyzeConstants(Dictionary<TargetProp, PropGroup> shapes)
         {
+            var asc = context.Extension<AnimationServicesContext>();
             HashSet<GameObject> toggledObjects = new();
 
             foreach (var targetProp in shapes.Keys)
@@ -230,16 +231,21 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (var condition in actionGroup.ControllingConditions)
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
-                            condition.IsConstant = true;
+                            condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
-                    var firstAlwaysOn =
-                        actionGroup.ControllingConditions.FindIndex(c => c.InitiallyActive && c.IsConstant);
-                    if (firstAlwaysOn > 0) actionGroup.ControllingConditions.RemoveRange(0, firstAlwaysOn - 1);
+                    var i = 0;
+                    // Remove redundant conditions
+                    actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive && (i++ != 0));
                 }
 
                 // Remove any action groups with always-off conditions
                 group.actionGroups.RemoveAll(agk =>
                     agk.ControllingConditions.Any(c => !c.InitiallyActive && c.IsConstant));
+                
+                // Remove all action groups up until the last one where we're always on
+                var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantOn);
+                if (lastAlwaysOnGroup > 0)
+                    group.actionGroups.RemoveRange(0, lastAlwaysOnGroup - 1);
             }
 
             // Remove shapes with no action groups
