@@ -131,6 +131,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var cursor = controllingObject?.transform;
 
+                // Only look at the menu item we're directly attached to, to avoid submenus causing issues...
+                var mami = cursor?.GetComponent<ModularAvatarMenuItem>();
+                if (mami != null)
+                {
+                    var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(context, mami);
+                    if (mami_condition != null) conditions.Add(mami_condition);
+                }
+
                 while (cursor != null && !RuntimeUtil.IsAvatarRoot(cursor))
                 {
                     conditions.Add(new ControlCondition
@@ -143,9 +151,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         ParameterValueHi = 1.5f,
                         ReferenceObject = cursor.gameObject
                     });
-                    
-                    foreach (var mami in cursor.GetComponents<ModularAvatarMenuItem>())
-                        conditions.Add(ParameterAssignerPass.AssignMenuItemParameter(context, mami));
 
                     cursor = cursor.parent;
                 }
