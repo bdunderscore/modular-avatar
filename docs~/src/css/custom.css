@@ -29,6 +29,9 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+:not([data-theme='dark']) .navbar__logo img {
+  filter: drop-shadow(1.5px 1.5px 0.1rem #00000090);
+}
 
 .install-btn-container {
   position: relative;
