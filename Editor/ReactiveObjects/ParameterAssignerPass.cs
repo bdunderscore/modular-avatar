@@ -24,6 +24,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (string.IsNullOrWhiteSpace(mami.Control?.parameter?.name))
                 {
+                    if (mami.GetComponent<ReactiveComponent>() == null) continue;
+                    
                     if (mami.Control == null) mami.Control = new VRCExpressionsMenu.Control();
                     mami.Control.parameter = new VRCExpressionsMenu.Control.Parameter
                     {
