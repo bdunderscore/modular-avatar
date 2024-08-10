@@ -103,7 +103,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         TargetObject = renderer,
                         PropertyName = "m_Materials.Array.data[" + obj.MaterialIndex + "]",
-                        IsObjectReference = true
                     };
 
                     if (!objectGroups.TryGetValue(key, out var group))
@@ -112,8 +111,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         objectGroups[key] = group;
                     }
                     
-                    var action = new ReactionData(context, key, setter.gameObject, 0);
-                    action.ObjectValue = obj.Material;
+                    var action = new ReactionData(context, key, setter.gameObject, obj.Material);
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);

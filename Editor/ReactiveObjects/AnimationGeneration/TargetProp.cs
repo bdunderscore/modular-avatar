@@ -8,7 +8,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             public Object TargetObject;
             public string PropertyName;
-            public bool IsObjectReference;
 
             public bool Equals(TargetProp other)
             {
@@ -28,14 +27,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     hashCode = (hashCode * 397) ^ (PropertyName != null ? PropertyName.GetHashCode() : 0);
                     return hashCode;
                 }
-            }
-
-            public void ApplyImmediate(float value)
-            {
-                var renderer = (SkinnedMeshRenderer)TargetObject;
-                renderer.SetBlendShapeWeight(renderer.sharedMesh.GetBlendShapeIndex(
-                    PropertyName.Substring("blendShape.".Length)
-                ), value);
             }
         }
     }

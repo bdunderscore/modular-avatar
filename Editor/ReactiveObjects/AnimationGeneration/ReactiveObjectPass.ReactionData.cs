@@ -9,7 +9,13 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private class ReactionData
         {
-            public ReactionData(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, float value)
+            public  ReactionData(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, float value)
+                : this(context, key, controllingObject, (object)value) { }
+            
+            public  ReactionData(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, UnityEngine.Object value)
+                : this(context, key, controllingObject, (object)value) { }
+            
+            private ReactionData(ndmf.BuildContext context, TargetProp key, GameObject controllingObject, object value)
             {
                 var asc = context.Extension<AnimationServicesContext>();
                 
@@ -49,8 +55,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             public TargetProp TargetProp;
-            public float Value;
-            public UnityEngine.Object ObjectValue;
+            public object Value;
 
             public readonly List<ControlCondition> ControllingConditions;
 
@@ -69,8 +74,14 @@ namespace nadena.dev.modular_avatar.core.editor
             public bool TryMerge(ReactionData other)
             {
                 if (!TargetProp.Equals(other.TargetProp)) return false;
-                if (Mathf.Abs(Value - other.Value) > 0.001f) return false;
-                if (ObjectValue != other.ObjectValue) return false;
+                
+                // Value checks
+                if (Value == other.Value) { /* objects match */ }
+                else if (Value is float a && other.Value is float b)
+                {
+                    if (Mathf.Abs(a - b) > 0.001f) return false;
+                }
+                else return false;
                 if (!ControllingConditions.SequenceEqual(other.ControllingConditions)) return false;
                 if (IsDelete || other.IsDelete) return false;
 
