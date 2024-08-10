@@ -4,14 +4,12 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    partial class ReactiveObjectPass
+    partial class ReactiveObjectAnalyzer
     {
         
-        private Dictionary<TargetProp, AnimatedProperty> FindShapes(ndmf.BuildContext context)
+        private Dictionary<TargetProp, AnimatedProperty> FindShapes(GameObject root)
         {
-            var asc = context.Extension<AnimationServicesContext>();
-
-            var changers = context.AvatarRootObject.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
+            var changers = root.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
 
             Dictionary<TargetProp, AnimatedProperty> shapeKeys = new();
 
@@ -42,12 +40,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         shapeKeys[key] = info;
 
                         // Add initial state
-                        var agk = new ReactionData(context, key, null, value);
+                        var agk = new ReactionRule(context, key, null, value);
                         agk.Value = renderer.GetBlendShapeWeight(shapeId);
                         info.actionGroups.Add(agk);
                     }
 
-                    var action = new ReactionData(context, key, changer.gameObject, value);
+                    var action = new ReactionRule(context, key, changer.gameObject, value);
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
@@ -83,10 +81,9 @@ namespace nadena.dev.modular_avatar.core.editor
             return shapeKeys;
         }
         
-        private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, ndmf.BuildContext buildContext)
+        private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var asc = buildContext.Extension<AnimationServicesContext>();
-            var materialSetters = buildContext.AvatarRootObject.GetComponentsInChildren<ModularAvatarMaterialSetter>(true);
+            var materialSetters = root.GetComponentsInChildren<ModularAvatarMaterialSetter>(true);
 
             foreach (var setter in materialSetters)
             {
@@ -111,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         objectGroups[key] = group;
                     }
                     
-                    var action = new ReactionData(context, key, setter.gameObject, obj.Material);
+                    var action = new ReactionRule(context, key, setter.gameObject, obj.Material);
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);
@@ -120,11 +117,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private void FindObjectToggles(Dictionary<TargetProp, AnimatedProperty> objectGroups, ndmf.BuildContext context)
+        private void FindObjectToggles(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var asc = context.Extension<AnimationServicesContext>();
-
-            var toggles = this.context.AvatarRootObject.GetComponentsInChildren<ModularAvatarObjectToggle>(true);
+            var toggles = root.GetComponentsInChildren<ModularAvatarObjectToggle>(true);
 
             foreach (var toggle in toggles)
             {
@@ -134,11 +129,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var target = obj.Object.Get(toggle);
                     if (target == null) continue;
-
-                    // Make sure we generate an animator prop for each controlled object, as we intend to generate
-                    // animations for them.
-                    asc.GetActiveSelfProxy(target);
-
+                    
                     var key = new TargetProp
                     {
                         TargetObject = target,
@@ -152,7 +143,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var value = obj.Active ? 1 : 0;
-                    var action = new ReactionData(context, key, toggle.gameObject, value);
+                    var action = new ReactionRule(context, key, toggle.gameObject, value);
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);
