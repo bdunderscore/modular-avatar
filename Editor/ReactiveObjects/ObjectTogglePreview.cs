@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (group != null)
                     {
                         var (toggle, index) = group[^1];
-                        enableAtNode = context.Observe(toggle, t => t.Objects[index].Active);
+                        enableAtNode = context.Observe(toggle, t => t.Objects.Count > index && t.Objects[index].Active);
                     }
 
                     if (!enableAtNode)

@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal static ControlCondition AssignMenuItemParameter(ndmf.BuildContext context, ModularAvatarMenuItem mami)
+        internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami)
         {
             if (mami?.Control?.parameter?.name == null) return null;
             
