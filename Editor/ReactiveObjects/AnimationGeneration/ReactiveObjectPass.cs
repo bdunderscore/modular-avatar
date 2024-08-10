@@ -133,7 +133,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 info.actionGroups = info.actionGroups.Where(agk => !agk.IsDelete).Concat(deletions).ToList();
 
                 var initialState = info.actionGroups.Where(agk => agk.InitiallyActive)
-                    .Select(agk => key.IsObjectReference ? agk.ObjectValue : (object) agk.Value)
+                    .Select(agk => agk.Value)
                     .Prepend(info.currentState) // use scene state if everything is disabled
                     .Last();
 
@@ -189,7 +189,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         if (evaluated)
                         {
-                            state = actionGroup.Value > 0.5f;
+                            state = (float) actionGroup.Value > 0.5f;
                         }
                     }
 
@@ -385,13 +385,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // TODO: prune non-animated keys
 
             // Check if this is non-animated and skip most processing if so
-            if (info.alwaysDeleted) return;
-            if (info.actionGroups[^1].IsConstant)
-            {
-                info.TargetProp.ApplyImmediate(info.actionGroups[0].Value);
-                
-                return;
-            }
+            if (info.alwaysDeleted || info.actionGroups[^1].IsConstant) return;
 
             var asm = GenerateStateMachine(info);
             ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
@@ -436,7 +430,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 y += yInc;
 
-                var clip = AnimResult(group.TargetProp, group.TargetProp.IsObjectReference ? group.ObjectValue : group.Value);
+                var clip = AnimResult(group.TargetProp, group.Value);
 
                 if (group.IsConstant)
                 {
@@ -566,19 +560,19 @@ namespace nadena.dev.modular_avatar.core.editor
             var clip = new AnimationClip();
             clip.name = $"Set {path}:{key.PropertyName}={value}";
 
-            if (key.IsObjectReference)
+            if (value is UnityEngine.Object obj)
             {
                 var binding = EditorCurveBinding.PPtrCurve(path, componentType, key.PropertyName);
                 AnimationUtility.SetObjectReferenceCurve(clip, binding, new []
                 {
                     new ObjectReferenceKeyframe()
                     {
-                        value = (Object) value,
+                        value = obj,
                         time = 0
                     },
                     new ObjectReferenceKeyframe()
                     {
-                        value = (Object) value,
+                        value = obj,
                         time = 1
                     }
                 });
@@ -592,10 +586,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 var binding = EditorCurveBinding.FloatCurve(path, componentType, key.PropertyName);
                 AnimationUtility.SetEditorCurve(clip, binding, curve);
 
-                if (key.TargetObject is GameObject obj && key.PropertyName == "m_IsActive")
+                if (key.TargetObject is GameObject targetObject && key.PropertyName == "m_IsActive")
                 {
                     var asc = context.Extension<AnimationServicesContext>();
-                    var propName = asc.GetActiveSelfProxy(obj);
+                    var propName = asc.GetActiveSelfProxy(targetObject);
                     binding = EditorCurveBinding.FloatCurve("", typeof(Animator), propName);
                     AnimationUtility.SetEditorCurve(clip, binding, curve);
                 }
