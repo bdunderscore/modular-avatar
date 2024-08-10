@@ -1,6 +1,8 @@
-﻿<UXML xmlns:ui="UnityEngine.UIElements"
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
       xmlns:ma="nadena.dev.modular_avatar.core.editor">
     <ui:VisualElement name="root-box">
+        <ed:PropertyField binding-path="m_inverted"/>
+        
         <ui:VisualElement name="group-box">
             <ui:VisualElement name="ListViewContainer">
                 <ui:ListView virtualization-method="DynamicHeight"

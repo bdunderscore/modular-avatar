@@ -72,13 +72,13 @@ namespace nadena.dev.modular_avatar.core.editor
                             condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
                     var i = 0;
-                    // Remove redundant conditions
+                    // Remove redundant active conditions.
+                    int retain = 0;
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
                 }
 
-                // Remove any action groups with always-off conditions
-                group.actionGroups.RemoveAll(agk =>
-                    agk.ControllingConditions.Any(c => !c.InitiallyActive && c.IsConstant));
+                // Remove any action groups with always-unsatisfied conditions
+                group.actionGroups.RemoveAll(agk => agk.IsConstant && !agk.InitiallyActive);
                 
                 // Remove all action groups up until the last one where we're always on
                 var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantOn);
@@ -135,6 +135,8 @@ namespace nadena.dev.modular_avatar.core.editor
                                 break;
                             }
                         }
+                        
+                        if (actionGroup.Inverted) evaluated = !evaluated;
 
                         if (evaluated)
                         {

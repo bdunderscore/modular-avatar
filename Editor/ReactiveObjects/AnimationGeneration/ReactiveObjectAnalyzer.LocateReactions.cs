@@ -46,6 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var action = new ReactionRule(context, key, changer.gameObject, value);
+                    action.Inverted = changer.Inverted;
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
@@ -109,7 +110,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     
                     var action = new ReactionRule(context, key, setter.gameObject, obj.Material);
-
+                    action.Inverted = setter.Inverted;
+                    
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);
                     else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
@@ -144,6 +146,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var value = obj.Active ? 1 : 0;
                     var action = new ReactionRule(context, key, toggle.gameObject, value);
+                    action.Inverted = toggle.Inverted;
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);

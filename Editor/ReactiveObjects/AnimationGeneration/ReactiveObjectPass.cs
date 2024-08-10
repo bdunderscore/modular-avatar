@@ -309,15 +309,32 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     foreach (var (st, transitions) in transitionBuffer)
                     {
-                        var transition = new AnimatorStateTransition
+                        if (!group.Inverted)
                         {
-                            isExit = true,
-                            hasExitTime = false,
-                            duration = 0,
-                            hasFixedDuration = true,
-                            conditions = (AnimatorCondition[])conditions.Clone()
-                        };
-                        transitions.Add(transition);
+                            var transition = new AnimatorStateTransition
+                            {
+                                isExit = true,
+                                hasExitTime = false,
+                                duration = 0,
+                                hasFixedDuration = true,
+                                conditions = (AnimatorCondition[])conditions.Clone()
+                            };
+                            transitions.Add(transition);
+                        }
+                        else
+                        {
+                            foreach (var cond in conditions)
+                            {
+                                transitions.Add(new AnimatorStateTransition
+                                {
+                                    isExit = true,
+                                    hasExitTime = false,
+                                    duration = 0,
+                                    hasFixedDuration = true,
+                                    conditions = new[] { InvertCondition(cond) }
+                                });
+                            }
+                        }
                     }
 
                     var state = new AnimatorState();
@@ -333,29 +350,47 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var transitionList = new List<AnimatorStateTransition>();
                     transitionBuffer.Add((state, transitionList));
-                    entryTransitions.Add(new AnimatorTransition
-                    {
-                        destinationState = state,
-                        conditions = conditions
-                    });
 
-                    foreach (var cond in conditions)
+                    if (!group.Inverted)
                     {
-                        var inverted = new AnimatorCondition
+                        entryTransitions.Add(new AnimatorTransition
                         {
-                            parameter = cond.parameter,
-                            mode = cond.mode == AnimatorConditionMode.Greater
-                                ? AnimatorConditionMode.Less
-                                : AnimatorConditionMode.Greater,
-                            threshold = cond.threshold
-                        };
+                            destinationState = state,
+                            conditions = conditions
+                        });
+
+                        foreach (var cond in conditions)
+                        {
+                            var inverted = InvertCondition(cond);
+                            transitionList.Add(new AnimatorStateTransition
+                            {
+                                isExit = true,
+                                hasExitTime = false,
+                                duration = 0,
+                                hasFixedDuration = true,
+                                conditions = new[] { inverted }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // inverted condition
+                        foreach (var cond in conditions)
+                        {
+                            entryTransitions.Add(new AnimatorTransition()
+                            {
+                                destinationState = state,
+                                conditions = new[] { InvertCondition(cond) }
+                            });
+                        }
+                        
                         transitionList.Add(new AnimatorStateTransition
                         {
                             isExit = true,
                             hasExitTime = false,
                             duration = 0,
                             hasFixedDuration = true,
-                            conditions = new[] { inverted }
+                            conditions = conditions
                         });
                     }
                 }
@@ -371,6 +406,18 @@ namespace nadena.dev.modular_avatar.core.editor
             return asm;
         }
 
+        private static AnimatorCondition InvertCondition(AnimatorCondition cond)
+        {
+            return new AnimatorCondition
+            {
+                parameter = cond.parameter,
+                mode = cond.mode == AnimatorConditionMode.Greater
+                    ? AnimatorConditionMode.Less
+                    : AnimatorConditionMode.Greater,
+                threshold = cond.threshold
+            };
+        }
+
         private AnimatorCondition[] GetTransitionConditions(AnimationServicesContext asc, ReactionRule group)
         {
             var conditions = new List<AnimatorCondition>();
@@ -379,19 +426,25 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (condition.IsConstant) continue;
 
-                conditions.Add(new AnimatorCondition
+                if (float.IsFinite(condition.ParameterValueLo))
                 {
-                    parameter = condition.Parameter,
-                    mode = AnimatorConditionMode.Greater,
-                    threshold = condition.ParameterValueLo
-                });
+                    conditions.Add(new AnimatorCondition
+                    {
+                        parameter = condition.Parameter,
+                        mode = AnimatorConditionMode.Greater,
+                        threshold = condition.ParameterValueLo
+                    });
+                }
 
-                conditions.Add(new AnimatorCondition
+                if (float.IsFinite(condition.ParameterValueHi))
                 {
-                    parameter = condition.Parameter,
-                    mode = AnimatorConditionMode.Less,
-                    threshold = condition.ParameterValueHi
-                });
+                    conditions.Add(new AnimatorCondition
+                    {
+                        parameter = condition.Parameter,
+                        mode = AnimatorConditionMode.Less,
+                        threshold = condition.ParameterValueHi
+                    });
+                }
             }
 
             if (conditions.Count == 0)

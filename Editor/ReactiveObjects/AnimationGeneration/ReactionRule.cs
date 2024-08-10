@@ -23,16 +23,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var cursor = controllingObject?.transform;
 
-            // Only look at the menu item we're directly attached to, to avoid submenus causing issues...
-            var mami = cursor?.GetComponent<ModularAvatarMenuItem>();
-            if (mami != null)
-            {
-                var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami);
-                if (mami_condition != null) conditions.Add(mami_condition);
-            }
+            bool did_mami = false;
 
             while (cursor != null && !RuntimeUtil.IsAvatarRoot(cursor))
             {
+                // Only look at the menu item closest to the object we're directly attached to, to avoid submenus
+                // causing issues...
+                var mami = cursor?.GetComponent<ModularAvatarMenuItem>();
+                if (mami != null && !did_mami)
+                {
+                    did_mami = true;
+                    
+                    var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami);
+                    if (mami_condition != null) conditions.Add(mami_condition);
+                }
+                
                 conditions.Add(new ControlCondition
                 {
                     Parameter = asc?.GetActiveSelfProxy(cursor.gameObject) ?? RuntimeUtil.AvatarRootPath(cursor.gameObject),
@@ -40,7 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsConstant = false,
                     InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
                     ParameterValueLo = 0.5f,
-                    ParameterValueHi = 1.5f,
+                    ParameterValueHi = float.PositiveInfinity,
                     ReferenceObject = cursor.gameObject
                 });
 
@@ -58,8 +63,10 @@ namespace nadena.dev.modular_avatar.core.editor
         public readonly List<ControlCondition> ControllingConditions;
 
         public bool InitiallyActive =>
-            ControllingConditions.Count == 0 || ControllingConditions.All(c => c.InitiallyActive);
+            ((ControllingConditions.Count == 0) || ControllingConditions.All(c => c.InitiallyActive)) ^ Inverted;
         public bool IsDelete;
+
+        public bool Inverted;
 
         public bool IsConstant => ControllingConditions.Count == 0 || ControllingConditions.All(c => c.IsConstant);
         public bool IsConstantOn => IsConstant && InitiallyActive;

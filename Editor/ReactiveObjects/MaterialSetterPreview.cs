@@ -28,12 +28,17 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
+            var menuItemPreview = new MenuItemPreviewCondition(context);
             var setters = context.GetComponentsByType<ModularAvatarMaterialSetter>();
 
             var groups = new Dictionary<Renderer, ImmutableList<ModularAvatarMaterialSetter>>();
             
             foreach (var setter in setters)
             {
+                var mami = context.GetComponent<ModularAvatarMenuItem>(setter.gameObject);
+                bool active = context.ActiveAndEnabled(setter) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
+                if (active == context.Observe(setter, t => t.Inverted)) continue;
+                
                 var objs = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), (x, y) => x.SequenceEqual(y));
                 
                 if (setter.Objects == null) continue;
@@ -109,8 +114,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 foreach (var setter in _setters)
                 {
-                    if (!context.ActiveAndEnabled(setter)) continue;
-
                     var objects = context.Observe(setter, s => s.Objects
                         .Where(obj => obj.Object.Get(s) == original.gameObject)
                         .Select(obj => (obj.Material, obj.MaterialIndex)),
