@@ -11,6 +11,23 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal class ParameterAssignerPass : Pass<ParameterAssignerPass>
     {
+        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
+        {
+            bool hasRC = false;
+            foreach (var rc in item.GetComponentsInChildren<ReactiveComponent>(true))
+            {
+                // Only track components where this is the closest parent
+                var parentMami = rc.GetComponentInParent<ModularAvatarMenuItem>();
+                if (parentMami == item)
+                {
+                    hasRC = true;
+                    break;
+                }
+            }
+            
+            return hasRC;
+        } 
+        
         protected override void Execute(ndmf.BuildContext context)
         {
             var paramIndex = 0;
@@ -24,7 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (string.IsNullOrWhiteSpace(mami.Control?.parameter?.name))
                 {
-                    if (mami.GetComponent<ReactiveComponent>() == null) continue;
+                    if (!ShouldAssignParametersToMami(mami)) continue;
                     
                     if (mami.Control == null) mami.Control = new VRCExpressionsMenu.Control();
                     mami.Control.parameter = new VRCExpressionsMenu.Control.Parameter

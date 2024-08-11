@@ -99,20 +99,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _group = group;
             }
-            
-            private bool IsChangerActive(ModularAvatarShapeChanger changer, ComputeContext context)
-            {
-                if (changer == null) return false;
-
-                if (context != null)
-                {
-                    return context.ActiveAndEnabled(changer);
-                }
-                else
-                {
-                    return changer.isActiveAndEnabled;
-                }
-            }
 
             private HashSet<int> GetToDeleteSet(SkinnedMeshRenderer proxy, ComputeContext context)
             {
@@ -133,9 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var changer in _changers)
                 {
                     var shapes = context.Observe(changer, c => c.Shapes.ToImmutableList(), Enumerable.SequenceEqual);
-
-                    if (!IsChangerActive(changer, context)) continue;
-
+                    
                     foreach (var shape in shapes)
                         if (shape.ChangeType == ShapeChangeType.Delete)
                         {
@@ -268,8 +252,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
-                    if (!IsChangerActive(changer, null)) continue;
-
                     foreach (var shape in changer.Shapes)
                     {
                         var index = mesh.GetBlendShapeIndex(shape.ShapeName);

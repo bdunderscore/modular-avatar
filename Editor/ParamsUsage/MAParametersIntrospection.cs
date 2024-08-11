@@ -23,7 +23,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public IEnumerable<ProvidedParameter> GetSuppliedParameters(ndmf.BuildContext context = null)
         {
-            if (_component.Control == null || _component.GetComponent<ReactiveComponent>() == null) yield break;
+            if (_component.Control == null) yield break;
+            if (!ParameterAssignerPass.ShouldAssignParametersToMami(_component)) yield break;
 
             var hidden = false;
             var name = _component.Control?.parameter?.name;
