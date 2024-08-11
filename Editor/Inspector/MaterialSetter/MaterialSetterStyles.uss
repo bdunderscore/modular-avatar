@@ -33,3 +33,15 @@
 #f-material-index-int {
     display: none;
 }
+
+#f-material {
+    flex-grow: 1;
+}
+
+.horizontal > Label {
+    align-self: center;
+}
+
+#f-object > * {
+    margin-left: 0;
+}
