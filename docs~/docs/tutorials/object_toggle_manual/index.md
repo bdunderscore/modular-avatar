@@ -1,6 +1,6 @@
 ﻿---
-sidebar_position: 2
-sidebar_label: Toggle an object
+sidebar_position: 6
+sidebar_label: Building an animator manually
 ---
 
 # Toggle an object (using manual animations)
