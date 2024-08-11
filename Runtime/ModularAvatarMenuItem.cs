@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
@@ -41,6 +42,18 @@ namespace nadena.dev.modular_avatar.core
         ///     with isDefault = true is selected.
         /// </summary>
         public bool isDefault;
+
+        private void Reset()
+        {
+            Control = new VRCExpressionsMenu.Control();
+            Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
+            Control.value = 1;
+            isSaved = true;
+            isSynced = true;
+            isDefault = false;
+
+            MenuSource = SubmenuSource.Children;
+        }
 
         protected override void OnValidate()
         {
