@@ -36,12 +36,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var toggle in allToggles)
             {
-                if (!context.ActiveAndEnabled(toggle)) continue;
-                
                 var mami = context.GetComponent<ModularAvatarMenuItem>(toggle.gameObject);
-                if (mami != null)
-                    if (!menuItemPreview.IsEnabledForPreview(mami))
-                        continue;
+                
+                bool active = context.ActiveAndEnabled(toggle) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
+                if (active == context.Observe(toggle, t => t.Inverted)) continue;
 
                 context.Observe(toggle,
                     t => t.Objects.Select(o => o.Object.referencePath).ToList(),
@@ -103,7 +101,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (group != null)
                     {
                         var (toggle, index) = group[^1];
-                        enableAtNode = context.Observe(toggle, t => t.Objects[index].Active);
+                        enableAtNode = context.Observe(toggle, t => t.Objects.Count > index && t.Objects[index].Active);
                     }
 
                     if (!enableAtNode)

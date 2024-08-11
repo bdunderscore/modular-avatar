@@ -88,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal static ControlCondition AssignMenuItemParameter(ndmf.BuildContext context, ModularAvatarMenuItem mami)
+        internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami)
         {
             if (mami?.Control?.parameter?.name == null) return null;
             
@@ -97,7 +97,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 Parameter = mami.Control.parameter.name,
                 DebugName = mami.gameObject.name,
                 IsConstant = false,
-                InitialValue = 0, // TODO
+                InitialValue = mami.isDefault ? mami.Control.value : -999, // TODO
                 ParameterValueLo = mami.Control.value - 0.5f,
                 ParameterValueHi = mami.Control.value + 0.5f
             };

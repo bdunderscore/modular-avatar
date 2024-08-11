@@ -33,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
         {
-            var menuItemPreviewCondition = new MenuItemPreviewCondition(ctx);
+            var menuItemPreview = new MenuItemPreviewCondition(ctx);
             
             var allChangers = ctx.GetComponentsByType<ModularAvatarShapeChanger>();
 
@@ -45,11 +45,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (changer == null) continue;
 
-                // TODO: observe avatar root
-                if (!ctx.ActiveAndEnabled(changer)) continue;
-
                 var mami = ctx.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
-                if (mami != null && !menuItemPreviewCondition.IsEnabledForPreview(mami)) continue;
+                bool active = ctx.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
+                if (active == ctx.Observe(changer, t => t.Inverted)) continue;
 
                 var target = ctx.Observe(changer, _ => changer.targetRenderer.Get(changer));
                 var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);

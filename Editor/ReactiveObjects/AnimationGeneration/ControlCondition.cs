@@ -4,7 +4,10 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ControlCondition
     {
-        public string Parameter, DebugName;
+        public string Parameter;
+        public UnityEngine.Object ControllingObject;
+        
+        public string DebugName;
         public bool IsConstant;
         public float ParameterValueLo, ParameterValueHi, InitialValue;
         public bool InitiallyActive => InitialValue > ParameterValueLo && InitialValue < ParameterValueHi;

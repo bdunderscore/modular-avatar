@@ -3,6 +3,7 @@
     <ui:VisualElement name="root-box">
         <ui:VisualElement name="group-box">
             <ed:PropertyField binding-path="m_targetRenderer"/>
+            <ed:PropertyField binding-path="m_inverted"/>
 
             <ui:VisualElement name="ListViewContainer">
                 <ui:ListView virtualization-method="DynamicHeight"
@@ -19,6 +20,8 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ed:PropertyField binding-path="m_inverted"/>
+        
         <ma:LanguageSwitcherElement/>
     </ui:VisualElement>
 </UXML>

@@ -1,4 +1,7 @@
 ﻿using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -17,6 +20,28 @@ namespace nadena.dev.modular_avatar.core
         private string _cachedPath;
         private GameObject _cachedReference;
 
+        #if UNITY_EDITOR
+        public static GameObject Get(SerializedProperty prop)
+        {
+            var rootObject = prop.serializedObject.targetObject;
+            if (rootObject == null) return null;
+            
+            var avatarRoot = RuntimeUtil.FindAvatarTransformInParents((rootObject as Component)?.transform ?? (rootObject as GameObject)?.transform);
+            if (avatarRoot == null) return null;
+            
+            var referencePath = prop.FindPropertyRelative("referencePath").stringValue;
+            var targetObject = prop.FindPropertyRelative("targetObject").objectReferenceValue as GameObject;
+            
+            if (targetObject != null && targetObject.transform.IsChildOf(avatarRoot))
+                return targetObject;
+            
+            if (referencePath == AVATAR_ROOT)
+                return avatarRoot.gameObject;
+            
+            return avatarRoot.Find(referencePath)?.gameObject;
+        }
+        #endif
+        
         public GameObject Get(Component container)
         {
             bool cacheValid = _cacheValid || ReferencesLockedAtFrame == Time.frameCount;
