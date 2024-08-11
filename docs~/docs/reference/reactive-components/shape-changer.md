@@ -1,6 +1,6 @@
 ﻿# Shape Changer
 
-<!-- TODO: Find a good screenshot -->
+![Shape Changer](shape-changer.png)
 
 The Shape Changer component modifies the shape keys (blendshapes) of another renderer on the avatar, when the Shape 
 Changer component is enabled.

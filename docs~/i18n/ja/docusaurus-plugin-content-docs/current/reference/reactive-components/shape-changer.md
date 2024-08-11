@@ -1,5 +1,7 @@
 ﻿# Shape Changer
 
+![Shape Changer](shape-changer.png)
+
 Shape Changerコンポーネントは、有効になっているときに、アバター内の別のレンダラーのシェープキー（Blend Shape）を変更します。
 
 ## いつ使うべきか？

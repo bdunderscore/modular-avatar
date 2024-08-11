@@ -1,6 +1,6 @@
 ﻿# Object Toggle
 
-<!-- TODO: Screenshot -->
+![Object Toggle](object-toggle.png)
 
 Object Toggle コンポーネントは、制御オブジェクトのアクティブ状態に基づいて、他のいくつかのGameObjectのアクティブ状態を変更するコンポーネントです。
 

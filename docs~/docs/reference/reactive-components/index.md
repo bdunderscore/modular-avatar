@@ -12,6 +12,7 @@ The following reactive components are currently available:
 
 * [Object Toggle](./object-toggle.md) - controls the active state of other game objects
 * [Shape Changer](./shape-changer.md) - modifies blendshapes on a target renderer
+* [Material Setter](./material-setter.md) - changes materials on a target renderer
 
 ## General rules for reactive components
 
@@ -19,13 +20,18 @@ In general, reactive components apply some kind of effect when they are _active_
 active when:
 
 - Its GameObject, and all parents, is active in the scene hierarchy.
-- If the reactive object is on the same GameObject as a [Menu Item](../menu-item.md), the Menu Item is selected.
+- If the reactive object is on the same GameObject as, or a child of a [Menu Item](../menu-item.md), the Menu Item is
+  selected.
+  - Note that only the first parent Menu Item is considered (parent Submenus are ignored).
 
 After building your avatar, reactive components respond to the following:
 
 - Animations which change the state of GameObjects
 - Object Toggles which influence the active state of other reactive components
 - Menu Item selections
+
+You may also select the "Invert condition" option; in this case, the effect of the component is applied when _any_ of
+the above conditions is _not_ true.
 
 ### Priority rules
 

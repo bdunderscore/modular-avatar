@@ -1,6 +1,6 @@
 ﻿# Object Toggle
 
-<!-- TODO: Screenshot -->
+![Object Toggle](object-toggle.png)
 
 The Object Toggle component allows you to change the active state of one or more other GameObjects, based on the active
 state of a controlling object.
