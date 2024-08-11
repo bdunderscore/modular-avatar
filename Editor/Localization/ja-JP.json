@@ -121,6 +121,7 @@
   "mesh_settings.inherit_mode.Inherit": "継承",
   "mesh_settings.inherit_mode.Set": "設定",
   "mesh_settings.inherit_mode.DontSet": "設定しない（メッシュ本体の設定のまま）",
+  "mesh_settings.inherit_mode.SetOrInherit": "親が指定されてる時は継承、または設定",
   "pb_blocker.help": "このオブジェクトは親のPhysBoneから影響を受けなくなります。",
   "hint.bad_vrcsdk": "使用中のVRCSDKのバージョンとは互換性がありません。\n\nVRCSDKを更新してみてください。それでもだめでしたら、Modular Avatarにも最新版が出てないかチェックしてください。",
   "error.stack_trace": "スタックトレース（バグを報告する時は必ず添付してください！）",

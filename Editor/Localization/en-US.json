@@ -125,6 +125,7 @@
   "mesh_settings.inherit_mode.Inherit": "Inherit",
   "mesh_settings.inherit_mode.Set": "Set",
   "mesh_settings.inherit_mode.DontSet": "Don't Set (use mesh as-is)",
+  "mesh_settings.inherit_mode.SetOrInherit": "Set or inherit if set by parent",
   "pb_blocker.help": "This object will not be affected by PhysBones attached to parents.",
   "hint.bad_vrcsdk": "Incompatible version of VRCSDK detected.\n\nPlease try upgrading your VRCSDK; if this does not work, check for a newer version of Modular Avatar as well.",
   "error.stack_trace": "Stack trace (provide this when reporting bugs!)",
