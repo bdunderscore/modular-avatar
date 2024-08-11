@@ -204,8 +204,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     rootBone = avatarRoot.transform;
                 }
 
-                meshSettings.InheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.Set;
-                meshSettings.InheritBounds = ModularAvatarMeshSettings.InheritMode.Set;
+                meshSettings.InheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
+                meshSettings.InheritBounds = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
 
                 meshSettings.ProbeAnchor = new AvatarObjectReference();
                 meshSettings.ProbeAnchor.referencePath = RuntimeUtil.RelativePath(avatarRoot, probeAnchor.gameObject);
