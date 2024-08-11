@@ -20,6 +20,8 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ed:PropertyField binding-path="m_inverted"/>
+        
         <ma:LanguageSwitcherElement/>
     </ui:VisualElement>
 </UXML>
