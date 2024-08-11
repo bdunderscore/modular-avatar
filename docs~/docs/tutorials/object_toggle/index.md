@@ -1,4 +1,8 @@
-﻿# Simple Object Toggle
+﻿---
+sidebar_position: 3
+---
+
+# Simple Object Toggle
 
 In this tutorial, we'll see how to create a simple menu item to toggle an object using the Reactive Object system of
 Modular Avatar.

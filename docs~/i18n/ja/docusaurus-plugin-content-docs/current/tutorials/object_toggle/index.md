@@ -1,4 +1,8 @@
-﻿# 簡単なトグル作成
+﻿---
+sidebar_position: 3
+---
+
+# 簡単なON/OFFトグル設定
 
 このチュートリアルでは、Modular Avatar の Reactive Object システムを使用してオブジェクトをON/OFFする簡単なメニューアイテムを作成します。
 
