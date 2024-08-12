@@ -290,6 +290,22 @@ namespace modular_avatar_tests.RenameParametersTests
                 });
             }
         }
+
+        [Test]
+        public void RecursiveRenameTest()
+        {
+            var prefab = CreatePrefab("RecursiveRenameTest.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            var fx = (AnimatorController) FindFxController(prefab).animatorController;
+            
+            Assert.IsFalse(fx.parameters.Any(p => p.name.StartsWith("Hoge")));
+            var fuga = fx.parameters.First(p => p.name.StartsWith("Fuga"));
+            Assert.IsFalse(fx.parameters.Any(p => p.name.StartsWith("Fuga") && p.name != fuga.name));
+            
+            Assert.AreNotEqual(fuga.name, "Fuga"); // should be auto-renamed
+        }
     }
 }
 

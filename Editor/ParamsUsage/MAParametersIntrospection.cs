@@ -132,9 +132,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     remapTo = p.remapTo;
                 }
 
-                if (nameMap.TryGetKey((ns, remapTo), out var existingMapping))
+                if (nameMap.TryGetValue((ns, remapTo), out var existingMapping))
                 {
-                    remapTo = existingMapping.Item2;
+                    remapTo = existingMapping.ParameterName;
                 }
 
                 nameMap = nameMap.SetItem((ns, p.nameOrPrefix), new ParameterMapping(remapTo, p.internalParameter));
