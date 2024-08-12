@@ -24,18 +24,23 @@
             <ui:Label name="f-default-param" text="test test test"/>
         </ui:VisualElement>
 
-        <ui:VisualElement class="horizontal small-label st-pb-prefix__hide">
+        <ui:VisualElement class="horizontal small-label st-pb-prefix__hide ">
             <ui:VisualElement class="horizontal">
                 <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr no-left-margin"/>
                 <ma:DefaultValueField/>
             </ui:VisualElement>
-            <ui:VisualElement class="v-separator">
-                <ui:VisualElement/>
+            <ui:VisualElement class="horizontal st-anim-only__hide">
+                <ui:VisualElement class="v-separator">
+                    <ui:VisualElement/>
+                </ui:VisualElement>
+                <ui:Toggle binding-path="saved" text="merge_parameter.ui.saved"
+                           class="ndmf-tr st-pb-prefix__first-retained"/>
+                <ui:Toggle binding-path="localOnly" text="merge_parameter.ui.localOnly" class="ndmf-tr"
+                           name="f-local-only"/>
+                <ui:Toggle text="merge_parameter.ui.synced" class="ndmf-tr" name="f-synced"/>
+                <ui:Toggle binding-path="m_overrideAnimatorDefaults" text="merge_parameter.ui.overrideAnimatorDefaults"
+                           class="ndmf-tr"/>
             </ui:VisualElement>
-            <ui:Toggle binding-path="saved" text="merge_parameter.ui.saved" class="ndmf-tr"/>
-            <ui:Toggle binding-path="localOnly" text="merge_parameter.ui.localOnly" class="ndmf-tr"/>
-            <ui:Toggle binding-path="m_overrideAnimatorDefaults" text="merge_parameter.ui.overrideAnimatorDefaults"
-                       class="ndmf-tr"/>
         </ui:VisualElement>
 
     </ui:VisualElement>

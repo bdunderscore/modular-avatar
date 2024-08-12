@@ -56,6 +56,7 @@
 .horizontal {
     flex-direction: row;
     align-content: center;
+    margin-top: 1px;
 }
 
 .horizontal > * {
@@ -121,8 +122,24 @@ DefaultValueField DropdownField {
     display: none;
 }
 
+.st-anim-only .st-anim-only__hide {
+    display: none;
+}
+
+.st-anim-only .st-pb-prefix__first-retained {
+    margin-left: 0;
+}
+
+.st-anim-only .st-pb-prefix__first-retained Label.unity-label {
+    margin-left: 0;
+}
+
 #f-remap-to {
     flex-grow: 1;
+}
+
+#f-local-only {
+    display: none;
 }
 
 /** Ghostly text for the renameTo text box **/

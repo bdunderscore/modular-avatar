@@ -12,6 +12,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
+        private const string V_True = "ON";
+        private const string V_False = "OFF";
+        
         private readonly TextField _visibleField;
         private readonly FloatField _defaultValueField;
         private readonly DropdownField _boolField;
@@ -25,8 +28,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _boolField = new DropdownField();
 
             _boolField.choices.Add("");
-            _boolField.choices.Add("True");
-            _boolField.choices.Add("False");
+            _boolField.choices.Add(V_True);
+            _boolField.choices.Add(V_False);
 
             _defaultValueField.RegisterValueChangedCallback(
                 evt => UpdateVisibleField(evt.newValue, _hasExplicitDefaultSetField.value));
@@ -58,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _boolField.RegisterValueChangedCallback(evt =>
             {
-                if (evt.newValue == "True")
+                if (evt.newValue == V_True)
                     _defaultValueField.value = 1;
                 else
                     _defaultValueField.value = 0;
@@ -95,9 +98,9 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!hasExplicitValue)
                 boolStr = "";
             else if (value > 0.5)
-                boolStr = "True";
+                boolStr = V_True;
             else
-                boolStr = "False";
+                boolStr = V_False;
 
             _boolField.SetValueWithoutNotify(boolStr);
         }
