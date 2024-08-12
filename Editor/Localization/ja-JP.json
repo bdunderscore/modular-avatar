@@ -16,7 +16,6 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.syncmode.PhysBonesPrefix": "PB Prefix",
   "params.autodetect_header": "   自動検出されたパラメーター   ",
   "params.internal": "内部値",
   "params.pb_prefix": "PhysBones接頭辞",
@@ -41,8 +40,6 @@
   "merge_parameter.ui.internalParameter.tooltip": "有効にすると、名前かぶりを回避するために自動的に名前を変更します",
   "merge_parameter.ui.isPrefix": "PhysBone 接頭辞",
   "merge_parameter.ui.syncType": "パラメーター型",
-  "merge_parameter.ui.synced": "同期する",
-  "merge_parameter.ui.synced.tooltip": "有効にすると、ネットワーク上同期されます",
   "merge_parameter.ui.unregistered_foldout": "未登録パラメーター",
   "merge_parameter.ui.add_button": "追加",
   "merge_parameter.ui.details": "パラメーターの詳細設定",
@@ -244,8 +241,5 @@
   "ma_info.param_usage_ui.other_objects": "このアバター内の他のオブジェクト",
   "ma_info.param_usage_ui.free_space": "未使用領域 ({0} 個のビット)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 個のビットを使用中)",
-  "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
-  "reactive_object.inverse": "条件を反転",
-  "reactive_object.material-setter.set-to": "変更先のマテリアル",
-  "reactive_object.shape-changer.target-renderer": "操作するレンダラー"
+  "ma_info.param_usage_ui.no_data": "[ NO DATA ]"
 }
