@@ -194,7 +194,7 @@
   "menuitem.prop.submenu_source.tooltip": "尋找子選單的選單項的方式",
   "menuitem.prop.source_override": "源物件",
   "menuitem.prop.source_override.tooltip": "如果指定，這個物件將被用作子選單內容的來源。\n否則，將使用此選單項的子級。",
-  "menuitem.prop.is_default": "為預設",
+  "menuitem.prop.is_default": "預設啟用",
   "menuitem.prop.is_default.tooltip": "如果打勾，初次使用或重置 Avatar 時會啟用此選單項",
   "menuitem.prop.is_saved": "保存",
   "menuitem.prop.is_saved.tooltip": "如果打勾，當您更換 Avatar 或房間時，此選單項的值將被保存。",
