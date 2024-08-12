@@ -20,14 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
             Localization.UI.Localize(root);
             root.styleSheets.Add(uss);
 
-            // Prototype UI
             var proot = root.Q<VisualElement>("Root");
             var type_field = proot.Q<DropdownField>("f-type");
 
+            var f_sync_type = proot.Q<VisualElement>("f-sync-type");
             SetupPairedDropdownField(
                 proot,
                 type_field,
-                proot.Q<VisualElement>("f-sync-type"),
+                f_sync_type,
                 proot.Q<VisualElement>("f-is-prefix"),
                 ("Bool", "False", "params.syncmode.Bool"),
                 ("Float", "False", "params.syncmode.Float"),
@@ -35,6 +35,24 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 ("Not Synced", "False", "params.syncmode.NotSynced"),
                 (null, "True", "params.syncmode.PhysBonesPrefix")
             );
+
+            f_sync_type.Q<DropdownField>().RegisterValueChangedCallback(evt =>
+            {
+                var is_anim_only = evt.newValue == "Not Synced";
+
+                if (is_anim_only)
+                    proot.AddToClassList("st-anim-only");
+                else
+                    proot.RemoveFromClassList("st-anim-only");
+            });
+
+            var f_synced = proot.Q<Toggle>("f-synced");
+            var f_local_only = proot.Q<Toggle>("f-local-only");
+
+            // Invert f_local_only and f_synced
+            f_local_only.RegisterValueChangedCallback(evt => { f_synced.SetValueWithoutNotify(!evt.newValue); });
+
+            f_synced.RegisterValueChangedCallback(evt => { f_local_only.value = !evt.newValue; });
 
             var internalParamAccessor = proot.Q<Toggle>("f-internal-parameter");
             internalParamAccessor.RegisterValueChangedCallback(evt =>
