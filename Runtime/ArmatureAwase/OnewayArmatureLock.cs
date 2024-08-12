@@ -176,6 +176,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                             _mergeParentState[index]))
                     {
                         _boneStatic[index] = state;
+                        _mergeSavedState[index] = mergeState;
                     }
                     else
                     {
