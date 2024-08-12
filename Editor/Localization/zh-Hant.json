@@ -243,5 +243,6 @@
   "ma_info.param_usage_ui.free_space": "未使用的參數空間 ({0} bits)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
   "ma_info.param_usage_ui.no_data": "【無資訊】",
+  "reactive_object.material-setter.set-to": "將材質設定為：",
   "reactive_object.shape-changer.target-renderer": "目標 Renderer"
 }
