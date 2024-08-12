@@ -371,17 +371,16 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             _lastJob.Complete();
             Profiler.BeginSample("Revalidate dirty bones");
-            int boneBase = 0;
             bool anyDirty = false;
             for (int job = 0; job < _jobs.Count; job++)
             {
                 if (accessor._abortFlag[job]) continue;
-                
-                int curBoneBase = boneBase;
-                boneBase += _jobs[job].Transforms.Count;
                 if (!accessor._didAnyWriteFlag[job]) continue;
 
-                for (int b = curBoneBase; b < boneBase; b++)
+                var curBoneBase = _jobs[job].Segment.Offset;
+                var boneEnd = curBoneBase + _jobs[job].Segment.Length;
+
+                for (var b = curBoneBase; b < boneEnd; b++)
                 {
                     if (accessor._out_dirty_targetBone[b] || accessor._out_dirty_baseBone[b])
                     {
@@ -459,7 +458,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 if (!_boneInUse[index]) return;
 
 #if UNITY_2021_1_OR_NEWER
-                if (!transform.isValid)
+                if (!transform.isValid && _boneInUse[index])
                 {
                     _abortFlag[_boneToJobIndex[index]] = true;
                     return;

@@ -181,6 +181,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 return false;
             }
 
+#if UNITY_EDITOR
+            if (xforms.Count == 0 || EditorUtility.IsPersistent(xforms[0].Item1))
+                // Bail out if we're trying to lock a prefab...
+                return true;
+#endif
+
             try
             {
                 switch (Mode)
