@@ -42,8 +42,6 @@
   "merge_parameter.ui.internalParameter.tooltip": "如果勾选，此参数将会被自动重命名以防止参数名称冲突",
   "merge_parameter.ui.isPrefix": "是 PhysBone 的前缀",
   "merge_parameter.ui.syncType": "参数模式",
-  "merge_parameter.ui.localOnly": "仅限本地",
-  "merge_parameter.ui.localOnly.tooltip": "如果勾选，此参数将不会在网络上同步",
   "merge_parameter.ui.unregistered_foldout": "未注册的参数",
   "merge_parameter.ui.add_button": "添加",
   "merge_parameter.ui.details": "参数设置",
