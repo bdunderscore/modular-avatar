@@ -201,11 +201,11 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!_parameterName.hasMultipleDifferentValues && !_knownParameters.Contains(paramName))
             {
                 EditorGUILayout.BeginHorizontal();
-                DrawHorizontalToggleProp(_prop_isDefault, new GUIContent("Default"));
+                DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"));
                 GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSaved, new GUIContent("Saved"));
+                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"));
                 GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSynced, new GUIContent("Synced"));
+                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"));
                 EditorGUILayout.EndHorizontal();
             }
 

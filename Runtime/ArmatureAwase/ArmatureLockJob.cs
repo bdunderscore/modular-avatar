@@ -59,7 +59,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             {
                 var transitioned = (_isValid && !value);
                 _isValid = value;
-
+                
                 if (transitioned)
                 {
 #if UNITY_EDITOR
