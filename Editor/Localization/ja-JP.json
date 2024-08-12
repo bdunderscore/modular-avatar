@@ -16,6 +16,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
+  "params.syncmode.PhysBonesPrefix": "PB前置詞",
   "params.autodetect_header": "   自動検出されたパラメーター   ",
   "params.internal": "内部値",
   "params.pb_prefix": "PhysBones接頭辞",
@@ -189,6 +190,8 @@
   "menuitem.prop.submenu_source.tooltip": "このサブメニューの内容をどこから引用するべきかを指定",
   "menuitem.prop.source_override": "引用元オブジェクト",
   "menuitem.prop.source_override.tooltip": "指定した場合は、指定したオブジェクトの子をメニューの内容として指定します。指定されてない場合はこのオブジェクト直下の子を使用します。",
+  "menuitem.prop.is_default": "初期設定にする",
+  "menuitem.prop.is_default.tooltip": "ONの場合、アバター初期化の際にこのメニューアイテムを選択します",
   "menuitem.prop.is_saved": "保存する",
   "menuitem.prop.is_saved.tooltip": "有効になっていると、アバター変更やワールド移動するときこの設定が保持されます。",
   "menuitem.prop.is_synced": "同期する",
@@ -243,5 +246,6 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "条件を反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル ",
-  "reactive_object.shape-changer.target-renderer": "操作するレンダラー"
+  "reactive_object.shape-changer.target-renderer": "操作するレンダラー",
+  "menuitem.misc.add_toggle": "トグルを追加"
 }
