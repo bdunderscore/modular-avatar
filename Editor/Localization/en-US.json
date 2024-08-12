@@ -194,7 +194,7 @@
   "menuitem.prop.submenu_source.tooltip": "Where to find the items to put inside this submenu",
   "menuitem.prop.source_override": "Source object override",
   "menuitem.prop.source_override.tooltip": "If specified, this object will be used as the source for the contents of the submenu. Otherwise, children of this menu item will be used.",
-  "menuitem.prop.is_default": "Default",
+  "menuitem.prop.is_default": "Is Default",
   "menuitem.prop.is_default.tooltip": "If true, this menu item will be selected when the avatar is initially loaded",
   "menuitem.prop.is_saved": "Saved",
   "menuitem.prop.is_saved.tooltip": "If true, the value of this menu item will be saved when you change avatars or worlds.",
