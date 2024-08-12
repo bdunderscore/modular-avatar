@@ -48,17 +48,17 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(MeshSettingsPluginPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 #if MA_VRCSDK3_AVATARS
-                seq.Run(PropertyOverlayPrePass.Instance);
+                seq.Run(ReactiveObjectPrepass.Instance);
                 seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(ParameterAssignerPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
-                seq.Run(MenuInstallPluginPass.Instance);
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
-                    seq.Run("Shape Changer", ctx => new PropertyOverlayPass(ctx).Execute())
-                        .PreviewingWith(new ShapeChangerPreview());
+                    seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
+                        .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
@@ -69,8 +69,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
 #endif
+                    seq.Run(GameObjectDelayDisablePass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
+                seq.Run(MenuInstallPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {

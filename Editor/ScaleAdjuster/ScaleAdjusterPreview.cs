@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.core.editor.ScaleAdjuster;
 using nadena.dev.ndmf.preview;
-using nadena.dev.ndmf.rq;
-using nadena.dev.ndmf.rq.unity.editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,10 +16,25 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ScaleAdjusterPreview : IRenderFilter
     {
+        private static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
+            () => "Scale Adjuster",
+            qualifiedName: "nadena.dev.modular-avatar/ScaleAdjusterPreview",
+            true
+        );
         
         [InitializeOnLoadMethod]
         private static void StaticInit()
         {
+        }
+
+        public IEnumerable<TogglablePreviewNode> GetPreviewControlNodes()
+        {
+            yield return EnableNode;
+        }
+
+        public bool IsEnabled(ComputeContext context)
+        {
+            return context.Observe(EnableNode.IsEnabled);
         }
 
         private static GameObject FindAvatarRootObserving(ComputeContext ctx, GameObject ptr)

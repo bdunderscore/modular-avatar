@@ -1,0 +1,19 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:VisualElement class="toggled-object-editor">
+        <ui:VisualElement class="horizontal">
+            <!--<ed:PropertyField binding-path="Object" label="" name="f-object" class="f-object"/>-->
+            <ed:ObjectField label="" name="f-object" class="f-object"/>
+            <ui:DropdownField name="f-material-index" binding-path="MaterialIndex"/>
+            
+            <ui:VisualElement style="display:none">
+                <ui:TextField binding-path="Object.referencePath" label="" name="f-obj-ref-path"/>
+                <ed:ObjectField name="f-obj-target-object" binding-path="Object.targetObject"/>
+                <ed:IntegerField binding-path="MaterialIndex" name="f-material-index-int"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="horizontal">
+            <ui:Label text="reactive_object.material-setter.set-to" class="ndmf-tr"/>
+            <ed:PropertyField binding-path="Material" label="" name="f-material"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

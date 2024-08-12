@@ -196,7 +196,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        private string MapPath(UnityEditor.EditorCurveBinding binding)
+        private string MapPath(EditorCurveBinding binding)
         {
             if (binding.type == typeof(Animator) && binding.path == "")
             {
@@ -249,7 +249,10 @@ namespace nadena.dev.modular_avatar.animation
             {
                 var newBinding = binding;
                 newBinding.path = MapPath(binding);
-                newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
+                // https://github.com/bdunderscore/modular-avatar/issues/950
+                // It's reported that sometimes using SetObjectReferenceCurve right after SetCurve might cause the
+                // curves to be forgotten; use SetEditorCurve instead.
+                AnimationUtility.SetEditorCurve(newClip, newBinding,
                     AnimationUtility.GetEditorCurve(originalClip, binding));
             }
 
@@ -261,10 +264,10 @@ namespace nadena.dev.modular_avatar.animation
                     AnimationUtility.GetObjectReferenceCurve(originalClip, objBinding));
             }
 
-            newClip.wrapMode = newClip.wrapMode;
-            newClip.legacy = newClip.legacy;
-            newClip.frameRate = newClip.frameRate;
-            newClip.localBounds = newClip.localBounds;
+            newClip.wrapMode = originalClip.wrapMode;
+            newClip.legacy = originalClip.legacy;
+            newClip.frameRate = originalClip.frameRate;
+            newClip.localBounds = originalClip.localBounds;
             AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(originalClip));
 
             if (clipCache != null)
@@ -305,8 +308,13 @@ namespace nadena.dev.modular_avatar.animation
         {
             if (_pathToObject == null)
             {
-                _pathToObject = _objectToOriginalPaths.SelectMany(kvp => kvp.Value.Select(p => (p, kvp.Key)))
-                    .ToImmutableDictionary(t => t.p, t => t.Key);
+                var builder = ImmutableDictionary.CreateBuilder<string, GameObject>();
+
+                foreach (var kvp in _objectToOriginalPaths)
+                foreach (var p in kvp.Value)
+                    builder[p] = kvp.Key;
+
+                _pathToObject = builder.ToImmutable();
             }
             
             if (_pathToObject.TryGetValue(path, out var obj))

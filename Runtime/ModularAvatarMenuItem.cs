@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
@@ -23,11 +24,36 @@ namespace nadena.dev.modular_avatar.core
         public GameObject menuSource_otherObjectChildren;
 
         /// <summary>
-        /// If no control group is set (and an action is linked), this controls whether this control is synced.
+        /// If this MenuItem references a parameter that does not exist, it is created automatically.
+        /// In this case, isSynced controls whether the parameter is network synced.
         /// </summary>
         public bool isSynced = true;
 
+        /// <summary>
+        ///     If this MenuItem references a parameter that does not exist, it is created automatically.
+        ///     In this case, isSaved controls whether the parameter is saved across avatar changes.
+        /// </summary>
         public bool isSaved = true;
+
+        /// <summary>
+        ///     If this MenuItem references a parameter that does not exist, it is created automatically.
+        ///     In this case, isDefault controls whether the parameter is set, by default, to the value for this
+        ///     menu item. If multiple menu items reference the same parameter, the last menu item in hierarchy order
+        ///     with isDefault = true is selected.
+        /// </summary>
+        public bool isDefault;
+
+        private void Reset()
+        {
+            Control = new VRCExpressionsMenu.Control();
+            Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
+            Control.value = 1;
+            isSaved = true;
+            isSynced = true;
+            isDefault = false;
+
+            MenuSource = SubmenuSource.Children;
+        }
 
         protected override void OnValidate()
         {

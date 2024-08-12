@@ -583,17 +583,21 @@ MonoBehaviour:
   Bindings:
   - ReferenceMesh:
       referencePath: BaseMesh
+      targetObject: {fileID: 0}
     Blendshape: shape_0
     LocalBlendshape: shape_0_local
   - ReferenceMesh:
       referencePath: BaseMesh
+      targetObject: {fileID: 0}
     Blendshape: shape_1
     LocalBlendshape: shape_1
   - ReferenceMesh:
       referencePath: MissingMesh
+      targetObject: {fileID: 0}
     Blendshape: missing_mesh_shape
     LocalBlendshape: missing_mesh_shape
   - ReferenceMesh:
       referencePath: 
+      targetObject: {fileID: 0}
     Blendshape: missing_mesh_shape_2
     LocalBlendshape: missing_mesh_shape_2

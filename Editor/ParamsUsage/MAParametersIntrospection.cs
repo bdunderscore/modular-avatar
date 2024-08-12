@@ -5,13 +5,56 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.ndmf;
-using UnityEditor;
 using UnityEngine;
 
 #endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [ParameterProviderFor(typeof(ModularAvatarMenuItem))]
+    internal class MAMenuItemIntrospection : IParameterProvider
+    {
+        private readonly ModularAvatarMenuItem _component;
+
+        public MAMenuItemIntrospection(ModularAvatarMenuItem menuItem)
+        {
+            _component = menuItem;
+        }
+
+        public IEnumerable<ProvidedParameter> GetSuppliedParameters(ndmf.BuildContext context = null)
+        {
+            if (_component.Control == null) yield break;
+            if (!ParameterAssignerPass.ShouldAssignParametersToMami(_component)) yield break;
+
+            var hidden = false;
+            var name = _component.Control?.parameter?.name;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetInstanceID()}";
+                hidden = true;
+            }
+
+            var type = AnimatorControllerParameterType.Bool;
+
+            if (type != AnimatorControllerParameterType.Float &&
+                (_component.Control.value > 1.01 || _component.Control.value < -0.01))
+                type = AnimatorControllerParameterType.Int;
+
+            if (Mathf.Abs(Mathf.Round(_component.Control.value) - _component.Control.value) > 0.01f)
+                type = AnimatorControllerParameterType.Float;
+
+            yield return new ProvidedParameter(
+                name,
+                ParameterNamespace.Animator,
+                _component, PluginDefinition.Instance, type)
+            {
+                WantSynced = _component.isSynced,
+                IsHidden = hidden,
+                DefaultValue = _component.isDefault ? _component.Control.value : null
+            };
+        }
+    }
+    
     [ParameterProviderFor(typeof(ModularAvatarParameters))]
     internal class MAParametersIntrospection : IParameterProvider
     {
@@ -54,6 +97,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly,
                     IsHidden = p.internalParameter,
+                    DefaultValue = p.defaultValue
                 };
             });
         }
@@ -76,7 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        remapTo = p.nameOrPrefix + "$" + GUID.Generate();
+                        remapTo = p.nameOrPrefix + "$" + _component.GetInstanceID();
                     }
                 }
                 else if (string.IsNullOrEmpty(p.remapTo))
