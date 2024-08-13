@@ -21,11 +21,13 @@ namespace modular_avatar_tests
             var obj2 = prefab.transform.Find("ProbeTargetRenderers/MeshRenderer").GetComponent<Renderer>();
             var obj3 = prefab.transform.Find("ProbeTargetRenderers/ParticleSystemRenderer").GetComponent<Renderer>();
             var obj4 = prefab.transform.Find("ProbeTargetRenderers/TrailRenderer").GetComponent<Renderer>();
+            var obj5 = prefab.transform.Find("ProbeTargetRenderers/SetOrInherit").GetComponent<Renderer>();
 
             Assert.AreEqual(target, obj1.probeAnchor);
             Assert.AreEqual(target, obj2.probeAnchor);
             Assert.AreEqual(target, obj3.probeAnchor);
             Assert.AreEqual(target, obj4.probeAnchor);
+            Assert.AreEqual(target, obj5.probeAnchor);
         }
 
         [Test]
@@ -37,9 +39,11 @@ namespace modular_avatar_tests
 
             var noninherit = prefab.transform.Find("ProbeTargetRenderers/NonInherited").GetComponent<MeshRenderer>();
             var overrideset = prefab.transform.Find("ProbeTargetRenderers/OverrideSet").GetComponent<MeshRenderer>();
+            var setOrInherit = prefab.transform.Find("ProbeTargetRenderers SetOrInherit No Parent").GetComponent<MeshRenderer>();
 
             Assert.AreEqual(noninherit.transform.Find("Target"), noninherit.probeAnchor);
             Assert.AreEqual(overrideset.transform.Find("Target"), overrideset.probeAnchor);
+            Assert.AreEqual(setOrInherit.transform.Find("Target"), setOrInherit.probeAnchor);
         }
 
         [Test]

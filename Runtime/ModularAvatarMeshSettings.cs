@@ -15,7 +15,9 @@ namespace nadena.dev.modular_avatar.core
         {
             Inherit,
             Set,
-            DontSet
+            DontSet,
+            // Inherit if there is parent settings, set otherwise
+            SetOrInherit,
         }
 
         //[Header("Probe anchor configuration")]
