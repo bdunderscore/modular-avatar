@@ -172,7 +172,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var rect = EditorGUILayout.GetControlRect(GUILayout.Width(width));
             EditorGUI.BeginProperty(rect, label, prop);
 
-            prop.boolValue = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
+            EditorGUI.BeginChangeCheck();
+            var value = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
+            if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
 
             EditorGUI.EndProperty();
         }
