@@ -18,6 +18,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
+  "params.syncmode.PhysBonesPrefix": "PB 前綴",
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   自動檢測參數   ",
   "params.internal": "內部",
@@ -44,6 +45,8 @@
   "merge_parameter.ui.internalParameter.tooltip": "如果為打勾，參數將會自動重命名以防止名稱和其他參數衝突",
   "merge_parameter.ui.isPrefix": "是 PhysBone 前綴",
   "merge_parameter.ui.syncType": "參數類型",
+  "merge_parameter.ui.synced": "同步",
+  "merge_parameter.ui.synced.tooltip": "如果為打勾，參數將會在網路上同步",
   "merge_parameter.ui.unregistered_foldout": "未註冊的參數",
   "merge_parameter.ui.add_button": "添加",
   "merge_parameter.ui.details": "參數設定",
@@ -191,6 +194,8 @@
   "menuitem.prop.submenu_source.tooltip": "尋找子選單的選單項的方式",
   "menuitem.prop.source_override": "源物件",
   "menuitem.prop.source_override.tooltip": "如果指定，這個物件將被用作子選單內容的來源。\n否則，將使用此選單項的子級。",
+  "menuitem.prop.is_default": "預設啟用",
+  "menuitem.prop.is_default.tooltip": "如果打勾，初次使用或重置 Avatar 時會啟用此選單項",
   "menuitem.prop.is_saved": "保存",
   "menuitem.prop.is_saved.tooltip": "如果打勾，當您更換 Avatar 或房間時，此選單項的值將被保存。",
   "menuitem.prop.is_synced": "同步",
@@ -243,5 +248,8 @@
   "ma_info.param_usage_ui.free_space": "未使用的參數空間 ({0} bits)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
   "ma_info.param_usage_ui.no_data": "【無資訊】",
-  "reactive_object.shape-changer.target-renderer": "目標 Renderer"
+  "reactive_object.inverse": "反轉條件",
+  "reactive_object.material-setter.set-to": "將材質設定為：",
+  "reactive_object.shape-changer.target-renderer": "目標 Renderer",
+  "menuitem.misc.add_toggle": "新增開關"
 }
