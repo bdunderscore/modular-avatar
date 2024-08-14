@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
+using UnityEditor;
 using UnityEngine;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
@@ -9,7 +10,7 @@ using VRC.SDKBase;
 namespace nadena.dev.modular_avatar.core.ArmatureAwase
 {
     [ExecuteInEditMode]
-    //[AddComponentMenu("")]
+    [AddComponentMenu("Modular Avatar/MA Move Independently")]
     [DisallowMultipleComponent]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/move-independently?lang=auto")]
     class MAMoveIndependently : MonoBehaviour, IEditorOnly
@@ -165,7 +166,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     var newRotation = childNewLocal.rotation;
                     var newScale = childNewLocal.lossyScale;
 #if UNITY_EDITOR
-                    UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
+                    Undo.RecordObject(child, Undo.GetCurrentGroupName());
 #endif
 
                     child.localPosition = newPosition;
