@@ -97,7 +97,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             };
             arrays.Add(InUseMask);
 
-            _allocationMap.OnSegmentDispose += seg => { SetInUseMask(seg.Offset, seg.Length, false); };
+            _allocationMap.OnSegmentDispose += seg =>
+            {
+                if (!_isDisposed) SetInUseMask(seg.Offset, seg.Length, false);
+            };
         }
 
         public NativeArrayRef<T> CreateArray<T>() where T : unmanaged
