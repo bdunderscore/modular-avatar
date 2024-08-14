@@ -151,3 +151,23 @@ Label#f-default-param {
     overflow: hidden;
     color: rgba(255, 255, 255, 0.4) !important;
 }
+
+.DetectedParameter {
+    flex-direction: row;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.DetectedParameter > Label {
+    flex-grow: 1;
+    align-self: center;
+}
+
+.SourceButton {
+    flex-grow: 0;
+    align-self: flex-end;
+    height: 24px;
+    width: 24px;
+    padding: 1px;
+}
+
