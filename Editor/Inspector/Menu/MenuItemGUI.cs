@@ -8,6 +8,7 @@ using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 using Object = UnityEngine.Object;
@@ -57,7 +58,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
 
-        private readonly HashSet<string> _knownParameters = new();
+        private readonly Dictionary<string, ProvidedParameter> _knownParameters = new();
+        private bool _parameterSourceNotDetermined;
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -109,22 +111,37 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void InitKnownParameters()
         {
-            if (_parameterReference == null) return;
+            var paramRef = _parameterReference;
+            if (_parameterReference == null)
+                // TODO: This could give incorrect results in some cases when we have multiple objects selected with
+                // different rename contexts.
+                paramRef = (_obj.targetObjects[0] as Component)?.gameObject;
 
-            var rootParameters = ParameterInfo.ForUI.GetParametersForObject(
-                RuntimeUtil.FindAvatarInParents(_parameterReference.transform).gameObject
-            ).Select(p => p.EffectiveName).ToHashSet();
+            if (paramRef == null)
+            {
+                _parameterSourceNotDetermined = true;
+                return;
+            }
 
-            var remaps = ParameterInfo.ForUI.GetParameterRemappingsAt(_parameterReference);
+            Dictionary<string, ProvidedParameter> rootParameters = new();
+            
+            foreach (var param in ParameterInfo.ForUI.GetParametersForObject(
+                         RuntimeUtil.FindAvatarInParents(paramRef.transform).gameObject
+                     ).Where(p => p.Namespace == ParameterNamespace.Animator)
+                    )
+                rootParameters[param.EffectiveName] = param;
+
+            var remaps = ParameterInfo.ForUI.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
             {
                 if (remap.Key.Item1 != ParameterNamespace.Animator) continue;
-                if (rootParameters.Contains(remap.Value.ParameterName)) _knownParameters.Add(remap.Key.Item2);
+                if (rootParameters.ContainsKey(remap.Value.ParameterName))
+                    _knownParameters[remap.Key.Item2] = rootParameters[remap.Value.ParameterName];
             }
 
             foreach (var rootParam in rootParameters)
-                if (!remaps.ContainsKey((ParameterNamespace.Animator, rootParam)))
-                    _knownParameters.Add(rootParam);
+                if (!remaps.ContainsKey((ParameterNamespace.Animator, rootParam.Key)))
+                    _knownParameters[rootParam.Key] = rootParam.Value;
         }
 
         /// <summary>
@@ -163,7 +180,12 @@ namespace nadena.dev.modular_avatar.core.editor
             _previewGUI = new MenuPreviewGUI(redraw);
         }
 
-        private void DrawHorizontalToggleProp(SerializedProperty prop, GUIContent label)
+        private void DrawHorizontalToggleProp(
+            SerializedProperty prop,
+            GUIContent label,
+            bool? forceMixedValues = null,
+            bool? forceValue = null
+        )
         {
             var toggleSize = EditorStyles.toggle.CalcSize(new GUIContent());
             var labelSize = EditorStyles.label.CalcSize(label);
@@ -172,14 +194,21 @@ namespace nadena.dev.modular_avatar.core.editor
             var rect = EditorGUILayout.GetControlRect(GUILayout.Width(width));
             EditorGUI.BeginProperty(rect, label, prop);
 
-            EditorGUI.BeginChangeCheck();
-            var value = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
-            if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
+            if (forceMixedValues != null) EditorGUI.showMixedValue = forceMixedValues.Value;
+
+            if (forceValue != null)
+            {
+                EditorGUI.ToggleLeft(rect, label, forceValue.Value);
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                var value = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
+                if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
+            }
 
             EditorGUI.EndProperty();
         }
-
-        private float lastWidth;
         
         public void DoGUI()
         {
@@ -200,17 +229,81 @@ namespace nadena.dev.modular_avatar.core.editor
             _parameterGUI.DoGUI(true);
 
             var paramName = _parameterName.stringValue;
-            if (!_parameterName.hasMultipleDifferentValues && !_knownParameters.Contains(paramName))
+
+            EditorGUILayout.BeginHorizontal();
+
+            bool? forceMixedValues = _parameterName.hasMultipleDifferentValues ? true : null;
+            var knownParameter = _parameterName.hasMultipleDifferentValues
+                ? null
+                : _knownParameters.GetValueOrDefault(paramName);
+
+            var knownParamDefault = knownParameter?.DefaultValue;
+            var isDefaultByKnownParam =
+                knownParamDefault != null ? _value.floatValue == knownParamDefault : (bool?)null;
+            Object controller = knownParameter?.Source;
+            var controllerIsElsewhere = controller != null && !(controller is ModularAvatarMenuItem);
+            // If we can't figure out what to reference the parameter names to, disable the UI
+            controllerIsElsewhere = controllerIsElsewhere || _parameterSourceNotDetermined;
+
+            using (new EditorGUI.DisabledScope(
+                       _parameterName.hasMultipleDifferentValues || controllerIsElsewhere)
+                  )
             {
-                EditorGUILayout.BeginHorizontal();
-                DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"));
+                // If we have multiple menu items selected, it probably doesn't make sense to make them all default.
+                // But, we do want to see if _any_ are default.
+                var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
+                var multipleSelections = _obj.targetObjects.Length > 1;
+                var mixedIsDefault = multipleSelections && anyIsDefault;
+                using (new EditorGUI.DisabledScope(multipleSelections))
+                {
+                    DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
+                        multipleSelections ? false : isDefaultByKnownParam);
+                }
                 GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"));
+                
+                var isSavedMixed = forceMixedValues ??
+                                   (_parameterName.hasMultipleDifferentValues || controllerIsElsewhere ? true : null);
+                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), isSavedMixed);
                 GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"));
-                EditorGUILayout.EndHorizontal();
+                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), forceMixedValues,
+                    knownParameter?.WantSynced);
             }
 
+            if (controllerIsElsewhere)
+            {
+                var refStyle = EditorStyles.toggle;
+                var refContent = new GUIContent("test");
+                var refRect = refStyle.CalcSize(refContent);
+                var height = refRect.y + EditorStyles.toggle.margin.top + EditorStyles.toggle.margin.bottom;
+
+                GUILayout.FlexibleSpace();
+                var style = new GUIStyle(EditorStyles.miniButton);
+                style.fixedWidth = 0;
+                style.fixedHeight = 0;
+                style.stretchHeight = true;
+                style.stretchWidth = true;
+                style.imagePosition = ImagePosition.ImageOnly;
+                var icon = EditorGUIUtility.FindTexture("d_Search Icon");
+
+                var rect = GUILayoutUtility.GetRect(new GUIContent(), style, GUILayout.ExpandWidth(false),
+                    GUILayout.Width(height), GUILayout.Height(height));
+
+                if (GUI.Button(rect, new GUIContent(), style))
+                {
+                    if (controller is VRCAvatarDescriptor desc) controller = desc.expressionParameters;
+                    Selection.activeObject = controller;
+                    EditorGUIUtility.PingObject(controller);
+                }
+
+                rect.xMin += 2;
+                rect.yMin += 2;
+                rect.xMax -= 2;
+                rect.yMax -= 2;
+                GUI.DrawTexture(rect, icon);
+            }
+
+            EditorGUILayout.EndHorizontal();
+            
             EditorGUILayout.EndVertical();
 
             if (_texture != null)
