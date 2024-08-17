@@ -90,20 +90,19 @@ namespace nadena.dev.modular_avatar.core.editor
         private class Node : IRenderFilterNode
         {
             private readonly RenderGroup _group;
+            private readonly ImmutableList<ModularAvatarShapeChanger> _changers;
             
             private Mesh _generatedMesh = null;
-            private ImmutableList<ModularAvatarShapeChanger> _changers;
             private HashSet<int> _toDelete;
 
             internal Node(RenderGroup group)
             {
                 _group = group;
+                _changers = _group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
             }
 
             private HashSet<int> GetToDeleteSet(SkinnedMeshRenderer proxy, ComputeContext context)
             {
-                _changers = _group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
-
                 var toDelete = new HashSet<int>();
                 var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
                 {
@@ -118,15 +117,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
-                    var shapes = context.Observe(changer, c => c.Shapes.ToImmutableList(), Enumerable.SequenceEqual);
-                    
+                    var shapes = context.Observe(changer,
+                        c => c.Shapes
+                            .Where(s => s.ChangeType == ShapeChangeType.Delete)
+                            .Select(s => s.ShapeName)
+                            .ToImmutableList(),
+                        Enumerable.SequenceEqual
+                    );
+
                     foreach (var shape in shapes)
-                        if (shape.ChangeType == ShapeChangeType.Delete)
-                        {
-                            var index = mesh.GetBlendShapeIndex(shape.ShapeName);
-                            if (index < 0) continue;
-                            toDelete.Add(index);
-                        }
+                    {
+                        var index = mesh.GetBlendShapeIndex(shape);
+                        if (index < 0) continue;
+                        toDelete.Add(index);
+                    }
                 }
 
                 return toDelete;
@@ -158,6 +162,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var toDelete = GetToDeleteSet(smr, context);
                 if (toDelete.Count == _toDelete.Count && toDelete.All(_toDelete.Contains))
                 {
+                    //System.Diagnostics.Debug.WriteLine("[ShapeChangerPreview] No changes detected. Retaining node.");
                     return this;
                 }
 
