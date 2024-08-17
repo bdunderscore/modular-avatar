@@ -70,6 +70,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
 #endif
                     seq.Run(GameObjectDelayDisablePass.Instance);
+                    seq.Run(ConstraintConverterPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(MenuInstallPluginPass.Instance);
