@@ -9,7 +9,7 @@
   },
   "locked": {
     "com.vrchat.avatars": {
-      "version": "3.5.0",
+      "version": "3.7.0",
       "dependencies": {
         "com.vrchat.base": "3.7.0"
       }
