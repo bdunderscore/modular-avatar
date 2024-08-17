@@ -131,12 +131,12 @@ jobs:
             cat $i | jq .version
           done
 
-      - uses: actions/cache@v4
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
-        with:
-          path: Library
-          key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
-          restore-keys: Library-
+#      - uses: actions/cache@v4
+#        if: ${{ steps.setup.outputs.should_test == 'true' }}
+#        with:
+#          path: Library
+#          key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+#          restore-keys: Library-
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
