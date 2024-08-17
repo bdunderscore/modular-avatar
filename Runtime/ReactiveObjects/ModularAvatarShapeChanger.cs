@@ -19,13 +19,14 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public struct ChangedShape
     {
+        public AvatarObjectReference Object;
         public string ShapeName;
         public ShapeChangeType ChangeType;
         public float Value;
 
         public bool Equals(ChangedShape other)
         {
-            return ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);
+            return Equals(Object, other.Object) && ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);
         }
 
         public override bool Equals(object obj)
@@ -35,12 +36,12 @@ namespace nadena.dev.modular_avatar.core
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ShapeName, (int)ChangeType, Value);
+            return HashCode.Combine(Object, ShapeName, (int)ChangeType, Value);
         }
 
         public override string ToString()
         {
-            return $"{ShapeName} {ChangeType} {Value}";
+            return $"{Object.referencePath} {ShapeName} {ChangeType} {Value}";
         }
     }
 

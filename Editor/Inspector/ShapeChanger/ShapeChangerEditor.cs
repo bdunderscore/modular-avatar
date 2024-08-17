@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
 
+        private BlendshapeSelectWindow _window;
 
         protected override void OnInnerInspectorGUI()
         {
@@ -33,6 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             root.Bind(serializedObject);
 
             var listView = root.Q<ListView>("Shapes");
+            root.Q<PropertyField>("TargetRenderer").RegisterValueChangeCallback(_ => listView.RefreshItems());
 
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
@@ -43,10 +46,57 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             addButton.clickable = new Clickable(() =>
             {
-                PopupWindow.Show(addButton.worldBound, new AddShapePopup(target as ModularAvatarShapeChanger));
+                var changer = target as ModularAvatarShapeChanger;
+                if (changer.targetRenderer.Get(changer) != null)
+                {
+                    PopupWindow.Show(addButton.worldBound, new AddShapePopup(changer));
+                }
+                else
+                {
+                    OpenAddWindow();
+                }
             });
 
             return root;
+        }
+
+        private void OnDisable()
+        {
+            if (_window != null) DestroyImmediate(_window);
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (_window != null) DestroyImmediate(_window);
+        }
+
+        private void OpenAddWindow()
+        {
+            if (_window != null) DestroyImmediate(_window);
+            _window = CreateInstance<BlendshapeSelectWindow>();
+            _window.AvatarRoot = RuntimeUtil.FindAvatarTransformInParents((target as ModularAvatarShapeChanger).transform).gameObject;
+            _window.OfferBinding += OfferBinding;
+            _window.Show();
+        }
+
+        private void OfferBinding(BlendshapeBinding binding)
+        {
+            var changer = target as ModularAvatarShapeChanger;
+            if (changer.Shapes.Any(x => x.Object.Equals(binding.ReferenceMesh) && x.ShapeName == binding.Blendshape))
+            {
+                return;
+            }
+
+            Undo.RecordObject(changer, "Add Shape");
+
+            changer.Shapes.Add(new ChangedShape()
+            {
+                Object = binding.ReferenceMesh,
+                ShapeName = binding.Blendshape,
+                ChangeType = ShapeChangeType.Delete,
+                Value = 100
+            });
         }
     }
 }

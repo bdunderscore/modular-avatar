@@ -39,11 +39,15 @@
     flex-direction: row;
 }
 
-.changed-shape-editor {
+.changed-shape-editor .horizontal {
     flex-direction: row;
 }
 
-.changed-shape-editor #f-name {
+.changed-shape-editor #f-object {
+    flex-grow: 1;
+}
+
+.changed-shape-editor #f-shape-name {
     flex-grow: 1;
 }
 
@@ -64,7 +68,7 @@
 }
 
 .f-value {
-    width: 40px;
+    width: 75px;
 }
 
 #f-value-delete {
@@ -77,6 +81,7 @@
 
 .change-type-delete #f-value-delete {
     display: flex;
+    height: 20px;
 }
 
 /* Add shape window */

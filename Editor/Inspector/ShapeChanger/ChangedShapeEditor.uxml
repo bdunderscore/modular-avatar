@@ -1,8 +1,19 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
     <ui:VisualElement class="changed-shape-editor">
-        <ui:Label text="&lt;shape name>" binding-path="ShapeName" name="f-name"/>
-        <ed:PropertyField binding-path="ChangeType" label="" name="f-change-type"/>
-        <ed:PropertyField binding-path="Value" label="" name="f-value" class="f-value"/>
-        <ui:VisualElement name="f-value-delete" class="f-value"/>
+        <ui:VisualElement class="horizontal">
+            <!--<ed:PropertyField binding-path="Object" label="" name="f-object" class="f-object"/>-->
+            <ed:ObjectField label="" name="f-object" class="f-object"/>
+            <ed:PropertyField binding-path="ChangeType" label="" name="f-change-type"/>
+            
+            <ui:VisualElement style="display:none">
+                <ui:TextField binding-path="Object.referencePath" label="" name="f-obj-ref-path"/>
+                <ed:ObjectField name="f-obj-target-object" binding-path="Object.targetObject"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="horizontal">
+            <ui:DropdownField name="f-shape-name" binding-path="ShapeName"/>
+            <ed:PropertyField binding-path="Value" label="" name="f-value" class="f-value"/>
+            <ui:VisualElement name="f-value-delete" class="f-value"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </UXML>

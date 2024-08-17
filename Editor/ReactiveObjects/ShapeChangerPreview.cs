@@ -49,61 +49,56 @@ namespace nadena.dev.modular_avatar.core.editor
                 bool active = ctx.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
                 if (active == ctx.Observe(changer, t => t.Inverted)) continue;
 
-                var target = ctx.Observe(changer, _ => changer.targetRenderer.Get(changer));
-                var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
+                var overrideTarget = ctx.Observe(changer, c => c.targetRenderer.Get(changer));
+                var overrideRenderer = ctx.GetComponent<SkinnedMeshRenderer>(overrideTarget);
 
-                if (renderer == null) continue;
+                var shapes = ctx.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
-                if (!groups.TryGetValue(renderer, out var group))
+                foreach (var (target, name, type, value) in shapes)
                 {
-                    group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
-                    groups[renderer] = group;
-                }
+                    var renderer = overrideRenderer ?? ctx.GetComponent<SkinnedMeshRenderer>(target);
+                    if (renderer == null) continue;
 
-                group.Add(changer);
+                    if (!groups.TryGetValue(renderer, out var group))
+                    {
+                        group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
+                        groups[renderer] = group;
+                    }
+
+                    group.Add(changer);
+                }
             }
             
             return groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
                 .ToImmutableList();
         }
 
-        public async Task<IRenderFilterNode> Instantiate(
-            RenderGroup group,
-            IEnumerable<(Renderer, Renderer)> proxyPairs,
-            ComputeContext context)
+        public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
-            var node = new Node(group);
+            var changers = group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
+            var node = new Node(changers);
 
-            try
-            {
-                await node.Init(proxyPairs, context);
-            }
-            catch (Exception e)
-            {
-                // dispose
-                throw;
-            }
-
-            return node;
+            return node.Refresh(proxyPairs, context, 0);
         }
 
         private class Node : IRenderFilterNode
         {
-            private readonly RenderGroup _group;
             private readonly ImmutableList<ModularAvatarShapeChanger> _changers;
-            
+            private ImmutableHashSet<(int, float)> _shapes;
+            private ImmutableHashSet<int> _toDelete;
             private Mesh _generatedMesh = null;
-            private HashSet<int> _toDelete;
 
-            internal Node(RenderGroup group)
+            internal Node(ImmutableList<ModularAvatarShapeChanger> changers)
             {
-                _group = group;
-                _changers = _group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
+                _changers = changers;
+                _shapes = ImmutableHashSet<(int, float)>.Empty;
+                _toDelete = ImmutableHashSet<int>.Empty;
+                _generatedMesh = null;
             }
 
-            private HashSet<int> GetToDeleteSet(SkinnedMeshRenderer proxy, ComputeContext context)
+            private ImmutableHashSet<(int, float)> GetShapesSet(SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
             {
-                var toDelete = new HashSet<int>();
+                var builder = ImmutableHashSet.CreateBuilder<(int, float)>();
                 var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
                 {
                     if (a != b)
@@ -117,67 +112,99 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
-                    var shapes = context.Observe(changer,
-                        c => c.Shapes
-                            .Where(s => s.ChangeType == ShapeChangeType.Delete)
-                            .Select(s => s.ShapeName)
-                            .ToImmutableList(),
-                        Enumerable.SequenceEqual
-                    );
+                    var overrideTarget = context.Observe(changer, c => c.targetRenderer.Get(changer));
+                    var overrideRenderer = context.GetComponent<SkinnedMeshRenderer>(overrideTarget);
 
-                    foreach (var shape in shapes)
+                    var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
+
+                    foreach (var (target, name, type, value) in shapes)
                     {
-                        var index = mesh.GetBlendShapeIndex(shape);
+                        var renderer = overrideRenderer ?? context.GetComponent<SkinnedMeshRenderer>(target);
+                        if (renderer != original) continue;
+
+                        var index = mesh.GetBlendShapeIndex(name);
                         if (index < 0) continue;
-                        toDelete.Add(index);
+                        builder.Add((index, type == ShapeChangeType.Delete ? 100 : value));
                     }
                 }
 
-                return toDelete;
+                return builder.ToImmutable();
             }
 
-            public async Task Init(
-                IEnumerable<(Renderer, Renderer)> renderers,
-                ComputeContext context
-            )
+            private ImmutableHashSet<int> GetToDeleteSet(SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
             {
-                var (original, proxy) = renderers.First();
+                var builder = ImmutableHashSet.CreateBuilder<int>();
+                var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
+                {
+                    if (a != b)
+                    {
+                        Debug.Log($"mesh changed {a.GetInstanceID()} -> {b.GetInstanceID()}");
+                        return false;
+                    }
 
-                if (original == null || proxy == null) return;
-                if (!(proxy is SkinnedMeshRenderer smr)) return;
+                    return true;
+                });
 
-                await Init(smr, context, GetToDeleteSet(smr, context));
+                foreach (var changer in _changers)
+                {
+                    var overrideTarget = context.Observe(changer, c => c.targetRenderer.Get(changer));
+                    var overrideRenderer = context.GetComponent<SkinnedMeshRenderer>(overrideTarget);
+
+                    var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
+
+                    foreach (var (target, name, type, value) in shapes)
+                    {
+                        if (type != ShapeChangeType.Delete) continue;
+
+                        var renderer = overrideRenderer ?? context.GetComponent<SkinnedMeshRenderer>(target);
+                        if (renderer != original) continue;
+
+                        var index = mesh.GetBlendShapeIndex(name);
+                        if (index < 0) continue;
+                        builder.Add(index);
+                    }
+                }
+
+                return builder.ToImmutable();
             }
 
-            public async Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs,
-                ComputeContext context, RenderAspects updatedAspects)
+            public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                if ((updatedAspects & RenderAspects.Mesh) != 0) return null;
-
                 var (original, proxy) = proxyPairs.First();
 
                 if (original == null || proxy == null) return null;
-                if (!(proxy is SkinnedMeshRenderer smr)) return null;
+                if (original is not SkinnedMeshRenderer originalSmr || proxy is not SkinnedMeshRenderer proxySmr) return null;
 
-                var toDelete = GetToDeleteSet(smr, context);
-                if (toDelete.Count == _toDelete.Count && toDelete.All(_toDelete.Contains))
+                var shapes = GetShapesSet(originalSmr, proxySmr, context);
+                var toDelete = GetToDeleteSet(originalSmr, proxySmr, context);
+
+                if (!toDelete.SequenceEqual(_toDelete))
                 {
-                    //System.Diagnostics.Debug.WriteLine("[ShapeChangerPreview] No changes detected. Retaining node.");
-                    return this;
+                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
+                    {
+                        _shapes = shapes,
+                        _toDelete = toDelete,
+                        _generatedMesh = GetGeneratedMesh(proxySmr, toDelete),
+                    });
                 }
 
-                var node = new Node(_group);
-                await node.Init(smr, context, toDelete);
-                return node;
+                if (!shapes.SequenceEqual(_shapes))
+                {
+                    var reusableMesh = _generatedMesh;
+                    _generatedMesh = null;
+                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
+                    {
+                        _shapes = shapes,
+                        _toDelete = toDelete,
+                        _generatedMesh = reusableMesh,
+                    });
+                }
+
+                return Task.FromResult<IRenderFilterNode>(this);
             }
 
-            public async Task Init(
-                SkinnedMeshRenderer proxy,
-                ComputeContext context,
-                HashSet<int> toDelete
-            )
+            public Mesh GetGeneratedMesh(SkinnedMeshRenderer proxy, ImmutableHashSet<int> toDelete)
             {
-                _toDelete = toDelete;
                 var mesh = proxy.sharedMesh;
 
                 if (toDelete.Count > 0)
@@ -223,9 +250,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
                     }
-                    
-                    _generatedMesh = mesh;
+
+                    return mesh;
                 }
+
+                return null;
             }
 
 
@@ -239,43 +268,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                if (_changers == null) return; // can happen transiently as we disable the last component
-                if (!(proxy is SkinnedMeshRenderer smr)) return;
+                if (original == null || proxy == null) return;
+                if (original is not SkinnedMeshRenderer originalSmr || proxy is not SkinnedMeshRenderer proxySmr) return;
 
-                Mesh mesh;
                 if (_generatedMesh != null)
                 {
-                    smr.sharedMesh = _generatedMesh;
-                    mesh = _generatedMesh;
-                }
-                else
-                {
-                    mesh = smr.sharedMesh;
+                    proxySmr.sharedMesh = _generatedMesh;
                 }
 
-                if (mesh == null) return;
-
-                foreach (var changer in _changers)
+                foreach (var shape in _shapes)
                 {
-                    foreach (var shape in changer.Shapes)
-                    {
-                        var index = mesh.GetBlendShapeIndex(shape.ShapeName);
-                        if (index < 0) continue;
-
-                        float setToValue = -1;
-
-                        switch (shape.ChangeType)
-                        {
-                            case ShapeChangeType.Delete:
-                                setToValue = 100;
-                                break;
-                            case ShapeChangeType.Set:
-                                setToValue = shape.Value;
-                                break;
-                        }
-
-                        smr.SetBlendShapeWeight(index, setToValue);
-                    }
+                    proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2);
                 }
             }
         }

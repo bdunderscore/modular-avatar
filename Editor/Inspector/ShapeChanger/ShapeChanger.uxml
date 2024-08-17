@@ -2,8 +2,8 @@
       xmlns:ma="nadena.dev.modular_avatar.core.editor">
     <ui:VisualElement name="root-box">
         <ui:VisualElement name="group-box">
-            <ed:PropertyField binding-path="m_targetRenderer" label="reactive_object.shape-changer.target-renderer" class="ndmf-tr"/>
             <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
+            <ed:PropertyField binding-path="m_targetRenderer" label="reactive_object.shape-changer.target-renderer" name="TargetRenderer" class="ndmf-tr"/>
 
             <ui:VisualElement name="ListViewContainer">
                 <ui:ListView virtualization-method="DynamicHeight"

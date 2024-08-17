@@ -77,6 +77,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             changer.Shapes.Add(new ChangedShape()
             {
+                Object = new(),
                 ShapeName = key,
                 ChangeType = ShapeChangeType.Delete,
                 Value = 100

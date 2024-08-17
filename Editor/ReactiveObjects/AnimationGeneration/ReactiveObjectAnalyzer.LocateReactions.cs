@@ -15,15 +15,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var changer in changers)
             {
-                var renderer = changer.targetRenderer.Get(changer)?.GetComponent<SkinnedMeshRenderer>();
-                if (renderer == null) continue;
-
-                var mesh = renderer.sharedMesh;
-
-                if (mesh == null) continue;
+                var overrideRenderer = changer.targetRenderer.Get(changer)?.GetComponent<SkinnedMeshRenderer>();
 
                 foreach (var shape in changer.Shapes)
                 {
+                    var renderer = overrideRenderer ?? shape.Object.Get(changer)?.GetComponent<SkinnedMeshRenderer>();
+                    if (renderer == null) continue;
+
+                    var mesh = renderer.sharedMesh;
+                    if (mesh == null) continue;
+
                     var shapeId = mesh.GetBlendShapeIndex(shape.ShapeName);
                     if (shapeId < 0) continue;
 

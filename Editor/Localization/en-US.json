@@ -251,6 +251,6 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "Inverse Condition",
   "reactive_object.material-setter.set-to": "Set material to: ",
-  "reactive_object.shape-changer.target-renderer": "Target Renderer",
+  "reactive_object.shape-changer.target-renderer": "Target Renderer for all",
   "menuitem.misc.add_toggle": "Add toggle"
 }
