@@ -32,6 +32,14 @@ namespace nadena.dev.modular_avatar.core
 
     public class ModularAvatarMaterialSetter : ReactiveComponent
     {
+        [SerializeField] private AvatarObjectReference m_targetRenderer;
+
+        public AvatarObjectReference targetRenderer
+        {
+            get => m_targetRenderer;
+            set => m_targetRenderer = value;
+        }
+
         [SerializeField] private List<MaterialSwitchObject> m_objects = new();
         
         public List<MaterialSwitchObject> Objects

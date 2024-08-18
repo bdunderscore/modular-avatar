@@ -85,34 +85,33 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             void UpdateVisualTarget()
             {
-                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
-                Renderer targetRenderer;
+                var setter = property.serializedObject.targetObject as ModularAvatarMaterialSetter;
+                var renderer = GetTargetRenderer(AvatarObjectReference.Get(property.FindPropertyRelative("Object")));
+                var overrideRenderer = GetTargetRenderer(setter?.targetRenderer.Get(setter));
 
-                try
+                f_object.SetEnabled(overrideRenderer == null);
+                f_object.SetValueWithoutNotify(overrideRenderer ?? renderer);
+
+                Renderer GetTargetRenderer(GameObject obj)
                 {
-                    targetRenderer = targetObject?.GetComponent<Renderer>();
+                    try
+                    {
+                        return obj?.GetComponent<Renderer>();
+                    }
+                    catch (MissingComponentException e)
+                    {
+                        return null;
+                    }
                 }
-                catch (MissingComponentException e)
-                {
-                    targetRenderer = null;
-                }
-                
-                f_object.SetValueWithoutNotify(targetRenderer);
             }
             
             void UpdateMaterialDropdown()
             {
-                var toggledObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
-                Material[] sharedMaterials;
-                try
-                {
-                    sharedMaterials = toggledObject?.GetComponent<Renderer>()?.sharedMaterials;
-                }
-                catch (MissingComponentException e)
-                {
-                    sharedMaterials = null;
-                }
+                var setter = property.serializedObject.targetObject as ModularAvatarMaterialSetter;
+                var sharedMaterials = GetSharedMaterials(AvatarObjectReference.Get(property.FindPropertyRelative("Object")));
+                var overrideSharedMaterials = GetSharedMaterials(setter?.targetRenderer.Get(setter));
 
+                sharedMaterials = overrideSharedMaterials ?? sharedMaterials;
                 if (sharedMaterials != null)
                 {
                     var matCount = sharedMaterials.Length;
@@ -155,6 +154,18 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                     
                     f_material_index.formatListItemCallback = _ => "<Missing Renderer>";
                     f_material_index.formatSelectedValueCallback = f_material_index.formatListItemCallback;
+                }
+
+                Material[] GetSharedMaterials(GameObject obj)
+                {
+                    try
+                    {
+                        return obj?.GetComponent<Renderer>()?.sharedMaterials;
+                    }
+                    catch (MissingComponentException e)
+                    {
+                        return null;
+                    }
                 }
             }
         }
