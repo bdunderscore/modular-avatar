@@ -98,7 +98,9 @@ namespace nadena.dev.modular_avatar.core.editor
         public RenderAspects WhatChanged => 0;
 
         private readonly Dictionary<Transform, ModularAvatarScaleAdjuster> _boneOverrides
-            = new(new ObjectIdentityComparer<Transform>()); 
+            = new(new ObjectIdentityComparer<Transform>());
+
+        private Transform[] _boneArray, _newBoneArray;
         
         public Task<IRenderFilterNode> Refresh
         (
@@ -122,6 +124,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         _boneOverrides.Add(bone, sa);
                     }
                 }
+
+                _boneArray = context.Observe(smr, s => s.bones, Enumerable.SequenceEqual);
+                _newBoneArray = new Transform[_boneArray.Length];
             }
             
             return Task.FromResult((IRenderFilterNode)this);
@@ -129,16 +134,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnFrame(Renderer original, Renderer proxy)
         {
-            if (proxy is SkinnedMeshRenderer p_smr && original is SkinnedMeshRenderer o_smr)
+            if (_boneArray != null)
             {
-                p_smr.rootBone = _bones.GetBone(o_smr.rootBone)?.proxy ?? o_smr.rootBone;
-                p_smr.bones = o_smr.bones.Select(b =>
+                for (int i = 0; i < _boneArray.Length; i++)
                 {
+                    var b = _boneArray[i];
+                    
                     ModularAvatarScaleAdjuster sa = null;
                     if (b != null) _boneOverrides.TryGetValue(b, out sa);
                     
-                    return _bones.GetBone(sa, true)?.proxy ?? b;
-                }).ToArray();
+                    _newBoneArray[i] = _bones.GetBone(sa, true)?.proxy ?? b;
+                }
+                
+                ((SkinnedMeshRenderer)proxy).bones = _newBoneArray;
             }
 
             _bones.Update();
