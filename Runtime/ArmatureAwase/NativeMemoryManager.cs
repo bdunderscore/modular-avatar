@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 
 #endregion
 
@@ -134,6 +135,15 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         void SetInUseMask(int offset, int length, bool value)
         {
+            if (offset < 0)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            
+            // We perform trial creations of segments (and then immediately free them if they exceed the bounds of the
+            // array). As such, we clamp the length, rather than throwing an exception.
+            length = Math.Min(length, InUseMask.Array.Length - offset);
+            
             unsafe
             {
                 UnsafeUtility.MemSet((byte*)InUseMask.Array.GetUnsafePtr() + offset, value ? (byte)1 : (byte)0, length);
