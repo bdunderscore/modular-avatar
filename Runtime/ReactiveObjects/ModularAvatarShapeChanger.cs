@@ -17,7 +17,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [Serializable]
-    public struct ChangedShape
+    public class ChangedShape
     {
         public AvatarObjectReference Object;
         public string ShapeName;
