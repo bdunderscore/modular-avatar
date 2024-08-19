@@ -49,6 +49,9 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
     public class ModularAvatarShapeChanger : ReactiveComponent
     {
+        [SerializeField] [FormerlySerializedAs("targetRenderer")] [HideInInspector]
+        private AvatarObjectReference m_targetRenderer = new();
+
         [SerializeField] [FormerlySerializedAs("Shapes")]
         private List<ChangedShape> m_shapes = new();
 
@@ -63,6 +66,34 @@ namespace nadena.dev.modular_avatar.core
             foreach (var shape in m_shapes)
             {
                 shape.Object?.Get(this);
+            }
+        }
+
+        private void OnEnable()
+        {
+            MigrateTargetRenderer();
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            MigrateTargetRenderer();
+        }
+
+        private void MigrateTargetRenderer()
+        {
+            if (!string.IsNullOrEmpty(m_targetRenderer.referencePath) || m_targetRenderer.targetObject != null)
+            {
+                foreach (var shape in m_shapes)
+                {
+                    if (string.IsNullOrEmpty(shape.Object.referencePath) && shape.Object.targetObject == null)
+                    {
+                        shape.Object.referencePath = m_targetRenderer.referencePath;
+                        shape.Object.targetObject = m_targetRenderer.targetObject;
+                    }
+                }
+                m_targetRenderer.referencePath = null;
+                m_targetRenderer.targetObject = null;
             }
         }
     }
