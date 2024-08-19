@@ -50,13 +50,9 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarShapeChanger : ReactiveComponent
     {
         [SerializeField] [FormerlySerializedAs("targetRenderer")]
-        private AvatarObjectReference m_targetRenderer;
+        private AvatarObjectReference m_targetRenderer = new();
 
-        public AvatarObjectReference targetRenderer
-        {
-            get => m_targetRenderer;
-            set => m_targetRenderer = value;
-        }
+        public AvatarObjectReference targetRenderer => m_targetRenderer;
 
         [SerializeField] [FormerlySerializedAs("Shapes")]
         private List<ChangedShape> m_shapes = new();
