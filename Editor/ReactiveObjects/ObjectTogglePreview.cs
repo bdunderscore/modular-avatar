@@ -9,6 +9,8 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ObjectSwitcherPreview : IRenderFilter
     {
+        public bool CanEnableRenderers => true;
+
         static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
             () => "Object Switcher",
             qualifiedName: "nadena.dev.modular-avatar/ObjectSwitcherPreview",
@@ -138,7 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor
       
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                proxy.gameObject.SetActive(_shouldEnable);
+                proxy.enabled = _shouldEnable;
             }
         }
     }
