@@ -22,5 +22,13 @@ namespace nadena.dev.modular_avatar.core
             get => m_objects;
             set => m_objects = value;
         }
+        
+        public override void ResolveReferences()
+        {
+            foreach (var obj in m_objects)
+            {
+                obj.Object?.Get(this);
+            }
+        }
     }
 }

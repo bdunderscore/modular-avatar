@@ -65,5 +65,10 @@ namespace nadena.dev.modular_avatar.core
             get => m_shapes;
             set => m_shapes = value;
         }
+
+        public override void ResolveReferences()
+        {
+            m_targetRenderer?.Get(this);
+        }
     }
 }
