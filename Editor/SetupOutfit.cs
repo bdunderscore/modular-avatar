@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
@@ -113,25 +114,37 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal static class EasySetupOutfit
+    public static class SetupOutfit
     {
         private static string[] errorMessageGroups;
         private static string errorHeader;
 
         [MenuItem(UnityMenuItems.GameObject_SetupOutfit, false, UnityMenuItems.GameObject_SetupOutfitOrder)]
-        internal static void SetupOutfit(MenuCommand cmd)
+        internal static void SetupOutfitMenu(MenuCommand cmd)
         {
-            if (!ValidateSetupOutfit())
+            var outfitRoot = cmd.context as GameObject;
+
+            SetupOutfitUI(outfitRoot);
+        }
+
+        /// <summary>
+        ///     Executes the `Setup Outfit` operation, as if the user selected `outfitRoot` and ran Setup Outfit from the
+        ///     context menu. Any errors encountered will trigger a popup error window.
+        /// </summary>
+        /// <param name="outfitRoot"></param>
+        [PublicAPI]
+        public static void SetupOutfitUI(GameObject outfitRoot)
+        {
+            if (!ValidateSetupOutfit(outfitRoot))
             {
                 ESOErrorWindow.Show(errorHeader, errorMessageGroups);
                 return;
             }
 
-            if (!FindBones(cmd.context,
+            if (!FindBones(outfitRoot,
                     out var avatarRoot, out var avatarHips, out var outfitHips)
                ) return;
 
-            var outfitRoot = cmd.context as GameObject;
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
             
@@ -362,45 +375,51 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var obj in Selection.objects)
             {
                 errorHeader = S_f("setup_outfit.err.header", obj.name);
-
                 if (!(obj is GameObject gameObj)) return false;
-                var xform = gameObj.transform;
 
-                if (!FindBones(obj, out var _, out var _, out var outfitHips))
-                {
-                    return false;
-                }
+                if (!ValidateSetupOutfit(gameObj)) return false;
+            }
 
-                // Some users have been accidentally running Setup Outfit on the avatar itself, and/or nesting avatar
-                // descriptors when transplanting outfits. Block this (and require that there be only one avdesc) by
-                // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
-                // the avdesc object itself)
-                var nearestAvatarTransform = RuntimeUtil.FindAvatarTransformInParents(xform);
-                if (nearestAvatarTransform == null)
-                {
-                    errorMessageGroups = new string[]
-                    {
-                        S_f("setup_outfit.err.no_avatar_descriptor", xform.gameObject.name)
-                    };
-                    return false;
-                }
+            return true;
+        }
 
-                if (nearestAvatarTransform == xform)
-                {
-                    errorMessageGroups = new string[]
-                        { S_f("setup_outfit.err.run_on_avatar_itself", xform.gameObject.name) };
-                    return false;
-                }
+        private static bool ValidateSetupOutfit(GameObject gameObj)
+        {
+            Object obj;
+            errorHeader = S_f("setup_outfit.err.header", gameObj.name);
+            var xform = gameObj.transform;
 
-                var parent = nearestAvatarTransform.parent;
-                if (parent != null && RuntimeUtil.FindAvatarTransformInParents(parent) != null)
+            if (!FindBones(gameObj, out var _, out var _, out var outfitHips)) return false;
+
+            // Some users have been accidentally running Setup Outfit on the avatar itself, and/or nesting avatar
+            // descriptors when transplanting outfits. Block this (and require that there be only one avdesc) by
+            // refusing to run if we detect multiple avatar descriptors above the current object (or if we're run on
+            // the avdesc object itself)
+            var nearestAvatarTransform = RuntimeUtil.FindAvatarTransformInParents(xform);
+            if (nearestAvatarTransform == null)
+            {
+                errorMessageGroups = new[]
                 {
-                    errorMessageGroups = new string[]
-                    {
-                        S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name)
-                    };
-                    return false;
-                }
+                    S_f("setup_outfit.err.no_avatar_descriptor", xform.gameObject.name)
+                };
+                return false;
+            }
+
+            if (nearestAvatarTransform == xform)
+            {
+                errorMessageGroups = new[]
+                    { S_f("setup_outfit.err.run_on_avatar_itself", xform.gameObject.name) };
+                return false;
+            }
+
+            var parent = nearestAvatarTransform.parent;
+            if (parent != null && RuntimeUtil.FindAvatarTransformInParents(parent) != null)
+            {
+                errorMessageGroups = new[]
+                {
+                    S_f("setup_outfit.err.multiple_avatar_descriptors", xform.gameObject.name)
+                };
+                return false;
             }
 
             return true;
