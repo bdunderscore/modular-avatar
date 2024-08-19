@@ -31,42 +31,39 @@ namespace nadena.dev.modular_avatar.core.editor
             return context.Observe(EnableNode.IsEnabled);
         }
         
-        public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
+        public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
-            var menuItemPreview = new MenuItemPreviewCondition(ctx);
-            
-            var allChangers = ctx.GetComponentsByType<ModularAvatarShapeChanger>();
+            var menuItemPreview = new MenuItemPreviewCondition(context);
+            var changers = context.GetComponentsByType<ModularAvatarShapeChanger>();
 
-            var groups =
+            var builders =
                 new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
                     new ObjectIdentityComparer<Renderer>());
 
-            foreach (var changer in allChangers)
+            foreach (var changer in changers)
             {
-                if (changer == null) continue;
+                var mami = context.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
+                bool active = context.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
+                if (active == context.Observe(changer, c => c.Inverted)) continue;
 
-                var mami = ctx.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
-                bool active = ctx.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
-                if (active == ctx.Observe(changer, t => t.Inverted)) continue;
-
-                var shapes = ctx.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
+                var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
                 foreach (var (target, name, type, value) in shapes)
                 {
-                    var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
+                    var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
                     if (renderer == null) continue;
 
-                    if (!groups.TryGetValue(renderer, out var group))
+                    if (!builders.TryGetValue(renderer, out var builder))
                     {
-                        group = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
-                        groups[renderer] = group;
+                        builder = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
+                        builders[renderer] = builder;
                     }
 
-                    group.Add(changer);
+                    builder.Add(changer);
                 }
             }
             
-            return groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
+            return builders.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
                 .ToImmutableList();
         }
 
@@ -85,12 +82,49 @@ namespace nadena.dev.modular_avatar.core.editor
             private ImmutableHashSet<int> _toDelete;
             private Mesh _generatedMesh = null;
 
+            public RenderAspects WhatChanged => RenderAspects.Shapes | RenderAspects.Mesh;
+
             internal Node(ImmutableList<ModularAvatarShapeChanger> changers)
             {
                 _changers = changers;
                 _shapes = ImmutableHashSet<(int, float)>.Empty;
                 _toDelete = ImmutableHashSet<int>.Empty;
                 _generatedMesh = null;
+            }
+
+            public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
+            {
+                var (original, proxy) = proxyPairs.First();
+
+                if (original == null || proxy == null) return null;
+                if (original is not SkinnedMeshRenderer originalSmr || proxy is not SkinnedMeshRenderer proxySmr) return null;
+
+                var shapes = GetShapesSet(originalSmr, proxySmr, context);
+                var toDelete = GetToDeleteSet(originalSmr, proxySmr, context);
+
+                if (!toDelete.SequenceEqual(_toDelete))
+                {
+                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
+                    {
+                        _shapes = shapes,
+                        _toDelete = toDelete,
+                        _generatedMesh = GetGeneratedMesh(proxySmr, toDelete),
+                    });
+                }
+
+                if (!shapes.SequenceEqual(_shapes))
+                {
+                    var reusableMesh = _generatedMesh;
+                    _generatedMesh = null;
+                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
+                    {
+                        _shapes = shapes,
+                        _toDelete = toDelete,
+                        _generatedMesh = reusableMesh,
+                    });
+                }
+
+                return Task.FromResult<IRenderFilterNode>(this);
             }
 
             private ImmutableHashSet<(int, float)> GetShapesSet(SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
@@ -159,41 +193,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 return builder.ToImmutable();
             }
 
-            public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
-            {
-                var (original, proxy) = proxyPairs.First();
-
-                if (original == null || proxy == null) return null;
-                if (original is not SkinnedMeshRenderer originalSmr || proxy is not SkinnedMeshRenderer proxySmr) return null;
-
-                var shapes = GetShapesSet(originalSmr, proxySmr, context);
-                var toDelete = GetToDeleteSet(originalSmr, proxySmr, context);
-
-                if (!toDelete.SequenceEqual(_toDelete))
-                {
-                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
-                    {
-                        _shapes = shapes,
-                        _toDelete = toDelete,
-                        _generatedMesh = GetGeneratedMesh(proxySmr, toDelete),
-                    });
-                }
-
-                if (!shapes.SequenceEqual(_shapes))
-                {
-                    var reusableMesh = _generatedMesh;
-                    _generatedMesh = null;
-                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
-                    {
-                        _shapes = shapes,
-                        _toDelete = toDelete,
-                        _generatedMesh = reusableMesh,
-                    });
-                }
-
-                return Task.FromResult<IRenderFilterNode>(this);
-            }
-
             public Mesh GetGeneratedMesh(SkinnedMeshRenderer proxy, ImmutableHashSet<int> toDelete)
             {
                 var mesh = proxy.sharedMesh;
@@ -248,15 +247,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 return null;
             }
 
-
-            public RenderAspects Reads => RenderAspects.Shapes | RenderAspects.Mesh;
-            public RenderAspects WhatChanged => RenderAspects.Shapes | RenderAspects.Mesh;
-
-            public void Dispose()
-            {
-                if (_generatedMesh != null) Object.DestroyImmediate(_generatedMesh);
-            }
-
             public void OnFrame(Renderer original, Renderer proxy)
             {
                 if (original == null || proxy == null) return;
@@ -271,6 +261,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2);
                 }
+            }
+
+            public void Dispose()
+            {
+                if (_generatedMesh != null) Object.DestroyImmediate(_generatedMesh);
             }
         }
     }

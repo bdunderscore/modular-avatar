@@ -15,6 +15,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var changer in changers)
             {
+                if (changer.Shapes == null) continue;
+
                 foreach (var shape in changer.Shapes)
                 {
                     var renderer = shape.Object.Get(changer)?.GetComponent<SkinnedMeshRenderer>();

@@ -55,11 +55,11 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             void UpdateMaterialDropdown()
             {
-                var toggledObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
+                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
                 Material[] sharedMaterials;
                 try
                 {
-                    sharedMaterials = toggledObject?.GetComponent<Renderer>()?.sharedMaterials;
+                    sharedMaterials = targetObject?.GetComponent<Renderer>()?.sharedMaterials;
                 }
                 catch (MissingComponentException e)
                 {
