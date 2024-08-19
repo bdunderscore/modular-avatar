@@ -49,14 +49,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 bool active = ctx.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
                 if (active == ctx.Observe(changer, t => t.Inverted)) continue;
 
-                var overrideTarget = ctx.Observe(changer, c => c.targetRenderer.Get(changer));
-                var overrideRenderer = ctx.GetComponent<SkinnedMeshRenderer>(overrideTarget);
-
                 var shapes = ctx.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
                 foreach (var (target, name, type, value) in shapes)
                 {
-                    var renderer = overrideRenderer ?? ctx.GetComponent<SkinnedMeshRenderer>(target);
+                    var renderer = ctx.GetComponent<SkinnedMeshRenderer>(target);
                     if (renderer == null) continue;
 
                     if (!groups.TryGetValue(renderer, out var group))
@@ -112,14 +109,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
-                    var overrideTarget = context.Observe(changer, c => c.targetRenderer.Get(changer));
-                    var overrideRenderer = context.GetComponent<SkinnedMeshRenderer>(overrideTarget);
-
                     var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
                     foreach (var (target, name, type, value) in shapes)
                     {
-                        var renderer = overrideRenderer ?? context.GetComponent<SkinnedMeshRenderer>(target);
+                        var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
                         if (renderer != original) continue;
 
                         var index = mesh.GetBlendShapeIndex(name);
@@ -147,16 +141,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
-                    var overrideTarget = context.Observe(changer, c => c.targetRenderer.Get(changer));
-                    var overrideRenderer = context.GetComponent<SkinnedMeshRenderer>(overrideTarget);
-
                     var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
                     foreach (var (target, name, type, value) in shapes)
                     {
                         if (type != ShapeChangeType.Delete) continue;
 
-                        var renderer = overrideRenderer ?? context.GetComponent<SkinnedMeshRenderer>(target);
+                        var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
                         if (renderer != original) continue;
 
                         var index = mesh.GetBlendShapeIndex(name);

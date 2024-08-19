@@ -29,43 +29,13 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             var f_shape_name = uxml.Q<DropdownField>("f-shape-name");
 
-            var f_object = uxml.Q<ObjectField>("f-object");
-            f_object.objectType = typeof(SkinnedMeshRenderer);
-            f_object.allowSceneObjects = true;
+            var f_object = uxml.Q<PropertyField>("f-object");
 
-            var f_target_object = uxml.Q<ObjectField>("f-obj-target-object");
-            var f_reference_path = uxml.Q<TextField>("f-obj-ref-path");
-
-            f_object.RegisterValueChangedCallback(evt =>
+            f_object.RegisterValueChangeCallback(evt =>
             {
-                var gameObj = (evt.newValue as SkinnedMeshRenderer)?.gameObject;
-
-                if (gameObj == null)
-                {
-                    f_target_object.value = null;
-                    f_reference_path.value = "";
-                }
-                else
-                {
-                    var path = RuntimeUtil.AvatarRootPath(gameObj);
-
-                    f_reference_path.value = path;
-                    if (path == "")
-                    {
-                        f_target_object.value = null;
-                    }
-                    else
-                    {
-                        f_target_object.value = gameObj;
-                    }
-                }
-
                 EditorApplication.delayCall += UpdateShapeDropdown;
             });
             UpdateShapeDropdown();
-
-            f_target_object.RegisterValueChangedCallback(_ => UpdateVisualTarget());
-            f_reference_path.RegisterValueChangedCallback(_ => UpdateVisualTarget());
 
             uxml.Q<PropertyField>("f-change-type").RegisterCallback<ChangeEvent<string>>(
                 e =>
@@ -83,56 +53,27 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             return uxml;
 
-            void UpdateVisualTarget()
-            {
-                var changer = property.serializedObject.targetObject as ModularAvatarShapeChanger;
-                var renderer = GetTargetRenderer(AvatarObjectReference.Get(property.FindPropertyRelative("Object")));
-                var overrideRenderer = GetTargetRenderer(changer?.targetRenderer.Get(changer));
-
-                f_object.SetEnabled(overrideRenderer == null);
-                f_object.SetValueWithoutNotify(overrideRenderer ?? renderer);
-
-                SkinnedMeshRenderer GetTargetRenderer(GameObject obj)
-                {
-                    try
-                    {
-                        return obj?.GetComponent<SkinnedMeshRenderer>();
-                    }
-                    catch (MissingComponentException e)
-                    {
-                        return null;
-                    }
-                }
-            }
-
             void UpdateShapeDropdown()
             {
-                var changer = property.serializedObject.targetObject as ModularAvatarShapeChanger;
-                var shapeNames = GetShapeNames(AvatarObjectReference.Get(property.FindPropertyRelative("Object")));
-                var overrideShapeNames = GetShapeNames(changer?.targetRenderer.Get(changer));
-
-                f_shape_name.SetEnabled(overrideShapeNames != null || shapeNames != null);
-                f_shape_name.choices = overrideShapeNames ?? shapeNames ?? new();
-
-                f_shape_name.formatListItemCallback = name => f_shape_name.enabledSelf ? name : "<Missing SkinnedMeshRenderer>";
-                f_shape_name.formatSelectedValueCallback = f_shape_name.formatListItemCallback;
-
-                List<string> GetShapeNames(GameObject obj)
+                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
+                List<string> shapeNames;
+                try
                 {
-                    try
-                    {
-                        var mesh = obj?.GetComponent<SkinnedMeshRenderer>()?.sharedMesh;
-                        if (mesh == null) return null;
-
-                        return Enumerable.Range(0, mesh.blendShapeCount)
-                            .Select(x => mesh.GetBlendShapeName(x))
-                            .ToList();
-                    }
-                    catch (MissingComponentException e)
-                    {
-                        return null;
-                    }
+                    var mesh = targetObject?.GetComponent<SkinnedMeshRenderer>()?.sharedMesh;
+                    shapeNames = mesh == null ? null : Enumerable.Range(0, mesh.blendShapeCount)
+                        .Select(x => mesh.GetBlendShapeName(x))
+                        .ToList();
                 }
+                catch (MissingComponentException e)
+                {
+                    shapeNames = null;
+                }
+
+                f_shape_name.SetEnabled(shapeNames != null);
+                f_shape_name.choices = shapeNames ?? new();
+
+                f_shape_name.formatListItemCallback = name => shapeNames != null ? name : "<Missing SkinnedMeshRenderer>";
+                f_shape_name.formatSelectedValueCallback = f_shape_name.formatListItemCallback;
             }
         }
     }

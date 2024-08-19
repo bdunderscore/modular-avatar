@@ -247,6 +247,5 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "条件を反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル ",
-  "reactive_object.shape-changer.target-renderer": "操作するレンダラーの一括指定",
   "menuitem.misc.add_toggle": "トグルを追加"
 }

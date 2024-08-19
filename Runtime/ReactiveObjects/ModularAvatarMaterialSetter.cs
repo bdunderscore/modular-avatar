@@ -32,10 +32,6 @@ namespace nadena.dev.modular_avatar.core
 
     public class ModularAvatarMaterialSetter : ReactiveComponent
     {
-        [SerializeField] private AvatarObjectReference m_targetRenderer = new();
-
-        public AvatarObjectReference targetRenderer => m_targetRenderer;
-
         [SerializeField] private List<MaterialSwitchObject> m_objects = new();
         
         public List<MaterialSwitchObject> Objects
@@ -46,7 +42,6 @@ namespace nadena.dev.modular_avatar.core
 
         public override void ResolveReferences()
         {
-            m_targetRenderer?.Get(this);
             foreach (var obj in m_objects)
             {
                 obj.Object?.Get(this);

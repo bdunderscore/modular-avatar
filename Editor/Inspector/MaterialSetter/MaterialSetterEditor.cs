@@ -31,7 +31,6 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             root.Bind(serializedObject);
 
             var listView = root.Q<ListView>("Shapes");
-            root.Q<PropertyField>("TargetRenderer").RegisterValueChangeCallback(_ => listView.RefreshItems());
 
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;

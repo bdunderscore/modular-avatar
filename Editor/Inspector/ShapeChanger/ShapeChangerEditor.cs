@@ -35,7 +35,6 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             root.Bind(serializedObject);
 
             var listView = root.Q<ListView>("Shapes");
-            root.Q<PropertyField>("TargetRenderer").RegisterValueChangeCallback(_ => listView.RefreshItems());
 
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
@@ -44,18 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             var field_addButton = typeof(BaseListView).GetField("m_AddButton", NonPublic | Instance);
             var addButton = (Button)field_addButton.GetValue(listView);
 
-            addButton.clickable = new Clickable(() =>
-            {
-                var changer = target as ModularAvatarShapeChanger;
-                if (changer.targetRenderer.Get(changer) != null)
-                {
-                    PopupWindow.Show(addButton.worldBound, new AddShapePopup(changer));
-                }
-                else
-                {
-                    OpenAddWindow();
-                }
-            });
+            addButton.clickable = new Clickable(OpenAddWindow);
 
             return root;
         }

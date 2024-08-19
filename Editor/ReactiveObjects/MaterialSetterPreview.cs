@@ -39,14 +39,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 bool active = context.ActiveAndEnabled(setter) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
                 if (active == context.Observe(setter, t => t.Inverted)) continue;
                 
-                var overrideTarget = context.Observe(setter, c => c.targetRenderer.Get(setter));
-                var overrideRenderer = context.GetComponent<Renderer>(overrideTarget);
-
                 var objs = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), (x, y) => x.SequenceEqual(y));
                 
                 foreach (var (obj, mat, index) in objs)
                 {
-                    var renderer = overrideRenderer ?? context.GetComponent<Renderer>(obj);
+                    var renderer = context.GetComponent<Renderer>(obj);
                     if (renderer == null) continue;
                     
                     var matCount = context.Observe(renderer, r => r.sharedMaterials.Length);
@@ -114,14 +111,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 foreach (var setter in _setters)
                 {
-                    var overrideTarget = context.Observe(setter, c => c.targetRenderer.Get(setter));
-                    var overrideRenderer = context.GetComponent<Renderer>(overrideTarget);
-
                     var objs = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), (x, y) => x.SequenceEqual(y));
 
                     foreach (var (obj, mat, index) in objs)
                     {
-                        var renderer = overrideRenderer ?? context.GetComponent<Renderer>(obj);
+                        var renderer = context.GetComponent<Renderer>(obj);
                         if (renderer != original) continue;
 
                         if (index <= mats.Length)
