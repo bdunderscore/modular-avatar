@@ -42,6 +42,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var changer in changers)
             {
+                if (changer == null) continue;
+
                 var mami = context.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
                 bool active = context.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
                 if (active == context.Observe(changer, c => c.Inverted)) continue;
@@ -143,6 +145,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var changer in _changers)
                 {
+                    if (changer == null) continue;
+
                     var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
 
                     foreach (var (target, name, type, value) in shapes)

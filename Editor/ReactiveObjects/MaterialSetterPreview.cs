@@ -37,6 +37,8 @@ namespace nadena.dev.modular_avatar.core.editor
             
             foreach (var setter in setters)
             {
+                if (setter == null) continue;
+
                 var mami = context.GetComponent<ModularAvatarMenuItem>(setter.gameObject);
                 bool active = context.ActiveAndEnabled(setter) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
                 if (active == context.Observe(setter, s => s.Inverted)) continue;
@@ -91,10 +93,14 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var (original, proxy) = proxyPairs.First();
 
+                if (original == null || proxy == null) return null;
+
                 var mats = new Material[proxy.sharedMaterials.Length];
                 
                 foreach (var setter in _setters)
                 {
+                    if (setter == null) continue;
+
                     var objects = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), Enumerable.SequenceEqual);
                     
                     foreach (var (target, mat, index) in objects)
@@ -124,6 +130,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public void OnFrame(Renderer original, Renderer proxy)
             {
+                if (original == null || proxy == null) return;
+
                 var mats = proxy.sharedMaterials;
 
                 foreach (var mat in _materials)
