@@ -142,6 +142,10 @@ DefaultValueField DropdownField {
     display: none;
 }
 
+DefaultValueField TextInput {
+    min-width: 30px;
+}
+
 /** Ghostly text for the renameTo text box **/
 Label#f-default-param {
     position: absolute;
