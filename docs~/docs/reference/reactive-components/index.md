@@ -40,6 +40,13 @@ game object, one tries to turn on a game object), the component lowest in the hi
 
 ### Reaction timing
 
+:::warning
+
+The precise timing of reactive component activation is subject to change in the future as we optimize the implementation
+of reactive components. You should not rely on the exact timing of reactive components for complex effects.
+
+:::
+
 Reactive components responding to the change of a GameObject's active state will do so after a one frame delay. When the
 game object is being deactivated, the game object's deactivation will be delayed by one frame to happen at the same
 time.
