@@ -107,6 +107,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 RetainBoneReferences(c);
             }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCConstraintBase>(true))
+                RetainBoneReferences(c);
 #endif
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>(true))
