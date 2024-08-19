@@ -31,9 +31,10 @@ using VRC.SDKBase;
 
 namespace nadena.dev.modular_avatar.core
 {
-    /**
-     * This abstract base class is injected into the VRCSDK avatar component allowlist to avoid
-     */
+    /// <summary>
+    /// This class is used internally by Modular Avatar for common operations between MA components. It should not be
+    /// inherited by user classes, and will be removed in Modular Avatar 2.0.
+    /// </summary>
     [DefaultExecutionOrder(-9999)] // run before av3emu
     public abstract class AvatarTagComponent : MonoBehaviour, IEditorOnly
     {
