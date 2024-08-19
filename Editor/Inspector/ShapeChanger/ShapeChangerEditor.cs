@@ -97,6 +97,8 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 ChangeType = ShapeChangeType.Delete,
                 Value = 100
             });
+
+            PrefabUtility.RecordPrefabInstancePropertyModifications(changer);
         }
     }
 }
