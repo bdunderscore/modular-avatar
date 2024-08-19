@@ -41,8 +41,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 );
             
             GenerateActiveSelfProxies(shapes);
-            
-            ProcessInitialStates(initialStates);
+
+            ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
             
             foreach (var groups in shapes.Values)
@@ -81,7 +81,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates)
+        private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
+            Dictionary<TargetProp, AnimatedProperty> shapes)
         {
             var asc = context.Extension<AnimationServicesContext>();
             
@@ -161,6 +162,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                if (!shapes.ContainsKey(key))
+                    // Do not generate any animation base state if the property is set to a constant value,
+                    // because we won't generate any override layers.
+                    continue;
 
                 if (animBaseState is float f)
                 {
@@ -476,7 +481,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var clip = new AnimationClip();
             clip.name = $"Set {path}:{key.PropertyName}={value}";
 
-            if (value is UnityEngine.Object obj)
+            if (value is Object obj)
             {
                 var binding = EditorCurveBinding.PPtrCurve(path, componentType, key.PropertyName);
                 AnimationUtility.SetObjectReferenceCurve(clip, binding, new []

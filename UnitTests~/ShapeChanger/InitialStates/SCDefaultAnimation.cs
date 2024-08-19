@@ -52,8 +52,8 @@ namespace ShapeChangerTests
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key3"
             ));
-            Assert.AreEqual(6.0f, curve.keys[0].value, 0.1f);
-            Assert.AreEqual(6.0f, curve.keys[1].value, 0.1f);
+            // Always-on set, no curve should be generated
+            Assert.IsNull(curve);
             
             // Check actual blendshape states
             Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);

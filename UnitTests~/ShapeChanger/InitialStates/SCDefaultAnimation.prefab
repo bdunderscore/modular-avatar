@@ -44,8 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db441f589c3407bb6fb5f02ff8ab541, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_inverted: 0
   m_targetRenderer:
     referencePath: test mesh
+    targetObject: {fileID: 0}
   m_shapes:
   - ShapeName: key2
     ChangeType: 0
@@ -94,8 +96,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db441f589c3407bb6fb5f02ff8ab541, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_inverted: 0
   m_targetRenderer:
     referencePath: test mesh
+    targetObject: {fileID: 0}
   m_shapes:
   - ShapeName: key1
     ChangeType: 1
@@ -144,8 +148,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db441f589c3407bb6fb5f02ff8ab541, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_inverted: 0
   m_targetRenderer:
     referencePath: test mesh
+    targetObject: {fileID: 0}
   m_shapes:
   - ShapeName: key3
     ChangeType: 1
@@ -160,6 +166,8 @@ GameObject:
   m_Component:
   - component: {fileID: 569625391371299408}
   - component: {fileID: 3841502665919975468}
+  - component: {fileID: 2918390808850211981}
+  - component: {fileID: 664065153831629983}
   m_Layer: 0
   m_Name: InitialOffToggled
   m_TagString: Untagged
@@ -194,12 +202,56 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db441f589c3407bb6fb5f02ff8ab541, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_inverted: 0
   m_targetRenderer:
     referencePath: test mesh
+    targetObject: {fileID: 0}
   m_shapes:
   - ShapeName: key1
     ChangeType: 1
     Value: 20
+--- !u!114 &2918390808850211981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385483934583485188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b29d45007c5493d926d2cd45a489529, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Control:
+    name: 
+    icon: {fileID: 0}
+    type: 102
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  MenuSource: 1
+  menuSource_otherObjectChildren: {fileID: 0}
+  isSynced: 1
+  isSaved: 1
+  isDefault: 0
+--- !u!114 &664065153831629983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385483934583485188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef83cb0c23d4d7c9d41021e544a1978, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menuToAppend: {fileID: 0}
+  installTargetMenu: {fileID: 0}
 --- !u!1 &6855505756433160176
 GameObject:
   m_ObjectHideFlags: 0
