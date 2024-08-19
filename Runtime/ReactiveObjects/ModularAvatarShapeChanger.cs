@@ -70,6 +70,10 @@ namespace nadena.dev.modular_avatar.core
         public override void ResolveReferences()
         {
             m_targetRenderer?.Get(this);
+            foreach (var shape in m_shapes)
+            {
+                shape.Object?.Get(this);
+            }
         }
     }
 }
