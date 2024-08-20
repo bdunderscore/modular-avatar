@@ -275,10 +275,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var desc = node?.GetComponent<VRCAvatarDescriptor>();
-                if (desc != null)
+                if (desc?.expressionParameters?.parameters != null)
                 {
                     foreach (var param in desc.expressionParameters.parameters)
                     {
+                        if (param == null) continue;
                         if (emitted.Add(param.name)) yield return (node, param.name);
                     }
                 }
