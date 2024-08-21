@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.core.editor.ScaleAdjuster;
 using nadena.dev.ndmf.preview;
 using UnityEditor;
@@ -125,7 +124,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                _boneArray = context.Observe(smr, s => s.bones, Enumerable.SequenceEqual);
+                _boneArray = context.Observe(smr, s => s.bones, (b1, b2) =>
+                {
+                    // SequenceEqual is quite slow due to having to go through Unity native calls for each object, use
+                    // reference equality instead
+                    if (b1.Length != b2.Length) return false;
+
+                    for (var i = 0; i < b1.Length; i++)
+                        if (!ReferenceEquals(b1[i], b2[i]))
+                            return false;
+
+                    return true;
+                });
                 _newBoneArray = new Transform[_boneArray.Length];
             }
             
