@@ -49,6 +49,8 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
     public class ModularAvatarShapeChanger : ReactiveComponent
     {
+        // Migration field to help with 1.10-beta series avatar data. Since this was never in a released version of MA,
+        // this migration support will be removed in 1.10.0.
         [SerializeField] [FormerlySerializedAs("targetRenderer")] [HideInInspector]
         private AvatarObjectReference m_targetRenderer = new();
 
@@ -80,12 +82,18 @@ namespace nadena.dev.modular_avatar.core
             MigrateTargetRenderer();
         }
 
+        // Migrate early versions of MASC (from Modular Avatar 1.10.0-beta.4 or earlier) to the new format, where the
+        // target renderer is stored separately for each shape.
+        // This logic will be removed in 1.10.0.
         private void MigrateTargetRenderer()
         {
+            // Note: This method runs in the context of OnValidate, and therefore cannot touch any other unity objects.
             if (!string.IsNullOrEmpty(m_targetRenderer.referencePath) || m_targetRenderer.targetObject != null)
             {
                 foreach (var shape in m_shapes)
                 {
+                    if (shape.Object == null) shape.Object = new AvatarObjectReference();
+                    
                     if (string.IsNullOrEmpty(shape.Object.referencePath) && shape.Object.targetObject == null)
                     {
                         shape.Object.referencePath = m_targetRenderer.referencePath;
