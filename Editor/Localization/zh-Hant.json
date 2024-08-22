@@ -250,6 +250,5 @@
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
   "reactive_object.material-setter.set-to": "將材質設定為：",
-  "reactive_object.shape-changer.target-renderer": "目標 Renderer",
   "menuitem.misc.add_toggle": "新增開關"
 }
