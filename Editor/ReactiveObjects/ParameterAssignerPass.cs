@@ -13,19 +13,32 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
         {
-            bool hasRC = false;
+            switch (item?.Control?.type)
+            {
+                case VRCExpressionsMenu.Control.ControlType.Button:
+                case VRCExpressionsMenu.Control.ControlType.Toggle:
+                    // ok
+                    break;
+                default:
+                    return false;
+            }
+            
             foreach (var rc in item.GetComponentsInChildren<ReactiveComponent>(true))
             {
                 // Only track components where this is the closest parent
+                if (rc.transform == item.transform)
+                {
+                    return true;
+                }
+                
                 var parentMami = rc.GetComponentInParent<ModularAvatarMenuItem>();
                 if (parentMami == item)
                 {
-                    hasRC = true;
-                    break;
+                    return true;
                 }
             }
             
-            return hasRC;
+            return false;
         } 
         
         protected override void Execute(ndmf.BuildContext context)
@@ -107,7 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami)
         {
-            if (mami?.Control?.parameter?.name == null) return null;
+            if (string.IsNullOrWhiteSpace(mami?.Control?.parameter?.name)) return null;
             
             return new ControlCondition
             {
