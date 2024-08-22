@@ -123,11 +123,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
+            var parentAvatar = RuntimeUtil.FindAvatarInParents(paramRef.transform);
+            if (parentAvatar == null)
+            {
+                _parameterSourceNotDetermined = true;
+                return;
+            }
+            
             Dictionary<string, ProvidedParameter> rootParameters = new();
             
-            foreach (var param in ParameterInfo.ForUI.GetParametersForObject(
-                         RuntimeUtil.FindAvatarInParents(paramRef.transform).gameObject
-                     ).Where(p => p.Namespace == ParameterNamespace.Animator)
+            foreach (var param in ParameterInfo.ForUI.GetParametersForObject(parentAvatar.gameObject)
+                         .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
                 rootParameters[param.EffectiveName] = param;
 
