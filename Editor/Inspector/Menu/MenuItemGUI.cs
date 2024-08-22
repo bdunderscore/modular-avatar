@@ -228,82 +228,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _parameterGUI.DoGUI(true);
 
-            var paramName = _parameterName.stringValue;
+            ShowInnateParameterGUI();
 
-            EditorGUILayout.BeginHorizontal();
-
-            bool? forceMixedValues = _parameterName.hasMultipleDifferentValues ? true : null;
-            var knownParameter = _parameterName.hasMultipleDifferentValues
-                ? null
-                : _knownParameters.GetValueOrDefault(paramName);
-
-            var knownParamDefault = knownParameter?.DefaultValue;
-            var isDefaultByKnownParam =
-                knownParamDefault != null ? _value.floatValue == knownParamDefault : (bool?)null;
-            Object controller = knownParameter?.Source;
-            var controllerIsElsewhere = controller != null && !(controller is ModularAvatarMenuItem);
-            // If we can't figure out what to reference the parameter names to, disable the UI
-            controllerIsElsewhere = controllerIsElsewhere || _parameterSourceNotDetermined;
-
-            using (new EditorGUI.DisabledScope(
-                       _parameterName.hasMultipleDifferentValues || controllerIsElsewhere)
-                  )
-            {
-                // If we have multiple menu items selected, it probably doesn't make sense to make them all default.
-                // But, we do want to see if _any_ are default.
-                var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
-                var multipleSelections = _obj.targetObjects.Length > 1;
-                var mixedIsDefault = multipleSelections && anyIsDefault;
-                using (new EditorGUI.DisabledScope(multipleSelections))
-                {
-                    DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
-                        multipleSelections ? false : isDefaultByKnownParam);
-                }
-                GUILayout.FlexibleSpace();
-                
-                var isSavedMixed = forceMixedValues ??
-                                   (_parameterName.hasMultipleDifferentValues || controllerIsElsewhere ? true : null);
-                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), isSavedMixed);
-                GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), forceMixedValues,
-                    knownParameter?.WantSynced);
-            }
-
-            if (controllerIsElsewhere)
-            {
-                var refStyle = EditorStyles.toggle;
-                var refContent = new GUIContent("test");
-                var refRect = refStyle.CalcSize(refContent);
-                var height = refRect.y + EditorStyles.toggle.margin.top + EditorStyles.toggle.margin.bottom;
-
-                GUILayout.FlexibleSpace();
-                var style = new GUIStyle(EditorStyles.miniButton);
-                style.fixedWidth = 0;
-                style.fixedHeight = 0;
-                style.stretchHeight = true;
-                style.stretchWidth = true;
-                style.imagePosition = ImagePosition.ImageOnly;
-                var icon = EditorGUIUtility.FindTexture("d_Search Icon");
-
-                var rect = GUILayoutUtility.GetRect(new GUIContent(), style, GUILayout.ExpandWidth(false),
-                    GUILayout.Width(height), GUILayout.Height(height));
-
-                if (GUI.Button(rect, new GUIContent(), style))
-                {
-                    if (controller is VRCAvatarDescriptor desc) controller = desc.expressionParameters;
-                    Selection.activeObject = controller;
-                    EditorGUIUtility.PingObject(controller);
-                }
-
-                rect.xMin += 2;
-                rect.yMin += 2;
-                rect.xMax -= 2;
-                rect.yMax -= 2;
-                GUI.DrawTexture(rect, icon);
-            }
-
-            EditorGUILayout.EndHorizontal();
-            
             EditorGUILayout.EndVertical();
 
             if (_texture != null)
@@ -495,6 +421,91 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 _obj.ApplyModifiedProperties();
             }
+        }
+
+        private void ShowInnateParameterGUI()
+        {
+            if (_prop_isDefault == null)
+                // This is probably coming from a VRC Expressions menu asset.
+                // For now, don't show the UI in this case.
+                return;
+
+            var paramName = _parameterName.stringValue;
+
+            EditorGUILayout.BeginHorizontal();
+
+            bool? forceMixedValues = _parameterName.hasMultipleDifferentValues ? true : null;
+            var knownParameter = _parameterName.hasMultipleDifferentValues
+                ? null
+                : _knownParameters.GetValueOrDefault(paramName);
+
+            var knownParamDefault = knownParameter?.DefaultValue;
+            var isDefaultByKnownParam =
+                knownParamDefault != null ? _value.floatValue == knownParamDefault : (bool?)null;
+            Object controller = knownParameter?.Source;
+            var controllerIsElsewhere = controller != null && !(controller is ModularAvatarMenuItem);
+            // If we can't figure out what to reference the parameter names to, disable the UI
+            controllerIsElsewhere = controllerIsElsewhere || _parameterSourceNotDetermined;
+
+            using (new EditorGUI.DisabledScope(
+                       _parameterName.hasMultipleDifferentValues || controllerIsElsewhere)
+                  )
+            {
+                // If we have multiple menu items selected, it probably doesn't make sense to make them all default.
+                // But, we do want to see if _any_ are default.
+                var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
+                var multipleSelections = _obj.targetObjects.Length > 1;
+                var mixedIsDefault = multipleSelections && anyIsDefault;
+                using (new EditorGUI.DisabledScope(multipleSelections))
+                {
+                    DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
+                        multipleSelections ? false : isDefaultByKnownParam);
+                }
+
+                GUILayout.FlexibleSpace();
+
+                var isSavedMixed = forceMixedValues ??
+                                   (_parameterName.hasMultipleDifferentValues || controllerIsElsewhere ? true : null);
+                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), isSavedMixed);
+                GUILayout.FlexibleSpace();
+                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), forceMixedValues,
+                    knownParameter?.WantSynced);
+            }
+
+            if (controllerIsElsewhere)
+            {
+                var refStyle = EditorStyles.toggle;
+                var refContent = new GUIContent("test");
+                var refRect = refStyle.CalcSize(refContent);
+                var height = refRect.y + EditorStyles.toggle.margin.top + EditorStyles.toggle.margin.bottom;
+
+                GUILayout.FlexibleSpace();
+                var style = new GUIStyle(EditorStyles.miniButton);
+                style.fixedWidth = 0;
+                style.fixedHeight = 0;
+                style.stretchHeight = true;
+                style.stretchWidth = true;
+                style.imagePosition = ImagePosition.ImageOnly;
+                var icon = EditorGUIUtility.FindTexture("d_Search Icon");
+
+                var rect = GUILayoutUtility.GetRect(new GUIContent(), style, GUILayout.ExpandWidth(false),
+                    GUILayout.Width(height), GUILayout.Height(height));
+
+                if (GUI.Button(rect, new GUIContent(), style))
+                {
+                    if (controller is VRCAvatarDescriptor desc) controller = desc.expressionParameters;
+                    Selection.activeObject = controller;
+                    EditorGUIUtility.PingObject(controller);
+                }
+
+                rect.xMin += 2;
+                rect.yMin += 2;
+                rect.xMax -= 2;
+                rect.yMax -= 2;
+                GUI.DrawTexture(rect, icon);
+            }
+
+            EditorGUILayout.EndHorizontal();
         }
 
         private void EnsureLabelCount(int i)
