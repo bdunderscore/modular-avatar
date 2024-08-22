@@ -17,15 +17,16 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [Serializable]
-    public struct ChangedShape
+    public class ChangedShape
     {
+        public AvatarObjectReference Object;
         public string ShapeName;
         public ShapeChangeType ChangeType;
         public float Value;
 
         public bool Equals(ChangedShape other)
         {
-            return ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);
+            return Equals(Object, other.Object) && ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);
         }
 
         public override bool Equals(object obj)
@@ -35,12 +36,12 @@ namespace nadena.dev.modular_avatar.core
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ShapeName, (int)ChangeType, Value);
+            return HashCode.Combine(Object, ShapeName, (int)ChangeType, Value);
         }
 
         public override string ToString()
         {
-            return $"{ShapeName} {ChangeType} {Value}";
+            return $"{Object.referencePath} {ShapeName} {ChangeType} {Value}";
         }
     }
 
@@ -48,14 +49,10 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
     public class ModularAvatarShapeChanger : ReactiveComponent
     {
-        [SerializeField] [FormerlySerializedAs("targetRenderer")]
-        private AvatarObjectReference m_targetRenderer;
-
-        public AvatarObjectReference targetRenderer
-        {
-            get => m_targetRenderer;
-            set => m_targetRenderer = value;
-        }
+        // Migration field to help with 1.10-beta series avatar data. Since this was never in a released version of MA,
+        // this migration support will be removed in 1.10.0.
+        [SerializeField] [FormerlySerializedAs("targetRenderer")] [HideInInspector]
+        private AvatarObjectReference m_targetRenderer = new();
 
         [SerializeField] [FormerlySerializedAs("Shapes")]
         private List<ChangedShape> m_shapes = new();
@@ -68,7 +65,44 @@ namespace nadena.dev.modular_avatar.core
 
         public override void ResolveReferences()
         {
-            m_targetRenderer?.Get(this);
+            foreach (var shape in m_shapes)
+            {
+                shape.Object?.Get(this);
+            }
+        }
+
+        private void OnEnable()
+        {
+            MigrateTargetRenderer();
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            MigrateTargetRenderer();
+        }
+
+        // Migrate early versions of MASC (from Modular Avatar 1.10.0-beta.4 or earlier) to the new format, where the
+        // target renderer is stored separately for each shape.
+        // This logic will be removed in 1.10.0.
+        private void MigrateTargetRenderer()
+        {
+            // Note: This method runs in the context of OnValidate, and therefore cannot touch any other unity objects.
+            if (!string.IsNullOrEmpty(m_targetRenderer.referencePath) || m_targetRenderer.targetObject != null)
+            {
+                foreach (var shape in m_shapes)
+                {
+                    if (shape.Object == null) shape.Object = new AvatarObjectReference();
+                    
+                    if (string.IsNullOrEmpty(shape.Object.referencePath) && shape.Object.targetObject == null)
+                    {
+                        shape.Object.referencePath = m_targetRenderer.referencePath;
+                        shape.Object.targetObject = m_targetRenderer.targetObject;
+                    }
+                }
+                m_targetRenderer.referencePath = null;
+                m_targetRenderer.targetObject = null;
+            }
         }
     }
 }

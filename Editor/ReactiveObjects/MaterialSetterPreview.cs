@@ -31,40 +31,41 @@ namespace nadena.dev.modular_avatar.core.editor
             var menuItemPreview = new MenuItemPreviewCondition(context);
             var setters = context.GetComponentsByType<ModularAvatarMaterialSetter>();
 
-            var groups = new Dictionary<Renderer, ImmutableList<ModularAvatarMaterialSetter>>();
+            var builders =
+                new Dictionary<Renderer, ImmutableList<ModularAvatarMaterialSetter>.Builder>(
+                    new ObjectIdentityComparer<Renderer>());
             
             foreach (var setter in setters)
             {
+                if (setter == null) continue;
+
                 var mami = context.GetComponent<ModularAvatarMenuItem>(setter.gameObject);
                 bool active = context.ActiveAndEnabled(setter) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
-                if (active == context.Observe(setter, t => t.Inverted)) continue;
+                if (active == context.Observe(setter, s => s.Inverted)) continue;
                 
-                var objs = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), (x, y) => x.SequenceEqual(y));
+                var objects = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), Enumerable.SequenceEqual);
                 
-                if (setter.Objects == null) continue;
-                
-                foreach (var (obj, mat, index) in objs)
+                foreach (var (target, mat, index) in objects)
                 {
-                    if (obj == null) continue;
-                    var renderer = context.GetComponent<Renderer>(obj);
+                    var renderer = context.GetComponent<Renderer>(target);
                     if (renderer == null) continue;
                     
                     var matCount = context.Observe(renderer, r => r.sharedMaterials.Length);
                     
                     if (matCount <= index) continue;
                     
-                    if (!groups.TryGetValue(renderer, out var list))
+                    if (!builders.TryGetValue(renderer, out var builder))
                     {
-                        list = ImmutableList.Create<ModularAvatarMaterialSetter>();
-                        groups.Add(renderer, list);
+                        builder = ImmutableList.CreateBuilder<ModularAvatarMaterialSetter>();
+                        builders[renderer] = builder;
                     }
                     
-                    groups[renderer] = list.Add(setter);
+                    builder.Add(setter);
                 }
             }
 
-            var finalGroups = groups.Select(g => RenderGroup.For(g.Key).WithData(g.Value)).ToImmutableList();
-            return finalGroups;
+            return builders.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
+                .ToImmutableList();
         }
 
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
@@ -80,48 +81,33 @@ namespace nadena.dev.modular_avatar.core.editor
             private readonly ImmutableList<ModularAvatarMaterialSetter> _setters;
             private ImmutableList<(int, Material)> _materials;
             
-            public RenderAspects WhatChanged {get; private set; }
-
-            public void OnFrame(Renderer original, Renderer proxy)
-            {
-                var mats = proxy.sharedMaterials;
-
-                foreach (var mat in _materials)
-                {
-                    if (mat.Item1 <= mats.Length)
-                    {
-                        mats[mat.Item1] = mat.Item2;
-                    }
-                }
-                
-                proxy.sharedMaterials = mats;
-            }
+            public RenderAspects WhatChanged => RenderAspects.Material;
             
             public Node(ImmutableList<ModularAvatarMaterialSetter> setters)
             {
                 _setters = setters;
                 _materials = ImmutableList<(int, Material)>.Empty;
-                WhatChanged = RenderAspects.Material;
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                var proxyPair = proxyPairs.First();
-                var original = proxyPair.Item1;
-                var proxy = proxyPair.Item2;
+                var (original, proxy) = proxyPairs.First();
+
+                if (original == null || proxy == null) return null;
 
                 var mats = new Material[proxy.sharedMaterials.Length];
                 
                 foreach (var setter in _setters)
                 {
-                    var objects = context.Observe(setter, s => s.Objects
-                        .Where(obj => obj.Object.Get(s) == original.gameObject)
-                        .Select(obj => (obj.Material, obj.MaterialIndex)),
-                        (x, y) => x.SequenceEqual(y)
-                    );
+                    if (setter == null) continue;
+
+                    var objects = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), Enumerable.SequenceEqual);
                     
-                    foreach (var (mat, index) in objects)
+                    foreach (var (target, mat, index) in objects)
                     {
+                        var renderer = context.GetComponent<Renderer>(target);
+                        if (renderer != original) continue;
+
                         if (index <= mats.Length)
                         {
                             mats[index] = mat;
@@ -131,14 +117,32 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 var materials = mats.Select((m, i) => (i, m)).Where(kvp => kvp.m != null).ToImmutableList();
 
-                if (materials.SequenceEqual(_materials))
+                if (!materials.SequenceEqual(_materials))
                 {
-                    return Task.FromResult<IRenderFilterNode>(this);
+                    return Task.FromResult<IRenderFilterNode>(new Node(_setters)
+                    {
+                        _materials = materials,
+                    });
                 }
-                else
+
+                return Task.FromResult<IRenderFilterNode>(this);
+            }
+
+            public void OnFrame(Renderer original, Renderer proxy)
+            {
+                if (original == null || proxy == null) return;
+
+                var mats = proxy.sharedMaterials;
+
+                foreach (var mat in _materials)
                 {
-                    return Task.FromResult<IRenderFilterNode>(new Node(_setters) { _materials = materials });
+                    if (mat.Item1 <= mats.Length)
+                    {
+                        mats[mat.Item1] = mat.Item2;
+                    }
                 }
+
+                proxy.sharedMaterials = mats;
             }
         }
     }

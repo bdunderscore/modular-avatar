@@ -28,44 +28,14 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             
             var f_material_index = uxml.Q<DropdownField>("f-material-index");
             
-            var f_object = uxml.Q<ObjectField>("f-object");
-            f_object.objectType = typeof(Renderer);
-            f_object.allowSceneObjects = true;
+            var f_object = uxml.Q<PropertyField>("f-object");
             
-            var f_target_object = uxml.Q<ObjectField>("f-obj-target-object");
-            var f_reference_path = uxml.Q<TextField>("f-obj-ref-path");
-            
-            f_object.RegisterValueChangedCallback(evt =>
+            f_object.RegisterValueChangeCallback(evt =>
             {
-                var gameObj = (evt.newValue as Renderer)?.gameObject;
-
-                if (gameObj == null)
-                {
-                    f_target_object.value = null;
-                    f_reference_path.value = "";
-                }
-                else
-                {
-                    var path = RuntimeUtil.AvatarRootPath(gameObj);
-
-                    f_reference_path.value = path;
-                    if (path == "")
-                    {
-                        f_target_object.value = null;
-                    }
-                    else
-                    {
-                        f_target_object.value = gameObj;
-                    }
-                }
-
                 EditorApplication.delayCall += UpdateMaterialDropdown;
             });
             UpdateMaterialDropdown();
 
-            f_target_object.RegisterValueChangedCallback(_ => UpdateVisualTarget());
-            f_reference_path.RegisterValueChangedCallback(_ => UpdateVisualTarget());
-            
             // Link dropdown to material index field
             var f_material_index_int = uxml.Q<IntegerField>("f-material-index-int");
             f_material_index_int.RegisterValueChangedCallback(evt =>
@@ -83,30 +53,13 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             return uxml;
 
-            void UpdateVisualTarget()
-            {
-                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
-                Renderer targetRenderer;
-
-                try
-                {
-                    targetRenderer = targetObject?.GetComponent<Renderer>();
-                }
-                catch (MissingComponentException e)
-                {
-                    targetRenderer = null;
-                }
-                
-                f_object.SetValueWithoutNotify(targetRenderer);
-            }
-            
             void UpdateMaterialDropdown()
             {
-                var toggledObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
+                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
                 Material[] sharedMaterials;
                 try
                 {
-                    sharedMaterials = toggledObject?.GetComponent<Renderer>()?.sharedMaterials;
+                    sharedMaterials = targetObject?.GetComponent<Renderer>()?.sharedMaterials;
                 }
                 catch (MissingComponentException e)
                 {

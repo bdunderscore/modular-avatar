@@ -5,7 +5,7 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [Serializable]
-    public struct MaterialSwitchObject
+    public class MaterialSwitchObject
     {
         public AvatarObjectReference Object;
         public Material Material;
