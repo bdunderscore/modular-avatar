@@ -28,10 +28,19 @@
 
 .horizontal #f-object {
     flex-grow: 1;
+    margin-bottom: 1px;
 }
 
-#f-material-index-int {
+#f-material-index {
     display: none;
+}
+
+#f-material-index-dropdown {
+    width: 100px;
+}
+
+#f-material-index-original {
+    flex-grow: 1;
 }
 
 #f-material {
@@ -40,8 +49,8 @@
 
 .horizontal > Label {
     align-self: center;
-}
-
-#f-object > * {
-    margin-left: 0;
+    width: 100px;
+    height: 19px;
+    margin: 1px -2px 1px 3px;
+    -unity-text-align: middle-left;
 }

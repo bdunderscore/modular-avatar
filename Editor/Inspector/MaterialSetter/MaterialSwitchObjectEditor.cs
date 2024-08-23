@@ -26,7 +26,9 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             uxml.styleSheets.Add(uss);
             uxml.BindProperty(property);
             
-            var f_material_index = uxml.Q<DropdownField>("f-material-index");
+            var f_material_index = uxml.Q<IntegerField>("f-material-index");
+            var f_material_index_dropdown = uxml.Q<DropdownField>("f-material-index-dropdown");
+            var f_material_index_original = uxml.Q<ObjectField>("f-material-index-original");
             
             var f_object = uxml.Q<PropertyField>("f-object");
             
@@ -36,78 +38,106 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             });
             UpdateMaterialDropdown();
 
-            // Link dropdown to material index field
-            var f_material_index_int = uxml.Q<IntegerField>("f-material-index-int");
-            f_material_index_int.RegisterValueChangedCallback(evt =>
-            {
-                f_material_index.SetValueWithoutNotify("" + evt.newValue);
-            });
-            
+            // Link dropdown and original field to material index field
             f_material_index.RegisterValueChangedCallback(evt =>
+            {
+                f_material_index_dropdown.SetValueWithoutNotify(evt.newValue.ToString());
+                UpdateOriginalMaterial();
+            });
+            f_material_index_dropdown.RegisterValueChangedCallback(evt =>
             {
                 if (evt.newValue != null && int.TryParse(evt.newValue, out var i))
                 {
-                    f_material_index_int.value = i;
+                    f_material_index.value = i;
                 }
             });
+            f_material_index_original.SetEnabled(false);
 
             return uxml;
 
             void UpdateMaterialDropdown()
             {
-                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
-                Material[] sharedMaterials;
-                try
-                {
-                    sharedMaterials = targetObject?.GetComponent<Renderer>()?.sharedMaterials;
-                }
-                catch (MissingComponentException e)
-                {
-                    sharedMaterials = null;
-                }
+                var sharedMaterials = GetSharedMaterials();
 
                 if (sharedMaterials != null)
                 {
                     var matCount = sharedMaterials.Length;
                     
-                    f_material_index.SetEnabled(true);
+                    f_material_index_dropdown.SetEnabled(true);
                     
-                    f_material_index.choices.Clear();
+                    f_material_index_dropdown.choices.Clear();
                     for (int i = 0; i < matCount; i++)
                     {
-                        f_material_index.choices.Add(i.ToString());
+                        f_material_index_dropdown.choices.Add(i.ToString());
                     }
 
-                    f_material_index.formatListItemCallback = idx_s =>
+                    f_material_index_dropdown.formatListItemCallback = idx_s =>
                     {
                         if (string.IsNullOrWhiteSpace(idx_s)) return "";
                         
                         var idx = int.Parse(idx_s);
                         if (idx < 0 || idx >= sharedMaterials.Length)
                         {
-                            return idx + ": <???>";
+                            return $"Element {idx_s}: <???>";
                         }
                         else if (sharedMaterials[idx] == null)
                         {
-                            return idx + ": <none>";
+                            return $"Element {idx_s}: <None>";
                         }
                         else
                         {
-                            return idx + ": " + sharedMaterials[idx].name;
+                            return $"Element {idx_s}: {sharedMaterials[idx].name}";
                         }
                     };
-                    f_material_index.formatSelectedValueCallback = f_material_index.formatListItemCallback;
+                    f_material_index_dropdown.formatSelectedValueCallback = idx_s => $"Element {idx_s}";
                 }
                 else
                 {
-                    f_material_index.SetEnabled(false);
-                    if (f_material_index.choices.Count == 0)
+                    f_material_index_dropdown.SetEnabled(false);
+                    if (f_material_index_dropdown.choices.Count == 0)
                     {
-                        f_material_index.choices.Add("0");
+                        f_material_index_dropdown.choices.Add("0");
                     }
                     
-                    f_material_index.formatListItemCallback = _ => "<Missing Renderer>";
-                    f_material_index.formatSelectedValueCallback = f_material_index.formatListItemCallback;
+                    f_material_index_dropdown.formatListItemCallback = idx_s => "<Missing Renderer>";
+                    f_material_index_dropdown.formatSelectedValueCallback = f_material_index_dropdown.formatListItemCallback;
+                }
+
+                UpdateOriginalMaterial();
+            }
+
+            void UpdateOriginalMaterial()
+            {
+                var sharedMaterials = GetSharedMaterials();
+
+                if (sharedMaterials != null)
+                {
+                    var idx = f_material_index.value;
+                    if (idx < 0 || idx >= sharedMaterials.Length)
+                    {
+                        f_material_index_original.SetValueWithoutNotify(null);
+                    }
+                    else
+                    {
+                        f_material_index_original.SetValueWithoutNotify(sharedMaterials[idx]);
+                    }
+                }
+                else
+                {
+                    f_material_index_original.SetValueWithoutNotify(null);
+                }
+            }
+
+            Material[] GetSharedMaterials()
+            {
+                var targetObject = AvatarObjectReference.Get(property.FindPropertyRelative("Object"));
+                try
+                {
+                    return targetObject?.GetComponent<Renderer>()?.sharedMaterials;
+                }
+                catch (MissingComponentException e)
+                {
+                    return null;
                 }
             }
         }
