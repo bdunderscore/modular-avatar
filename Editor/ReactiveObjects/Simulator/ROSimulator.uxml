@@ -1,0 +1,39 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ma:LogoImage/>
+        
+        <ui:VisualElement name="content">
+            <ed:ObjectField label="ro_sim.header.inspecting" name="inspecting" class="ndmf-tr"/>
+            <ui:Button text="ro_sim.header.clear_overrides" name="clear-overrides" class="ndmf-tr"/>
+            <ui:VisualElement class="h-divider"/>
+            
+            <ui:VisualElement name="debug-info">
+                <ui:Label text="ro_sim.header.object_state" class="heading ndmf-tr"/>
+                <ui:Label text="ro_sim.state.active" name="state-enabled" class="state-header st-enabled ndmf-tr"/>
+                <ui:Label text="ro_sim.state.inactive" name="state-disabled" class="state-header st-disabled ndmf-tr"/>
+                
+                <ui:VisualElement class="h-button-group unity-base-field" name="this-obj-override">
+                    <ma:StateOverrideController/>
+                    <ui:Label text="ro_sim.header.override_gameobject_state" class="unity-base-field__label ndmf-tr"/>
+                </ui:VisualElement>
+                
+                <ui:VisualElement class="h-button-group unity-base-field" name="this-menu-override">
+                    <ma:StateOverrideController/>
+                    <ui:Label text="ro_sim.header.override_menuitem_state" class="unity-base-field__label ndmf-tr"/>
+                </ui:VisualElement>
+                
+                <ui:VisualElement class="h-divider"/>
+                <ui:Label text="ro_sim.affected_by.title" class="heading ndmf-tr"/>
+                
+                <ui:ScrollView name="effect-list">
+                    
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ma:LanguageSwitcherElement/>
+        
+        <ui:Button text="debug: reload" name="debug__reload" style="display: none"/>
+    </ui:VisualElement>
+</UXML>

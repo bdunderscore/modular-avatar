@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core.editor.Simulator;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -11,16 +14,65 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal partial class ReactiveObjectAnalyzer
     {
-        private readonly ndmf.BuildContext context;
+        private readonly ComputeContext _computeContext;
+        private readonly ndmf.BuildContext _context;
+        private readonly AnimationServicesContext _asc;
+        private Dictionary<string, float> _simulationInitialStates;
+        
+        public ImmutableDictionary<string, float> ForcePropertyOverrides { get; set; } = ImmutableDictionary<string, float>.Empty;
         
         public ReactiveObjectAnalyzer(ndmf.BuildContext context)
         {
-            this.context = context;
+            _computeContext = ComputeContext.NullContext;
+            _context = context;
+            _asc = context.Extension<AnimationServicesContext>();
+            _simulationInitialStates = null;
         }
 
-        public ReactiveObjectAnalyzer()
+        public ReactiveObjectAnalyzer(ComputeContext computeContext = null)
         {
-            context = null;
+            _computeContext = computeContext ?? ComputeContext.NullContext;
+            _context = null;
+            _asc = null;
+            _simulationInitialStates = new();
+        }
+
+        public string GetGameObjectStateProperty(GameObject obj)
+        {
+            return GetActiveSelfProxy(obj);
+        }
+
+        public string GetMenuItemProperty(GameObject obj)
+        {
+            var mami = obj?.GetComponent<ModularAvatarMenuItem>();
+            if (mami == null) return null;
+            
+            return ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates)?.Parameter;
+        }
+
+        public struct AnalysisResult
+        {
+            public Dictionary<TargetProp, AnimatedProperty> Shapes;
+            public Dictionary<TargetProp, object> InitialStates;
+            public HashSet<TargetProp> DeletedShapes;
+        }
+
+        private static PropCache<GameObject, AnalysisResult> _analysisCache;
+
+        public static AnalysisResult CachedAnalyze(ComputeContext context, GameObject root)
+        {
+            if (_analysisCache == null)
+            {
+                _analysisCache = new PropCache<GameObject, AnalysisResult>((ctx, root) =>
+                {
+                    var analysis = new ReactiveObjectAnalyzer(ctx);
+                    analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)
+                        ?? ImmutableDictionary<string, float>.Empty;
+                    return analysis.Analyze(root);
+                });
+            }
+            
+            return _analysisCache.Get(context, root);
         }
 
         /// <summary>
@@ -30,21 +82,49 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="initialStates">A dictionary of target property to initial state (float or UnityEngine.Object)</param>
         /// <param name="deletedShapes">A hashset of blendshape properties which are always deleted</param>
         /// <returns></returns>
-        public Dictionary<TargetProp, AnimatedProperty> Analyze(
-            GameObject root,
-            out Dictionary<TargetProp, object> initialStates, 
-            out HashSet<TargetProp> deletedShapes
+        public AnalysisResult Analyze(
+            GameObject root
         )
         {
+            AnalysisResult result = new();
+
+            if (root == null)
+            {
+                result.Shapes = new();
+                result.InitialStates = new();
+                result.DeletedShapes = new();
+                return result;
+            }
+            
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
             FindObjectToggles(shapes, root);
             FindMaterialSetters(shapes, root);
 
+            ApplyInitialStateOverrides(shapes);
             AnalyzeConstants(shapes);
             ResolveToggleInitialStates(shapes);
-            PreprocessShapes(shapes, out initialStates, out deletedShapes);
+            PreprocessShapes(shapes, out result.InitialStates, out result.DeletedShapes);
+            result.Shapes = shapes;
 
-            return shapes;
+            return result;
+        }
+
+        private void ApplyInitialStateOverrides(Dictionary<TargetProp, AnimatedProperty> shapes)
+        {
+            foreach (var prop in shapes.Values)
+            {
+                foreach (var rule in prop.actionGroups)
+                {
+                    foreach (var cond in rule.ControllingConditions)
+                    {
+                        var paramName = cond.Parameter;
+                        if (ForcePropertyOverrides.TryGetValue(paramName, out var value))
+                        {
+                            cond.InitialValue = value;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -54,7 +134,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="shapes"></param>
         private void AnalyzeConstants(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var asc = context?.Extension<AnimationServicesContext>();
+            var asc = _context?.Extension<AnimationServicesContext>();
             HashSet<GameObject> toggledObjects = new();
 
             if (asc == null) return;
@@ -98,11 +178,16 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="groups"></param>
         private void ResolveToggleInitialStates(Dictionary<TargetProp, AnimatedProperty> groups)
         {
-            var asc = context?.Extension<AnimationServicesContext>();
+            var asc = _context?.Extension<AnimationServicesContext>();
             
-            Dictionary<string, bool> propStates = new Dictionary<string, bool>();
-            Dictionary<string, bool> nextPropStates = new Dictionary<string, bool>();
+            Dictionary<string, float> propStates = new();
+            Dictionary<string, float> nextPropStates = new();
             int loopLimit = 5;
+            
+            foreach (var kvp in ForcePropertyOverrides)
+            {
+                propStates[kvp.Key] = kvp.Value;
+            }
 
             bool unsettled = true;
             while (unsettled && loopLimit-- > 0)
@@ -114,10 +199,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (group.TargetProp.PropertyName != "m_IsActive") continue;
                     if (!(group.TargetProp.TargetObject is GameObject targetObject)) continue;
 
-                    var pathKey = asc?.GetActiveSelfProxy(targetObject) ?? RuntimeUtil.AvatarRootPath(targetObject);
-
-                    bool state;
-                    if (!propStates.TryGetValue(pathKey, out state)) state = targetObject.activeSelf;
+                    var pathKey = GetActiveSelfProxy(targetObject);
+                    
+                    float state;
+                    if (!propStates.TryGetValue(pathKey, out state)) state = targetObject.activeSelf ? 1 : 0;
 
                     foreach (var actionGroup in group.actionGroups)
                     {
@@ -126,10 +211,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (!propStates.TryGetValue(condition.Parameter, out var propCondition))
                             {
-                                propCondition = condition.InitiallyActive;
+                                propCondition = condition.InitiallyActive ? 1 : 0;
                             }
 
-                            if (!propCondition)
+                            if (propCondition < 0.5f)
                             {
                                 evaluated = false;
                                 break;
@@ -140,16 +225,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         if (evaluated)
                         {
-                            state = (float) actionGroup.Value > 0.5f;
+                            state = (float) actionGroup.Value;
                         }
                     }
 
                     nextPropStates[pathKey] = state;
 
-                    if (!propStates.TryGetValue(pathKey, out var oldState) || oldState != state)
+                    if (!propStates.TryGetValue(pathKey, out var oldState) || !Mathf.Approximately(oldState, state))
                     {
                         unsettled = true;
                     }
+                }
+                
+                foreach (var kvp in ForcePropertyOverrides)
+                {
+                    nextPropStates[kvp.Key] = kvp.Value;
                 }
                 
                 propStates = nextPropStates;
@@ -163,7 +253,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     foreach (var condition in action.ControllingConditions)
                     {
                         if (propStates.TryGetValue(condition.Parameter, out var state))
-                            condition.InitialValue = state ? 1.0f : 0.0f;
+                            condition.InitialValue = state;
                     }
                 }
             }

@@ -20,6 +20,15 @@ namespace nadena.dev.modular_avatar.core
         private string _cachedPath;
         private GameObject _cachedReference;
 
+        public AvatarObjectReference Clone()
+        {
+            return new AvatarObjectReference
+            {
+                referencePath = referencePath,
+                targetObject = targetObject
+            };
+        }
+            
         #if UNITY_EDITOR
         public static GameObject Get(SerializedProperty prop)
         {
