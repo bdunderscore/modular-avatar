@@ -49,6 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var renderer = context.GetComponent<Renderer>(target);
                     if (renderer == null) continue;
+                    if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
                     
                     var matCount = context.Observe(renderer, r => r.sharedMaterials.Length);
                     
@@ -94,6 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var (original, proxy) = proxyPairs.First();
 
                 if (original == null || proxy == null) return null;
+                if (original is not MeshRenderer and not SkinnedMeshRenderer || proxy is not MeshRenderer and not SkinnedMeshRenderer) return null;
 
                 var mats = new Material[proxy.sharedMaterials.Length];
                 
@@ -131,6 +133,7 @@ namespace nadena.dev.modular_avatar.core.editor
             public void OnFrame(Renderer original, Renderer proxy)
             {
                 if (original == null || proxy == null) return;
+                if (original is not MeshRenderer and not SkinnedMeshRenderer || proxy is not MeshRenderer and not SkinnedMeshRenderer) return;
 
                 var mats = proxy.sharedMaterials;
 

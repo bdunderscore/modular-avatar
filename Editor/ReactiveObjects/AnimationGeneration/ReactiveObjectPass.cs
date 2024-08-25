@@ -468,10 +468,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 path = RuntimeUtil.RelativePath(context.AvatarRootObject, go);
                 componentType = typeof(GameObject);
             }
-            else if (key.TargetObject is SkinnedMeshRenderer smr)
+            else if (key.TargetObject is Renderer r)
             {
-                path = RuntimeUtil.RelativePath(context.AvatarRootObject, smr.gameObject);
-                componentType = typeof(SkinnedMeshRenderer);
+                path = RuntimeUtil.RelativePath(context.AvatarRootObject, r.gameObject);
+                componentType = r.GetType();
             }
             else
             {
