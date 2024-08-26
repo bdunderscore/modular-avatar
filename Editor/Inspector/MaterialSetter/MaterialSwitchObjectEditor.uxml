@@ -2,10 +2,11 @@
     <ui:VisualElement class="toggled-object-editor">
         <ui:VisualElement class="horizontal">
             <ed:PropertyField binding-path="Object" label="" name="f-object" class="f-object"/>
-            <ui:DropdownField name="f-material-index" binding-path="MaterialIndex"/>
-            <ui:VisualElement style="display:none">
-                <ed:IntegerField binding-path="MaterialIndex" name="f-material-index-int"/>
-            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="horizontal">
+            <ed:IntegerField name="f-material-index" binding-path="MaterialIndex"/>
+            <ui:DropdownField name="f-material-index-dropdown"/>
+            <ed:ObjectField name="f-material-index-original"/>
         </ui:VisualElement>
         <ui:VisualElement class="horizontal">
             <ui:Label text="reactive_object.material-setter.set-to" class="ndmf-tr"/>
