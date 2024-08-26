@@ -1,0 +1,33 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+      <ui:VisualElement class="effect-group">
+            <ed:ObjectField label="Reactive Component" name="effect__source"/>
+            
+            <ui:VisualElement name="effect__set-active" class="unity-base-field h-group">
+                  <ui:Label text="ro_sim.effect_group.controls_obj_state" class="unity-base-field__label ndmf-tr"/>
+                  <ui:Label text="ro_sim.state.active" class="st-enabled ndmf-tr"/>
+            </ui:VisualElement>
+                        
+            <ui:VisualElement name="effect__set-inactive" class="unity-base-field h-group">
+                  <ui:Label text="ro_sim.effect_group.controls_obj_state" class="unity-base-field__label ndmf-tr"/>
+                  <ui:Label text="ro_sim.state.inactive" class="st-disabled ndmf-tr"/>
+            </ui:VisualElement>
+            
+            <ed:ObjectField label="ro_sim.effect_group.target_component" name="effect__target" class="ndmf-tr"/>
+            <ui:TextField label="ro_sim.effect_group.property" text="blendShapes.x" name="effect__prop" class="ndmf-tr-label"/>
+            <ed:FloatField label="ro_sim.effect_group.value" name="effect__value" class="ndmf-tr-label"/>
+            <ed:ObjectField label="ro_sim.effect_group.material" name="effect__material" class="ndmf-tr"/>
+            <ui:TextField label="ro_sim.effect_group.value" text="DELETE" name="effect__deleted" class="ndmf-tr-label"/>
+            
+            <ui:VisualElement name="controlling-conditions">
+                  <ui:Label text="ro_sim.state.active" class="st-enabled when-active state-header ndmf-tr"/>
+                  <ui:Label text="ro_sim.state.inactive" class="st-disabled when-inactive state-header ndmf-tr"/>
+                  <ui:HelpBox text="ro_sim.effect_group.rule_inverted" message-type="Warning" class="when-inverted ndmf-tr"/>
+                  
+                  <ui:VisualElement class="spacer"/>
+                  <ui:Label text="ro_sim.effect_group.conditions" class="heading ndmf-tr"/>
+                  
+            </ui:VisualElement>
+      </ui:VisualElement>
+    
+</UXML>

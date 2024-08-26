@@ -7,6 +7,15 @@ namespace nadena.dev.modular_avatar.core.editor
         public Object TargetObject;
         public string PropertyName;
 
+        public static TargetProp ForObjectActive(GameObject targetObject)
+        {
+            return new TargetProp
+            {
+                TargetObject = targetObject,
+                PropertyName = "m_IsActive"
+            };
+        }
+        
         public bool Equals(TargetProp other)
         {
             return Equals(TargetObject, other.TargetObject) && PropertyName == other.PropertyName;

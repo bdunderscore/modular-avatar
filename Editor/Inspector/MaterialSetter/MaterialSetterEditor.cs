@@ -29,6 +29,8 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             root.styleSheets.Add(uss);
 
             root.Bind(serializedObject);
+            
+            ROSimulatorButton.BindRefObject(root, target);
 
             var listView = root.Q<ListView>("Shapes");
 

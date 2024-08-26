@@ -19,6 +19,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ma:ROSimulatorButton/>
         <ma:LanguageSwitcherElement/>
     </ui:VisualElement>
 </UXML>

@@ -20,6 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private VisualElement _inner;
 
+        public new class UxmlFactory : UxmlFactory<LogoElement, UxmlTraits>
+        {
+        }
+
+        public new class UxmlTraits : VisualElement.UxmlTraits
+        {
+        }
+        
         private static void RegisterNode(LogoElement target)
         {
             if (_logoDisplayNode == null)

@@ -118,18 +118,33 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami)
+        internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami, Dictionary<string, float> simulationInitialStates = null)
         {
-            if (string.IsNullOrWhiteSpace(mami?.Control?.parameter?.name)) return null;
+            var paramName = mami?.Control?.parameter?.name;
+            if (mami?.Control != null && simulationInitialStates != null && ShouldAssignParametersToMami(mami))
+            {
+                paramName = "___AutoProp/" + mami.Control?.parameter?.name;
+
+                if (mami.isDefault)
+                {
+                    simulationInitialStates[paramName] = mami.Control.value;
+                } else if (!simulationInitialStates.ContainsKey(paramName))
+                {
+                    simulationInitialStates[paramName] = -999;
+                }
+            }
+            
+            if (string.IsNullOrWhiteSpace(paramName)) return null;
             
             return new ControlCondition
             {
-                Parameter = mami.Control.parameter.name,
+                Parameter = paramName,
                 DebugName = mami.gameObject.name,
                 IsConstant = false,
                 InitialValue = mami.isDefault ? mami.Control.value : -999, // TODO
                 ParameterValueLo = mami.Control.value - 0.5f,
-                ParameterValueHi = mami.Control.value + 0.5f
+                ParameterValueHi = mami.Control.value + 0.5f,
+                DebugReference = mami,
             };
         }
     }

@@ -24,6 +24,17 @@ namespace nadena.dev.modular_avatar.core
         public ShapeChangeType ChangeType;
         public float Value;
 
+        public ChangedShape Clone()
+        {
+            return new ChangedShape
+            {
+                Object = Object.Clone(),
+                ShapeName = ShapeName,
+                ChangeType = ChangeType,
+                Value = Value
+            };
+        }
+        
         public bool Equals(ChangedShape other)
         {
             return Equals(Object, other.Object) && ShapeName == other.ShapeName && ChangeType == other.ChangeType && Value.Equals(other.Value);

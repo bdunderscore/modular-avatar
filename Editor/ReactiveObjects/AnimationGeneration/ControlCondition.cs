@@ -5,7 +5,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class ControlCondition
     {
         public string Parameter;
-        public UnityEngine.Object ControllingObject;
+        public UnityEngine.Object DebugReference;
         
         public string DebugName;
         public bool IsConstant;
