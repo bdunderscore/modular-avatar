@@ -62,7 +62,7 @@ A -> B -> C, and A is turned off, the timing will be as follows:
 
 ### Debugging problems
 
-The Reactive Objects system includes a debugger which can be used to simulate the effect of toggling on/off various
+The Reactive Components system includes a debugger which can be used to simulate the effect of toggling on/off various
 objects or menu items on your avatar. To access it, right click a Game Object and choose
 `Modular Avatar -> Show Reaction Debugger`. For a detailed description of how it works, see the
 [debugger documentation](./debugger/index.md).

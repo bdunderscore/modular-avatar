@@ -2,40 +2,38 @@
 sidebar_position: 900
 ---
 
-# Reaction Debugger
+# Reaction デバッガー
 
 ![Reaction Debugger](debugger-main-0.png)
 
-The Reactive Component Debugger allows you to virtually change the state of menu items and game objects in your scene,
-so you can test how your reactive components will behave without needing to manually interact with your avatar.
+Reactive Component デバッガーとは、メニューアイテムやゲームオブジェクトの状態を仮想的に変更することができるツールです。
+これにより、アバターのヒエラルキー上の状態を変えずに、リアクティブコンポーネントの挙動をテストすることができます。
 
-To open the Reactive Component Debugger,  right click a Game Object and choose `Modular Avatar -> Show Reaction Debugger`.
-Alternatively, you can click the `Open reaction debugger` button on a reactive component.
+Reactive Component デバッガーを開くには、ゲームオブジェクトを右クリックし、`Modular Avatar -> Show Reaction Debugger` を選択してください。
+または、リアクティブコンポーネントの `Open reaction debugger` ボタンをクリックすることでも開くことができます。。
 
-The debugger window is divided into two sections: One showing the state of the object itself, and one for the reactions
-that affect it.
+デバッガーウィンドウは2つのセクションに分かれています。1つはオブジェクト自体の状態を表示し、もう1つはそのオブジェクトに影響を与えるリアクションを表示します。
 
-## Object state section
+## オブジェクト状態セクション
 
 ![Top section of the debugger](top-section.png)
 
-The top section lets you select which object you want to examine, by changing the `Inspecting object` field. By default,
-it will show you the currently selected object, but if you change the field you can examine some other object instead.
-As with inspector windows, you can lock the view to avoid it changing when you select different objects in the scene.
+上部セクションでは、調査したいオブジェクトを選択することができます。`Inspecting object` 欄を変更することで調査するオブジェクトを変更できます。
+デフォルトでは、現在選択されているオブジェクトが表示されますが、変更することで代わりのオブジェクトを調査することもできます。
+インスペクターウィンドウと同様に、ロックボタンを押して、シーンビューで異なるオブジェクトを選択しても変更されないようにすることができます。
 
-Below the `Inspecting object` field, there is a button to clear all active overrides. More on that later. We also see an
-`Object state: ACTIVE` here, showing that this object is (virtually) active.
+`Inspecting object` 欄の下には、すべてのオーバーライドを解除するボタンがあります。`Object state: ACTIVE` と表示されているのは、
+このオブジェクトが（仮想的に）アクティブであることを示しています。
 
-Below that are two options to force the object to be active/inactive, and to force the associated menu item to be selected
-or deselected. Click the `-` or `+` buttons to trigger such a forced state, or the middle (blank) button to clear the
-override.
+その下には、オブジェクトを強制的にアクティブ/非アクティブにするオプションや、関連するメニューアイテムを選択/選択解除するオプションがあります。
+`-` または `+` ボタンをクリックすることでオーバーライドを設定できます。中央（空白）ボタンをクリックするとオーバーライドを解除できます。
 
-Forcing an object to be "active" or "inactive" doesn't actually change its state in the hierarchy, but it'll be shown as
-if it was enabled or disabled in the scene view window. 
+オブジェクトを「アクティブ」または「非アクティブ」に強制することは、実際にはヒエラルキー上の状態を変更するわけではありませんが、
+シーンビュー上ではそのように表示されます。
 
-## Reaction section
+## リアクションセクション
 
 ![Bottom section of the debugger](bottom-section.png)
 
-The reaction section shows all "incoming" reactions that affect this object. It also shows what conditions need to be
-true for the reaction to be triggered, and lets you easily override those conditions.
+リアクションセクションでは、選択したオブジェクトに影響を与えるリアクションが表示されます。また、そのリアクションがトリガーされるために必要な条件を表示して、
+オーバーライドするためのボタンもあります。
