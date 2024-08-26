@@ -245,12 +245,6 @@ Here's some examples.
 
 ### Shrink/hide shapekeys
 
-:::warning
-
-This is an unreleased feature, which is planned to be released with Modular Avatar 1.10.0
-
-:::
-
 Many avatars have shape keys which can be used to shrink and hide parts of the base mesh, to avoid clipping into the
 outfit. Modular Avatar has a feature which can be used to automate this process. By configuring the
 [Shape Changer](../../reference/reaction/shape-changer.md) component, Modular Avatar will automatically
