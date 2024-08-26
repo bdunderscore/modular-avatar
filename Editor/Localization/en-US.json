@@ -251,5 +251,32 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "Inverse Condition",
   "reactive_object.material-setter.set-to": "Set material to: ",
-  "menuitem.misc.add_toggle": "Add toggle"
+  "menuitem.misc.add_toggle": "Add toggle",
+  
+  "ro_sim.open_debugger_button": "Open reaction debugger",
+  "ro_sim.window.title": "MA Reaction Debugger",
+  
+  "ro_sim.header.inspecting": "Inspecting object",
+  "ro_sim.header.clear_overrides": "Clear all overrides",
+  "ro_sim.header.object_state": "Object state",
+  "ro_sim.state.active": "ACTIVE",
+  "ro_sim.state.inactive": "INACTIVE",
+  "ro_sim.header.override_gameobject_state": "Override GameObject state",
+  "ro_sim.header.override_menuitem_state": "Override MenuItem state",
+  "ro_sim.affected_by.title": "Affected by:",
+  
+  "ro_sim.effect_group.component": "Reactive Component",
+  "ro_sim.effect_group.controls_obj_state": "Controls object state:",
+  "ro_sim.effect_group.target_component": "Target Component",
+  "ro_sim.effect_group.target_component.tooltip": "The component that will be affected by the Reactive Object",
+  "ro_sim.effect_group.property": "Property",
+  "ro_sim.effect_group.property.tooltip": "The property of the target component that will be affected by the Reactive Object",
+  "ro_sim.effect_group.value": "Value",
+  "ro_sim.effect_group.value.tooltip": "The value that the property will be set to when the Reactive Object is active",
+  "ro_sim.effect_group.material": "Material",
+  "ro_sim.effect_group.material.tooltip": "The material to set on the target component when the Reactive Object is active",
+  
+  "ro_sim.effect_group.rule_inverted": "This rule is inverted",
+  "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
+  "ro_sim.effect_group.conditions": "Conditions"
 }
