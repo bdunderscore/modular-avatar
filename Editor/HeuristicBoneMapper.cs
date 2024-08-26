@@ -27,12 +27,12 @@ namespace nadena.dev.modular_avatar.core.editor
             new[]
             {
                 "LeftUpperLeg", "UpperLeg_Left", "UpperLeg_L", "Leg_Left", "Leg_L", "ULeg_L", "Left leg", "LeftUpLeg",
-                "UpLeg.L"
+                "UpLeg.L", "Thigh_L"
             },
             new[]
             {
                 "RightUpperLeg", "UpperLeg_Right", "UpperLeg_R", "Leg_Right", "Leg_R", "ULeg_R", "Right leg",
-                "RightUpLeg", "UpLeg.R"
+                "RightUpLeg", "UpLeg.R", "Thigh_R"
             },
             new[]
             {
@@ -60,8 +60,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 "RightUpperArm", "UpperArm_Right", "UpperArm_R", "Arm_Right", "Arm_R", "UArm_R", "Right arm",
                 "UpperRightArm"
             },
-            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm", "Elbow_L", "forearm_L"},
-            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm", "Elbow_R", "forearm_R"},
+            new[] {"LeftLowerArm", "LowerArm_Left", "LowerArm_L", "LArm_L", "Left elbow", "LeftForeArm", "Elbow_L", "forearm_L", "ForArm_L"},
+            new[] {"RightLowerArm", "LowerArm_Right", "LowerArm_R", "LArm_R", "Right elbow", "RightForeArm", "Elbow_R", "forearm_R", "ForArm_R"},
             new[] {"LeftHand", "Hand_Left", "Hand_L", "Left wrist", "Wrist_L"},
             new[] {"RightHand", "Hand_Right", "Hand_R", "Right wrist", "Wrist_R"},
             new[]
