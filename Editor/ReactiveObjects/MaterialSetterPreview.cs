@@ -65,6 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var target = prop.TargetProp;
                 if (target.TargetObject is not Renderer r || r == null) continue;
+                if (target.TargetObject is not MeshRenderer and not SkinnedMeshRenderer) continue;
                 if (!target.PropertyName.StartsWith(PREFIX)) continue;
                 
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
