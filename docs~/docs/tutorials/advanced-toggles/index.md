@@ -11,7 +11,7 @@ First, some background. Many avatars come with "shrink blendshapes", which are u
 avoid them clipping through clothing. These blendshapes are often used in conjunction with toggles to hide and show
 clothing items.
 
-By using Modular Avatar's [`Shape Changer`](/docs/reference/reactive-components/shape-changer/) component, you can
+By using Modular Avatar's [`Shape Changer`](/docs/reference/reaction/shape-changer/) component, you can
 easily update these
 blendshapes
 when toggling objects. Let's take a look at Anon's socks and shoes as an example.

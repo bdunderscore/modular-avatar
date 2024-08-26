@@ -10,7 +10,7 @@ sidebar_position: 4
 多くのアバターには「シュリンクブレンドシェイプ」と呼ばれるものが付属しており、これは衣服に素体がめり込むことを防ぐために使われます。
 これらのブレンドシェイプは、衣服アイテムを表示・非表示にするためのトグルと一緒に使用されることがよくあります。
 
-Modular Avatar の [`Shape Changer`](/docs/reference/reactive-components/shape-changer/) コンポーネントを使用することで、これらのブレンドシェイプを
+Modular Avatar の [`Shape Changer`](/docs/reference/reaction/shape-changer/) コンポーネントを使用することで、これらのブレンドシェイプを
 簡単に設定できます。例として、あのんちゃんの靴下と靴を見てみましょう。
 
 <div style={{"display": "flex", "flex-direction": "row"}}>

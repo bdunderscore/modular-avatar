@@ -253,7 +253,7 @@ This is an unreleased feature, which is planned to be released with Modular Avat
 
 Many avatars have shape keys which can be used to shrink and hide parts of the base mesh, to avoid clipping into the
 outfit. Modular Avatar has a feature which can be used to automate this process. By configuring the
-[Shape Changer](../../reference/reactive-components/shape-changer.md) component, Modular Avatar will automatically
+[Shape Changer](../../reference/reaction/shape-changer.md) component, Modular Avatar will automatically
 shrink or hide shape keys
 when the corresponding object is enabled. This will also respond to animations which turn on/off parts of the outfit,
 and can even outright _delete_ portions of the mesh, if the Shape Changer object is always enabled.
