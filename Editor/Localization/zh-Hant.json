@@ -251,5 +251,9 @@
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
   "reactive_object.material-setter.set-to": "將材質設定為：",
-  "menuitem.misc.add_toggle": "新增開關"
+  "menuitem.misc.add_toggle": "新增開關",
+  "ro_sim.state.active": "啟用",
+  "ro_sim.state.inactive": "停用",
+  "ro_sim.effect_group.material": "材質",
+  "ro_sim.effect_group.conditions": "條件"
 }
