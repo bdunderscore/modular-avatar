@@ -248,7 +248,6 @@
   "reactive_object.inverse": "条件を反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル ",
   "menuitem.misc.add_toggle": "トグルを追加",
-
   "ro_sim.open_debugger_button": "リアクションデバッグツールを開く",
   "ro_sim.window.title": "MA リアクションデバッグツール",
   
@@ -273,6 +272,6 @@
   "ro_sim.effect_group.material.tooltip": "上記 Reactive Component が活性状態の時に設定されるマテリアル",
 
   "ro_sim.effect_group.rule_inverted": "このルールの条件が反転されています",
-  "ro_sim.effect_group.rule_inverted.tooltip": "このルールの条件がどれか一つ満たされない時に適用されます",
+  "ro_sim.effect_group.rule_inverted.tooltip": "このルールは、いずれかの条件が満たされていない場合に適用されます",
   "ro_sim.effect_group.conditions": "条件"
 }
