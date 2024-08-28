@@ -33,12 +33,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
-            Dictionary<TargetProp, AnimatedProperty> shapes =
-                new ReactiveObjectAnalyzer(context).Analyze(
-                    context.AvatarRootObject, 
-                    out var initialStates, 
-                    out var deletedShapes
-                );
+            var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
+
+            var shapes = analysis.Shapes;
+            var initialStates = analysis.InitialStates;
+            var deletedShapes = analysis.DeletedShapes;
             
             GenerateActiveSelfProxies(shapes);
 

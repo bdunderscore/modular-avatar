@@ -60,10 +60,9 @@ A -> B -> C, and A is turned off, the timing will be as follows:
 * Frame 2: A is disabled (B's disable is delayed)
 * Frame 3: B and C are disabled at the same time.
 
-### Preview system
+### Debugging problems
 
-The effect of reactive components on mesh visibility is immediately reflected in the editor scene view. However, this
-has some limitations; in particular, it considers the current active state of objects, and the "default" state of Menu
-Items, but does not consider the effect of Object Toggles on other reactive components. To see the full effect of
-reactive
-components, you must enter play mode.
+The Reactive Components system includes a debugger which can be used to simulate the effect of toggling on/off various
+objects or menu items on your avatar. To access it, right click a Game Object and choose
+`Modular Avatar -> Show Reaction Debugger`. For a detailed description of how it works, see the
+[debugger documentation](./debugger/index.md).

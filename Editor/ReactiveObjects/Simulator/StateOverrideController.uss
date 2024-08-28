@@ -1,0 +1,22 @@
+﻿.state-override-controller {
+    flex-direction: row;
+    align-self: center;
+}
+
+.state-override-controller > Button {
+    margin: 0;
+    max-width: 16px;
+    min-width: 16px;
+    max-height: 16px;
+    min-height: 16px;
+    padding: 0;
+}
+
+.state-override-controller.override-enable .btn-enable {
+    background-color: var(--unity-colors-link-text);
+}
+
+.state-override-controller.override-disable .btn-disable {
+    background-color: var(--unity-colors-error-text);
+    color: white;
+}

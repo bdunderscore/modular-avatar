@@ -1,0 +1,193 @@
+﻿.rootVisualContent > TemplateContainer {
+    width: 100%;
+    height: 100%;
+}
+
+LogoImage {
+    padding-bottom: 10px;
+    flex-shrink: 0;
+}
+
+#root-box {
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 2px;
+    flex-grow: 1;
+}
+
+#content {
+    flex-grow: 1;
+}
+
+#effect-list {
+    overflow: scroll;
+}
+
+.effect-group {
+    flex-shrink: 0;
+}
+
+.heading {
+    align-self: center;
+    margin-top: 10px;
+}
+
+.h-button-group {
+    flex-direction: row;
+    margin-top: 5px;
+}
+
+.h-button-group StateOverrideController {
+    margin-right: 5px;
+}
+
+.h-button-group Label {
+    flex-grow: 1;
+    align-self: center;
+}
+
+.state-header {
+    font-size: 20px;
+    align-self: center;
+}
+
+.st-enabled {
+    color: green;
+}
+
+.st-disabled {
+    color: red;
+}
+
+.source-active Label {
+    color: green;
+}
+
+.source-inactive Label {
+    color: red;
+}
+
+.ag-inactive {
+    opacity: 0.5;
+}
+
+.source-active {
+    opacity: 1;
+}
+
+.source-inactive {
+    opacity: 1;
+}
+
+.h-group {
+    flex-direction: row
+}
+
+.h-group > * {
+    flex-grow: 1;
+}
+
+.h-group > Label {
+    flex-grow: 0;
+    align-self: flex-end;
+}
+
+.h-group > Label.force-center {
+    align-self: center;
+}
+
+.spacer {
+    margin: 5px;
+}
+
+.effect-group {
+    border-color: black;
+    border-width: 1px;
+    margin: 2px;
+    padding: 2px;
+    opacity: 0.5;
+}
+
+.effect-group .unity-object-field__selector {
+    display: none;
+}
+
+.effect-group > * {
+    opacity: 1;
+}
+
+.st-active .effect-group {
+    opacity: 1;
+}
+
+#effect__source {
+    opacity: 1;
+}
+
+#effect-list > Foldout.foldout-open {
+    background-color: rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+}
+
+#effect__target {
+    padding-top: 10px;
+}
+
+#controlling-conditions {
+    width: 100%;
+    border-top-color: black;
+    border-top-width: 1px;
+    margin-top: 10px;
+    padding-top: 4px;
+}
+
+#controlling-conditions Label.heading {
+    margin-top: 0;
+}
+
+#controlling-conditions .when-active {
+    display: None;
+}
+
+.st-active #controlling-conditions .when-inactive {
+    display: None;
+}
+
+.st-active #controlling-conditions .when-active {
+    display: flex;
+}
+
+#controlling-conditions > HelpBox {
+    align-self: center;
+}
+
+#controlling-conditions > HelpBox .unity-help-box__icon {
+    min-width: 16px;
+    min-height: 16px;
+}
+
+.controlling-condition {
+    flex-direction: row;
+}
+
+.controlling-condition StateOverrideController {
+    flex-grow: 0;
+}
+
+.controlling-condition ObjectField {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.controlling-condition ObjectField > Label {
+    -unity-text-align: middle-center;
+}
+
+.when-inverted {
+    display: None;
+}
+
+.rule-inverted .when-inverted {
+    display: flex;
+}

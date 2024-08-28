@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using nadena.dev.modular_avatar.core.editor.Simulator;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -30,171 +31,157 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return context.Observe(EnableNode.IsEnabled);
         }
+
+        private class StaticContext
+        {
+            public StaticContext(GameObject avatarRoot, IEnumerable<int> shapes)
+            {
+                AvatarRoot = avatarRoot;
+                Shapes = shapes.OrderBy(i => i).ToImmutableList();
+            }
+         
+            public GameObject AvatarRoot { get; }
+            public ImmutableList<int> Shapes { get; }
+            
+            public override bool Equals(object obj)
+            {
+                return obj is StaticContext other && Shapes.SequenceEqual(other.Shapes) && AvatarRoot == other.AvatarRoot;
+            }
+            
+            public override int GetHashCode()
+            {
+                int hash = AvatarRoot.GetHashCode();
+                foreach (var shape in Shapes)
+                {
+                    hash = hash * 31 + shape.GetHashCode();
+                }
+                
+                return hash;
+            }
+        }
+        
+        private PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>>
+            _blendshapeCache = new(ShapesForAvatar);
+        
+        private static ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> ShapesForAvatar(ComputeContext context, GameObject avatarRoot)
+        {
+            if (avatarRoot == null || !context.ActiveInHierarchy(avatarRoot))
+            {
+                return ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>.Empty;
+            }
+
+            var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatarRoot);
+            var shapes = analysis.Shapes;
+
+            ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>.Builder rendererStates =
+                ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableList<(int, float)>>(
+                    new ObjectIdentityComparer<SkinnedMeshRenderer>()
+                );
+            var avatarRootTransform = avatarRoot.transform;
+            
+            foreach (var prop in shapes.Values)
+            {
+                var target = prop.TargetProp;
+                if (target.TargetObject == null || target.TargetObject is not SkinnedMeshRenderer r) continue;
+                if (!r.transform.IsChildOf(avatarRootTransform)) continue;
+                if (!target.PropertyName.StartsWith("blendShape.")) continue;
+
+                var mesh = r.sharedMesh;
+                if (mesh == null) continue;
+                
+                var shapeName = target.PropertyName.Substring("blendShape.".Length);
+                
+                if (!rendererStates.TryGetValue(r, out var states))
+                {
+                    states = ImmutableList<(int, float)>.Empty;
+                    rendererStates[r] = states;
+                }
+                
+                var index = r.sharedMesh.GetBlendShapeIndex(shapeName);
+                if (index < 0) continue;
+
+                var activeRule = prop.actionGroups.LastOrDefault(rule => rule.InitiallyActive);
+                if (activeRule == null || activeRule.Value is not float value) continue;
+
+                value = Math.Clamp(value, 0, 100);
+                
+                if (activeRule.IsDelete) value = -1;
+                
+                states = states.Add((index, value));
+                rendererStates[r] = states;
+            }
+            
+            return rendererStates.ToImmutableDictionary();
+        }
+        
+        private IEnumerable<RenderGroup> ShapesToGroups(GameObject avatarRoot, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> shapes)
+        {
+            return shapes.Select(kv => RenderGroup.For(kv.Key).WithData(
+                new StaticContext(avatarRoot, kv.Value.Where(shape => shape.Item2 < 0).Select(shape => shape.Item1))
+            ));
+        }
         
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
-            var menuItemPreview = new MenuItemPreviewCondition(context);
-            var changers = context.GetComponentsByType<ModularAvatarShapeChanger>();
-
-            var builders =
-                new Dictionary<Renderer, ImmutableList<ModularAvatarShapeChanger>.Builder>(
-                    new ObjectIdentityComparer<Renderer>());
-
-            foreach (var changer in changers)
-            {
-                if (changer == null) continue;
-
-                var mami = context.GetComponent<ModularAvatarMenuItem>(changer.gameObject);
-                bool active = context.ActiveAndEnabled(changer) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
-                if (active == context.Observe(changer, c => c.Inverted)) continue;
-
-                var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
-
-                foreach (var (target, name, type, value) in shapes)
-                {
-                    var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
-                    if (renderer == null) continue;
-
-                    if (!builders.TryGetValue(renderer, out var builder))
-                    {
-                        builder = ImmutableList.CreateBuilder<ModularAvatarShapeChanger>();
-                        builders[renderer] = builder;
-                    }
-
-                    builder.Add(changer);
-                }
-            }
+            var roots = context.GetAvatarRoots();
             
-            return builders.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
+            
+            return roots
+                .SelectMany(av =>
+                    ShapesToGroups(av, _blendshapeCache.Get(context, av))
+                )
                 .ToImmutableList();
         }
 
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
-            var changers = group.GetData<ImmutableList<ModularAvatarShapeChanger>>();
-            var node = new Node(changers);
+            var shapeValues = group.GetData<StaticContext>();
+            var node = new Node(shapeValues, proxyPairs.First().Item2 as SkinnedMeshRenderer, _blendshapeCache);
 
             return node.Refresh(proxyPairs, context, 0);
         }
 
         private class Node : IRenderFilterNode
         {
-            private readonly ImmutableList<ModularAvatarShapeChanger> _changers;
-            private ImmutableHashSet<(int, float)> _shapes;
+            private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>> _blendshapeCache;
+            private readonly GameObject _avatarRoot;
+            private ImmutableList<(int, float)> _shapes;
             private ImmutableHashSet<int> _toDelete;
             private Mesh _generatedMesh = null;
 
             public RenderAspects WhatChanged => RenderAspects.Shapes | RenderAspects.Mesh;
 
-            internal Node(ImmutableList<ModularAvatarShapeChanger> changers)
+            internal Node(StaticContext staticContext, SkinnedMeshRenderer proxySmr, PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>> blendshapeCache)
             {
-                _changers = changers;
-                _shapes = ImmutableHashSet<(int, float)>.Empty;
-                _toDelete = ImmutableHashSet<int>.Empty;
-                _generatedMesh = null;
+                _blendshapeCache = blendshapeCache;
+                _avatarRoot = staticContext.AvatarRoot;
+                _toDelete = staticContext.Shapes.ToImmutableHashSet();
+                _shapes = ImmutableList<(int, float)>.Empty;
+                _generatedMesh = GetGeneratedMesh(proxySmr, _toDelete);
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                var (original, proxy) = proxyPairs.First();
-
-                if (original == null || proxy == null) return null;
-                if (original is not SkinnedMeshRenderer originalSmr || proxy is not SkinnedMeshRenderer proxySmr) return null;
-
-                var shapes = GetShapesSet(originalSmr, proxySmr, context);
-                var toDelete = GetToDeleteSet(originalSmr, proxySmr, context);
-
-                if (!toDelete.SequenceEqual(_toDelete))
+                if ((updatedAspects & RenderAspects.Mesh) != 0)
                 {
-                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
-                    {
-                        _shapes = shapes,
-                        _toDelete = toDelete,
-                        _generatedMesh = GetGeneratedMesh(proxySmr, toDelete),
-                    });
+                    return Task.FromResult<IRenderFilterNode>(null);
                 }
 
-                if (!shapes.SequenceEqual(_shapes))
+                var avatarInfo = _blendshapeCache.Get(context, _avatarRoot);
+                if (!avatarInfo.TryGetValue((SkinnedMeshRenderer)proxyPairs.First().Item1, out var shapes))
                 {
-                    var reusableMesh = _generatedMesh;
-                    _generatedMesh = null;
-                    return Task.FromResult<IRenderFilterNode>(new Node(_changers)
-                    {
-                        _shapes = shapes,
-                        _toDelete = toDelete,
-                        _generatedMesh = reusableMesh,
-                    });
+                    return Task.FromResult<IRenderFilterNode>(null);
                 }
 
+                var toDelete = shapes.Where(shape => shape.Item2 < 0).Select(shape => shape.Item1).ToImmutableHashSet();
+                if (!_toDelete.SetEquals(toDelete))
+                {
+                    return Task.FromResult<IRenderFilterNode>(null);
+                }
+                
+                _shapes = shapes;
+                    
                 return Task.FromResult<IRenderFilterNode>(this);
-            }
-
-            private ImmutableHashSet<(int, float)> GetShapesSet(SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
-            {
-                var builder = ImmutableHashSet.CreateBuilder<(int, float)>();
-                var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
-                {
-                    if (a != b)
-                    {
-                        Debug.Log($"mesh changed {a.GetInstanceID()} -> {b.GetInstanceID()}");
-                        return false;
-                    }
-
-                    return true;
-                });
-
-                foreach (var changer in _changers)
-                {
-                    if (changer == null) continue;
-
-                    var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
-
-                    foreach (var (target, name, type, value) in shapes)
-                    {
-                        var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
-                        if (renderer != original) continue;
-
-                        var index = mesh.GetBlendShapeIndex(name);
-                        if (index < 0) continue;
-                        builder.Add((index, type == ShapeChangeType.Delete ? 100 : value));
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
-
-            private ImmutableHashSet<int> GetToDeleteSet(SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
-            {
-                var builder = ImmutableHashSet.CreateBuilder<int>();
-                var mesh = context.Observe(proxy, p => p.sharedMesh, (a, b) =>
-                {
-                    if (a != b)
-                    {
-                        Debug.Log($"mesh changed {a.GetInstanceID()} -> {b.GetInstanceID()}");
-                        return false;
-                    }
-
-                    return true;
-                });
-
-                foreach (var changer in _changers)
-                {
-                    var shapes = context.Observe(changer, c => c.Shapes.Select(s => (s.Object.Get(c), s.ShapeName, s.ChangeType, s.Value)).ToList(), Enumerable.SequenceEqual);
-
-                    foreach (var (target, name, type, value) in shapes)
-                    {
-                        if (type != ShapeChangeType.Delete) continue;
-
-                        var renderer = context.GetComponent<SkinnedMeshRenderer>(target);
-                        if (renderer != original) continue;
-
-                        var index = mesh.GetBlendShapeIndex(name);
-                        if (index < 0) continue;
-                        builder.Add(index);
-                    }
-                }
-
-                return builder.ToImmutable();
             }
 
             public Mesh GetGeneratedMesh(SkinnedMeshRenderer proxy, ImmutableHashSet<int> toDelete)
@@ -263,7 +250,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var shape in _shapes)
                 {
-                    proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2);
+                    proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2 < 0 ? 100 : shape.Item2);
                 }
             }
 

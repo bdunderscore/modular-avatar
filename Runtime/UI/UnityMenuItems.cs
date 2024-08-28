@@ -15,6 +15,9 @@
 
         internal const string GameObject_EnableInfo = "GameObject/Modular Avatar/Show Modular Avatar Information";
         internal const int GameObject_EnableInfoOrder = -799;
+        
+        internal const string GameObject_ShowReactionDebugger = "GameObject/Modular Avatar/Show Reaction Debugger";
+        internal const int GameObject_ShowReactionDebuggerOrder = GameObject_EnableInfoOrder + 1;
 
         internal const string GameObject_ExtractMenu = "GameObject/Modular Avatar/Extract Menu";
         internal const int GameObject_ExtractMenuOrder = GameObject_EnableInfoOrder + 100;

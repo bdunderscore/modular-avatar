@@ -25,115 +25,105 @@ namespace nadena.dev.modular_avatar.core.editor
             return context.Observe(EnableNode.IsEnabled);
         }
 
+        private const string PREFIX = "m_Materials.Array.data[";
+        
+        private PropCache<Renderer, ImmutableList<(int, Material)>> _cache = new(
+            GetMaterialOverridesForRenderer, Enumerable.SequenceEqual
+        );
+
+        private static ImmutableList<(int, Material)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)
+        {
+            var avatar = ctx.GetAvatarRoot(r.gameObject);
+            var analysis = ReactiveObjectAnalyzer.CachedAnalyze(ctx, avatar);
+
+            var materials = ImmutableList<(int, Material)>.Empty;
+            
+            foreach (var prop in analysis.Shapes.Values)
+            {
+                var target = prop.TargetProp;
+                if (target.TargetObject != r) continue;
+                if (!target.PropertyName.StartsWith(PREFIX)) continue;
+                
+                var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
+                
+                var activeRule = prop.actionGroups.FirstOrDefault(r => r.InitiallyActive);
+                if (activeRule == null || activeRule.Value is not Material mat) continue;
+                
+                materials = materials.Add((index, mat));
+            }
+
+            return materials.OrderBy(kv => kv.Item1).ToImmutableList();
+        }
+
+        private IEnumerable<RenderGroup> GroupsForAvatar(ComputeContext context, GameObject avatarRoot)
+        {
+            var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatarRoot);
+
+            HashSet<Renderer> renderers = new();
+            
+            foreach (var prop in analysis.Shapes.Values)
+            {
+                var target = prop.TargetProp;
+                if (target.TargetObject is not Renderer r || r == null) continue;
+                if (target.TargetObject is not MeshRenderer and not SkinnedMeshRenderer) continue;
+                if (!target.PropertyName.StartsWith(PREFIX)) continue;
+                
+                var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
+                
+                var activeRule = prop.actionGroups.FirstOrDefault(r => r.InitiallyActive);
+                if (activeRule == null || activeRule.Value is not Material mat) continue;
+
+                renderers.Add(r);
+            }
+            
+            return renderers.Select(RenderGroup.For);
+        }
         
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
-            var menuItemPreview = new MenuItemPreviewCondition(context);
-            var setters = context.GetComponentsByType<ModularAvatarMaterialSetter>();
-
-            var builders =
-                new Dictionary<Renderer, ImmutableList<ModularAvatarMaterialSetter>.Builder>(
-                    new ObjectIdentityComparer<Renderer>());
-            
-            foreach (var setter in setters)
-            {
-                if (setter == null) continue;
-
-                var mami = context.GetComponent<ModularAvatarMenuItem>(setter.gameObject);
-                bool active = context.ActiveAndEnabled(setter) && (mami == null || menuItemPreview.IsEnabledForPreview(mami));
-                if (active == context.Observe(setter, s => s.Inverted)) continue;
-                
-                var objects = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), Enumerable.SequenceEqual);
-                
-                foreach (var (target, mat, index) in objects)
-                {
-                    var renderer = context.GetComponent<Renderer>(target);
-                    if (renderer == null) continue;
-                    if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
-                    
-                    var matCount = context.Observe(renderer, r => r.sharedMaterials.Length);
-                    
-                    if (matCount <= index) continue;
-                    
-                    if (!builders.TryGetValue(renderer, out var builder))
-                    {
-                        builder = ImmutableList.CreateBuilder<ModularAvatarMaterialSetter>();
-                        builders[renderer] = builder;
-                    }
-                    
-                    builder.Add(setter);
-                }
-            }
-
-            return builders.Select(g => RenderGroup.For(g.Key).WithData(g.Value.ToImmutable()))
-                .ToImmutableList();
+            var avatarRoots = context.GetAvatarRoots();
+            return avatarRoots.SelectMany(r => GroupsForAvatar(context, r)).ToImmutableList();
         }
 
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
-            var setters = group.GetData<ImmutableList<ModularAvatarMaterialSetter>>();
-            var node = new Node(setters);
+            var node = new Node(_cache, proxyPairs.First().Item1);
 
-            return node.Refresh(proxyPairs, context, 0);
+            return node.Refresh(null, context, 0);
         }
 
         private class Node : IRenderFilterNode
         {
-            private readonly ImmutableList<ModularAvatarMaterialSetter> _setters;
-            private ImmutableList<(int, Material)> _materials;
+            private readonly Renderer _target;
+            private readonly PropCache<Renderer, ImmutableList<(int, Material)>> _cache;
+            private ImmutableList<(int, Material)> _materials = ImmutableList<(int, Material)>.Empty;
             
-            public RenderAspects WhatChanged => RenderAspects.Material;
+            public RenderAspects WhatChanged { get; private set; } = RenderAspects.Material;
             
-            public Node(ImmutableList<ModularAvatarMaterialSetter> setters)
+            public Node(PropCache<Renderer, ImmutableList<(int, Material)>> cache, Renderer renderer)
             {
-                _setters = setters;
-                _materials = ImmutableList<(int, Material)>.Empty;
+                _cache = cache;
+                _target = renderer;
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                var (original, proxy) = proxyPairs.First();
+                var newMaterials = _cache.Get(context, _target);
 
-                if (original == null || proxy == null) return null;
-                if (original is not MeshRenderer and not SkinnedMeshRenderer || proxy is not MeshRenderer and not SkinnedMeshRenderer) return null;
-
-                var mats = new Material[proxy.sharedMaterials.Length];
-                
-                foreach (var setter in _setters)
+                if (newMaterials.SequenceEqual(_materials))
                 {
-                    if (setter == null) continue;
-
-                    var objects = context.Observe(setter, s => s.Objects.Select(o => (o.Object.Get(s), o.Material, o.MaterialIndex)).ToList(), Enumerable.SequenceEqual);
-                    
-                    foreach (var (target, mat, index) in objects)
-                    {
-                        var renderer = context.GetComponent<Renderer>(target);
-                        if (renderer != original) continue;
-
-                        if (index <= mats.Length)
-                        {
-                            mats[index] = mat;
-                        }
-                    }
+                    WhatChanged = 0;
+                } else {
+                    _materials = newMaterials;
+                    WhatChanged = RenderAspects.Material;
                 }
                 
-                var materials = mats.Select((m, i) => (i, m)).Where(kvp => kvp.m != null).ToImmutableList();
-
-                if (!materials.SequenceEqual(_materials))
-                {
-                    return Task.FromResult<IRenderFilterNode>(new Node(_setters)
-                    {
-                        _materials = materials,
-                    });
-                }
-
                 return Task.FromResult<IRenderFilterNode>(this);
             }
 
             public void OnFrame(Renderer original, Renderer proxy)
             {
                 if (original == null || proxy == null) return;
-                if (original is not MeshRenderer and not SkinnedMeshRenderer || proxy is not MeshRenderer and not SkinnedMeshRenderer) return;
 
                 var mats = proxy.sharedMaterials;
 
