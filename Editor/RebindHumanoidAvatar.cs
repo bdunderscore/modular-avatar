@@ -17,7 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         public void Process()
         {
             var avatarAnimator = _buildContext.AvatarRootObject.GetComponent<Animator>();
-            if (avatarAnimator == null) return;
+            if (avatarAnimator == null || avatarAnimator.avatar == null) return;
 
             var localTransformValues = _buildContext.AvatarRootObject
                 .GetComponentsInChildren<Transform>(true)
