@@ -171,7 +171,7 @@ namespace nadena.dev.modular_avatar.core.editor
                              Enumerable.SequenceEqual))
                 {
                     var renderer = _computeContext.GetComponent<Renderer>(obj.Object.Get(setter));
-                    if (renderer == null || renderer.sharedMaterials.Length < obj.MaterialIndex) continue;
+                    if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
 
                     var key = new TargetProp
                     {
