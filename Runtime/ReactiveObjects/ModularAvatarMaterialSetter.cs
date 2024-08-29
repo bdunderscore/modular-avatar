@@ -11,6 +11,16 @@ namespace nadena.dev.modular_avatar.core
         public Material Material;
         public int MaterialIndex;
 
+        public MaterialSwitchObject Clone()
+        {
+            return new MaterialSwitchObject
+            {
+                Object = Object.Clone(),
+                Material = Material,
+                MaterialIndex = MaterialIndex
+            };
+        }
+        
         public bool Equals(MaterialSwitchObject other)
         {
             return Equals(Object, other.Object) && Equals(Material, other.Material) && MaterialIndex == other.MaterialIndex;

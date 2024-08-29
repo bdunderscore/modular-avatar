@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 
@@ -17,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return rule;
         }
 
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, UnityEngine.Object value)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, Object value)
         {
             var rule = new ReactionRule(key, value);
 
@@ -162,13 +161,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var materialSetters = root.GetComponentsInChildren<ModularAvatarMaterialSetter>(true);
+            var materialSetters = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSetter>(root, true);
 
             foreach (var setter in materialSetters)
             {
                 if (setter.Objects == null) continue;
 
-                foreach (var obj in _computeContext.Observe(setter, c => c.Objects.ToList(), Enumerable.SequenceEqual))
+                foreach (var obj in _computeContext.Observe(setter, c => c.Objects.Select(o => o.Clone()).ToList(),
+                             Enumerable.SequenceEqual))
                 {
                     var renderer = _computeContext.GetComponent<Renderer>(obj.Object.Get(setter));
                     if (renderer == null || renderer.sharedMaterials.Length < obj.MaterialIndex) continue;
@@ -197,13 +197,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void FindObjectToggles(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var toggles = root.GetComponentsInChildren<ModularAvatarObjectToggle>(true);
+            var toggles = _computeContext.GetComponentsInChildren<ModularAvatarObjectToggle>(root, true);
 
             foreach (var toggle in toggles)
             {
                 if (toggle.Objects == null) continue;
 
-                foreach (var obj in _computeContext.Observe(toggle, c => c.Objects.ToList(), Enumerable.SequenceEqual))
+                foreach (var obj in _computeContext.Observe(toggle, c => c.Objects.Select(o => o.Clone()).ToList(),
+                             Enumerable.SequenceEqual))
                 {
                     var target = obj.Object.Get(toggle);
                     if (target == null) continue;

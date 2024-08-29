@@ -9,6 +9,15 @@ namespace nadena.dev.modular_avatar.core
     {
         public AvatarObjectReference Object;
         public bool Active;
+
+        public ToggledObject Clone()
+        {
+            return new ToggledObject
+            {
+                Object = Object.Clone(),
+                Active = Active
+            };
+        }
     }
 
     [AddComponentMenu("Modular Avatar/MA Object Toggle")]
