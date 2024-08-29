@@ -81,19 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
 #endif
-                seq.Run("Rebind humanoid avatar", ctx =>
-                {
-                    // workaround problem with avatar matching
-                    // https://github.com/bdunderscore/modular-avatar/issues/430
-                    var animator = ctx.AvatarRootObject.GetComponent<Animator>();
-                    if (animator)
-                    {
-                        var avatar = animator.avatar;
-                        animator.avatar = null;
-                        // ReSharper disable once Unity.InefficientPropertyAccess
-                        animator.avatar = avatar;
-                    }
-                });
+                seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
                 {
                     foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
@@ -252,6 +240,14 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 #endif
+
+    class RebindHumanoidAvatarPass : MAPass<RebindHumanoidAvatarPass>
+    {
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            new RebindHumanoidAvatar(context).Process();
+        }
+    }
 
     class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {
