@@ -5,6 +5,8 @@ const themes = require('prism-react-renderer').themes;
 const lightCodeTheme = themes.github;
 const darkCodeTheme = themes.dracula;
 
+const defaultLocale = 'en';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Modular Avatar',
@@ -25,7 +27,7 @@ const config = {
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
+    defaultLocale,
     locales: ['en','ja'],
   },
 
@@ -36,10 +38,13 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/bdunderscore/modular-avatar/tree/main/docs/',
+          editUrl: ({locale, docPath}) => {
+            if (locale === defaultLocale) {
+              return `https://github.com/bdunderscore/modular-avatar/tree/main/docs~/docs/${docPath}`;
+            } else {
+              return `https://github.com/bdunderscore/modular-avatar/tree/main/docs~/i18n/${locale}/docusaurus-plugin-content-docs/current/${docPath}`;
+            }
+          },
         },
         blog: false,
         theme: {
