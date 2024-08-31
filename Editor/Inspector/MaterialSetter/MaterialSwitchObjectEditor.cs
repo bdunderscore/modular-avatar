@@ -78,7 +78,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                         var idx = int.Parse(idx_s);
                         if (idx < 0 || idx >= sharedMaterials.Length)
                         {
-                            return $"Element {idx_s}: <???>";
+                            return $"<color=\"red\">Element {idx_s}: <???></color>";
                         }
                         else if (sharedMaterials[idx] == null)
                         {
@@ -89,7 +89,20 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                             return $"Element {idx_s}: {sharedMaterials[idx].name}";
                         }
                     };
-                    f_material_index_dropdown.formatSelectedValueCallback = idx_s => $"Element {idx_s}";
+                    f_material_index_dropdown.formatSelectedValueCallback = idx_s =>
+                    {
+                        if (string.IsNullOrWhiteSpace(idx_s)) return "";
+
+                        var idx = int.Parse(idx_s);
+                        if (idx < 0 || idx >= sharedMaterials.Length)
+                        {
+                            return $"<color=\"red\">Element {idx_s}</color>";
+                        }
+                        else
+                        {
+                            return $"Element {idx_s}";
+                        }
+                    };
                 }
                 else
                 {

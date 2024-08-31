@@ -129,7 +129,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var mat in _materials)
                 {
-                    if (mat.Item1 <= mats.Length)
+                    if (mat.Item1 < mats.Length)
                     {
                         mats[mat.Item1] = mat.Item2;
                     }
