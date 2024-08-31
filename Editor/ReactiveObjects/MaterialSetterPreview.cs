@@ -33,6 +33,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static ImmutableList<(int, Material)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)
         {
+            if (r == null)
+            {
+                return ImmutableList<(int, Material)>.Empty;
+            }
+
             var avatar = ctx.GetAvatarRoot(r.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(ctx, avatar);
 
