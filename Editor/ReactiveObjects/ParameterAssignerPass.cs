@@ -43,6 +43,8 @@ namespace nadena.dev.modular_avatar.core.editor
         
         protected override void Execute(ndmf.BuildContext context)
         {
+            if (!context.AvatarDescriptor) return;
+            
             var paramIndex = 0;
 
             var declaredParams = context.AvatarDescriptor.expressionParameters.parameters.Select(p => p.name)
