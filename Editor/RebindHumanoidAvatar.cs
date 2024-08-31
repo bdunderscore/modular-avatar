@@ -31,14 +31,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             // resetting avatar also resets local transform value from avatar asset
             // needs to restore them manually from pre-cache
             // https://github.com/bdunderscore/modular-avatar/issues/1036
-            for (var bone = HumanBodyBones.Hips; bone < HumanBodyBones.LastBone; ++bone)
+            foreach (var (transform, preserved) in localTransformValues)
             {
-                var boneTransform = avatarAnimator.GetBoneTransform(bone);
-                if (boneTransform == null) continue;
-                if (localTransformValues.TryGetValue(boneTransform, out var preserved))
-                {
-                    preserved.RestoreToTransform(boneTransform);
-                }
+                preserved.RestoreToTransform(transform);
             }
         }
 
