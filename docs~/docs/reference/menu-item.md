@@ -35,3 +35,18 @@ In order to define where a menu item will go in the menu, another component will
 * The menu item can be the child of a [Menu Group](menu-group) object (which would typically be on a game object with a Menu Installer component)
 
 Unbound menu items have no effect.
+
+### Automatic Parameter Creation
+
+When you specify a parameter name that is not declared in a [MA Parameters](parameters.md) component or VRC Expressions
+Parameter asset, the Menu Item will create a parameter for you automatically. When this happens, you'll see some
+checkboxes
+to control whether the value is saved/synced.
+
+![Automatic Parameter Creation](menu-item-auto-params.png)
+
+If you click "Is Default", this menu item will be set as the default for this parameter. If multiple menu items are set
+to "Is Default", the results are undefined. Don't do that!
+
+If your menu item has no parameter name set, you'll still see these options; a parameter will be created if you have
+any [Reactive Objects](./reaction/index.md) controlled by this menu item.
