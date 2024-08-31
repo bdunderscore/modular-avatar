@@ -17,6 +17,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
     {
         private float EPSILON = 0.0000001f;
 
+        [SerializeField]
         private GameObject[] m_groupedBones;
 
         public GameObject[] GroupedBones
