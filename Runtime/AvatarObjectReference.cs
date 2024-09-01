@@ -1,8 +1,8 @@
 ﻿using System;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -122,6 +122,12 @@ namespace nadena.dev.modular_avatar.core
             _cachedReference = target;
             _cacheValid = true;
             targetObject = target;
+        }
+
+        internal bool IsConsistent(GameObject avatarRoot)
+        {
+            if (referencePath == AVATAR_ROOT) return targetObject == avatarRoot;
+            return avatarRoot.transform.Find(referencePath)?.gameObject == targetObject;
         }
 
         private void InvalidateCache()

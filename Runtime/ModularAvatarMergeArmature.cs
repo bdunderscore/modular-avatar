@@ -47,7 +47,7 @@ namespace nadena.dev.modular_avatar.core
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Merge Armature")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-armature?lang=auto")]
-    public class ModularAvatarMergeArmature : AvatarTagComponent
+    public class ModularAvatarMergeArmature : AvatarTagComponent, IHaveObjReferences
     {
         public AvatarObjectReference mergeTarget = new AvatarObjectReference();
         public GameObject mergeTargetObject => mergeTarget.Get(this);
@@ -235,6 +235,11 @@ namespace nadena.dev.modular_avatar.core
             {
                 RuntimeUtil.MarkDirty(this);
             }
+        }
+
+        public IEnumerable<AvatarObjectReference> GetObjectReferences()
+        {
+            if (mergeTarget != null) yield return mergeTarget;
         }
     }
 }
