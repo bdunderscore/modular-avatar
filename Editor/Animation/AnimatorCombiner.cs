@@ -302,6 +302,13 @@ namespace nadena.dev.modular_avatar.animation
 
         private void PruneEmptyLayers()
         {
+#if MA_VRCSDK3_AVATARS
+            // We can't safely correct the layer index of a VRCAnimatorLayerControl without knowing if it refers to
+            // _this_ animator controller, so just skip this. We'll do the empty layer pruning later when we merge
+            // everything together.
+            if (BlendableLayer == null) return;
+#endif
+            
             var originalLayers = _layers;
             int[] layerIndexMappings = new int[originalLayers.Count];
 
