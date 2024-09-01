@@ -7,9 +7,9 @@
         "VRC.SDKBase",
         "nadena.dev.ndmf",
         "nadena.dev.ndmf.vrchat",
-        "nadena.dev.ndmf.reactive-query.core",
         "nadena.dev.ndmf.runtime",
-        "VRC.SDK3A.Editor"
+        "VRC.SDK3A.Editor",
+        "Unity.Burst"
     ],
     "includePlatforms": [
         "Editor"
