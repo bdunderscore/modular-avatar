@@ -33,7 +33,7 @@ namespace nadena.dev.modular_avatar.animation
             if (original == null) return null;
             if (cloneMap == null) cloneMap = new Dictionary<UnityObject, UnityObject>();
 
-            System.Func<UnityObject, UnityObject> visitor = null;
+            Func<UnityObject, UnityObject> visitor = null;
             if (basePath != null)
             {
                 visitor = o => CloneWithPathMapping(o, basePath);
@@ -126,8 +126,12 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     case SerializedPropertyType.ObjectReference:
                     {
-                        var newObj = DoClone(prop.objectReferenceValue, basePath, cloneMap);
-                        prop.objectReferenceValue = newObj;
+                        if (prop.objectReferenceValue != null && prop.objectReferenceValue != obj)
+                        {
+                            var newObj = DoClone(prop.objectReferenceValue, basePath, cloneMap);
+                            prop.objectReferenceValue = newObj;
+                        }
+
                         break;
                     }
                     // Iterating strings can get super slow...
