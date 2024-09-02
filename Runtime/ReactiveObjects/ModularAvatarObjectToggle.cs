@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Object Toggle")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/object-toggle?lang=auto")]
-    public class ModularAvatarObjectToggle : ReactiveComponent
+    public class ModularAvatarObjectToggle : ReactiveComponent, IHaveObjReferences
     {
         [SerializeField] private List<ToggledObject> m_objects = new();
 
@@ -38,6 +38,13 @@ namespace nadena.dev.modular_avatar.core
             {
                 obj.Object?.Get(this);
             }
+        }
+
+        public IEnumerable<AvatarObjectReference> GetObjectReferences()
+        {
+            foreach (var obj in m_objects)
+                if (obj.Object != null)
+                    yield return obj.Object;
         }
     }
 }
