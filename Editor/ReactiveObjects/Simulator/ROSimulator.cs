@@ -74,7 +74,12 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             Selection.selectionChanged -= SelectionChanged;
             is_enabled = false;
 
-            PropertyOverrides.Value = null;
+            // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
+            // (which generates a noisy exception)
+            EditorApplication.delayCall += () =>
+            {
+                PropertyOverrides.Value = null;
+            };
         }
         
         private ComputeContext _lastComputeContext;
