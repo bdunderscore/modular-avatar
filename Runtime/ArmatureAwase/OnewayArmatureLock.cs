@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _baseState = accessor._in_baseBone,
                 _mergeState = accessor._in_targetBone,
                 _baseParentState = accessor._in_baseParentBone,
-                _mergeParentState = accessor._in_baseParentBone,
+                _mergeParentState = accessor._in_targetParentBone,
                 _mergeSavedState = _mergeSavedState,
                 _boneStatic = _boneStaticData,
                 _fault = accessor._abortFlag,
@@ -176,6 +176,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                             _mergeParentState[index]))
                     {
                         _boneStatic[index] = state;
+                        _mergeSavedState[index] = mergeState;
                     }
                     else
                     {

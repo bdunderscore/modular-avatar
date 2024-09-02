@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.ArmatureAwase;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,24 +16,54 @@ namespace nadena.dev.modular_avatar.core.editor
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
 
+        private ComputeContext _ctx;
+        private VisualElement _root;
+        
         private TransformChildrenNode _groupedNodesElem;
 
         protected override void OnInnerInspectorGUI()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         protected override VisualElement CreateInnerInspectorGUI()
         {
+            _root = new VisualElement();
+
+            RebuildInnerGUI();
+
+            return _root;
+        }
+
+        private void RebuildInnerGUI()
+        {
+            _root.Clear();
+            _ctx = new ComputeContext("MoveIndependentlyEditor");
+            _root.Add(BuildInnerGUI(_ctx));
+        }
+
+        private VisualElement BuildInnerGUI(ComputeContext ctx)
+        {
+            if (this.target == null) return new VisualElement();
+
+            _ctx.InvokeOnInvalidate(this, editor => editor.RebuildInnerGUI());
+            
+#pragma warning disable CS0618 // Type or member is obsolete
             var root = uxml.Localize();
+#pragma warning restore CS0618 // Type or member is obsolete
             root.styleSheets.Add(uss);
 
             var container = root.Q<VisualElement>("group-container");
 
             MAMoveIndependently target = (MAMoveIndependently) this.target;
-            var grouped = (target.GroupedBones ?? Array.Empty<GameObject>())
-                .Select(obj => obj.transform)
-                .ToImmutableHashSet();
+            // Note: We specifically _don't_ use an ImmutableHashSet here as we want to update the previously-returned
+            // set in place to avoid rebuilding GUI elements after the user changes the grouping.
+            var grouped = ctx.Observe(target,
+                t => (t.GroupedBones ?? Array.Empty<GameObject>())
+                    .Select(obj => obj.transform)
+                    .ToHashSet(new ObjectIdentityComparer<Transform>()),
+                (x, y) => x.SetEquals(y)
+            );
 
             _groupedNodesElem = new TransformChildrenNode(target.transform, grouped);
             _groupedNodesElem.AddToClassList("group-root");
@@ -41,6 +72,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 Undo.RecordObject(target, "Toggle grouped nodes");
                 target.GroupedBones = _groupedNodesElem.Active().Select(t => t.gameObject).ToArray();
+                grouped.Clear();
+                grouped.UnionWith(target.GroupedBones.Select(obj => obj.transform));
                 PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             };
 

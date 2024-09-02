@@ -302,6 +302,13 @@ namespace nadena.dev.modular_avatar.animation
 
         private void PruneEmptyLayers()
         {
+#if MA_VRCSDK3_AVATARS
+            // We can't safely correct the layer index of a VRCAnimatorLayerControl without knowing if it refers to
+            // _this_ animator controller, so just skip this. We'll do the empty layer pruning later when we merge
+            // everything together.
+            if (BlendableLayer == null) return;
+#endif
+            
             var originalLayers = _layers;
             int[] layerIndexMappings = new int[originalLayers.Count];
 
@@ -496,7 +503,7 @@ namespace nadena.dev.modular_avatar.animation
                         for (int i = 0; i < overrideBehaviors.Length; i++)
                         {
                             overrideBehaviors[i] = _deepClone.DoClone(overrideBehaviors[i]);
-                            AdjustBehavior(overrideBehaviors[i]);
+                            AdjustBehavior(overrideBehaviors[i], basePath);
                         }
 
                         newLayer.SetOverrideBehaviours((AnimatorState)_cloneMap[state], overrideBehaviors);
@@ -534,7 +541,6 @@ namespace nadena.dev.modular_avatar.animation
                     if (child.stateMachine == null) continue;
 
                     if (visited.Contains(child.stateMachine)) continue;
-                    visited.Add(child.stateMachine);
                     foreach (var state in VisitStateMachine(child.stateMachine))
                     {
                         yield return state;
@@ -579,7 +585,7 @@ namespace nadena.dev.modular_avatar.animation
             {
                 foreach (var behavior in state.behaviours)
                 {
-                    AdjustBehavior(behavior);
+                    AdjustBehavior(behavior, basePath);
                 }
             }
 
@@ -587,7 +593,7 @@ namespace nadena.dev.modular_avatar.animation
             return asm;
         }
 
-        private void AdjustBehavior(StateMachineBehaviour behavior)
+        private void AdjustBehavior(StateMachineBehaviour behavior, string basePath)
         {
 #if MA_VRCSDK3_AVATARS
             switch (behavior)
@@ -599,6 +605,16 @@ namespace nadena.dev.modular_avatar.animation
                     layerControl.layer += _controllerBaseLayer;
                     break;
                 }
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+                case VRCAnimatorPlayAudio playAudio:
+                {
+                    if (!string.IsNullOrEmpty(playAudio.SourcePath) && !string.IsNullOrEmpty(basePath) && !playAudio.SourcePath.StartsWith(basePath))
+                    {
+                        playAudio.SourcePath = $"{basePath}/{playAudio.SourcePath}";
+                    }
+                    break;
+                }
+#endif
             }
 #endif
         }

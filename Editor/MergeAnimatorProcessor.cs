@@ -151,7 +151,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 basePath = "";
             }
 
-            bool? writeDefaults = merge.matchAvatarWriteDefaults ? writeDefaults_[merge.layerType] : null;
+            var writeDefaults = merge.matchAvatarWriteDefaults
+                ? writeDefaults_.GetValueOrDefault(merge.layerType)
+                : null;
             var controller = _context.ConvertAnimatorController(merge.animator);
             session.AddController(basePath, controller, writeDefaults);
 

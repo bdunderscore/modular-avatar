@@ -94,10 +94,10 @@ namespace nadena.dev.modular_avatar.core.editor
             TopoProcessMergeArmatures(mergeArmatures);
 
 #if MA_VRCSDK3_AVATARS
-            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ScaleProxy>(true))
+            /*foreach (var c in avatarGameObject.transform.GetComponentsInChildren<ScaleProxy>(true))
             {
                 BoneDatabase.AddMergedBone(c.transform);
-            }
+            }*/
 
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBone>(true))
             {
@@ -116,6 +116,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (c.rootTransform == null) c.rootTransform = c.transform;
                 RetainBoneReferences(c);
             }
+
+            foreach (var c in avatarGameObject.transform.GetComponentsInChildren<VRCConstraintBase>(true))
+                RetainBoneReferences(c);
 #endif
 
 #if MA_VRM0

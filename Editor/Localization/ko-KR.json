@@ -44,8 +44,6 @@
   "merge_parameter.ui.internalParameter.tooltip": "활성화시, 이름이 중복되는것을 피하여 자동으로 이름을 변경합니다",
   "merge_parameter.ui.isPrefix": "PhysBones 접두사",
   "merge_parameter.ui.syncType": "파라미터 타입",
-  "merge_parameter.ui.localOnly": "로컬 전용",
-  "merge_parameter.ui.localOnly.tooltip": "활성화시, 네트워크상에서 동기화되지 않습니다.",
   "merge_parameter.ui.unregistered_foldout": "등록되지않은 파라미터",
   "merge_parameter.ui.add_button": "추가",
   "merge_parameter.ui.details": "파라미터 상세설정",

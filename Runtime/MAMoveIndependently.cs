@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
+using UnityEditor;
 using UnityEngine;
-
 #if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
 #endif
@@ -10,13 +10,14 @@ using VRC.SDKBase;
 namespace nadena.dev.modular_avatar.core.ArmatureAwase
 {
     [ExecuteInEditMode]
-    //[AddComponentMenu("")]
+    [AddComponentMenu("Modular Avatar/MA Move Independently")]
     [DisallowMultipleComponent]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/move-independently?lang=auto")]
     class MAMoveIndependently : MonoBehaviour, IEditorOnly
     {
         private float EPSILON = 0.0000001f;
 
+        [SerializeField]
         private GameObject[] m_groupedBones;
 
         public GameObject[] GroupedBones
@@ -128,7 +129,6 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
             foreach (Transform child in parent)
             {
                 if (_excluded.Contains(child)) continue;
-                if (child.GetComponent<ScaleProxy>() != null) continue;
 
                 _observed.Add(child);
 
@@ -167,7 +167,7 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                     var newRotation = childNewLocal.rotation;
                     var newScale = childNewLocal.lossyScale;
 #if UNITY_EDITOR
-                    UnityEditor.Undo.RecordObject(child, UnityEditor.Undo.GetCurrentGroupName());
+                    Undo.RecordObject(child, Undo.GetCurrentGroupName());
 #endif
 
                     child.localPosition = newPosition;

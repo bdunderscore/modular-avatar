@@ -1,0 +1,114 @@
+﻿VisualElement {
+}
+
+#group-box {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 4px;
+    border-width: 3px;
+    border-left-color: rgba(0, 1, 0, 0.2);
+    border-top-color: rgba(0, 1, 0, 0.2);
+    border-right-color: rgba(0, 1, 0, 0.2);
+    border-bottom-color: rgba(0, 1, 0, 0.2);
+    border-radius: 4px;
+    /* background-color: rgba(0, 0, 0, 0.1); */
+}
+
+#ListViewContainer {
+    margin-top: 4px;
+}
+
+#group-box > Label {
+    -unity-font-style: bold;
+}
+
+.group-root {
+    margin-top: 4px;
+}
+
+.group-root Toggle {
+    margin-left: 0;
+}
+
+.group-children {
+    padding-left: 10px;
+}
+
+.left-toggle {
+    display: flex;
+    flex-direction: row;
+}
+
+.toggled-object-editor {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggled-object-editor #f-object {
+    flex-grow: 1;
+    height: 100%;
+}
+
+#f-active > Toggle {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: -12px;
+    margin-right: 3px;
+}
+
+.toggled-object-editor PropertyField Label {
+    display: none;
+}
+
+#f-change-type {
+    width: 75px;
+}
+
+.f-value {
+    width: 40px;
+}
+
+#f-value-delete {
+    display: none;
+}
+
+.change-type-delete #f-value {
+    display: none;
+}
+
+.change-type-delete #f-value-delete {
+    display: flex;
+}
+
+/* Add shape window */
+
+.add-shape-popup {
+    margin: 2px;
+}
+
+.vline {
+    width: 100%;
+    height: 4px;
+    border-top-width: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-top-color: rgba(0, 0, 0, 0.2);
+}
+
+.add-shape-row {
+    flex-direction: row;
+}
+
+.add-shape-row Button {
+    flex-grow: 0;
+}
+
+.add-shape-popup ScrollView Label.placeholder {
+    -unity-text-align: middle-center;
+}
+
+.add-shape-row Label {
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+}

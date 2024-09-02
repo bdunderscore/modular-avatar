@@ -179,6 +179,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var handleSize = HandleUtility.GetHandleSize(Tools.handlePosition);
+            _handleRotation = Tools.handleRotation;
+
             EditorGUI.BeginChangeCheck();
             _gizmoScale = Handles.ScaleHandle(_gizmoScale, Tools.handlePosition, _handleRotation, handleSize);
             if (EditorGUI.EndChangeCheck())

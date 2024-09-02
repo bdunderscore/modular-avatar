@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 
 #endregion
 
@@ -52,7 +50,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 _onDispose = null;
             }
         }
-
+        
         /// <summary>
         /// A list of allocated (and unallocated) segments.
         ///
@@ -61,6 +59,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         /// 
         /// </summary>
         List<Segment> segments = new List<Segment>();
+
+        public event Action<ISegment> OnSegmentDispose;
 
         public ISegment Allocate(int requested)
         {
@@ -113,6 +113,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             var s = inputSegment as Segment;
             if (s == null) throw new ArgumentException("Passed a foreign segment???");
+
+            OnSegmentDispose?.Invoke(inputSegment);
 
             int index = segments.BinarySearch(s, Comparer<Segment>.Create((a, b) => a._offset.CompareTo(b._offset)));
             if (index < 0 || segments[index] != s)

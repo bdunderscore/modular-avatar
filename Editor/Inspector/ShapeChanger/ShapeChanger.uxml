@@ -1,0 +1,25 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ui:VisualElement name="group-box">
+            <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
+
+            <ui:VisualElement name="ListViewContainer">
+                <ui:ListView virtualization-method="DynamicHeight"
+                             reorder-mode="Animated"
+                             reorderable="true"
+                             show-add-remove-footer="true"
+                             show-border="true"
+                             show-foldout-header="false"
+                             name="Shapes"
+                             item-height="100"
+                             binding-path="m_shapes"
+                             style="flex-grow: 1;"
+                />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ma:ROSimulatorButton/>
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>

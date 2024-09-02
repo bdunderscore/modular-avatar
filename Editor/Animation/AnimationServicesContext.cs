@@ -1,5 +1,15 @@
-﻿using System;
+﻿#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+using VRC.SDK3.Avatars.Components;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.animation
 {
@@ -17,16 +27,24 @@ namespace nadena.dev.modular_avatar.animation
     /// </summary>
     internal sealed class AnimationServicesContext : IExtensionContext
     {
+        private BuildContext _context;
         private AnimationDatabase _animationDatabase;
         private PathMappings _pathMappings;
+        private ReadableProperty _readableProperty;
+        
+        private Dictionary<GameObject, string> _selfProxies = new();
 
         public void OnActivate(BuildContext context)
         {
+            _context = context;
+            
             _animationDatabase = new AnimationDatabase();
             _animationDatabase.OnActivate(context);
 
             _pathMappings = new PathMappings();
             _pathMappings.OnActivate(context, _animationDatabase);
+
+            _readableProperty = new ReadableProperty(_context, _animationDatabase, this);
         }
 
         public void OnDeactivate(BuildContext context)
@@ -64,6 +82,38 @@ namespace nadena.dev.modular_avatar.animation
 
                 return _pathMappings;
             }
+        }
+
+        public IEnumerable<(EditorCurveBinding, string)> BoundReadableProperties => _readableProperty.BoundProperties;
+
+        // HACK: This is a temporary crutch until we rework the entire animator services system
+        public void AddPropertyDefinition(AnimatorControllerParameter paramDef)
+        {
+            var fx = (AnimatorController)
+                _context.AvatarDescriptor.baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController;
+
+            fx.parameters = fx.parameters.Concat(new[] { paramDef }).ToArray();
+        }
+
+        public string GetActiveSelfProxy(GameObject obj)
+        {
+            if (_selfProxies.TryGetValue(obj, out var paramName) && !string.IsNullOrEmpty(paramName)) return paramName;
+
+            var path = PathMappings.GetObjectIdentifier(obj);
+
+            paramName = _readableProperty.ForActiveSelf(path);
+            _selfProxies[obj] = paramName;
+
+            return paramName;
+        }
+
+        public bool ObjectHasAnimations(GameObject obj)
+        {
+            var path = PathMappings.GetObjectIdentifier(obj);
+            var clips = AnimationDatabase.ClipsForPath(path);
+            return clips != null && !clips.IsEmpty;
         }
     }
 }

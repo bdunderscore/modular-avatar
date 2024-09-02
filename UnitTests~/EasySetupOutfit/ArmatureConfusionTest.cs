@@ -55,7 +55,7 @@ public class ArmatureConfusionTest : TestBase
 
         // Now do a setup outfit operation
         Selection.activeGameObject = inner;
-        EasySetupOutfit.SetupOutfit(new MenuCommand(inner));
+        SetupOutfit.SetupOutfitUI(inner);
 
         // Verify that we're not confused anymore
         Assert.AreSame(

@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using nadena.dev.modular_avatar.core;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -13,8 +12,12 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
+        private const string V_True = "ON";
+        private const string V_False = "OFF";
+        
         private readonly TextField _visibleField;
         private readonly FloatField _defaultValueField;
+        private readonly DropdownField _boolField;
         private readonly Toggle _hasExplicitDefaultSetField;
 
         public DefaultValueField()
@@ -22,6 +25,11 @@ namespace nadena.dev.modular_avatar.core.editor
             // Hidden binding elements
             _defaultValueField = new FloatField();
             _hasExplicitDefaultSetField = new Toggle();
+            _boolField = new DropdownField();
+
+            _boolField.choices.Add("");
+            _boolField.choices.Add(V_True);
+            _boolField.choices.Add(V_False);
 
             _defaultValueField.RegisterValueChangedCallback(
                 evt => UpdateVisibleField(evt.newValue, _hasExplicitDefaultSetField.value));
@@ -50,10 +58,22 @@ namespace nadena.dev.modular_avatar.core.editor
             _defaultValueField.SetEnabled(false);
             _hasExplicitDefaultSetField.style.width = 0;
             _hasExplicitDefaultSetField.SetEnabled(false);
+
+            _boolField.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue == V_True)
+                    _defaultValueField.value = 1;
+                else
+                    _defaultValueField.value = 0;
+
+                _hasExplicitDefaultSetField.value = evt.newValue != "";
+            });
+            
             
             style.flexDirection = FlexDirection.Row;
             
             Add(_visibleField);
+            Add(_boolField);
             Add(_defaultValueField);
             Add(_hasExplicitDefaultSetField);
         }
@@ -73,6 +93,16 @@ namespace nadena.dev.modular_avatar.core.editor
             
             var str = hasExplicitValue ? value.ToString(CultureInfo.InvariantCulture) : "";
             _visibleField.SetValueWithoutNotify(str);
+
+            string boolStr;
+            if (!hasExplicitValue)
+                boolStr = "";
+            else if (value > 0.5)
+                boolStr = V_True;
+            else
+                boolStr = V_False;
+
+            _boolField.SetValueWithoutNotify(boolStr);
         }
     }
 }

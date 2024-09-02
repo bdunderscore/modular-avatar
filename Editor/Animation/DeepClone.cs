@@ -6,10 +6,11 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using BuildContext = nadena.dev.ndmf.BuildContext;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.animation
 {
-    using UnityObject = UnityEngine.Object;
+    using UnityObject = Object;
 
     internal class DeepClone
     {
@@ -125,8 +126,12 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     case SerializedPropertyType.ObjectReference:
                     {
-                        var newObj = DoClone(prop.objectReferenceValue, basePath, cloneMap);
-                        prop.objectReferenceValue = newObj;
+                        if (prop.objectReferenceValue != null && prop.objectReferenceValue != obj)
+                        {
+                            var newObj = DoClone(prop.objectReferenceValue, basePath, cloneMap);
+                            prop.objectReferenceValue = newObj;
+                        }
+
                         break;
                     }
                     // Iterating strings can get super slow...
@@ -161,7 +166,10 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     var newBinding = binding;
                     newBinding.path = MapPath(binding, basePath);
-                    newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
+                    // https://github.com/bdunderscore/modular-avatar/issues/950
+                    // It's reported that sometimes using SetObjectReferenceCurve right after SetCurve might cause the
+                    // curves to be forgotten; use SetEditorCurve instead.
+                    AnimationUtility.SetEditorCurve(newClip, newBinding,
                         AnimationUtility.GetEditorCurve(clip, binding));
                 }
 

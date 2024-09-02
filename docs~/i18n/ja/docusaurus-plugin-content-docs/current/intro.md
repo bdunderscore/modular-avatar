@@ -21,6 +21,7 @@ VRChat Creator CompanionでModular Avatarをインストールすることをお
 最新版にアップデートするには、"Latest Version"の緑色の矢印をクリックしてください。
 
 インストール後は以下のチュートリアルを参照してください。
+
 * [簡単な衣装設定](/docs/tutorials/clothing)
 * [複雑な衣装設定](/docs/tutorials/adv_clothing)
 * [アニメーターでトグル作成](/docs/tutorials/object_toggle/)

@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Animations;
+using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
 #if MA_VRCSDK3_AVATARS
@@ -135,11 +135,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         bool Process(ModularAvatarVisibleHeadAccessory target)
         {
-#if UNITY_ANDROID
-            Object.DestroyImmediate(target);
-            return false;
-#endif
-
             bool didWork = false;
             
             if (_validator.Validate(target) == VisibleHeadAccessoryValidation.ReadyStatus.Ready)
@@ -226,9 +221,9 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_proxyHead != null) return _proxyHead;
 
             var src = _headBone;
-            GameObject obj = new GameObject(src.name + " (FirstPersonVisible)");
+            var obj = new GameObject(src.name + " (HeadChop)");
 
-            Transform parent = _headBone.parent;
+            var parent = _headBone;
 
             obj.transform.SetParent(parent, false);
             obj.transform.localPosition = src.localPosition;
@@ -236,16 +231,17 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localScale = src.localScale;
             Debug.Log($"src.localScale = {src.localScale} obj.transform.localScale = {obj.transform.localScale}");
 
-            var constraint = obj.AddComponent<ParentConstraint>();
-            constraint.AddSource(new ConstraintSource()
+            var headChop = obj.AddComponent<VRCHeadChop>();
+            headChop.targetBones = new[]
             {
-                weight = 1.0f,
-                sourceTransform = src
-            });
-            constraint.constraintActive = true;
-            constraint.locked = true;
-            constraint.rotationOffsets = new[] {Vector3.zero};
-            constraint.translationOffsets = new[] {Vector3.zero};
+                new VRCHeadChop.HeadChopBone
+                {
+                    transform = obj.transform,
+                    applyCondition = VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply,
+                    scaleFactor = 1
+                }
+            };
+            headChop.globalScaleFactor = 1;
 
             _proxyHead = obj.transform;
 

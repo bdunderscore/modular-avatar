@@ -1,19 +1,23 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+#region
+
 using System;
+using System.IO;
 using System.Linq;
+using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
+#endregion
+
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MenuExtractor
     {
-        private const int PRIORITY = 49;
-
-        [MenuItem("GameObject/ModularAvatar/Extract menu", false, PRIORITY)]
+        [MenuItem(UnityMenuItems.GameObject_ExtractMenu, false, UnityMenuItems.GameObject_ExtractMenuOrder)]
         static void ExtractMenu(MenuCommand menuCommand)
         {
             if (!(menuCommand.context is GameObject gameObj)) return;
@@ -32,10 +36,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var assetPath = AssetDatabase.GetAssetPath(avatar.expressionsMenu);
             var dummyAssetPathBase = assetPath.Replace(".asset", " placeholder");
-            if (dummyAssetPathBase.StartsWith("Packages" + System.IO.Path.DirectorySeparatorChar))
+            if (dummyAssetPathBase.StartsWith("Packages" + Path.DirectorySeparatorChar))
             {
-                var filename = System.IO.Path.GetFileName(dummyAssetPathBase);
-                dummyAssetPathBase = System.IO.Path.Combine("Assets", filename);
+                var filename = Path.GetFileName(dummyAssetPathBase);
+                dummyAssetPathBase = Path.Combine("Assets", filename);
             }
 
             // Check that a similarly-named file doesn't already exist
@@ -43,7 +47,7 @@ namespace nadena.dev.modular_avatar.core.editor
             do
             {
                 var fullPath = dummyAssetPathBase + (i > 0 ? " " + i : "") + ".asset";
-                if (System.IO.File.Exists(fullPath))
+                if (File.Exists(fullPath))
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<VRCExpressionsMenu>(fullPath);
                     if (asset != null && asset.controls.Count == 0)
@@ -52,7 +56,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         break;
                     }
                 }
-                else if (!System.IO.File.Exists(fullPath))
+                else if (!File.Exists(fullPath))
                 {
                     var dummyAsset = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
                     AssetDatabase.CreateAsset(dummyAsset, fullPath);

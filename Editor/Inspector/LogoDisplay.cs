@@ -1,13 +1,30 @@
-﻿using System;
+﻿#region
+
+using System;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class LogoDisplay
     {
         internal static readonly Texture2D LOGO_ASSET;
-        internal static float TARGET_HEIGHT => EditorStyles.label.lineHeight * 3;
+        internal static float TARGET_HEIGHT
+        {
+            get {
+                try
+                {
+                    return (EditorStyles.label?.lineHeight ?? 0) * 3;
+                }
+                catch (NullReferenceException e)
+                {
+                    // This can happen in early initialization...
+                    return 0;
+                }
+            }
+        }
 
         internal static float ImageWidth(float height)
         {
@@ -37,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static void DisplayLogo()
         {
-            if (LOGO_ASSET == null) return;
+            if (LOGO_ASSET == null || EditorStyles.label == null) return; 
 
             var height = TARGET_HEIGHT;
             var width = ImageWidth(height);

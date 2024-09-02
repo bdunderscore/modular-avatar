@@ -134,7 +134,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
-                catch (MissingComponentException e)
+                catch (MissingComponentException _)
                 {
                     // No animator? weird. Move on.
                 }

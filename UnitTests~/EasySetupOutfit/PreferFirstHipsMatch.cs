@@ -22,7 +22,7 @@ public class PreferFirstHipsMatch : TestBase
         var outfit_armature = CreateChild(outfit, "Armature");
         var outfit_hips = CreateChild(outfit_armature, "Hips");
         
-        Assert.IsTrue(EasySetupOutfit.FindBones(outfit, out var det_av_root, out var det_av_hips, out var det_outfit_hips));
+        Assert.IsTrue(SetupOutfit.FindBones(outfit, out var det_av_root, out var det_av_hips, out var det_outfit_hips));
         Assert.AreSame(root, det_av_root);
         Assert.AreSame(root_hips, det_av_hips);
         Assert.AreSame(outfit_hips, det_outfit_hips);

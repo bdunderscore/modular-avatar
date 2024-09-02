@@ -9,7 +9,7 @@ Modular Avatarには、機能の使い方を見せるためのサンプルプレ
 
 ![サンプルの場所](wheretofind.png)
 
-## 指ペン(Fingerpen)
+## 指ペン(Fingerpen) {#fingerpen}
 
 どこでも使える、便利な指ペンプレハブ。
 アバターにオブジェクトを追加するだけで導入が完了します（アクションメニュー直下に導入されます）。
@@ -22,7 +22,7 @@ Modular Avatarには、機能の使い方を見せるためのサンプルプレ
 * [メニュー](/docs/reference/menu-installer)の自動インストール
 * [Bone Proxy](/docs/reference/bone-proxy)で、様々のアバターに対応した、アバターのボーンにオブジェクトを導入する方法
 
-## 拍手(Clap)
+## 拍手(Clap) {#clap}
 
 Clapプレハブをアバターに入れることで、手を合わせると拍手の効果音が流れ、パーティクルがでます。
 指ペンと同様、Select MenuでON・OFFスイッチの位置を指定できます。

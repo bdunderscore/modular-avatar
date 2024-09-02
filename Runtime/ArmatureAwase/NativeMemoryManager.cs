@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 
 #endregion
 
@@ -96,6 +97,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 Array = new NativeArray<bool>(1, Allocator.Persistent)
             };
             arrays.Add(InUseMask);
+
+            _allocationMap.OnSegmentDispose += seg =>
+            {
+                if (!_isDisposed) SetInUseMask(seg.Offset, seg.Length, false);
+            };
         }
 
         public NativeArrayRef<T> CreateArray<T>() where T : unmanaged
@@ -129,6 +135,15 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         void SetInUseMask(int offset, int length, bool value)
         {
+            if (offset < 0)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            
+            // We perform trial creations of segments (and then immediately free them if they exceed the bounds of the
+            // array). As such, we clamp the length, rather than throwing an exception.
+            length = Math.Min(length, InUseMask.Array.Length - offset);
+            
             unsafe
             {
                 UnsafeUtility.MemSet((byte*)InUseMask.Array.GetUnsafePtr() + offset, value ? (byte)1 : (byte)0, length);
@@ -183,6 +198,8 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private void Defragment()
         {
+            SetInUseMask(0, _allocatedLength, false);
+            
             _allocationMap.Defragment((src, dst, length) =>
             {
                 foreach (var array in arrays)
@@ -190,11 +207,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                     array.MemMove(src, dst, length);
                 }
 
+                SetInUseMask(dst, length, true);
+
                 OnSegmentMove?.Invoke(src, dst, length);
             });
         }
-
-
+        
         private void ResizeNativeArrays(int minimumLength)
         {
             int targetLength = Math.Max((int)(1.5 * _allocatedLength), minimumLength);

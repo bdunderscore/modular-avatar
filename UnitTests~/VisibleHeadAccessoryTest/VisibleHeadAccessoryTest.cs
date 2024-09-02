@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
+using VRC.SDK3.Avatars.Components;
 
 namespace UnitTests.VisibleHeadAccessoryTest
 {
@@ -36,9 +37,9 @@ namespace UnitTests.VisibleHeadAccessoryTest
             {
                 "Armature/Hips/Spine/Chest/Neck/Head/O1",
                 "Armature/Hips/Spine/Chest/Neck/Head/O1/O2",
-                "Armature/Hips/Spine/Chest/Neck/Head (FirstPersonVisible)/O1",
-                "Armature/Hips/Spine/Chest/Neck/Head (FirstPersonVisible)/O1/O2",
-                "Armature/Hips/Spine/Chest/Neck/Head (FirstPersonVisible)/O1/O2/Cube",
+                "Armature/Hips/Spine/Chest/Neck/Head/Head (HeadChop)/O1",
+                "Armature/Hips/Spine/Chest/Neck/Head/Head (HeadChop)/O1/O2",
+                "Armature/Hips/Spine/Chest/Neck/Head/Head (HeadChop)/O1/O2/Cube",
             }.ToImmutableSortedSet();
 
             var bindings = AnimationUtility.GetCurveBindings(fx_anim).Select(binding => binding.path)
@@ -46,13 +47,14 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.AreEqual(expectedBindings, bindings);
 
             var head = prefab.transform.Find("Armature/Hips/Spine/Chest/Neck/Head");
-            var constraint = prefab.transform.Find("Armature/Hips/Spine/Chest/Neck/Head (FirstPersonVisible)")
-                .GetComponent<ParentConstraint>();
+            var chop = head.Find("Head (HeadChop)");
+            var headchop = chop.GetComponent<VRCHeadChop>();
 
-            Assert.AreEqual(head, constraint.GetSource(0).sourceTransform);
-            Assert.AreEqual(1, constraint.GetSource(0).weight);
-            Assert.AreEqual(new Vector3(0, 0, 0), constraint.translationOffsets[0]);
-            Assert.AreEqual(new Vector3(0, 0, 0), constraint.rotationOffsets[0]);
+            Assert.AreEqual(headchop.targetBones.Length, 1);
+            Assert.AreEqual(headchop.targetBones[0].transform, chop);
+            Assert.AreEqual(headchop.targetBones[0].scaleFactor, 1);
+            Assert.AreEqual(headchop.targetBones[0].applyCondition, VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply);
+            Assert.AreEqual(headchop.globalScaleFactor, 1);
         }
     }
 }

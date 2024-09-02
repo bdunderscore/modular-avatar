@@ -45,7 +45,7 @@ jobs:
     name: Unit tests
     strategy:
       matrix:
-        unity_major_version: [ 2019, 2022 ]
+        unity_major_version: [ 2022 ]
         sdk: [ vrcsdk ]
     runs-on: ubuntu-latest
     permissions:

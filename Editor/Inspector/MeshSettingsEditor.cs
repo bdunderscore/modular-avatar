@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.LabelField(G("mesh_settings.header_probe_anchor"), EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_prop_inherit_probe_anchor, G("mesh_settings.inherit_probe_anchor"));
-            if (_prop_inherit_probe_anchor.enumValueIndex == (int) ModularAvatarMeshSettings.InheritMode.Set)
+            if (_prop_inherit_probe_anchor.enumValueIndex is (int) ModularAvatarMeshSettings.InheritMode.Set or (int) ModularAvatarMeshSettings.InheritMode.SetOrInherit)
             {
                 EditorGUILayout.PropertyField(_prop_probe_anchor, G("mesh_settings.probe_anchor"));
             }
@@ -72,7 +72,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.LabelField(G("mesh_settings.header_bounds"), EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_prop_inherit_bounds, G("mesh_settings.inherit_bounds"));
-            if (_prop_inherit_bounds.enumValueIndex == (int) ModularAvatarMeshSettings.InheritMode.Set)
+            if (_prop_inherit_bounds.enumValueIndex is (int) ModularAvatarMeshSettings.InheritMode.Set or (int) ModularAvatarMeshSettings.InheritMode.SetOrInherit)
             {
                 EditorGUILayout.PropertyField(_prop_root_bone, G("mesh_settings.root_bone"));
                 EditorGUILayout.PropertyField(_prop_bounds, G("mesh_settings.bounds"));

@@ -34,6 +34,7 @@ Parametersコンポーネントで名前かぶりを避けるためにパラメ�
 Parametersコンポーネントは、入れ子式（ネスト状）で使うことができます。複雑なアセットをサブプレハブから構築し、名前かぶりを避けつつ同じプレハブを複数回使ったりすることもできます。
 
 パラメーターの名前変更は、Parametersコンポーネントと同じオブジェクトとその子に付いている、以下のコンポーネントに適用されます
+
 * [Modular Avatar Merge Animator](/docs/reference/merge-animator)
 * [Modular Avatar Menu Installer](/docs/reference/menu-installer)
 * VRC Physics Bone

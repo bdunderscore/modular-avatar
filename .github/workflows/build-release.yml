@@ -64,12 +64,14 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
+          echo "zipFileSHA256=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip.sha256 >> $GITHUB_ENV
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
         run: |
           zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
           mv ".github/${{env.zipFile}}" "${{env.zipFile}}"
+          sha256sum "${{env.zipFile}}" > "${{env.zipFileSHA256}}"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -77,7 +79,7 @@ jobs:
           path: ${{ env.zipFile }}
 
       - name: Make Release
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
@@ -85,4 +87,5 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
+            ${{ env.zipFileSHA256 }}
             package.json

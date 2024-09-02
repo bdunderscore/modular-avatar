@@ -1,19 +1,20 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.Odbc;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-
+using BuildContext = nadena.dev.ndmf.BuildContext;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
 
-using Object = UnityEngine.Object;
+#endregion
 
 namespace nadena.dev.modular_avatar.animation
 {
@@ -72,12 +73,20 @@ namespace nadena.dev.modular_avatar.animation
             {
                 return _currentClip;
             }
+
+            public void SetCurrentNoInvalidate(Motion newMotion)
+            {
+                _currentClip = newMotion;
+            }
         }
 
-        private ndmf.BuildContext _context;
+        private BuildContext _context;
 
         private List<Action> _clipCommitActions = new List<Action>();
         private List<ClipHolder> _clips = new List<ClipHolder>();
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        private HashSet<VRCAnimatorPlayAudio> _playAudios = new HashSet<VRCAnimatorPlayAudio>();
+#endif
 
         private Dictionary<string, HashSet<ClipHolder>> _pathToClip = null;
 
@@ -119,7 +128,7 @@ namespace nadena.dev.modular_avatar.animation
             }
         }
 
-        internal void OnActivate(ndmf.BuildContext context)
+        internal void OnActivate(BuildContext context)
         {
             _context = context;
 
@@ -170,6 +179,16 @@ namespace nadena.dev.modular_avatar.animation
 
             if (processClip == null) processClip = (_) => { };
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+            foreach (var behavior in state.behaviours)
+            {
+                if (behavior is VRCAnimatorPlayAudio playAudio)
+                {
+                    _playAudios.Add(playAudio);
+                }
+            }
+#endif
+
             if (state.motion == null) return;
 
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
@@ -185,6 +204,16 @@ namespace nadena.dev.modular_avatar.animation
                 processClip(clipHolder);
             }
         }
+
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+        internal void ForeachPlayAudio(Action<VRCAnimatorPlayAudio> processPlayAudio)
+        {
+            foreach (var playAudioHolder in _playAudios)
+            {
+                processPlayAudio(playAudioHolder);
+            }
+        }
+#endif
 
         /// <summary>
         /// Returns a list of clips which touched the given _original_ path. This path is subject to basepath remapping,
@@ -272,12 +301,12 @@ namespace nadena.dev.modular_avatar.animation
                 _pathToClip = new Dictionary<string, HashSet<ClipHolder>>();
                 foreach (var clip in _clips)
                 {
-                    recordPaths(clip);
+                    RecordPaths(clip);
                 }
             }
         }
 
-        private void recordPaths(ClipHolder holder)
+        private void RecordPaths(ClipHolder holder)
         {
             var clip = holder.GetCurrentClipUnsafe() as AnimationClip;
 

@@ -1,47 +1,48 @@
 <ui:UXML
-        xmlns:ui="UnityEngine.UIElements" 
-        xmlns:engine="UnityEditor.UIElements"
-        xmlns:ma="nadena.dev.modular_avatar.core.editor" 
+        xmlns:ui="UnityEngine.UIElements"
+        xmlns:ma="nadena.dev.modular_avatar.core.editor"
         editor-extension-mode="False"
 >
-    <ui:VisualElement name="MiniDisplay">
-        <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr"/>
-        <ma:DefaultValueField/>
-        <ui:Label text="merge_parameter.ui.saved" class="ndmf-tr"/>
-        <ui:Toggle binding-path="saved"/>
+    <ui:VisualElement name="Root">
+        <ui:VisualElement class="horizontal no-label">
+            <ui:TextField binding-path="nameOrPrefix" label="merge_parameter.ui.name" name="f-name" class="ndmf-tr"/>
+            <ui:DropdownField name="f-type"/>
+        </ui:VisualElement>
+
+        <ui:Toggle binding-path="isPrefix" name="f-is-prefix"/>
+        <ui:DropdownField binding-path="syncType" name="f-sync-type"/>
+
+        <ui:VisualElement class="horizontal small-label">
+            <ui:Toggle binding-path="internalParameter" name="f-internal-parameter"
+                       text="merge_parameter.ui.internalParameter" class="ndmf-tr no-left-margin"/>
+            <ui:VisualElement class="v-separator hide-with-internal-param">
+                <ui:VisualElement/>
+            </ui:VisualElement>
+            <ui:Label text="merge_parameter.ui.remapTo"
+                      class="ndmf-tr inner-label hide-with-internal-param no-left-margin"/>
+            <ui:TextField name="f-remap-to" binding-path="remapTo" class="hide-with-internal-param"/>
+            <ui:Label name="f-default-param" text="test test test"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="horizontal small-label st-pb-prefix__hide ">
+            <ui:VisualElement class="horizontal">
+                <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr no-left-margin"/>
+                <ma:DefaultValueField/>
+            </ui:VisualElement>
+            <ui:VisualElement class="horizontal st-anim-only__hide">
+                <ui:VisualElement class="v-separator">
+                    <ui:VisualElement/>
+                </ui:VisualElement>
+                <ui:Toggle binding-path="saved" text="merge_parameter.ui.saved"
+                           class="ndmf-tr st-pb-prefix__first-retained"/>
+                <ui:Toggle binding-path="localOnly" text="merge_parameter.ui.localOnly" class="ndmf-tr"
+                           name="f-local-only"/>
+                <ui:Toggle text="merge_parameter.ui.synced" class="ndmf-tr" name="f-synced"/>
+                <ui:Toggle binding-path="m_overrideAnimatorDefaults" text="merge_parameter.ui.overrideAnimatorDefaults"
+                           class="ndmf-tr"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
     </ui:VisualElement>
-    
-    <ui:Foldout name="ParameterConfigRoot" text="(placeholder)" value="false">
-        <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.name" name="f-name" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />
-        <engine:PropertyField binding-path="nameOrPrefix" label="merge_parameter.ui.prefix" name="f-prefix" class="ndmf-tr ParameterConfig__isPrefix_trueOnly" />
-        <engine:PropertyField binding-path="remapTo" label="merge_parameter.ui.remapTo" name="remapTo" class="ndmf-tr" />
-        <ui:TextField label="merge_parameter.ui.remapTo" text="merge_parameter.ui.remapTo.automatic"
-                      name="remapToPlaceholder" enabled="false"
-                      class="ndmf-tr unity-base-field__aligned disabledPlaceholder"/>
-
-        <!-- this field is not visible until it's moved into the PropertyField below -->
-        <ma:DefaultValueField 
-                name="innerDefaultValueField"
-                class="unity-base-field__input unity-property-field__input"
-        /> 
-        
-        <engine:PropertyField binding-path="defaultValue" name="defaultValueProp" label="merge_parameter.ui.defaultValue" class="ndmf-tr ParameterConfig__isPrefix_falseOnly">
-            
-        </engine:PropertyField>
-        
-        <engine:PropertyField binding-path="saved" label="merge_parameter.ui.saved" class="ndmf-tr ParameterConfig__isPrefix_falseOnly" />"
-    
-        <engine:PropertyField binding-path="internalParameter" label="merge_parameter.ui.internalParameter" name="internalParameter" class="ndmf-tr" />
-        <engine:PropertyField binding-path="isPrefix" label="merge_parameter.ui.isPrefix" name="isPrefix" class="ndmf-tr" />
-
-        <engine:PropertyField binding-path="syncType" label="merge_parameter.ui.syncType"
-                              class="ParameterConfig__isPrefix_falseOnly ndmf-tr" name="syncType"/>
-        <engine:PropertyField binding-path="m_overrideAnimatorDefaults" name="overrideDefaults"
-                              label="merge_parameter.ui.overrideAnimatorDefaults"
-                              class="ParameterConfig__isPrefix_falseOnly ndmf-tr"/>
-        <!-- <ui:Toggle label="merge_parameter.ui.overrideAnimatorDefaults"  value="true" enabled="false" name="overridePlaceholder" class="ParameterConfig__isPrefix_falseOnly ParameterConfig__animatorOnly_trueOnly ndmf-tr" /> -->
-        
-        <engine:PropertyField binding-path="localOnly" label="merge_parameter.ui.localOnly" class="ParameterConfig__isPrefix_falseOnly ParameterConfig__animatorOnly_falseOnly ndmf-tr" />
-    </ui:Foldout>
 
 </ui:UXML>

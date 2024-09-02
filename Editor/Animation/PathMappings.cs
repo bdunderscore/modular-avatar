@@ -7,15 +7,14 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+#endif
 
 #endregion
 
 namespace nadena.dev.modular_avatar.animation
 {
     #region
-
-    using UnityObject = Object;
 
     #endregion
 
@@ -34,6 +33,7 @@ namespace nadena.dev.modular_avatar.animation
         private HashSet<GameObject> _transformLookthroughObjects = new HashSet<GameObject>();
         private ImmutableDictionary<string, string> _originalPathToMappedPath = null;
         private ImmutableDictionary<string, string> _transformOriginalPathToMappedPath = null;
+        private ImmutableDictionary<string, GameObject> _pathToObject = null;
 
         internal void OnActivate(BuildContext context, AnimationDatabase animationDatabase)
         {
@@ -52,6 +52,7 @@ namespace nadena.dev.modular_avatar.animation
         {
             _originalPathToMappedPath = null;
             _transformOriginalPathToMappedPath = null;
+            _pathToObject = null;
         }
 
         /// <summary>
@@ -248,7 +249,10 @@ namespace nadena.dev.modular_avatar.animation
             {
                 var newBinding = binding;
                 newBinding.path = MapPath(binding);
-                newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
+                // https://github.com/bdunderscore/modular-avatar/issues/950
+                // It's reported that sometimes using SetObjectReferenceCurve right after SetCurve might cause the
+                // curves to be forgotten; use SetEditorCurve instead.
+                AnimationUtility.SetEditorCurve(newClip, newBinding,
                     AnimationUtility.GetEditorCurve(originalClip, binding));
             }
 
@@ -260,10 +264,10 @@ namespace nadena.dev.modular_avatar.animation
                     AnimationUtility.GetObjectReferenceCurve(originalClip, objBinding));
             }
 
-            newClip.wrapMode = newClip.wrapMode;
-            newClip.legacy = newClip.legacy;
-            newClip.frameRate = newClip.frameRate;
-            newClip.localBounds = newClip.localBounds;
+            newClip.wrapMode = originalClip.wrapMode;
+            newClip.legacy = originalClip.legacy;
+            newClip.frameRate = originalClip.frameRate;
+            newClip.localBounds = originalClip.localBounds;
             AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(originalClip));
 
             if (clipCache != null)
@@ -286,9 +290,40 @@ namespace nadena.dev.modular_avatar.animation
                 }
             });
 
+#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+            _animationDatabase.ForeachPlayAudio(playAudio =>
+            {
+                if (playAudio == null) return;
+                playAudio.SourcePath = MapPath(playAudio.SourcePath, true);
+            });
+#endif
+
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {
                 listener.OnCommitObjectRenames(context, this);
+            }
+        }
+
+        public GameObject PathToObject(string path)
+        {
+            if (_pathToObject == null)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, GameObject>();
+
+                foreach (var kvp in _objectToOriginalPaths)
+                foreach (var p in kvp.Value)
+                    builder[p] = kvp.Key;
+
+                _pathToObject = builder.ToImmutable();
+            }
+            
+            if (_pathToObject.TryGetValue(path, out var obj))
+            {
+                return obj;
+            }
+            else
+            {
+                return null;
             }
         }
     }

@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -18,6 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private VisualElement _inner;
 
+        public new class UxmlFactory : UxmlFactory<LogoElement, UxmlTraits>
+        {
+        }
+
+        public new class UxmlTraits : VisualElement.UxmlTraits
+        {
+        }
+        
         private static void RegisterNode(LogoElement target)
         {
             if (_logoDisplayNode == null)
@@ -85,19 +95,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public LogoElement()
         {
-            _inner = new VisualElement();
-
+            _inner = new LogoImage();
             _inner.style.display = DisplayStyle.None;
-            _inner.style.flexDirection = FlexDirection.Row;
-            _inner.style.alignItems = Align.Center;
-            _inner.style.justifyContent = Justify.Center;
-
-            var image = new Image();
-            image.image = LogoDisplay.LOGO_ASSET;
-            image.style.width = new Length(LogoDisplay.ImageWidth(LogoDisplay.TARGET_HEIGHT), LengthUnit.Pixel);
-            image.style.height = new Length(LogoDisplay.TARGET_HEIGHT, LengthUnit.Pixel);
-
-            _inner.Add(image);
             this.Add(_inner);
 
             RegisterCallback<GeometryChangedEvent>(OnGeomChanged);

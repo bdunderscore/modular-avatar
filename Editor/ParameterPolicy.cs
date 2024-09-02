@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +12,7 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -156,6 +158,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         WalkBlendTree(parameters, mergeBlendTree.BlendTree as BlendTree);
                         break;
                     }
+
+                    case ModularAvatarMenuItem menuItem:
+                    {
+                        AddMenuItemParameters(parameters, menuItem);
+                        break;
+                    }
                 }
             }
 
@@ -168,6 +176,28 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 CleanPhysBoneParams(parameters);
                 ApplyRemappings(ref parameters, parametersComponent);
+            }
+        }
+
+        private static void AddMenuItemParameters(Dictionary<string, DetectedParameter> parameters,
+            ModularAvatarMenuItem menuItem)
+        {
+            AddParam(menuItem.Control.parameter.name);
+            foreach (var subParam in menuItem.Control.subParameters ??
+                                     Array.Empty<VRCExpressionsMenu.Control.Parameter>()) AddParam(subParam.name);
+
+            void AddParam(string name)
+            {
+                if (string.IsNullOrWhiteSpace(name)) return;
+
+                var param = new DetectedParameter
+                {
+                    OriginalName = name,
+                    IsPrefix = false,
+                    Source = menuItem
+                };
+
+                parameters[param.MapKey] = param;
             }
         }
 

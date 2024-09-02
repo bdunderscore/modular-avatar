@@ -46,16 +46,19 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
                 seq.Run(MeshSettingsPluginPass.Instance);
-                seq.Run(ScaleAdjusterPass.Instance);
+                seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 #if MA_VRCSDK3_AVATARS
+                seq.Run(ReactiveObjectPrepass.Instance);
                 seq.Run(RenameParametersPluginPass.Instance);
+                seq.Run(ParameterAssignerPass.Instance);
                 seq.Run(MergeBlendTreePass.Instance);
                 seq.Run(MergeAnimatorPluginPass.Instance);
                 seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
-                seq.Run(MenuInstallPluginPass.Instance);
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
+                    seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
+                        .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
@@ -66,8 +69,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
 #endif
+                    seq.Run(GameObjectDelayDisablePass.Instance);
+                    seq.Run(ConstraintConverterPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
+                seq.Run(MenuInstallPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {
@@ -75,19 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
 #endif
-                seq.Run("Rebind humanoid avatar", ctx =>
-                {
-                    // workaround problem with avatar matching
-                    // https://github.com/bdunderscore/modular-avatar/issues/430
-                    var animator = ctx.AvatarRootObject.GetComponent<Animator>();
-                    if (animator)
-                    {
-                        var avatar = animator.avatar;
-                        animator.avatar = null;
-                        // ReSharper disable once Unity.InefficientPropertyAccess
-                        animator.avatar = avatar;
-                    }
-                });
+                seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
                 {
                     foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
@@ -246,6 +240,14 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 #endif
+
+    class RebindHumanoidAvatarPass : MAPass<RebindHumanoidAvatarPass>
+    {
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            new RebindHumanoidAvatar(context).Process();
+        }
+    }
 
     class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {

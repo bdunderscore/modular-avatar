@@ -37,7 +37,8 @@ Modular Avatarでは、元々のアバターや衣装プレハブをUnpackする
 
 ## ここで一体何が起きた？！
 
-`Setup Outfit`を選択すると、Modular Avatarが自動的に衣装の中のアーマチュアを見つけ出して、[Merge Armature](/docs/reference/merge-armature)コンポーネントを追加します。
+`Setup Outfit`を選択すると、Modular
+Avatarが自動的に衣装の中のアーマチュアを見つけ出して、[Merge Armature](/docs/reference/merge-armature)コンポーネントを追加します。
 
 ![セットアップ後](after_setup.png)
 

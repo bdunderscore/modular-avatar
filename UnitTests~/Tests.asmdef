@@ -32,14 +32,19 @@
             "define": "MA_VRCSDK3_AVATARS"
         },
         {
-          "name": "com.vrmc.univrm",
-          "expression": "",
-          "define": "MA_VRM0"
+            "name": "com.vrmc.univrm",
+            "expression": "",
+            "define": "MA_VRM0"
         },
         {
-          "name": "com.vrmc.vrm",
-          "expression": "",
-          "define": "MA_VRM1"
+            "name": "com.vrmc.vrm",
+            "expression": "",
+            "define": "MA_VRM1"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.5.2",
+            "define": "MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER"
         }
     ],
     "noEngineReferences": false

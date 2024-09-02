@@ -8,7 +8,10 @@
         "nadena.dev.ndmf",
         "nadena.dev.ndmf.vrchat",
         "VRM",
-        "VRM10"
+        "VRM10",
+        "nadena.dev.ndmf.reactive-query.core",
+        "nadena.dev.ndmf.runtime",
+        "VRC.SDK3A.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,7 +22,6 @@
     "precompiledReferences": [
         "Newtonsoft.Json.dll",
         "System.Collections.Immutable.dll",
-        "System.Memory.dll",
         "VRCSDKBase.dll",
         "VRCSDKBase-Editor.dll",
         "VRCSDK3A.dll",
@@ -53,6 +55,15 @@
             "name": "com.vrmc.vrm",
             "expression": "",
             "define": "MA_VRM1"
+        },
+            "name": "com.vrchat.avatars",
+            "expression": "3.5.2",
+            "define": "MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.7.0-beta.2",
+            "define": "MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false
