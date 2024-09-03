@@ -282,6 +282,6 @@
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
   "ro_sim.effect_group.conditions": "Conditions",
     
-  "menuitem.prop.rich_text": "Rich text",
-  "menuitem.prop.rich_text.tooltip": "Use a long name which may contain rich text and line breaks."
+  "menuitem.rich_text.toggle_on.tooltip": "Use a long name which may contain rich text and line breaks.",
+  "menuitem.rich_text.toggle_off.tooltip": "Use the GameObject name."
 }

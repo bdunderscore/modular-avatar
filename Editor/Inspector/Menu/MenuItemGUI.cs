@@ -260,6 +260,8 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
+
+            EditorGUILayout.BeginHorizontal();
             var needsRichLabel = (!string.IsNullOrEmpty(_prop_label.stringValue) || _isTryingRichLabel);
             if (!needsRichLabel)
             {
@@ -274,8 +276,24 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 EditorGUILayout.PropertyField(_prop_label, G("menuitem.prop.name"));
             }
+            var linkIcon = EditorGUIUtility.IconContent(needsRichLabel ? "UnLinked" : "Linked").image;
+            var guiIcon = new GUIContent(linkIcon, S(needsRichLabel ? "menuitem.rich_text.toggle_off.tooltip" : "menuitem.rich_text.toggle_on.tooltip"));
+            if (GUILayout.Button(guiIcon, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.Width(25)))
+            {
+                if (!needsRichLabel)
+                {
+                    _isTryingRichLabel = true;
+                    _prop_label.stringValue = _name.stringValue;
+                }
+                else
+                {
+                    _isTryingRichLabel = false;
+                    _prop_label.stringValue = "";
+                }
+            }
+            EditorGUILayout.EndHorizontal();
 
-            if (needsRichLabel)
+            if (needsRichLabel && _prop_label.stringValue.Contains("<"))
             {
                 var style = new GUIStyle(EditorStyles.textField);
                 style.richText = true;
@@ -291,20 +309,6 @@ namespace nadena.dev.modular_avatar.core.editor
             _parameterGUI.DoGUI(true);
 
             ShowInnateParameterGUI();
-            
-            var newRichValue = EditorGUILayout.Toggle(G("menuitem.prop.rich_text"), needsRichLabel);
-            if (newRichValue != needsRichLabel)
-            {
-                if (newRichValue)
-                {
-                    _isTryingRichLabel = true;
-                }
-                else
-                {
-                    _isTryingRichLabel = false;
-                    _prop_label.stringValue = "";
-                }
-            }
             
             EditorGUILayout.EndVertical();
 
