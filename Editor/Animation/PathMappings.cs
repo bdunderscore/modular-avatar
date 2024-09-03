@@ -6,6 +6,7 @@ using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.util;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 #if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
 #endif
@@ -278,6 +279,62 @@ namespace nadena.dev.modular_avatar.animation
             return newClip;
         }
 
+        private void ApplyMappingsToAvatarMask(AvatarMask mask)
+        {
+            if (mask == null) return;
+
+            var maskSo = new SerializedObject(mask);
+
+            var seenTransforms = new Dictionary<string, float>();
+            var transformOrder = new List<string>();
+            var m_Elements = maskSo.FindProperty("m_Elements");
+            var elementCount = m_Elements.arraySize;
+
+            for (var i = 0; i < elementCount; i++)
+            {
+                var element = m_Elements.GetArrayElementAtIndex(i);
+                var path = element.FindPropertyRelative("m_Path").stringValue;
+                var weight = element.FindPropertyRelative("m_Weight").floatValue;
+
+                path = MapPath(path);
+
+                // ensure all parent elements are present
+                EnsureParentsPresent(path);
+
+                if (!seenTransforms.ContainsKey(path)) transformOrder.Add(path);
+                seenTransforms[path] = weight;
+            }
+
+            transformOrder.Sort();
+            m_Elements.arraySize = transformOrder.Count;
+
+            for (var i = 0; i < transformOrder.Count; i++)
+            {
+                var element = m_Elements.GetArrayElementAtIndex(i);
+                var path = transformOrder[i];
+
+                element.FindPropertyRelative("m_Path").stringValue = path;
+                element.FindPropertyRelative("m_Weight").floatValue = seenTransforms[path];
+            }
+
+            maskSo.ApplyModifiedPropertiesWithoutUndo();
+
+            void EnsureParentsPresent(string path)
+            {
+                var nextSlash = -1;
+
+                while ((nextSlash = path.IndexOf('/', nextSlash + 1)) != -1)
+                {
+                    var parentPath = path.Substring(0, nextSlash);
+                    if (!seenTransforms.ContainsKey(parentPath))
+                    {
+                        seenTransforms[parentPath] = 0;
+                        transformOrder.Add(parentPath);
+                    }
+                }
+            }
+        }
+
         internal void OnDeactivate(BuildContext context)
         {
             Dictionary<AnimationClip, AnimationClip> clipCache = new Dictionary<AnimationClip, AnimationClip>();
@@ -301,6 +358,20 @@ namespace nadena.dev.modular_avatar.animation
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {
                 listener.OnCommitObjectRenames(context, this);
+            }
+
+            var layers = context.AvatarDescriptor.baseAnimationLayers
+                .Concat(context.AvatarDescriptor.specialAnimationLayers);
+
+            foreach (var layer in layers)
+            {
+                ApplyMappingsToAvatarMask(layer.mask);
+
+                if (layer.animatorController is AnimatorController ac)
+                    // By this point, all AnimationOverrideControllers have been collapsed into an ephemeral
+                    // AnimatorController so we can safely modify the controller in-place.
+                    foreach (var acLayer in ac.layers)
+                        ApplyMappingsToAvatarMask(acLayer.avatarMask);
             }
         }
 

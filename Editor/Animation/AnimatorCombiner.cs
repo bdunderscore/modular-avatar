@@ -473,7 +473,7 @@ namespace nadena.dev.modular_avatar.animation
             var newLayer = new AnimatorControllerLayer()
             {
                 name = layer.name,
-                avatarMask = layer.avatarMask, // TODO map transforms
+                avatarMask = _deepClone.DoClone(layer.avatarMask, basePath, _cloneMap),
                 blendingMode = layer.blendingMode,
                 defaultWeight = first ? 1 : layer.defaultWeight,
                 syncedLayerIndex = layer.syncedLayerIndex,
