@@ -1,0 +1,59 @@
+{
+    "name": "nadena.dev.modular-avatar.core.editor",
+    "rootNamespace": "",
+    "references": [
+        "nadena.dev.modular-avatar.core",
+        "VRC.SDK3A",
+        "VRC.SDKBase",
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.vrchat",
+        "nadena.dev.ndmf.runtime",
+        "VRC.SDK3A.Editor",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "System.Collections.Immutable.dll",
+        "VRCSDKBase.dll",
+        "VRCSDKBase-Editor.dll",
+        "VRCSDK3A.dll",
+        "VRCSDK3A-Editor.dll",
+        "VRC.Dynamics.dll",
+        "VRC.SDK3.Dynamics.Contact.dll",
+        "VRC.SDK3.Dynamics.Contact.Editor.dll",
+        "VRC.SDK3.Dynamics.PhysBone.dll",
+        "VRC.SDK3.Dynamics.PhysBone.Editor.dll",
+        "VRCCore-Editor.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.anatawa12.avatar-optimizer",
+            "expression": "(,1.5.0-rc.8)",
+            "define": "LEGACY_AVATAR_OPTIMIZER"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "MA_VRCSDK3_AVATARS"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.5.2",
+            "define": "MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.7.0-beta.2",
+            "define": "MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}
