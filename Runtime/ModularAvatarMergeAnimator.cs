@@ -24,6 +24,7 @@
 
 #if MA_VRCSDK3_AVATARS
 
+using System;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -50,6 +51,11 @@ namespace nadena.dev.modular_avatar.core
         public override void ResolveReferences()
         {
             // no-op
+        }
+
+        private void Reset()
+        {
+            deleteAttachedAnimator = true;
         }
     }
 }
