@@ -448,6 +448,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var knownParamDefault = knownParameter?.DefaultValue;
             var isDefaultByKnownParam =
                 knownParamDefault != null ? _value.floatValue == knownParamDefault : (bool?)null;
+
+            if (knownParameter != null && knownParameter.Source is ModularAvatarMenuItem otherMenuItem)
+                isDefaultByKnownParam = null;
+
             Object controller = knownParameter?.Source;
             var controllerIsElsewhere = controller != null && !(controller is ModularAvatarMenuItem);
             // If we can't figure out what to reference the parameter names to, disable the UI
@@ -462,10 +466,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
                 var multipleSelections = _obj.targetObjects.Length > 1;
                 var mixedIsDefault = multipleSelections && anyIsDefault;
-                using (new EditorGUI.DisabledScope(multipleSelections))
+                using (new EditorGUI.DisabledScope(multipleSelections || isDefaultByKnownParam != null))
                 {
+                    EditorGUI.BeginChangeCheck();
                     DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
                         multipleSelections ? false : isDefaultByKnownParam);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        _obj.ApplyModifiedProperties();
+                        ClearConflictingDefaults(_obj);
+                    }
                 }
 
                 GUILayout.FlexibleSpace();
@@ -512,6 +522,42 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void ClearConflictingDefaults(SerializedObject serializedObject)
+        {
+            if (serializedObject.isEditingMultipleObjects) return;
+
+            var menuItem = serializedObject.targetObject as ModularAvatarMenuItem;
+            if (menuItem == null) return;
+
+            var parameterName = menuItem.Control.parameter.name;
+            if (string.IsNullOrEmpty(parameterName)) return;
+
+            var myMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(menuItem.gameObject);
+            if (myMappings.TryGetValue((ParameterNamespace.Animator, parameterName), out var replacement))
+                parameterName = replacement.ParameterName;
+
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(menuItem.gameObject.transform);
+
+            foreach (var mami in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
+            {
+                if (mami == menuItem) continue;
+
+                var paramMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(mami.gameObject);
+                var effectiveParam = parameterName;
+                if (paramMappings.TryGetValue((ParameterNamespace.Animator, parameterName), out replacement))
+                    effectiveParam = replacement.ParameterName;
+
+                if (effectiveParam != parameterName) continue;
+                if (mami.isDefault)
+                {
+                    Undo.RecordObject(mami, "");
+                    mami.isDefault = false;
+                    EditorUtility.SetDirty(mami);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(mami);
+                }
+            }
         }
 
         private void EnsureLabelCount(int i)
