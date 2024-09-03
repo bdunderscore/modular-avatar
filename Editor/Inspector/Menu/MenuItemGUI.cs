@@ -441,9 +441,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var forceMixedValues = _parameterName.hasMultipleDifferentValues;
 
             var syncedIsMixed = forceMixedValues || _prop_isSynced.hasMultipleDifferentValues ||
-                                siblings.Any(s => s.isSynced != _prop_isSynced.boolValue);
+                                siblings != null && siblings.Any(s => s.isSynced != _prop_isSynced.boolValue);
             var savedIsMixed = forceMixedValues || _prop_isSaved.hasMultipleDifferentValues ||
-                               siblings.Any(s => s.isSaved != _prop_isSaved.boolValue);
+                               siblings != null && siblings.Any(s => s.isSaved != _prop_isSaved.boolValue);
             
             var knownParameter = _parameterName.hasMultipleDifferentValues
                 ? null
