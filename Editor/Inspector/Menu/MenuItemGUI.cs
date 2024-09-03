@@ -528,34 +528,36 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (serializedObject.isEditingMultipleObjects) return;
 
-            var menuItem = serializedObject.targetObject as ModularAvatarMenuItem;
-            if (menuItem == null) return;
+            var myMenuItem = serializedObject.targetObject as ModularAvatarMenuItem;
+            if (myMenuItem == null) return;
 
-            var parameterName = menuItem.Control.parameter.name;
-            if (string.IsNullOrEmpty(parameterName)) return;
+            var myParameterName = myMenuItem.Control.parameter.name;
+            if (string.IsNullOrEmpty(myParameterName)) return;
 
-            var myMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(menuItem.gameObject);
-            if (myMappings.TryGetValue((ParameterNamespace.Animator, parameterName), out var replacement))
-                parameterName = replacement.ParameterName;
+            var myMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(myMenuItem.gameObject);
+            if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
+                myParameterName = myReplacement.ParameterName;
 
-            var avatarRoot = RuntimeUtil.FindAvatarInParents(menuItem.gameObject.transform);
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
 
-            foreach (var mami in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
+            foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
             {
-                if (mami == menuItem) continue;
+                if (otherMenuItem == myMenuItem) continue;
 
-                var paramMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(mami.gameObject);
-                var effectiveParam = parameterName;
-                if (paramMappings.TryGetValue((ParameterNamespace.Animator, parameterName), out replacement))
-                    effectiveParam = replacement.ParameterName;
+                var otherParameterName = otherMenuItem.Control.parameter.name;
+                if (string.IsNullOrEmpty(otherParameterName)) continue;
 
-                if (effectiveParam != parameterName) continue;
-                if (mami.isDefault)
+                var otherMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(otherMenuItem.gameObject);
+                if (otherMappings.TryGetValue((ParameterNamespace.Animator, otherParameterName), out var otherReplacement))
+                    otherParameterName = otherReplacement.ParameterName;
+
+                if (otherParameterName != myParameterName) continue;
+                if (otherMenuItem.isDefault)
                 {
-                    Undo.RecordObject(mami, "");
-                    mami.isDefault = false;
-                    EditorUtility.SetDirty(mami);
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(mami);
+                    Undo.RecordObject(otherMenuItem, "");
+                    otherMenuItem.isDefault = false;
+                    EditorUtility.SetDirty(otherMenuItem);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(otherMenuItem);
                 }
             }
         }
