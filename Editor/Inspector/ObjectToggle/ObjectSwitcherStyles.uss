@@ -112,3 +112,7 @@
     flex-grow: 1;
     -unity-text-align: middle-left;
 }
+
+.drop-area--drag-active > ListView ScrollView {
+    background-color: rgba(0, 255, 255, 0.1);
+}
