@@ -218,6 +218,8 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public void DoGUI()
         {
+            if (_obj != null) _obj.UpdateIfRequiredOrScript();
+
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
