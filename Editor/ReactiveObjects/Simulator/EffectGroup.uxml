@@ -1,7 +1,7 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
       xmlns:ma="nadena.dev.modular_avatar.core.editor">
       <ui:VisualElement class="effect-group">
-            <ed:ObjectField label="Reactive Component" name="effect__source"/>
+            <ed:ObjectField label="ro_sim.effect_group.component" name="effect__source" class="ndmf-tr"/>
             
             <ui:VisualElement name="effect__set-active" class="unity-base-field h-group">
                   <ui:Label text="ro_sim.effect_group.controls_obj_state" class="unity-base-field__label ndmf-tr"/>
