@@ -252,7 +252,6 @@
   "menuitem.misc.add_toggle": "トグルを追加",
   "ro_sim.open_debugger_button": "リアクションデバッグツールを開く",
   "ro_sim.window.title": "MA リアクションデバッグツール",
-  
   "ro_sim.header.inspecting": "表示中のオブジェクト",
   "ro_sim.header.clear_overrides": "すべてのオーバーライドを解除",
   "ro_sim.header.object_state": "オブジェクトのアクティブ状態",
@@ -261,8 +260,6 @@
   "ro_sim.header.override_gameobject_state": "GameObject のアクティブ状態をオーバーライド",
   "ro_sim.header.override_menuitem_state": "MenuItem の選択状態をオーバーライト",
   "ro_sim.affected_by.title": "以下のルールに影響されています",
-
-  "ro_sim.effect_group.component": "Reactive Component",
   "ro_sim.effect_group.controls_obj_state": "オブジェクトのアクティブ状態を設定する➡",
   "ro_sim.effect_group.target_component": "コンポーネント",
   "ro_sim.effect_group.target_component.tooltip": "Reactive Componentに影響されるコンポーネント",
@@ -272,7 +269,6 @@
   "ro_sim.effect_group.value.tooltip": "上記 Reactive Component が活性状態の時に設定される値",
   "ro_sim.effect_group.material": "マテリアル",
   "ro_sim.effect_group.material.tooltip": "上記 Reactive Component が活性状態の時に設定されるマテリアル",
-
   "ro_sim.effect_group.rule_inverted": "このルールの条件が反転されています",
   "ro_sim.effect_group.rule_inverted.tooltip": "このルールは、いずれかの条件が満たされていない場合に適用されます",
   "ro_sim.effect_group.conditions": "条件"
