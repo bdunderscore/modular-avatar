@@ -54,6 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _prop_isSynced;
         private readonly SerializedProperty _prop_isSaved;
         private readonly SerializedProperty _prop_isDefault;
+        private readonly SerializedProperty _prop_automaticValue;
         
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
@@ -105,6 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _prop_isSynced = obj.FindProperty(nameof(ModularAvatarMenuItem.isSynced));
             _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
             _prop_isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
+            _prop_automaticValue = obj.FindProperty(nameof(ModularAvatarMenuItem.automaticValue));
             
             _previewGUI = new MenuPreviewGUI(redraw);
         }
@@ -180,6 +182,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _prop_isSynced = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSynced));
             _prop_isSaved = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSaved));
             _prop_isDefault = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isDefault));
+            _prop_automaticValue = null;
 
             _prop_submenuSource = null;
             _prop_otherObjSource = null;
@@ -225,7 +228,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
             EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
-            EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
+            DoValueField();
 
             _parameterGUI.DoGUI(true);
 
@@ -462,6 +465,8 @@ namespace nadena.dev.modular_avatar.core.editor
             if (knownParameter != null && knownParameter.Source is ModularAvatarMenuItem)
                 isDefaultByKnownParam = null;
 
+            if (_prop_automaticValue?.boolValue == true) isDefaultByKnownParam = null;
+
             Object controller = knownParameter?.Source;
 
             // If we can't figure out what to reference the parameter names to, or if they're controlled by something
@@ -547,6 +552,55 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DoValueField()
+        {
+            var value_label = G("menuitem.prop.value");
+            var auto_label = G("menuitem.prop.automatic_value");
+
+            if (_prop_automaticValue == null)
+            {
+                EditorGUILayout.PropertyField(_value, value_label);
+                return;
+            }
+
+            var toggleSize = EditorStyles.toggle.CalcSize(new GUIContent());
+            var autoLabelSize = EditorStyles.label.CalcSize(auto_label);
+
+            var style = EditorStyles.numberField;
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, style);
+
+            var valueRect = rect;
+            valueRect.xMax -= toggleSize.x + autoLabelSize.x + 4;
+
+            var autoRect = rect;
+            autoRect.xMin = valueRect.xMax + 4;
+
+            var suppressValue = _prop_automaticValue.boolValue || _prop_automaticValue.hasMultipleDifferentValues;
+
+            using (new EditorGUI.DisabledScope(suppressValue))
+            {
+                if (suppressValue)
+                {
+                    EditorGUI.TextField(valueRect, value_label, "", style);
+                }
+                else
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(valueRect, _value, value_label);
+                    if (EditorGUI.EndChangeCheck()) _prop_automaticValue.boolValue = false;
+                }
+            }
+
+            EditorGUI.BeginProperty(autoRect, auto_label, _prop_automaticValue);
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUI.showMixedValue = _prop_automaticValue.hasMultipleDifferentValues;
+            var autoValue = EditorGUI.ToggleLeft(autoRect, auto_label, _prop_automaticValue.boolValue);
+
+            if (EditorGUI.EndChangeCheck()) _prop_automaticValue.boolValue = autoValue;
+            EditorGUI.EndProperty();
         }
 
         private List<ModularAvatarMenuItem> FindSiblingMenuItems(SerializedObject serializedObject)

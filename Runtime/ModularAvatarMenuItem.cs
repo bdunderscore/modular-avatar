@@ -1,6 +1,5 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
-using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
@@ -43,6 +42,13 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         public bool isDefault;
 
+        /// <summary>
+        ///     If true, the value for this toggle or button menu item will be automatically selected.
+        ///     Typically, this will be zero for the default menu item, then subsequent menu items will be allocated
+        ///     sequentially in hierarchy order.
+        /// </summary>
+        public bool automaticValue;
+
         private void Reset()
         {
             Control = new VRCExpressionsMenu.Control();
@@ -51,6 +57,7 @@ namespace nadena.dev.modular_avatar.core
             isSaved = true;
             isSynced = true;
             isDefault = false;
+            automaticValue = true;
 
             MenuSource = SubmenuSource.Children;
         }

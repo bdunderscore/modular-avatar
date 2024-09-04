@@ -187,6 +187,8 @@
   "menuitem.prop.type.tooltip": "The type of this item",
   "menuitem.prop.value": "Value",
   "menuitem.prop.value.tooltip": "The value to set the parameter to when this control is used",
+  "menuitem.prop.automatic_value": "Auto",
+  "menuitem.prop.automatic_value.tooltip": "Automatically set this control to a unique value",
   "menuitem.prop.parameter": "Parameter",
   "menuitem.prop.label": "Label",
   "menuitem.prop.submenu_asset": "Submenu Asset",

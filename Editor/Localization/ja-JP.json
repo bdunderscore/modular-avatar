@@ -197,6 +197,8 @@
   "menuitem.prop.is_saved.tooltip": "有効になっていると、アバター変更やワールド移動するときこの設定が保持されます。",
   "menuitem.prop.is_synced": "同期する",
   "menuitem.prop.is_synced.tooltip": "有効の場合はほかのプレイヤーに同期されます。",
+  "menuitem.prop.automatic_value": "自動",
+  "menuitem.prop.automatic_value.tooltip": "かぶらない値を自動的に割り振る",
   "menuitem.param.rotation": "回転パラメーター名",
   "menuitem.param.rotation.tooltip": "このメニューアイテムの回転に連動するべきパラメーター",
   "menuitem.param.horizontal": "横パラメーター名",
