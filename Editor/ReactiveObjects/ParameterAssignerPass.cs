@@ -172,10 +172,14 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static ControlCondition AssignMenuItemParameter(
             ModularAvatarMenuItem mami,
             Dictionary<string, float> simulationInitialStates = null,
-            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null)
+            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null,
+            bool? forceSimulation = null
+            )
         {
+            var isSimulation = (simulationInitialStates != null || forceSimulation == true);
+            
             var paramName = mami?.Control?.parameter?.name;
-            if (mami?.Control != null && simulationInitialStates != null && ShouldAssignParametersToMami(mami))
+            if (mami?.Control != null && isSimulation && ShouldAssignParametersToMami(mami))
             {
                 paramName = mami.Control?.parameter?.name;
                 if (string.IsNullOrEmpty(paramName)) paramName = "___AutoProp/" + mami.GetInstanceID();
@@ -187,9 +191,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (isDefault)
                 {
                     simulationInitialStates[paramName] = mami.Control.value;
-                } else if (!simulationInitialStates.ContainsKey(paramName))
+                }
+                else
                 {
-                    simulationInitialStates[paramName] = -999;
+                    simulationInitialStates?.TryAdd(paramName, -999);
                 }
             }
             

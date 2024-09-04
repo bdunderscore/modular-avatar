@@ -268,7 +268,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 return;
             }
 
-            var prop = ParameterAssignerPass.AssignMenuItemParameter(mami)?.Parameter;
+            var prop = ParameterAssignerPass.AssignMenuItemParameter(mami, forceSimulation: true)?.Parameter;
             if (prop == null)
             {
                 elem.style.display = DisplayStyle.None;
