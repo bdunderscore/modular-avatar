@@ -93,6 +93,17 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private Dictionary<(int, string), bool> foldoutState = new();
         private Button _btn_clear;
 
+        private bool _refreshPending;
+
+        private void RequestRefresh()
+        {
+            if (_refreshPending) return;
+
+            _refreshPending = true;
+
+            EditorApplication.delayCall += RefreshUI;
+        }
+        
         private void UpdatePropertyOverride(string prop, bool? enable, float f_val)
         {
             if (enable == null)
@@ -106,8 +117,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             {
                 PropertyOverrides.Value = PropertyOverrides.Value.SetItem(prop, 0f);
             }
-            
-            EditorApplication.delayCall += RefreshUI;
+
+            RequestRefresh();
         }
 
         private void UpdateMenuItemOverride(string prop, ModularAvatarMenuItem item, bool? value)
@@ -126,21 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     MenuItemOverrides.Value = MenuItemOverrides.Value.SetItem(prop, null);
             }
 
-            EditorApplication.delayCall += RefreshUI;
-        }
-        
-        private void UpdatePropertyOverride(string prop, bool? value)
-        {
-            if (value == null)
-            {
-                PropertyOverrides.Value = PropertyOverrides.Value.Remove(prop);
-            }
-            else
-            {
-                PropertyOverrides.Value = PropertyOverrides.Value.SetItem(prop, value.Value ? 1f : 0f);
-            }
-            
-            RefreshUI();
+            RequestRefresh();
         }
         
         private void ShowButton(Rect rect)
@@ -194,7 +191,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             _btn_clear.clickable.clicked += () =>
             {
                 PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
-                RefreshUI();
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                RequestRefresh();
             };
             
             e_debugInfo = root.Q<VisualElement>("debug-info");
@@ -209,11 +207,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             currentSelection = locked ? f_inspecting.value as GameObject : Selection.activeGameObject;
             f_inspecting.SetValueWithoutNotify(currentSelection);
 
-            RefreshUI();
+            RequestRefresh();
         }
 
         private void RefreshUI()
         {
+            _refreshPending = false;
+            
             var avatar = RuntimeUtil.FindAvatarInParents(currentSelection?.transform);
             
             if (avatar == null)
@@ -221,8 +221,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 e_debugInfo.style.display = DisplayStyle.None;
                 return;
             }
-            
-            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty);
+
+            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty || !MenuItemOverrides.Value.IsEmpty);
             
             e_debugInfo.style.display = DisplayStyle.Flex;
 
@@ -243,7 +243,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         {
             if (self.is_enabled)
             {
-                self.RefreshUI();
+                self.RequestRefresh();
             }
         }
 
@@ -254,6 +254,9 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             BindOverrideToMenuItem("this-menu-override", mami);
         }
 
+        private string _menuItemOverrideProperty;
+        private ModularAvatarMenuItem _menuItemOverrideTarget;
+        
         private void BindOverrideToMenuItem(string overrideElemName, ModularAvatarMenuItem mami)
         {
             var elem = e_debugInfo.Q<VisualElement>(overrideElemName);
@@ -279,9 +282,20 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             else
                 soc.SetWithoutNotify(null);
 
-            soc.OnStateOverrideChanged += value => { UpdateMenuItemOverride(prop, mami, value); };
+            // Avoid multiple registration of the same delegate here by reusing the same delegate instead of binding
+            // these properties in a closure
+            _menuItemOverrideProperty = prop;
+            _menuItemOverrideTarget = mami;
+            soc.OnStateOverrideChanged += MenuItemOverrideChanged;
         }
-        
+
+        private void MenuItemOverrideChanged(bool? obj)
+        {
+            UpdateMenuItemOverride(_menuItemOverrideProperty, _menuItemOverrideTarget, obj);
+        }
+
+        private string _propertyOverrideProperty;
+        private float _propertyOverrideTargetValue;
         private void BindOverrideToParameter(string overrideElemName, string property, float targetValue)
         {
             var elem = e_debugInfo.Q<VisualElement>(overrideElemName);
@@ -302,11 +316,15 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             {
                 soc.SetWithoutNotify(null);
             }
-            
-            soc.OnStateOverrideChanged += value =>
-            {
-                UpdatePropertyOverride(property, value, targetValue);
-            };
+
+            _propertyOverrideProperty = property;
+            _propertyOverrideTargetValue = targetValue;
+            soc.OnStateOverrideChanged += OnParameterOverrideChanged;
+        }
+
+        private void OnParameterOverrideChanged(bool? state)
+        {
+            UpdatePropertyOverride(_propertyOverrideProperty, state, _propertyOverrideTargetValue);
         }
 
         private void SetAffectedBy(GameObject gameObject, Dictionary<TargetProp, AnimatedProperty> shapes)
