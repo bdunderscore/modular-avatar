@@ -122,7 +122,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             }
             else
             {
-                if (MenuItemOverrides.Value.TryGetValue(prop, out var existing) && ReferenceEquals(existing, item))
+                if (!MenuItemOverrides.Value.TryGetValue(prop, out var existing) || ReferenceEquals(existing, item))
                     MenuItemOverrides.Value = MenuItemOverrides.Value.SetItem(prop, null);
             }
 
