@@ -47,11 +47,14 @@ namespace nadena.dev.modular_avatar.core.editor
             
             var paramIndex = 0;
 
-            var declaredParams = context.AvatarDescriptor.expressionParameters.parameters.Select(p => p.name)
-                .ToHashSet();
+            var declaredParams = context.AvatarDescriptor.expressionParameters.parameters
+                .GroupBy(p => p.name).Select(l => l.First())
+                .ToDictionary(p => p.name);
 
             Dictionary<string, VRCExpressionParameters.Parameter> newParameters = new();
+            Dictionary<string, int> nextParamValue = new();
 
+            Dictionary<string, List<ModularAvatarMenuItem>> _mamiByParam = new();
             foreach (var mami in context.AvatarRootTransform.GetComponentsInChildren<ModularAvatarMenuItem>(true))
             {
                 if (string.IsNullOrWhiteSpace(mami.Control?.parameter?.name))
@@ -64,51 +67,97 @@ namespace nadena.dev.modular_avatar.core.editor
                         name = $"__MA/AutoParam/{mami.gameObject.name}${paramIndex++}"
                     };
                 }
-
+                
                 var paramName = mami.Control.parameter.name;
 
-                if (!declaredParams.Contains(paramName))
+                if (!_mamiByParam.TryGetValue(paramName, out var mamiList))
                 {
-                    newParameters.TryGetValue(paramName, out var existingNewParam);
-                    var wantedType = existingNewParam?.valueType ?? VRCExpressionParameters.ValueType.Bool;
+                    mamiList = new List<ModularAvatarMenuItem>();
+                    _mamiByParam[paramName] = mamiList;
+                }
 
-                    if (wantedType != VRCExpressionParameters.ValueType.Float &&
-                        (mami.Control.value > 1.01 || mami.Control.value < -0.01))
-                        wantedType = VRCExpressionParameters.ValueType.Int;
+                mamiList.Add(mami);
+            }
 
-                    if (Mathf.Abs(Mathf.Round(mami.Control.value) - mami.Control.value) > 0.01f)
-                        wantedType = VRCExpressionParameters.ValueType.Float;
+            foreach (var (paramName, list) in _mamiByParam)
+            {
+                // Assign automatic values first
+                float defaultValue;
+                if (declaredParams.TryGetValue(paramName, out var p))
+                {
+                    defaultValue = p.defaultValue;
+                }
+                else
+                {
+                    defaultValue = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value ?? 0;
 
-                    if (existingNewParam == null)
+                    if (list.Count == 1)
+                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 0
+                        // be the 'unselected' default value
+                        defaultValue = 1;
+                }
+
+                HashSet<int> usedValues = new();
+                usedValues.Add((int)defaultValue);
+
+                foreach (var item in list)
+                    if (!item.automaticValue && Mathf.Abs(item.Control.value - Mathf.Round(item.Control.value)) < 0.01f)
+                        usedValues.Add(Mathf.RoundToInt(item.Control.value));
+
+                var nextValue = 1;
+
+                var canBeBool = true;
+                var canBeInt = true;
+                var isSaved = true;
+                var isSynced = true;
+
+                foreach (var mami in list)
+                {
+                    if (mami.automaticValue)
                     {
-                        existingNewParam = new VRCExpressionParameters.Parameter
+                        if (mami.isDefault)
                         {
-                            name = paramName,
-                            valueType = wantedType,
-                            saved = mami.isSaved,
-                            defaultValue = -1,
-                            networkSynced = mami.isSynced
-                        };
-                        newParameters[paramName] = existingNewParam;
-                    }
-                    else
-                    {
-                        existingNewParam.valueType = wantedType;
+                            mami.Control.value = defaultValue;
+                        }
+                        else
+                        {
+                            while (usedValues.Contains(nextValue)) nextValue++;
+
+                            mami.Control.value = nextValue;
+                            usedValues.Add(nextValue);
+                        }
                     }
 
-                    // TODO: warn on inconsistent configuration
-                    existingNewParam.saved = existingNewParam.saved || mami.isSaved;
-                    existingNewParam.networkSynced = existingNewParam.networkSynced || mami.isSynced;
-                    existingNewParam.defaultValue = mami.isDefault ? mami.Control.value : existingNewParam.defaultValue;
+                    if (Mathf.Abs(mami.Control.value - Mathf.Round(mami.Control.value)) > 0.01f)
+                        canBeInt = false;
+                    else
+                        canBeBool &= mami.Control.value is >= 0 and <= 1;
+
+                    isSaved &= mami.isSaved;
+                    isSynced &= mami.isSynced;
+                }
+
+                if (!declaredParams.ContainsKey(paramName))
+                {
+                    VRCExpressionParameters.ValueType newType;
+                    if (canBeBool) newType = VRCExpressionParameters.ValueType.Bool;
+                    else if (canBeInt) newType = VRCExpressionParameters.ValueType.Int;
+                    else newType = VRCExpressionParameters.ValueType.Float;
+
+                    var newParam = new VRCExpressionParameters.Parameter
+                    {
+                        name = paramName,
+                        valueType = newType,
+                        saved = isSaved,
+                        defaultValue = defaultValue,
+                        networkSynced = isSynced
+                    };
+                    newParameters[paramName] = newParam;
                 }
             }
 
             if (newParameters.Count > 0)
             {
-                foreach (var p in newParameters)
-                    if (p.Value.defaultValue < 0)
-                        p.Value.defaultValue = 0;
-
                 var expParams = context.AvatarDescriptor.expressionParameters;
                 if (!context.IsTemporaryAsset(expParams))
                 {
@@ -120,15 +169,22 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal static ControlCondition AssignMenuItemParameter(ModularAvatarMenuItem mami, Dictionary<string, float> simulationInitialStates = null)
+        internal static ControlCondition AssignMenuItemParameter(
+            ModularAvatarMenuItem mami,
+            Dictionary<string, float> simulationInitialStates = null,
+            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null)
         {
             var paramName = mami?.Control?.parameter?.name;
             if (mami?.Control != null && simulationInitialStates != null && ShouldAssignParametersToMami(mami))
             {
-                paramName = "___AutoProp/" + mami.Control?.parameter?.name;
-                if (paramName == "___AutoProp/") paramName += mami.GetInstanceID();
+                paramName = mami.Control?.parameter?.name;
+                if (string.IsNullOrEmpty(paramName)) paramName = "___AutoProp/" + mami.GetInstanceID();
 
-                if (mami.isDefault)
+                var isDefault = mami.isDefault;
+                if (isDefaultOverrides?.TryGetValue(paramName, out var target) == true)
+                    isDefault = ReferenceEquals(mami, target);
+
+                if (isDefault)
                 {
                     simulationInitialStates[paramName] = mami.Control.value;
                 } else if (!simulationInitialStates.ContainsKey(paramName))
@@ -144,7 +200,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 Parameter = paramName,
                 DebugName = mami.gameObject.name,
                 IsConstant = false,
-                InitialValue = mami.isDefault ? mami.Control.value : -999, // TODO
+                // Note: This slightly odd-looking value is key to making the Auto checkbox work for editor previews;
+                // we basically force-disable any conditions for nonselected menu items and force-enable any for default
+                // menu items.
+                InitialValue = mami.isDefault ? mami.Control.value : -999,
                 ParameterValueLo = mami.Control.value - 0.5f,
                 ParameterValueHi = mami.Control.value + 0.5f,
                 DebugReference = mami,

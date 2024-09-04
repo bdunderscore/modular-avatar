@@ -75,7 +75,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (condition.IsConstant) continue;
 
-                if (!initialValues.ContainsKey(condition.Parameter))
+                if (!initialValues.ContainsKey(condition.Parameter) && condition.InitialValue > -999f)
                     initialValues[condition.Parameter] = condition.InitialValue;
             }
         }
