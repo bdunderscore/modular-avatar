@@ -82,23 +82,21 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var (paramName, list) in _mamiByParam)
             {
                 // Assign automatic values first
-                float defaultValue;
+                float? defaultValue = null;
                 if (declaredParams.TryGetValue(paramName, out var p))
                 {
                     defaultValue = p.defaultValue;
                 }
                 else
                 {
-                    defaultValue = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value ?? 0;
-
-                    if (list.Count == 1)
-                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 0
-                        // be the 'unselected' default value (if this is not default)
-                        defaultValue = list[0].isDefault ? 1 : 0;
+                    defaultValue = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value;
                 }
 
                 HashSet<int> usedValues = new();
-                usedValues.Add((int)defaultValue);
+                if (defaultValue != null)
+                {
+                    usedValues.Add((int)defaultValue);
+                }
 
                 foreach (var item in list)
                     if (!item.automaticValue && Mathf.Abs(item.Control.value - Mathf.Round(item.Control.value)) < 0.01f)
@@ -115,9 +113,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (mami.automaticValue)
                     {
-                        if (list.Count == 1)
+                        if (mami.isDefault && defaultValue != null)
                         {
-                            mami.Control.value = 1;
+                            mami.Control.value = defaultValue.Value;
                         }
                         else
                         {
@@ -125,6 +123,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             mami.Control.value = nextValue;
                             usedValues.Add(nextValue);
+
+                            if (mami.isDefault)
+                            {
+                                defaultValue = nextValue;
+                            }
                         }
                     }
 
@@ -149,7 +152,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         name = paramName,
                         valueType = newType,
                         saved = isSaved,
-                        defaultValue = defaultValue,
+                        defaultValue = defaultValue ?? 0,
                         networkSynced = isSynced
                     };
                     newParameters[paramName] = newParam;

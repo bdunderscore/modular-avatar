@@ -44,7 +44,7 @@ namespace nadena.dev.modular_avatar.core
 
         /// <summary>
         ///     If true, the value for this toggle or button menu item will be automatically selected.
-        ///     Typically, this will be zero for the default menu item, then subsequent menu items will be allocated
+        ///     Typically, values for the menu items that reference the same parameter will be allocated
         ///     sequentially in hierarchy order.
         /// </summary>
         public bool automaticValue;
