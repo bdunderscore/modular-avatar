@@ -184,17 +184,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 paramName = mami.Control?.parameter?.name;
                 if (string.IsNullOrEmpty(paramName)) paramName = "___AutoProp/" + mami.GetInstanceID();
 
-                var isDefault = mami.isDefault;
-                if (isDefaultOverrides?.TryGetValue(paramName, out var target) == true)
-                    isDefault = ReferenceEquals(mami, target);
+                if (simulationInitialStates != null)
+                {
+                    var isDefault = mami.isDefault;
+                    if (isDefaultOverrides?.TryGetValue(paramName, out var target) == true)
+                        isDefault = ReferenceEquals(mami, target);
 
-                if (isDefault)
-                {
-                    simulationInitialStates[paramName] = mami.Control.value;
-                }
-                else
-                {
-                    simulationInitialStates?.TryAdd(paramName, -999);
+                    if (isDefault)
+                    {
+                        simulationInitialStates[paramName] = mami.Control.value;
+                    }
+                    else
+                    {
+                        simulationInitialStates.TryAdd(paramName, -999);
+                    }
                 }
             }
             
