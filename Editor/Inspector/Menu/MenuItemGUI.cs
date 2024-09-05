@@ -92,11 +92,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _prop_isDefault;
         private readonly SerializedProperty _prop_automaticValue;
         
+        private readonly SerializedProperty _prop_label;
+        
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
 
         private readonly Dictionary<string, ProvidedParameter> _knownParameters = new();
         private bool _parameterSourceNotDetermined;
+        private bool _isTryingRichLabel;
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -143,6 +146,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
             _prop_isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
             _prop_automaticValue = obj.FindProperty(nameof(ModularAvatarMenuItem.automaticValue));
+            
+            _prop_label = obj.FindProperty(nameof(ModularAvatarMenuItem.label));
             
             _previewGUI = new MenuPreviewGUI(redraw);
         }
@@ -255,11 +260,28 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
-            if (EditorGUI.EndChangeCheck())
+            var needsRichLabel = (!string.IsNullOrEmpty(_prop_label.stringValue) || _isTryingRichLabel);
+            if (!needsRichLabel)
             {
-                _name.serializedObject.ApplyModifiedProperties();
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _name.serializedObject.ApplyModifiedProperties();
+                }
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(_prop_label, G("menuitem.prop.name"));
+            }
+
+            if (needsRichLabel)
+            {
+                var style = new GUIStyle(EditorStyles.textField);
+                style.richText = true;
+                style.alignment = TextAnchor.MiddleCenter;
+            
+                EditorGUILayout.LabelField(" ", _prop_label.stringValue, style, GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
             }
 
             EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
@@ -269,7 +291,21 @@ namespace nadena.dev.modular_avatar.core.editor
             _parameterGUI.DoGUI(true);
 
             ShowInnateParameterGUI();
-
+            
+            var newRichValue = EditorGUILayout.Toggle(G("menuitem.prop.rich_text"), needsRichLabel);
+            if (newRichValue != needsRichLabel)
+            {
+                if (newRichValue)
+                {
+                    _isTryingRichLabel = true;
+                }
+                else
+                {
+                    _isTryingRichLabel = false;
+                    _prop_label.stringValue = "";
+                }
+            }
+            
             EditorGUILayout.EndVertical();
 
             if (_texture != null)

@@ -280,5 +280,8 @@
   
   "ro_sim.effect_group.rule_inverted": "This rule is inverted",
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
-  "ro_sim.effect_group.conditions": "Conditions"
+  "ro_sim.effect_group.conditions": "Conditions",
+    
+  "menuitem.prop.rich_text": "Rich text",
+  "menuitem.prop.rich_text.tooltip": "Use a long name which may contain rich text and line breaks."
 }
