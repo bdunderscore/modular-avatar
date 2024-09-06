@@ -59,6 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class MenuItemCoreGUI
     {
+        private const string ImpliesRichText = "<";
+        
         private static readonly ObjectIDGenerator IdGenerator = new ObjectIDGenerator();
         private readonly GameObject _parameterReference;
         private readonly Action _redraw;
@@ -99,7 +101,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly Dictionary<string, ProvidedParameter> _knownParameters = new();
         private bool _parameterSourceNotDetermined;
-        private bool _isTryingRichLabel;
+        private bool _useLabel;
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
@@ -262,8 +264,8 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.BeginVertical();
 
             EditorGUILayout.BeginHorizontal();
-            var needsRichLabel = (!string.IsNullOrEmpty(_prop_label.stringValue) || _isTryingRichLabel);
-            if (!needsRichLabel)
+            
+            if (_parameterReference == null)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
@@ -274,26 +276,42 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else
             {
-                EditorGUILayout.PropertyField(_prop_label, G("menuitem.prop.name"));
-            }
-            var linkIcon = EditorGUIUtility.IconContent(needsRichLabel ? "UnLinked" : "Linked").image;
-            var guiIcon = new GUIContent(linkIcon, S(needsRichLabel ? "menuitem.rich_text.toggle_off.tooltip" : "menuitem.rich_text.toggle_on.tooltip"));
-            if (GUILayout.Button(guiIcon, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.Width(25)))
-            {
-                if (!needsRichLabel)
+                _useLabel |= !string.IsNullOrEmpty(_prop_label.stringValue);
+
+                if (!_useLabel)
                 {
-                    _isTryingRichLabel = true;
-                    _prop_label.stringValue = _name.stringValue;
+                    EditorGUI.BeginChangeCheck();
+                    var previousName = _name.stringValue;
+                    EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (!previousName.Contains(ImpliesRichText) && _name.stringValue.Contains(ImpliesRichText))
+                        {
+                            _prop_label.stringValue = _name.stringValue;
+                        }
+                        else
+                        {
+                            _name.serializedObject.ApplyModifiedProperties();
+                        }
+                    }
                 }
                 else
                 {
-                    _isTryingRichLabel = false;
-                    _prop_label.stringValue = "";
+                    EditorGUILayout.PropertyField(_prop_label, G("menuitem.prop.name"));
+                }
+                
+                var linkIcon = EditorGUIUtility.IconContent(_useLabel ? "UnLinked" : "Linked").image;
+                var guiIcon = new GUIContent(linkIcon, S(_useLabel ? "menuitem.label.gameobject_name.tooltip" : "menuitem.label.long_name.tooltip"));
+                if (GUILayout.Button(guiIcon, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.Width(25)))
+                {
+                    _prop_label.stringValue = !_useLabel ? _name.stringValue : "";
+                    _useLabel = !_useLabel;
                 }
             }
+            
             EditorGUILayout.EndHorizontal();
 
-            if (needsRichLabel && _prop_label.stringValue.Contains("<"))
+            if (_useLabel && _prop_label.stringValue.Contains(ImpliesRichText))
             {
                 var style = new GUIStyle(EditorStyles.textField);
                 style.richText = true;
