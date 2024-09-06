@@ -51,6 +51,16 @@ namespace nadena.dev.modular_avatar.core
 
         private void Reset()
         {
+            // Init settings only when added manually from Inspector.
+            // Otherwise, other plugins that add this component may break in non-playmode builds.
+            if (Resources.FindObjectsOfTypeAll(System.Type.GetType("UnityEditor.AddComponent.AddComponentWindow, UnityEditor")).Any())
+            {
+                InitSettings();
+            }
+        }
+
+        internal void InitSettings()
+        {
             Control = new VRCExpressionsMenu.Control();
             Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
             Control.value = 1;
