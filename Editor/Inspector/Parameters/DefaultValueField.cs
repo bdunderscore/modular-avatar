@@ -12,6 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
+        private const string V_None = "　";
         private const string V_True = "ON";
         private const string V_False = "OFF";
         
@@ -27,7 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _hasExplicitDefaultSetField = new Toggle();
             _boolField = new DropdownField();
 
-            _boolField.choices.Add("");
+            _boolField.choices.Add(V_None);
             _boolField.choices.Add(V_True);
             _boolField.choices.Add(V_False);
 
@@ -66,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 else
                     _defaultValueField.value = 0;
 
-                _hasExplicitDefaultSetField.value = evt.newValue != "";
+                _hasExplicitDefaultSetField.value = evt.newValue != V_None;
             });
             
             
@@ -96,7 +97,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             string boolStr;
             if (!hasExplicitValue)
-                boolStr = "";
+                boolStr = V_None;
             else if (value > 0.5)
                 boolStr = V_True;
             else
