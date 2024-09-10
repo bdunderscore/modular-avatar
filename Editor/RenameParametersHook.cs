@@ -115,7 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
                 
-                    
+                ResolvedParameter.saved |= info.ResolvedParameter.saved;
             }
 
             public void MergeChild(ParameterInfo info)
