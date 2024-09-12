@@ -181,6 +181,15 @@ namespace nadena.dev.modular_avatar.core
                 VRCExpressionParameters.ValueType.Float => AnimatorControllerParameterType.Float,
                 _ => 0,
             };
+
+        internal ParameterSyncType ParameterSyncType
+            => ExpressionParametersValueType switch
+            {
+                VRCExpressionParameters.ValueType.Bool => ParameterSyncType.Bool,
+                VRCExpressionParameters.ValueType.Int => ParameterSyncType.Int,
+                VRCExpressionParameters.ValueType.Float => ParameterSyncType.Float,
+                _ => 0,
+            };
     }
 }
 

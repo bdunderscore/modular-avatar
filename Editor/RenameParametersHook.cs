@@ -122,13 +122,6 @@ namespace nadena.dev.modular_avatar.core.editor
             public void MergeChild(ParameterInfo info)
             {
                 MergeCommon(info);
-
-                if (!ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
-                {
-                    ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
-                    ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
-                    ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
-                }
             }
             
             void MergeCommon(ParameterInfo info)
@@ -138,10 +131,27 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.syncType = info.ResolvedParameter.syncType;
                 } else if (ResolvedParameter.syncType != info.ResolvedParameter.syncType && info.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
                 {
-                    TypeConflict = true;
-                    ConflictingSyncTypes = ConflictingSyncTypes
-                        .Add(ResolvedParameter.syncType)
-                        .Add(info.ResolvedParameter.syncType);
+                    if (TypeSources.All(x => x is ModularAvatarMenuItem) && info.TypeSources.All(x => x is ModularAvatarMenuItem))
+                    {
+                        if (ResolvedParameter.syncType == ParameterSyncType.Bool || info.ResolvedParameter.syncType == ParameterSyncType.Float)
+                        {
+                            ResolvedParameter.syncType = info.ResolvedParameter.syncType;
+                        }
+                    }
+                    else
+                    {
+                        TypeConflict = true;
+                        ConflictingSyncTypes = ConflictingSyncTypes
+                            .Add(ResolvedParameter.syncType)
+                            .Add(info.ResolvedParameter.syncType);
+                    }
+                }
+
+                if (!ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
+                {
+                    ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
+                    ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
+                    ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
                 
                 TypeSources.AddRange(info.TypeSources);
@@ -317,19 +327,24 @@ namespace nadena.dev.modular_avatar.core.editor
         )
         {
             var paramInfo = ndmf.ParameterInfo.ForContext(_context.PluginBuildContext);
-            
-            ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
-            var p = obj.GetComponent<ModularAvatarParameters>();
-            if (p != null)
-            {
-                rv = BuildReport.ReportingObject(p, () => CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true)));
-            }
 
-            foreach (var merger in obj.GetComponents<ModularAvatarMergeAnimator>())
+            var pInfos = obj.TryGetComponent<ModularAvatarParameters>(out var p)
+                ? BuildReport.ReportingObject(p, () => CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true)))
+                : Array.Empty<ParameterInfo>();
+            var mInfos = obj.TryGetComponent<ModularAvatarMenuItem>(out var m)
+                ? BuildReport.ReportingObject(m, () => CollectParameters(m, paramInfo.GetParameterRemappingsAt(m, true)))
+                : Array.Empty<ParameterInfo>();
+
+            var rv = ImmutableDictionary<string, ParameterInfo>.Empty;
+            foreach (var info in Enumerable.Concat(pInfos, mInfos))
             {
-                if (merger.deleteAttachedAnimator)
+                if (rv.TryGetValue(info.ResolvedParameter.nameOrPrefix, out var priorInfo))
                 {
-                    break;
+                    priorInfo.MergeSibling(info);
+                }
+                else
+                {
+                    rv = rv.SetItem(info.ResolvedParameter.nameOrPrefix, info);
                 }
             }
 
@@ -413,27 +428,6 @@ namespace nadena.dev.modular_avatar.core.editor
                             if (installer.menuToAppend != null && installer.enabled)
                             {
                                 ProcessMenuInstaller(installer, paramInfo.GetParameterRemappingsAt(obj));
-                            }
-
-                            break;
-                        }
-
-                        case ModularAvatarMenuItem menuItem:
-                        {
-                            var remaps = paramInfo.GetParameterRemappingsAt(obj);
-                            if (menuItem.Control.parameter?.name != null &&
-                                remaps.TryGetValue((ParameterNamespace.Animator, menuItem.Control.parameter.name), out var newVal))
-                            {
-                                menuItem.Control.parameter.name = newVal.ParameterName;
-                            }
-
-                            foreach (var subParam in menuItem.Control.subParameters ??
-                                                     Array.Empty<VRCExpressionsMenu.Control.Parameter>())
-                            {
-                                if (subParam?.name != null && remaps.TryGetValue((ParameterNamespace.Animator, subParam.name), out var subNewVal))
-                                {
-                                    subParam.name = subNewVal.ParameterName;
-                                }
                             }
 
                             break;
@@ -710,14 +704,10 @@ namespace nadena.dev.modular_avatar.core.editor
             if (dirty) t.conditions = conditions;
         }
 
-        private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
+        private IEnumerable<ParameterInfo> CollectParameters(ModularAvatarParameters p,
             ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps
         )
         {
-            var remapper = ParameterRenameMappings.Get(_context.PluginBuildContext);
-            
-            ImmutableDictionary<string, ParameterInfo> parameterInfos = ImmutableDictionary<string, ParameterInfo>.Empty;
-            
             foreach (var param in p.parameters)
             {
                 if (param.isPrefix) continue;
@@ -746,18 +736,59 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     info.DefaultSources.Add(p);
                 }
-                    
-                if (parameterInfos.TryGetValue(remapTo, out var existing))
+
+                yield return info;
+            }
+        }
+
+        private IEnumerable<ParameterInfo> CollectParameters(ModularAvatarMenuItem m,
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps
+        )
+        {
+            if (!string.IsNullOrEmpty(m.Control?.parameter?.name)
+                && remaps.TryGetValue((ParameterNamespace.Animator, m.Control.parameter.name), out var mapping))
+            {
+                m.Control.parameter.name = mapping.ParameterName;
+            }
+
+            foreach (var subParam in m.Control?.subParameters ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>())
+            {
+                if (!string.IsNullOrEmpty(subParam?.name)
+                    && remaps.TryGetValue((ParameterNamespace.Animator, subParam.name), out var subParamMapping))
                 {
-                    existing.MergeSibling(info);
-                }
-                else
-                {
-                    parameterInfos = parameterInfos.SetItem(remapTo, info);
+                    subParam.name = subParamMapping.ParameterName;
                 }
             }
 
-            return parameterInfos;
+            if (m.automaticValue) yield break;
+            if (string.IsNullOrWhiteSpace(m.Control?.parameter?.name)) yield break;
+            if (!ParameterAssignerPass.ShouldAssignParametersToMami(m)) yield break;
+
+            var info = new ParameterInfo()
+            {
+                ResolvedParameter = new()
+                {
+                    nameOrPrefix = m.Control.parameter?.name,
+                    remapTo = m.Control.parameter?.name,
+                    syncType = m.ParameterSyncType,
+                    saved = m.isSaved,
+                    localOnly = !m.isSynced,
+                    defaultValue = m.isDefault ? m.Control.value : 0,
+                    hasExplicitDefaultValue = m.isDefault,
+                },
+            };
+
+            if (info.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
+            {
+                info.TypeSources.Add(m);
+            }
+
+            if (info.ResolvedParameter.HasDefaultValue)
+            {
+                info.DefaultSources.Add(m);
+            }
+
+            yield return info;
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.

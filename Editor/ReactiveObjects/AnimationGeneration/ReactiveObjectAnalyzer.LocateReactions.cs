@@ -62,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     _computeContext.Observe(mami, c => (c.Control?.parameter, c.Control?.type, c.Control?.value, c.isDefault));
                     
-                    var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
+                    var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates, context: _computeContext);
 
                     if (mami_condition != null &&
                         ForceMenuItems.TryGetValue(mami_condition.Parameter, out var forcedMenuItem))

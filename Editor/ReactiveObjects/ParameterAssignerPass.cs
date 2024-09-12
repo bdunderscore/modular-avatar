@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -177,6 +178,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ModularAvatarMenuItem mami,
             Dictionary<string, float> simulationInitialStates = null,
             IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null,
+            ComputeContext context = null,
             bool? forceSimulation = null
             )
         {
@@ -207,6 +209,10 @@ namespace nadena.dev.modular_avatar.core.editor
             
             if (string.IsNullOrWhiteSpace(paramName)) return null;
             
+            var isEnabledForPreview = context != null
+                ? new MenuItemPreviewCondition(context).IsEnabledForPreview(mami)
+                : mami.isDefault;
+
             return new ControlCondition
             {
                 Parameter = paramName,
@@ -215,7 +221,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Note: This slightly odd-looking value is key to making the Auto checkbox work for editor previews;
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
-                InitialValue = mami.isDefault ? mami.Control.value : -999,
+                InitialValue = isEnabledForPreview ? mami.Control.value : -999,
                 ParameterValueLo = mami.Control.value - 0.005f,
                 ParameterValueHi = mami.Control.value + 0.005f,
                 DebugReference = mami,

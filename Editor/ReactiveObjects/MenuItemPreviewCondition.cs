@@ -61,7 +61,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var (paramName, value) = _context.Observe(mami, m => (m.Control.parameter.name, m.Control.value));
 
-            if (TryGetRegisteredParam(mami, paramName, out var providedParameter))
+            if (!_context.Observe(mami, m => m.automaticValue)
+                && TryGetRegisteredParam(mami, paramName, out var providedParameter)
+                && providedParameter.DefaultValue != null)
             {
                 var defaultValue = providedParameter.DefaultValue ?? 0;
                 return Mathf.Abs(defaultValue - value) < 0.01f;
