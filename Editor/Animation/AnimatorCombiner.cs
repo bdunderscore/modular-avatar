@@ -494,7 +494,8 @@ namespace nadena.dev.modular_avatar.animation
                     var overrideMotion = layer.GetOverrideMotion(state);
                     if (overrideMotion != null)
                     {
-                        newLayer.SetOverrideMotion((AnimatorState)_cloneMap[state], overrideMotion);
+                        var newMotion = _deepClone.DoClone(overrideMotion, basePath, _cloneMap);
+                        newLayer.SetOverrideMotion((AnimatorState)_cloneMap[state], newMotion);
                     }
 
                     var overrideBehaviors = (StateMachineBehaviour[])layer.GetOverrideBehaviours(state)?.Clone();
