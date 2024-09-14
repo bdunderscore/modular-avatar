@@ -39,7 +39,12 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             return false;
-        } 
+        }
+
+        internal void TestExecute(ndmf.BuildContext context)
+        {
+            Execute(context);
+        }
         
         protected override void Execute(ndmf.BuildContext context)
         {
@@ -94,15 +99,19 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (list.Count == 1)
                         // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 0
                         // be the 'unselected' default value (if this is not default)
-                        defaultValue = list[0].isDefault ? 1 : 0;
+                        defaultValue = 0;
                 }
 
                 HashSet<int> usedValues = new();
                 usedValues.Add((int)defaultValue);
 
                 foreach (var item in list)
-                    if (!item.automaticValue && Mathf.Abs(item.Control.value - Mathf.Round(item.Control.value)) < 0.01f)
-                        usedValues.Add(Mathf.RoundToInt(item.Control.value));
+                {
+                    if (!item.automaticValue)
+                    {
+                        usedValues.Add((int)item.Control.value);
+                    }
+                }
 
                 var nextValue = 1;
 
@@ -118,6 +127,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (list.Count == 1)
                         {
                             mami.Control.value = 1;
+                        }
+                        else if (mami.isDefault)
+                        {
+                            mami.Control.value = defaultValue;
                         }
                         else
                         {
