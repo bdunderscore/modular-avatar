@@ -115,7 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
                 
-                    
+                ResolvedParameter.saved |= info.ResolvedParameter.saved;
             }
 
             public void MergeChild(ParameterInfo info)
@@ -128,8 +128,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                     ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
-
-                ResolvedParameter.saved = info.ResolvedParameter.saved;
             }
             
             void MergeCommon(ParameterInfo info)
@@ -153,8 +151,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
-                
-                ResolvedParameter.saved = ResolvedParameter.saved || info.ResolvedParameter.saved;
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
             }
