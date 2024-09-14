@@ -187,6 +187,7 @@
   "menuitem.prop.type.tooltip": "此選單項的類型",
   "menuitem.prop.value": "參數值",
   "menuitem.prop.value.tooltip": "設定選單項觸發時的參數值",
+  "menuitem.prop.automatic_value": "自動",
   "menuitem.prop.parameter": "參數",
   "menuitem.prop.label": "名稱",
   "menuitem.prop.submenu_asset": "子選單資源",
