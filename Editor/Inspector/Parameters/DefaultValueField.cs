@@ -74,7 +74,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 _defaultValueField.value = 0;
                 _hasExplicitDefaultValueField.value = false;
             }
-            else if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+            else if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                && !float.IsNaN(parsed)
+                && !float.IsInfinity(parsed))
             {
                 _defaultValueField.value = _syncType switch
                 {
