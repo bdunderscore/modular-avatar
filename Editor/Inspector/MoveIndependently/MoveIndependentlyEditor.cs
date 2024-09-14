@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void OnInnerInspectorGUI()
         {
-            throw new NotImplementedException();
+            EditorGUILayout.HelpBox("Unable to show override changes", MessageType.Info);
         }
 
         protected override VisualElement CreateInnerInspectorGUI()
