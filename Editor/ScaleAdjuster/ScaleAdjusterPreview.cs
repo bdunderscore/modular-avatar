@@ -322,7 +322,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var rootBone = _finalBonesMap.TryGetValue(smr.rootBone, out var newRootBone) ? newRootBone : smr.rootBone;
             smr.rootBone = rootBone;
-            smr.bones = smr.bones.Select(b => b is null ? null : _finalBonesMap.GetValueOrDefault(b, b)).ToArray();
+            smr.bones = smr.bones.Select(b => b == null ? null : _finalBonesMap.GetValueOrDefault(b, b)).ToArray();
         }
         
         public void Dispose()
