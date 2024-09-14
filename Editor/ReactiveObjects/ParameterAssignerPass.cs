@@ -219,8 +219,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
                 InitialValue = mami.isDefault ? mami.Control.value : -999,
-                ParameterValueLo = mami.Control.value - 0.5f,
-                ParameterValueHi = mami.Control.value + 0.5f,
+                ParameterValueLo = mami.Control.value - 0.005f,
+                ParameterValueHi = mami.Control.value + 0.005f,
                 DebugReference = mami,
             };
         }
