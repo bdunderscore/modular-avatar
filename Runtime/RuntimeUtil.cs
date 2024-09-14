@@ -23,7 +23,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -160,6 +160,33 @@ namespace nadena.dev.modular_avatar.core
         public static void InvokeHierarchyChanged()
         {
             OnHierarchyChanged?.Invoke();
+        }
+
+#if UNITY_EDITOR
+        private static readonly Type addComponentWindowType = Type.GetType("UnityEditor.AddComponent.AddComponentWindow, UnityEditor");
+#endif
+
+        public static bool IsResetFromInspector(int skipStackFrames = 1)
+        {
+#if !UNITY_EDITOR
+            return false;
+#else
+            var frames = new System.Diagnostics.StackTrace(skipStackFrames).GetFrames();
+
+            // Reset from component context menu
+            if (frames.Length == 1)
+            {
+                return true;
+            }
+
+            // Added from Add Component button
+            if (frames.Any(x => x.GetMethod().DeclaringType == addComponentWindowType))
+            {
+                return true;
+            }
+
+            return false;
+#endif
         }
     }
 }

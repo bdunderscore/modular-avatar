@@ -49,14 +49,11 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         public bool automaticValue;
 
-        private static readonly System.Type AddComponentWindowType = System.Type.GetType("UnityEditor.AddComponent.AddComponentWindow, UnityEditor");
-
         private void Reset()
         {
             // Init settings only when added or reset manually from the Inspector.
             // Otherwise, some plugins that add this component may break in non-playmode builds.
-            var frames = new System.Diagnostics.StackTrace().GetFrames();
-            if (frames.Length == 1 || frames.Any(x => x.GetMethod().DeclaringType == AddComponentWindowType))
+            if (RuntimeUtil.IsResetFromInspector())
             {
                 InitSettings();
             }
