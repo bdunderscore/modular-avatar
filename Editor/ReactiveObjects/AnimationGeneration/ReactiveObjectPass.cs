@@ -96,7 +96,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (initialStateHolder == null) return;
 
             _initialStateClip = new AnimationClip();
-            _initialStateClip.name = "MA Shape Changer Defaults";
+            _initialStateClip.name = "Reactive Component Defaults";
             initialStateHolder.CurrentClip = _initialStateClip;
 
             foreach (var (key, initialState) in initialStates)
@@ -264,7 +264,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var asc = context.Extension<AnimationServicesContext>();
             var asm = new AnimatorStateMachine();
-            asm.name = "MA Shape Changer " + info.TargetProp.TargetObject.name;
+
+            // Workaround for the warning: "'.' is not allowed in State name"
+            asm.name = "RC " + info.TargetProp.TargetObject.name.Replace(".", "_");
 
             var x = 200;
             var y = 0;
@@ -344,7 +346,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var state = new AnimatorState();
-                    state.name = group.ControllingConditions[0].DebugName;
+
+                    // Workaround for the warning: "'.' is not allowed in State name"
+                    state.name = group.ControllingConditions[0].DebugName.Replace(".", "_");
+
                     state.motion = clip;
                     state.writeDefaultValues = false;
                     states.Add(new ChildAnimatorState
@@ -559,7 +564,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 new AnimatorControllerLayer
                 {
                     stateMachine = asm,
-                    name = "MA Shape Changer " + layerName,
+                    name = "RC " + layerName,
                     defaultWeight = 1
                 }
             ).ToArray();
