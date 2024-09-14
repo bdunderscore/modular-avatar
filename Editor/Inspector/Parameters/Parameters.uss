@@ -30,7 +30,7 @@
     display: none;
 }
 
-.st-anim-only .st-anim-only__hide {
+.st-ty-Not-Synced .st-anim-only__hide {
     display: none;
 }
 
@@ -83,28 +83,6 @@ DefaultValueField > * {
     width: 60px;
     height: 100%;
     margin: 0;
-}
-
-.st-ty-Not-Synced DefaultValueField #default-value-int,
-.st-ty-Not-Synced DefaultValueField #default-value-float,
-.st-ty-Not-Synced DefaultValueField #default-value-bool,
-.st-ty-Int DefaultValueField #default-value-not-synced,
-.st-ty-Int DefaultValueField #default-value-float,
-.st-ty-Int DefaultValueField #default-value-bool,
-.st-ty-Float DefaultValueField #default-value-not-synced,
-.st-ty-Float DefaultValueField #default-value-int,
-.st-ty-Float DefaultValueField #default-value-bool,
-.st-ty-Bool DefaultValueField #default-value-not-synced,
-.st-ty-Bool DefaultValueField #default-value-int,
-.st-ty-Bool DefaultValueField #default-value-float {
-    display: none;
-}
-
-.st-ty-Not-Synced DefaultValueField #default-value-not-synced,
-.st-ty-Int DefaultValueField #default-value-int,
-.st-ty-Float DefaultValueField #default-value-float,
-.st-ty-Bool DefaultValueField #default-value-bool {
-    display: flex;
 }
 
 #f-local-only {
