@@ -51,6 +51,16 @@ namespace nadena.dev.modular_avatar.core
 
         private void Reset()
         {
+            // Init settings only when added or reset manually from the Inspector.
+            // Otherwise, some plugins that add this component may break in non-playmode builds.
+            if (RuntimeUtil.IsResetFromInspector())
+            {
+                InitSettings();
+            }
+        }
+
+        internal void InitSettings()
+        {
             Control = new VRCExpressionsMenu.Control();
             Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
             Control.value = 1;

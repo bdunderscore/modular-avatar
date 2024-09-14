@@ -212,7 +212,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                 var newChild = new GameObject();
                                 newChild.name = "New item";
                                 newChild.transform.SetParent(nodesUnder.root.transform, false);
-                                newChild.AddComponent<ModularAvatarMenuItem>();
+
+                                var mami = newChild.AddComponent<ModularAvatarMenuItem>();
+                                mami.InitSettings();
+
                                 Undo.RegisterCreatedObjectUndo(newChild, "Added menu item");
                             }
 
@@ -223,13 +226,12 @@ namespace nadena.dev.modular_avatar.core.editor
                                 newChild.transform.SetParent(nodesUnder.root.transform, false);
                                 
                                 var mami = newChild.AddComponent<ModularAvatarMenuItem>();
+                                mami.InitSettings();
                                 mami.Control = new VRCExpressionsMenu.Control()
                                 {
                                     type = VRCExpressionsMenu.Control.ControlType.Toggle,
                                     value = 1,
                                 };
-                                mami.isSaved = true;
-                                mami.isSynced = true;
 
                                 newChild.AddComponent<ModularAvatarObjectToggle>();
 
