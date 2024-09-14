@@ -20,15 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
             Localization.UI.Localize(root);
             root.styleSheets.Add(uss);
 
-            var proot = root.Q<VisualElement>("Root");
-            var type_field = proot.Q<DropdownField>("f-type");
+            var type_field = root.Q<DropdownField>("f-type");
 
-            var f_sync_type = proot.Q<VisualElement>("f-sync-type");
+            var f_sync_type = root.Q<VisualElement>("f-sync-type");
             SetupPairedDropdownField(
-                proot,
+                root,
                 type_field,
                 f_sync_type,
-                proot.Q<VisualElement>("f-is-prefix"),
+                root.Q<VisualElement>("f-is-prefix"),
                 ("Bool", "False", "params.syncmode.Bool"),
                 ("Float", "False", "params.syncmode.Float"),
                 ("Int", "False", "params.syncmode.Int"),
@@ -41,49 +40,52 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 var is_anim_only = evt.newValue == "Not Synced";
 
                 if (is_anim_only)
-                    proot.AddToClassList("st-anim-only");
+                    root.AddToClassList("st-anim-only");
                 else
-                    proot.RemoveFromClassList("st-anim-only");
+                    root.RemoveFromClassList("st-anim-only");
             });
 
-            var f_synced = proot.Q<Toggle>("f-synced");
-            var f_local_only = proot.Q<Toggle>("f-local-only");
+            var f_synced = root.Q<Toggle>("f-synced");
+            var f_local_only = root.Q<Toggle>("f-local-only");
 
             // Invert f_local_only and f_synced
             f_local_only.RegisterValueChangedCallback(evt => { f_synced.SetValueWithoutNotify(!evt.newValue); });
 
             f_synced.RegisterValueChangedCallback(evt => { f_local_only.value = !evt.newValue; });
 
-            var internalParamAccessor = proot.Q<Toggle>("f-internal-parameter");
+            var internalParamAccessor = root.Q<Toggle>("f-internal-parameter");
             internalParamAccessor.RegisterValueChangedCallback(evt =>
             {
                 if (evt.newValue)
-                    proot.AddToClassList("st-internal-parameter");
+                    root.AddToClassList("st-internal-parameter");
                 else
-                    proot.RemoveFromClassList("st-internal-parameter");
+                    root.RemoveFromClassList("st-internal-parameter");
             });
 
-            var remapTo = proot.Q<TextField>("f-remap-to");
-            var defaultParam = proot.Q<Label>("f-default-param");
-            var name = proot.Q<TextField>("f-name");
-            var remapToInner = remapTo.Q<TextElement>();
+            root.Q<VisualElement>("remap-to-group-disabled").SetEnabled(false);
 
-            Action updateDefaultParam = () =>
+            var name = root.Q<TextField>("f-name");
+            var remapTo = root.Q<TextField>("f-remap-to");
+            var remapToInner = remapTo.Q<TextElement>();
+            var remapToPlaceholder = root.Q<Label>("f-remap-to-placeholder");
+            remapToPlaceholder.pickingMode = PickingMode.Ignore;
+
+            Action updateRemapToPlaceholder = () =>
             {
                 if (string.IsNullOrWhiteSpace(remapTo.value))
-                    defaultParam.text = name.value;
+                    remapToPlaceholder.text = name.value;
                 else
-                    defaultParam.text = "";
+                    remapToPlaceholder.text = "";
             };
 
-            name.RegisterValueChangedCallback(evt => { updateDefaultParam(); });
+            name.RegisterValueChangedCallback(evt => { updateRemapToPlaceholder(); });
 
-            remapTo.RegisterValueChangedCallback(evt => { updateDefaultParam(); });
+            remapTo.RegisterValueChangedCallback(evt => { updateRemapToPlaceholder(); });
 
-            defaultParam.RemoveFromHierarchy();
-            remapToInner.Add(defaultParam);
+            remapToPlaceholder.RemoveFromHierarchy();
+            remapToInner.Add(remapToPlaceholder);
 
-            updateDefaultParam();
+            updateRemapToPlaceholder();
 
             return root;
         }
@@ -157,9 +159,6 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
         {
             var p_type = GetAccessor(v_type);
             var p_prefix = GetAccessor(v_pbPrefix);
-
-            v_type.style.display = DisplayStyle.None;
-            v_pbPrefix.style.display = DisplayStyle.None;
 
             for (var i = 0; i < choices.Length; i++) target.choices.Add("" + i);
 

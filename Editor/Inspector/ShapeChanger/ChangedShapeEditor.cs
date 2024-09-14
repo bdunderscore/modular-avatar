@@ -72,7 +72,23 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 f_shape_name.SetEnabled(shapeNames != null);
                 f_shape_name.choices = shapeNames ?? new();
 
-                f_shape_name.formatListItemCallback = name => shapeNames != null ? name : "<Missing SkinnedMeshRenderer>";
+                f_shape_name.formatListItemCallback = name =>
+                {
+                    if (string.IsNullOrWhiteSpace(name)) return "";
+
+                    if (shapeNames == null)
+                    {
+                        return $"<Missing SkinnedMeshRenderer>";
+                    }
+                    else if (!shapeNames.Contains(name))
+                    {
+                        return $"<color=\"red\">{name}</color>";
+                    }
+                    else
+                    {
+                        return name;
+                    }
+                };
                 f_shape_name.formatSelectedValueCallback = f_shape_name.formatListItemCallback;
             }
         }

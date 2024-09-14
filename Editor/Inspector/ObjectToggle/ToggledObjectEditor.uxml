@@ -1,6 +1,6 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
-    <ui:VisualElement class="toggled-object-editor">
-        <ed:PropertyField binding-path="Active" label="" name="f-active"/>
-        <ed:PropertyField binding-path="Object" label="" name="f-object" class="f-object"/>
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-active" binding-path="Active" label=""/>
+        <ed:PropertyField name="f-object" binding-path="Object" label=""/>
     </ui:VisualElement>
 </UXML>
