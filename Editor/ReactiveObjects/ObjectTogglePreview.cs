@@ -42,6 +42,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var renderer in renderers)
             {
+                // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
+                if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+
                 bool currentlyEnabled = context.ActiveInHierarchy(renderer.gameObject);
 
                 bool overrideEnabled = true;

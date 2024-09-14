@@ -75,7 +75,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     renderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
                     avatarToRenderer.Add(root, renderers);
 
-                    foreach (var renderer in root.GetComponentsInChildren<Renderer>()) renderers.Add(renderer);
+                    foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+                    {
+                        // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
+                        if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+
+                        renderers.Add(renderer);
+                    }
                 }
             }
 
