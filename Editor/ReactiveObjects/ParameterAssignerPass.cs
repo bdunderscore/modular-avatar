@@ -96,10 +96,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     defaultValue = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value ?? 0;
 
-                    if (list.Count == 1)
-                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 0
-                        // be the 'unselected' default value (if this is not default)
-                        defaultValue = 0;
+                    if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
+                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 1
+                        // be the 'selected' default value (if this is default and automatic value)
+                        defaultValue = 1;
                 }
 
                 HashSet<int> usedValues = new();
@@ -124,11 +124,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (mami.automaticValue)
                     {
-                        if (list.Count == 1)
-                        {
-                            mami.Control.value = 1;
-                        }
-                        else if (mami.isDefault)
+                        if (mami.isDefault)
                         {
                             mami.Control.value = defaultValue;
                         }
