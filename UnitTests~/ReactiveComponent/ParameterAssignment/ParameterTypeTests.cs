@@ -26,24 +26,34 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         public void IntTest()
         {
             Test(new[] { 2.0f }, VRCExpressionParameters.ValueType.Int);
+            Test(new[] { 3.0f }, VRCExpressionParameters.ValueType.Int);
 
             Test(new[] { 0.0f, 1.0f, 2.0f }, VRCExpressionParameters.ValueType.Int);
             Test(new[] { 2.0f, 1.0f, 0.0f }, VRCExpressionParameters.ValueType.Int);
 
-            Test(new[] { 3.0f, 4.0f, 5.0f }, VRCExpressionParameters.ValueType.Int);
-            Test(new[] { 5.0f, 4.0f, 3.0f }, VRCExpressionParameters.ValueType.Int);
+            Test(new[] { 253.0f, 254.0f, 255.0f }, VRCExpressionParameters.ValueType.Int);
+            Test(new[] { 255.0f, 254.0f, 253.0f }, VRCExpressionParameters.ValueType.Int);
         }
 
         [Test]
         public void FloatTest()
         {
+            Test(new[] { -1.0f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { -0.1f }, VRCExpressionParameters.ValueType.Float);
             Test(new[] { 0.1f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { 0.9f }, VRCExpressionParameters.ValueType.Float);
+
+            Test(new[] { -1.0f, 0.0f, 1.0f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { 1.0f, 0.0f, -1.0f }, VRCExpressionParameters.ValueType.Float);
+
+            Test(new[] { -0.1f, 0.0f, 0.1f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { 0.1f, 0.0f, -0.1f }, VRCExpressionParameters.ValueType.Float);
 
             Test(new[] { 0.0f, 0.1f, 0.2f }, VRCExpressionParameters.ValueType.Float);
             Test(new[] { 0.2f, 0.1f, 0.0f }, VRCExpressionParameters.ValueType.Float);
 
-            Test(new[] { 0.3f, 0.4f, 0.5f }, VRCExpressionParameters.ValueType.Float);
-            Test(new[] { 0.5f, 0.4f, 0.3f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { 0.7f, 0.8f, 0.9f }, VRCExpressionParameters.ValueType.Float);
+            Test(new[] { 0.9f, 0.8f, 0.7f }, VRCExpressionParameters.ValueType.Float);
         }
 
         private void Test(float[] values, VRCExpressionParameters.ValueType expected)
