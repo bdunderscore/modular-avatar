@@ -174,27 +174,13 @@ namespace nadena.dev.modular_avatar.core
         }
 
         internal AnimatorControllerParameterType AnimatorControllerParameterType
-        {
-            get
+            => ExpressionParametersValueType switch
             {
-                // 0, 1
-                var type = AnimatorControllerParameterType.Bool;
-
-                // 2, 3, ..., (255)
-                if (Control.value > 1)
-                {
-                    type = AnimatorControllerParameterType.Int;
-                }
-
-                // (-1.0), ..., -0.1, 0.1, ..., 0.9
-                if (Control.value < 0 || Mathf.Abs(Control.value - Mathf.Round(Control.value)) > 0.01f)
-                {
-                    type = AnimatorControllerParameterType.Float;
-                }
-
-                return type;
-            }
-        }
+                VRCExpressionParameters.ValueType.Bool => AnimatorControllerParameterType.Bool,
+                VRCExpressionParameters.ValueType.Int => AnimatorControllerParameterType.Int,
+                VRCExpressionParameters.ValueType.Float => AnimatorControllerParameterType.Float,
+                _ => 0,
+            };
     }
 }
 

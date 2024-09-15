@@ -136,10 +136,10 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    var type = mami.ExpressionParametersValueType;
-                    if (valueType == VRCExpressionParameters.ValueType.Bool || type == VRCExpressionParameters.ValueType.Float)
+                    var newValueType = mami.ExpressionParametersValueType;
+                    if (valueType == VRCExpressionParameters.ValueType.Bool || newValueType == VRCExpressionParameters.ValueType.Float)
                     {
-                        valueType = type;
+                        valueType = newValueType;
                     }
 
                     isSaved |= mami.isSaved;
