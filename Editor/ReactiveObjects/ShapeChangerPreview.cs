@@ -133,12 +133,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToImmutableList();
         }
 
-        public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
+        public async Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
             var shapeValues = group.GetData<StaticContext>();
             var node = new Node(shapeValues, proxyPairs.First().Item2 as SkinnedMeshRenderer, _blendshapeCache);
 
-            return node.Refresh(proxyPairs, context, 0);
+            var rv = await node.Refresh(proxyPairs, context, 0);
+            if (rv == null)
+            {
+                context.Invalidate();
+            }
+
+            return node;
         }
 
         private class Node : IRenderFilterNode
