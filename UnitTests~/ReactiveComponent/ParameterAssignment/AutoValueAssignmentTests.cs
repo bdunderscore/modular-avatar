@@ -16,10 +16,14 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         [Test]
         public void ManuallyAssignedParametersAreNotReplaced()
         {
-            TestAssignments(
-                new[] { (false, 1.0f), (false, 4.0f) },
-                new[] { 1.0f, 4.0f }
-            );
+            TestAssignments(new[] { (false, 1.0f) }, new[] { 1.0f });
+            TestAssignments(new[] { (false, 1.0f) }, new[] { 1.0f }, 0);
+
+            TestAssignments(new[] { (false, 4.0f) }, new[] { 4.0f });
+            TestAssignments(new[] { (false, 4.0f) }, new[] { 4.0f }, 0);
+
+            TestAssignments(new[] { (false, 1.0f), (false, 4.0f) }, new[] { 1.0f, 4.0f });
+            TestAssignments(new[] { (false, 1.0f), (false, 4.0f) }, new[] { 1.0f, 4.0f }, 0);
         }
 
         [Test]
@@ -98,6 +102,9 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             {
                 Assert.AreEqual(expected, mami.Control.value);
             }
+
+            var expectedDefaultValue = defaultIndex.HasValue ? expectedAssignments[defaultIndex.Value] : 0;
+            Assert.AreEqual(expectedDefaultValue, avDesc.expressionParameters.parameters.Single().defaultValue);
         }
     }
 }
