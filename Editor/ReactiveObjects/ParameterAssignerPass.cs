@@ -117,8 +117,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var canBeBool = true;
                 var canBeInt = true;
-                var isSaved = true;
-                var isSynced = true;
+                var isSaved = false;
+                var isSynced = false;
 
                 foreach (var mami in list)
                 {
@@ -146,8 +146,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     else
                         canBeBool &= mami.Control.value is >= 0 and <= 1;
 
-                    isSaved &= mami.isSaved;
-                    isSynced &= mami.isSynced;
+                    isSaved |= mami.isSaved;
+                    isSynced |= mami.isSynced;
                 }
 
                 if (!declaredParams.ContainsKey(paramName))
