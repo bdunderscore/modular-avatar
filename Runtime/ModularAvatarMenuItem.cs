@@ -149,6 +149,52 @@ namespace nadena.dev.modular_avatar.core
             if (control.subParameters.Length > maxSubParams)
                 control.subParameters = control.subParameters.Take(maxSubParams).ToArray();
         }
+
+        internal VRCExpressionParameters.ValueType ExpressionParametersValueType
+        {
+            get
+            {
+                // 0, 1
+                var type = VRCExpressionParameters.ValueType.Bool;
+
+                // 2, 3, ..., (255)
+                if (Control.value > 1)
+                {
+                    type = VRCExpressionParameters.ValueType.Int;
+                }
+
+                // (-1.0), ..., -0.1, 0.1, ..., 0.9
+                if (Control.value < 0 || Mathf.Abs(Control.value - Mathf.Round(Control.value)) > 0.01f)
+                {
+                    type = VRCExpressionParameters.ValueType.Float;
+                }
+
+                return type;
+            }
+        }
+
+        internal AnimatorControllerParameterType AnimatorControllerParameterType
+        {
+            get
+            {
+                // 0, 1
+                var type = AnimatorControllerParameterType.Bool;
+
+                // 2, 3, ..., (255)
+                if (Control.value > 1)
+                {
+                    type = AnimatorControllerParameterType.Int;
+                }
+
+                // (-1.0), ..., -0.1, 0.1, ..., 0.9
+                if (Control.value < 0 || Mathf.Abs(Control.value - Mathf.Round(Control.value)) > 0.01f)
+                {
+                    type = AnimatorControllerParameterType.Float;
+                }
+
+                return type;
+            }
+        }
     }
 }
 

@@ -136,10 +136,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    var type =
-                        Mathf.Abs(mami.Control.value - Mathf.Round(mami.Control.value)) > 0.01f ? VRCExpressionParameters.ValueType.Float
-                        : mami.Control.value < 0 || mami.Control.value > 1 ? VRCExpressionParameters.ValueType.Int
-                        : VRCExpressionParameters.ValueType.Bool;
+                    var type = mami.ExpressionParametersValueType;
                     if (valueType == VRCExpressionParameters.ValueType.Bool || type == VRCExpressionParameters.ValueType.Float)
                     {
                         valueType = type;
