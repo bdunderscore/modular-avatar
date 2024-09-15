@@ -30,7 +30,7 @@
     display: none;
 }
 
-.st-anim-only .st-anim-only__hide {
+.st-ty-Not-Synced .st-anim-only__hide {
     display: none;
 }
 
@@ -79,26 +79,10 @@
     margin: 0;
 }
 
-DefaultValueField TextField {
-    display: flex;
+DefaultValueField > * {
     width: 60px;
     height: 100%;
     margin: 0;
-}
-
-DefaultValueField DropdownField {
-    display: none;
-    width: 60px;
-    height: 100%;
-    margin: 0;
-}
-
-.st-ty-Bool DefaultValueField TextField {
-    display: none;
-}
-
-.st-ty-Bool DefaultValueField DropdownField {
-    display: flex;
 }
 
 #f-local-only {

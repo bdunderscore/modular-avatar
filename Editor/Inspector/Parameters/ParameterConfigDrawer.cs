@@ -20,14 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
             Localization.UI.Localize(root);
             root.styleSheets.Add(uss);
 
-            var type_field = root.Q<DropdownField>("f-type");
-
-            var f_sync_type = root.Q<VisualElement>("f-sync-type");
+            var f_type = root.Q<DropdownField>("f-type");
+            var f_sync_type = root.Q<DropdownField>("f-sync-type");
+            var f_is_prefix = root.Q<VisualElement>("f-is-prefix");
             SetupPairedDropdownField(
                 root,
-                type_field,
+                f_type,
                 f_sync_type,
-                root.Q<VisualElement>("f-is-prefix"),
+                f_is_prefix,
                 ("Bool", "False", "params.syncmode.Bool"),
                 ("Float", "False", "params.syncmode.Float"),
                 ("Int", "False", "params.syncmode.Int"),
@@ -35,15 +35,9 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 (null, "True", "params.syncmode.PhysBonesPrefix")
             );
 
-            f_sync_type.Q<DropdownField>().RegisterValueChangedCallback(evt =>
-            {
-                var is_anim_only = evt.newValue == "Not Synced";
-
-                if (is_anim_only)
-                    root.AddToClassList("st-anim-only");
-                else
-                    root.RemoveFromClassList("st-anim-only");
-            });
+            var f_default = root.Q<DefaultValueField>();
+            f_default.OnUpdateSyncType((ParameterSyncType)f_sync_type.index);
+            f_sync_type.RegisterValueChangedCallback(evt => f_default.OnUpdateSyncType((ParameterSyncType)f_sync_type.index));
 
             var f_synced = root.Q<Toggle>("f-synced");
             var f_local_only = root.Q<Toggle>("f-local-only");
