@@ -72,7 +72,9 @@ namespace nadena.dev.modular_avatar.core
 
         private void Rebind()
         {
+            #if UNITY_EDITOR
             if (this == null) return;
+            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this)) return;
 
             _editorBindings = new List<EditorBlendshapeBinding>();
 
@@ -110,6 +112,7 @@ namespace nadena.dev.modular_avatar.core
             }
 
             Update();
+            #endif
         }
 
         private void Update()
