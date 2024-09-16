@@ -233,6 +233,7 @@ namespace nadena.dev.modular_avatar.core
             var mergeName = transform.GetChild(0).name;
             var isInferred = false;
 
+            // We use raw `boneNamePatterns` instead of `BoneToNameMap` because BoneToNameMap requires matching with normalized bone name, but normalizing makes raw prefix/suffix unavailable.
             string[][] boneNamePatterns = (string[][])InferWithHeuristic.HeuristicBoneMapper.GetField("boneNamePatterns", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null);
 
             foreach (var hipNameCandidate in boneNamePatterns[(int)HumanBodyBones.Hips])
