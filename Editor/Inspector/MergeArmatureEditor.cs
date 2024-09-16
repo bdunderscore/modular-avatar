@@ -99,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 serializedObject.ApplyModifiedProperties();
 
-                if (target.mergeTargetObject != null && priorMergeTarget == null
+                if (target.mergeTargetObject != null && priorMergeTarget != target.mergeTargetObject
                                                      && string.IsNullOrEmpty(target.prefix)
                                                      && string.IsNullOrEmpty(target.suffix))
                 {
