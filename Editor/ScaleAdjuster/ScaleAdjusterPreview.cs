@@ -61,27 +61,27 @@ namespace nadena.dev.modular_avatar.core.editor
             var avatarToRenderer =
                 new Dictionary<GameObject, HashSet<Renderer>>(new ObjectIdentityComparer<GameObject>());
 
-            foreach (var adjuster in scaleAdjusters)
+            foreach (var root in ctx.GetAvatarRoots())
             {
-                if (adjuster == null) continue;
-
-                // Find parent object
-                // TODO: Reactive helper
-                var root = FindAvatarRootObserving(ctx, adjuster.gameObject);
-                if (root == null) continue;
-
-                if (!avatarToRenderer.TryGetValue(root, out var renderers))
+                if (ctx.GetComponentsInChildren<ModularAvatarScaleAdjuster>(root, true).Length == 0)
                 {
-                    renderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
-                    avatarToRenderer.Add(root, renderers);
+                    continue;
+                }
 
-                    foreach (var renderer in root.GetComponentsInChildren<Renderer>())
-                    {
-                        // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
-                        if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+                if (ctx.GetAvatarRoot(root?.transform?.parent?.gameObject) != null)
+                {
+                    continue; // nested avatar descriptor
+                }
+                
+                var renderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
+                avatarToRenderer.Add(root, renderers);
 
-                        renderers.Add(renderer);
-                    }
+                foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+                {
+                    // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
+                    if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+
+                    renderers.Add(renderer);
                 }
             }
 
