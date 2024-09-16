@@ -115,8 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var nextValue = 1;
 
-                var canBeBool = true;
-                var canBeInt = true;
+                var valueType = VRCExpressionParameters.ValueType.Bool;
                 var isSaved = false;
                 var isSynced = false;
 
@@ -137,10 +136,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    if (Mathf.Abs(mami.Control.value - Mathf.Round(mami.Control.value)) > 0.01f)
-                        canBeInt = false;
-                    else
-                        canBeBool &= mami.Control.value is >= 0 and <= 1;
+                    var newValueType = mami.ExpressionParametersValueType;
+                    if (valueType == VRCExpressionParameters.ValueType.Bool || newValueType == VRCExpressionParameters.ValueType.Float)
+                    {
+                        valueType = newValueType;
+                    }
 
                     isSaved |= mami.isSaved;
                     isSynced |= mami.isSynced;
@@ -148,15 +148,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!declaredParams.ContainsKey(paramName))
                 {
-                    VRCExpressionParameters.ValueType newType;
-                    if (canBeBool) newType = VRCExpressionParameters.ValueType.Bool;
-                    else if (canBeInt) newType = VRCExpressionParameters.ValueType.Int;
-                    else newType = VRCExpressionParameters.ValueType.Float;
-
                     var newParam = new VRCExpressionParameters.Parameter
                     {
                         name = paramName,
-                        valueType = newType,
+                        valueType = valueType,
                         saved = isSaved,
                         defaultValue = defaultValue,
                         networkSynced = isSynced
@@ -221,8 +216,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
                 InitialValue = mami.isDefault ? mami.Control.value : -999,
-                ParameterValueLo = mami.Control.value - 0.5f,
-                ParameterValueHi = mami.Control.value + 0.5f,
+                ParameterValueLo = mami.Control.value - 0.005f,
+                ParameterValueHi = mami.Control.value + 0.005f,
                 DebugReference = mami,
             };
         }
