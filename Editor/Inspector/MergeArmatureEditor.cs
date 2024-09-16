@@ -114,7 +114,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (GUILayout.Button(G("merge_armature.adjust_names")))
                 {
-                    HeuristicBoneMapper.RenameBonesByHeuristic(target);
+                    var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(target.mergeTarget.Get(target).transform);
+                    var avatarAnimator = avatarRoot != null ? avatarRoot.GetComponent<Animator>() : null;
+                    HeuristicBoneMapper.RenameBonesByHeuristic(target, avatarAnimator: avatarAnimator);
                 }
             }
 

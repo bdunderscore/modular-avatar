@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using System;
 
 #endregion
 
@@ -156,8 +157,36 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
                 merge.InferPrefixSuffix();
 
+                var outfitAnimator = outfitRoot.GetComponent<Animator>();
+                if (outfitAnimator != null)
+                {
+                    var hipsCheck = outfitAnimator.isHuman ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips) : null;
+                    if (hipsCheck != null && hipsCheck.parent == outfitRoot.transform)
+                    {
+                        // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
+                        // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
+                        // assume the outfit's humanoid rig is broken and move on to heuristic matching.
+                        outfitAnimator = null;
+                    } else if (hipsCheck == null) {
+                        outfitAnimator = null;
+                    }
+                }
+
+                Dictionary<Transform, HumanBodyBones> humanoidBones = null;
+                if (outfitAnimator != null)
+                {
+                    humanoidBones = new Dictionary<Transform, HumanBodyBones>();
+                    foreach (HumanBodyBones boneIndex in Enum.GetValues(typeof(HumanBodyBones)))
+                    {
+                        var bone = boneIndex != HumanBodyBones.LastBone ? outfitAnimator.GetBoneTransform(boneIndex) : null;
+                        if (bone == null) continue;
+                        humanoidBones[bone] = boneIndex;
+                    }
+                }
+
+                var avatarAnimator = avatarRoot.GetComponent<Animator>();
                 List<Transform> subRoots = new List<Transform>();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots);
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots, humanoidBones: humanoidBones, avatarAnimator: avatarAnimator);
 
                 // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
                 // help with this
@@ -187,7 +216,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     outfitArmature.name += ".1";
 
                     // Also make sure to refresh the avatar's animator humanoid bone cache.
-                    var avatarAnimator = avatarRoot.GetComponent<Animator>();
                     var humanDescription = avatarAnimator.avatar;
                     avatarAnimator.avatar = null;
                     // ReSharper disable once Unity.InefficientPropertyAccess
