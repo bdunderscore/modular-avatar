@@ -200,6 +200,21 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
+        private static class InferWithHeuristic
+        {
+            internal static Type HeuristicBoneMapper;
+            static InferWithHeuristic()
+            {
+                foreach(var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    HeuristicBoneMapper = assembly.GetType("nadena.dev.modular_avatar.core.editor.HeuristicBoneMapper");
+                    if (HeuristicBoneMapper != null) return;
+                }
+                if (HeuristicBoneMapper == null)
+                throw new InvalidOperationException("HeuristicBoneMapper not found");
+            }
+        }
+
         public void InferPrefixSuffix()
         {
             // We only infer if targeting the armature (below the Hips bone)
@@ -216,14 +231,32 @@ namespace nadena.dev.modular_avatar.core
             // GameObject we're attached to.
             var baseName = hips.name;
             var mergeName = transform.GetChild(0).name;
+            var isInferred = false;
 
-            var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
-            if (prefixLength < 0) return;
+            string[][] boneNamePatterns = (string[][])InferWithHeuristic.HeuristicBoneMapper.GetField("boneNamePatterns", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null);
 
-            var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+            foreach (var hipNameCandidate in boneNamePatterns[(int)HumanBodyBones.Hips])
+            {
+                var prefixLength = mergeName.IndexOf(hipNameCandidate, StringComparison.InvariantCultureIgnoreCase);
+                if (prefixLength < 0) continue;
 
-            prefix = mergeName.Substring(0, prefixLength);
-            suffix = mergeName.Substring(mergeName.Length - suffixLength);
+                var suffixLength = mergeName.Length - prefixLength - hipNameCandidate.Length;
+
+                prefix = mergeName.Substring(0, prefixLength);
+                suffix = mergeName.Substring(mergeName.Length - suffixLength);
+                isInferred = true;
+                break;
+            }
+
+            if (!isInferred) { // Also check with old method as fallback
+                var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
+                if (prefixLength < 0) return;
+
+                var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+
+                prefix = mergeName.Substring(0, prefixLength);
+                suffix = mergeName.Substring(mergeName.Length - suffixLength);
+            }
 
             if (prefix == "J_Bip_C_")
             {
