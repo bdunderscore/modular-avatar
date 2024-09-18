@@ -61,6 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     .ToDictionary(menu => ObjectRegistry.GetReference(menu), menu => menu);
                 foreach (var menuInstaller in menuInstallers)
                 {
+                    if (!menuInstaller.installTargetMenu) continue;
                     var reference = ObjectRegistry.GetReference(menuInstaller.installTargetMenu);
                     if (currentMenus.ContainsKey(reference))
                         menuInstaller.installTargetMenu = currentMenus[reference];
