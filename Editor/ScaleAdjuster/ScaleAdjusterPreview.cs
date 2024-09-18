@@ -129,28 +129,37 @@ namespace nadena.dev.modular_avatar.core.editor
             var priorScene = SceneManager.GetActiveScene();
 
             var bonesSet = GetSourceBonesSet(context, proxyPairList);
-            var bones = bonesSet.ToArray();
+            var bones = bonesSet.OrderBy(k => k.gameObject.name).ToArray();
 
+            Transform[] sourceBones;
             Transform[] destinationBones;
             try
             {
                 SceneManager.SetActiveScene(scene);
                 VirtualAvatarRoot = new GameObject(avatarRoot.name + " [ScaleAdjuster]");
-                _srcBones = new TransformAccessArray(bones.ToArray());
-                destinationBones = CreateShadowBones(bones);
+
+                _shadowBoneMap = CreateShadowBones(bones);
+                sourceBones = new Transform[_shadowBoneMap.Count];
+                destinationBones = new Transform[_shadowBoneMap.Count];
+
+                var i = 0;
+                foreach (var (src, dst) in _shadowBoneMap)
+                {
+                    sourceBones[i] = src;
+                    destinationBones[i] = dst;
+                    i++;
+                }
             }
             finally
             {
                 SceneManager.SetActiveScene(priorScene);
             }
 
-            _shadowBoneMap = new Dictionary<Transform, Transform>(new ObjectIdentityComparer<Transform>());
-            for (var i = 0; i < bones.Length; i++) _shadowBoneMap[bones[i]] = destinationBones[i];
-
+            _srcBones = new TransformAccessArray(sourceBones);
             _dstBones = new TransformAccessArray(destinationBones);
 
-            _boneIsValid = new NativeArray<bool>(bones.Length, Allocator.Persistent);
-            _boneStates = new NativeArray<TransformState>(bones.Length, Allocator.Persistent);
+            _boneIsValid = new NativeArray<bool>(sourceBones.Length, Allocator.Persistent);
+            _boneStates = new NativeArray<TransformState>(sourceBones.Length, Allocator.Persistent);
 
             FindScaleAdjusters(context);
             TransferBoneStates();
@@ -170,8 +179,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (smr == null) continue;
 
                 foreach (var b in context.Observe(smr, smr_ => smr_.bones, Enumerable.SequenceEqual))
+                {
                     if (b != null)
+                    {
                         bonesSet.Add(b);
+                    }
+                }
             }
 
             return bonesSet;
@@ -182,10 +195,14 @@ namespace nadena.dev.modular_avatar.core.editor
             _finalBonesMap.Clear();
 
             foreach (var (sa, proxy) in _scaleAdjusters.ToList())
+            {
                 // Note: We leak the proxy here, as destroying it can cause visual artifacts. They'll eventually get
                 // cleaned up whenever the pipeline is fully reset, or when the scene is reloaded.
                 if (sa == null)
+                {
                     _scaleAdjusters.Remove(sa);
+                }
+            }
 
             _scaleAdjusters.Clear();
 
@@ -224,14 +241,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return Task.FromResult<IRenderFilterNode>(this);
         }
 
-        private Transform[] CreateShadowBones(Transform[] srcBones)
+        private Dictionary<Transform, Transform> CreateShadowBones(Transform[] srcBones)
         {
             var srcToDst = new Dictionary<Transform, Transform>(new ObjectIdentityComparer<Transform>());
 
-            var dstBones = new Transform[srcBones.Length];
-            for (var i = 0; i < srcBones.Length; i++) dstBones[i] = GetShadowBone(srcBones[i]);
+            for (var i = 0; i < srcBones.Length; i++) GetShadowBone(srcBones[i]);
 
-            return dstBones;
+            return srcToDst;
 
             Transform GetShadowBone(Transform srcBone)
             {
@@ -278,12 +294,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 BoneIsValid[index] = transform.isValid;
 
                 if (transform.isValid)
+                {
                     BoneStates[index] = new TransformState
                     {
                         localPosition = transform.position,
                         localRotation = transform.rotation,
                         localScale = transform.localScale
                     };
+                }
             }
         }
 
