@@ -183,6 +183,8 @@
   "menuitem.prop.type.tooltip": "この項目の種別",
   "menuitem.prop.value": "パラメーター値",
   "menuitem.prop.value.tooltip": "この項目が操作されたとき、パラメーターが設定される値",
+  "menuitem.prop.automatic_value": "自動",
+  "menuitem.prop.automatic_value.tooltip": "かぶらない値を自動的に割り振る",
   "menuitem.prop.parameter": "パラメーター名",
   "menuitem.prop.label": "表示名",
   "menuitem.prop.submenu_asset": "サブメニューアセット",
