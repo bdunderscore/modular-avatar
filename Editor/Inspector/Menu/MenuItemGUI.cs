@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -19,6 +21,39 @@ namespace nadena.dev.modular_avatar.core.editor
     class SubmenuSourceDrawer : EnumDrawer<SubmenuSource>
     {
         protected override string localizationPrefix => "submenu_source";
+    }
+
+    internal static class ParameterIntrospectionCache
+    {
+        internal static PropCache<GameObject, ImmutableList<ProvidedParameter>> ProvidedParameterCache = new (GetParametersForObject_miss);
+
+        internal static PropCache<GameObject, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>>
+            ParameterRemappingCache = new(GetParameterRemappingsAt_miss);
+
+        private static ImmutableList<ProvidedParameter> GetParametersForObject_miss(ComputeContext ctx, GameObject obj)
+        {
+            if (obj == null) return ImmutableList<ProvidedParameter>.Empty;
+
+            return ParameterInfo.ForPreview(ctx).GetParametersForObject(obj).ToImmutableList();
+        }
+
+        private static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>
+            GetParameterRemappingsAt_miss(ComputeContext ctx, GameObject obj)
+        {
+            if (obj == null) return ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>.Empty;
+
+            return ParameterInfo.ForPreview(ctx).GetParameterRemappingsAt(obj);
+        }
+        
+        internal static ImmutableList<ProvidedParameter> GetParametersForObject(GameObject avatar)
+        {
+            return ProvidedParameterCache.Get(ComputeContext.NullContext, avatar);
+        }
+        
+        internal static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> GetParameterRemappingsAt(GameObject avatar)
+        {
+            return ParameterRemappingCache.Get(ComputeContext.NullContext, avatar);
+        }
     }
 
     internal class MenuItemCoreGUI
@@ -134,12 +169,12 @@ namespace nadena.dev.modular_avatar.core.editor
             
             Dictionary<string, ProvidedParameter> rootParameters = new();
             
-            foreach (var param in ParameterInfo.ForUI.GetParametersForObject(parentAvatar.gameObject)
+            foreach (var param in ParameterIntrospectionCache.GetParametersForObject(parentAvatar.gameObject)
                          .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
                 rootParameters[param.EffectiveName] = param;
 
-            var remaps = ParameterInfo.ForUI.GetParameterRemappingsAt(paramRef);
+            var remaps = ParameterIntrospectionCache.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
             {
                 if (remap.Key.Item1 != ParameterNamespace.Animator) continue;
@@ -613,7 +648,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var myParameterName = myMenuItem.Control.parameter.name;
             if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
 
-            var myMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(myMenuItem.gameObject);
+            var myMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(myMenuItem.gameObject);
             if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
                 myParameterName = myReplacement.ParameterName;
 
@@ -627,7 +662,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var otherParameterName = otherMenuItem.Control.parameter.name;
                 if (string.IsNullOrEmpty(otherParameterName)) continue;
 
-                var otherMappings = ParameterInfo.ForUI.GetParameterRemappingsAt(otherMenuItem.gameObject);
+                var otherMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(otherMenuItem.gameObject);
                 if (otherMappings.TryGetValue((ParameterNamespace.Animator, otherParameterName),
                         out var otherReplacement))
                     otherParameterName = otherReplacement.ParameterName;
