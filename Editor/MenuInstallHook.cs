@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
-using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -45,27 +44,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 _context.SaveAsset(menu);
                 avatar.expressionsMenu = menu;
                 context.ClonedMenus[menu] = menu;
-            }
-            else
-            {
-                IEnumerable<VRCExpressionsMenu> GetMenus(VRCExpressionsMenu menu)
-                {
-                    if (!menu) yield break;
-                    foreach (var m in menu.controls
-                        .Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
-                        .SelectMany(control => GetMenus(control.subMenu)))
-                        yield return m;
-                    yield return menu;
-                }
-                var currentMenus = GetMenus(avatar.expressionsMenu)
-                    .ToDictionary(menu => ObjectRegistry.GetReference(menu), menu => menu);
-                foreach (var menuInstaller in menuInstallers)
-                {
-                    if (!menuInstaller.installTargetMenu) continue;
-                    var reference = ObjectRegistry.GetReference(menuInstaller.installTargetMenu);
-                    if (currentMenus.ContainsKey(reference))
-                        menuInstaller.installTargetMenu = currentMenus[reference];
-                }
             }
 
             _rootMenu = avatar.expressionsMenu;
