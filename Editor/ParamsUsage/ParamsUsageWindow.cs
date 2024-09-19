@@ -182,22 +182,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 outerbox.RemoveFromClassList("no-data");
             }
 
-            ParameterInfo.ConflictHandler onConflict = (type, p1, p2) =>
-            {
-                if (p1.Source is not ModularAvatarMenuItem ||
-                    p2.Source is not ModularAvatarMenuItem)
-                {
-                    return;
-                }
-
-                if (p1.ParameterType == AnimatorControllerParameterType.Bool ||
-                    p2.ParameterType == AnimatorControllerParameterType.Float)
-                {
-                    p1.ParameterType = p2.ParameterType;
-                }
-            };
-
-            var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(target, onConflict)
+            var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(target)
                 .GroupBy(p => p.Plugin)
                 .Select(group => (group.Key, group.Sum(p => p.BitUsage)))
                 .Where((kv, index) => kv.Item2 > 0)
@@ -211,7 +196,7 @@ namespace nadena.dev.modular_avatar.core.editor
             int totalUsage = byPlugin.Sum(kv => kv.Item2);
 
             int avatarTotalUsage =
-                ParameterInfo.ForUI.GetParametersForObject(avatarRoot, onConflict).Sum(p => p.BitUsage);
+                ParameterInfo.ForUI.GetParametersForObject(avatarRoot).Sum(p => p.BitUsage);
 
             int freeSpace = VRCExpressionParameters.MAX_PARAMETER_COST - avatarTotalUsage;
 
