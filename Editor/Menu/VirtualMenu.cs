@@ -235,6 +235,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         private Dictionary<object, VirtualMenuNode> _resolvedMenu = new Dictionary<object, VirtualMenuNode>();
 
+        private Dictionary<ObjectReference, VRCExpressionsMenu> _menuMap = new Dictionary<ObjectReference, VRCExpressionsMenu>();
+
         // TODO: immutable?
         public Dictionary<object, VirtualMenuNode> ResolvedMenu => _resolvedMenu;
         public VirtualMenuNode RootMenuNode => ResolvedMenu[RootMenuKey];
@@ -274,11 +276,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             var menu = new VirtualMenu(avatar.expressionsMenu, context);
 
-            var menuMap = new Dictionary<ObjectReference, VRCExpressionsMenu>();
             void GetMenuReferences(VRCExpressionsMenu exMenu)
             {
-                if (!exMenu || menuMap.ContainsValue(exMenu)) return;
-                menuMap[ObjectRegistry.GetReference(exMenu)] = exMenu;
+                if (!exMenu || menu._menuMap.ContainsValue(exMenu)) return;
+                menu._menuMap[ObjectRegistry.GetReference(exMenu)] = exMenu;
                 foreach (var control in exMenu.controls)
                 {
                     if(control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
@@ -289,7 +290,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             foreach (var installer in avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
             {
-                menu.RegisterMenuInstaller(installer, menuMap);
+                menu.RegisterMenuInstaller(installer);
             }
 
             foreach (var target in avatar.GetComponentsInChildren<ModularAvatarMenuInstallTarget>(true))
@@ -321,13 +322,13 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         /// determine the effects of this menu installer, further processing is deferred until we freeze the menu.
         /// </summary>
         /// <param name="installer"></param>
-        internal void RegisterMenuInstaller(ModularAvatarMenuInstaller installer, Dictionary<ObjectReference, VRCExpressionsMenu> menuMap)
+        internal void RegisterMenuInstaller(ModularAvatarMenuInstaller installer)
         {
             // initial validation
             if (installer.menuToAppend == null && installer.GetComponent<MenuSource>() == null) return;
 
             var installTargetMenu = installer.installTargetMenu &&
-                menuMap.TryGetValue(ObjectRegistry.GetReference(installer.installTargetMenu), out var currentMenu) ?
+                _menuMap.TryGetValue(ObjectRegistry.GetReference(installer.installTargetMenu), out var currentMenu) ?
                 currentMenu : installer.installTargetMenu;
 
             var target = installTargetMenu ? (object) installTargetMenu : RootMenuKey;
