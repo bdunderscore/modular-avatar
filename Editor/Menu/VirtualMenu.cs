@@ -235,7 +235,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         private Dictionary<object, VirtualMenuNode> _resolvedMenu = new Dictionary<object, VirtualMenuNode>();
 
-        private Dictionary<ObjectReference, VRCExpressionsMenu> _menuMap = new Dictionary<ObjectReference, VRCExpressionsMenu>();
+        private Dictionary<ObjectReference, HashSet<VRCExpressionsMenu>> _menuMap = new Dictionary<ObjectReference, HashSet<VRCExpressionsMenu>>();
 
         // TODO: immutable?
         public Dictionary<object, VirtualMenuNode> ResolvedMenu => _resolvedMenu;
@@ -278,8 +278,14 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
             void GetMenuReferences(VRCExpressionsMenu exMenu)
             {
-                if (!exMenu || menu._menuMap.ContainsValue(exMenu)) return;
-                menu._menuMap[ObjectRegistry.GetReference(exMenu)] = exMenu;
+                if (!exMenu || menu._menuMap.SelectMany(m => m.Value).Contains(exMenu)) return;
+                var reference = ObjectRegistry.GetReference(exMenu);
+                if(!menu._menuMap.TryGetValue(reference, out var hashSet))
+                {
+                    hashSet = new HashSet<VRCExpressionsMenu>();
+                    menu._menuMap[reference] = hashSet;
+                }
+                hashSet.Add(exMenu);
                 foreach (var control in exMenu.controls)
                 {
                     if(control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
@@ -327,18 +333,30 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             // initial validation
             if (installer.menuToAppend == null && installer.GetComponent<MenuSource>() == null) return;
 
-            var installTargetMenu = installer.installTargetMenu &&
-                _menuMap.TryGetValue(ObjectRegistry.GetReference(installer.installTargetMenu), out var currentMenu) ?
-                currentMenu : installer.installTargetMenu;
-
-            var target = installTargetMenu ? (object) installTargetMenu : RootMenuKey;
-            if (!_targetMenuToInstaller.TryGetValue(target, out var targets))
+            var menus = new HashSet<object>();
+            if (installer.installTargetMenu && _menuMap.TryGetValue(ObjectRegistry.GetReference(installer.installTargetMenu), out var hashSet))
             {
-                targets = new List<ModularAvatarMenuInstaller>();
-                _targetMenuToInstaller[target] = targets;
+                menus.UnionWith(hashSet);
+            }
+            else if(installer.installTargetMenu)
+            {
+                menus.Add(installer.installTargetMenu);
+            }
+            else
+            {
+                menus.Add(RootMenuKey);
             }
 
-            targets.Add(installer);
+            foreach (var target in menus)
+            {
+                if (!_targetMenuToInstaller.TryGetValue(target, out var targets))
+                {
+                    targets = new List<ModularAvatarMenuInstaller>();
+                    _targetMenuToInstaller[target] = targets;
+                }
+
+                targets.Add(installer);
+            }
         }
 
         /// <summary>
