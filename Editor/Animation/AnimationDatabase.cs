@@ -98,11 +98,13 @@ namespace nadena.dev.modular_avatar.animation
 
         internal void Commit()
         {
+            Profiler.BeginSample("AnimationDatabase.Commit");
             foreach (var clip in _clips)
             {
                 if (clip.IsProxyAnimation) clip.CurrentClip = clip.OriginalClip;
             }
 
+            Profiler.BeginSample("UpdateClipProperties");
             foreach (var clip in _clips)
             {
                 // Changing the "high quality curve" setting can result in behavior changes (but can happen accidentally
@@ -122,11 +124,16 @@ namespace nadena.dev.modular_avatar.animation
                     }
                 }
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("ClipCommitActions");
             foreach (var action in _clipCommitActions)
             {
                 action();
             }
+            Profiler.EndSample();
+            
+            Profiler.EndSample();
         }
 
         internal void OnActivate(BuildContext context)
