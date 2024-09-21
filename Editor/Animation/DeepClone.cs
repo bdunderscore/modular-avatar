@@ -93,6 +93,11 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     ObjectRegistry.RegisterReplacedObject(original, obj);
                 }
+                
+                if (_isSaved && !EditorUtility.IsPersistent(obj))
+                {
+                    AssetDatabase.AddObjectToAsset(obj, _combined);
+                }
 
                 return (T)obj;
             }
