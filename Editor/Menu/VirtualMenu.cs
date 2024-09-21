@@ -367,7 +367,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 }
 
                 // Some menu installers may be bound to the root menu _asset_ directly.
-                if (menuToInstallerFiltered.TryGetValue(menu, out var installers))
+                if (menuToInstallerFiltered.TryGetValue(ObjectRegistry.GetReference(menu), out var installers))
                 {
                     foreach (var installer in installers)
                     {
