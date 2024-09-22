@@ -135,6 +135,9 @@ namespace nadena.dev.modular_avatar.core.editor
                             MessageType.Info
                         );
 
+                        posReset_heuristicRootScale = EditorGUILayout.ToggleLeft(
+                            G("merge_armature.reset_pos.heuristic_scale"),
+                            posReset_heuristicRootScale);
                         posReset_convertATPose = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.convert_atpose"),
                             posReset_convertATPose);
@@ -143,9 +146,6 @@ namespace nadena.dev.modular_avatar.core.editor
                             posReset_adjustRotation);
                         posReset_adjustScale = EditorGUILayout.ToggleLeft(G("merge_armature.reset_pos.adjust_scale"),
                             posReset_adjustScale);
-                        posReset_heuristicRootScale = EditorGUILayout.ToggleLeft(
-                            G("merge_armature.reset_pos.heuristic_scale"),
-                            posReset_heuristicRootScale);
 
                         if (GUILayout.Button(G("merge_armature.reset_pos.execute")))
                         {
