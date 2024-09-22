@@ -86,6 +86,7 @@
   "merge_armature.lockmode.bidirectional.body": "The base armature and the merged armature will always have the same position. This is useful when creating animations that are meant to target the base armature. In order to activate this, your armatures must already be in the exact same position.",
   "merge_armature.reset_pos": "Reset position to base avatar",
   "merge_armature.reset_pos.info": "This command will force the position of all bones in the outfit to match that of the base avatar. This can be helpful as a starting point for installing outfits not set up for your current avatar.",
+  "merge_armature.reset_pos.convert_atpose": "Convert A-Pose/T-Pose to match base avatar",
   "merge_armature.reset_pos.adjust_rotation": "Also set rotation to base avatar",
   "merge_armature.reset_pos.adjust_scale": "Also set local scale to base avatar",
   "merge_armature.reset_pos.execute": "Do it!",
