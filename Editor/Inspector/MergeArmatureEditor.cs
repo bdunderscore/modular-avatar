@@ -194,7 +194,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (posReset_convertATPose)
             {
-                FixAPose(mama.transform);
+                SetupOutfit.FixAPose(RuntimeUtil.FindAvatarTransformInParents(mergeTarget.transform).gameObject, mama.transform, false);
             }
 
             if (posReset_heuristicRootScale && !suppressRootScale)
@@ -209,60 +209,6 @@ namespace nadena.dev.modular_avatar.core.editor
             finally
             {
                 mama.ResetArmatureLock();
-            }
-
-            void FixAPose(Transform outfitArmature)
-            {
-                if (mergeTarget == null) return;
-                if (rootAnimator == null) return;
-
-                FixSingleArm(HumanBodyBones.LeftShoulder);
-                FixSingleArm(HumanBodyBones.RightShoulder);
-                FixSingleArm(HumanBodyBones.LeftUpperArm);
-                FixSingleArm(HumanBodyBones.RightUpperArm);
-
-                void FixSingleArm(HumanBodyBones arm)
-                {
-                    var lowerArm = (HumanBodyBones)((int)arm + 2);
-
-                    // check if the rotation of the arm differs
-                    var avatarArm = rootAnimator.GetBoneTransform(arm);
-                    var outfitArm = avatarToOutfit(avatarArm);
-
-                    var avatarLowerArm = rootAnimator.GetBoneTransform(lowerArm);
-                    var outfitLowerArm = avatarToOutfit(avatarLowerArm);
-
-                    if (outfitArm == null) return;
-                    if (outfitLowerArm == null) return;
-
-                    if (Vector3.Dot((outfitLowerArm.position - outfitArm.position).normalized, (avatarLowerArm.position - avatarArm.position).normalized) > 0.999f) return;
-
-                    // Rotate the outfit arm to ensure these two bone orientations match.
-                    Undo.RecordObject(outfitArm, "Merge Armature: Force outfit position");
-                    var relRot = Quaternion.FromToRotation(
-                        outfitLowerArm.position - outfitArm.position,
-                        avatarLowerArm.position - avatarArm.position
-                    );
-                    outfitArm.rotation = relRot * outfitArm.rotation;
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(outfitArm);
-                }
-
-                Transform avatarToOutfit(Transform avBone)
-                {
-                    if (avBone == null) return null;
-                    if (!avBone.IsChildOf(mergeTarget.transform)) return null;
-                    var parts = RuntimeUtil.RelativePath(mergeTarget, avBone.gameObject)
-                        .Split('/');
-                    var outfitPath = string.Join("/", parts.Select(p => mama.prefix + p + mama.suffix));
-                    var candidate = outfitArmature.transform.Find(outfitPath);
-
-                    if (candidate == null) return null;
-
-                    var merger = candidate.GetComponentInParent<ModularAvatarMergeArmature>();
-                    if (merger != mama) return null;
-
-                    return candidate;
-                }
             }
 
             void AdjustRootScale()
