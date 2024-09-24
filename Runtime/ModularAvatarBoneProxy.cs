@@ -205,6 +205,13 @@ namespace nadena.dev.modular_avatar.core
 
             Transform iter = newTarget;
 
+            if (newTarget == null)
+            {
+                boneReference = HumanBodyBones.LastBone;
+                subPath = null;
+                return;
+            }
+
             if (newTarget == avatarTransform)
             {
                 boneReference = HumanBodyBones.LastBone;
