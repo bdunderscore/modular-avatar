@@ -286,7 +286,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             // these properties in a closure
             _menuItemOverrideProperty = prop;
             _menuItemOverrideTarget = mami;
-            soc.OnStateOverrideChanged += MenuItemOverrideChanged;
+            soc.OnStateOverrideChanged = MenuItemOverrideChanged;
         }
 
         private void MenuItemOverrideChanged(bool? obj)
@@ -319,7 +319,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
             _propertyOverrideProperty = property;
             _propertyOverrideTargetValue = targetValue;
-            soc.OnStateOverrideChanged += OnParameterOverrideChanged;
+            soc.OnStateOverrideChanged = OnParameterOverrideChanged;
         }
 
         private void OnParameterOverrideChanged(bool? state)
@@ -539,11 +539,11 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         soc.SetWithoutNotify(menuOverride);
                     }
 
-                    soc.OnStateOverrideChanged += value => { UpdateMenuItemOverride(prop, mami, value); };
+                    soc.OnStateOverrideChanged = value => { UpdateMenuItemOverride(prop, mami, value); };
                 }
                 else
                 {
-                    soc.OnStateOverrideChanged += value => UpdatePropertyOverride(prop, value, targetValue);
+                    soc.OnStateOverrideChanged = value => UpdatePropertyOverride(prop, value, targetValue);
                 }
 
                 var active = condition.InitiallyActive;
