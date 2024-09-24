@@ -236,8 +236,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool? ProbeWriteDefaults(AnimatorController controller)
+        internal static bool? ProbeWriteDefaults(AnimatorController controller)
         {
+            if (controller == null) return null;
+            
             bool hasWDOn = false;
             bool hasWDOff = false;
 
