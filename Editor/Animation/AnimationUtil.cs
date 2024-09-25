@@ -42,7 +42,9 @@ namespace nadena.dev.modular_avatar.animation
                     throw new Exception("Unknown RuntimeAnimatorContoller type " + controller.GetType());
             }
 
-            return merger.Finish();
+            var clone = merger.Finish();
+            ObjectRegistry.RegisterReplacedObject(controller, clone);
+            return clone;
         }
 
         internal static void CloneAllControllers(BuildContext context)
