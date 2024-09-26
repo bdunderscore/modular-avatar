@@ -31,7 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor.ScaleAdjuster
             public BoneState parentHint;
         }
 
-        private Dictionary<Component, BoneState> _bones = new(new ObjectIdentityComparer<Component>());
+        private readonly Dictionary<Component, BoneState> _bones = new();
         //private List<BoneState> _states = new List<BoneState>();
 
         public void Clear()
