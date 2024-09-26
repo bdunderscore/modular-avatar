@@ -82,7 +82,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     Parameter = GetActiveSelfProxy(cursor.gameObject),
                     DebugName = cursor.gameObject.name,
                     IsConstant = false,
-                    InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
+                    InitialValue = _computeContext.Observe(cursor.gameObject, go => go.activeSelf) ? 1.0f : 0.0f,
                     ParameterValueLo = 0.5f,
                     ParameterValueHi = float.PositiveInfinity,
                     ReferenceObject = cursor.gameObject,
@@ -228,7 +228,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (!objectGroups.TryGetValue(key, out var group))
                     {
-                        group = new AnimatedProperty(key, target.activeSelf ? 1 : 0);
+                        var active = _computeContext.Observe(target, t => t.activeSelf);
+                        group = new AnimatedProperty(key, active ? 1 : 0);
                         objectGroups[key] = group;
                     }
 
