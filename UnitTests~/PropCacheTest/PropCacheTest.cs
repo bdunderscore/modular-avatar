@@ -19,7 +19,7 @@ namespace UnitTests.PropCacheTest
             int seq = 0;
 
             Dictionary<int, List<WeakReference<ComputeContext>>> invalidators = new();
-            PropCache<int,int> cache = new PropCache<int, int>((ctx, k) =>
+            PropCache<int,int> cache = new PropCache<int, int>("test", (ctx, k) =>
             {
                 Debug.Log("Generating value for " + k);
                 if (!invalidators.TryGetValue(k, out var list))

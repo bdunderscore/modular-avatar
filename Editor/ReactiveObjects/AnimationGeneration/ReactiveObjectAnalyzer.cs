@@ -67,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_analysisCache == null)
             {
-                _analysisCache = new PropCache<GameObject, AnalysisResult>((ctx, root) =>
+                _analysisCache = new PropCache<GameObject, AnalysisResult>("ROAnalyzer", (ctx, root) =>
                 {
                     var analysis = new ReactiveObjectAnalyzer(ctx);
                     analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)

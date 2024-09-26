@@ -60,8 +60,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>>
-            _blendshapeCache = new(ShapesForAvatar);
+        private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>>
+            _blendshapeCache = new("ShapesForAvatar", ShapesForAvatar);
         
         private static ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> ShapesForAvatar(ComputeContext context, GameObject avatarRoot)
         {
