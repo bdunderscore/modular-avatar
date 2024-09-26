@@ -45,7 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var converters = context.AvatarRootObject.GetComponentsInChildren<ModularAvatarConvertConstraints>(true)
                 .Select(c => c.gameObject)
-                .ToHashSet(new ObjectIdentityComparer<GameObject>());
+                .ToHashSet();
             if (converters.Count == 0) return;
 
             var constraintGameObjects = context.AvatarRootObject.GetComponentsInChildren<IConstraint>(true)

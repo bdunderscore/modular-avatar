@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using nadena.dev.modular_avatar.core.editor.Simulator;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -75,7 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>.Builder rendererStates =
                 ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableList<(int, float)>>(
-                    new ObjectIdentityComparer<SkinnedMeshRenderer>()
+                    
                 );
             var avatarRootTransform = avatarRoot.transform;
             

@@ -59,7 +59,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var scaleAdjusters = ctx.GetComponentsByType<ModularAvatarScaleAdjuster>();
 
             var avatarToRenderer =
-                new Dictionary<GameObject, HashSet<Renderer>>(new ObjectIdentityComparer<GameObject>());
+                new Dictionary<GameObject, HashSet<Renderer>>();
 
             foreach (var root in ctx.GetAvatarRoots())
             {
@@ -72,8 +72,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     continue; // nested avatar descriptor
                 }
-                
-                var renderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
+
+                var renderers = new HashSet<Renderer>();
                 avatarToRenderer.Add(root, renderers);
 
                 foreach (var renderer in root.GetComponentsInChildren<Renderer>())
@@ -112,12 +112,12 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly Dictionary<Transform, Transform> _shadowBoneMap;
 
         // Map from bones found in initial proxy state to shadow bones (with scale adjuster bones substituted)
-        private readonly Dictionary<Transform, Transform> _finalBonesMap = new(new ObjectIdentityComparer<Transform>());
+        private readonly Dictionary<Transform, Transform> _finalBonesMap = new();
 
         private readonly Dictionary<ModularAvatarScaleAdjuster, Transform> _scaleAdjusters =
-            new(new ObjectIdentityComparer<ModularAvatarScaleAdjuster>());
+            new();
 
-        private Dictionary<Renderer, Transform[]> _rendererBoneStates = new(new ObjectIdentityComparer<Renderer>());
+        private Dictionary<Renderer, Transform[]> _rendererBoneStates = new();
 
         public ScaleAdjusterPreviewNode(ComputeContext context, RenderGroup group,
             IEnumerable<(Renderer, Renderer)> proxyPairs)
@@ -169,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private HashSet<Transform> GetSourceBonesSet(ComputeContext context, List<(Renderer, Renderer)> proxyPairs)
         {
-            var bonesSet = new HashSet<Transform>(new ObjectIdentityComparer<Transform>());
+            var bonesSet = new HashSet<Transform>();
             foreach (var (_, r) in proxyPairs)
             {
                 if (r == null) continue;
@@ -248,7 +248,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<Transform, Transform> CreateShadowBones(Transform[] srcBones)
         {
-            var srcToDst = new Dictionary<Transform, Transform>(new ObjectIdentityComparer<Transform>());
+            var srcToDst = new Dictionary<Transform, Transform>();
 
             for (var i = 0; i < srcBones.Length; i++) GetShadowBone(srcBones[i]);
 
