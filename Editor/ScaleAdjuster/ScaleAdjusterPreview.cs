@@ -97,6 +97,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class ScaleAdjusterPreviewNode : IRenderFilterNode
     {
+        private readonly HashSet<Transform> _knownProxies = new();
+        
         private readonly GameObject SourceAvatarRoot;
         private readonly GameObject VirtualAvatarRoot;
 
@@ -230,6 +232,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (SourceAvatarRoot == null) return Task.FromResult<IRenderFilterNode>(null);
 
+            // Clean any destroyed objects out of _knownProxies to avoid growing this set indefinitely
+            _knownProxies.RemoveWhere(p => p == null);
+
             var proxyPairList = proxyPairs.ToList();
 
             if (!GetSourceBonesSet(context, proxyPairList).SetEquals(_shadowBoneMap.Keys))
@@ -339,7 +344,15 @@ namespace nadena.dev.modular_avatar.core.editor
             if (proxy == null) return;
 
             var curParent = proxy.transform.parent ?? original.transform.parent;
-            if (_finalBonesMap.TryGetValue(curParent, out var newRoot)) proxy.transform.SetParent(newRoot, false);
+            if (_finalBonesMap.TryGetValue(curParent, out var newRoot))
+            {
+                // We need to remember this proxy so we can avoid destroying it when we destroy VirtualAvatarRoot
+                // in Dispose
+
+                _knownProxies.Add(proxy.transform);
+
+                proxy.transform.SetParent(newRoot, false);
+            }
 
             var smr = proxy as SkinnedMeshRenderer;
             if (smr == null) return;
@@ -351,6 +364,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public void Dispose()
         {
+            foreach (var proxy in _knownProxies)
+            {
+                if (proxy != null && proxy.IsChildOf(VirtualAvatarRoot.transform))
+                {
+                    proxy.transform.SetParent(null, false);
+                }
+            }
+            
             Object.DestroyImmediate(VirtualAvatarRoot);
 
             _srcBones.Dispose();
