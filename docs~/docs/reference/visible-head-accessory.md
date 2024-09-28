@@ -22,5 +22,3 @@ Just attach a Visible Head Accessory component under a child of the Head bone. T
 
 The component will automatically generate a clone of the Head bone, which is connected to the real head bone using a parent constraint.
 Only one constraint will be generated, even if multiple Visible Head Accessory components are used. As such, the performance impact of this component is the same whether you use one or dozens.
-
-Due to technical limitations on the Quest, this component has no effect when building for Quest standalone.
