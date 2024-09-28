@@ -3,7 +3,6 @@
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 #endregion
@@ -148,7 +147,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 {
                     return targetObject?.GetComponent<Renderer>()?.sharedMaterials;
                 }
-                catch (MissingComponentException e)
+                catch (MissingComponentException)
                 {
                     return null;
                 }

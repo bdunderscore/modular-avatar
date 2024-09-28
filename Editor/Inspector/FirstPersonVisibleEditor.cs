@@ -35,6 +35,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VisibleHeadAccessoryValidation.ReadyStatus.ParentMarked:
                         EditorGUILayout.HelpBox(Localization.S("fpvisible.normal"), MessageType.Info);
                         break;
+                    case VisibleHeadAccessoryValidation.ReadyStatus.NotUnderHead:
+                        EditorGUILayout.HelpBox(Localization.S("fpvisible.NotUnderHead"), MessageType.Warning);
+                        break;
                     default:
                     {
                         var label = "fpvisible." + status;

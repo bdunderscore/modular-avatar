@@ -23,10 +23,18 @@ designed for a specific avatar.
 
 ## Manually configuring Mesh Settings
 
-When you add Mesh Settings to a game object, initially it is configured to do nothing. By setting either
-"Anchor Override Mode" or "Bounds Override Mode" to "Set", you can configure the anchor override or bounds
-for all meshes under that game object. Alternately, by setting the mode to "Don't set", you can exclude
-these meshes from the influence of Mesh Settings higher up on the hierarchy.
+When you add Mesh Settings to a game object, initially it is configured to do nothing. In order for the settings
+component to have any effect, you need to change the "Anchor Override Mode" and/or "Bounds Override Mode". These
+support the following options:
+
+- Inherit: This component does nothing for this setting; it will inherit values set in parent Mesh Settings.
+- Set: This component sets the corresponding setting on any meshes on its GameObject or its children.
+- Don't set: This component _blocks_ any parent Mesh Settings from having an effect. Meshes will remain at their default
+  settings.
+- Set or inherit: If there is a parent Mesh Settings in Set mode, it will be used. If no parent Mesh Settings applies,
+  then this component's settings will be used. This is useful for outfit prefabs, to ensure that any avatar-wide
+  settings
+  take precedence.
 
 When configuring bounds, the bounding box will be determined relative to the transform you specify as the
 "Root Bone". Note that bounds only affects Skinned Mesh Renderers, but Anchor Override also impacts other

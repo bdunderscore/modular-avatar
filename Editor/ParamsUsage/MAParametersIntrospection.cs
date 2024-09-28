@@ -39,6 +39,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ParameterNamespace.Animator,
                 _component, PluginDefinition.Instance, _component.AnimatorControllerParameterType)
             {
+                ExpandTypeOnConflict = true,
                 WantSynced = _component.isSynced,
                 IsHidden = hidden,
                 DefaultValue = _component.isDefault ? _component.Control.value : null

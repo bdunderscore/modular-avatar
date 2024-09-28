@@ -95,7 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         var t = (ModularAvatarBoneProxy) targets[i];
                         Undo.RecordObjects(targets, "Set targets");
                         var xform = ((TempObjRef) objRefs[i]).target;
-                        if (RuntimeUtil.FindAvatarTransformInParents(xform)?.gameObject != parentAvatar) continue;
+                        if (xform != null && RuntimeUtil.FindAvatarTransformInParents(xform)?.gameObject != parentAvatar) continue;
                         t.target = xform;
                     }
                 }

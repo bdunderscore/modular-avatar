@@ -48,13 +48,18 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         {
             TestAssignments(new[] { (false, 2.0f), (true, 0.0f), (true, 0.0f) }, new[] { 2.0f, 1.0f, 3.0f }, null);
             TestAssignments(new[] { (false, 2.7f), (true, 0.0f), (true, 0.0f) }, new[] { 2.7f, 1.0f, 3.0f }, null);
+            TestAssignments(new[] { (true, 1.0f), (false, 0.0f) }, new[] { 2.0f, 0.0f }, null, overrideExpectedDefaultValue: 1.0f);
+            TestAssignments(new[] { (true, 1.0f), (false, 0.0f) }, new[] { 1.0f, 0.0f }, 0);
+            TestAssignments(new[] { (true, 1.0f), (false, 0.0f) }, new[] { 1.0f, 0.0f }, 1);
+            
         }
         
         void TestAssignments(
             (bool, float)[] assignments,
             float[] expectedAssignments,
             int? defaultIndex = null,
-            Action<List<ModularAvatarMenuItem>> customize = null
+            Action<List<ModularAvatarMenuItem>> customize = null,
+            float? overrideExpectedDefaultValue = null
         )
         {
             var root = CreateRoot("root");
@@ -103,7 +108,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 Assert.AreEqual(expected, mami.Control.value);
             }
 
-            var expectedDefaultValue = defaultIndex.HasValue ? expectedAssignments[defaultIndex.Value] : 0;
+            var expectedDefaultValue = overrideExpectedDefaultValue ?? (defaultIndex.HasValue ? expectedAssignments[defaultIndex.Value] : 0);
             Assert.AreEqual(expectedDefaultValue, avDesc.expressionParameters.parameters.Single().defaultValue);
         }
     }

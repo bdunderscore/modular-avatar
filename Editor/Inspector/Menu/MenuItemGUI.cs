@@ -25,10 +25,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal static class ParameterIntrospectionCache
     {
-        internal static PropCache<GameObject, ImmutableList<ProvidedParameter>> ProvidedParameterCache = new (GetParametersForObject_miss);
+        internal static PropCache<GameObject, ImmutableList<ProvidedParameter>> ProvidedParameterCache =
+            new("GetParametersForObject", GetParametersForObject_miss);
 
         internal static PropCache<GameObject, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>>
-            ParameterRemappingCache = new(GetParameterRemappingsAt_miss);
+            ParameterRemappingCache = new("GetParameterRemappingsAt", GetParameterRemappingsAt_miss);
 
         private static ImmutableList<ProvidedParameter> GetParametersForObject_miss(ComputeContext ctx, GameObject obj)
         {
