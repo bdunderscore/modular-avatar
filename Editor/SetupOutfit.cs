@@ -385,8 +385,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static bool ValidateSetupOutfit(GameObject gameObj)
         {
-            Object obj;
-
             if (gameObj == null)
             {
                 errorHeader = S("setup_outfit.err.header.notarget");

@@ -128,7 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         n_nrm[i] = o_nrm[newToOrigVertIndex[i]];
                         n_tan[i] = o_tan[newToOrigVertIndex[i]];
                     }
-                    catch (IndexOutOfRangeException e)
+                    catch (IndexOutOfRangeException)
                     {
                         throw;
                     }
@@ -250,7 +250,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             List<int> n2o = new List<int>(toRetainVertices.Length);
             List<int> o2n = new List<int>(toRetainVertices.Length);
-            int i = 0;
 
             for (int j = 0; j < toRetainVertices.Length; j++)
             {

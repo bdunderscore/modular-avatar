@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-
+using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
@@ -123,7 +123,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
-                catch (MissingComponentException _)
+                catch (MissingComponentException)
                 {
                     // No animator? weird. Move on.
                 }
@@ -194,7 +194,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (!referencedGameObjects.Contains(go))
                 {
-                    UnityEngine.Object.DestroyImmediate(go);
+                    Object.DestroyImmediate(go);
                 }
             }
         }
