@@ -64,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                         .Select(x => mesh.GetBlendShapeName(x))
                         .ToList();
                 }
-                catch (MissingComponentException e)
+                catch (MissingComponentException)
                 {
                     shapeNames = null;
                 }

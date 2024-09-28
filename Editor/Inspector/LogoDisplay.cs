@@ -18,7 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     return (EditorStyles.label?.lineHeight ?? 0) * 3;
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException)
                 {
                     // This can happen in early initialization...
                     return 0;

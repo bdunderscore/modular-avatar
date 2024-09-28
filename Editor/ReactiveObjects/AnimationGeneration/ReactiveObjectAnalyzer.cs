@@ -157,9 +157,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
                             condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
-                    var i = 0;
                     // Remove redundant active conditions.
-                    int retain = 0;
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
                 }
 

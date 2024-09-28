@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     createInstaller = false;
                 }
             }
-            catch (MissingComponentException e)
+            catch (MissingComponentException)
             {
                 // ignore
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
@@ -26,6 +27,11 @@ namespace modular_avatar_tests
 
                 if (!humanoidMaskElements.SequenceEqual(other.humanoidMaskElements)) return false;
                 return transformMaskElements.SequenceEqual(other.transformMaskElements);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(humanoidMaskElements, transformMaskElements);
             }
 
             public static ExtractedMask FromAvatarMask(AvatarMask mask)
