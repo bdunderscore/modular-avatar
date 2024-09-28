@@ -512,6 +512,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var hipsCandidates = new List<string>();
+            var hipsExtraCandidateRoots = new List<Transform>();
 
             if (outfitHips == null)
             {
@@ -527,12 +528,30 @@ namespace nadena.dev.modular_avatar.core.editor
                             // Prefer the first hips we find
                             break;
                         }
+                        hipsExtraCandidateRoots.Add(tempHip);
+                    }
+
+                    if (outfitHips != null) return true; // found an exact match, bail outgit
+                }
+
+                // Sometimes, Hips is in deeper place(like root -> Armature -> Armature 1 -> Hips).
+                foreach (Transform extraCandidateRoot in hipsExtraCandidateRoots)
+                {
+                    foreach (Transform tempHip in extraCandidateRoot)
+                    {
+                        if (tempHip.name.Contains(avatarHips.name))
+                        {
+                            outfitHips = tempHip.gameObject;
+                            // Prefer the first hips we find
+                            break;
+                        }
                     }
 
                     if (outfitHips != null) return true; // found an exact match, bail outgit
                 }
 
                 hipsCandidates.Add(avatarHips.name);
+                hipsExtraCandidateRoots = new List<Transform>();
 
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
@@ -552,6 +571,25 @@ namespace nadena.dev.modular_avatar.core.editor
                             if (HeuristicBoneMapper.NormalizeName(tempHip.name).Contains(candidate))
                             {
                                 outfitHips = tempHip.gameObject;
+                            }
+                            hipsExtraCandidateRoots.Add(tempHip);
+                        }
+                    }
+                }
+
+                if (outfitHips == null)
+                {
+                    // Sometimes, Hips is in deeper place(like root -> Armature -> Armature 1 -> Hips).
+                    foreach (Transform extraCandidateRoot in hipsExtraCandidateRoots)
+                    {
+                        foreach (Transform tempHip in extraCandidateRoot)
+                        {
+                            foreach (var candidate in hipsCandidates)
+                            {
+                                if (HeuristicBoneMapper.NormalizeName(tempHip.name).Contains(candidate))
+                                {
+                                    outfitHips = tempHip.gameObject;
+                                }
                             }
                         }
                     }
