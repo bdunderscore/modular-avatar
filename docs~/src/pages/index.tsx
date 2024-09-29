@@ -29,7 +29,7 @@ function HomepageHeader() {
         <p className="hero__subtitle">
             <Translate>Drag-and-Drop Avatar Assembly</Translate>
         </p>
-        <div className={styles.buttons}>
+        <div className={`button-group ${styles.buttons}`}>
           <InstallButton/>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}
@@ -43,21 +43,28 @@ function HomepageHeader() {
             <Translate>Tutorials</Translate>
           </Link>
         </div>
+        <div className={`button-group ${styles.buttons}`}>
+            <a href={"https://discord.gg/dV4cVpewmM"} className={`discordLink`}>
+                <img className={`button button--lg ${styles.button}`}
+                     alt="Discord"
+                     src="https://img.shields.io/discord/1201675918956056627?style=flat-square&logo=Discord&logoColor=ffffff&logoSize=auto&label=Discord&color=%235865F2&cacheSeconds=60"/>
+            </a>
+        </div>
       </div>
     </header>
   );
 }
 
 export default function Home(): JSX.Element {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <Layout
-      title={translate({message: 'Modular Avatar'})}
-      description={translate({message: "Drag-and-Drop Avatar Assembly"})}>
-      <HomepageHeader />
-      <main>
-          <HomepageFeatures />
-      </main>
-    </Layout>
+    const {siteConfig} = useDocusaurusContext();
+    return (
+        <Layout
+            title={translate({message: 'Modular Avatar'})}
+            description={translate({message: "Drag-and-Drop Avatar Assembly"})}>
+            <HomepageHeader/>
+            <main>
+                <HomepageFeatures/>
+            </main>
+        </Layout>
   );
 }
