@@ -39,12 +39,16 @@
     margin: 0;
 }
 
-#f-active {
-    justify-content: center;
-}
-
 #f-object {
     flex-grow: 1;
+}
+
+#f-active {
+    display: none;
+}
+
+#f-active-dropdown {
+    width: 60px;
 }
 
 .drop-area--drag-active > ListView ScrollView {
