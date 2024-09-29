@@ -65,25 +65,39 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         
         private void OnEnable()
         {
-            PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
-            MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
-            EditorApplication.delayCall += LoadUI;
-            Selection.selectionChanged += SelectionChanged;
-            is_enabled = true;
+            EditorApplication.delayCall += () =>
+            {
+                PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                EditorApplication.delayCall += LoadUI;
+                EditorApplication.update += PeriodicRefresh;
+                Selection.selectionChanged += SelectionChanged;
+                is_enabled = true;
+            };
         }
 
         private void OnDisable()
         {
-            Selection.selectionChanged -= SelectionChanged;
             is_enabled = false;
 
             // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
             // (which generates a noisy exception)
             EditorApplication.delayCall += () =>
             {
+                Selection.selectionChanged -= SelectionChanged;
+                EditorApplication.update -= PeriodicRefresh;
+                
                 PropertyOverrides.Value = null;
                 MenuItemOverrides.Value = null;
             };
+        }
+        
+        private void PeriodicRefresh()
+        {
+            if (_refreshPending)
+            {
+                RefreshUI();
+            }
         }
         
         private ComputeContext _lastComputeContext;
@@ -102,7 +116,9 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
             _refreshPending = true;
 
-            EditorApplication.delayCall += RefreshUI;
+            // For some reason, this seems to get dropped occasionally, resulting in us being wedged with _refreshPending = true.
+            // Instead, we'll trigger this from EditorApplication.update...
+            // EditorApplication.delayCall += RefreshUI;
         }
         
         private void UpdatePropertyOverride(string prop, bool? enable, float f_val)
