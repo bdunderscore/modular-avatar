@@ -611,7 +611,7 @@ namespace nadena.dev.modular_avatar.animation
                 {
                     if (!string.IsNullOrEmpty(playAudio.SourcePath) && !string.IsNullOrEmpty(basePath) && !playAudio.SourcePath.StartsWith(basePath))
                     {
-                        playAudio.SourcePath = $"{basePath}/{playAudio.SourcePath}";
+                        playAudio.SourcePath = $"{basePath}{playAudio.SourcePath}";
                     }
                     break;
                 }
