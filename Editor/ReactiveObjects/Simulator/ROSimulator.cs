@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,8 +15,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
     internal class ROSimulator : EditorWindow, IHasCustomMenu
     {
-        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null);
-        public static PublishedValue<ImmutableDictionary<string, ModularAvatarMenuItem>> MenuItemOverrides = new(null);
+        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null, debugName: "ROSimulator.PropertyOverrides");
+        public static PublishedValue<ImmutableDictionary<string, ModularAvatarMenuItem>> MenuItemOverrides = new(null, debugName: "ROSimulator.MenuItemOverrides");
         
         internal static string ROOT_PATH = "Packages/nadena.dev.modular-avatar/Editor/ReactiveObjects/Simulator/";
         private static string USS = ROOT_PATH + "ROSimulator.uss";
@@ -106,6 +107,14 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         
         private void UpdatePropertyOverride(string prop, bool? enable, float f_val)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdatePropertyOverride",
+                (ev) => $"Property {ev.Arg0} set to {ev.Arg1}",
+                arg0: prop,
+                arg1: enable == null ? "null" : enable.Value ? f_val : 0f
+            );
+            
+            using (trace.Scope())
             if (enable == null)
             {
                 PropertyOverrides.Value = PropertyOverrides.Value.Remove(prop);
@@ -123,6 +132,15 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
         private void UpdateMenuItemOverride(string prop, ModularAvatarMenuItem item, bool? value)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdateMenuItemOverride",
+                (ev) => $"MenuItem {ev.Arg0} for prop {ev.Arg1} set to {ev.Arg2}",
+                arg0: item.gameObject.name,
+                arg1: prop,
+                arg2: value == null ? "null" : value.Value ? "true" : "false"
+            );
+            
+            using (trace.Scope())
             if (value == null)
             {
                 MenuItemOverrides.Value = MenuItemOverrides.Value.Remove(prop);
