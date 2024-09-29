@@ -9,6 +9,7 @@ using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Profiling;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
@@ -97,11 +98,13 @@ namespace nadena.dev.modular_avatar.animation
 
         internal void Commit()
         {
+            Profiler.BeginSample("AnimationDatabase.Commit");
             foreach (var clip in _clips)
             {
                 if (clip.IsProxyAnimation) clip.CurrentClip = clip.OriginalClip;
             }
 
+            Profiler.BeginSample("UpdateClipProperties");
             foreach (var clip in _clips)
             {
                 // Changing the "high quality curve" setting can result in behavior changes (but can happen accidentally
@@ -121,11 +124,16 @@ namespace nadena.dev.modular_avatar.animation
                     }
                 }
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("ClipCommitActions");
             foreach (var action in _clipCommitActions)
             {
                 action();
             }
+            Profiler.EndSample();
+            
+            Profiler.EndSample();
         }
 
         internal void OnActivate(BuildContext context)
@@ -194,7 +202,11 @@ namespace nadena.dev.modular_avatar.animation
             var clipHolder = RegisterMotion(state.motion, state, processClip, _originalToHolder);
             state.motion = clipHolder.CurrentClip;
 
-            _clipCommitActions.Add(() => { state.motion = clipHolder.CurrentClip; });
+            _clipCommitActions.Add(() =>
+            {
+                state.motion = clipHolder.CurrentClip; 
+                MaybeSaveClip(clipHolder.CurrentClip);
+            });
         }
 
         internal void ForeachClip(Action<ClipHolder> processClip)
@@ -370,6 +382,8 @@ namespace nadena.dev.modular_avatar.animation
                         children[i].motion = curClip;
                         dirty = true;
                     }
+
+                    MaybeSaveClip(curClip);
                 }
 
                 if (dirty)
@@ -380,6 +394,24 @@ namespace nadena.dev.modular_avatar.animation
             });
 
             return treeHolder;
+        }
+
+        private void MaybeSaveClip(Motion curClip)
+        {
+            Profiler.BeginSample("MaybeSaveClip");
+            if (curClip != null && !EditorUtility.IsPersistent(curClip) && EditorUtility.IsPersistent(_context.AssetContainer) && _context.AssetContainer != null)
+            {
+                try
+                {
+                    AssetDatabase.AddObjectToAsset(curClip, _context.AssetContainer);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw;
+                }
+            }
+            Profiler.EndSample();
         }
     }
 }

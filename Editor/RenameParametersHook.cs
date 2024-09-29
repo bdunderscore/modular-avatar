@@ -115,7 +115,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
                 
-                    
+                ResolvedParameter.saved |= info.ResolvedParameter.saved;
+                ResolvedParameter.localOnly &= info.ResolvedParameter.localOnly;
             }
 
             public void MergeChild(ParameterInfo info)
@@ -128,8 +129,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                     ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
-
-                ResolvedParameter.saved = info.ResolvedParameter.saved;
             }
             
             void MergeCommon(ParameterInfo info)
@@ -153,8 +152,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
-                
-                ResolvedParameter.saved = ResolvedParameter.saved || info.ResolvedParameter.saved;
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
             }
@@ -311,7 +308,7 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.defaultValue = info.ResolvedParameter.HasDefaultValue ? info.ResolvedParameter.defaultValue : parameter.defaultValue;
             newParameter.name = parameter.name;
             newParameter.valueType = parameter.valueType;
-            newParameter.networkSynced = parameter.networkSynced;
+            newParameter.networkSynced = parameter.networkSynced || !info.ResolvedParameter.localOnly;
             newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
             
             return newParameter;

@@ -7,6 +7,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -102,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                     PushControl(control);
                 }
 
-                if (_menuToInstallerMap.TryGetValue(expMenu, out var installers))
+                if (_menuToInstallerMap.TryGetValue(ObjectRegistry.GetReference(expMenu), out var installers))
                 {
                     foreach (var installer in installers)
                     {
@@ -311,7 +312,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             // initial validation
             if (installer.menuToAppend == null && installer.GetComponent<MenuSource>() == null) return;
 
-            var target = installer.installTargetMenu ? (object) installer.installTargetMenu : RootMenuKey;
+            var target = installer.installTargetMenu ? (object) ObjectRegistry.GetReference(installer.installTargetMenu) : RootMenuKey;
             if (!_targetMenuToInstaller.TryGetValue(target, out var targets))
             {
                 targets = new List<ModularAvatarMenuInstaller>();
@@ -366,7 +367,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 }
 
                 // Some menu installers may be bound to the root menu _asset_ directly.
-                if (menuToInstallerFiltered.TryGetValue(menu, out var installers))
+                if (menuToInstallerFiltered.TryGetValue(ObjectRegistry.GetReference(menu), out var installers))
                 {
                     foreach (var installer in installers)
                     {

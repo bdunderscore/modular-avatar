@@ -25,6 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private HashSet<string> activeProps = new();
         
         private AnimationClip _initialStateClip;
+        private bool _writeDefaults;
         
         public ReactiveObjectPass(ndmf.BuildContext context)
         {
@@ -33,6 +34,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
+            // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
+            // and if mixed, use WD ON to maximize compatibility.
+            _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(FindFxController().animatorController as AnimatorController) ?? true;
+            
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             var shapes = analysis.Shapes;
@@ -75,8 +80,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (condition.IsConstant) continue;
 
-                if (!initialValues.ContainsKey(condition.Parameter))
+                if (!initialValues.TryGetValue(condition.Parameter, out var curVal) || curVal < -999f)
+                {
                     initialValues[condition.Parameter] = condition.InitialValue;
+                }
             }
         }
 
@@ -94,7 +101,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (initialStateHolder == null) return;
 
             _initialStateClip = new AnimationClip();
-            _initialStateClip.name = "MA Shape Changer Defaults";
+            _initialStateClip.name = "Reactive Component Defaults";
             initialStateHolder.CurrentClip = _initialStateClip;
 
             foreach (var (key, initialState) in initialStates)
@@ -262,7 +269,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var asc = context.Extension<AnimationServicesContext>();
             var asm = new AnimatorStateMachine();
-            asm.name = "MA Shape Changer " + info.TargetProp.TargetObject.name;
+
+            // Workaround for the warning: "'.' is not allowed in State name"
+            asm.name = "RC " + info.TargetProp.TargetObject.name.Replace(".", "_");
 
             var x = 200;
             var y = 0;
@@ -273,7 +282,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var initial = new AnimationClip();
             var initialState = new AnimatorState();
             initialState.motion = initial;
-            initialState.writeDefaultValues = false;
+            initialState.writeDefaultValues = _writeDefaults;
             initialState.name = "<default>";
             asm.defaultState = initialState;
 
@@ -291,7 +300,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
             var entryTransitions = new List<AnimatorTransition>();
 
-            transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
+            var initialStateTransitionList = new List<AnimatorStateTransition>();
+            transitionBuffer.Add((initialState, initialStateTransitionList));
 
             foreach (var group in info.actionGroups.Skip(lastConstant))
             {
@@ -311,40 +321,40 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var conditions = GetTransitionConditions(asc, group);
 
-                    foreach (var (st, transitions) in transitionBuffer)
+                    if (!group.Inverted)
                     {
-                        if (!group.Inverted)
+                        var transition = new AnimatorStateTransition
                         {
-                            var transition = new AnimatorStateTransition
+                            isExit = true,
+                            hasExitTime = false,
+                            duration = 0,
+                            hasFixedDuration = true,
+                            conditions = (AnimatorCondition[])conditions.Clone()
+                        };
+                        initialStateTransitionList.Add(transition);
+                    }
+                    else
+                    {
+                        foreach (var cond in conditions)
+                        {
+                            initialStateTransitionList.Add(new AnimatorStateTransition
                             {
                                 isExit = true,
                                 hasExitTime = false,
                                 duration = 0,
                                 hasFixedDuration = true,
-                                conditions = (AnimatorCondition[])conditions.Clone()
-                            };
-                            transitions.Add(transition);
-                        }
-                        else
-                        {
-                            foreach (var cond in conditions)
-                            {
-                                transitions.Add(new AnimatorStateTransition
-                                {
-                                    isExit = true,
-                                    hasExitTime = false,
-                                    duration = 0,
-                                    hasFixedDuration = true,
-                                    conditions = new[] { InvertCondition(cond) }
-                                });
-                            }
+                                conditions = new[] { InvertCondition(cond) }
+                            });
                         }
                     }
 
                     var state = new AnimatorState();
-                    state.name = group.ControllingConditions[0].DebugName;
+
+                    // Workaround for the warning: "'.' is not allowed in State name"
+                    state.name = group.ControllingConditions[0].DebugName.Replace(".", "_");
+
                     state.motion = clip;
-                    state.writeDefaultValues = false;
+                    state.writeDefaultValues = _writeDefaults;
                     states.Add(new ChildAnimatorState
                     {
                         position = new Vector3(x, y),
@@ -520,13 +530,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ApplyController(AnimatorStateMachine asm, string layerName)
         {
-            var fx = context.AvatarDescriptor.baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var fx = FindFxController();
+            
             if (fx.animatorController == null)
             {
                 throw new InvalidOperationException("No FX layer found");
             }
-
+            
             if (!context.IsTemporaryAsset(fx.animatorController))
             {
                 throw new InvalidOperationException("FX layer is not a temporary asset");
@@ -557,10 +567,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 new AnimatorControllerLayer
                 {
                     stateMachine = asm,
-                    name = "MA Shape Changer " + layerName,
+                    name = "RC " + layerName,
                     defaultWeight = 1
                 }
             ).ToArray();
+        }
+
+        private VRCAvatarDescriptor.CustomAnimLayer FindFxController()
+        {
+            var fx = context.AvatarDescriptor.baseAnimationLayers
+                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+
+            return fx;
         }
     }
 }

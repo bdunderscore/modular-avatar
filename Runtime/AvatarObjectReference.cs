@@ -1,25 +1,35 @@
 ﻿using System;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
 {
     [Serializable]
     public class AvatarObjectReference
     {
+        private static long HIERARCHY_CHANGED_SEQ = long.MinValue;
         private long ReferencesLockedAtFrame = long.MinValue;
 
         public static string AVATAR_ROOT = "$$$AVATAR_ROOT$$$";
         public string referencePath;
 
         [SerializeField] internal GameObject targetObject;
-        
+
+        private long _cacheSeq = long.MinValue;
         private bool _cacheValid;
         private string _cachedPath;
         private GameObject _cachedReference;
 
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.hierarchyChanged += () => HIERARCHY_CHANGED_SEQ += 1;
+        }
+#endif
+        
         public AvatarObjectReference Clone()
         {
             return new AvatarObjectReference
@@ -54,10 +64,12 @@ namespace nadena.dev.modular_avatar.core
         public GameObject Get(Component container)
         {
             bool cacheValid = _cacheValid || ReferencesLockedAtFrame == Time.frameCount;
+            cacheValid &= HIERARCHY_CHANGED_SEQ == _cacheSeq;
             
             if (cacheValid && _cachedPath == referencePath && _cachedReference != null) return _cachedReference;
 
             _cacheValid = true;
+            _cacheSeq = HIERARCHY_CHANGED_SEQ;
             _cachedPath = referencePath;
 
             if (string.IsNullOrEmpty(referencePath))
@@ -65,9 +77,6 @@ namespace nadena.dev.modular_avatar.core
                 _cachedReference = null;
                 return _cachedReference;
             }
-
-            RuntimeUtil.OnHierarchyChanged -= InvalidateCache;
-            RuntimeUtil.OnHierarchyChanged += InvalidateCache;
 
             var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(container.transform);
             if (avatarTransform == null) return (_cachedReference = null);
@@ -124,12 +133,12 @@ namespace nadena.dev.modular_avatar.core
             targetObject = target;
         }
 
-        private void InvalidateCache()
+        internal bool IsConsistent(GameObject avatarRoot)
         {
-            RuntimeUtil.OnHierarchyChanged -= InvalidateCache;
-            _cacheValid = false;
+            if (referencePath == AVATAR_ROOT) return targetObject == avatarRoot;
+            return avatarRoot.transform.Find(referencePath)?.gameObject == targetObject;
         }
-
+        
         protected bool Equals(AvatarObjectReference other)
         {
             return GetDirectTarget() == other.GetDirectTarget() && referencePath == other.referencePath;

@@ -1,7 +1,4 @@
-﻿VisualElement {
-}
-
-#group-box {
+﻿#group-box {
     margin-top: 4px;
     margin-bottom: 4px;
     padding: 4px;
@@ -14,21 +11,36 @@
     /* background-color: rgba(0, 0, 0, 0.1); */
 }
 
-#ListViewContainer {
-    margin-top: 4px;
-}
-
 #group-box > Label {
     -unity-font-style: bold;
 }
 
-.horizontal {
-    flex-direction: row;
+#ListViewContainer {
+    margin-top: 4px;
 }
 
-.horizontal #f-object {
+.horizontal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1px 0;
+}
+
+.horizontal > * {
+    height: 18px;
+    margin: 0 1px;
+}
+
+.horizontal > Label {
+    height: auto;
+}
+
+.horizontal > PropertyField > * {
+    margin: 0;
+}
+
+#f-object {
     flex-grow: 1;
-    margin-bottom: 1px;
 }
 
 #f-material-index {
@@ -43,14 +55,10 @@
     flex-grow: 1;
 }
 
-#f-material {
-    flex-grow: 1;
+.horizontal > Label {
+    width: 100px;
 }
 
-.horizontal > Label {
-    align-self: center;
-    width: 100px;
-    height: 19px;
-    margin: 1px -2px 1px 3px;
-    -unity-text-align: middle-left;
+#f-material {
+    flex-grow: 1;
 }

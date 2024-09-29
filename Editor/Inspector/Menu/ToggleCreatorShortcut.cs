@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     createInstaller = false;
                 }
             }
-            catch (MissingComponentException e)
+            catch (MissingComponentException)
             {
                 // ignore
             }
@@ -40,7 +40,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var objToggle = toggle.AddComponent<ModularAvatarObjectToggle>();
 
             toggle.transform.SetParent(parent, false);
-            toggle.AddComponent<ModularAvatarMenuItem>().Control = new VRCExpressionsMenu.Control
+
+            var mami = toggle.AddComponent<ModularAvatarMenuItem>();
+            mami.InitSettings();
+            mami.Control = new VRCExpressionsMenu.Control
             {
                 type = VRCExpressionsMenu.Control.ControlType.Toggle,
                 name = "New Toggle",

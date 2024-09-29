@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -19,6 +21,40 @@ namespace nadena.dev.modular_avatar.core.editor
     class SubmenuSourceDrawer : EnumDrawer<SubmenuSource>
     {
         protected override string localizationPrefix => "submenu_source";
+    }
+
+    internal static class ParameterIntrospectionCache
+    {
+        internal static PropCache<GameObject, ImmutableList<ProvidedParameter>> ProvidedParameterCache =
+            new("GetParametersForObject", GetParametersForObject_miss);
+
+        internal static PropCache<GameObject, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>>
+            ParameterRemappingCache = new("GetParameterRemappingsAt", GetParameterRemappingsAt_miss);
+
+        private static ImmutableList<ProvidedParameter> GetParametersForObject_miss(ComputeContext ctx, GameObject obj)
+        {
+            if (obj == null) return ImmutableList<ProvidedParameter>.Empty;
+
+            return ParameterInfo.ForPreview(ctx).GetParametersForObject(obj).ToImmutableList();
+        }
+
+        private static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>
+            GetParameterRemappingsAt_miss(ComputeContext ctx, GameObject obj)
+        {
+            if (obj == null) return ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>.Empty;
+
+            return ParameterInfo.ForPreview(ctx).GetParameterRemappingsAt(obj);
+        }
+        
+        internal static ImmutableList<ProvidedParameter> GetParametersForObject(GameObject avatar)
+        {
+            return ProvidedParameterCache.Get(ComputeContext.NullContext, avatar);
+        }
+        
+        internal static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> GetParameterRemappingsAt(GameObject avatar)
+        {
+            return ParameterRemappingCache.Get(ComputeContext.NullContext, avatar);
+        }
     }
 
     internal class MenuItemCoreGUI
@@ -54,6 +90,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly SerializedProperty _prop_isSynced;
         private readonly SerializedProperty _prop_isSaved;
         private readonly SerializedProperty _prop_isDefault;
+        private readonly SerializedProperty _prop_automaticValue;
         
         public bool AlwaysExpandContents = false;
         public bool ExpandContents = false;
@@ -105,6 +142,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _prop_isSynced = obj.FindProperty(nameof(ModularAvatarMenuItem.isSynced));
             _prop_isSaved = obj.FindProperty(nameof(ModularAvatarMenuItem.isSaved));
             _prop_isDefault = obj.FindProperty(nameof(ModularAvatarMenuItem.isDefault));
+            _prop_automaticValue = obj.FindProperty(nameof(ModularAvatarMenuItem.automaticValue));
             
             _previewGUI = new MenuPreviewGUI(redraw);
         }
@@ -132,12 +170,12 @@ namespace nadena.dev.modular_avatar.core.editor
             
             Dictionary<string, ProvidedParameter> rootParameters = new();
             
-            foreach (var param in ParameterInfo.ForUI.GetParametersForObject(parentAvatar.gameObject)
+            foreach (var param in ParameterIntrospectionCache.GetParametersForObject(parentAvatar.gameObject)
                          .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
                 rootParameters[param.EffectiveName] = param;
 
-            var remaps = ParameterInfo.ForUI.GetParameterRemappingsAt(paramRef);
+            var remaps = ParameterIntrospectionCache.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
             {
                 if (remap.Key.Item1 != ParameterNamespace.Animator) continue;
@@ -180,6 +218,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _prop_isSynced = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSynced));
             _prop_isSaved = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isSaved));
             _prop_isDefault = _control.FindPropertyRelative(nameof(ModularAvatarMenuItem.isDefault));
+            _prop_automaticValue = null;
 
             _prop_submenuSource = null;
             _prop_otherObjSource = null;
@@ -202,22 +241,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (forceMixedValues != null) EditorGUI.showMixedValue = forceMixedValues.Value;
 
-            if (forceValue != null)
-            {
-                EditorGUI.ToggleLeft(rect, label, forceValue.Value);
-            }
-            else
-            {
-                EditorGUI.BeginChangeCheck();
-                var value = EditorGUI.ToggleLeft(rect, label, prop.boolValue);
-                if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
-            }
-
+            EditorGUI.BeginChangeCheck();
+            var value = EditorGUI.ToggleLeft(rect, label, forceValue ?? prop.boolValue);
+            if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
+            
             EditorGUI.EndProperty();
         }
         
         public void DoGUI()
         {
+            if (_obj != null) _obj.UpdateIfRequiredOrScript();
+
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.BeginVertical();
@@ -230,7 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.PropertyField(_texture, G("menuitem.prop.icon"));
             EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
-            EditorGUILayout.PropertyField(_value, G("menuitem.prop.value"));
+            DoValueField();
 
             _parameterGUI.DoGUI(true);
 
@@ -436,22 +470,44 @@ namespace nadena.dev.modular_avatar.core.editor
                 // For now, don't show the UI in this case.
                 return;
 
+            var multipleSelections = _obj.targetObjects.Length > 1;
+
             var paramName = _parameterName.stringValue;
+            var siblings = FindSiblingMenuItems(_obj);
 
             EditorGUILayout.BeginHorizontal();
 
-            bool? forceMixedValues = _parameterName.hasMultipleDifferentValues ? true : null;
+            var forceMixedValues = _parameterName.hasMultipleDifferentValues;
+
+            var syncedIsMixed = forceMixedValues || _prop_isSynced.hasMultipleDifferentValues ||
+                                siblings != null && siblings.Any(s => s.isSynced != _prop_isSynced.boolValue);
+            var savedIsMixed = forceMixedValues || _prop_isSaved.hasMultipleDifferentValues ||
+                               siblings != null && siblings.Any(s => s.isSaved != _prop_isSaved.boolValue);
+            
             var knownParameter = _parameterName.hasMultipleDifferentValues
                 ? null
                 : _knownParameters.GetValueOrDefault(paramName);
 
+            var knownSource = knownParameter?.Source;
+            var externalSource = knownSource != null && knownSource is not ModularAvatarMenuItem;
+
+            if (externalSource) savedIsMixed = true; // NDMF doesn't yet support querying for the saved state
+            var forceSyncedValue = externalSource ? knownParameter?.WantSynced : null;
+
             var knownParamDefault = knownParameter?.DefaultValue;
             var isDefaultByKnownParam =
                 knownParamDefault != null ? _value.floatValue == knownParamDefault : (bool?)null;
+
+            if (knownParameter != null && knownParameter.Source is ModularAvatarMenuItem)
+                isDefaultByKnownParam = null;
+
+            if (_prop_automaticValue?.boolValue == true) isDefaultByKnownParam = null;
+
             Object controller = knownParameter?.Source;
-            var controllerIsElsewhere = controller != null && !(controller is ModularAvatarMenuItem);
-            // If we can't figure out what to reference the parameter names to, disable the UI
-            controllerIsElsewhere = controllerIsElsewhere || _parameterSourceNotDetermined;
+
+            // If we can't figure out what to reference the parameter names to, or if they're controlled by something
+            // other than the Menu Item component itself, disable the UI
+            var controllerIsElsewhere = externalSource || _parameterSourceNotDetermined;
 
             using (new EditorGUI.DisabledScope(
                        _parameterName.hasMultipleDifferentValues || controllerIsElsewhere)
@@ -460,22 +516,42 @@ namespace nadena.dev.modular_avatar.core.editor
                 // If we have multiple menu items selected, it probably doesn't make sense to make them all default.
                 // But, we do want to see if _any_ are default.
                 var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
-                var multipleSelections = _obj.targetObjects.Length > 1;
                 var mixedIsDefault = multipleSelections && anyIsDefault;
-                using (new EditorGUI.DisabledScope(multipleSelections))
+                using (new EditorGUI.DisabledScope(multipleSelections || isDefaultByKnownParam != null))
                 {
+                    EditorGUI.BeginChangeCheck();
                     DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
-                        multipleSelections ? false : isDefaultByKnownParam);
+                        isDefaultByKnownParam);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        _obj.ApplyModifiedProperties();
+                        ClearConflictingDefaults(siblings);
+                    }
                 }
 
                 GUILayout.FlexibleSpace();
 
-                var isSavedMixed = forceMixedValues ??
-                                   (_parameterName.hasMultipleDifferentValues || controllerIsElsewhere ? true : null);
-                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), isSavedMixed);
+                EditorGUI.BeginChangeCheck();
+                DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), savedIsMixed);
+                if (EditorGUI.EndChangeCheck() && siblings != null)
+                    foreach (var sibling in siblings)
+                    {
+                        sibling.isSaved = _prop_isSaved.boolValue;
+                        EditorUtility.SetDirty(sibling);
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
+                    }
+
                 GUILayout.FlexibleSpace();
-                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), forceMixedValues,
-                    knownParameter?.WantSynced);
+                EditorGUI.BeginChangeCheck();
+                DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), syncedIsMixed,
+                    forceSyncedValue);
+                if (EditorGUI.EndChangeCheck() && siblings != null)
+                    foreach (var sibling in siblings)
+                    {
+                        sibling.isSynced = _prop_isSynced.boolValue;
+                        EditorUtility.SetDirty(sibling);
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
+                    }
             }
 
             if (controllerIsElsewhere)
@@ -512,6 +588,109 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DoValueField()
+        {
+            var value_label = G("menuitem.prop.value");
+            var auto_label = G("menuitem.prop.automatic_value");
+
+            if (_prop_automaticValue == null)
+            {
+                EditorGUILayout.PropertyField(_value, value_label);
+                return;
+            }
+
+            var toggleSize = EditorStyles.toggle.CalcSize(new GUIContent());
+            var autoLabelSize = EditorStyles.label.CalcSize(auto_label);
+
+            var style = EditorStyles.numberField;
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, style);
+
+            var valueRect = rect;
+            valueRect.xMax -= toggleSize.x + autoLabelSize.x + 4;
+
+            var autoRect = rect;
+            autoRect.xMin = valueRect.xMax + 4;
+
+            var suppressValue = _prop_automaticValue.boolValue || _prop_automaticValue.hasMultipleDifferentValues;
+
+            using (new EditorGUI.DisabledScope(suppressValue))
+            {
+                if (suppressValue)
+                {
+                    EditorGUI.TextField(valueRect, value_label, "", style);
+                }
+                else
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(valueRect, _value, value_label);
+                    if (EditorGUI.EndChangeCheck()) _prop_automaticValue.boolValue = false;
+                }
+            }
+
+            EditorGUI.BeginProperty(autoRect, auto_label, _prop_automaticValue);
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUI.showMixedValue = _prop_automaticValue.hasMultipleDifferentValues;
+            var autoValue = EditorGUI.ToggleLeft(autoRect, auto_label, _prop_automaticValue.boolValue);
+
+            if (EditorGUI.EndChangeCheck()) _prop_automaticValue.boolValue = autoValue;
+            EditorGUI.EndProperty();
+        }
+
+        private List<ModularAvatarMenuItem> FindSiblingMenuItems(SerializedObject serializedObject)
+        {
+            if (serializedObject == null || serializedObject.isEditingMultipleObjects) return null;
+
+            var myMenuItem = serializedObject.targetObject as ModularAvatarMenuItem;
+            if (myMenuItem == null) return null;
+
+            var myParameterName = myMenuItem.Control.parameter.name;
+            if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
+
+            var myMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(myMenuItem.gameObject);
+            if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
+                myParameterName = myReplacement.ParameterName;
+
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
+            var siblings = new List<ModularAvatarMenuItem>();
+
+            foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
+            {
+                if (otherMenuItem == myMenuItem) continue;
+
+                var otherParameterName = otherMenuItem.Control.parameter.name;
+                if (string.IsNullOrEmpty(otherParameterName)) continue;
+
+                var otherMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(otherMenuItem.gameObject);
+                if (otherMappings.TryGetValue((ParameterNamespace.Animator, otherParameterName),
+                        out var otherReplacement))
+                    otherParameterName = otherReplacement.ParameterName;
+
+                if (otherParameterName != myParameterName) continue;
+
+                siblings.Add(otherMenuItem);
+            }
+
+            return siblings;
+        }
+
+        private void ClearConflictingDefaults(List<ModularAvatarMenuItem> siblingItems)
+        {
+            var siblings = siblingItems;
+            if (siblings == null) return;
+
+            foreach (var otherMenuItem in siblings)
+            {
+                if (otherMenuItem.isDefault)
+                {
+                    Undo.RecordObject(otherMenuItem, "");
+                    otherMenuItem.isDefault = false;
+                    EditorUtility.SetDirty(otherMenuItem);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(otherMenuItem);
+                }
+            }
         }
 
         private void EnsureLabelCount(int i)

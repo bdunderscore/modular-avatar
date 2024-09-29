@@ -1,6 +1,5 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
-using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
@@ -43,7 +42,24 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         public bool isDefault;
 
+        /// <summary>
+        ///     If true, the value for this toggle or button menu item will be automatically selected.
+        ///     Typically, this will be zero for the default menu item, then subsequent menu items will be allocated
+        ///     sequentially in hierarchy order.
+        /// </summary>
+        public bool automaticValue;
+
         private void Reset()
+        {
+            // Init settings only when added or reset manually from the Inspector.
+            // Otherwise, some plugins that add this component may break in non-playmode builds.
+            if (RuntimeUtil.IsResetFromInspector())
+            {
+                InitSettings();
+            }
+        }
+
+        internal void InitSettings()
         {
             Control = new VRCExpressionsMenu.Control();
             Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
@@ -51,6 +67,7 @@ namespace nadena.dev.modular_avatar.core
             isSaved = true;
             isSynced = true;
             isDefault = false;
+            automaticValue = true;
 
             MenuSource = SubmenuSource.Children;
         }
@@ -132,6 +149,38 @@ namespace nadena.dev.modular_avatar.core
             if (control.subParameters.Length > maxSubParams)
                 control.subParameters = control.subParameters.Take(maxSubParams).ToArray();
         }
+
+        internal VRCExpressionParameters.ValueType ExpressionParametersValueType
+        {
+            get
+            {
+                // 0, 1
+                var type = VRCExpressionParameters.ValueType.Bool;
+
+                // 2, 3, ..., (255)
+                if (Control.value > 1)
+                {
+                    type = VRCExpressionParameters.ValueType.Int;
+                }
+
+                // (-1.0), ..., -0.1, 0.1, ..., 0.9
+                if (Control.value < 0 || Mathf.Abs(Control.value - Mathf.Round(Control.value)) > 0.01f)
+                {
+                    type = VRCExpressionParameters.ValueType.Float;
+                }
+
+                return type;
+            }
+        }
+
+        internal AnimatorControllerParameterType AnimatorControllerParameterType
+            => ExpressionParametersValueType switch
+            {
+                VRCExpressionParameters.ValueType.Bool => AnimatorControllerParameterType.Bool,
+                VRCExpressionParameters.ValueType.Int => AnimatorControllerParameterType.Int,
+                VRCExpressionParameters.ValueType.Float => AnimatorControllerParameterType.Float,
+                _ => 0,
+            };
     }
 }
 

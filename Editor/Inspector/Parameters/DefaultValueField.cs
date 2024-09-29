@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,97 +10,107 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
+        private const string V_None = "　";
         private const string V_True = "ON";
         private const string V_False = "OFF";
-        
-        private readonly TextField _visibleField;
+
         private readonly FloatField _defaultValueField;
+        private readonly Toggle _hasExplicitDefaultValueField;
+        private readonly TextField _numberField;
         private readonly DropdownField _boolField;
-        private readonly Toggle _hasExplicitDefaultSetField;
+
+        private ParameterSyncType _syncType;
 
         public DefaultValueField()
         {
             // Hidden binding elements
             _defaultValueField = new FloatField();
-            _hasExplicitDefaultSetField = new Toggle();
-            _boolField = new DropdownField();
+            _defaultValueField.style.display = DisplayStyle.None;
+            _defaultValueField.bindingPath = nameof(ParameterConfig.defaultValue);
+            _defaultValueField.RegisterValueChangedCallback(evt => UpdateVisibleField(evt.newValue, _hasExplicitDefaultValueField.value));
+            _hasExplicitDefaultValueField = new Toggle();
+            _hasExplicitDefaultValueField.style.display = DisplayStyle.None;
+            _hasExplicitDefaultValueField.bindingPath = nameof(ParameterConfig.hasExplicitDefaultValue);
+            _hasExplicitDefaultValueField.RegisterValueChangedCallback(evt => UpdateVisibleField(_defaultValueField.value, evt.newValue));
 
-            _boolField.choices.Add("");
+            // Visible elements for input
+            _numberField = new TextField();
+            _numberField.isDelayed = true;
+            _numberField.RegisterValueChangedCallback(evt => OnUpdateNumberValue(evt.newValue));
+            _boolField = new DropdownField();
+            _boolField.choices.Add(V_None);
             _boolField.choices.Add(V_True);
             _boolField.choices.Add(V_False);
+            _boolField.RegisterValueChangedCallback(evt => OnUpdateBoolValue(evt.newValue));
 
-            _defaultValueField.RegisterValueChangedCallback(
-                evt => UpdateVisibleField(evt.newValue, _hasExplicitDefaultSetField.value));
-            _defaultValueField.bindingPath = nameof(ParameterConfig.defaultValue);
-            
-            _hasExplicitDefaultSetField.RegisterValueChangedCallback(
-                evt => UpdateVisibleField(_defaultValueField.value, evt.newValue));
-            _hasExplicitDefaultSetField.bindingPath = nameof(ParameterConfig.hasExplicitDefaultValue);
-
-            _visibleField = new TextField();
-            _visibleField.RegisterValueChangedCallback(evt =>
-            {
-                if (string.IsNullOrWhiteSpace(evt.newValue))
-                {
-                    _hasExplicitDefaultSetField.value = false;
-                    _defaultValueField.value = 0;
-                }
-                else
-                {
-                    _hasExplicitDefaultSetField.value = true;
-                    _defaultValueField.value = float.Parse(evt.newValue, CultureInfo.InvariantCulture);
-                }
-            });
-            
-            _defaultValueField.style.width = 0;
-            _defaultValueField.SetEnabled(false);
-            _hasExplicitDefaultSetField.style.width = 0;
-            _hasExplicitDefaultSetField.SetEnabled(false);
-
-            _boolField.RegisterValueChangedCallback(evt =>
-            {
-                if (evt.newValue == V_True)
-                    _defaultValueField.value = 1;
-                else
-                    _defaultValueField.value = 0;
-
-                _hasExplicitDefaultSetField.value = evt.newValue != "";
-            });
-            
-            
-            style.flexDirection = FlexDirection.Row;
-            
-            Add(_visibleField);
-            Add(_boolField);
             Add(_defaultValueField);
-            Add(_hasExplicitDefaultSetField);
+            Add(_hasExplicitDefaultValueField);
+            Add(_numberField);
+            Add(_boolField);
         }
 
-        public void ManualBindProperty(SerializedProperty property)
+        public void OnUpdateSyncType(ParameterSyncType syncType)
         {
-            _defaultValueField.BindProperty(property);
-            _hasExplicitDefaultSetField.BindProperty(property);
+            _syncType = syncType;
+
+            if (syncType != ParameterSyncType.Bool)
+            {
+                _numberField.style.display = DisplayStyle.Flex;
+                _boolField.style.display = DisplayStyle.None;
+                OnUpdateNumberValue(_numberField.value);
+            }
+            else
+            {
+                _numberField.style.display = DisplayStyle.None;
+                _boolField.style.display = DisplayStyle.Flex;
+                OnUpdateBoolValue(_boolField.value);
+            }
         }
-        
+
+        private void OnUpdateNumberValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                _defaultValueField.value = 0;
+                _hasExplicitDefaultValueField.value = false;
+            }
+            else if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                && !float.IsNaN(parsed)
+                && !float.IsInfinity(parsed))
+            {
+                _defaultValueField.value = _syncType switch
+                {
+                    ParameterSyncType.Int => Mathf.FloorToInt(Mathf.Clamp(parsed, 0, 255)),
+                    ParameterSyncType.Float => Mathf.Clamp(parsed, -1, 1),
+                    ParameterSyncType.Bool => parsed != 0 ? 1 : 0,
+                    _ => parsed,
+                };
+                _hasExplicitDefaultValueField.value = true;
+            }
+
+            UpdateVisibleField(_defaultValueField.value, _hasExplicitDefaultValueField.value);
+        }
+
+        private void OnUpdateBoolValue(string value)
+        {
+            _defaultValueField.value = value == V_True ? 1 : 0;
+            _hasExplicitDefaultValueField.value = value != V_None;
+
+            UpdateVisibleField(_defaultValueField.value, _hasExplicitDefaultValueField.value);
+        }
+
         private void UpdateVisibleField(float value, bool hasExplicitValue)
         {
-            if (Mathf.Abs(value) > 0.0000001)
+            if (hasExplicitValue || Mathf.Abs(value) > 0.0000001)
             {
-                hasExplicitValue = true;
+                _numberField.SetValueWithoutNotify(value.ToString(CultureInfo.InvariantCulture));
+                _boolField.SetValueWithoutNotify(value != 0 ? V_True : V_False);
             }
-            
-            var str = hasExplicitValue ? value.ToString(CultureInfo.InvariantCulture) : "";
-            _visibleField.SetValueWithoutNotify(str);
-
-            string boolStr;
-            if (!hasExplicitValue)
-                boolStr = "";
-            else if (value > 0.5)
-                boolStr = V_True;
             else
-                boolStr = V_False;
-
-            _boolField.SetValueWithoutNotify(boolStr);
+            {
+                _numberField.SetValueWithoutNotify(string.Empty);
+                _boolField.SetValueWithoutNotify(V_None);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,7 +15,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
     internal class ROSimulator : EditorWindow, IHasCustomMenu
     {
-        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null);
+        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null, debugName: "ROSimulator.PropertyOverrides");
+        public static PublishedValue<ImmutableDictionary<string, ModularAvatarMenuItem>> MenuItemOverrides = new(null, debugName: "ROSimulator.MenuItemOverrides");
         
         internal static string ROOT_PATH = "Packages/nadena.dev.modular-avatar/Editor/ReactiveObjects/Simulator/";
         private static string USS = ROOT_PATH + "ROSimulator.uss";
@@ -63,18 +65,39 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         
         private void OnEnable()
         {
-            PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
-            EditorApplication.delayCall += LoadUI;
-            Selection.selectionChanged += SelectionChanged;
-            is_enabled = true;
+            EditorApplication.delayCall += () =>
+            {
+                PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                EditorApplication.delayCall += LoadUI;
+                EditorApplication.update += PeriodicRefresh;
+                Selection.selectionChanged += SelectionChanged;
+                is_enabled = true;
+            };
         }
 
         private void OnDisable()
         {
-            Selection.selectionChanged -= SelectionChanged;
             is_enabled = false;
 
-            PropertyOverrides.Value = null;
+            // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
+            // (which generates a noisy exception)
+            EditorApplication.delayCall += () =>
+            {
+                Selection.selectionChanged -= SelectionChanged;
+                EditorApplication.update -= PeriodicRefresh;
+                
+                PropertyOverrides.Value = null;
+                MenuItemOverrides.Value = null;
+            };
+        }
+        
+        private void PeriodicRefresh()
+        {
+            if (_refreshPending)
+            {
+                RefreshUI();
+            }
         }
         
         private ComputeContext _lastComputeContext;
@@ -85,8 +108,29 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private Dictionary<(int, string), bool> foldoutState = new();
         private Button _btn_clear;
 
+        private bool _refreshPending;
+
+        private void RequestRefresh()
+        {
+            if (_refreshPending) return;
+
+            _refreshPending = true;
+
+            // For some reason, this seems to get dropped occasionally, resulting in us being wedged with _refreshPending = true.
+            // Instead, we'll trigger this from EditorApplication.update...
+            // EditorApplication.delayCall += RefreshUI;
+        }
+        
         private void UpdatePropertyOverride(string prop, bool? enable, float f_val)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdatePropertyOverride",
+                (ev) => $"Property {ev.Arg0} set to {ev.Arg1}",
+                arg0: prop,
+                arg1: enable == null ? "null" : enable.Value ? f_val : 0f
+            );
+            
+            using (trace.Scope())
             if (enable == null)
             {
                 PropertyOverrides.Value = PropertyOverrides.Value.Remove(prop);
@@ -98,22 +142,36 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             {
                 PropertyOverrides.Value = PropertyOverrides.Value.SetItem(prop, 0f);
             }
-            
-            EditorApplication.delayCall += RefreshUI;
+
+            RequestRefresh();
         }
-        
-        private void UpdatePropertyOverride(string prop, bool? value)
+
+        private void UpdateMenuItemOverride(string prop, ModularAvatarMenuItem item, bool? value)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdateMenuItemOverride",
+                (ev) => $"MenuItem {ev.Arg0} for prop {ev.Arg1} set to {ev.Arg2}",
+                arg0: item.gameObject.name,
+                arg1: prop,
+                arg2: value == null ? "null" : value.Value ? "true" : "false"
+            );
+            
+            using (trace.Scope())
             if (value == null)
             {
-                PropertyOverrides.Value = PropertyOverrides.Value.Remove(prop);
+                MenuItemOverrides.Value = MenuItemOverrides.Value.Remove(prop);
+            }
+            else if (value.Value)
+            {
+                MenuItemOverrides.Value = MenuItemOverrides.Value.SetItem(prop, item);
             }
             else
             {
-                PropertyOverrides.Value = PropertyOverrides.Value.SetItem(prop, value.Value ? 1f : 0f);
+                if (!MenuItemOverrides.Value.TryGetValue(prop, out var existing) || ReferenceEquals(existing, item))
+                    MenuItemOverrides.Value = MenuItemOverrides.Value.SetItem(prop, null);
             }
-            
-            RefreshUI();
+
+            RequestRefresh();
         }
         
         private void ShowButton(Rect rect)
@@ -167,7 +225,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             _btn_clear.clickable.clicked += () =>
             {
                 PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
-                RefreshUI();
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                RequestRefresh();
             };
             
             e_debugInfo = root.Q<VisualElement>("debug-info");
@@ -182,11 +241,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             currentSelection = locked ? f_inspecting.value as GameObject : Selection.activeGameObject;
             f_inspecting.SetValueWithoutNotify(currentSelection);
 
-            RefreshUI();
+            RequestRefresh();
         }
 
         private void RefreshUI()
         {
+            _refreshPending = false;
+            
             var avatar = RuntimeUtil.FindAvatarInParents(currentSelection?.transform);
             
             if (avatar == null)
@@ -194,8 +255,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 e_debugInfo.style.display = DisplayStyle.None;
                 return;
             }
-            
-            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty);
+
+            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty || !MenuItemOverrides.Value.IsEmpty);
             
             e_debugInfo.style.display = DisplayStyle.Flex;
 
@@ -204,6 +265,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             
             var analysis = new ReactiveObjectAnalyzer(_lastComputeContext);
             analysis.ForcePropertyOverrides = PropertyOverrides.Value;
+            analysis.ForceMenuItems = MenuItemOverrides.Value;
             var result = analysis.Analyze(avatar.gameObject);
 
             SetThisObjectOverrides(analysis);
@@ -215,18 +277,59 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         {
             if (self.is_enabled)
             {
-                self.RefreshUI();
+                self.RequestRefresh();
             }
         }
 
         private void SetThisObjectOverrides(ReactiveObjectAnalyzer analysis)
         {
             BindOverrideToParameter("this-obj-override", analysis.GetGameObjectStateProperty(currentSelection), 1);
-            BindOverrideToParameter("this-menu-override", analysis.GetMenuItemProperty(currentSelection),
-                currentSelection.GetComponent<ModularAvatarMenuItem>()?.Control?.value ?? 1
-            );
+            currentSelection.TryGetComponent<ModularAvatarMenuItem>(out var mami);
+            BindOverrideToMenuItem("this-menu-override", mami);
         }
 
+        private string _menuItemOverrideProperty;
+        private ModularAvatarMenuItem _menuItemOverrideTarget;
+        
+        private void BindOverrideToMenuItem(string overrideElemName, ModularAvatarMenuItem mami)
+        {
+            var elem = e_debugInfo.Q<VisualElement>(overrideElemName);
+            var soc = elem.Q<StateOverrideController>();
+
+            if (mami == null)
+            {
+                elem.style.display = DisplayStyle.None;
+                return;
+            }
+
+            var prop = ParameterAssignerPass.AssignMenuItemParameter(mami, forceSimulation: true)?.Parameter;
+            if (prop == null)
+            {
+                elem.style.display = DisplayStyle.None;
+                return;
+            }
+
+            elem.style.display = DisplayStyle.Flex;
+
+            if (MenuItemOverrides.Value.TryGetValue(prop, out var overrideValue))
+                soc.SetWithoutNotify(ReferenceEquals(mami, overrideValue));
+            else
+                soc.SetWithoutNotify(null);
+
+            // Avoid multiple registration of the same delegate here by reusing the same delegate instead of binding
+            // these properties in a closure
+            _menuItemOverrideProperty = prop;
+            _menuItemOverrideTarget = mami;
+            soc.OnStateOverrideChanged = MenuItemOverrideChanged;
+        }
+
+        private void MenuItemOverrideChanged(bool? obj)
+        {
+            UpdateMenuItemOverride(_menuItemOverrideProperty, _menuItemOverrideTarget, obj);
+        }
+
+        private string _propertyOverrideProperty;
+        private float _propertyOverrideTargetValue;
         private void BindOverrideToParameter(string overrideElemName, string property, float targetValue)
         {
             var elem = e_debugInfo.Q<VisualElement>(overrideElemName);
@@ -247,11 +350,15 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             {
                 soc.SetWithoutNotify(null);
             }
-            
-            soc.OnStateOverrideChanged += value =>
-            {
-                UpdatePropertyOverride(property, value, targetValue);
-            };
+
+            _propertyOverrideProperty = property;
+            _propertyOverrideTargetValue = targetValue;
+            soc.OnStateOverrideChanged = OnParameterOverrideChanged;
+        }
+
+        private void OnParameterOverrideChanged(bool? state)
+        {
+            UpdatePropertyOverride(_propertyOverrideProperty, state, _propertyOverrideTargetValue);
         }
 
         private void SetAffectedBy(GameObject gameObject, Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -455,9 +562,24 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 {
                     targetValue = Mathf.Round((condition.ParameterValueLo + condition.ParameterValueHi) / 2);
                 }
-                
-                soc.OnStateOverrideChanged += value => UpdatePropertyOverride(prop, value, targetValue);
-                
+
+                if (condition.DebugReference is ModularAvatarMenuItem mami)
+                {
+                    bool? menuOverride = null;
+
+                    if (MenuItemOverrides.Value.TryGetValue(prop, out var target))
+                    {
+                        menuOverride = ReferenceEquals(mami, target);
+                        soc.SetWithoutNotify(menuOverride);
+                    }
+
+                    soc.OnStateOverrideChanged = value => { UpdateMenuItemOverride(prop, mami, value); };
+                }
+                else
+                {
+                    soc.OnStateOverrideChanged = value => UpdatePropertyOverride(prop, value, targetValue);
+                }
+
                 var active = condition.InitiallyActive;
                 var active_label = active ? "active" : "inactive";
                 active_label = "ro_sim.state." + active_label;

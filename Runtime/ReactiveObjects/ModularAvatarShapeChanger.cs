@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Shape Changer")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
-    public class ModularAvatarShapeChanger : ReactiveComponent
+    public class ModularAvatarShapeChanger : ReactiveComponent, IHaveObjReferences
     {
         // Migration field to help with 1.10-beta series avatar data. Since this was never in a released version of MA,
         // this migration support will be removed in 1.10.0.
@@ -114,6 +114,13 @@ namespace nadena.dev.modular_avatar.core
                 m_targetRenderer.referencePath = null;
                 m_targetRenderer.targetObject = null;
             }
+        }
+
+        public IEnumerable<AvatarObjectReference> GetObjectReferences()
+        {
+            foreach (var shape in m_shapes)
+                if (shape.Object != null)
+                    yield return shape.Object;
         }
     }
 }

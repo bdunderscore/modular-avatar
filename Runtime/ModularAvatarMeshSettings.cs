@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -6,7 +7,7 @@ namespace nadena.dev.modular_avatar.core
     [AddComponentMenu("Modular Avatar/MA Mesh Settings")]
     [DisallowMultipleComponent]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/mesh-settings?lang=auto")]
-    public class ModularAvatarMeshSettings : AvatarTagComponent
+    public class ModularAvatarMeshSettings : AvatarTagComponent, IHaveObjReferences
     {
         internal static readonly Bounds DEFAULT_BOUNDS = new Bounds(Vector3.zero, Vector3.one * 2);
 
@@ -33,6 +34,12 @@ namespace nadena.dev.modular_avatar.core
         {
             ProbeAnchor?.Get(this);
             RootBone?.Get(this);
+        }
+
+        public IEnumerable<AvatarObjectReference> GetObjectReferences()
+        {
+            if (ProbeAnchor != null) yield return ProbeAnchor;
+            if (RootBone != null) yield return RootBone;
         }
     }
 }

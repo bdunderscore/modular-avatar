@@ -385,7 +385,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static bool ValidateSetupOutfit(GameObject gameObj)
         {
-            Object obj;
+            if (gameObj == null)
+            {
+                errorHeader = S("setup_outfit.err.header.notarget");
+                errorMessageGroups = new string[] { S("setup_outfit.err.no_selection") };
+                return false;
+            }
+
             errorHeader = S_f("setup_outfit.err.header", gameObj.name);
             var xform = gameObj.transform;
 

@@ -1,48 +1,38 @@
-<ui:UXML
-        xmlns:ui="UnityEngine.UIElements"
-        xmlns:ma="nadena.dev.modular_avatar.core.editor"
-        editor-extension-mode="False"
->
-    <ui:VisualElement name="Root">
-        <ui:VisualElement class="horizontal no-label">
-            <ui:TextField binding-path="nameOrPrefix" label="merge_parameter.ui.name" name="f-name" class="ndmf-tr"/>
-            <ui:DropdownField name="f-type"/>
-        </ui:VisualElement>
-
-        <ui:Toggle binding-path="isPrefix" name="f-is-prefix"/>
-        <ui:DropdownField binding-path="syncType" name="f-sync-type"/>
-
-        <ui:VisualElement class="horizontal small-label">
-            <ui:Toggle binding-path="internalParameter" name="f-internal-parameter"
-                       text="merge_parameter.ui.internalParameter" class="ndmf-tr no-left-margin"/>
-            <ui:VisualElement class="v-separator hide-with-internal-param">
-                <ui:VisualElement/>
-            </ui:VisualElement>
-            <ui:Label text="merge_parameter.ui.remapTo"
-                      class="ndmf-tr inner-label hide-with-internal-param no-left-margin"/>
-            <ui:TextField name="f-remap-to" binding-path="remapTo" class="hide-with-internal-param"/>
-            <ui:Label name="f-default-param" text="test test test"/>
-        </ui:VisualElement>
-
-        <ui:VisualElement class="horizontal small-label st-pb-prefix__hide ">
-            <ui:VisualElement class="horizontal">
-                <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr no-left-margin"/>
-                <ma:DefaultValueField/>
-            </ui:VisualElement>
-            <ui:VisualElement class="horizontal st-anim-only__hide">
-                <ui:VisualElement class="v-separator">
-                    <ui:VisualElement/>
-                </ui:VisualElement>
-                <ui:Toggle binding-path="saved" text="merge_parameter.ui.saved"
-                           class="ndmf-tr st-pb-prefix__first-retained"/>
-                <ui:Toggle binding-path="localOnly" text="merge_parameter.ui.localOnly" class="ndmf-tr"
-                           name="f-local-only"/>
-                <ui:Toggle text="merge_parameter.ui.synced" class="ndmf-tr" name="f-synced"/>
-                <ui:Toggle binding-path="m_overrideAnimatorDefaults" text="merge_parameter.ui.overrideAnimatorDefaults"
-                           class="ndmf-tr"/>
-            </ui:VisualElement>
-        </ui:VisualElement>
-
+<ui:UXML xmlns:ui="UnityEngine.UIElements"
+         xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement class="horizontal">
+        <ui:TextField name="f-name" binding-path="nameOrPrefix" label=""/>
+        <ui:DropdownField name="f-type"/>
+        <ui:DropdownField name="f-sync-type" binding-path="syncType"/>
+        <ui:Toggle name="f-is-prefix" binding-path="isPrefix"/>
     </ui:VisualElement>
 
+    <ui:VisualElement class="horizontal">
+        <ui:VisualElement name="remap-to-group-disabled" class="horizontal">
+            <ui:Label text="merge_parameter.ui.remapTo" class="ndmf-tr"/>
+            <ui:TextField name="f-remap-to-disabled"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="remap-to-group" class="horizontal">
+            <ui:Label text="merge_parameter.ui.remapTo" class="ndmf-tr"/>
+            <ui:TextField name="f-remap-to" binding-path="remapTo"/>
+            <ui:Label name="f-remap-to-placeholder"/>
+        </ui:VisualElement>
+        <ui:Toggle name="f-internal-parameter" binding-path="internalParameter"
+                   text="merge_parameter.ui.internalParameter" class="ndmf-tr"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal st-pb-prefix__hide">
+        <ui:VisualElement class="horizontal">
+            <ui:Label text="merge_parameter.ui.defaultValue" class="ndmf-tr"/>
+            <ma:DefaultValueField/>
+        </ui:VisualElement>
+        <ui:Toggle binding-path="saved"
+                   text="merge_parameter.ui.saved" class="ndmf-tr st-anim-only__hide"/>
+        <ui:Toggle name="f-local-only" binding-path="localOnly"
+                   text="merge_parameter.ui.localOnly" class="ndmf-tr st-anim-only__hide"/>
+        <ui:Toggle name="f-synced"
+                   text="merge_parameter.ui.synced" class="ndmf-tr st-anim-only__hide"/>
+        <ui:Toggle binding-path="m_overrideAnimatorDefaults"
+                   text="merge_parameter.ui.overrideAnimatorDefaults" class="ndmf-tr st-anim-only__hide"/>
+    </ui:VisualElement>
 </ui:UXML>

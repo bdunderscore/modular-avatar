@@ -63,6 +63,17 @@ namespace nadena.dev.modular_avatar.core.editor
                     _computeContext.Observe(mami, c => (c.Control?.parameter, c.Control?.type, c.Control?.value, c.isDefault));
                     
                     var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
+
+                    if (mami_condition != null &&
+                        ForceMenuItems.TryGetValue(mami_condition.Parameter, out var forcedMenuItem))
+                    {
+                        var enable = forcedMenuItem == mami;
+                        mami_condition.InitialValue = 0.5f;
+                        mami_condition.ParameterValueLo = enable ? 0 : 999f;
+                        mami_condition.ParameterValueHi = 1000;
+                        mami_condition.IsConstant = true;
+                    }
+                    
                     if (mami_condition != null) conditions.Add(mami_condition);
                 }
                 
@@ -71,7 +82,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     Parameter = GetActiveSelfProxy(cursor.gameObject),
                     DebugName = cursor.gameObject.name,
                     IsConstant = false,
-                    InitialValue = cursor.gameObject.activeSelf ? 1.0f : 0.0f,
+                    InitialValue = _computeContext.Observe(cursor.gameObject, go => go.activeSelf) ? 1.0f : 0.0f,
                     ParameterValueLo = 0.5f,
                     ParameterValueHi = float.PositiveInfinity,
                     ReferenceObject = cursor.gameObject,
@@ -129,7 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     var action = ObjectRule(key, changer, value);
-                    action.Inverted = changer.Inverted;
+                    action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
                     var isCurrentlyActive = changer.gameObject.activeInHierarchy;
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
@@ -186,7 +197,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     
                     var action = ObjectRule(key, setter, obj.Material);
-                    action.Inverted = setter.Inverted;
+                    action.Inverted = _computeContext.Observe(setter, c => c.Inverted);
                     
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);
@@ -217,13 +228,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (!objectGroups.TryGetValue(key, out var group))
                     {
-                        group = new AnimatedProperty(key, target.activeSelf ? 1 : 0);
+                        var active = _computeContext.Observe(target, t => t.activeSelf);
+                        group = new AnimatedProperty(key, active ? 1 : 0);
                         objectGroups[key] = group;
                     }
 
                     var value = obj.Active ? 1 : 0;
                     var action = ObjectRule(key, toggle, value);
-                    action.Inverted = toggle.Inverted;
+                    action.Inverted = _computeContext.Observe(toggle, c => c.Inverted);
 
                     if (group.actionGroups.Count == 0)
                         group.actionGroups.Add(action);

@@ -34,20 +34,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 hidden = true;
             }
 
-            var type = AnimatorControllerParameterType.Bool;
-
-            if (type != AnimatorControllerParameterType.Float &&
-                (_component.Control.value > 1.01 || _component.Control.value < -0.01))
-                type = AnimatorControllerParameterType.Int;
-
-            if (Mathf.Abs(Mathf.Round(_component.Control.value) - _component.Control.value) > 0.01f)
-                type = AnimatorControllerParameterType.Float;
-
             yield return new ProvidedParameter(
                 name,
                 ParameterNamespace.Animator,
-                _component, PluginDefinition.Instance, type)
+                _component, PluginDefinition.Instance, _component.AnimatorControllerParameterType)
             {
+                ExpandTypeOnConflict = true,
                 WantSynced = _component.isSynced,
                 IsHidden = hidden,
                 DefaultValue = _component.isDefault ? _component.Control.value : null

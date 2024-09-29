@@ -20,6 +20,9 @@ namespace nadena.dev.modular_avatar.core.editor
         private Dictionary<string, float> _simulationInitialStates;
         
         public ImmutableDictionary<string, float> ForcePropertyOverrides { get; set; } = ImmutableDictionary<string, float>.Empty;
+
+        public ImmutableDictionary<string, ModularAvatarMenuItem> ForceMenuItems { get; set; } =
+            ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
         
         public ReactiveObjectAnalyzer(ndmf.BuildContext context)
         {
@@ -46,8 +49,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var mami = obj?.GetComponent<ModularAvatarMenuItem>();
             if (mami == null) return null;
-            
-            return ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates)?.Parameter;
+
+            return ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates, ForceMenuItems)
+                ?.Parameter;
         }
 
         public struct AnalysisResult
@@ -63,11 +67,13 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_analysisCache == null)
             {
-                _analysisCache = new PropCache<GameObject, AnalysisResult>((ctx, root) =>
+                _analysisCache = new PropCache<GameObject, AnalysisResult>("ROAnalyzer", (ctx, root) =>
                 {
                     var analysis = new ReactiveObjectAnalyzer(ctx);
                     analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)
                         ?? ImmutableDictionary<string, float>.Empty;
+                    analysis.ForceMenuItems = ctx.Observe(ROSimulator.MenuItemOverrides, a => a, (a, b) => false)
+                                              ?? ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
                     return analysis.Analyze(root);
                 });
             }
@@ -101,7 +107,7 @@ namespace nadena.dev.modular_avatar.core.editor
             FindMaterialSetters(shapes, root);
 
             ApplyInitialStateOverrides(shapes);
-            AnalyzeConstants(shapes);
+            AnalyzeConstants(shapes); 
             ResolveToggleInitialStates(shapes);
             PreprocessShapes(shapes, out result.InitialStates, out result.DeletedShapes);
             result.Shapes = shapes;
@@ -151,9 +157,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
                             condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
-                    var i = 0;
                     // Remove redundant active conditions.
-                    int retain = 0;
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
                 }
 

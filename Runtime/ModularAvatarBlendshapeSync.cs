@@ -36,7 +36,7 @@ namespace nadena.dev.modular_avatar.core
     [ExecuteAlways]
     [AddComponentMenu("Modular Avatar/MA Blendshape Sync")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/blendshape-sync?lang=auto")]
-    public class ModularAvatarBlendshapeSync : AvatarTagComponent
+    public class ModularAvatarBlendshapeSync : AvatarTagComponent, IHaveObjReferences
     {
         public List<BlendshapeBinding> Bindings = new List<BlendshapeBinding>();
 
@@ -72,7 +72,9 @@ namespace nadena.dev.modular_avatar.core
 
         private void Rebind()
         {
+            #if UNITY_EDITOR
             if (this == null) return;
+            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this)) return;
 
             _editorBindings = new List<EditorBlendshapeBinding>();
 
@@ -110,6 +112,7 @@ namespace nadena.dev.modular_avatar.core
             }
 
             Update();
+            #endif
         }
 
         private void Update()
@@ -125,6 +128,13 @@ namespace nadena.dev.modular_avatar.core
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
                 localRenderer.SetBlendShapeWeight(binding.LocalBlendshapeIndex, weight);
             }
+        }
+
+        public IEnumerable<AvatarObjectReference> GetObjectReferences()
+        {
+            foreach (var binding in Bindings)
+                if (binding.ReferenceMesh != null)
+                    yield return binding.ReferenceMesh;
         }
     }
 }

@@ -1,120 +1,40 @@
-﻿VisualElement {}
-
-
-/* I hate CSS precedence rules... */
-.horizontal .no-left-margin {
-    margin-left: 0 !important;
+﻿#ListViewContainer {
+    margin-top: 4px;
 }
 
-.horizontal .no-left-margin.unity-label {
-    margin-left: 0 !important;
+.horizontal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1px 0;
 }
 
-.horizontal .no-left-margin Label.unity-label {
-    margin-left: 0 !important;
+.horizontal > * {
+    height: 18px;
+    margin: 0 1px;
 }
 
 .horizontal > Label {
     height: auto;
 }
 
-.horizontal > * {
-    margin-top: 0;
-    margin-bottom: 0;
+.horizontal > PropertyField > * {
+    margin: 0;
 }
 
-.v-separator {
-    width: 1px;
-    height: 100%;
-    margin-left: 8px;
-    margin-right: 8px;
-    justify-content: center;
-    align-content: center;
-    flex-shrink: 0;
-}
-
-.v-separator VisualElement {
-    width: 100%;
-    height: 80%;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.horizontal TextField {
-    margin-left: 0px;
-}
-
-.horizontal TextField Label.unity-label {
-    margin-left: 0px !important;
-}
-
-.horizontal Label {
-    padding-top: 0;
-    padding-bottom: 0;
-    align-self: center;
-}
-
-.horizontal {
-    flex-direction: row;
-    align-content: center;
-    margin-top: 1px;
-}
-
-.horizontal > * {
-    height: 100%;
-}
-
-.no-label Label.unity-base-field__label {
-    display: none;
-}
-
-#Root .horizontal #f-rename-destination {
+#f-name {
     flex-grow: 1;
 }
 
-.inner-label > Label {
-    margin-left: 6px;
+#f-sync-type {
     display: none;
 }
 
-.small-label Label.unity-label {
-    min-width: 0;
-    margin-left: 4px;
-}
-
-VisualElement.small-label > * {
-    flex-grow: 0;
-}
-
-VisualElement.small-label > PropertyField {
-    flex-direction: row;
-}
-
-#Root #f-name {
-    flex-grow: 1;
-}
-
-#Root DefaultValueField {
-    width: 60px;
-    flex-grow: 0;
-}
-
-.st-internal-parameter .hide-with-internal-param {
+.st-ty-Not-Synced .st-anim-only__hide {
     display: none;
 }
 
-DefaultValueField DropdownField {
-    display: none;
-}
-
-.st-ty-Bool DefaultValueField DropdownField {
-    display: flex;
-}
-
-.st-ty-Bool DefaultValueField TextField {
-    display: none;
-}
-
-.st-ty-NotSynced DefaultValueField {
+#f-is-prefix {
     display: none;
 }
 
@@ -122,44 +42,55 @@ DefaultValueField DropdownField {
     display: none;
 }
 
-.st-anim-only .st-anim-only__hide {
+#f-remap-to, #f-remap-to-disabled {
+    flex-grow: 1;
+}
+
+#f-remap-to-placeholder {
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+#f-internal-parameter {
+    margin-left: 3px;
+}
+
+#remap-to-group {
+    display: flex;
+    flex-grow: 1;
+}
+
+#remap-to-group-disabled {
+    display: none;
+    flex-grow: 1;
+}
+
+.st-internal-parameter #remap-to-group {
     display: none;
 }
 
-.st-anim-only .st-pb-prefix__first-retained {
-    margin-left: 0;
+.st-internal-parameter #remap-to-group-disabled {
+    display: flex;
 }
 
-.st-anim-only .st-pb-prefix__first-retained Label.unity-label {
-    margin-left: 0;
+.horizontal > .horizontal {
+    flex-shrink: 0;
+    margin: 0;
 }
 
-#f-remap-to {
-    flex-grow: 1;
+DefaultValueField > * {
+    width: 60px;
+    height: 100%;
+    margin: 0;
 }
 
 #f-local-only {
     display: none;
 }
 
-DefaultValueField TextInput {
-    min-width: 30px;
-}
-
-/** Ghostly text for the renameTo text box **/
-Label#f-default-param {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    margin: 0 0 0 0;
-    overflow: hidden;
-    color: rgba(255, 255, 255, 0.4) !important;
-}
-
 .DetectedParameter {
     flex-direction: row;
-    margin-top: 2px;
-    margin-bottom: 2px;
 }
 
 .DetectedParameter > Label {
@@ -168,10 +99,7 @@ Label#f-default-param {
 }
 
 .SourceButton {
-    flex-grow: 0;
-    align-self: flex-end;
-    height: 24px;
     width: 24px;
+    height: 24px;
     padding: 1px;
 }
-
