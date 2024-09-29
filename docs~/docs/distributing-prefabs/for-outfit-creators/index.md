@@ -5,6 +5,15 @@ compatible with Modular Avatar. Generally, Modular Avatar has been designed to w
 seen in outfits designed for avatar use, but there is the occasional outfit which does something a bit different.
 This page may help you understand what Modular Avatar expects, and how to ensure that your outfit works with it.
 
+## tl;dr
+
+For "modular avatar compatible" outfits, just make sure Setup Outfit works. For "Modular Avatar Preset" outfits,
+run "setup outfit" ahead of time, and also consider setting up:
+
+- Blendshape Sync (to sync body-shape-altering blendshapes from the base avatar)
+- Shape Changer (to shrink or hide parts of the base mesh when parts the outfit is enabled)
+- Menu Items and Object Toggle (to allow users to toggle parts of the outfit on/off)
+
 ## Compatible vs Preset
 
 Before we get started, we should clarify that there are two different levels of support for Modular Avatar. At the
@@ -243,6 +252,12 @@ Guidelines](../logo-usage.md) for detailed requirements.
 You can however go a step further and set up additional things to make things more convenient for your customers.
 Here's some examples.
 
+### Blendshape Sync
+
+Some avatars have blendshapes which change the size of various portions of the body. You can use the Blendshape Sync
+component to automatically adjust the outfit's blendshapes to match those of the base avatar. This can be useful for
+breast size blendshapes, for example.
+
 ### Shrink/hide shapekeys
 
 Many avatars have shape keys which can be used to shrink and hide parts of the base mesh, to avoid clipping into the
@@ -252,8 +267,13 @@ shrink or hide shape keys
 when the corresponding object is enabled. This will also respond to animations which turn on/off parts of the outfit,
 and can even outright _delete_ portions of the mesh, if the Shape Changer object is always enabled.
 
-### Blendshape Sync
+### Object Toggles
 
-Some avatars have blendshapes which change the size of various portions of the body. You can use the Blendshape Sync
-component to automatically adjust the outfit's blendshapes to match those of the base avatar. This can be useful for
-breast size blendshapes, for example.
+Many outfits have different parts that can be turned on and off. You can set up a menu for your users to use ahead of
+time by configuring `Object Toggle`s. Take a look at [the Object Toggle tutorial](../../tutorials/object_toggle/index.md)
+for details on how to set these up.
+
+You can then combine these into a single submenu; to do this, set up an object as the parent of your toggles that looks
+like this:
+
+![Menu item grouping](menu-item-group.png)
