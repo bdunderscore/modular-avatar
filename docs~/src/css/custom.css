@@ -65,3 +65,23 @@ img {
   aspect-ratio: auto;
   height: auto;
 }
+
+.discordLink {
+  display: block;
+  height: 2em;
+  object-fit: cover;
+  padding: 0.1em;
+}
+
+img.button {
+  /*aspect-ratio: auto;*/
+
+  height: 100%;
+  object-fit: cover;
+  padding: 0;
+  margin: 0;
+}
+
+.button-group + .button-group {
+  margin-top: 1em;
+}
