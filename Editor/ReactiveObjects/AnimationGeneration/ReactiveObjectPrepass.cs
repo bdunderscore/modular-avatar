@@ -1,4 +1,5 @@
-﻿using nadena.dev.ndmf;
+﻿#if MA_VRCSDK3_AVATARS
+using nadena.dev.ndmf;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -54,3 +55,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

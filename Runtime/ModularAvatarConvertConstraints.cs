@@ -6,7 +6,7 @@ namespace nadena.dev.modular_avatar.core
 #if MA_VRCSDK3_AVATARS
     [AddComponentMenu("Modular Avatar/MA Convert Constraints")]
 #else
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
 #endif
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/convert-constraints?lang=auto")]
     public class ModularAvatarConvertConstraints : AvatarTagComponent

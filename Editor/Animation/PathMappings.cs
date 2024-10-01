@@ -368,6 +368,7 @@ namespace nadena.dev.modular_avatar.animation
             }
             Profiler.EndSample();
 
+#if MA_VRCSDK3_AVATARS
             var layers = context.AvatarDescriptor.baseAnimationLayers
                 .Concat(context.AvatarDescriptor.specialAnimationLayers);
 
@@ -383,6 +384,7 @@ namespace nadena.dev.modular_avatar.animation
                         ApplyMappingsToAvatarMask(acLayer.avatarMask);
             }
             Profiler.EndSample();
+#endif
             
             Profiler.EndSample();
         }

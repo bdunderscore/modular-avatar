@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+using System.Linq;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -73,3 +74,4 @@ namespace nadena.dev.modular_avatar.animation
         }
     }
 }
+#endif

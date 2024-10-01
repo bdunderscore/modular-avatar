@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if MA_VRCSDK3_AVATARS
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
@@ -314,3 +315,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

@@ -1,5 +1,7 @@
 ﻿using nadena.dev.modular_avatar.core.editor;
+#if MA_VRCSDK3_AVATARS
 using nadena.dev.modular_avatar.core.editor.Simulator;
+#endif
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -42,11 +44,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OpenDebugger()
         {
+#if MA_VRCSDK3_AVATARS
             GameObject target = Selection.activeGameObject;
             if (ReferenceObject is Component c) target = c.gameObject;
             else if (ReferenceObject is GameObject go) target = go;
 
             ROSimulator.OpenDebugger(target);
+#endif
         }
     }
 }
