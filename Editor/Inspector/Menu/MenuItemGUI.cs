@@ -268,7 +268,14 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_parameterReference == null)
             {
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+                if (_obj != null && _obj.isEditingMultipleObjects)
+                {
+                    EditorGUILayout.PropertyField(_prop_label, G("menuitem.prop.name"));
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(_name, G("menuitem.prop.name"));
+                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     _name.serializedObject.ApplyModifiedProperties();
