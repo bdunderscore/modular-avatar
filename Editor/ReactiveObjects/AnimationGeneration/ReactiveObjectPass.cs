@@ -1,4 +1,5 @@
-﻿#region
+﻿#if MA_VRCSDK3_AVATARS
+#region
 
 using System;
 using System.Collections.Generic;
@@ -582,3 +583,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif
