@@ -14,7 +14,24 @@ namespace ShapeChangerTests
         [Test]
         public void SetsCorrectInitialStatesAndAnimations()
         {
-            var root = CreatePrefab("SCDefaultAnimation.prefab");
+            SetsCorrectInitialStatesAndAnimations("SCDefaultAnimation.prefab");
+        }
+
+        [Test]
+        public void SetsCorrectInitialStatesAndAnimationsForInactiveSC()
+        {
+            SetsCorrectInitialStatesAndAnimations("SCDefaultAnimationInactive.prefab");
+        }
+
+        [Test]
+        public void SetsCorrectInitialStatesAndAnimationsForInvertedSC()
+        {
+            SetsCorrectInitialStatesAndAnimations("SCDefaultAnimationInverted.prefab");
+        }
+
+        private void SetsCorrectInitialStatesAndAnimations(string prefabPath)
+        {
+            var root = CreatePrefab(prefabPath);
             AvatarProcessor.ProcessAvatar(root);
 
             var fx = (AnimatorController) FindFxController(root).animatorController;
