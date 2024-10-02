@@ -11,6 +11,8 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
 {
     internal class PatchLoader
     {
+        private const string HarmonyId = "nadena.dev.modular_avatar";
+
         private static readonly Action<Harmony>[] patches = new Action<Harmony>[]
         {
             //HierarchyViewPatches.Patch,
@@ -19,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         [InitializeOnLoadMethod]
         static void ApplyPatches()
         {
-            var harmony = new Harmony("nadena.dev.modular_avatar");
+            var harmony = new Harmony(HarmonyId);
 
             foreach (var patch in patches)
             {
@@ -33,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
                 }
             }
 
-            AssemblyReloadEvents.beforeAssemblyReload += () => { harmony.UnpatchAll(); };
+            AssemblyReloadEvents.beforeAssemblyReload += () => { harmony.UnpatchAll(HarmonyId); };
         }
     }
 }
