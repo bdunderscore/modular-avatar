@@ -698,6 +698,32 @@ namespace modular_avatar_tests.VirtualMenuTests
             Assert.AreEqual(4, virtualMenu.RootMenuNode.Controls[0].SubmenuNode.Controls[5].subParameters.Length);
         }
 
+        [Test]
+        public void MergeArmatureAndMenuInstallerOnSameObjectWorks()
+        {
+            var root = CreateRoot("root");
+            var armature = CreateChild(root, "Armature");
+            var installer = armature.AddComponent<ModularAvatarMenuInstaller>();
+            
+            var merge = installer.gameObject.AddComponent<ModularAvatarMergeArmature>();
+            merge.mergeTarget.Set(root);
+            
+            var menu = Create<VRCExpressionsMenu>();
+            menu.controls.Add(new VRCExpressionsMenu.Control()
+            {
+                name = "control",
+                type = VRCExpressionsMenu.Control.ControlType.Toggle
+            });
+            
+            installer.menuToAppend = menu;
+            
+            AvatarProcessor.ProcessAvatar(root);
+
+            var realizedMenu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu;
+            Assert.AreEqual(1, realizedMenu.controls.Count);
+            Assert.AreEqual("control", realizedMenu.controls[0].name);
+        }
+
         ModularAvatarMenuInstaller CreateInstaller(string name)
         {
             GameObject obj = new GameObject();

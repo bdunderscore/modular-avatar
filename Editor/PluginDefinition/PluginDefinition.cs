@@ -59,6 +59,13 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 {
                     seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
                         .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(), new MaterialSetterPreview());
+#if MA_VRCSDK3_AVATARS
+                    // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
+                    // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
+                    // to retain those objects? maybe?
+                    seq.Run(MenuInstallPluginPass.Instance);
+#endif
+                    
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
@@ -73,7 +80,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ConstraintConverterPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
-                seq.Run(MenuInstallPluginPass.Instance);
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
                 seq.Run("Fixup Expressions Menu", ctx =>
                 {
