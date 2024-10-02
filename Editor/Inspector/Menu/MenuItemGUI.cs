@@ -646,6 +646,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var myMenuItem = serializedObject.targetObject as ModularAvatarMenuItem;
             if (myMenuItem == null) return null;
 
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
+            if (avatarRoot == null) return null;
+
             var myParameterName = myMenuItem.Control.parameter.name;
             if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
 
@@ -653,7 +656,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
                 myParameterName = myReplacement.ParameterName;
 
-            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
             var siblings = new List<ModularAvatarMenuItem>();
 
             foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
