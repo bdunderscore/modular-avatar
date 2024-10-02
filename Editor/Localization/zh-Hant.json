@@ -251,7 +251,7 @@
   "reactive_object.inverse": "反轉條件",
   "reactive_object.material-setter.set-to": "將材質設定為：",
   "menuitem.misc.add_toggle": "新增開關",
-  "ro_sim.open_debugger_button": "開啟響應除錯工具",
+  "ro_sim.open_debugger_button": "開啟 Reaction 除錯工具",
   "ro_sim.window.title": "MA 響應除錯工具",
   "ro_sim.header.inspecting": "檢視物件",
   "ro_sim.header.clear_overrides": "清除所有覆寫",
