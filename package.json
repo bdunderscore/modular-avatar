@@ -1,7 +1,7 @@
 {
   "name": "nadena.dev.modular-avatar",
   "displayName": "Modular Avatar",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "unity": "2022.3",
   "description": "A suite of tools for assembling your avatar out of reusable components",
   "author": {
