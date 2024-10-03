@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7471115643889882934}
   - component: {fileID: 2015798673852064281}
   m_Layer: 0
-  m_Name: AlwaysOffDelete
+  m_Name: AlwaysOnDelete
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49,7 +49,59 @@ MonoBehaviour:
   - Object:
       referencePath: test mesh
       targetObject: {fileID: 0}
-    ShapeName: key2
+    ShapeName: key3
+    ChangeType: 0
+    Value: 100
+--- !u!1 &1940967280447242034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4642450200077033025}
+  - component: {fileID: 5772268708845477328}
+  m_Layer: 0
+  m_Name: ToggledDelete
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &4642450200077033025
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940967280447242034}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8936933457054072598}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5772268708845477328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940967280447242034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2db441f589c3407bb6fb5f02ff8ab541, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_inverted: 1
+  m_shapes:
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key1
     ChangeType: 0
     Value: 100
 --- !u!1 &2598725701317979415
@@ -63,7 +115,7 @@ GameObject:
   - component: {fileID: 1861262250770563182}
   - component: {fileID: 8866671501173891171}
   m_Layer: 0
-  m_Name: Toggled
+  m_Name: ToggledSet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -101,7 +153,7 @@ MonoBehaviour:
   - Object:
       referencePath: test mesh
       targetObject: {fileID: 0}
-    ShapeName: key1
+    ShapeName: key2
     ChangeType: 1
     Value: 10
 --- !u!1 &2845086157653980983
@@ -115,7 +167,7 @@ GameObject:
   - component: {fileID: 110069860838053623}
   - component: {fileID: 8218581995269956798}
   m_Layer: 0
-  m_Name: AlwaysOffSet
+  m_Name: AlwaysOnSet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -153,9 +205,9 @@ MonoBehaviour:
   - Object:
       referencePath: test mesh
       targetObject: {fileID: 0}
-    ShapeName: key3
+    ShapeName: key4
     ChangeType: 1
-    Value: 100
+    Value: 10
 --- !u!1 &6385483934583485188
 GameObject:
   m_ObjectHideFlags: 0
@@ -169,7 +221,7 @@ GameObject:
   - component: {fileID: 2918390808850211981}
   - component: {fileID: 664065153831629983}
   m_Layer: 0
-  m_Name: InitialOnToggled
+  m_Name: InitialOffToggled
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -208,6 +260,12 @@ MonoBehaviour:
       referencePath: test mesh
       targetObject: {fileID: 0}
     ShapeName: key1
+    ChangeType: 1
+    Value: 20
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key2
     ChangeType: 1
     Value: 20
 --- !u!114 &2918390808850211981
@@ -285,6 +343,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4642450200077033025}
   - {fileID: 1861262250770563182}
   - {fileID: 7471115643889882934}
   - {fileID: 110069860838053623}
@@ -642,15 +701,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -3887185075125053422, guid: cd28f61dacdc2424d951194ff69ba154, type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[0]
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -3887185075125053422, guid: cd28f61dacdc2424d951194ff69ba154, type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[1]
-      value: 6
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -3887185075125053422, guid: cd28f61dacdc2424d951194ff69ba154, type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[2]
-      value: 7
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: cd28f61dacdc2424d951194ff69ba154, type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[3]
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: cd28f61dacdc2424d951194ff69ba154, type: 3}
       propertyPath: m_Name

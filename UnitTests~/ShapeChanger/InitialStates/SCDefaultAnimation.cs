@@ -49,21 +49,29 @@ namespace ShapeChangerTests
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key2"
             ));
+            Assert.IsNull(curve); // always off MenuItem (due to object disable), no curve should be generated
+
+            curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
+                "test mesh",
+                typeof(SkinnedMeshRenderer),
+                "blendShape.key3"
+            ));
             // Always-on delete, no curve should be generated
             Assert.IsNull(curve);
             
             curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
                 "test mesh",
                 typeof(SkinnedMeshRenderer),
-                "blendShape.key3"
+                "blendShape.key4"
             ));
             // Always-on set, no curve should be generated
             Assert.IsNull(curve);
             
             // Check actual blendshape states
-            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
-            Assert.AreEqual(5.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
+            Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
+            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
             Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key3")), 0.1f);
+            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key4")), 0.1f);
         }
 
         [Test]
@@ -96,13 +104,21 @@ namespace ShapeChangerTests
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key1"
             ));
-            Assert.AreEqual(7.0f, curve.keys[0].value, 0.1f);
-            Assert.AreEqual(7.0f, curve.keys[1].value, 0.1f);
+            Assert.AreEqual(1.0f, curve.keys[0].value, 0.1f);
+            Assert.AreEqual(1.0f, curve.keys[1].value, 0.1f);
             
             curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
                 "test mesh",
                 typeof(SkinnedMeshRenderer),
                 "blendShape.key2"
+            ));
+            Assert.AreEqual(2.0f, curve.keys[0].value, 0.1f);
+            Assert.AreEqual(2.0f, curve.keys[1].value, 0.1f);
+
+            curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
+                "test mesh",
+                typeof(SkinnedMeshRenderer),
+                "blendShape.key3"
             ));
             // Always-on delete, no curve should be generated
             Assert.IsNull(curve);
@@ -110,15 +126,16 @@ namespace ShapeChangerTests
             curve = AnimationUtility.GetEditorCurve(clip, EditorCurveBinding.FloatCurve(
                 "test mesh",
                 typeof(SkinnedMeshRenderer),
-                "blendShape.key3"
+                "blendShape.key4"
             ));
             // Always-on set, no curve should be generated
             Assert.IsNull(curve);
             
             // Check actual blendshape states
-            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
-            Assert.AreEqual(5.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
+            Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
+            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
             Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key3")), 0.1f);
+            Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key4")), 0.1f);
         }
     }
 }
