@@ -300,8 +300,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
             var entryTransitions = new List<AnimatorTransition>();
 
-            var initialStateTransitionList = new List<AnimatorStateTransition>();
-            transitionBuffer.Add((initialState, initialStateTransitionList));
+            transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
 
             foreach (var group in info.actionGroups.Skip(lastConstant))
             {
@@ -321,30 +320,33 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var conditions = GetTransitionConditions(asc, group);
 
-                    if (!group.Inverted)
+                    foreach (var (st, transitions) in transitionBuffer)
                     {
-                        var transition = new AnimatorStateTransition
+                        if (!group.Inverted)
                         {
-                            isExit = true,
-                            hasExitTime = false,
-                            duration = 0,
-                            hasFixedDuration = true,
-                            conditions = (AnimatorCondition[])conditions.Clone()
-                        };
-                        initialStateTransitionList.Add(transition);
-                    }
-                    else
-                    {
-                        foreach (var cond in conditions)
-                        {
-                            initialStateTransitionList.Add(new AnimatorStateTransition
+                            var transition = new AnimatorStateTransition
                             {
                                 isExit = true,
                                 hasExitTime = false,
                                 duration = 0,
                                 hasFixedDuration = true,
-                                conditions = new[] { InvertCondition(cond) }
-                            });
+                                conditions = (AnimatorCondition[])conditions.Clone()
+                            };
+                            transitions.Add(transition);
+                        }
+                        else
+                        {
+                            foreach (var cond in conditions)
+                            {
+                                transitions.Add(new AnimatorStateTransition
+                                {
+                                    isExit = true,
+                                    hasExitTime = false,
+                                    duration = 0,
+                                    hasFixedDuration = true,
+                                    conditions = new[] { InvertCondition(cond) }
+                                });
+                            }
                         }
                     }
 
