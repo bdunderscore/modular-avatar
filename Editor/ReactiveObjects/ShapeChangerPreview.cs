@@ -101,6 +101,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var activeRule = prop.actionGroups.LastOrDefault(rule => rule.InitiallyActive);
                 if (activeRule == null || activeRule.Value is not float value) continue;
+                if (activeRule.ControllingObject == null) continue; // default value is being inherited
 
                 value = Math.Clamp(value, 0, 100);
                 
