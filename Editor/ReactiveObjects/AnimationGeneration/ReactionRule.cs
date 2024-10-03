@@ -35,7 +35,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public bool Inverted;
 
-        public bool IsConstant => ControllingConditions.Count == 0 || ControllingConditions.All(c => c.IsConstant);
+        public bool IsConstant => ControllingConditions.Count == 0
+                                  || ControllingConditions.All(c => c.IsConstant)
+                                  || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
         public bool IsConstantOn => IsConstant && InitiallyActive;
 
         public override string ToString()

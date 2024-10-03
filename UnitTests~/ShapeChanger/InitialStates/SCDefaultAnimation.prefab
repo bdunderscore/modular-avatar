@@ -183,7 +183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &569625391371299408
 Transform:
   m_ObjectHideFlags: 0
@@ -250,6 +250,7 @@ MonoBehaviour:
   isSynced: 1
   isSaved: 1
   isDefault: 0
+  automaticValue: 0
 --- !u!114 &664065153831629983
 MonoBehaviour:
   m_ObjectHideFlags: 0

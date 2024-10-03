@@ -144,7 +144,7 @@ namespace nadena.dev.modular_avatar.core.editor
             HashSet<GameObject> toggledObjects = new();
 
             if (asc == null) return;
-
+            
             foreach (var targetProp in shapes.Keys)
                 if (targetProp is { TargetObject: GameObject go, PropertyName: "m_IsActive" })
                     toggledObjects.Add(go);
