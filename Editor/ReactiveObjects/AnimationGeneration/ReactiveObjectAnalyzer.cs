@@ -287,7 +287,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 
                 var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
-                if (deletions.Any(d => d.InitiallyActive))
+                if (deletions.Any(d => d.IsConstantActive))
                 {
                     // always deleted
                     shapes.Remove(key);

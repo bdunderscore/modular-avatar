@@ -31,6 +31,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public bool InitiallyActive =>
             ((ControllingConditions.Count == 0) || ControllingConditions.All(c => c.InitiallyActive)) ^ Inverted;
+        public bool IsConstantActive =>
+            ((ControllingConditions.Count == 0) || ControllingConditions.All(c => c.IsConstantActive)) ^ Inverted;
         public bool IsDelete;
 
         public bool Inverted;
