@@ -344,7 +344,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (proxy == null) return;
 
             var curParent = proxy.transform.parent ?? original.transform.parent;
-            if (_finalBonesMap.TryGetValue(curParent, out var newRoot))
+            if (curParent != null && _finalBonesMap.TryGetValue(curParent, out var newRoot))
             {
                 // We need to remember this proxy so we can avoid destroying it when we destroy VirtualAvatarRoot
                 // in Dispose
