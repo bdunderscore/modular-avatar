@@ -8,7 +8,6 @@ namespace nadena.dev.modular_avatar.core.editor
         public TargetProp TargetProp { get; }
         public string ControlParam { get; set; }
 
-        public bool alwaysDeleted;
         public object currentState;
 
         // Objects which trigger deletion of this shape key. 

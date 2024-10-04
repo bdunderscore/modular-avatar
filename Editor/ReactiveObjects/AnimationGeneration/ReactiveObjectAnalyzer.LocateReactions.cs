@@ -124,50 +124,55 @@ namespace nadena.dev.modular_avatar.core.editor
                     var key = new TargetProp
                     {
                         TargetObject = renderer,
-                        PropertyName = "blendShape." + shape.ShapeName,
+                        PropertyName = BlendshapePrefix + shape.ShapeName
                     };
 
+                    var currentValue = renderer.GetBlendShapeWeight(shapeId);
                     var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
-                    if (!shapeKeys.TryGetValue(key, out var info))
+
+                    RegisterAction(key, renderer, currentValue, value, changer, shape);
+
+                    key = new TargetProp
                     {
-                        info = new AnimatedProperty(key, renderer.GetBlendShapeWeight(shapeId));
-                        shapeKeys[key] = info;
+                        TargetObject = renderer,
+                        PropertyName = DeletedShapePrefix + shape.ShapeName
+                    };
 
-                        // Add initial state
-                        var agk = new ReactionRule(key, value);
-                        agk.Value = renderer.GetBlendShapeWeight(shapeId);
-                        info.actionGroups.Add(agk);
-                    }
-
-                    var action = ObjectRule(key, changer, value);
-                    action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
-                    var isCurrentlyActive = changer.gameObject.activeInHierarchy;
-
-                    if (shape.ChangeType == ShapeChangeType.Delete)
-                    {
-                        action.IsDelete = true;
-                        
-                        if (isCurrentlyActive) info.currentState = 100;
-
-                        info.actionGroups.Add(action); // Never merge
-
-                        continue;
-                    }
-
-                    if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
-
-                    if (info.actionGroups.Count == 0)
-                    {
-                        info.actionGroups.Add(action);
-                    }
-                    else if (!info.actionGroups[^1].TryMerge(action))
-                    {
-                        info.actionGroups.Add(action);
-                    }
+                    value = shape.ChangeType == ShapeChangeType.Delete ? 1 : 0;
+                    RegisterAction(key, renderer, 0, value, changer, shape);
                 }
             }
 
             return shapeKeys;
+
+            void RegisterAction(TargetProp key, SkinnedMeshRenderer renderer, float currentValue, float value,
+                ModularAvatarShapeChanger changer, ChangedShape shape)
+            {
+                if (!shapeKeys.TryGetValue(key, out var info))
+                {
+                    info = new AnimatedProperty(key, currentValue);
+                    shapeKeys[key] = info;
+
+                    // Add initial state
+                    var agk = new ReactionRule(key, value);
+                    agk.Value = currentValue;
+                    info.actionGroups.Add(agk);
+                }
+
+                var action = ObjectRule(key, changer, value);
+                action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
+
+                if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
+
+                if (info.actionGroups.Count == 0)
+                {
+                    info.actionGroups.Add(action);
+                }
+                else if (!info.actionGroups[^1].TryMerge(action))
+                {
+                    info.actionGroups.Add(action);
+                }
+            }
         }
         
         private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
