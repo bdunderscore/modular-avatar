@@ -471,7 +471,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     var f_set_inactive = effectGroup.Q<VisualElement>("effect__set-inactive");
                     var f_value = effectGroup.Q<FloatField>("effect__value");
                     var f_material = effectGroup.Q<ObjectField>("effect__material");
-                    var f_delete = effectGroup.Q("effect__deleted");
+                    var f_delete = effectGroup.Q<TextField>("effect__deleted");
                     
                     f_target_component.style.display = DisplayStyle.None;
                     f_target_component.SetEnabled(false);
@@ -504,9 +504,10 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         f_property.value = targetProp.PropertyName;
                         f_property.style.display = DisplayStyle.Flex;
 
-                        if (reactionRule.IsDelete)
+                        if (reactionRule.TargetProp.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                         {
                             f_delete.style.display = DisplayStyle.Flex;
+                            f_delete.value = reactionRule.Value is > 0.5f ? "DELETE" : "RETAIN";
                         } else if (reactionRule.Value is float f)
                         {
                             f_value.SetValueWithoutNotify(f);

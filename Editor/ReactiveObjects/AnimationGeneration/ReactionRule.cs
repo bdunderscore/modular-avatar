@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -9,8 +8,8 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         public ReactionRule(TargetProp key, float value)
             : this(key, (object)value) { }
-            
-        public  ReactionRule(TargetProp key, UnityEngine.Object value)
+
+        public ReactionRule(TargetProp key, Object value)
             : this(key, (object)value) { }
             
         private ReactionRule(TargetProp key, object value)
@@ -31,15 +30,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public bool InitiallyActive =>
             ((ControllingConditions.Count == 0) || ControllingConditions.All(c => c.InitiallyActive)) ^ Inverted;
-        public bool IsDelete;
 
         public bool Inverted;
 
         public bool IsConstant => ControllingConditions.Count == 0
                                   || ControllingConditions.All(c => c.IsConstant)
                                   || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
-        public bool IsConstantOn => IsConstant && InitiallyActive;
 
+        public bool IsConstantActive => IsConstant && InitiallyActive ^ Inverted;
+        
         public override string ToString()
         {
             return $"AGK: {TargetProp}={Value}";
@@ -57,7 +56,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else return false;
             if (!ControllingConditions.SequenceEqual(other.ControllingConditions)) return false;
-            if (IsDelete || other.IsDelete) return false;
 
             return true;
         }
