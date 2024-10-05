@@ -33,4 +33,4 @@ For more information, check out the [documentation](https://m-a.nadena.dev).
 * 部分的なアニメーターを親に統合することで、様々のギミックの実装を簡単にします。
 * 他にもいろいろ！
 
-詳しくは[ドキュメンテーションページにご参照ください](https://modular-avatar.nadena.dev/ja/).
+詳しくは[ドキュメンテーションページをご覧ください](https://modular-avatar.nadena.dev/ja/).
