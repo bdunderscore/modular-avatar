@@ -101,6 +101,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 result.InitialStates = new();
                 return result;
             }
+
+            LocateBlendshapeSyncs(root); 
             
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
             FindObjectToggles(shapes, root);
