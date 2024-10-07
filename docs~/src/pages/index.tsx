@@ -29,7 +29,7 @@ function HomepageHeader() {
         <p className="hero__subtitle">
             <Translate>Drag-and-Drop Avatar Assembly</Translate>
         </p>
-        <div className={`button-group ${styles.buttons}`}>
+        <div className={`${styles.buttons}`}>
           <InstallButton/>
           <Link
             className={`button button--secondary button--lg ${styles.button}`}
@@ -43,7 +43,7 @@ function HomepageHeader() {
             <Translate>Tutorials</Translate>
           </Link>
         </div>
-        <div className={`button-group ${styles.buttons}`}>
+        <div className={`${styles.buttons}`}>
             <a href={"https://discord.gg/dV4cVpewmM"} className={`discordLink`}>
                 <img className={`button button--lg ${styles.button}`}
                      alt="Discord"
