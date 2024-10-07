@@ -19,6 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
 
+        private DragAndDropManipulator _dragAndDropManipulator;
         private BlendshapeSelectWindow _window;
 
         protected override void OnInnerInspectorGUI()
@@ -41,6 +42,8 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
 
+            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarShapeChanger);
+
             // The Add button callback isn't exposed publicly for some reason...
             var field_addButton = typeof(BaseListView).GetField("m_AddButton", NonPublic | Instance);
             var addButton = (Button)field_addButton.GetValue(listView);
@@ -48,6 +51,41 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             addButton.clickable = new Clickable(OpenAddWindow);
 
             return root;
+        }
+
+        private void OnEnable()
+        {
+            if (_dragAndDropManipulator != null)
+                _dragAndDropManipulator.TargetComponent = target as ModularAvatarShapeChanger;
+        }
+
+        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarShapeChanger>
+        {
+            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarShapeChanger targetComponent)
+                : base(targetElement, targetComponent) { }
+
+            protected override bool FilterGameObject(GameObject obj)
+            {
+                if (obj.TryGetComponent<SkinnedMeshRenderer>(out var smr))
+                {
+                    return smr.sharedMesh != null && smr.sharedMesh.blendShapeCount > 0;
+                }
+                return false;
+            }
+
+            protected override void AddObjectReferences(AvatarObjectReference[] references)
+            {
+                Undo.RecordObject(TargetComponent, "Add Changed Shapes");
+
+                foreach (var reference in references)
+                {
+                    var changedShape = new ChangedShape { Object = reference, ShapeName = string.Empty };
+                    TargetComponent.Shapes.Add(changedShape);
+                }
+
+                EditorUtility.SetDirty(TargetComponent);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(TargetComponent);
+            }
         }
 
         private void OnDisable()

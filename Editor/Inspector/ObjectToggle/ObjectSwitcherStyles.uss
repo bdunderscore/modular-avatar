@@ -51,6 +51,12 @@
     width: 60px;
 }
 
-.drop-area--drag-active > ListView ScrollView {
-    background-color: rgba(0, 255, 255, 0.1);
+.drop-area--drag-active {
+    background-color: rgba(0, 127, 255, 0.2);
+}
+
+.drop-area--drag-active .unity-scroll-view,
+.drop-area--drag-active .unity-list-view__footer,
+.drop-area--drag-active .unity-list-view__reorderable-item {
+    background-color: rgba(0, 0, 0, 0.0);
 }
