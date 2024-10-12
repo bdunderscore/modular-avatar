@@ -82,6 +82,7 @@
   "merge_armature.lockmode.bidirectional.body": "アバターと統合されるアーマチュアは常に同じ位置になります。元のアバターを操作するアニメーションを作る時に便利かもしれません。有効にするためには、統合されるアーマチュアの位置を統合先と同じにしておく必要があります。",
   "merge_armature.reset_pos": "位置を元アバターに合わせてリセット",
   "merge_armature.reset_pos.info": "衣装のボーンの位置をアバターのボーンの位置に合わせます。非対応衣装を導入する際、アバウトに位置を合わせるのに便利です。",
+  "merge_armature.reset_pos.convert_atpose": "Aポーズ/Tポーズを合わせる",
   "merge_armature.reset_pos.adjust_rotation": "回転も合わせる",
   "merge_armature.reset_pos.adjust_scale": "スケールも合わせる",
   "merge_armature.reset_pos.execute": "実行",
