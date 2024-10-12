@@ -55,10 +55,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             public DragAndDropManipulator(VisualElement targetElement, ModularAvatarObjectToggle targetComponent)
                 : base(targetElement, targetComponent) { }
 
-            protected override bool FilterGameObject(GameObject obj)
-            {
-                return true;
-            }
+            protected override bool AllowKnownObjects => false;
 
             protected override void AddObjectReferences(AvatarObjectReference[] references)
             {

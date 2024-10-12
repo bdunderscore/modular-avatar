@@ -12,6 +12,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public T TargetComponent { get; set; }
 
+        protected virtual bool AllowKnownObjects => true;
+
         private Transform _avatarRoot;
         private GameObject[] _draggingObjects = Array.Empty<GameObject>();
 
@@ -48,7 +50,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var knownObjects = TargetComponent.GetObjectReferences().Select(x => x.Get(TargetComponent)).ToHashSet();
             _draggingObjects = DragAndDrop.objectReferences.OfType<GameObject>()
-                .Where(x => !knownObjects.Contains(x))
+                .Where(x => AllowKnownObjects || !knownObjects.Contains(x))
                 .Where(x => RuntimeUtil.FindAvatarTransformInParents(x.transform) == _avatarRoot)
                 .Where(FilterGameObject)
                 .ToArray();
@@ -94,7 +96,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToArray());
         }
 
-        protected abstract bool FilterGameObject(GameObject obj);
+        protected virtual bool FilterGameObject(GameObject obj)
+        {
+            return true;
+        }
 
         protected abstract void AddObjectReferences(AvatarObjectReference[] references);
     }
