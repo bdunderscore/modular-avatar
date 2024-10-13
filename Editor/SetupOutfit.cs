@@ -158,32 +158,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.InferPrefixSuffix();
 
                 var outfitAnimator = outfitRoot.GetComponent<Animator>();
-                if (outfitAnimator != null)
-                {
-                    var hipsCheck = outfitAnimator.isHuman ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips) : null;
-                    if (hipsCheck != null && hipsCheck.parent == outfitRoot.transform)
-                    {
-                        // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
-                        // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
-                        // assume the outfit's humanoid rig is broken and move on to heuristic matching.
-                        outfitAnimator = null;
-                    } else if (hipsCheck == null) {
-                        outfitAnimator = null;
-                    }
-                }
-
-                Dictionary<Transform, HumanBodyBones> humanoidBones = null;
-                if (outfitAnimator != null)
-                {
-                    humanoidBones = new Dictionary<Transform, HumanBodyBones>();
-                    foreach (HumanBodyBones boneIndex in Enum.GetValues(typeof(HumanBodyBones)))
-                    {
-                        var bone = boneIndex != HumanBodyBones.LastBone ? outfitAnimator.GetBoneTransform(boneIndex) : null;
-                        if (bone == null) continue;
-                        humanoidBones[bone] = boneIndex;
-                    }
-                }
-
+                var humanoidBones = GetOutfitHumanoidBones(outfitRoot.transform, outfitAnimator);
                 var avatarAnimator = avatarRoot.GetComponent<Animator>();
                 List<Transform> subRoots = new List<Transform>();
                 HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots, humanoidBones: humanoidBones, avatarAnimator: avatarAnimator);
@@ -255,6 +230,37 @@ namespace nadena.dev.modular_avatar.core.editor
                 meshSettings.RootBone.referencePath = RuntimeUtil.RelativePath(avatarRoot, rootBone.gameObject);
                 meshSettings.Bounds = bounds;
             }
+        }
+
+        internal static Dictionary<Transform, HumanBodyBones> GetOutfitHumanoidBones(Transform outfitRoot, Animator outfitAnimator)
+        {
+            if (outfitAnimator != null)
+            {
+                var hipsCheck = outfitAnimator.isHuman ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips) : null;
+                if (hipsCheck != null && hipsCheck.parent == outfitRoot)
+                {
+                    // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
+                    // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
+                    // assume the outfit's humanoid rig is broken and move on to heuristic matching.
+                    outfitAnimator = null;
+                } else if (hipsCheck == null) {
+                    outfitAnimator = null;
+                }
+            }
+
+            Dictionary<Transform, HumanBodyBones> humanoidBones = null;
+            if (outfitAnimator != null)
+            {
+                humanoidBones = new Dictionary<Transform, HumanBodyBones>();
+                foreach (HumanBodyBones boneIndex in Enum.GetValues(typeof(HumanBodyBones)))
+                {
+                    var bone = boneIndex != HumanBodyBones.LastBone ? outfitAnimator.GetBoneTransform(boneIndex) : null;
+                    if (bone == null) continue;
+                    humanoidBones[bone] = boneIndex;
+                }
+            }
+
+            return humanoidBones;
         }
 
         private static void FixAPose(GameObject avatarRoot, Transform outfitArmature)
