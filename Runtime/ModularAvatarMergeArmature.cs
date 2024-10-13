@@ -61,6 +61,9 @@ namespace nadena.dev.modular_avatar.core
 
         public bool mangleNames = true;
 
+        // Inserted from HeuristicBoneMapper(Editor Assembly) with InitializeOnLoadMethod
+        // We use raw `boneNamePatterns` instead of `BoneToNameMap` because BoneToNameMap requires matching with normalized bone name, but normalizing makes raw prefix/suffix unavailable.
+        internal static string[][] boneNamePatterns;
         private ArmatureLockController _lockController;
 
         internal Transform MapBone(Transform bone)
@@ -200,21 +203,6 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
-        private static class InferWithHeuristic
-        {
-            internal static Type HeuristicBoneMapper;
-            static InferWithHeuristic()
-            {
-                foreach(var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    HeuristicBoneMapper = assembly.GetType("nadena.dev.modular_avatar.core.editor.HeuristicBoneMapper");
-                    if (HeuristicBoneMapper != null) return;
-                }
-                if (HeuristicBoneMapper == null)
-                throw new InvalidOperationException("HeuristicBoneMapper not found");
-            }
-        }
-
         public void InferPrefixSuffix()
         {
             // We only infer if targeting the armature (below the Hips bone)
@@ -232,9 +220,6 @@ namespace nadena.dev.modular_avatar.core
             var baseName = hips.name;
             var mergeName = transform.GetChild(0).name;
             var isInferred = false;
-
-            // We use raw `boneNamePatterns` instead of `BoneToNameMap` because BoneToNameMap requires matching with normalized bone name, but normalizing makes raw prefix/suffix unavailable.
-            string[][] boneNamePatterns = (string[][])InferWithHeuristic.HeuristicBoneMapper.GetField("boneNamePatterns", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null);
 
             foreach (var hipNameCandidate in boneNamePatterns[(int)HumanBodyBones.Hips])
             {

@@ -243,6 +243,12 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static readonly ImmutableDictionary<string, List<HumanBodyBones>> NameToBoneMap;
         internal static readonly ImmutableDictionary<HumanBodyBones, ImmutableList<string>> BoneToNameMap;
 
+        [InitializeOnLoadMethod]
+        private static void InsertboneNamePatternsToRuntime()
+        {
+            ModularAvatarMergeArmature.boneNamePatterns = boneNamePatterns;
+        }
+
         static HeuristicBoneMapper()
         {
             var pat_end_side = new Regex(@"[_\.]([LR])$");
