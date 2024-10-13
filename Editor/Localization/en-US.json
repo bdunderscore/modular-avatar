@@ -150,6 +150,8 @@
   "error.rename_params.default_value_conflict:hint": "To avoid unpredictable behavior, leave the default value field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first default value specified in the hierarchy order.",
   "error.replace_object.null_target": "[MA-0008] No target specified",
   "error.replace_object.null_target:hint": "Replace object needs a target object to replace. Try setting one.",
+  "error.replace_object.replacing_replacement": "[MA-0009] The same target object cannot be specified in multiple Replace Object components",
+  "error.replace_object.parent_of_target": "[MA-0010] The target object cannot be a parent of this object",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] No renderer found on this object",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync acts on a Skinned Mesh Renderer on the same GameObject. Did you attach it to the right object?",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] No mesh found on the renderer on this object",
