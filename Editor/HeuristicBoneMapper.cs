@@ -308,7 +308,7 @@ namespace nadena.dev.modular_avatar.core.editor
             List<Transform> skipped = null,
             HashSet<Transform> unassigned = null,
             Animator avatarAnimator = null,
-            Dictionary<Transform, HumanBodyBones> humanoidBones = null
+            Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null
         )
         {
             Dictionary<Transform, Transform> mappings = new Dictionary<Transform, Transform>();
@@ -360,11 +360,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 List<HumanBodyBones> bodyBones = null;
                 var isMapped = false;
 
-                if (humanoidBones != null && humanoidBones.TryGetValue(child, out var humanoidBone))
+                if (outfitHumanoidBones != null && outfitHumanoidBones.TryGetValue(child, out var outfitHumanoidBone))
                 {
                     if (avatarAnimator != null)
                     {
-                        var avatarBone = avatarAnimator.GetBoneTransform(humanoidBone);
+                        var avatarBone = avatarAnimator.GetBoneTransform(outfitHumanoidBone);
                         if (avatarBone != null && unassigned.Contains(avatarBone))
                         {
                             mappings[child] = avatarBone;
@@ -372,10 +372,10 @@ namespace nadena.dev.modular_avatar.core.editor
                             lcNameToXform.Remove(NormalizeName(avatarBone.gameObject.name));
                             isMapped = true;
                         } else {
-                            bodyBones = new List<HumanBodyBones> { humanoidBone };
+                            bodyBones = new List<HumanBodyBones> { outfitHumanoidBone };
                         }
                     } else {
-                        bodyBones = new List<HumanBodyBones>() { humanoidBone };
+                        bodyBones = new List<HumanBodyBones>() { outfitHumanoidBone };
                     }
                 }
 
@@ -434,7 +434,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return mappings;
         }
 
-        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config, List<Transform> skipped = null, Dictionary<Transform, HumanBodyBones> humanoidBones = null, Animator avatarAnimator = null)
+        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config, List<Transform> skipped = null, Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null, Animator avatarAnimator = null)
         {
             var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarTransformInParents(config.transform));
             if (target == null) return;
@@ -445,7 +445,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             void Traverse(Transform src, Transform dst)
             {
-                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject, skipped: skipped, humanoidBones: humanoidBones, avatarAnimator: avatarAnimator);
+                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject, skipped: skipped, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
 
                 foreach (var pair in mappings)
                 {

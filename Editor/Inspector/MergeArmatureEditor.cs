@@ -133,8 +133,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         outfitRoot = outfitRoot.parent;
                     }
 
-                    var humanoidBones = SetupOutfit.GetOutfitHumanoidBones(outfitRoot, outfitAnimator);
-                    HeuristicBoneMapper.RenameBonesByHeuristic(target, humanoidBones: humanoidBones, avatarAnimator: avatarAnimator);
+                    var outfitHumanoidBones = SetupOutfit.GetOutfitHumanoidBones(outfitRoot, outfitAnimator);
+                    HeuristicBoneMapper.RenameBonesByHeuristic(target, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
                 }
             }
 

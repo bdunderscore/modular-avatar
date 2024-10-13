@@ -158,10 +158,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 merge.InferPrefixSuffix();
 
                 var outfitAnimator = outfitRoot.GetComponent<Animator>();
-                var humanoidBones = GetOutfitHumanoidBones(outfitRoot.transform, outfitAnimator);
+                var outfitHumanoidBones = GetOutfitHumanoidBones(outfitRoot.transform, outfitAnimator);
                 var avatarAnimator = avatarRoot.GetComponent<Animator>();
                 List<Transform> subRoots = new List<Transform>();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots, humanoidBones: humanoidBones, avatarAnimator: avatarAnimator);
+                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
 
                 // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
                 // help with this
@@ -248,19 +248,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            Dictionary<Transform, HumanBodyBones> humanoidBones = null;
+            Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null;
             if (outfitAnimator != null)
             {
-                humanoidBones = new Dictionary<Transform, HumanBodyBones>();
+                outfitHumanoidBones = new Dictionary<Transform, HumanBodyBones>();
                 foreach (HumanBodyBones boneIndex in Enum.GetValues(typeof(HumanBodyBones)))
                 {
                     var bone = boneIndex != HumanBodyBones.LastBone ? outfitAnimator.GetBoneTransform(boneIndex) : null;
                     if (bone == null) continue;
-                    humanoidBones[bone] = boneIndex;
+                    outfitHumanoidBones[bone] = boneIndex;
                 }
             }
 
-            return humanoidBones;
+            return outfitHumanoidBones;
         }
 
         private static void FixAPose(GameObject avatarRoot, Transform outfitArmature)
