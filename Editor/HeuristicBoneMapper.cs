@@ -365,7 +365,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (avatarAnimator != null)
                     {
                         var avatarBone = avatarAnimator.GetBoneTransform(humanoidBone);
-                        if (avatarBone != null)
+                        if (avatarBone != null && unassigned.Contains(avatarBone))
                         {
                             mappings[child] = avatarBone;
                             unassigned.Remove(avatarBone);
