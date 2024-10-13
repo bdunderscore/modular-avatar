@@ -573,6 +573,8 @@ namespace nadena.dev.modular_avatar.animation
 
         private AnimatorStateMachine mapStateMachine(string basePath, AnimatorStateMachine layerStateMachine)
         {
+            if (layerStateMachine == null) return null;
+            
             var cacheKey = new KeyValuePair<string, AnimatorStateMachine>(basePath, layerStateMachine);
 
             if (_stateMachines.TryGetValue(cacheKey, out var asm))
