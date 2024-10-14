@@ -146,6 +146,8 @@
   "error.rename_params.default_value_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの初期値フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された初期値を採用します。",
   "error.replace_object.null_target": "[MA-0008] 置き換え先が指定されていません",
   "error.replace_object.null_target:hint": "Replace Objectは置き換え先のオブジェクトを指定する必要があります。",
+  "error.replace_object.replacing_replacement": "[MA-0009] 複数のReplace Objectコンポーネントで、同じ置き換え先を指定できません",
+  "error.replace_object.parent_of_target": "[MA-0010] このオブジェクトの親を置き換え先に指定できません",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] このオブジェクトにはSkinned Mesh Rendererがありません。",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Syncは同じGameObject上のSkinned Mesh Rendererに作用します。コンポーネントが正しいオブジェクトに追加されているか確認してください。",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] このオブジェクトにはSkinned Mesh Rendererがありますが、メッシュがありません。",
