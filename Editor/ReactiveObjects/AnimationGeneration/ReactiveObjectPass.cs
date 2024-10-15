@@ -83,7 +83,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     initialValues[condition.Parameter] = condition.InitialValue;
                 }
             }
-        }
+        } 
 
         private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
