@@ -264,6 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             _lastComputeContext.InvokeOnInvalidate(this, MaybeRefreshUI);
             
             var analysis = new ReactiveObjectAnalyzer(_lastComputeContext);
+            analysis.OptimizeShapes = false;
             analysis.ForcePropertyOverrides = PropertyOverrides.Value;
             analysis.ForceMenuItems = MenuItemOverrides.Value;
             var result = analysis.Analyze(avatar.gameObject);
