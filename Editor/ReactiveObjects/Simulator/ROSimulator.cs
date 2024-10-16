@@ -256,7 +256,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 return;
             }
 
-            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty || !MenuItemOverrides.Value.IsEmpty);
+            _btn_clear.SetEnabled(PropertyOverrides.Value?.IsEmpty == false || MenuItemOverrides.Value?.IsEmpty == false);
             
             e_debugInfo.style.display = DisplayStyle.Flex;
 
