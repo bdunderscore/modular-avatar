@@ -21,6 +21,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public const string BlendshapePrefix = "blendShape.";
         public const string DeletedShapePrefix = "deletedShape.";
+
+        public bool OptimizeShapes = true;
         
         public ImmutableDictionary<string, float> ForcePropertyOverrides { get; set; } = ImmutableDictionary<string, float>.Empty;
 
@@ -277,13 +279,13 @@ namespace nadena.dev.modular_avatar.core.editor
             // corresponding mesh. If we can't, delete ops are merged into the main list of operations.
             
             initialStates = new Dictionary<TargetProp, object>();
-
+            
             foreach (var (key, info) in shapes.ToList())
             {
                 if (info.actionGroups.Count == 0)
                 {
                     // never active control; ignore it entirely
-                    shapes.Remove(key);
+                    if (OptimizeShapes) shapes.Remove(key);
                     continue;
                 }
 
@@ -297,7 +299,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // If we're now constant-on, we can skip animation generation
                 if (info.actionGroups[^1].IsConstant)
                 {
-                    shapes.Remove(key);
+                    if (OptimizeShapes) shapes.Remove(key);
                 }
             }
         }
