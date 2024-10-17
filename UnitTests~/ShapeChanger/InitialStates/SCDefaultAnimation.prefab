@@ -46,10 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inverted: 0
   m_targetRenderer:
-    referencePath: test mesh
+    referencePath: 
     targetObject: {fileID: 0}
   m_shapes:
-  - ShapeName: key2
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key2
     ChangeType: 0
     Value: 100
 --- !u!1 &2598725701317979415
@@ -98,10 +101,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inverted: 0
   m_targetRenderer:
-    referencePath: test mesh
+    referencePath: 
     targetObject: {fileID: 0}
   m_shapes:
-  - ShapeName: key1
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key1
     ChangeType: 1
     Value: 10
 --- !u!1 &2845086157653980983
@@ -150,10 +156,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inverted: 0
   m_targetRenderer:
-    referencePath: test mesh
+    referencePath: 
     targetObject: {fileID: 0}
   m_shapes:
-  - ShapeName: key3
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key3
     ChangeType: 1
     Value: 100
 --- !u!1 &6385483934583485188
@@ -174,7 +183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &569625391371299408
 Transform:
   m_ObjectHideFlags: 0
@@ -204,10 +213,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inverted: 0
   m_targetRenderer:
-    referencePath: test mesh
+    referencePath: 
     targetObject: {fileID: 0}
   m_shapes:
-  - ShapeName: key1
+  - Object:
+      referencePath: test mesh
+      targetObject: {fileID: 0}
+    ShapeName: key1
     ChangeType: 1
     Value: 20
 --- !u!114 &2918390808850211981
@@ -238,6 +250,7 @@ MonoBehaviour:
   isSynced: 1
   isSaved: 1
   isDefault: 0
+  automaticValue: 0
 --- !u!114 &664065153831629983
 MonoBehaviour:
   m_ObjectHideFlags: 0

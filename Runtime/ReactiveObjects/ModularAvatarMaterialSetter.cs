@@ -38,7 +38,7 @@ namespace nadena.dev.modular_avatar.core
     }
     
     [AddComponentMenu("Modular Avatar/MA Material Setter")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/material-setter?lang=auto")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/material-setter?lang=auto")]
     public class ModularAvatarMaterialSetter : ReactiveComponent, IHaveObjReferences
     {
         [SerializeField] private List<MaterialSwitchObject> m_objects = new();

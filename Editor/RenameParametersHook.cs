@@ -116,6 +116,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 
                 ResolvedParameter.saved |= info.ResolvedParameter.saved;
+                ResolvedParameter.localOnly &= info.ResolvedParameter.localOnly;
             }
 
             public void MergeChild(ParameterInfo info)
@@ -305,7 +306,7 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.defaultValue = info.ResolvedParameter.HasDefaultValue ? info.ResolvedParameter.defaultValue : parameter.defaultValue;
             newParameter.name = parameter.name;
             newParameter.valueType = parameter.valueType;
-            newParameter.networkSynced = parameter.networkSynced;
+            newParameter.networkSynced = parameter.networkSynced || !info.ResolvedParameter.localOnly;
             newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
             
             return newParameter;

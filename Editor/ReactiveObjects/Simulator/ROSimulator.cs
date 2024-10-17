@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,8 +15,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
     internal class ROSimulator : EditorWindow, IHasCustomMenu
     {
-        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null);
-        public static PublishedValue<ImmutableDictionary<string, ModularAvatarMenuItem>> MenuItemOverrides = new(null);
+        public static PublishedValue<ImmutableDictionary<string, float>> PropertyOverrides = new(null, debugName: "ROSimulator.PropertyOverrides");
+        public static PublishedValue<ImmutableDictionary<string, ModularAvatarMenuItem>> MenuItemOverrides = new(null, debugName: "ROSimulator.MenuItemOverrides");
         
         internal static string ROOT_PATH = "Packages/nadena.dev.modular-avatar/Editor/ReactiveObjects/Simulator/";
         private static string USS = ROOT_PATH + "ROSimulator.uss";
@@ -64,25 +65,39 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         
         private void OnEnable()
         {
-            PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
-            MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
-            EditorApplication.delayCall += LoadUI;
-            Selection.selectionChanged += SelectionChanged;
-            is_enabled = true;
+            EditorApplication.delayCall += () =>
+            {
+                PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                EditorApplication.delayCall += LoadUI;
+                EditorApplication.update += PeriodicRefresh;
+                Selection.selectionChanged += SelectionChanged;
+                is_enabled = true;
+            };
         }
 
         private void OnDisable()
         {
-            Selection.selectionChanged -= SelectionChanged;
             is_enabled = false;
 
             // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
             // (which generates a noisy exception)
             EditorApplication.delayCall += () =>
             {
+                Selection.selectionChanged -= SelectionChanged;
+                EditorApplication.update -= PeriodicRefresh;
+                
                 PropertyOverrides.Value = null;
                 MenuItemOverrides.Value = null;
             };
+        }
+        
+        private void PeriodicRefresh()
+        {
+            if (_refreshPending)
+            {
+                RefreshUI();
+            }
         }
         
         private ComputeContext _lastComputeContext;
@@ -101,11 +116,21 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
             _refreshPending = true;
 
-            EditorApplication.delayCall += RefreshUI;
+            // For some reason, this seems to get dropped occasionally, resulting in us being wedged with _refreshPending = true.
+            // Instead, we'll trigger this from EditorApplication.update...
+            // EditorApplication.delayCall += RefreshUI;
         }
         
         private void UpdatePropertyOverride(string prop, bool? enable, float f_val)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdatePropertyOverride",
+                (ev) => $"Property {ev.Arg0} set to {ev.Arg1}",
+                arg0: prop,
+                arg1: enable == null ? "null" : enable.Value ? f_val : 0f
+            );
+            
+            using (trace.Scope())
             if (enable == null)
             {
                 PropertyOverrides.Value = PropertyOverrides.Value.Remove(prop);
@@ -123,6 +148,15 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
         private void UpdateMenuItemOverride(string prop, ModularAvatarMenuItem item, bool? value)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ROSimulator.UpdateMenuItemOverride",
+                (ev) => $"MenuItem {ev.Arg0} for prop {ev.Arg1} set to {ev.Arg2}",
+                arg0: item.gameObject.name,
+                arg1: prop,
+                arg2: value == null ? "null" : value.Value ? "true" : "false"
+            );
+            
+            using (trace.Scope())
             if (value == null)
             {
                 MenuItemOverrides.Value = MenuItemOverrides.Value.Remove(prop);
@@ -222,7 +256,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 return;
             }
 
-            _btn_clear.SetEnabled(!PropertyOverrides.Value.IsEmpty || !MenuItemOverrides.Value.IsEmpty);
+            _btn_clear.SetEnabled(PropertyOverrides.Value?.IsEmpty == false || MenuItemOverrides.Value?.IsEmpty == false);
             
             e_debugInfo.style.display = DisplayStyle.Flex;
 
@@ -230,6 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             _lastComputeContext.InvokeOnInvalidate(this, MaybeRefreshUI);
             
             var analysis = new ReactiveObjectAnalyzer(_lastComputeContext);
+            analysis.OptimizeShapes = false;
             analysis.ForcePropertyOverrides = PropertyOverrides.Value;
             analysis.ForceMenuItems = MenuItemOverrides.Value;
             var result = analysis.Analyze(avatar.gameObject);
@@ -286,7 +321,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             // these properties in a closure
             _menuItemOverrideProperty = prop;
             _menuItemOverrideTarget = mami;
-            soc.OnStateOverrideChanged += MenuItemOverrideChanged;
+            soc.OnStateOverrideChanged = MenuItemOverrideChanged;
         }
 
         private void MenuItemOverrideChanged(bool? obj)
@@ -319,7 +354,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
             _propertyOverrideProperty = property;
             _propertyOverrideTargetValue = targetValue;
-            soc.OnStateOverrideChanged += OnParameterOverrideChanged;
+            soc.OnStateOverrideChanged = OnParameterOverrideChanged;
         }
 
         private void OnParameterOverrideChanged(bool? state)
@@ -437,7 +472,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     var f_set_inactive = effectGroup.Q<VisualElement>("effect__set-inactive");
                     var f_value = effectGroup.Q<FloatField>("effect__value");
                     var f_material = effectGroup.Q<ObjectField>("effect__material");
-                    var f_delete = effectGroup.Q("effect__deleted");
+                    var f_delete = effectGroup.Q<TextField>("effect__deleted");
                     
                     f_target_component.style.display = DisplayStyle.None;
                     f_target_component.SetEnabled(false);
@@ -470,9 +505,10 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         f_property.value = targetProp.PropertyName;
                         f_property.style.display = DisplayStyle.Flex;
 
-                        if (reactionRule.IsDelete)
+                        if (reactionRule.TargetProp.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                         {
                             f_delete.style.display = DisplayStyle.Flex;
+                            f_delete.value = reactionRule.Value is > 0.5f ? "DELETE" : "RETAIN";
                         } else if (reactionRule.Value is float f)
                         {
                             f_value.SetValueWithoutNotify(f);
@@ -539,11 +575,11 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         soc.SetWithoutNotify(menuOverride);
                     }
 
-                    soc.OnStateOverrideChanged += value => { UpdateMenuItemOverride(prop, mami, value); };
+                    soc.OnStateOverrideChanged = value => { UpdateMenuItemOverride(prop, mami, value); };
                 }
                 else
                 {
-                    soc.OnStateOverrideChanged += value => UpdatePropertyOverride(prop, value, targetValue);
+                    soc.OnStateOverrideChanged = value => UpdatePropertyOverride(prop, value, targetValue);
                 }
 
                 var active = condition.InitiallyActive;

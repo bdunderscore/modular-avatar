@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using UnityEditor;
@@ -25,6 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private HashSet<string> activeProps = new();
         
         private AnimationClip _initialStateClip;
+        private bool _writeDefaults;
         
         public ReactiveObjectPass(ndmf.BuildContext context)
         {
@@ -33,13 +33,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
+            // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
+            // and if mixed, use WD ON to maximize compatibility.
+            _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(FindFxController().animatorController as AnimatorController) ?? true;
+            
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             var shapes = analysis.Shapes;
             var initialStates = analysis.InitialStates;
-            var deletedShapes = analysis.DeletedShapes;
             
             GenerateActiveSelfProxies(shapes);
+
+            ProcessMeshDeletion(initialStates, shapes);
 
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
@@ -48,8 +53,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 ProcessShapeKey(groups);
             }
-
-            ProcessMeshDeletion(deletedShapes);
         }
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -80,7 +83,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     initialValues[condition.Parameter] = condition.InitialValue;
                 }
             }
-        }
+        } 
 
         private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -220,30 +223,65 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private void ProcessMeshDeletion(HashSet<TargetProp> deletedKeys)
+        private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
+            Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            ImmutableDictionary<SkinnedMeshRenderer, List<TargetProp>> renderers = deletedKeys
-                .GroupBy(
-                    v => (SkinnedMeshRenderer) v.TargetObject
-                ).ToImmutableDictionary(
-                    g => (SkinnedMeshRenderer) g.Key,
-                    g => g.ToList()
-                );
+            var renderers = initialStates
+                .Where(kvp => kvp.Key.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                .Where(kvp => kvp.Key.TargetObject is SkinnedMeshRenderer)
+                .Where(kvp => kvp.Value is float f && f > 0.5f)
+                // Filter any non-constant keys
+                .Where(kvp =>
+                {
+                    if (!shapes.ContainsKey(kvp.Key))
+                    {
+                        // Constant value
+                        return true;
+                    }
 
-            foreach (var (renderer, infos) in renderers)
+                    var lastGroup = shapes[kvp.Key].actionGroups.LastOrDefault();
+                    return lastGroup?.IsConstantActive == true && lastGroup.Value is float f && f > 0.5f;
+                })
+                .GroupBy(kvp => kvp.Key.TargetObject as SkinnedMeshRenderer)
+                .Select(grouping => (grouping.Key, grouping.Select(
+                    kvp => kvp.Key.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length)
+                ).ToList()))
+                .ToList();
+            foreach (var (renderer, shapeNamesToDelete) in renderers)
             {
                 if (renderer == null) continue;
 
                 var mesh = renderer.sharedMesh;
                 if (mesh == null) continue;
 
-                renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(
-                    mesh,
-                    infos
-                        .Select(i => mesh.GetBlendShapeIndex(i.PropertyName.Substring("blendShape.".Length)))
-                        .Where(k => k >= 0)
-                        .ToList()
-                );
+                var shapesToDelete = shapeNamesToDelete
+                    .Select(shape => mesh.GetBlendShapeIndex(shape))
+                    .Where(k => k >= 0)
+                    .ToList();
+
+                renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
+
+                foreach (var name in shapeNamesToDelete)
+                {
+                    // Don't need to animate this anymore...!
+                    shapes.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
+                    });
+
+                    shapes.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + name
+                    });
+
+                    initialStates.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
+                    });
+                }
             }
         }
 
@@ -252,10 +290,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessShapeKey(AnimatedProperty info)
         {
             // TODO: prune non-animated keys
-
-            // Check if this is non-animated and skip most processing if so
-            if (info.alwaysDeleted || info.actionGroups[^1].IsConstant) return;
-
             var asm = GenerateStateMachine(info);
             ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
         }
@@ -277,7 +311,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var initial = new AnimationClip();
             var initialState = new AnimatorState();
             initialState.motion = initial;
-            initialState.writeDefaultValues = false;
+            initialState.writeDefaultValues = _writeDefaults;
             initialState.name = "<default>";
             asm.defaultState = initialState;
 
@@ -351,7 +385,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     state.name = group.ControllingConditions[0].DebugName.Replace(".", "_");
 
                     state.motion = clip;
-                    state.writeDefaultValues = false;
+                    state.writeDefaultValues = _writeDefaults;
                     states.Add(new ChildAnimatorState
                     {
                         position = new Vector3(x, y),
@@ -527,13 +561,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ApplyController(AnimatorStateMachine asm, string layerName)
         {
-            var fx = context.AvatarDescriptor.baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var fx = FindFxController();
+            
             if (fx.animatorController == null)
             {
                 throw new InvalidOperationException("No FX layer found");
             }
-
+            
             if (!context.IsTemporaryAsset(fx.animatorController))
             {
                 throw new InvalidOperationException("FX layer is not a temporary asset");
@@ -568,6 +602,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     defaultWeight = 1
                 }
             ).ToArray();
+        }
+
+        private VRCAvatarDescriptor.CustomAnimLayer FindFxController()
+        {
+            var fx = context.AvatarDescriptor.baseAnimationLayers
+                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+
+            return fx;
         }
     }
 }

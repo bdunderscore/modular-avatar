@@ -18,6 +18,11 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext _context;
         private readonly AnimationServicesContext _asc;
         private Dictionary<string, float> _simulationInitialStates;
+
+        public const string BlendshapePrefix = "blendShape.";
+        public const string DeletedShapePrefix = "deletedShape.";
+
+        public bool OptimizeShapes = true;
         
         public ImmutableDictionary<string, float> ForcePropertyOverrides { get; set; } = ImmutableDictionary<string, float>.Empty;
 
@@ -58,7 +63,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             public Dictionary<TargetProp, AnimatedProperty> Shapes;
             public Dictionary<TargetProp, object> InitialStates;
-            public HashSet<TargetProp> DeletedShapes;
         }
 
         private static PropCache<GameObject, AnalysisResult> _analysisCache;
@@ -67,7 +71,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_analysisCache == null)
             {
-                _analysisCache = new PropCache<GameObject, AnalysisResult>((ctx, root) =>
+                _analysisCache = new PropCache<GameObject, AnalysisResult>("ROAnalyzer", (ctx, root) =>
                 {
                     var analysis = new ReactiveObjectAnalyzer(ctx);
                     analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)
@@ -86,7 +90,6 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         /// <param name="root">The avatar root</param>
         /// <param name="initialStates">A dictionary of target property to initial state (float or UnityEngine.Object)</param>
-        /// <param name="deletedShapes">A hashset of blendshape properties which are always deleted</param>
         /// <returns></returns>
         public AnalysisResult Analyze(
             GameObject root
@@ -98,9 +101,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 result.Shapes = new();
                 result.InitialStates = new();
-                result.DeletedShapes = new();
                 return result;
             }
+
+            LocateBlendshapeSyncs(root); 
             
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
             FindObjectToggles(shapes, root);
@@ -109,7 +113,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ApplyInitialStateOverrides(shapes);
             AnalyzeConstants(shapes); 
             ResolveToggleInitialStates(shapes);
-            PreprocessShapes(shapes, out result.InitialStates, out result.DeletedShapes);
+            PreprocessShapes(shapes, out result.InitialStates);
             result.Shapes = shapes;
 
             return result;
@@ -144,7 +148,7 @@ namespace nadena.dev.modular_avatar.core.editor
             HashSet<GameObject> toggledObjects = new();
 
             if (asc == null) return;
-
+            
             foreach (var targetProp in shapes.Keys)
                 if (targetProp is { TargetObject: GameObject go, PropertyName: "m_IsActive" })
                     toggledObjects.Add(go);
@@ -157,9 +161,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
                             condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
 
-                    var i = 0;
                     // Remove redundant active conditions.
-                    int retain = 0;
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
                 }
 
@@ -167,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 group.actionGroups.RemoveAll(agk => agk.IsConstant && !agk.InitiallyActive);
                 
                 // Remove all action groups up until the last one where we're always on
-                var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantOn);
+                var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantActive);
                 if (lastAlwaysOnGroup > 0)
                     group.actionGroups.RemoveRange(0, lastAlwaysOnGroup - 1);
             }
@@ -266,39 +268,26 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         /// <summary>
-        /// Determine initial state and deleted shapes for all properties
+        /// Determine initial state for all properties
         /// </summary>
         /// <param name="shapes"></param>
         /// <param name="initialStates"></param>
-        /// <param name="deletedShapes"></param>
-        private void PreprocessShapes(Dictionary<TargetProp, AnimatedProperty> shapes, out Dictionary<TargetProp, object> initialStates, out HashSet<TargetProp> deletedShapes)
+        private void PreprocessShapes(Dictionary<TargetProp, AnimatedProperty> shapes,
+            out Dictionary<TargetProp, object> initialStates)
         {
             // For each shapekey, determine 1) if we can just set an initial state and skip and 2) if we can delete the
             // corresponding mesh. If we can't, delete ops are merged into the main list of operations.
             
             initialStates = new Dictionary<TargetProp, object>();
-            deletedShapes = new HashSet<TargetProp>();
-
+            
             foreach (var (key, info) in shapes.ToList())
             {
                 if (info.actionGroups.Count == 0)
                 {
                     // never active control; ignore it entirely
-                    shapes.Remove(key);
+                    if (OptimizeShapes) shapes.Remove(key);
                     continue;
                 }
-                
-                var deletions = info.actionGroups.Where(agk => agk.IsDelete).ToList();
-                if (deletions.Any(d => d.ControllingConditions.All(c => c.IsConstantActive)))
-                {
-                    // always deleted
-                    shapes.Remove(key);
-                    deletedShapes.Add(key);
-                    continue;
-                }
-                
-                // Move deleted shapes to the end of the list, so they override all Set actions
-                info.actionGroups = info.actionGroups.Where(agk => !agk.IsDelete).Concat(deletions).ToList();
 
                 var initialState = info.actionGroups.Where(agk => agk.InitiallyActive)
                     .Select(agk => agk.Value)
@@ -310,7 +299,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // If we're now constant-on, we can skip animation generation
                 if (info.actionGroups[^1].IsConstant)
                 {
-                    shapes.Remove(key);
+                    if (OptimizeShapes) shapes.Remove(key);
                 }
             }
         }

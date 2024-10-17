@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static StyleSheet uss;
         private Button btn_disable, btn_default, btn_enable;
-        public event System.Action<bool?> OnStateOverrideChanged;
+        public System.Action<bool?> OnStateOverrideChanged;
         
         public StateOverrideController()
         {

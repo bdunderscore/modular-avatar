@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         protected override void OnInnerInspectorGUI()
         {
-            throw new NotImplementedException();
+            EditorGUILayout.HelpBox("Unable to show override changes", MessageType.Info);
         }
 
         protected override VisualElement CreateInnerInspectorGUI()
@@ -35,13 +35,11 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             ROSimulatorButton.BindRefObject(root, target);
 
             var listView = root.Q<ListView>("Shapes");
-            _dragAndDropManipulator = new DragAndDropManipulator(listView)
-            {
-                TargetComponent = target as ModularAvatarObjectToggle
-            };
 
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+
+            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarObjectToggle);
 
             return root;
         }
@@ -52,91 +50,25 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 _dragAndDropManipulator.TargetComponent = target as ModularAvatarObjectToggle;
         }
 
-        private class DragAndDropManipulator : PointerManipulator
+        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarObjectToggle>
         {
-            public ModularAvatarObjectToggle TargetComponent;
-            private GameObject[] _nowDragging = Array.Empty<GameObject>();
-            private Transform _avatarRoot;
+            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarObjectToggle targetComponent)
+                : base(targetElement, targetComponent) { }
 
-            private readonly VisualElement _parentElem;
+            protected override bool AllowKnownObjects => false;
 
-            public DragAndDropManipulator(VisualElement target)
+            protected override void AddObjectReferences(AvatarObjectReference[] references)
             {
-                this.target = target;
-                _parentElem = target.parent;
-            }
+                Undo.RecordObject(TargetComponent, "Add Toggled Objects");
 
-            protected override void RegisterCallbacksOnTarget()
-            {
-                target.RegisterCallback<DragEnterEvent>(OnDragEnter);
-                target.RegisterCallback<DragLeaveEvent>(OnDragLeave);
-                target.RegisterCallback<DragPerformEvent>(OnDragPerform);
-                target.RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
-            }
-
-            protected override void UnregisterCallbacksFromTarget()
-            {
-                target.UnregisterCallback<DragEnterEvent>(OnDragEnter);
-                target.UnregisterCallback<DragLeaveEvent>(OnDragLeave);
-                target.UnregisterCallback<DragPerformEvent>(OnDragPerform);
-                target.RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
-            }
-
-
-            private void OnDragEnter(DragEnterEvent evt)
-            {
-                if (TargetComponent == null) return;
-
-                _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(TargetComponent.transform);
-                if (_avatarRoot == null) return;
-
-                _nowDragging = DragAndDrop.objectReferences.OfType<GameObject>()
-                    .Where(o => RuntimeUtil.FindAvatarTransformInParents(o.transform) == _avatarRoot)
-                    .ToArray();
-
-                if (_nowDragging.Length > 0)
+                foreach (var reference in references)
                 {
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-
-                    _parentElem.AddToClassList("drop-area--drag-active");
-                }
-            }
-
-            private void OnDragUpdate(DragUpdatedEvent _)
-            {
-                if (_nowDragging.Length > 0) DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-            }
-
-            private void OnDragLeave(DragLeaveEvent evt)
-            {
-                _nowDragging = Array.Empty<GameObject>();
-                _parentElem.RemoveFromClassList("drop-area--drag-active");
-            }
-
-            private void OnDragPerform(DragPerformEvent evt)
-            {
-                if (_nowDragging.Length > 0 && TargetComponent != null && _avatarRoot != null)
-                {
-                    var knownObjs = TargetComponent.Objects.Select(o => o.Object.Get(TargetComponent)).ToHashSet();
-
-                    Undo.RecordObject(TargetComponent, "Add Toggled Objects");
-                    foreach (var obj in _nowDragging)
-                    {
-                        if (knownObjs.Contains(obj)) continue;
-
-                        var aor = new AvatarObjectReference();
-                        aor.Set(obj);
-
-                        var toggledObject = new ToggledObject { Object = aor, Active = !obj.activeSelf };
-                        TargetComponent.Objects.Add(toggledObject);
-                    }
-
-                    EditorUtility.SetDirty(TargetComponent);
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(TargetComponent);
+                    var toggledObject = new ToggledObject { Object = reference, Active = !reference.Get(TargetComponent).activeSelf };
+                    TargetComponent.Objects.Add(toggledObject);
                 }
 
-                _nowDragging = Array.Empty<GameObject>();
-                _parentElem.RemoveFromClassList("drop-area--drag-active");
+                EditorUtility.SetDirty(TargetComponent);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(TargetComponent);
             }
         }
     }

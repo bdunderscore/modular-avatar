@@ -263,7 +263,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return outfitHumanoidBones;
         }
 
-        private static void FixAPose(GameObject avatarRoot, Transform outfitArmature)
+        internal static void FixAPose(GameObject avatarRoot, Transform outfitArmature, bool strictMode = true)
         {
             var mergeArmature = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
             if (mergeArmature == null) return;
@@ -283,7 +283,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var lowerArm = (HumanBodyBones)((int)arm + 2);
 
-                // check if the rotation of the arm differs, but distances and origin point are the same
+                // check if the rotation of the arm differs(, but distances and origin point are the same when strictMode)
                 var avatarArm = rootAnimator.GetBoneTransform(arm);
                 var outfitArm = avatarToOutfit(avatarArm);
 
@@ -293,22 +293,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (outfitArm == null) return;
                 if (outfitLowerArm == null) return;
 
-                if ((avatarArm.position - outfitArm.position).magnitude > 0.001f) return;
+                if (strictMode)
+                {
+                    if ((avatarArm.position - outfitArm.position).magnitude > 0.001f) return;
 
-                // check relative distance to lower arm as well
-                var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
-                var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
+                    // check relative distance to lower arm as well
+                    var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
+                    var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
 
-                if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.001f) return;
+                    if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.001f) return;
+                } else {
+                    if (Vector3.Dot((outfitLowerArm.position - outfitArm.position).normalized, (avatarLowerArm.position - avatarArm.position).normalized) > 0.999f) return;
+                }
 
-                // Rotate the outfit arm to ensure these two points match.
+                // Rotate the outfit arm to ensure these two bone orientations match.
+                Undo.RecordObject(outfitArm, "Convert A/T Pose");
                 var relRot = Quaternion.FromToRotation(
                     outfitLowerArm.position - outfitArm.position,
                     avatarLowerArm.position - avatarArm.position
                 );
                 outfitArm.rotation = relRot * outfitArm.rotation;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(outfitArm);
-                EditorUtility.SetDirty(outfitArm);
             }
 
             Transform avatarToOutfit(Transform avBone)
@@ -419,7 +424,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static bool ValidateSetupOutfit(GameObject gameObj)
         {
-            Object obj;
+            if (gameObj == null)
+            {
+                errorHeader = S("setup_outfit.err.header.notarget");
+                errorMessageGroups = new string[] { S("setup_outfit.err.no_selection") };
+                return false;
+            }
+
             errorHeader = S_f("setup_outfit.err.header", gameObj.name);
             var xform = gameObj.transform;
 

@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
             new[] {"LeftFoot", "Foot_Left", "Foot_L", "Ankle_L", "Foot.L.001", "Left ankle", "heel.L", "heel"},
             new[] {"RightFoot", "Foot_Right", "Foot_R", "Ankle_R", "Foot.R.001", "Right ankle", "heel.R", "heel"},
             new[] {"Spine", "spine01"},
-            new[] {"Chest", "Bust", "spine02"},
+            new[] {"Chest", "Bust", "spine02", "upper_chest"},
             new[] {"Neck"},
             new[] {"Head"},
             new[] {"LeftShoulder", "Shoulder_Left", "Shoulder_L"},

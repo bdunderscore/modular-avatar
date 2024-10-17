@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void OnInnerInspectorGUI()
         {
-            throw new NotImplementedException();
+            EditorGUILayout.HelpBox("Unable to show override changes", MessageType.Info);
         }
 
         protected override VisualElement CreateInnerInspectorGUI()
@@ -61,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var grouped = ctx.Observe(target,
                 t => (t.GroupedBones ?? Array.Empty<GameObject>())
                     .Select(obj => obj.transform)
-                    .ToHashSet(new ObjectIdentityComparer<Transform>()),
+                    .ToHashSet(),
                 (x, y) => x.SetEquals(y)
             );
 

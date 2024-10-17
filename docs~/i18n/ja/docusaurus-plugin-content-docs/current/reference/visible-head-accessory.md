@@ -22,5 +22,3 @@ Headボーンの子にVisible Head Accessoryコンポーネントを付けるだ
 
 このコンポーネントは自動的にHeadボーンを複製し、Parent Constraintで本物のHeadボーンに追従させます。
 複数のVisible Head Accessoryコンポーネントを使っても、Constraintは一つだけです。なので、複数のボーンを指定しても、その分重くなることはありません。
-
-技術的な制約により、Quest単体では動作できません。Quest向けのビルドはつけたままにしてもいいが、効果は発揮しません。

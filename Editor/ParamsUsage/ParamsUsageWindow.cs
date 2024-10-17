@@ -109,7 +109,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 return uxml != null && EditorStyles.label != null;
             }
-            catch (NullReferenceException _)
+            catch (NullReferenceException)
             {
                 return false;
             }

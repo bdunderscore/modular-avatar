@@ -59,29 +59,29 @@ namespace nadena.dev.modular_avatar.core.editor
             var scaleAdjusters = ctx.GetComponentsByType<ModularAvatarScaleAdjuster>();
 
             var avatarToRenderer =
-                new Dictionary<GameObject, HashSet<Renderer>>(new ObjectIdentityComparer<GameObject>());
+                new Dictionary<GameObject, HashSet<Renderer>>();
 
-            foreach (var adjuster in scaleAdjusters)
+            foreach (var root in ctx.GetAvatarRoots())
             {
-                if (adjuster == null) continue;
-
-                // Find parent object
-                // TODO: Reactive helper
-                var root = FindAvatarRootObserving(ctx, adjuster.gameObject);
-                if (root == null) continue;
-
-                if (!avatarToRenderer.TryGetValue(root, out var renderers))
+                if (ctx.GetComponentsInChildren<ModularAvatarScaleAdjuster>(root, true).Length == 0)
                 {
-                    renderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
-                    avatarToRenderer.Add(root, renderers);
+                    continue;
+                }
 
-                    foreach (var renderer in root.GetComponentsInChildren<Renderer>())
-                    {
-                        // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
-                        if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+                if (ctx.GetAvatarRoot(root?.transform?.parent?.gameObject) != null)
+                {
+                    continue; // nested avatar descriptor
+                }
 
-                        renderers.Add(renderer);
-                    }
+                var renderers = new HashSet<Renderer>();
+                avatarToRenderer.Add(root, renderers);
+
+                foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+                {
+                    // For now, the preview system only supports MeshRenderer and SkinnedMeshRenderer
+                    if (renderer is not MeshRenderer and not SkinnedMeshRenderer) continue;
+
+                    renderers.Add(renderer);
                 }
             }
 
@@ -97,6 +97,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class ScaleAdjusterPreviewNode : IRenderFilterNode
     {
+        private readonly HashSet<Transform> _knownProxies = new();
+        
         private readonly GameObject SourceAvatarRoot;
         private readonly GameObject VirtualAvatarRoot;
 
@@ -110,12 +112,12 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly Dictionary<Transform, Transform> _shadowBoneMap;
 
         // Map from bones found in initial proxy state to shadow bones (with scale adjuster bones substituted)
-        private readonly Dictionary<Transform, Transform> _finalBonesMap = new(new ObjectIdentityComparer<Transform>());
+        private readonly Dictionary<Transform, Transform> _finalBonesMap = new();
 
         private readonly Dictionary<ModularAvatarScaleAdjuster, Transform> _scaleAdjusters =
-            new(new ObjectIdentityComparer<ModularAvatarScaleAdjuster>());
+            new();
 
-        private Dictionary<Renderer, Transform[]> _rendererBoneStates = new(new ObjectIdentityComparer<Renderer>());
+        private Dictionary<Renderer, Transform[]> _rendererBoneStates = new();
 
         public ScaleAdjusterPreviewNode(ComputeContext context, RenderGroup group,
             IEnumerable<(Renderer, Renderer)> proxyPairs)
@@ -129,28 +131,37 @@ namespace nadena.dev.modular_avatar.core.editor
             var priorScene = SceneManager.GetActiveScene();
 
             var bonesSet = GetSourceBonesSet(context, proxyPairList);
-            var bones = bonesSet.ToArray();
+            var bones = bonesSet.OrderBy(k => k.gameObject.name).ToArray();
 
+            Transform[] sourceBones;
             Transform[] destinationBones;
             try
             {
                 SceneManager.SetActiveScene(scene);
                 VirtualAvatarRoot = new GameObject(avatarRoot.name + " [ScaleAdjuster]");
-                _srcBones = new TransformAccessArray(bones.ToArray());
-                destinationBones = CreateShadowBones(bones);
+
+                _shadowBoneMap = CreateShadowBones(bones);
+                sourceBones = new Transform[_shadowBoneMap.Count];
+                destinationBones = new Transform[_shadowBoneMap.Count];
+
+                var i = 0;
+                foreach (var (src, dst) in _shadowBoneMap)
+                {
+                    sourceBones[i] = src;
+                    destinationBones[i] = dst;
+                    i++;
+                }
             }
             finally
             {
                 SceneManager.SetActiveScene(priorScene);
             }
 
-            _shadowBoneMap = new Dictionary<Transform, Transform>(new ObjectIdentityComparer<Transform>());
-            for (var i = 0; i < bones.Length; i++) _shadowBoneMap[bones[i]] = destinationBones[i];
-
+            _srcBones = new TransformAccessArray(sourceBones);
             _dstBones = new TransformAccessArray(destinationBones);
 
-            _boneIsValid = new NativeArray<bool>(bones.Length, Allocator.Persistent);
-            _boneStates = new NativeArray<TransformState>(bones.Length, Allocator.Persistent);
+            _boneIsValid = new NativeArray<bool>(sourceBones.Length, Allocator.Persistent);
+            _boneStates = new NativeArray<TransformState>(sourceBones.Length, Allocator.Persistent);
 
             FindScaleAdjusters(context);
             TransferBoneStates();
@@ -158,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private HashSet<Transform> GetSourceBonesSet(ComputeContext context, List<(Renderer, Renderer)> proxyPairs)
         {
-            var bonesSet = new HashSet<Transform>(new ObjectIdentityComparer<Transform>());
+            var bonesSet = new HashSet<Transform>();
             foreach (var (_, r) in proxyPairs)
             {
                 if (r == null) continue;
@@ -170,8 +181,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (smr == null) continue;
 
                 foreach (var b in context.Observe(smr, smr_ => smr_.bones, Enumerable.SequenceEqual))
+                {
                     if (b != null)
+                    {
                         bonesSet.Add(b);
+                    }
+                }
             }
 
             return bonesSet;
@@ -182,10 +197,14 @@ namespace nadena.dev.modular_avatar.core.editor
             _finalBonesMap.Clear();
 
             foreach (var (sa, proxy) in _scaleAdjusters.ToList())
+            {
                 // Note: We leak the proxy here, as destroying it can cause visual artifacts. They'll eventually get
                 // cleaned up whenever the pipeline is fully reset, or when the scene is reloaded.
                 if (sa == null)
+                {
                     _scaleAdjusters.Remove(sa);
+                }
+            }
 
             _scaleAdjusters.Clear();
 
@@ -213,6 +232,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (SourceAvatarRoot == null) return Task.FromResult<IRenderFilterNode>(null);
 
+            // Clean any destroyed objects out of _knownProxies to avoid growing this set indefinitely
+            _knownProxies.RemoveWhere(p => p == null);
+
             var proxyPairList = proxyPairs.ToList();
 
             if (!GetSourceBonesSet(context, proxyPairList).SetEquals(_shadowBoneMap.Keys))
@@ -224,14 +246,13 @@ namespace nadena.dev.modular_avatar.core.editor
             return Task.FromResult<IRenderFilterNode>(this);
         }
 
-        private Transform[] CreateShadowBones(Transform[] srcBones)
+        private Dictionary<Transform, Transform> CreateShadowBones(Transform[] srcBones)
         {
-            var srcToDst = new Dictionary<Transform, Transform>(new ObjectIdentityComparer<Transform>());
+            var srcToDst = new Dictionary<Transform, Transform>();
 
-            var dstBones = new Transform[srcBones.Length];
-            for (var i = 0; i < srcBones.Length; i++) dstBones[i] = GetShadowBone(srcBones[i]);
+            for (var i = 0; i < srcBones.Length; i++) GetShadowBone(srcBones[i]);
 
-            return dstBones;
+            return srcToDst;
 
             Transform GetShadowBone(Transform srcBone)
             {
@@ -278,12 +299,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 BoneIsValid[index] = transform.isValid;
 
                 if (transform.isValid)
+                {
                     BoneStates[index] = new TransformState
                     {
                         localPosition = transform.position,
                         localRotation = transform.rotation,
                         localScale = transform.localScale
                     };
+                }
             }
         }
 
@@ -321,7 +344,15 @@ namespace nadena.dev.modular_avatar.core.editor
             if (proxy == null) return;
 
             var curParent = proxy.transform.parent ?? original.transform.parent;
-            if (_finalBonesMap.TryGetValue(curParent, out var newRoot)) proxy.transform.SetParent(newRoot, false);
+            if (curParent != null && _finalBonesMap.TryGetValue(curParent, out var newRoot))
+            {
+                // We need to remember this proxy so we can avoid destroying it when we destroy VirtualAvatarRoot
+                // in Dispose
+
+                _knownProxies.Add(proxy.transform);
+
+                proxy.transform.SetParent(newRoot, false);
+            }
 
             var smr = proxy as SkinnedMeshRenderer;
             if (smr == null) return;
@@ -333,6 +364,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public void Dispose()
         {
+            foreach (var proxy in _knownProxies)
+            {
+                if (proxy != null && proxy.IsChildOf(VirtualAvatarRoot.transform))
+                {
+                    proxy.transform.SetParent(null, false);
+                }
+            }
+            
             Object.DestroyImmediate(VirtualAvatarRoot);
 
             _srcBones.Dispose();

@@ -19,12 +19,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var target = (ModularAvatarVisibleHeadAccessory) this.target;
 
-
-#if UNITY_ANDROID
-            EditorGUILayout.HelpBox(Localization.S("fpvisible.quest"), MessageType.Warning);
-
-#else
-
             if (_validation != null)
             {
                 var status = _validation.Validate(target);
@@ -35,6 +29,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VisibleHeadAccessoryValidation.ReadyStatus.ParentMarked:
                         EditorGUILayout.HelpBox(Localization.S("fpvisible.normal"), MessageType.Info);
                         break;
+                    case VisibleHeadAccessoryValidation.ReadyStatus.NotUnderHead:
+                        EditorGUILayout.HelpBox(Localization.S("fpvisible.NotUnderHead"), MessageType.Warning);
+                        break;
                     default:
                     {
                         var label = "fpvisible." + status;
@@ -43,8 +40,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
-
-#endif
 
             Localization.ShowLanguageUI();
         }

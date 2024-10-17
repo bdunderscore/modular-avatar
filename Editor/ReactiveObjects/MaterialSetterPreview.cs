@@ -28,7 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string PREFIX = "m_Materials.Array.data[";
         
         private PropCache<Renderer, ImmutableList<(int, Material)>> _cache = new(
-            GetMaterialOverridesForRenderer, Enumerable.SequenceEqual
+            "GetMaterialOverridesForRenderer", GetMaterialOverridesForRenderer, Enumerable.SequenceEqual
         );
 
         private static ImmutableList<(int, Material)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)

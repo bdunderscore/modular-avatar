@@ -87,23 +87,24 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var (paramName, list) in _mamiByParam)
             {
                 // Assign automatic values first
-                float defaultValue;
+                int? defaultValue = null;
                 if (declaredParams.TryGetValue(paramName, out var p))
                 {
-                    defaultValue = p.defaultValue;
+                    defaultValue = (int) p.defaultValue;
                 }
                 else
                 {
-                    defaultValue = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value ?? 0;
+                    var floatDefault = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value;
+                    if (floatDefault.HasValue) defaultValue = (int) floatDefault.Value;
 
-                    if (list.Count == 1)
-                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 0
-                        // be the 'unselected' default value (if this is not default)
-                        defaultValue = 0;
+                    if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
+                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 1
+                        // be the 'selected' default value (if this is default and automatic value)
+                        defaultValue = 1;
                 }
 
                 HashSet<int> usedValues = new();
-                usedValues.Add((int)defaultValue);
+                if (defaultValue.HasValue) usedValues.Add(defaultValue.Value);
 
                 foreach (var item in list)
                 {
@@ -113,24 +114,32 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                if (!defaultValue.HasValue)
+                {
+                    for (int i = 0; i < 256; i++)
+                    {
+                        if (!usedValues.Contains(i))
+                        {
+                            defaultValue = i;
+                            usedValues.Add(i);
+                            break;
+                        }
+                    }
+                }
+
                 var nextValue = 1;
 
-                var canBeBool = true;
-                var canBeInt = true;
-                var isSaved = true;
-                var isSynced = true;
+                var valueType = VRCExpressionParameters.ValueType.Bool;
+                var isSaved = false;
+                var isSynced = false;
 
                 foreach (var mami in list)
                 {
                     if (mami.automaticValue)
                     {
-                        if (list.Count == 1)
+                        if (mami.isDefault)
                         {
-                            mami.Control.value = 1;
-                        }
-                        else if (mami.isDefault)
-                        {
-                            mami.Control.value = defaultValue;
+                            mami.Control.value = defaultValue.GetValueOrDefault();
                         }
                         else
                         {
@@ -141,28 +150,24 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    if (Mathf.Abs(mami.Control.value - Mathf.Round(mami.Control.value)) > 0.01f)
-                        canBeInt = false;
-                    else
-                        canBeBool &= mami.Control.value is >= 0 and <= 1;
+                    var newValueType = mami.ExpressionParametersValueType;
+                    if (valueType == VRCExpressionParameters.ValueType.Bool || newValueType == VRCExpressionParameters.ValueType.Float)
+                    {
+                        valueType = newValueType;
+                    }
 
-                    isSaved &= mami.isSaved;
-                    isSynced &= mami.isSynced;
+                    isSaved |= mami.isSaved;
+                    isSynced |= mami.isSynced;
                 }
 
                 if (!declaredParams.ContainsKey(paramName))
                 {
-                    VRCExpressionParameters.ValueType newType;
-                    if (canBeBool) newType = VRCExpressionParameters.ValueType.Bool;
-                    else if (canBeInt) newType = VRCExpressionParameters.ValueType.Int;
-                    else newType = VRCExpressionParameters.ValueType.Float;
-
                     var newParam = new VRCExpressionParameters.Parameter
                     {
                         name = paramName,
-                        valueType = newType,
+                        valueType = valueType,
                         saved = isSaved,
-                        defaultValue = defaultValue,
+                        defaultValue = defaultValue.GetValueOrDefault(),
                         networkSynced = isSynced
                     };
                     newParameters[paramName] = newParam;
@@ -225,8 +230,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
                 InitialValue = mami.isDefault ? mami.Control.value : -999,
-                ParameterValueLo = mami.Control.value - 0.5f,
-                ParameterValueHi = mami.Control.value + 0.5f,
+                ParameterValueLo = mami.Control.value - 0.005f,
+                ParameterValueHi = mami.Control.value + 0.005f,
                 DebugReference = mami,
             };
         }
