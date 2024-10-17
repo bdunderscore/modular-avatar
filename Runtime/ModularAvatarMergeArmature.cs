@@ -61,6 +61,9 @@ namespace nadena.dev.modular_avatar.core
 
         public bool mangleNames = true;
 
+        // Inserted from HeuristicBoneMapper(Editor Assembly) with InitializeOnLoadMethod
+        // We use raw `boneNamePatterns` instead of `BoneToNameMap` because BoneToNameMap requires matching with normalized bone name, but normalizing makes raw prefix/suffix unavailable.
+        internal static string[][] boneNamePatterns;
         private ArmatureLockController _lockController;
 
         internal Transform MapBone(Transform bone)
@@ -216,14 +219,30 @@ namespace nadena.dev.modular_avatar.core
             // GameObject we're attached to.
             var baseName = hips.name;
             var mergeName = transform.GetChild(0).name;
+            var isInferred = false;
 
-            var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
-            if (prefixLength < 0) return;
+            foreach (var hipNameCandidate in boneNamePatterns[(int)HumanBodyBones.Hips])
+            {
+                var prefixLength = mergeName.IndexOf(hipNameCandidate, StringComparison.InvariantCultureIgnoreCase);
+                if (prefixLength < 0) continue;
 
-            var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+                var suffixLength = mergeName.Length - prefixLength - hipNameCandidate.Length;
 
-            prefix = mergeName.Substring(0, prefixLength);
-            suffix = mergeName.Substring(mergeName.Length - suffixLength);
+                prefix = mergeName.Substring(0, prefixLength);
+                suffix = mergeName.Substring(mergeName.Length - suffixLength);
+                isInferred = true;
+                break;
+            }
+
+            if (!isInferred) { // Also check with old method as fallback
+                var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
+                if (prefixLength < 0) return;
+
+                var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+
+                prefix = mergeName.Substring(0, prefixLength);
+                suffix = mergeName.Substring(mergeName.Length - suffixLength);
+            }
 
             if (prefix == "J_Bip_C_")
             {
