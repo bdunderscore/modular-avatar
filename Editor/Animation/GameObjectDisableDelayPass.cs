@@ -52,6 +52,21 @@ namespace nadena.dev.modular_avatar.animation
                 defaultWeight = 1,
                 blendingMode = AnimatorLayerBlendingMode.Override
             }).ToArray();
+
+            // Ensure the initial state of readable props matches the actual state of the gameobject
+            var parameters = fx.parameters;
+            var paramToIndex = parameters.Select((p, i) => (p, i)).ToDictionary(x => x.p.name, x => x.i);
+            foreach (var (binding, prop) in asc.BoundReadableProperties)
+            {
+                var obj = asc.PathMappings.PathToObject(binding.path);
+
+                if (obj != null && paramToIndex.TryGetValue(prop, out var index))
+                {
+                    parameters[index].defaultFloat = obj.activeSelf ? 1 : 0;
+                }
+            }
+
+            fx.parameters = parameters;
         }
 
         private ChildMotion GenerateDelayChild((EditorCurveBinding, string) binding)
