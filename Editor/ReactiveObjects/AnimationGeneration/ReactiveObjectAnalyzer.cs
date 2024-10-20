@@ -128,7 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     foreach (var cond in rule.ControllingConditions)
                     {
                         var paramName = cond.Parameter;
-                        if (ForcePropertyOverrides.TryGetValue(paramName, out var value))
+                        if (ForcePropertyOverrides?.TryGetValue(paramName, out var value) == true)
                         {
                             cond.InitialValue = value;
                         }
