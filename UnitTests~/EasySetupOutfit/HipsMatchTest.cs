@@ -4,7 +4,7 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
 
-public class PreferFirstHipsMatch : TestBase
+public class HipsMatchTest : TestBase
 {
     [Test]
     public void SetupHeuristicPrefersFirstHipsMatch()
@@ -21,7 +21,28 @@ public class PreferFirstHipsMatch : TestBase
         var outfit = CreateChild(root, "Outfit");
         var outfit_armature = CreateChild(outfit, "Armature");
         var outfit_hips = CreateChild(outfit_armature, "Hips");
-        
+
+        Assert.IsTrue(SetupOutfit.FindBones(outfit, out var det_av_root, out var det_av_hips, out var det_outfit_hips));
+        Assert.AreSame(root, det_av_root);
+        Assert.AreSame(root_hips, det_av_hips);
+        Assert.AreSame(outfit_hips, det_outfit_hips);
+    }
+
+    [Test]
+    public void TestOutfitDeepHipsMatch()
+    {
+        var root = CreateCommonPrefab("shapell.fbx");
+#if MA_VRCSDK3_AVATARS
+        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+#endif
+        var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).gameObject;
+        root_hips.name = "hip";
+
+        var outfit = CreateChild(root, "Outfit");
+        var outfit_armature = CreateChild(outfit, "armature");
+        var outfit_armature2 = CreateChild(outfit_armature, "armature2");
+        var outfit_hips = CreateChild(outfit_armature2, "hips");
+
         Assert.IsTrue(SetupOutfit.FindBones(outfit, out var det_av_root, out var det_av_hips, out var det_outfit_hips));
         Assert.AreSame(root, det_av_root);
         Assert.AreSame(root_hips, det_av_hips);
