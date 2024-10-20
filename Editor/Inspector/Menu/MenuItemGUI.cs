@@ -301,10 +301,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUILayout.BeginVertical();
 
                 if (_type.hasMultipleDifferentValues) return;
-                VRCExpressionsMenu.Control.ControlType type =
-                    (VRCExpressionsMenu.Control.ControlType) Enum
-                        .GetValues(typeof(VRCExpressionsMenu.Control.ControlType))
-                        .GetValue(_type.enumValueIndex);
+                var controlTypeArray = Enum.GetValues(typeof(VRCExpressionsMenu.Control.ControlType));
+                var index = Math.Clamp(_type.enumValueIndex, 0, controlTypeArray.Length - 1);
+                var type = (VRCExpressionsMenu.Control.ControlType)controlTypeArray.GetValue(index);
 
                 switch (type)
                 {

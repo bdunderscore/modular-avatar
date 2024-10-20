@@ -119,9 +119,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static VRCExpressionsMenu.Control CloneControl(VRCExpressionsMenu.Control c)
         {
+            var type = c.type != 0 ? c.type : VRCExpressionsMenu.Control.ControlType.Button;
+            
             return new VRCExpressionsMenu.Control()
             {
-                type = c.type,
+                type = type,
                 name = c.name,
                 icon = c.icon,
                 parameter = new VRCExpressionsMenu.Control.Parameter() { name = c.parameter?.name },
