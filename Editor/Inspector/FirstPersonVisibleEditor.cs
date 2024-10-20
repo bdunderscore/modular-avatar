@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if MA_VRCSDK3_AVATARS
+using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -45,3 +46,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif

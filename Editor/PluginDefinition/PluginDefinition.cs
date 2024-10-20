@@ -57,26 +57,29 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
                 {
+#if MA_VRCSDK3_AVATARS
                     seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
                         .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(), new MaterialSetterPreview());
-#if MA_VRCSDK3_AVATARS
+
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
                     // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
                     // to retain those objects? maybe?
                     seq.Run(MenuInstallPluginPass.Instance);
 #endif
-                    
+
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
+#if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+#endif
                     seq.Run("World Fixed Object",
                         ctx => new WorldFixedObjectProcessor().Process(ctx)
                     );
                     seq.Run(ReplaceObjectPluginPass.Instance);
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
-#endif
                     seq.Run(GameObjectDelayDisablePass.Instance);
+#endif
                     seq.Run(ConstraintConverterPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
@@ -213,6 +216,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+#if MA_VRCSDK3_AVATARS
     class VisibleHeadAccessoryPluginPass : MAPass<VisibleHeadAccessoryPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -220,6 +224,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             new VisibleHeadAccessoryProcessor(MAContext(context)).Process();
         }
     }
+#endif
 
     class ReplaceObjectPluginPass : MAPass<ReplaceObjectPluginPass>
     {
