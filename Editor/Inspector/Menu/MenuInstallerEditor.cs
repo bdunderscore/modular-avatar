@@ -368,7 +368,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             serializedObject.ApplyModifiedProperties();
 
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
         }
 
         private string ObjectHierarchyOrder(Component arg)
@@ -415,6 +415,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     var group = installer.gameObject.AddComponent<ModularAvatarMenuGroup>();
                     var menuRoot = new GameObject();
                     menuRoot.name = "Menu";
+
+                    group.targetObject = menuRoot;
+                    
                     Undo.RegisterCreatedObjectUndo(menuRoot, "Extract menu");
                     menuRoot.transform.SetParent(group.transform, false);
                     foreach (var control in menu.controls)
