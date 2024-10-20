@@ -57,14 +57,9 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Shape Changer")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/shape-changer?lang=auto")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/shape-changer?lang=auto")]
     public class ModularAvatarShapeChanger : ReactiveComponent, IHaveObjReferences
     {
-        // Migration field to help with 1.10-beta series avatar data. Since this was never in a released version of MA,
-        // this migration support will be removed in 1.10.0.
-        [SerializeField] [FormerlySerializedAs("targetRenderer")] [HideInInspector]
-        private AvatarObjectReference m_targetRenderer = new();
-
         [SerializeField] [FormerlySerializedAs("Shapes")]
         private List<ChangedShape> m_shapes = new();
 
@@ -79,40 +74,6 @@ namespace nadena.dev.modular_avatar.core
             foreach (var shape in m_shapes)
             {
                 shape.Object?.Get(this);
-            }
-        }
-
-        private void OnEnable()
-        {
-            MigrateTargetRenderer();
-        }
-
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            MigrateTargetRenderer();
-        }
-
-        // Migrate early versions of MASC (from Modular Avatar 1.10.0-beta.4 or earlier) to the new format, where the
-        // target renderer is stored separately for each shape.
-        // This logic will be removed in 1.10.0.
-        private void MigrateTargetRenderer()
-        {
-            // Note: This method runs in the context of OnValidate, and therefore cannot touch any other unity objects.
-            if (!string.IsNullOrEmpty(m_targetRenderer.referencePath) || m_targetRenderer.targetObject != null)
-            {
-                foreach (var shape in m_shapes)
-                {
-                    if (shape.Object == null) shape.Object = new AvatarObjectReference();
-                    
-                    if (string.IsNullOrEmpty(shape.Object.referencePath) && shape.Object.targetObject == null)
-                    {
-                        shape.Object.referencePath = m_targetRenderer.referencePath;
-                        shape.Object.targetObject = m_targetRenderer.targetObject;
-                    }
-                }
-                m_targetRenderer.referencePath = null;
-                m_targetRenderer.targetObject = null;
             }
         }
 

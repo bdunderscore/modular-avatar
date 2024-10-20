@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -9,8 +10,8 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         public ReactionRule(TargetProp key, float value)
             : this(key, (object)value) { }
-            
-        public  ReactionRule(TargetProp key, UnityEngine.Object value)
+
+        public ReactionRule(TargetProp key, Object value)
             : this(key, (object)value) { }
             
         private ReactionRule(TargetProp key, object value)
@@ -31,13 +32,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public bool InitiallyActive =>
             ((ControllingConditions.Count == 0) || ControllingConditions.All(c => c.InitiallyActive)) ^ Inverted;
-        public bool IsDelete;
 
         public bool Inverted;
 
-        public bool IsConstant => ControllingConditions.Count == 0 || ControllingConditions.All(c => c.IsConstant);
-        public bool IsConstantOn => IsConstant && InitiallyActive;
+        public bool IsConstant => ControllingConditions.Count == 0
+                                  || ControllingConditions.All(c => c.IsConstant)
+                                  || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
 
+        public bool IsConstantActive => IsConstant && InitiallyActive ^ Inverted;
+        
         public override string ToString()
         {
             return $"AGK: {TargetProp}={Value}";
@@ -55,9 +58,36 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else return false;
             if (!ControllingConditions.SequenceEqual(other.ControllingConditions)) return false;
-            if (IsDelete || other.IsDelete) return false;
 
             return true;
+        }
+
+        protected bool Equals(ReactionRule other)
+        {
+            return TargetProp.Equals(other.TargetProp)
+                   && Equals(Value, other.Value)
+                   && Equals(ControllingObject, other.ControllingObject)
+                   && ControllingConditions.SequenceEqual(other.ControllingConditions)
+                   && Inverted == other.Inverted;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((ReactionRule)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var ccHash = 0;
+            foreach (var cc in ControllingConditions)
+            {
+                ccHash = HashCode.Combine(ccHash, cc);
+            }
+
+            return HashCode.Combine(TargetProp, Value, ControllingObject, ccHash, Inverted);
         }
     }
 }

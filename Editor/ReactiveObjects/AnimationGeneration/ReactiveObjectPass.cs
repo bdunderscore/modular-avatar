@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using UnityEditor;
@@ -43,9 +42,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var shapes = analysis.Shapes;
             var initialStates = analysis.InitialStates;
-            var deletedShapes = analysis.DeletedShapes;
             
             GenerateActiveSelfProxies(shapes);
+
+            ProcessMeshDeletion(initialStates, shapes);
 
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
@@ -54,8 +54,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 ProcessShapeKey(groups);
             }
-
-            ProcessMeshDeletion(deletedShapes);
         }
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -86,7 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     initialValues[condition.Parameter] = condition.InitialValue;
                 }
             }
-        }
+        } 
 
         private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -226,30 +224,65 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private void ProcessMeshDeletion(HashSet<TargetProp> deletedKeys)
+        private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
+            Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            ImmutableDictionary<SkinnedMeshRenderer, List<TargetProp>> renderers = deletedKeys
-                .GroupBy(
-                    v => (SkinnedMeshRenderer) v.TargetObject
-                ).ToImmutableDictionary(
-                    g => (SkinnedMeshRenderer) g.Key,
-                    g => g.ToList()
-                );
+            var renderers = initialStates
+                .Where(kvp => kvp.Key.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                .Where(kvp => kvp.Key.TargetObject is SkinnedMeshRenderer)
+                .Where(kvp => kvp.Value is float f && f > 0.5f)
+                // Filter any non-constant keys
+                .Where(kvp =>
+                {
+                    if (!shapes.ContainsKey(kvp.Key))
+                    {
+                        // Constant value
+                        return true;
+                    }
 
-            foreach (var (renderer, infos) in renderers)
+                    var lastGroup = shapes[kvp.Key].actionGroups.LastOrDefault();
+                    return lastGroup?.IsConstantActive == true && lastGroup.Value is float f && f > 0.5f;
+                })
+                .GroupBy(kvp => kvp.Key.TargetObject as SkinnedMeshRenderer)
+                .Select(grouping => (grouping.Key, grouping.Select(
+                    kvp => kvp.Key.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length)
+                ).ToList()))
+                .ToList();
+            foreach (var (renderer, shapeNamesToDelete) in renderers)
             {
                 if (renderer == null) continue;
 
                 var mesh = renderer.sharedMesh;
                 if (mesh == null) continue;
 
-                renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(
-                    mesh,
-                    infos
-                        .Select(i => mesh.GetBlendShapeIndex(i.PropertyName.Substring("blendShape.".Length)))
-                        .Where(k => k >= 0)
-                        .ToList()
-                );
+                var shapesToDelete = shapeNamesToDelete
+                    .Select(shape => mesh.GetBlendShapeIndex(shape))
+                    .Where(k => k >= 0)
+                    .ToList();
+
+                renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
+
+                foreach (var name in shapeNamesToDelete)
+                {
+                    // Don't need to animate this anymore...!
+                    shapes.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
+                    });
+
+                    shapes.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + name
+                    });
+
+                    initialStates.Remove(new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
+                    });
+                }
             }
         }
 
@@ -258,10 +291,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessShapeKey(AnimatedProperty info)
         {
             // TODO: prune non-animated keys
-
-            // Check if this is non-animated and skip most processing if so
-            if (info.alwaysDeleted || info.actionGroups[^1].IsConstant) return;
-
             var asm = GenerateStateMachine(info);
             ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
         }
@@ -301,8 +330,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
             var entryTransitions = new List<AnimatorTransition>();
 
-            var initialStateTransitionList = new List<AnimatorStateTransition>();
-            transitionBuffer.Add((initialState, initialStateTransitionList));
+            transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
 
             foreach (var group in info.actionGroups.Skip(lastConstant))
             {
@@ -322,30 +350,33 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var conditions = GetTransitionConditions(asc, group);
 
-                    if (!group.Inverted)
+                    foreach (var (st, transitions) in transitionBuffer)
                     {
-                        var transition = new AnimatorStateTransition
+                        if (!group.Inverted)
                         {
-                            isExit = true,
-                            hasExitTime = false,
-                            duration = 0,
-                            hasFixedDuration = true,
-                            conditions = (AnimatorCondition[])conditions.Clone()
-                        };
-                        initialStateTransitionList.Add(transition);
-                    }
-                    else
-                    {
-                        foreach (var cond in conditions)
-                        {
-                            initialStateTransitionList.Add(new AnimatorStateTransition
+                            var transition = new AnimatorStateTransition
                             {
                                 isExit = true,
                                 hasExitTime = false,
                                 duration = 0,
                                 hasFixedDuration = true,
-                                conditions = new[] { InvertCondition(cond) }
-                            });
+                                conditions = (AnimatorCondition[])conditions.Clone()
+                            };
+                            transitions.Add(transition);
+                        }
+                        else
+                        {
+                            foreach (var cond in conditions)
+                            {
+                                transitions.Add(new AnimatorStateTransition
+                                {
+                                    isExit = true,
+                                    hasExitTime = false,
+                                    duration = 0,
+                                    hasFixedDuration = true,
+                                    conditions = new[] { InvertCondition(cond) }
+                                });
+                            }
                         }
                     }
 

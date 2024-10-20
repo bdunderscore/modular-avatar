@@ -246,6 +246,18 @@ namespace nadena.dev.modular_avatar.core.editor
             var stateMachineQueue = new Queue<AnimatorStateMachine>();
             foreach (var layer in controller.layers)
             {
+                // Special case: A layer with a single state, which contains a blend tree, is ignored for WD analysis.
+                // This is because WD ON blend trees have different behavior from most WD ON states, and can be safely
+                // used in a WD OFF animator.
+
+                if (layer.stateMachine.states.Length == 1
+                    && layer.stateMachine.states[0].state.motion is BlendTree
+                    && layer.stateMachine.stateMachines.Length == 0
+                   )
+                {
+                    continue;
+                }
+                
                 stateMachineQueue.Enqueue(layer.stateMachine);
             }
 

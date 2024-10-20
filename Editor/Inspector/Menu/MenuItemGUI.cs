@@ -301,10 +301,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUILayout.BeginVertical();
 
                 if (_type.hasMultipleDifferentValues) return;
-                VRCExpressionsMenu.Control.ControlType type =
-                    (VRCExpressionsMenu.Control.ControlType) Enum
-                        .GetValues(typeof(VRCExpressionsMenu.Control.ControlType))
-                        .GetValue(_type.enumValueIndex);
+                var controlTypeArray = Enum.GetValues(typeof(VRCExpressionsMenu.Control.ControlType));
+                var index = Math.Clamp(_type.enumValueIndex, 0, controlTypeArray.Length - 1);
+                var type = (VRCExpressionsMenu.Control.ControlType)controlTypeArray.GetValue(index);
 
                 switch (type)
                 {
@@ -646,6 +645,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var myMenuItem = serializedObject.targetObject as ModularAvatarMenuItem;
             if (myMenuItem == null) return null;
 
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
+            if (avatarRoot == null) return null;
+
             var myParameterName = myMenuItem.Control.parameter.name;
             if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
 
@@ -653,7 +655,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
                 myParameterName = myReplacement.ParameterName;
 
-            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
             var siblings = new List<ModularAvatarMenuItem>();
 
             foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
