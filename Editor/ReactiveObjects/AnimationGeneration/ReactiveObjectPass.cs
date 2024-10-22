@@ -26,10 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private AnimationClip _initialStateClip;
         private bool _writeDefaults;
-
-        private AnimatorCombiner _combineSession;
-        private AnimatorController _animController;
-
+        
         public ReactiveObjectPass(ndmf.BuildContext context)
         {
             this.context = context;
@@ -37,37 +34,26 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
-            var fxController = FindFxController();
-
             // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
             // and if mixed, use WD ON to maximize compatibility.
-            _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(fxController.animatorController as AnimatorController) ?? true;
-
-            _combineSession = new AnimatorCombiner(context, fxController.animatorController != null ? fxController.animatorController.name : "FX (Reactive Objects)");
-            _combineSession.AddController("", fxController.animatorController as AnimatorController, null);
-            _animController = new AnimatorController();
-
+            _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(FindFxController().animatorController as AnimatorController) ?? true;
+            
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             var shapes = analysis.Shapes;
             var initialStates = analysis.InitialStates;
-
+            
             GenerateActiveSelfProxies(shapes);
 
             ProcessMeshDeletion(initialStates, shapes);
 
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
-
+            
             foreach (var groups in shapes.Values)
             {
                 ProcessShapeKey(groups);
             }
-
-            _combineSession.AddController("", _animController, null);
-            FinishCombineSession();
-            Object.DestroyImmediate(_animController); // Cleanup
-            _combineSession = null;
         }
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -576,7 +562,24 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ApplyController(AnimatorStateMachine asm, string layerName)
         {
-            var paramList = _animController.parameters.ToList();
+            var fx = FindFxController();
+            
+            if (fx.animatorController == null)
+            {
+                throw new InvalidOperationException("No FX layer found");
+            }
+            
+            if (!context.IsTemporaryAsset(fx.animatorController))
+            {
+                throw new InvalidOperationException("FX layer is not a temporary asset");
+            }
+
+            if (!(fx.animatorController is AnimatorController animController))
+            {
+                throw new InvalidOperationException("FX layer is not an animator controller");
+            }
+
+            var paramList = animController.parameters.ToList();
             var paramSet = paramList.Select(p => p.name).ToHashSet();
 
             foreach (var paramName in initialValues.Keys.Except(paramSet))
@@ -590,9 +593,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 paramSet.Add(paramName);
             }
 
-            _animController.parameters = paramList.ToArray();
+            animController.parameters = paramList.ToArray();
 
-            _animController.layers = _animController.layers.Append(
+            animController.layers = animController.layers.Append(
                 new AnimatorControllerLayer
                 {
                     stateMachine = asm,
@@ -608,29 +611,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
 
             return fx;
-        }
-
-        private void FinishCombineSession()
-        {
-            for (int i = 0; i < context.AvatarDescriptor.baseAnimationLayers.Length; i++)
-            {
-                if (context.AvatarDescriptor.baseAnimationLayers[i].type == VRCAvatarDescriptor.AnimLayerType.FX)
-                {
-                    context.AvatarDescriptor.baseAnimationLayers[i].animatorController = _combineSession.Finish();
-                    return;
-                }
-            }
-
-            // When we don't have an FX layer, we create one.
-            context.AvatarDescriptor.baseAnimationLayers = context.AvatarDescriptor.baseAnimationLayers.Append(
-                new VRCAvatarDescriptor.CustomAnimLayer
-                {
-                    type = VRCAvatarDescriptor.AnimLayerType.FX,
-                    isDefault = false,
-                    isEnabled = true,
-                    animatorController = _combineSession.Finish(),
-                }
-            ).ToArray();
         }
     }
 }
