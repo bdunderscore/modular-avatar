@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
 using UnityEngine;
+using UnityEditor.Animations;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -185,6 +187,22 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
+            }
+
+            if (_mamiByParam.Count > 0)
+            {
+                // This make sures the parameters are correctly merged into the FX layer.
+                var mergeAnimator = context.AvatarRootObject.AddComponent<ModularAvatarMergeAnimator>();
+                mergeAnimator.layerType = VRCAvatarDescriptor.AnimLayerType.FX;
+                mergeAnimator.deleteAttachedAnimator = false;
+                mergeAnimator.animator = new AnimatorController
+                {
+                    parameters = _mamiByParam.Keys.Select(name => new AnimatorControllerParameter
+                    {
+                        name = name,
+                        type = AnimatorControllerParameterType.Float,
+                    }).ToArray(),
+                };
             }
         }
 
