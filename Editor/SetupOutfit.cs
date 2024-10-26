@@ -230,14 +230,19 @@ namespace nadena.dev.modular_avatar.core.editor
             var meshSettings = outfitRoot.GetComponent<ModularAvatarMeshSettings>();
             var mSInheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
             var mSInheritBounds = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
-            if (outfitRoot != null
-                && meshSettings == null)
+
+            if (outfitRoot != null)
             {
-                meshSettings = Undo.AddComponent<ModularAvatarMeshSettings>(outfitRoot.gameObject);
-            } else if (outfitRoot != null && meshSettings != null) {
-                Undo.RecordObject(meshSettings, "");
-                mSInheritProbeAnchor = meshSettings.InheritProbeAnchor;
-                mSInheritBounds = meshSettings.InheritBounds;
+                if (meshSettings == null)
+                {
+                    meshSettings = Undo.AddComponent<ModularAvatarMeshSettings>(outfitRoot.gameObject);
+                }
+                else
+                {
+                    Undo.RecordObject(meshSettings, "");
+                    mSInheritProbeAnchor = meshSettings.InheritProbeAnchor;
+                    mSInheritBounds = meshSettings.InheritBounds;
+                }
             }
 
             if (meshSettings != null
