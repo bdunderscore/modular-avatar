@@ -231,8 +231,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var mSInheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
             var mSInheritBounds = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
             if (outfitRoot != null
-                && meshSettings == null
-                && outfitRoot.GetComponentInParent<ModularAvatarMeshSettings>() == null)
+                && meshSettings == null)
             {
                 meshSettings = Undo.AddComponent<ModularAvatarMeshSettings>(outfitRoot.gameObject);
             } else if (outfitRoot != null && meshSettings != null) {
