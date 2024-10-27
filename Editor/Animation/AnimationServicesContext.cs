@@ -92,6 +92,8 @@ namespace nadena.dev.modular_avatar.animation
         public void AddPropertyDefinition(AnimatorControllerParameter paramDef)
         {
 #if MA_VRCSDK3_AVATARS
+            if (!_context.AvatarDescriptor) return;
+
             var fx = (AnimatorController)
                 _context.AvatarDescriptor.baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)

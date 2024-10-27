@@ -34,6 +34,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
+            if (!context.AvatarDescriptor) return;
+
             // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
             // and if mixed, use WD ON to maximize compatibility.
             _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(FindFxController().animatorController as AnimatorController) ?? true;
