@@ -19,6 +19,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static void FixupExpressionsMenu(BuildContext context)
         {
+            if (!context.AvatarDescriptor) return;
+
             context.AvatarDescriptor.customExpressions = true;
 
             var expressionsMenu = context.AvatarDescriptor.expressionsMenu;
