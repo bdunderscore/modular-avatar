@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core.editor;
+﻿#if MA_VRCSDK3_AVATARS
+
+using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -37,3 +39,5 @@ namespace modular_avatar_tests
         }
     }
 }
+
+#endif

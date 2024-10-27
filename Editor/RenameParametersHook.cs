@@ -159,6 +159,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
+            if (!context.AvatarDescriptor) return;
+
             _context = context;
 
             var syncParams = WalkTree(avatar);

@@ -53,6 +53,8 @@ namespace nadena.dev.modular_avatar.animation
             // This helps reduce the risk that we'll accidentally modify the original assets.
 
 #if MA_VRCSDK3_AVATARS
+            if (!context.AvatarDescriptor) return;
+
             context.AvatarDescriptor.baseAnimationLayers =
                 CloneLayers(context, context.AvatarDescriptor.baseAnimationLayers);
             context.AvatarDescriptor.specialAnimationLayers =

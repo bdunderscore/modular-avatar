@@ -1,9 +1,10 @@
-﻿using nadena.dev.modular_avatar.core.editor;
+﻿#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
+
+using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
-#if MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER
 namespace modular_avatar_tests
 {
     public class PlayAudioRemapping : TestBase
@@ -28,4 +29,5 @@ namespace modular_avatar_tests
         }
     }
 }
+
 #endif

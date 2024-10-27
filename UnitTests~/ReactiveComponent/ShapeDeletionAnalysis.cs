@@ -1,3 +1,5 @@
+#if MA_VRCSDK3_AVATARS
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,3 +98,5 @@ public class ShapeDeletionAnalysis : TestBase
         Assert.AreEqual(originalSharedMesh, mesh.sharedMesh);
     }
 }
+
+#endif
