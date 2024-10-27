@@ -33,8 +33,6 @@ namespace nadena.dev.modular_avatar.core
             {
                 var curStage = GetCurrentContentsRootId(out _);
 
-                Debug.Log($"{_lastStage} => {curStage}");
-
                 if (curStage != _lastStage)
                 {
                     _context?.Invalidate?.Invoke();
