@@ -158,6 +158,7 @@ namespace nadena.dev.modular_avatar.animation
 
 #if MA_VRCSDK3_AVATARS
             var avatarDescriptor = context.AvatarDescriptor;
+            if (!avatarDescriptor) return;
 
             foreach (var layer in avatarDescriptor.baseAnimationLayers)
             {

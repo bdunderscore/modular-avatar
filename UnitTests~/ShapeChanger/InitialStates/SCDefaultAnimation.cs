@@ -1,4 +1,6 @@
-﻿using modular_avatar_tests;
+﻿#if MA_VRCSDK3_AVATARS
+
+using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -122,3 +124,5 @@ namespace ShapeChangerTests
         }
     }
 }
+
+#endif

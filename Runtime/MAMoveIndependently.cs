@@ -218,6 +218,8 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
                 return;
             }
 
+            if (transform.parent == null) return;
+            
             var pos = transform.localPosition;
             var rot = transform.localRotation;
             var scale = transform.localScale;

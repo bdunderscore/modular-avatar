@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
@@ -159,3 +161,5 @@ namespace modular_avatar_tests
         }
     }
 }
+
+#endif

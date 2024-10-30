@@ -1,3 +1,5 @@
+#if MA_VRCSDK3_AVATARS
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -35,3 +37,4 @@ public class PreexistingParamsTest : TestBase
     }
 }
 
+#endif

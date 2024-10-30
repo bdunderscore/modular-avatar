@@ -29,6 +29,11 @@ namespace nadena.dev.modular_avatar.core
             EditorApplication.hierarchyChanged += () => HIERARCHY_CHANGED_SEQ += 1;
         }
 #endif
+
+        internal static void InvalidateAll()
+        {
+            HIERARCHY_CHANGED_SEQ++;
+        }
         
         public AvatarObjectReference Clone()
         {

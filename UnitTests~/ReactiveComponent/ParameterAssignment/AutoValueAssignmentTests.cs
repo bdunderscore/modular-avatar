@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
@@ -113,3 +115,5 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         }
     }
 }
+
+#endif
