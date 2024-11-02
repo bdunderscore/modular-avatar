@@ -5,8 +5,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
+using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using Button = UnityEngine.UIElements.Button;
+using Image = UnityEngine.UIElements.Image;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -35,6 +39,37 @@ namespace nadena.dev.modular_avatar.core.editor
             
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+            listView.selectionType = SelectionType.Multiple;
+            listView.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Delete)
+                {
+                    serializedObject.Update();
+                    
+                    var prop = serializedObject.FindProperty("parameters");
+
+                    var indices = listView.selectedIndices.ToList();
+                    
+                    foreach (var index in indices.OrderByDescending(i => i))
+                    {
+                        prop.DeleteArrayElementAtIndex(index);
+                    }
+
+                    serializedObject.ApplyModifiedProperties();
+
+                    if (indices.Count == 0)
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            // Works around an issue where the inner text boxes are auto-selected, preventing you from
+                            // just hitting delete over and over
+                            listView.SetSelectionWithoutNotify(indices);
+                        };
+                    }
+                }
+                
+                evt.StopPropagation();
+            }, TrickleDown.NoTrickleDown);
             
             unregisteredListView = root.Q<ListView>("UnregisteredParameters");
 
@@ -128,8 +163,71 @@ namespace nadena.dev.modular_avatar.core.editor
                     EditorApplication.delayCall += DetectParameters;
                 }
             };
+
+            var importProp = root.Q<ObjectField>("p_import");
+            importProp.RegisterValueChangedCallback(evt =>
+            {
+                ImportValues(importProp);
+                importProp.SetValueWithoutNotify(null);
+            });
+            importProp.objectType = typeof(VRCExpressionParameters);
+            importProp.allowSceneObjects = false;
             
             return root;
+        }
+
+        private void ImportValues(ObjectField importProp)
+        {
+            var known = new HashSet<string>();
+            
+            var target = (ModularAvatarParameters)this.target;
+            foreach (var parameter in target.parameters)
+            {
+                if (!parameter.isPrefix)
+                {
+                    known.Add(parameter.nameOrPrefix);
+                }
+            }
+            
+            Undo.RecordObject(target, "Import parameters");
+            
+            var source = (VRCExpressionParameters)importProp.value;
+            if (source == null)
+            {
+                return;
+            }
+            
+            foreach (var parameter in source.parameters)
+            {
+                if (!known.Contains(parameter.name))
+                {
+                    ParameterSyncType pst;
+
+                    switch (parameter.valueType)
+                    {
+                        case VRCExpressionParameters.ValueType.Bool: pst = ParameterSyncType.Bool; break;
+                        case VRCExpressionParameters.ValueType.Float: pst = ParameterSyncType.Float; break;
+                        case VRCExpressionParameters.ValueType.Int: pst = ParameterSyncType.Int; break;
+                        default: pst = ParameterSyncType.Float; break;
+                    }
+
+                    if (!parameter.networkSynced)
+                    {
+                        pst = ParameterSyncType.NotSynced;
+                    }
+                    
+                    target.parameters.Add(new ParameterConfig()
+                    {
+                        internalParameter = false,
+                        nameOrPrefix = parameter.name,
+                        isPrefix = false,
+                        remapTo = "",
+                        syncType = pst, 
+                        defaultValue = parameter.defaultValue,
+                        saved = parameter.saved,
+                    });
+                }
+            }
         }
 
         private void DetectParameters()
