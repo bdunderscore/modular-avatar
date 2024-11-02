@@ -243,6 +243,12 @@ namespace nadena.dev.modular_avatar.core.editor
         internal static readonly ImmutableDictionary<string, List<HumanBodyBones>> NameToBoneMap;
         internal static readonly ImmutableDictionary<HumanBodyBones, ImmutableList<string>> BoneToNameMap;
 
+        [InitializeOnLoadMethod]
+        private static void InsertboneNamePatternsToRuntime()
+        {
+            ModularAvatarMergeArmature.boneNamePatterns = boneNamePatterns;
+        }
+
         static HeuristicBoneMapper()
         {
             var pat_end_side = new Regex(@"[_\.]([LR])$");
@@ -306,7 +312,9 @@ namespace nadena.dev.modular_avatar.core.editor
             GameObject src,
             GameObject newParent,
             List<Transform> skipped = null,
-            HashSet<Transform> unassigned = null
+            HashSet<Transform> unassigned = null,
+            Animator avatarAnimator = null,
+            Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null
         )
         {
             Dictionary<Transform, Transform> mappings = new Dictionary<Transform, Transform>();
@@ -355,21 +363,65 @@ namespace nadena.dev.modular_avatar.core.editor
                 var childName = child.gameObject.name;
                 var targetObjectName = childName.Substring(config.prefix.Length,
                     childName.Length - config.prefix.Length - config.suffix.Length);
-                
-                if (!NameToBoneMap.TryGetValue(
-                        NormalizeName(targetObjectName), out var bodyBones))
+                List<HumanBodyBones> bodyBones = null;
+                var isMapped = false;
+
+                if (outfitHumanoidBones != null && outfitHumanoidBones.TryGetValue(child, out var outfitHumanoidBone))
+                {
+                    if (avatarAnimator != null)
+                    {
+                        var avatarBone = avatarAnimator.GetBoneTransform(outfitHumanoidBone);
+                        if (avatarBone != null && unassigned.Contains(avatarBone))
+                        {
+                            mappings[child] = avatarBone;
+                            unassigned.Remove(avatarBone);
+                            lcNameToXform.Remove(NormalizeName(avatarBone.gameObject.name));
+                            isMapped = true;
+                        } else {
+                            bodyBones = new List<HumanBodyBones> { outfitHumanoidBone };
+                        }
+                    } else {
+                        bodyBones = new List<HumanBodyBones>() { outfitHumanoidBone };
+                    }
+                }
+
+                if (!isMapped && bodyBones == null && !NameToBoneMap.TryGetValue(
+                        NormalizeName(targetObjectName), out bodyBones))
                 {
                     continue;
                 }
 
-                foreach (var otherName in bodyBones.SelectMany(bone => BoneToNameMap[bone]))
+                if (!isMapped)
                 {
-                    if (lcNameToXform.TryGetValue(otherName, out var targetObject))
+                    foreach (var bodyBone in bodyBones)
                     {
-                        mappings[child] = targetObject;
-                        unassigned.Remove(targetObject);
-                        lcNameToXform.Remove(otherName.ToLowerInvariant());
-                        break;
+                        if (avatarAnimator != null)
+                        {
+                            var avatarBone = avatarAnimator.GetBoneTransform(bodyBone);
+                            if (avatarBone != null && unassigned.Contains(avatarBone))
+                            {
+                                mappings[child] = avatarBone;
+                                unassigned.Remove(avatarBone);
+                                lcNameToXform.Remove(NormalizeName(avatarBone.gameObject.name));
+                                isMapped = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!isMapped)
+                {
+                    foreach (var otherName in bodyBones.SelectMany(bone => BoneToNameMap[bone]))
+                    {
+                        if (lcNameToXform.TryGetValue(otherName, out var targetObject))
+                        {
+                            mappings[child] = targetObject;
+                            unassigned.Remove(targetObject);
+                            lcNameToXform.Remove(otherName.ToLowerInvariant());
+                            isMapped = true;
+                            break;
+                        }
                     }
                 }
 
@@ -388,7 +440,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return mappings;
         }
 
-        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config, List<Transform> skipped = null)
+        internal static void RenameBonesByHeuristic(ModularAvatarMergeArmature config, List<Transform> skipped = null, Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null, Animator avatarAnimator = null)
         {
             var target = config.mergeTarget.Get(RuntimeUtil.FindAvatarTransformInParents(config.transform));
             if (target == null) return;
@@ -399,7 +451,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             void Traverse(Transform src, Transform dst)
             {
-                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject, skipped: skipped);
+                var mappings = AssignBoneMappings(config, src.gameObject, dst.gameObject, skipped: skipped, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
 
                 foreach (var pair in mappings)
                 {

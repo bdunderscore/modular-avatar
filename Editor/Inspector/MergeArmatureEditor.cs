@@ -100,7 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 serializedObject.ApplyModifiedProperties();
 
-                if (target.mergeTargetObject != null && priorMergeTarget == null
+                if (target.mergeTargetObject != null && priorMergeTarget != target.mergeTargetObject
                                                      && string.IsNullOrEmpty(target.prefix)
                                                      && string.IsNullOrEmpty(target.suffix))
                 {
@@ -115,7 +115,27 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (GUILayout.Button(G("merge_armature.adjust_names")))
                 {
-                    HeuristicBoneMapper.RenameBonesByHeuristic(target);
+                    var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(target.mergeTarget.Get(target).transform);
+                    var avatarAnimator = avatarRoot != null ? avatarRoot.GetComponent<Animator>() : null;
+
+                    // Search Outfit Root Animator
+                    var outfitRoot = ((ModularAvatarMergeArmature)serializedObject.targetObject).transform;
+                    Animator outfitAnimator = null;
+                    while (outfitRoot != null)
+                    {
+                        if (outfitRoot == avatarRoot)
+                        {
+                            outfitAnimator = null;
+                            break;
+                        }
+                        outfitAnimator = outfitRoot.GetComponent<Animator>();
+                        if (outfitAnimator != null && outfitAnimator.isHuman) break;
+                        outfitAnimator = null;
+                        outfitRoot = outfitRoot.parent;
+                    }
+
+                    var outfitHumanoidBones = SetupOutfit.GetOutfitHumanoidBones(outfitRoot, outfitAnimator);
+                    HeuristicBoneMapper.RenameBonesByHeuristic(target, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
                 }
             }
 
