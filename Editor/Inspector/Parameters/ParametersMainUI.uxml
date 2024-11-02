@@ -12,7 +12,6 @@
             show-border="true"
             show-foldout-header="false"
             name="Parameters"
-            item-height="100"
             binding-path="parameters" 
             style="flex-grow: 1;"
         />
@@ -32,6 +31,8 @@
             style="flex-grow: 1;"
             />
     </ui:Foldout>
+    
+    <editor:ObjectField name="p_import" label="merge_parameter.ui.importFromAsset" class="ndmf-tr"/>
     
     <ma:LanguageSwitcherElement/>
 </UXML>
