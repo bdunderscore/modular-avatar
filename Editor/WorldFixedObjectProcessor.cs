@@ -91,37 +91,51 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (isVrcAvatar)
             {
-                var constraint = obj.AddComponent(
-                    System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")
-                ) as VRC.Dynamics.ManagedTypes.VRCParentConstraintBase;
-                constraint.IsActive = true;
-                constraint.Locked = true;
-                constraint.AffectsPositionX = true;
-                constraint.AffectsPositionY = true;
-                constraint.AffectsPositionZ = true;
-                constraint.AffectsRotationX = true;
-                constraint.AffectsRotationY = true;
-                constraint.AffectsRotationZ = true;
-                constraint.FreezeToWorld = true;
+                CreateVRCConstraint(obj);
             }
             else
-#endif
             {
-                var constraint = obj.AddComponent<ParentConstraint>();
-                constraint.AddSource(new ConstraintSource()
-                {
-                    weight = 1.0f,
-                    sourceTransform = fixedGameObject.transform,
-                });
-                constraint.constraintActive = true;
-                constraint.locked = true;
-                constraint.rotationOffsets = new[] {Vector3.zero};
-                constraint.translationOffsets = new[] {Vector3.zero};
+                CreateConstraint(obj, fixedGameObject);
             }
+#else
+            CreateConstraint(obj, fixedGameObject);
+#endif
 
             _proxy = obj.transform;
 
             return obj.transform;
         }
+
+        private void CreateConstraint(GameObject obj, GameObject fixedGameObject)
+        {
+            var constraint = obj.AddComponent<ParentConstraint>();
+            constraint.AddSource(new ConstraintSource()
+            {
+                weight = 1.0f,
+                sourceTransform = fixedGameObject.transform,
+            });
+            constraint.constraintActive = true;
+            constraint.locked = true;
+            constraint.rotationOffsets = new[] {Vector3.zero};
+            constraint.translationOffsets = new[] {Vector3.zero};
+        }
+
+#if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        private void CreateVRCConstraint(GameObject obj)
+        {
+            var constraint = obj.AddComponent(
+                System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")
+            ) as VRC.Dynamics.ManagedTypes.VRCParentConstraintBase;
+            constraint.IsActive = true;
+            constraint.Locked = true;
+            constraint.AffectsPositionX = true;
+            constraint.AffectsPositionY = true;
+            constraint.AffectsPositionZ = true;
+            constraint.AffectsRotationX = true;
+            constraint.AffectsRotationY = true;
+            constraint.AffectsRotationZ = true;
+            constraint.FreezeToWorld = true;
+        }
+#endif
     }
 }
