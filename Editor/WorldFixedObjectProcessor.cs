@@ -86,20 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
 
-#if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
-            var isVrcAvatar = avatarRoot.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
-
-            if (isVrcAvatar)
-            {
-                CreateVRCConstraint(obj);
-            }
-            else
-            {
-                CreateConstraint(obj, fixedGameObject);
-            }
-#else
-            CreateConstraint(obj, fixedGameObject);
-#endif
+            if (!TryCreateVRCConstraint(avatarRoot, obj)) CreateConstraint(obj, fixedGameObject);
 
             _proxy = obj.transform;
 
@@ -121,8 +108,12 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
 #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
-        private void CreateVRCConstraint(GameObject obj)
+        private bool TryCreateVRCConstraint(Transform avatarRoot, GameObject obj)
         {
+            var isVrcAvatar = avatarRoot.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+            
+            if (!isVrcAvatar) return false;
+
             var constraint = obj.AddComponent(
                 System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")
             ) as VRC.Dynamics.ManagedTypes.VRCParentConstraintBase;
@@ -135,7 +126,10 @@ namespace nadena.dev.modular_avatar.core.editor
             constraint.AffectsRotationY = true;
             constraint.AffectsRotationZ = true;
             constraint.FreezeToWorld = true;
+            return true;
         }
+#else
+        private bool TryCreateVRCConstraint(Transform avatarRoot, GameObject obj) => false;
 #endif
     }
 }
