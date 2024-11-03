@@ -38,10 +38,23 @@ namespace nadena.dev.modular_avatar.core
                     _context?.Invalidate?.Invoke();
                 }
             };
+            EditorApplication.playModeStateChanged += state =>
+            {
+                if (state == PlayModeStateChange.EnteredEditMode)
+                {
+                    EditorApplication.delayCall += ProcessObjectReferences;
+                }
+            };
         }
 
         private static void ProcessObjectReferences()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                _context = null;
+                return;
+            }
+            
             _lastStage = GetCurrentContentsRootId(out var contentsRoot);
 
             AvatarObjectReference.InvalidateAll();
