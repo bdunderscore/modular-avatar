@@ -189,7 +189,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
             }
 
-            if (_mamiByParam.Count > 0)
+            var mamiWithRC = _mamiByParam.Where(kvp => kvp.Value.Any(
+                component => component.TryGetComponent<ReactiveComponent>(out _)
+            )).ToList();
+
+            if (mamiWithRC.Count > 0)
             {
                 // This make sures the parameters are correctly merged into the FX layer.
                 var mergeAnimator = context.AvatarRootObject.AddComponent<ModularAvatarMergeAnimator>();
@@ -197,9 +201,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 mergeAnimator.deleteAttachedAnimator = false;
                 mergeAnimator.animator = new AnimatorController
                 {
-                    parameters = _mamiByParam.Keys.Select(name => new AnimatorControllerParameter
+                    parameters = mamiWithRC.Select(kvp => new AnimatorControllerParameter
                     {
-                        name = name,
+                        name = kvp.Key,
                         type = AnimatorControllerParameterType.Float,
                     }).ToArray(),
                 };
