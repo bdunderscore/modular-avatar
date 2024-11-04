@@ -47,6 +47,7 @@
   "merge_parameter.ui.add_button": "追加",
   "merge_parameter.ui.details": "パラメーターの詳細設定",
   "merge_parameter.ui.overrideAnimatorDefaults": "アニメーターでの初期値を設定",
+  "merge_parameter.ui.importFromAsset": "アセットからインポートする",
   "merge_armature.merge_target": "統合先",
   "merge_armature.merge_target.tooltip": "このオブジェクトを統合先のアーマチュアに統合します",
   "merge_armature.prefix": "接頭辞",
