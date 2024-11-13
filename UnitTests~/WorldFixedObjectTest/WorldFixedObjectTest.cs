@@ -3,6 +3,7 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.Animations;
 
 public class WorldFixedObjectTest : TestBase
@@ -25,12 +26,10 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
-        var avatarType = System.Type.GetType("VRC.SDKBase.VRC_AvatarDescriptor, VRCSDKBase");
         bool isVrcAvatar = false;
-        if (avatarType != null)
-        {
-            isVrcAvatar = avatar.GetComponent(avatarType) != null;
-        }
+        #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        #endif
         Component constraint = isVrcAvatar ?
             fixedRoot.GetComponent(System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")) :
             fixedRoot.GetComponent<ParentConstraint>();
@@ -61,12 +60,10 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
-        var avatarType = System.Type.GetType("VRC.SDKBase.VRC_AvatarDescriptor, VRCSDKBase");
         bool isVrcAvatar = false;
-        if (avatarType != null)
-        {
-            isVrcAvatar = avatar.GetComponent(avatarType) != null;
-        }
+        #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        #endif
         Component constraint = isVrcAvatar ?
             fixedRoot.GetComponent(System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")) :
             fixedRoot.GetComponent<ParentConstraint>();
