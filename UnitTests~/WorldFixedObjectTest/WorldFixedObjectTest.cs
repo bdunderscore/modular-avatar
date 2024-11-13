@@ -27,11 +27,13 @@ public class WorldFixedObjectTest : TestBase
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
         bool isVrcAvatar = false;
-        #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        System.Type vrcParentConstraintType = null;
+        #if MA_VRCSDK3_AVATARS
         isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        vrcParentConstraintType = System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint");
         #endif
-        Component constraint = isVrcAvatar ?
-            fixedRoot.GetComponent(System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")) :
+        Component constraint = isVrcAvatar && vrcParentConstraintType != null ?
+            fixedRoot.GetComponent(vrcParentConstraintType) :
             fixedRoot.GetComponent<ParentConstraint>();
         Assert.That(constraint, Is.Not.Null);
 
@@ -61,11 +63,13 @@ public class WorldFixedObjectTest : TestBase
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
         bool isVrcAvatar = false;
-        #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        System.Type vrcParentConstraintType = null;
+        #if MA_VRCSDK3_AVATARS
         isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        vrcParentConstraintType = System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint");
         #endif
-        Component constraint = isVrcAvatar ?
-            fixedRoot.GetComponent(System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")) :
+        Component constraint = isVrcAvatar && vrcParentConstraintType != null ?
+            fixedRoot.GetComponent(vrcParentConstraintType) :
             fixedRoot.GetComponent<ParentConstraint>();
         Assert.That(constraint, Is.Not.Null);
 
