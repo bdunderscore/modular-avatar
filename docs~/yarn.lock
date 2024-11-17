@@ -2395,7 +2395,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdx-js/react@npm:^3.0.0, @mdx-js/react@npm:^3.0.1":
+"@mdx-js/react@npm:^3.0.0":
   version: 3.0.1
   resolution: "@mdx-js/react@npm:3.0.1"
   dependencies:
@@ -2404,6 +2404,18 @@ __metadata:
     "@types/react": ">=16"
     react: ">=16"
   checksum: 1063a597264f6a8840aa13274a99beef8983a88dd45b0c5b8e48e6216bc23d33e247da8e2d95d6e1874483f8b4e0903b166ce5046874aa7ffa2b1333057dcddf
+  languageName: node
+  linkType: hard
+
+"@mdx-js/react@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@mdx-js/react@npm:3.1.0"
+  dependencies:
+    "@types/mdx": ^2.0.0
+  peerDependencies:
+    "@types/react": ">=16"
+    react: ">=16"
+  checksum: c5a9c495f43f498ece24a768762a1743abe2be33d050d7eab731beb754e631700547f039198c6262c998d9a443906bd78811c3fa38bc2fb37659848161dac331
   languageName: node
   linkType: hard
 
@@ -2724,7 +2736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/docusaurus@npm:^2.0.2":
+"@tsconfig/docusaurus@npm:^2.0.3":
   version: 2.0.3
   resolution: "@tsconfig/docusaurus@npm:2.0.3"
   checksum: d8245a64bf131daa0c287649cb9c37ad8fecb2aedea18e15047e0df6463916e5012af3755bd73ecf90999ace1f14a3748a8b3e041d5158e2a85c22a539c649c9
@@ -3034,13 +3046,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.2.59":
+"@types/react@npm:*":
   version: 18.3.3
   resolution: "@types/react@npm:18.3.3"
   dependencies:
     "@types/prop-types": "*"
     csstype: ^3.0.2
   checksum: c63d6a78163244e2022b01ef79b0baec4fe4da3475dc4a90bb8accefad35ef0c43560fd0312e5974f92a0f1108aa4d669ac72d73d66396aa060ea03b5d2e3873
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.3.12":
+  version: 18.3.12
+  resolution: "@types/react@npm:18.3.12"
+  dependencies:
+    "@types/prop-types": "*"
+    csstype: ^3.0.2
+  checksum: 4ab1577a8c2105a5e316536f724117c90eee5f4bd5c137fc82a2253d8c1fd299dedaa07e8dfc95d6e2f04a4be3cb8b0e1b06098c6233ebd55c508d88099395b7
   languageName: node
   linkType: hard
 
@@ -4134,7 +4156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^2.0.0, clsx@npm:^2.1.0":
+"clsx@npm:^2.0.0, clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: acd3e1ab9d8a433ecb3cc2f6a05ab95fe50b4a3cfc5ba47abb6cbf3754585fcb87b84e90c822a1f256c4198e3b41c7f6c391577ffc8678ad587fc0976b24fd57
@@ -8335,19 +8357,19 @@ __metadata:
     "@docusaurus/core": latest
     "@docusaurus/module-type-aliases": latest
     "@docusaurus/preset-classic": latest
-    "@mdx-js/react": ^3.0.1
-    "@tsconfig/docusaurus": ^2.0.2
-    "@types/react": ^18.2.59
-    clsx: ^2.1.0
-    prism-react-renderer: ^2.3.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    "@mdx-js/react": ^3.1.0
+    "@tsconfig/docusaurus": ^2.0.3
+    "@types/react": ^18.3.12
+    clsx: ^2.1.1
+    prism-react-renderer: ^2.4.0
+    react: ^18.3.1
+    react-dom: ^18.3.1
     react-loadable: ^5.5.0
-    react-medium-image-zoom: ^5.1.10
+    react-medium-image-zoom: ^5.2.11
     react-modal: ^3.16.1
-    react-player: ^2.14.1
-    search-insights: ^2.13.0
-    typescript: ^5.3.3
+    react-player: ^2.16.0
+    search-insights: ^2.17.2
+    typescript: ^5.6.3
   languageName: unknown
   linkType: soft
 
@@ -9410,7 +9432,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prism-react-renderer@npm:^2.3.0, prism-react-renderer@npm:^2.3.1":
+"prism-react-renderer@npm:^2.3.0":
   version: 2.3.1
   resolution: "prism-react-renderer@npm:2.3.1"
   dependencies:
@@ -9419,6 +9441,18 @@ __metadata:
   peerDependencies:
     react: ">=16.0.0"
   checksum: b12a7d502c1e764d94f7d3c84aee9cd6fccc676bb7e21dee94d37eb2e7e62e097a343999e1979887cb83a57cbdea48d2046aa74d07bce05caa25f4c296df30b6
+  languageName: node
+  linkType: hard
+
+"prism-react-renderer@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "prism-react-renderer@npm:2.4.0"
+  dependencies:
+    "@types/prismjs": ^1.26.0
+    clsx: ^2.0.0
+  peerDependencies:
+    react: ">=16.0.0"
+  checksum: d15d944a8cbf05f7b04deecd2cf4ffb08229a6027918641b6f046cd8ab24b65ca4ebe4ac8e95a53a7d7cefb1bba8df3ce394fe4f1d75418e34fa92553dc63ef7
   languageName: node
   linkType: hard
 
@@ -9641,7 +9675,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.2.0":
+"react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -9753,13 +9787,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-medium-image-zoom@npm:^5.1.10":
-  version: 5.2.5
-  resolution: "react-medium-image-zoom@npm:5.2.5"
+"react-medium-image-zoom@npm:^5.2.11":
+  version: 5.2.11
+  resolution: "react-medium-image-zoom@npm:5.2.11"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 878c943f41851ea436fb7a7e99afbcbb144c3f70749e0627c53b0e704e00675e7bd2707942274c5cd1e76b5018b5f0ae390bd7eeda9bd4424e5eff1ac7ec749a
+  checksum: 6e4326f15fd233c5e8c4e73fd9e910abacc78b8e00f0b9d6c51ba646c857c14e93cfd150440964bfdfb165675d8d3ee26ca78c9d907cd7fe8f2d9762f961f774
   languageName: node
   linkType: hard
 
@@ -9778,7 +9812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-player@npm:^2.14.1":
+"react-player@npm:^2.16.0":
   version: 2.16.0
   resolution: "react-player@npm:2.16.0"
   dependencies:
@@ -9841,7 +9875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.2.0":
+"react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
@@ -10323,10 +10357,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"search-insights@npm:^2.13.0":
-  version: 2.14.0
-  resolution: "search-insights@npm:2.14.0"
-  checksum: 26f3524633ee1b31cd5dea9f8e7e67c102a9e90f24efc5ae84020b6051cfc4815b38d6afdee88d278ed3ee3f01acb87dd5c80b8e8b2f4bad15d7a68e48b36681
+"search-insights@npm:^2.17.2":
+  version: 2.17.2
+  resolution: "search-insights@npm:2.17.2"
+  checksum: cd4751fe7735a823f2742dda29bbbc40839ff394764887009fdbc7661c1b0eb74ff84d01c5d753654e560fb0271cd2e7828bc07d3fee568e853368b133deff5a
   languageName: node
   linkType: hard
 
@@ -11161,23 +11195,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.3.3":
-  version: 5.5.2
-  resolution: "typescript@npm:5.5.2"
+"typescript@npm:^5.6.3":
+  version: 5.6.3
+  resolution: "typescript@npm:5.6.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 9c5a7982dadcb2d38d129c575dd38645ae11588ae0d4a12852fb04482bbc5a1660b2371e48fd5b33b6b605cc57cefe777670054546856945a05e77bd22c8c2cd
+  checksum: ba302f8822777ebefb28b554105f3e074466b671e7444ec6b75dadc008a62f46f373d9e57ceced1c433756d06c8b7dc569a7eefdf3a9573122a49205ff99021a
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.3.3#~builtin<compat/typescript>":
-  version: 5.5.2
-  resolution: "typescript@patch:typescript@npm%3A5.5.2#~builtin<compat/typescript>::version=5.5.2&hash=1f5320"
+"typescript@patch:typescript@^5.6.3#~builtin<compat/typescript>":
+  version: 5.6.3
+  resolution: "typescript@patch:typescript@npm%3A5.6.3#~builtin<compat/typescript>::version=5.6.3&hash=1f5320"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 9d89bac0de650e15d6846485f238d1e65f1013f2c260d9e53e86a1da6ecf8109d9fad9402575c5c36a6592dc5d4370db090e12971c8630ae84453654baabb6b4
+  checksum: ade87bce2363ee963eed0e4ca8a312ea02c81873ebd53609bc3f6dc0a57f6e61ad7e3fb8cbb7f7ab8b5081cbee801b023f7c4823ee70b1c447eae050e6c7622b
   languageName: node
   linkType: hard
 
