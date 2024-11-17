@@ -87,7 +87,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     _component, PluginDefinition.Instance, paramType)
                 {
                     IsAnimatorOnly = animatorOnly,
-                    WantSynced = !p.localOnly,
+                    WantSynced = !p.localOnly && !animatorOnly,
                     IsHidden = p.internalParameter,
                     DefaultValue = p.defaultValue
                 };
