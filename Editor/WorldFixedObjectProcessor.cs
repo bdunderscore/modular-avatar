@@ -86,6 +86,15 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
 
+            if (!TryCreateVRCConstraint(avatarRoot, obj)) CreateConstraint(obj, fixedGameObject);
+
+            _proxy = obj.transform;
+
+            return obj.transform;
+        }
+
+        private void CreateConstraint(GameObject obj, GameObject fixedGameObject)
+        {
             var constraint = obj.AddComponent<ParentConstraint>();
             constraint.AddSource(new ConstraintSource()
             {
@@ -96,10 +105,31 @@ namespace nadena.dev.modular_avatar.core.editor
             constraint.locked = true;
             constraint.rotationOffsets = new[] {Vector3.zero};
             constraint.translationOffsets = new[] {Vector3.zero};
-
-            _proxy = obj.transform;
-
-            return obj.transform;
         }
+
+#if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
+        private bool TryCreateVRCConstraint(Transform avatarRoot, GameObject obj)
+        {
+            var isVrcAvatar = avatarRoot.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+            
+            if (!isVrcAvatar) return false;
+
+            var constraint = obj.AddComponent(
+                System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint")
+            ) as VRC.Dynamics.ManagedTypes.VRCParentConstraintBase;
+            constraint.IsActive = true;
+            constraint.Locked = true;
+            constraint.AffectsPositionX = true;
+            constraint.AffectsPositionY = true;
+            constraint.AffectsPositionZ = true;
+            constraint.AffectsRotationX = true;
+            constraint.AffectsRotationY = true;
+            constraint.AffectsRotationZ = true;
+            constraint.FreezeToWorld = true;
+            return true;
+        }
+#else
+        private bool TryCreateVRCConstraint(Transform avatarRoot, GameObject obj) => false;
+#endif
     }
 }

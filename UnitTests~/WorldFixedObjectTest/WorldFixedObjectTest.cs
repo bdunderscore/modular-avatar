@@ -3,6 +3,7 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.Animations;
 
 public class WorldFixedObjectTest : TestBase
@@ -25,7 +26,16 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
-        Assert.That(fixedRoot.GetComponent<ParentConstraint>(), Is.Not.Null);
+        bool isVrcAvatar = false;
+        System.Type vrcParentConstraintType = null;
+        #if MA_VRCSDK3_AVATARS
+        isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        vrcParentConstraintType = System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint");
+        #endif
+        Component constraint = isVrcAvatar && vrcParentConstraintType != null ?
+            fixedRoot.GetComponent(vrcParentConstraintType) :
+            fixedRoot.GetComponent<ParentConstraint>();
+        Assert.That(constraint, Is.Not.Null);
 
         // objects are moved to fixed root
         Assert.That(movedFixedObject, Is.Not.Null);
@@ -52,7 +62,16 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
-        Assert.That(fixedRoot.GetComponent<ParentConstraint>(), Is.Not.Null);
+        bool isVrcAvatar = false;
+        System.Type vrcParentConstraintType = null;
+        #if MA_VRCSDK3_AVATARS
+        isVrcAvatar = avatar.TryGetComponent(out VRC.SDKBase.VRC_AvatarDescriptor _);
+        vrcParentConstraintType = System.Type.GetType("VRC.SDK3.Dynamics.Constraint.Components.VRCParentConstraint, VRC.SDK3.Dynamics.Constraint");
+        #endif
+        Component constraint = isVrcAvatar && vrcParentConstraintType != null ?
+            fixedRoot.GetComponent(vrcParentConstraintType) :
+            fixedRoot.GetComponent<ParentConstraint>();
+        Assert.That(constraint, Is.Not.Null);
 
         // objects are moved to fixed root
         Assert.That(movedFixedObject, Is.Not.Null);
