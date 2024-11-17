@@ -516,7 +516,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 // But, we do want to see if _any_ are default.
                 var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
                 var mixedIsDefault = multipleSelections && anyIsDefault;
-                using (new EditorGUI.DisabledScope(multipleSelections || isDefaultByKnownParam != null))
+
+                var allAreAutoParams = !_parameterName.hasMultipleDifferentValues &&
+                                       string.IsNullOrWhiteSpace(_parameterName.stringValue);
+
+                using (new EditorGUI.DisabledScope((!allAreAutoParams && multipleSelections) ||
+                                                   isDefaultByKnownParam != null))
                 {
                     EditorGUI.BeginChangeCheck();
                     DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
