@@ -1,4 +1,4 @@
-﻿/*
+/*
  * MIT License
  *
  * Copyright (c) 2022 bd_
@@ -115,6 +115,10 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var c in avatarGameObject.transform.GetComponentsInChildren<IConstraint>(true))
             {
                 RetainBoneReferences(c as Component);
+            }
+            foreach (var smr in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                BoneDatabase.RetainMergedBone(smr.rootBone);
             }
 
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, BoneDatabase, PathMappings);
