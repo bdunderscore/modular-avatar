@@ -14,36 +14,50 @@ than VRChat builtins.
 
 ## How do I use it?
 
-### Setting defaults
+Each entry in the MA Parameters list configures a single parameter, or a prefix used for a VRChat PhysBone.
+You set the name (or prefix) in the top row, with the type of parameter next to it.
 
-The parameters UI shows each parameter initially in a collapsed view. This view makes it easy to set the default values
-for each parameter, and whether they are saved when you change avatars, or change worlds. Setting a non-blank default
-value will override the value in the main Expressions Parameters asset, if any.
+### Parameter types
 
-You can set a blank value here as well; this can be useful if multiple MA Parameters components define the same
-parameter, where the "default value" field will ignore any MA Parameters component which does not set a default.
-Setting default values for the same parameter in multiple Parameters components will result in a warning, as it's
-unclear which should be used.
+The parameter type field in the upper right can be set to any of the following:
 
-For the "Saved" option, generally speaking the parameter will be saved if any MA Parameters component sets it to be
-saved. However, there is an exception; see the section on "Nesting" for more information. Note also that the "Saved"
-setting will be enabled if either MA Parameters or the original Expression Parameters asset enables saving for the
-parameter.
+* Bool
+* Int
+* Float
+* Animator Only
+* PB Prefix
 
-Normally, the default values you set will only affect the Expressions Parameters settings for your avatar. However,
-you can override the default values for the _animator_ itself by either setting the "Parameter Type" to "Animator Only",
-or by enabling the "Override Animator Defaults" checkbox (note that this is ignored for animator only parameters).
+If you select Animator Only, the parameter will not be added to the Expressions Parameters list. However, it will still
+be able to rename the parameter in question, as described below.
+
+The PB Prefix setting is used when this parameter prefix is set in a PhysBones component. As with Animator Only, this will
+not be added to the Expressions Parameters list.
 
 ### Renaming parameters
 
-By setting the "Change name to" field you can _rename_ a parameter. That is, if you have a parameter "foo", which has
-a "Change name to" setting of "bar", then on the object with the MA Parameters component and its children you can
-refer to this parameter as "foo" (eg in [MA Menu Item](menu-item.md), [MA Merge Animator](merge-animator.md), or in
-VRChat Contact Receivers); however, outside of this object, the parameter will be referred to as "bar".
+If you enter a name in the "Change name to" field, the parameter will be renamed to that name for anything _outside_
+of the MA Parameters object and its children. This can be useful for avoiding conflicts between different gimmicks,
+or conversely, deliberately connecting two different gimmicks by making them use the same parameter.
 
-By renaming parameters on multiple components to use the same name, you can wire up one gimmick to trigger another.
-You can also select "Auto Rename" to have Modular Avatar automatically select an unused name; this will help avoid
-accidental name collisions between different gimmicks.
+You can also click the "Auto rename" box to have Modular Avatar automatically select an unused name for you.
+
+### Default values
+
+You can set a default value for each parameter. This value will be used when you avatar is reset. If you leave the
+default box blank, then the value (if any) in the main Expressions Parameters asset will be used, or otherwise zero (or
+false) will be used.
+
+If you click the "Override Animator Defaults" box, then any default values specified in the _animator controller_ of
+your asset will be changed to this default. This is occasionally useful with particularly complex gimmicks. If you
+selected "Animator Only" and specified a default value, then this box will be ignored, and the animator controller
+default will always be replaced.
+
+### Saved/Synced
+
+The Saved box controls whether the parameter will be saved across avatar changes and restarting VRChat.
+
+The Synced box controls whether the parameter will be synced across the network. If you clear this box, this parameter
+won't use your limited parameter space.
 
 ### Creating new parameters
 
@@ -57,18 +71,6 @@ or the magnifying glass to see where the parameter was detected.
 Either way, after creating the parameter, click the chevron next to the new parameter to expand the detailed view.
 There, you can set the parameter type (which controls whether the parameter is synced), and other attributes of the
 parameter.
-
-### PhysBones and Contacts
-
-MA Parameters can rename parameters used by VRChat PhysBone components and Contact Receivers. For PhysBones, enter the
-prefix (the value in the "Parameter" field of the VRC Phys Bone component) as the parameter name, and click the
-"Is PhysBone Prefix" option. This will be automatically set if you add it via the "Unregistered Parameters" section.
-
-### Expression Parameters
-
-Set the "Parameter type" field to register the parameter in the VRC Expressions Parameters list. This will sync the
-parameter over the network, and allow for it to be used in the expressions menu and in OSC. If you don't need the
-parameter to be synced, click "Local Only". 
 
 ### Nesting
 
