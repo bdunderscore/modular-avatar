@@ -59,7 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public IEnumerable<ProvidedParameter> GetSuppliedParameters(ndmf.BuildContext context = null)
         {
-            return _component.parameters.Select(p =>
+            return _component.parameters
+                .Select(p =>
             {
                 AnimatorControllerParameterType paramType;
                 bool animatorOnly = false;

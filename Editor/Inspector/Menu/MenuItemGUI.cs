@@ -169,11 +169,16 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             Dictionary<string, ProvidedParameter> rootParameters = new();
-            
+
             foreach (var param in ParameterIntrospectionCache.GetParametersForObject(parentAvatar.gameObject)
                          .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
-                rootParameters[param.EffectiveName] = param;
+            {
+                if (!string.IsNullOrWhiteSpace(param.EffectiveName))
+                {
+                    rootParameters[param.EffectiveName] = param;
+                }
+            }
 
             var remaps = ParameterIntrospectionCache.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
