@@ -43,18 +43,12 @@ namespace nadena.dev.modular_avatar.core.ArmatureAwase
         private Dictionary<Transform, ChildState> _children = new Dictionary<Transform, ChildState>();
         private HashSet<Transform> _excluded = new HashSet<Transform>();
 
-        void Awake()
-        {
-            hideFlags = HideFlags.DontSave;
-        }
-
         // We need to reparent the TRS values of the children from our prior frame state to the current frame state.
         // This is done by computing the world affine matrix for the child in the prior frame, then converting to
         // a local affine matrix in the current frame.
 
         private void OnValidate()
         {
-            hideFlags = HideFlags.DontSave;
             _excluded = new HashSet<Transform>();
             if (m_groupedBones == null)
             {
