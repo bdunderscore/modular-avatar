@@ -116,9 +116,23 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 RetainBoneReferences(c as Component);
             }
+            
             foreach (var smr in avatarGameObject.transform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
-                BoneDatabase.RetainMergedBone(smr.rootBone);
+                // If the root bone has been offset, or has a different sign for its scale, we need to retain it.
+                // see https://github.com/bdunderscore/modular-avatar/pull/1355
+                // (we avoid retaining otherwise to avoid excess bone transforms)
+
+                if (smr.rootBone == null || smr.rootBone.parent == null) continue;
+
+                var root = smr.rootBone;
+                var parent = root.parent;
+
+                if ((parent.position - root.position).sqrMagnitude > 0.000001f
+                    || Vector3.Dot(parent.localScale.normalized, root.localScale.normalized) < 0.9999f)
+                {
+                    BoneDatabase.RetainMergedBone(smr.rootBone);
+                }
             }
 
             new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, BoneDatabase, PathMappings);
