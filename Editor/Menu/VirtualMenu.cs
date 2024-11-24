@@ -11,9 +11,30 @@ using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor.menu
 {
+    internal sealed class NodeTrace : IDisposable
+    {
+        private static readonly Stack<string> _trace = new();
+
+        public NodeTrace(string name)
+        {
+            _trace.Push(name);
+        }
+
+        public void Dispose()
+        {
+            _trace.Pop();
+        }
+
+        public static void Log(string s)
+        {
+            Debug.Log(s + "\n\nTrace:\n" + string.Join("\n", _trace));
+        }
+    }
+    
     /// <summary>
     /// Sentinel object to represent the avatar root menu (for avatars which don't have a root menu)
     /// </summary>
@@ -93,6 +114,9 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             if (expMenu == null) return;
             if (_visited.Contains(expMenu)) return;
+
+            using var _ = new NodeTrace("PushMenuContents: " + expMenu.name);
+            
             _visited.Add(expMenu);
             _visitedMenu(expMenu);
 
@@ -126,9 +150,13 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             if (source == null) return;
             if (_visited.Contains(source)) return;
+
+            object nameSource = source is Component c ? c.gameObject.name : source;
+            using var _2 = new NodeTrace("PushNode: " + nameSource);
+            
             _visited.Add(source);
 
-            BuildReport.ReportingObject(source as UnityEngine.Object, () => source.Visit(this));
+            BuildReport.ReportingObject(source as Object, () => source.Visit(this));
 
             _visited.Remove(source);
         }
@@ -137,6 +165,9 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         {
             if (installer == null) return;
             if (_visited.Contains(installer)) return;
+
+            using var _2 = new NodeTrace("MenuInstaller: " + installer.gameObject.name);
+            
             _visited.Add(installer);
 
             BuildReport.ReportingObject(installer, () =>
@@ -164,9 +195,10 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             // of the source control. This is because the same subMenu can be used in multiple places, with different
             // parameter replacements. (FIXME)
             var virtualControl = new VirtualControl(control);
-
+            
             if (control.subMenu != null)
             {
+                using var _ = new NodeTrace("SubMenu: " + control.subMenu.name);
                 virtualControl.SubmenuNode = NodeFor(control.subMenu);
             }
 
@@ -177,18 +209,27 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
         public void PushControl(VirtualControl control)
         {
+            NodeTrace.Log("PushControl: " + control.name);
+
             _node.Controls.Add(control);
         }
 
         public VirtualMenuNode NodeFor(VRCExpressionsMenu menu)
         {
             if (menu == null) return null;
+
+            NodeTrace.Log("NodeFor: " + menu.name);
+            
             return _nodeFor(menu, _currentPostprocessor);
         }
 
         public VirtualMenuNode NodeFor(MenuSource source)
         {
             if (source == null) return null;
+
+            object nameSource = source is Component c ? c.gameObject : source;
+            NodeTrace.Log("NodeFor: " + nameSource);
+            
             return _nodeFor(source, _currentPostprocessor);
         }
     }
@@ -359,6 +400,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 new NodeContextImpl(RootNode, NodeFor, menuToInstallerFiltered, _postprocessControlsHooks,
                     m => _visitedMenus.Add(m),
                     NoopPostprocessor);
+
+            using (var _ = new NodeTrace("RootMenu init"))
             if (RootMenuKey is ValueTuple<object, object> tuple && tuple.Item1 is VRCExpressionsMenu menu)
             {
                 foreach (var control in menu.controls)
@@ -377,6 +420,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             }
 
             // Untargeted installers are bound to the RootMenuKey, rather than the menu asset itself.
+            using (var _ = new NodeTrace("Untargeted installers"))
             if (menuToInstallerFiltered.TryGetValue(RootMenuKey, out var installers2))
             {
                 foreach (var installer in installers2)
@@ -401,12 +445,18 @@ namespace nadena.dev.modular_avatar.core.editor.menu
                 }
 
                 if (_resolvedMenu.TryGetValue(lookupKey, out var node)) return node;
+
+                var traceKey = lookupKey is Component c ? c.gameObject : lookupKey;
+                NodeTrace.Log("Enqueued NodeFor " + traceKey + " @ PPC=" + postprocessContext.GetHashCode());
+                
                 node = new VirtualMenuNode(lookupKey);
                 _resolvedMenu[lookupKey] = node;
 
                 _pendingGeneration.Enqueue(() =>
                 {
-                    BuildReport.ReportingObject(key as UnityEngine.Object, () =>
+                    NodeTrace.Log("Generating node: " + traceKey + " @ PPC=" + postprocessContext.GetHashCode());
+                    using var _ = new NodeTrace("NodeFor: " + traceKey + " @ PPC=" + postprocessContext.GetHashCode());
+                    BuildReport.ReportingObject(key as Object, () =>
                     {
                         var context = new NodeContextImpl(node, NodeFor, menuToInstallerFiltered,
                             _postprocessControlsHooks,
@@ -431,7 +481,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             }
         }
 
-        internal VRCExpressionsMenu SerializeMenu(Action<UnityEngine.Object> SaveAsset)
+        internal VRCExpressionsMenu SerializeMenu(Action<Object> SaveAsset)
         {
             Dictionary<object, VRCExpressionsMenu> serializedMenus = new Dictionary<object, VRCExpressionsMenu>();
 
