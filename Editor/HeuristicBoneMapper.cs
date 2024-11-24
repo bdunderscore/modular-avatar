@@ -231,6 +231,9 @@ namespace nadena.dev.modular_avatar.core.editor
         };
         
         internal static readonly Regex Regex_VRM_Bone = new Regex(@"^([LRC])_(.*)$");
+        
+        internal static ImmutableHashSet<string> AllBoneNames = 
+            boneNamePatterns.SelectMany(x => x).Select(NormalizeName).ToImmutableHashSet();
 
         internal static string NormalizeName(string name)
         {
@@ -247,6 +250,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private static void InsertboneNamePatternsToRuntime()
         {
             ModularAvatarMergeArmature.boneNamePatterns = boneNamePatterns;
+            ModularAvatarMergeArmature.AllBoneNames = AllBoneNames;
+            ModularAvatarMergeArmature.NormalizeBoneName = NormalizeName;
         }
 
         static HeuristicBoneMapper()

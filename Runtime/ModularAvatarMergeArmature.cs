@@ -26,6 +26,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -49,6 +51,10 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-armature?lang=auto")]
     public class ModularAvatarMergeArmature : AvatarTagComponent, IHaveObjReferences
     {
+        // Injected by HeuristicBoneMapper
+        internal static Func<string, string> NormalizeBoneName;
+        internal static ImmutableHashSet<string> AllBoneNames;
+        
         public AvatarObjectReference mergeTarget = new AvatarObjectReference();
         public GameObject mergeTargetObject => mergeTarget.Get(this);
 
@@ -203,6 +209,66 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
+        class PSCandidate
+        {
+            public string prefix, suffix;
+            public int matches;
+
+            public PSCandidate CountMatches(ModularAvatarMergeArmature merger)
+            {
+                var target = merger.mergeTarget.Get(merger).transform;
+                var source = merger.transform;
+
+                var oldPrefix = merger.prefix;
+                var oldSuffix = merger.suffix;
+                
+                try
+                {
+                    merger.prefix = prefix;
+                    merger.suffix = suffix;
+                    
+                    matches = merger.GetBonesForLock().Count;
+                    return this;
+                }
+                finally
+                {
+                    merger.prefix = oldPrefix;
+                    merger.suffix = oldSuffix;
+                }
+            }
+
+            /// <summary>
+            ///  Counts the number of children which take the form prefix // heuristic bone name // suffix
+            /// </summary>
+            /// <returns></returns>
+            public PSCandidate CountHeuristicMatches(Transform root)
+            {
+                int count = 1;
+
+                Walk(root);
+                
+                matches = count;
+                return this;
+                
+                void Walk(Transform t)
+                {
+                    foreach (Transform child in t)
+                    {
+                        if (child.name.StartsWith(prefix) && child.name.EndsWith(suffix))
+                        {
+                            var boneName = child.name.Substring(prefix.Length, child.name.Length - prefix.Length - suffix.Length);
+                            boneName = NormalizeBoneName(boneName);
+                            if (AllBoneNames.Contains(boneName))
+                            {
+                                count++;
+                                Walk(child);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         public void InferPrefixSuffix()
         {
             // We only infer if targeting the armature (below the Hips bone)
@@ -215,33 +281,64 @@ namespace nadena.dev.modular_avatar.core
             // We also require that the attached object has exactly one child (presumably the hips)
             if (transform.childCount != 1) return;
 
+            List<PSCandidate> candidates = new();
+            
+            // always consider the current configuration
+            candidates.Add(new PSCandidate() {prefix = prefix, suffix = suffix}.CountMatches(this));
+                        
             // Infer the prefix and suffix by comparing the names of the mergeTargetObject's hips with the child of the
             // GameObject we're attached to.
             var baseName = hips.name;
-            var mergeName = transform.GetChild(0).name;
-            var isInferred = false;
+            var mergeHips = transform.GetChild(0);
+            var mergeName = mergeHips.name;
 
-            foreach (var hipNameCandidate in boneNamePatterns[(int)HumanBodyBones.Hips])
+            // Classic substring match
+            {
+                var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
+                if (prefixLength >= 0)
+                {
+                    var suffixLength = mergeName.Length - prefixLength - baseName.Length;
+
+                    candidates.Add(new PSCandidate()
+                    {
+                        prefix = mergeName.Substring(0, prefixLength),
+                        suffix = mergeName.Substring(mergeName.Length - suffixLength)
+                    }.CountMatches(this));
+                }
+            }
+
+            // Heuristic match - try to see if we get a better prefix/suffix pattern if we allow for fuzzy-matching of
+            // bone names. Since our goal is to minimize unnecessary renaming (and potentially failing matches), we do
+            // this only if the number of heuristic matches is more than twice the number of matches from the static
+            // pattern above, as using this will force most bones to be renamed.
+            foreach (var hipNameCandidate in
+                     boneNamePatterns[(int)HumanBodyBones.Hips].OrderByDescending(p => p.Length))
             {
                 var prefixLength = mergeName.IndexOf(hipNameCandidate, StringComparison.InvariantCultureIgnoreCase);
                 if (prefixLength < 0) continue;
 
                 var suffixLength = mergeName.Length - prefixLength - hipNameCandidate.Length;
 
-                prefix = mergeName.Substring(0, prefixLength);
-                suffix = mergeName.Substring(mergeName.Length - suffixLength);
-                isInferred = true;
+                var prefix = mergeName.Substring(0, prefixLength);
+                var suffix = mergeName.Substring(mergeName.Length - suffixLength);
+
+                var candidate = new PSCandidate
+                {
+                    prefix = prefix,
+                    suffix = suffix
+                }.CountHeuristicMatches(mergeHips);
+                candidate.matches = (candidate.matches + 1) / 2;
+
+                candidates.Add(candidate);
                 break;
             }
-
-            if (!isInferred) { // Also check with old method as fallback
-                var prefixLength = mergeName.IndexOf(baseName, StringComparison.InvariantCulture);
-                if (prefixLength < 0) return;
-
-                var suffixLength = mergeName.Length - prefixLength - baseName.Length;
-
-                prefix = mergeName.Substring(0, prefixLength);
-                suffix = mergeName.Substring(mergeName.Length - suffixLength);
+            
+            // Select which candidate to use
+            var selected = candidates.OrderByDescending(c => c.matches).FirstOrDefault();
+            if (selected != null && selected.matches > 0)
+            {
+                prefix = selected.prefix;
+                suffix = selected.suffix;
             }
 
             if (prefix == "J_Bip_C_")
