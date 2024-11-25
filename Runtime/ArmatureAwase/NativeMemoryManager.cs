@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
 
 #endregion
 
@@ -15,10 +14,17 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         internal NativeArray<T> Array;
 
         public static implicit operator NativeArray<T>(NativeArrayRef<T> arrayRef) => arrayRef.Array;
+        public int Length => Array.Length;
 
         public void Dispose()
         {
             Array.Dispose();
+        }
+
+        public T this[int key]
+        {
+            get => Array[key];
+            set => Array[key] = value;
         }
 
         public void Resize(int n)
@@ -143,6 +149,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             // We perform trial creations of segments (and then immediately free them if they exceed the bounds of the
             // array). As such, we clamp the length, rather than throwing an exception.
             length = Math.Min(length, InUseMask.Array.Length - offset);
+
+            if (length < 0)
+            {
+                throw new ArgumentException("negative length");
+            }
             
             unsafe
             {
