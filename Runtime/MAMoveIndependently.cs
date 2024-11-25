@@ -1,7 +1,9 @@
 ﻿using System;
 using nadena.dev.modular_avatar.core.armature_lock;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 #if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
 #endif
@@ -31,6 +33,7 @@ namespace nadena.dev.modular_avatar.core
 
         private void OnValidate()
         {
+#if UNITY_EDITOR
             if (!PrefabUtility.IsPartOfPrefabAsset(this))
             {
                 EditorApplication.delayCall += () =>
@@ -38,6 +41,7 @@ namespace nadena.dev.modular_avatar.core
                     if (this != null) MaMoveIndependentlyManager.Instance.Activate(this);
                 };
             }
+#endif
         }
 
         private void OnEnable()

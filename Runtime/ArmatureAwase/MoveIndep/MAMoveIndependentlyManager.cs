@@ -4,9 +4,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Jobs;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace nadena.dev.modular_avatar.core.armature_lock
 {
@@ -32,8 +34,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _anyDirty = new NativeArray<bool>(1, Allocator.Persistent);
 
             _nativeMemoryManager.OnSegmentMove += MoveTransforms;
-
+#if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnDomainUnload;
+#endif
         }
 
         private void OnDomainUnload()
@@ -45,7 +48,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
         {
             _lastJob.Complete();
 
+#if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload -= OnDomainUnload;
+#endif
 
             if (_virtualParents.isCreated) DeferDestroy.DeferDestroyObj(_virtualParents);
             if (_trueParents.isCreated) DeferDestroy.DeferDestroyObj(_trueParents);
@@ -257,7 +262,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 {
                     if (_mappingStates[i].RequestWriteback)
                     {
+#if UNITY_EDITOR
                         Undo.RecordObject(_targets[i], "Move Independently");
+#endif
                         prefabRecord.Add(_targets[i]);
                     }
                 }
@@ -281,7 +288,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             {
                 foreach (var transform in prefabRecord)
                 {
+#if UNITY_EDITOR
                     PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
+#endif
                 }
             }
 
