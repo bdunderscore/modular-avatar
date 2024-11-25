@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -51,12 +53,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     or ModularAvatarMeshSettings.InheritMode.Inherit
                     or ModularAvatarMeshSettings.InheritMode.DontSet
                     or ModularAvatarMeshSettings.InheritMode.SetOrInherit), _):
-                    throw new System.InvalidOperationException($"Logic failure: invalid InheritMode: {currentMode}");
+                    throw new InvalidOperationException($"Logic failure: invalid InheritMode: {currentMode}");
                 case (_, not (ModularAvatarMeshSettings.InheritMode.Set
                     or ModularAvatarMeshSettings.InheritMode.Inherit
                     or ModularAvatarMeshSettings.InheritMode.DontSet
                     or ModularAvatarMeshSettings.InheritMode.SetOrInherit)):
-                    throw new System.ArgumentOutOfRangeException(nameof(srcMode), $"Invalid InheritMode: {srcMode}");
+                    throw new ArgumentOutOfRangeException(nameof(srcMode), $"Invalid InheritMode: {srcMode}");
 
                 // If current value is came from Set or DontSet, it should not be changed
                 case (ModularAvatarMeshSettings.InheritMode.Set, _):
@@ -185,9 +187,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (invertedRootBoneCache.TryGetValue(rootBone, out var cache)) { return cache; }
 
-            var cloned = Object.Instantiate(rootBone.gameObject);
+            var cloned = Object.Instantiate(rootBone.gameObject, rootBone, true);
             cloned.name = rootBone.gameObject.name + "-InvertedRootBone";
-            cloned.transform.SetParent(rootBone, false);
 
             var invertedRootBone = cloned.transform;
             var scale = invertedRootBone.localScale;
