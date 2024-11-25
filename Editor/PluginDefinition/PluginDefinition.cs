@@ -2,7 +2,6 @@
 
 using System;
 using nadena.dev.modular_avatar.animation;
-using nadena.dev.modular_avatar.core.ArmatureAwase;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;

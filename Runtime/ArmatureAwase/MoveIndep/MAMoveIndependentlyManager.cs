@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.core.armature_lock;
-using nadena.dev.modular_avatar.core.ArmatureAwase;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -10,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Jobs;
 
-namespace nadena.dev.modular_avatar.core
+namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal class MaMoveIndependentlyManager
     {

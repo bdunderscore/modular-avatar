@@ -1,11 +1,12 @@
 ﻿using System;
+using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEditor;
 using UnityEngine;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDKBase;
 #endif
 
-namespace nadena.dev.modular_avatar.core.ArmatureAwase
+namespace nadena.dev.modular_avatar.core
 {
     [ExecuteInEditMode]
     [AddComponentMenu("Modular Avatar/MA Move Independently")]
