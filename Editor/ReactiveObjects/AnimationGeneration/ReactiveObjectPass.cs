@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -23,8 +24,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         // Properties that are being driven, either by foreign animations or Object Toggles
         private HashSet<string> activeProps = new();
-        
-        private AnimationClip _initialStateClip;
+
+        private VirtualClip _initialStateClip;
         private bool _writeDefaults;
         
         public ReactiveObjectPass(ndmf.BuildContext context)
@@ -60,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var asc = context.Extension<AnimationServicesContext>();
+            var rpe = context.Extension<ReadablePropertyExtension>();
             
             foreach (var prop in shapes.Keys)
             {
@@ -68,7 +69,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // Ensure a proxy exists for each object we're going to be toggling.
                     // TODO: is this still needed?
-                    asc.GetActiveSelfProxy(go);
+                    rpe.GetActiveSelfProxy(go);
                 }
             }
         }
@@ -91,19 +92,19 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var asc = context.Extension<AnimationServicesContext>();
+            var asc = context.Extension<AnimatorServicesContext>();
+            var rpe = context.Extension<ReadablePropertyExtension>();
             
             // We need to track _two_ initial states: the initial state we'll apply at build time (which applies
             // when animations are disabled) and the animation base state. Confusingly, the animation base state
             // should be the state that is currently applied to the object...
-            
-            var clips = context.Extension<AnimationServicesContext>().AnimationDatabase;
-            var initialStateHolder = clips.ClipsForPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
-            if (initialStateHolder == null) return;
 
-            _initialStateClip = new AnimationClip();
-            _initialStateClip.name = "Reactive Component Defaults";
-            initialStateHolder.CurrentClip = _initialStateClip;
+            var clips = asc.AnimationIndex;
+            _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
+
+            if (_initialStateClip == null) return;
+
+            _initialStateClip.Name = "Reactive Component Defaults";
 
             foreach (var (key, initialState) in initialStates)
             {
@@ -186,17 +187,17 @@ namespace nadena.dev.modular_avatar.core.editor
                     curve.AddKey(0, f);
                     curve.AddKey(1, f);
 
-                    AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+                    _initialStateClip.SetFloatCurve(binding, curve);
 
                     if (componentType == typeof(GameObject) && key.PropertyName == "m_IsActive")
                     {
                         binding = EditorCurveBinding.FloatCurve(
                             "",
                             typeof(Animator),
-                            asc.GetActiveSelfProxy((GameObject)key.TargetObject)
+                            rpe.GetActiveSelfProxy((GameObject)key.TargetObject)
                         );
 
-                        AnimationUtility.SetEditorCurve(_initialStateClip, binding, curve);
+                        _initialStateClip.SetFloatCurve(binding, curve);
                     }
                 }
                 else if (animBaseState is Object obj)
@@ -206,8 +207,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         componentType,
                         key.PropertyName
                     );
-                    
-                    AnimationUtility.SetObjectReferenceCurve(_initialStateClip, binding, new []
+
+                    _initialStateClip.SetObjectCurve(binding, new[]
                     {
                         new ObjectReferenceKeyframe()
                         {
@@ -308,7 +309,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private AnimatorStateMachine GenerateStateMachine(AnimatedProperty info)
         {
-            var asc = context.Extension<AnimationServicesContext>();
+            var asc = context.Extension<AnimatorServicesContext>();
             var asm = new AnimatorStateMachine();
 
             // Workaround for the warning: "'.' is not allowed in State name"
@@ -333,7 +334,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 position = new Vector3(x, y),
                 state = initialState
             });
-            asc.AnimationDatabase.RegisterState(states[^1].state);
 
             var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
             var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
@@ -363,7 +363,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     clip.name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
                                 group.Value;
 
-                    var conditions = GetTransitionConditions(asc, group);
+                    var conditions = GetTransitionConditions(group);
 
                     foreach (var (st, transitions) in transitionBuffer)
                     {
@@ -407,7 +407,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         position = new Vector3(x, y),
                         state = state
                     });
-                    asc.AnimationDatabase.RegisterState(states[^1].state);
 
                     var transitionList = new List<AnimatorStateTransition>();
                     transitionBuffer.Add((state, transitionList));
@@ -488,7 +487,7 @@ namespace nadena.dev.modular_avatar.core.editor
             };
         }
 
-        private AnimatorCondition[] GetTransitionConditions(AnimationServicesContext asc, ReactionRule group)
+        private AnimatorCondition[] GetTransitionConditions(ReactionRule group)
         {
             var conditions = new List<AnimatorCondition>();
 
@@ -574,8 +573,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (key.TargetObject is GameObject targetObject && key.PropertyName == "m_IsActive")
                 {
-                    var asc = context.Extension<AnimationServicesContext>();
-                    var propName = asc.GetActiveSelfProxy(targetObject);
+                    var rpe = context.Extension<ReadablePropertyExtension>();
+                    var propName = rpe.GetActiveSelfProxy(targetObject);
                     binding = EditorCurveBinding.FloatCurve("", typeof(Animator), propName);
                     AnimationUtility.SetEditorCurve(clip, binding, curve);
                 }
@@ -586,47 +585,29 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ApplyController(AnimatorStateMachine asm, string layerName)
         {
-            var fx = FindFxController();
-            
-            if (fx.animatorController == null)
+            var asc = context.Extension<AnimatorServicesContext>();
+            var fx = asc.ControllerContext[
+                VRCAvatarDescriptor.AnimLayerType.FX
+            ];
+
+            if (fx == null)
             {
                 throw new InvalidOperationException("No FX layer found");
             }
-            
-            if (!context.IsTemporaryAsset(fx.animatorController))
-            {
-                throw new InvalidOperationException("FX layer is not a temporary asset");
-            }
 
-            if (!(fx.animatorController is AnimatorController animController))
+            foreach (var paramName in initialValues.Keys.Except(fx.Parameters.Keys))
             {
-                throw new InvalidOperationException("FX layer is not an animator controller");
-            }
-
-            var paramList = animController.parameters.ToList();
-            var paramSet = paramList.Select(p => p.name).ToHashSet();
-
-            foreach (var paramName in initialValues.Keys.Except(paramSet))
-            {
-                paramList.Add(new AnimatorControllerParameter()
+                var parameter = new AnimatorControllerParameter
                 {
                     name = paramName,
                     type = AnimatorControllerParameterType.Float,
                     defaultFloat = initialValues[paramName], // TODO
-                });
-                paramSet.Add(paramName);
+                };
+                fx.Parameters = fx.Parameters.SetItem(paramName, parameter);
             }
 
-            animController.parameters = paramList.ToArray();
-
-            animController.layers = animController.layers.Append(
-                new AnimatorControllerLayer
-                {
-                    stateMachine = asm,
-                    name = "RC " + layerName,
-                    defaultWeight = 1
-                }
-            ).ToArray();
+            fx.AddLayer(LayerPriority.Default, "RC " + layerName).StateMachine =
+                asc.ControllerContext.Clone(asm);
         }
 
         private VRCAvatarDescriptor.CustomAnimLayer FindFxController()
