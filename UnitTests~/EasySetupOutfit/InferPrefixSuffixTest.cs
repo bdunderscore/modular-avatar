@@ -17,7 +17,7 @@ public class InferPrefixSuffixTest : TestBase
 
         var outfit = CreateChild(root, "Outfit");
         var outfit_armature = CreateChild(outfit, "armature");
-        var outfit_hips = CreateChild(outfit_armature, "hips");
+        var outfit_hips = CreateChild(outfit_armature, "hip");
 
         var outfit_mama = outfit_armature.AddComponent<ModularAvatarMergeArmature>();
         outfit_mama.mergeTarget = new AvatarObjectReference();
@@ -42,7 +42,8 @@ public class InferPrefixSuffixTest : TestBase
 
         var outfit = CreateChild(root, "Outfit");
         var outfit_armature = CreateChild(outfit, "armature");
-        var outfit_hips = CreateChild(outfit_armature, "pre_Hips.suf");
+        var outfit_hips = CreateChild(outfit_armature, "pre_hips.suf");
+
 
         var outfit_mama = outfit_armature.AddComponent<ModularAvatarMergeArmature>();
         outfit_mama.mergeTarget = new AvatarObjectReference();
@@ -50,13 +51,24 @@ public class InferPrefixSuffixTest : TestBase
         outfit_mama.LockMode = ArmatureLockMode.BaseToMerge;
 
         outfit_mama.InferPrefixSuffix();
+        
+        // Initially, we determine "hip" to be the match
+        Assert.AreEqual("pre_", outfit_mama.prefix);
+        Assert.AreEqual("s.suf", outfit_mama.suffix);
+        
+        // Now, add the legs.
+        var outfit_left_leg = CreateChild(outfit_hips, "pre_upleg.l.suf");
+        var outfit_right_leg = CreateChild(outfit_hips, "pre_upleg.r.suf");
+        
+        // Now, we match 3 with ".suf" vs 1 with "s.suf", so the inference should change.
+        outfit_mama.InferPrefixSuffix();
 
         Assert.AreEqual("pre_", outfit_mama.prefix);
         Assert.AreEqual(".suf", outfit_mama.suffix);
     }
 
     [Test]
-    public void TestSameHipsName_Success()
+    public void TestSameHipsName_Multiple()
     {
         var root = CreateCommonPrefab("shapell.fbx");
 #if MA_VRCSDK3_AVATARS
@@ -68,6 +80,8 @@ public class InferPrefixSuffixTest : TestBase
         var outfit = CreateChild(root, "Outfit");
         var outfit_armature = CreateChild(outfit, "armature");
         var outfit_hips = CreateChild(outfit_armature, "pre_TEST_HI2.suf"); // Make it a little bit different name to confirm it matches the current implementation
+        var outfit_spine = CreateChild(outfit_hips, "pre_Spine2.suf");
+        var outfit_chest = CreateChild(outfit_spine, "pre_Bust2.suf");
 
         var outfit_mama = outfit_armature.AddComponent<ModularAvatarMergeArmature>();
         outfit_mama.mergeTarget = new AvatarObjectReference();
@@ -81,7 +95,7 @@ public class InferPrefixSuffixTest : TestBase
     }
 
     [Test]
-    public void TestSameHipsName_Fail()
+    public void TestSameHipsName_Single()
     {
         var root = CreateCommonPrefab("shapell.fbx");
 #if MA_VRCSDK3_AVATARS
@@ -101,8 +115,38 @@ public class InferPrefixSuffixTest : TestBase
 
         outfit_mama.InferPrefixSuffix();
 
-        // Current(v1.10.x) InferPrefixSuffix fail to infer prefix/suffix when avatar has unique prefix/suffix and outfit has their name
-        Assert.AreNotEqual("pre_", outfit_mama.prefix);
-        Assert.AreNotEqual(".suf", outfit_mama.suffix);
+        Assert.AreEqual("pre_", outfit_mama.prefix);
+        Assert.AreEqual(".suf", outfit_mama.suffix);
+    }
+
+    [Test]
+    public void TestSpuriousMatch()
+    {
+        var root = CreateCommonPrefab("shapell.fbx");
+#if MA_VRCSDK3_AVATARS
+        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+#endif
+        var animator = root.GetComponent<Animator>();
+        var root_hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+        var root_armature = root_hips.parent;
+
+        root_hips.gameObject.name = "bone_pelvis";
+        root_armature.gameObject.name = "bone_root";
+        animator.GetBoneTransform(HumanBodyBones.Spine).gameObject.name = "bone_Spine";
+            
+        var outfit = CreateChild(root, "Outfit");
+        var outfit_armature = CreateChild(outfit, "bone_root");
+        var outfit_hips = CreateChild(outfit_armature, "bone_pelvis");
+        var outfit_spine = CreateChild(outfit_hips, "bone_Spine");
+        
+        var outfit_mama = outfit_armature.AddComponent<ModularAvatarMergeArmature>();
+        outfit_mama.mergeTarget = new AvatarObjectReference();
+        outfit_mama.mergeTarget.referencePath = RuntimeUtil.RelativePath(root, root_armature.gameObject);
+        outfit_mama.LockMode = ArmatureLockMode.BaseToMerge;
+        
+        outfit_mama.InferPrefixSuffix();
+        
+        Assert.AreEqual("", outfit_mama.prefix);
+        Assert.AreEqual("", outfit_mama.suffix);
     }
 }
