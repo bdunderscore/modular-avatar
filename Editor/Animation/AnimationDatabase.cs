@@ -416,7 +416,7 @@ namespace nadena.dev.modular_avatar.animation
             {
                 try
                 {
-                    AssetDatabase.AddObjectToAsset(curClip, _context.AssetContainer);
+                    _context.AssetSaver.SaveAsset(curClip);
                 }
                 catch (Exception e)
                 {
