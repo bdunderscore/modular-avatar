@@ -78,7 +78,7 @@ namespace nadena.dev.modular_avatar.animation
             _combined = new AnimatorController();
             if (context.AssetContainer != null && EditorUtility.IsPersistent(context.AssetContainer))
             {
-                AssetDatabase.AddObjectToAsset(_combined, context.AssetContainer);
+                context.AssetSaver.SaveAsset(_combined);
             }
 
             _combined.name = assetName;
@@ -191,7 +191,7 @@ namespace nadena.dev.modular_avatar.animation
                     EditorUtility.CopySerialized(t, newTransition);
                     if (_context.AssetContainer != null)
                     {
-                        AssetDatabase.AddObjectToAsset(newTransition, _context.AssetContainer);
+                        _context.AssetSaver.SaveAsset(newTransition);
                     }
                     t = newTransition;
                 }
