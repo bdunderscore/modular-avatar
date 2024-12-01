@@ -153,6 +153,7 @@
   "error.replace_object.null_target:hint": "Replace object needs a target object to replace. Try setting one.",
   "error.replace_object.replacing_replacement": "[MA-0009] The same target object cannot be specified in multiple Replace Object components",
   "error.replace_object.parent_of_target": "[MA-0010] The target object cannot be a parent of this object",
+  "error.singleton": "[MA-0011] Only one instance of {0} is allowed in an avatar",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] No renderer found on this object",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync acts on a Skinned Mesh Renderer on the same GameObject. Did you attach it to the right object?",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] No mesh found on the renderer on this object",
@@ -287,5 +288,12 @@
   "ro_sim.effect_group.conditions": "Conditions",
   "remove-vertex-color.mode": "Mode",
   "remove-vertex-color.mode.Remove": "Remove Vertex Colors",
-  "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors"
+  "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors",
+  "general.vrcsdk-required": "This component requires the VRCSDK to function.",
+  "sync-param-sequence.platform": "Primary Platform",
+  "sync-param-sequence.platform.tooltip": "When building for this platform, Modular Avatar will record all expression parameters for use on other platform builds",
+  "sync-param-sequence.parameters": "Common parameters asset",
+  "sync-param-sequence.parameters.tooltip": "The asset to store common parameters in. Do not use the same Expression Parameters that you have set in your avatar descriptor.",
+  "sync-param-sequence.create-asset": "New",
+  "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset"
 }
