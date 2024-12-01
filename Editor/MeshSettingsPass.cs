@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -187,16 +188,17 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (invertedRootBoneCache.TryGetValue(rootBone, out var cache)) { return cache; }
 
-            var cloned = Object.Instantiate(rootBone.gameObject, rootBone, true);
-            cloned.name = rootBone.gameObject.name + "-InvertedRootBone";
+            var invertedRootBone = new GameObject($"{rootBone.gameObject.name}-InvertedRootBone");
+            EditorUtility.CopySerialized(rootBone, invertedRootBone.transform);
+            invertedRootBone.transform.parent = rootBone;
 
-            var invertedRootBone = cloned.transform;
-            var scale = invertedRootBone.localScale;
+            var transform = invertedRootBone.transform;
+            var scale = transform.localScale;
             scale.x *= -1;
-            invertedRootBone.localScale = scale;
+            transform.localScale = scale;
 
-            invertedRootBoneCache[rootBone] = invertedRootBone;
-            return invertedRootBone;
+            invertedRootBoneCache[rootBone] = transform;
+            return transform;
         }
     }
 }
