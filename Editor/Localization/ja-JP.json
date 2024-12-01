@@ -276,5 +276,8 @@
   "ro_sim.effect_group.material.tooltip": "上記の Reactive Component がアクティブな時に設定されるマテリアル",
   "ro_sim.effect_group.rule_inverted": "このルールの条件は反転されています",
   "ro_sim.effect_group.rule_inverted.tooltip": "このルールは、いずれかの条件が満たされていない場合に適用されます",
-  "ro_sim.effect_group.conditions": "条件"
+  "ro_sim.effect_group.conditions": "条件",
+  "remove-vertex-color.mode": "モード",
+  "remove-vertex-color.mode.Remove": "頂点カラーを削除する",
+  "remove-vertex-color.mode.DontRemove": "頂点カラーを削除しない"
 }
