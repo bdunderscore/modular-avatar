@@ -149,6 +149,7 @@
   "error.replace_object.null_target:hint": "Replace Objectは置き換え先のオブジェクトを指定する必要があります。",
   "error.replace_object.replacing_replacement": "[MA-0009] 複数のReplace Objectコンポーネントで、同じ置き換え先を指定できません",
   "error.replace_object.parent_of_target": "[MA-0010] このオブジェクトの親を置き換え先に指定できません",
+  "error.singleton": "[MA-0011] {0} はアバターに一個しか存在できません",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] このオブジェクトにはSkinned Mesh Rendererがありません。",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Syncは同じGameObject上のSkinned Mesh Rendererに作用します。コンポーネントが正しいオブジェクトに追加されているか確認してください。",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] このオブジェクトにはSkinned Mesh Rendererがありますが、メッシュがありません。",
@@ -276,5 +277,15 @@
   "ro_sim.effect_group.material.tooltip": "上記の Reactive Component がアクティブな時に設定されるマテリアル",
   "ro_sim.effect_group.rule_inverted": "このルールの条件は反転されています",
   "ro_sim.effect_group.rule_inverted.tooltip": "このルールは、いずれかの条件が満たされていない場合に適用されます",
-  "ro_sim.effect_group.conditions": "条件"
+  "ro_sim.effect_group.conditions": "条件",
+  "remove-vertex-color.mode": "モード",
+  "remove-vertex-color.mode.Remove": "頂点カラーを削除する",
+  "remove-vertex-color.mode.DontRemove": "頂点カラーを削除しない",
+  "general.vrcsdk-required": "このコンポーネントにはVRCSDKが必要です。",
+  "sync-param-sequence.platform": "主要プラットホーム",
+  "sync-param-sequence.platform.tooltip": "このプラットホームでビルドすると、他のプラットホームを合わせるためにパラメーターを記録します。",
+  "sync-param-sequence.parameters": "共用パラメーターアセット",
+  "sync-param-sequence.parameters.tooltip": "共用パラメーターがこのアセットに保持されます。アバターデスクリプターに使われるアセットを流用しないでください。",
+  "sync-param-sequence.create-asset": "新規作成",
+  "sync-param-sequence.create-asset.tooltip": "新しい共用パラメーターアセットを作成します"
 }
