@@ -89,6 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
                 seq.Run(RemoveVertexColorPass.Instance);
+                seq.Run(SyncParameterSequencePass.Instance);
 #endif
                 seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
