@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if MA_VRCSDK3_AVATARS
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
@@ -36,6 +38,77 @@ namespace nadena.dev.modular_avatar.core.editor
                 var param = "__ActiveSelfProxy/" + obj.GetInstanceID();
                 _simulationInitialStates[param] = obj.activeSelf ? 1.0f : 0.0f;
                 return param;
+            }
+        }
+
+        private readonly Dictionary<(SkinnedMeshRenderer, string), HashSet<(SkinnedMeshRenderer, string)>>
+            _blendshapeSyncMappings = new();
+
+        private void LocateBlendshapeSyncs(GameObject root)
+        {
+            var components = _computeContext.GetComponentsInChildren<ModularAvatarBlendshapeSync>(root, true);
+
+            foreach (var bss in components)
+            {
+                var localMesh = _computeContext.GetComponent<SkinnedMeshRenderer>(bss.gameObject);
+                if (localMesh == null) continue;
+
+                foreach (var entry in _computeContext.Observe(bss, bss_ => bss_.Bindings.ToImmutableList(),
+                             Enumerable.SequenceEqual))
+                {
+                    var src = entry.ReferenceMesh.Get(bss);
+                    if (src == null) continue;
+
+                    var srcMesh = _computeContext.GetComponent<SkinnedMeshRenderer>(src);
+
+                    var localBlendshape = entry.LocalBlendshape;
+                    if (string.IsNullOrWhiteSpace(localBlendshape))
+                    {
+                        localBlendshape = entry.Blendshape;
+                    }
+
+                    var srcBinding = (srcMesh, entry.Blendshape);
+                    var dstBinding = (localMesh, localBlendshape);
+
+                    if (!_blendshapeSyncMappings.TryGetValue(srcBinding, out var dstSet))
+                    {
+                        dstSet = new HashSet<(SkinnedMeshRenderer, string)>();
+                        _blendshapeSyncMappings[srcBinding] = dstSet;
+                    }
+
+                    dstSet.Add(dstBinding);
+                }
+            }
+
+            // For recursive blendshape syncs, we need to precompute the full set of affected blendshapes.
+            foreach (var (src, dsts) in _blendshapeSyncMappings)
+            {
+                var visited = new HashSet<(SkinnedMeshRenderer, string)>();
+                foreach (var item in Visit(src, visited).ToList())
+                {
+                    dsts.Add(item);
+                }
+            }
+
+            IEnumerable<(SkinnedMeshRenderer, string)> Visit(
+                (SkinnedMeshRenderer, string) key,
+                HashSet<(SkinnedMeshRenderer, string)> visited
+            )
+            {
+                if (!visited.Add(key)) yield break;
+
+                if (_blendshapeSyncMappings.TryGetValue(key, out var children))
+                {
+                    foreach (var child in children)
+                    {
+                        foreach (var item in Visit(child, visited))
+                        {
+                            yield return item;
+                        }
+                    }
+                }
+
+                yield return key;
             }
         }
         
@@ -124,50 +197,80 @@ namespace nadena.dev.modular_avatar.core.editor
                     var key = new TargetProp
                     {
                         TargetObject = renderer,
-                        PropertyName = "blendShape." + shape.ShapeName,
+                        PropertyName = BlendshapePrefix + shape.ShapeName
                     };
 
+                    var currentValue = renderer.GetBlendShapeWeight(shapeId);
                     var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
-                    if (!shapeKeys.TryGetValue(key, out var info))
+
+                    RegisterAction(key, currentValue, value, changer);
+
+                    if (_blendshapeSyncMappings.TryGetValue((renderer, shape.ShapeName), out var bindings))
                     {
-                        info = new AnimatedProperty(key, renderer.GetBlendShapeWeight(shapeId));
-                        shapeKeys[key] = info;
+                        // Propagate the new value through any Blendshape Syncs we might have.
+                        // Note that we don't propagate deletes; it's common to e.g. want to delete breasts from the
+                        // base model while retaining outerwear that matches the breast size.
+                        foreach (var binding in bindings)
+                        {
+                            var bindingKey = new TargetProp
+                            {
+                                TargetObject = binding.Item1,
+                                PropertyName = BlendshapePrefix + binding.Item2
+                            };
+                            var bindingRenderer = binding.Item1;
 
-                        // Add initial state
-                        var agk = new ReactionRule(key, value);
-                        agk.Value = renderer.GetBlendShapeWeight(shapeId);
-                        info.actionGroups.Add(agk);
+                            var bindingMesh = bindingRenderer.sharedMesh;
+                            if (bindingMesh == null) continue;
+
+                            var bindingShapeIndex = bindingMesh.GetBlendShapeIndex(binding.Item2);
+                            if (bindingShapeIndex < 0) continue;
+
+                            var bindingInitialState = bindingRenderer.GetBlendShapeWeight(bindingShapeIndex);
+
+                            RegisterAction(bindingKey, bindingInitialState, value, changer);
+                        }
                     }
-
-                    var action = ObjectRule(key, changer, value);
-                    action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
-                    var isCurrentlyActive = changer.gameObject.activeInHierarchy;
-
-                    if (shape.ChangeType == ShapeChangeType.Delete)
+                    
+                    key = new TargetProp
                     {
-                        action.IsDelete = true;
-                        
-                        if (isCurrentlyActive) info.currentState = 100;
+                        TargetObject = renderer,
+                        PropertyName = DeletedShapePrefix + shape.ShapeName
+                    };
 
-                        info.actionGroups.Add(action); // Never merge
-
-                        continue;
-                    }
-
-                    if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
-
-                    if (info.actionGroups.Count == 0)
-                    {
-                        info.actionGroups.Add(action);
-                    }
-                    else if (!info.actionGroups[^1].TryMerge(action))
-                    {
-                        info.actionGroups.Add(action);
-                    }
+                    value = shape.ChangeType == ShapeChangeType.Delete ? 1 : 0;
+                    RegisterAction(key, 0, value, changer);
                 }
             }
 
             return shapeKeys;
+
+            void RegisterAction(TargetProp key, float currentValue, float value, ModularAvatarShapeChanger changer)
+            {
+                if (!shapeKeys.TryGetValue(key, out var info))
+                {
+                    info = new AnimatedProperty(key, currentValue);
+                    shapeKeys[key] = info;
+
+                    // Add initial state
+                    var agk = new ReactionRule(key, value);
+                    agk.Value = currentValue;
+                    info.actionGroups.Add(agk);
+                }
+
+                var action = ObjectRule(key, changer, value);
+                action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
+
+                if (changer.gameObject.activeInHierarchy) info.currentState = action.Value;
+
+                if (info.actionGroups.Count == 0)
+                {
+                    info.actionGroups.Add(action);
+                }
+                else if (!info.actionGroups[^1].TryMerge(action))
+                {
+                    info.actionGroups.Add(action);
+                }
+            }
         }
         
         private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
@@ -245,3 +348,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

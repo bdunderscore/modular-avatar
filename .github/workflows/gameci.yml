@@ -116,6 +116,7 @@ jobs:
         with:
           repos: |
             https://vpm.nadena.dev/vpm-prerelease.json
+            https://vrchat.github.io/packages/index.json?download
 
       - if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: "Debug: List project contents"

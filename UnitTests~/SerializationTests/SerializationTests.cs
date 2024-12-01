@@ -63,7 +63,7 @@ namespace _ModularAvatar.EditModeTests.SerializationTests
             Assert.False(string.IsNullOrEmpty(path));
 
             var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
-            Assert.IsInstanceOf<GeneratedAssets>(mainAsset);
+            Assert.IsTrue(mainAsset is GeneratedAssets or SubAssetContainer);
         }
     }
 }

@@ -176,11 +176,16 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             Dictionary<string, ProvidedParameter> rootParameters = new();
-            
+
             foreach (var param in ParameterIntrospectionCache.GetParametersForObject(parentAvatar.gameObject)
                          .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
-                rootParameters[param.EffectiveName] = param;
+            {
+                if (!string.IsNullOrWhiteSpace(param.EffectiveName))
+                {
+                    rootParameters[param.EffectiveName] = param;
+                }
+            }
 
             var remaps = ParameterIntrospectionCache.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
@@ -366,10 +371,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUILayout.BeginVertical();
 
                 if (_type.hasMultipleDifferentValues) return;
-                VRCExpressionsMenu.Control.ControlType type =
-                    (VRCExpressionsMenu.Control.ControlType) Enum
-                        .GetValues(typeof(VRCExpressionsMenu.Control.ControlType))
-                        .GetValue(_type.enumValueIndex);
+                var controlTypeArray = Enum.GetValues(typeof(VRCExpressionsMenu.Control.ControlType));
+                var index = Math.Clamp(_type.enumValueIndex, 0, controlTypeArray.Length - 1);
+                var type = (VRCExpressionsMenu.Control.ControlType)controlTypeArray.GetValue(index);
 
                 switch (type)
                 {
@@ -582,7 +586,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 // But, we do want to see if _any_ are default.
                 var anyIsDefault = _prop_isDefault.hasMultipleDifferentValues || _prop_isDefault.boolValue;
                 var mixedIsDefault = multipleSelections && anyIsDefault;
-                using (new EditorGUI.DisabledScope(multipleSelections || isDefaultByKnownParam != null))
+
+                var allAreAutoParams = !_parameterName.hasMultipleDifferentValues &&
+                                       string.IsNullOrWhiteSpace(_parameterName.stringValue);
+
+                using (new EditorGUI.DisabledScope((!allAreAutoParams && multipleSelections) ||
+                                                   isDefaultByKnownParam != null))
                 {
                     EditorGUI.BeginChangeCheck();
                     DrawHorizontalToggleProp(_prop_isDefault, G("menuitem.prop.is_default"), mixedIsDefault,
@@ -711,6 +720,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var myMenuItem = serializedObject.targetObject as ModularAvatarMenuItem;
             if (myMenuItem == null) return null;
 
+            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
+            if (avatarRoot == null) return null;
+
             var myParameterName = myMenuItem.Control.parameter.name;
             if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
 
@@ -718,7 +730,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
                 myParameterName = myReplacement.ParameterName;
 
-            var avatarRoot = RuntimeUtil.FindAvatarInParents(myMenuItem.gameObject.transform);
             var siblings = new List<ModularAvatarMenuItem>();
 
             foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))

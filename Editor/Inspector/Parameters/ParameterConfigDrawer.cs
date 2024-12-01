@@ -81,6 +81,12 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
 
             updateRemapToPlaceholder();
 
+            foreach (var elem in root.Query<TextElement>().Build())
+            {
+                // Prevent keypresses from bubbling up
+                elem.RegisterCallback<KeyDownEvent>(evt => evt.StopPropagation(), TrickleDown.NoTrickleDown);
+            }
+
             return root;
         }
 

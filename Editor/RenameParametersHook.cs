@@ -136,6 +136,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (ResolvedParameter.syncType == ParameterSyncType.NotSynced)
                 {
                     ResolvedParameter.syncType = info.ResolvedParameter.syncType;
+                    ResolvedParameter.localOnly = info.ResolvedParameter.localOnly;
                 } else if (ResolvedParameter.syncType != info.ResolvedParameter.syncType && info.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
                 {
                     TypeConflict = true;
@@ -159,6 +160,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
+            if (!context.AvatarDescriptor) return;
+
             _context = context;
 
             var syncParams = WalkTree(avatar);
@@ -732,6 +735,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ParameterConfig parameterConfig = param;
                 parameterConfig.nameOrPrefix = remapTo;
                 parameterConfig.remapTo = remapTo;
+                parameterConfig.localOnly = parameterConfig.localOnly || param.syncType == ParameterSyncType.NotSynced;
                 var info = new ParameterInfo()
                 {
                     ResolvedParameter = parameterConfig,

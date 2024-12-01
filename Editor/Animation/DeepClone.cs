@@ -14,6 +14,7 @@ namespace nadena.dev.modular_avatar.animation
 
     internal class DeepClone
     {
+        private BuildContext _context;
         private bool _isSaved;
         private UnityObject _combined;
 
@@ -21,6 +22,7 @@ namespace nadena.dev.modular_avatar.animation
 
         public DeepClone(BuildContext context)
         {
+            _context = context;
             _isSaved = context.AssetContainer != null && EditorUtility.IsPersistent(context.AssetContainer);
             _combined = context.AssetContainer;
         }
@@ -32,6 +34,8 @@ namespace nadena.dev.modular_avatar.animation
         {
             if (original == null) return null;
             if (cloneMap == null) cloneMap = new Dictionary<UnityObject, UnityObject>();
+
+            using var scope = _context.OpenSerializationScope();
 
             Func<UnityObject, UnityObject> visitor = null;
             if (basePath != null)
@@ -96,13 +100,11 @@ namespace nadena.dev.modular_avatar.animation
                 
                 if (_isSaved && !EditorUtility.IsPersistent(obj))
                 {
-                    AssetDatabase.AddObjectToAsset(obj, _combined);
+                    scope.SaveAsset(obj);
                 }
 
                 return (T)obj;
             }
-
-
 
             var ctor = original.GetType().GetConstructor(Type.EmptyTypes);
             if (ctor == null || original is ScriptableObject)
@@ -120,7 +122,7 @@ namespace nadena.dev.modular_avatar.animation
 
             if (_isSaved)
             {
-                AssetDatabase.AddObjectToAsset(obj, _combined);
+                scope.SaveAsset(obj);
             }
 
             SerializedObject so = new SerializedObject(obj);
@@ -233,7 +235,7 @@ namespace nadena.dev.modular_avatar.animation
                 newClip.name = "rebased " + clip.name;
                 if (_isSaved)
                 {
-                    AssetDatabase.AddObjectToAsset(newClip, _combined);
+                    _context.AssetSaver.SaveAsset(newClip);
                 }
 
                 foreach (var binding in AnimationUtility.GetCurveBindings(clip))

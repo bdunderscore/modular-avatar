@@ -33,6 +33,29 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<VRCExpressionsMenu, List<ModularAvatarMenuInstaller>> _menuInstallersMap;
 
+        private static Editor _cachedEditor;
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            ModularAvatarMenuInstaller._openSelectMenu = OpenSelectInstallTargetMenu;
+        }
+
+        private static void OpenSelectInstallTargetMenu(ModularAvatarMenuInstaller installer)
+        {
+            CreateCachedEditor(installer, typeof(MenuInstallerEditor), ref _cachedEditor);
+
+            var editor = (MenuInstallerEditor)_cachedEditor;
+            editor.OnEnable();
+
+            var serializedObject = editor.serializedObject;
+            var installTo = serializedObject.FindProperty(nameof(ModularAvatarMenuInstaller.installTargetMenu));
+
+            var root = editor.FindCommonAvatar();
+
+            editor.OpenSelectMenu(root, installTo);
+        }
+        
         private void OnEnable()
         {
             _installer = (ModularAvatarMenuInstaller) target;
@@ -215,74 +238,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var avatar = commonAvatar;
                 if (avatar != null && InstallTargets.Count == 1 && GUILayout.Button(G("menuinstall.selectmenu")))
                 {
-                    AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
-                    {
-                        if (InstallTargets.Count != 1 || menu == InstallTargets[0]) return;
-
-                        if (InstallTargets[0] is ModularAvatarMenuInstallTarget oldTarget && oldTarget != null)
-                        {
-                            DestroyInstallTargets();
-                        }
-
-                        if (menu is ValueTuple<object, object> vt) // TODO: This should be a named type...
-                        {
-                            // Menu, ContextCallback
-                            menu = vt.Item1;
-                        }
-
-                        if (menu is ModularAvatarMenuItem item)
-                        {
-                            if (item.MenuSource == SubmenuSource.MenuAsset)
-                            {
-                                menu = item.Control.subMenu;
-                            }
-                            else
-                            {
-                                var menuParent = item.menuSource_otherObjectChildren != null
-                                    ? item.menuSource_otherObjectChildren
-                                    : item.gameObject;
-
-                                menu = new MenuNodesUnder(menuParent);
-                            }
-                        }
-                        else if (menu is ModularAvatarMenuGroup group)
-                        {
-                            if (group.targetObject != null) menu = new MenuNodesUnder(group.targetObject);
-                            else menu = new MenuNodesUnder(group.gameObject);
-                        }
-
-                        if (menu is VRCExpressionsMenu expMenu)
-                        {
-                            if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
-                            else installTo.objectReferenceValue = expMenu;
-                        }
-                        else if (menu is RootMenu)
-                        {
-                            installTo.objectReferenceValue = null;
-                        }
-                        else if (menu is MenuNodesUnder nodesUnder)
-                        {
-                            installTo.objectReferenceValue = null;
-
-                            foreach (var target in targets.Cast<Component>().OrderBy(ObjectHierarchyOrder))
-                            {
-                                var installer = (ModularAvatarMenuInstaller) target;
-                                var child = new GameObject();
-                                Undo.RegisterCreatedObjectUndo(child, "Set install target");
-                                child.transform.SetParent(nodesUnder.root.transform, false);
-                                child.name = installer.gameObject.name;
-
-                                var targetComponent = child.AddComponent<ModularAvatarMenuInstallTarget>();
-                                targetComponent.installer = installer;
-
-                                EditorGUIUtility.PingObject(child);
-                            }
-                        }
-
-                        serializedObject.ApplyModifiedProperties();
-                        VirtualMenu.InvalidateCaches();
-                        Repaint();
-                    });
+                    OpenSelectMenu(avatar, installTo);
                 }
             }
 
@@ -368,7 +324,79 @@ namespace nadena.dev.modular_avatar.core.editor
 
             serializedObject.ApplyModifiedProperties();
 
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
+        }
+
+        private void OpenSelectMenu(VRCAvatarDescriptor avatar, SerializedProperty installTo)
+        {
+            AvMenuTreeViewWindow.Show(avatar, _installer, menu =>
+            {
+                if (InstallTargets.Count != 1 || menu == InstallTargets[0]) return;
+
+                if (InstallTargets[0] is ModularAvatarMenuInstallTarget oldTarget && oldTarget != null)
+                {
+                    DestroyInstallTargets();
+                }
+
+                if (menu is ValueTuple<object, object> vt) // TODO: This should be a named type...
+                {
+                    // Menu, ContextCallback
+                    menu = vt.Item1;
+                }
+
+                if (menu is ModularAvatarMenuItem item)
+                {
+                    if (item.MenuSource == SubmenuSource.MenuAsset)
+                    {
+                        menu = item.Control.subMenu;
+                    }
+                    else
+                    {
+                        var menuParent = item.menuSource_otherObjectChildren != null
+                            ? item.menuSource_otherObjectChildren
+                            : item.gameObject;
+
+                        menu = new MenuNodesUnder(menuParent);
+                    }
+                }
+                else if (menu is ModularAvatarMenuGroup group)
+                {
+                    if (group.targetObject != null) menu = new MenuNodesUnder(group.targetObject);
+                    else menu = new MenuNodesUnder(group.gameObject);
+                }
+
+                if (menu is VRCExpressionsMenu expMenu)
+                {
+                    if (expMenu == avatar.expressionsMenu) installTo.objectReferenceValue = null;
+                    else installTo.objectReferenceValue = expMenu;
+                }
+                else if (menu is RootMenu)
+                {
+                    installTo.objectReferenceValue = null;
+                }
+                else if (menu is MenuNodesUnder nodesUnder)
+                {
+                    installTo.objectReferenceValue = null;
+
+                    foreach (var target in targets.Cast<Component>().OrderBy(ObjectHierarchyOrder))
+                    {
+                        var installer = (ModularAvatarMenuInstaller)target;
+                        var child = new GameObject();
+                        Undo.RegisterCreatedObjectUndo(child, "Set install target");
+                        child.transform.SetParent(nodesUnder.root.transform, false);
+                        child.name = installer.gameObject.name;
+
+                        var targetComponent = child.AddComponent<ModularAvatarMenuInstallTarget>();
+                        targetComponent.installer = installer;
+
+                        EditorGUIUtility.PingObject(child);
+                    }
+                }
+
+                serializedObject.ApplyModifiedProperties();
+                VirtualMenu.InvalidateCaches();
+                Repaint();
+            });
         }
 
         private string ObjectHierarchyOrder(Component arg)
@@ -415,6 +443,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     var group = installer.gameObject.AddComponent<ModularAvatarMenuGroup>();
                     var menuRoot = new GameObject();
                     menuRoot.name = "Menu";
+
+                    group.targetObject = menuRoot;
+                    
                     Undo.RegisterCreatedObjectUndo(menuRoot, "Extract menu");
                     menuRoot.transform.SetParent(group.transform, false);
                     foreach (var control in menu.controls)

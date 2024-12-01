@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿#if MA_VRCSDK3_AVATARS
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
+using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -141,6 +144,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             mami.Control.value = defaultValue.GetValueOrDefault();
                         }
+                        else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
+                        {
+                            // For a float or bool value, we don't really have a lot of good choices, so just set it to
+                            // 1
+                            mami.Control.value = 1;
+                        }
                         else
                         {
                             while (usedValues.Contains(nextValue)) nextValue++;
@@ -185,6 +194,26 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
             }
+
+            var mamiWithRC = _mamiByParam.Where(kvp => kvp.Value.Any(
+                component => component.TryGetComponent<ReactiveComponent>(out _)
+            )).ToList();
+
+            if (mamiWithRC.Count > 0)
+            {
+                // This make sures the parameters are correctly merged into the FX layer.
+                var mergeAnimator = context.AvatarRootObject.AddComponent<ModularAvatarMergeAnimator>();
+                mergeAnimator.layerType = VRCAvatarDescriptor.AnimLayerType.FX;
+                mergeAnimator.deleteAttachedAnimator = false;
+                mergeAnimator.animator = new AnimatorController
+                {
+                    parameters = mamiWithRC.Select(kvp => new AnimatorControllerParameter
+                    {
+                        name = kvp.Key,
+                        type = AnimatorControllerParameterType.Float,
+                    }).ToArray(),
+                };
+            }
         }
 
         internal static ControlCondition AssignMenuItemParameter(
@@ -205,7 +234,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (simulationInitialStates != null)
                 {
                     var isDefault = mami.isDefault;
-                    if (isDefaultOverrides?.TryGetValue(paramName, out var target) == true)
+                    ModularAvatarMenuItem target = null;
+                    if (isDefaultOverrides?.TryGetValue(paramName, out target) == true)
                         isDefault = ReferenceEquals(mami, target);
 
                     if (isDefault)
@@ -237,3 +267,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

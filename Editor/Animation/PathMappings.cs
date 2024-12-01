@@ -368,21 +368,26 @@ namespace nadena.dev.modular_avatar.animation
             }
             Profiler.EndSample();
 
-            var layers = context.AvatarDescriptor.baseAnimationLayers
-                .Concat(context.AvatarDescriptor.specialAnimationLayers);
-
-            Profiler.BeginSample("ApplyMappingsToAvatarMasks");
-            foreach (var layer in layers)
+#if MA_VRCSDK3_AVATARS
+            if (context.AvatarDescriptor)
             {
-                ApplyMappingsToAvatarMask(layer.mask);
+                var layers = context.AvatarDescriptor.baseAnimationLayers
+                    .Concat(context.AvatarDescriptor.specialAnimationLayers);
 
-                if (layer.animatorController is AnimatorController ac)
-                    // By this point, all AnimationOverrideControllers have been collapsed into an ephemeral
-                    // AnimatorController so we can safely modify the controller in-place.
-                    foreach (var acLayer in ac.layers)
-                        ApplyMappingsToAvatarMask(acLayer.avatarMask);
+                Profiler.BeginSample("ApplyMappingsToAvatarMasks");
+                foreach (var layer in layers)
+                {
+                    ApplyMappingsToAvatarMask(layer.mask);
+
+                    if (layer.animatorController is AnimatorController ac)
+                        // By this point, all AnimationOverrideControllers have been collapsed into an ephemeral
+                        // AnimatorController so we can safely modify the controller in-place.
+                        foreach (var acLayer in ac.layers)
+                            ApplyMappingsToAvatarMask(acLayer.avatarMask);
+                }
+                Profiler.EndSample();
             }
-            Profiler.EndSample();
+#endif
             
             Profiler.EndSample();
         }

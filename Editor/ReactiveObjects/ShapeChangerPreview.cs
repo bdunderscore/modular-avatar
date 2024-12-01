@@ -1,4 +1,5 @@
-﻿#region
+﻿#if MA_VRCSDK3_AVATARS
+#region
 
 using System;
 using System.Collections.Generic;
@@ -72,8 +73,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatarRoot);
             var shapes = analysis.Shapes;
 
-            ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>.Builder rendererStates =
-                ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableList<(int, float)>>(
+            var rendererStates =
+                ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableDictionary<int, float>>(
                     
                 );
             var avatarRootTransform = avatarRoot.transform;
@@ -83,16 +84,29 @@ namespace nadena.dev.modular_avatar.core.editor
                 var target = prop.TargetProp;
                 if (target.TargetObject == null || target.TargetObject is not SkinnedMeshRenderer r) continue;
                 if (!r.transform.IsChildOf(avatarRootTransform)) continue;
-                if (!target.PropertyName.StartsWith("blendShape.")) continue;
 
+                var isDelete = false;
+                string shapeName = null;
+                if (target.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                {
+                    isDelete = true;
+                    shapeName = target.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length);
+                }
+                else if (target.PropertyName.StartsWith(ReactiveObjectAnalyzer.BlendshapePrefix))
+                {
+                    shapeName = target.PropertyName.Substring(ReactiveObjectAnalyzer.BlendshapePrefix.Length);
+                }
+                else
+                {
+                    continue;
+                }
+                
                 var mesh = r.sharedMesh;
                 if (mesh == null) continue;
                 
-                var shapeName = target.PropertyName.Substring("blendShape.".Length);
-                
                 if (!rendererStates.TryGetValue(r, out var states))
                 {
-                    states = ImmutableList<(int, float)>.Empty;
+                    states = ImmutableDictionary<int, float>.Empty;
                     rendererStates[r] = states;
                 }
                 
@@ -101,16 +115,32 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var activeRule = prop.actionGroups.LastOrDefault(rule => rule.InitiallyActive);
                 if (activeRule == null || activeRule.Value is not float value) continue;
+                if (activeRule.ControllingObject == null) continue; // default value is being inherited
 
-                value = Math.Clamp(value, 0, 100);
-                
-                if (activeRule.IsDelete) value = -1;
-                
-                states = states.Add((index, value));
+                if (isDelete)
+                {
+                    if (value < 0.5f) continue;
+                    value = -1;
+                }
+                else
+                {
+                    if (states.ContainsKey(index))
+                    {
+                        // Delete takes precedence over set in preview
+                        continue;
+                    }
+
+                    value = Math.Clamp(value, 0, 100);
+                }
+
+                states = states.SetItem(index, value);
                 rendererStates[r] = states;
             }
-            
-            return rendererStates.ToImmutableDictionary();
+
+            return rendererStates.ToImmutableDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Select(shapePair => (shapePair.Key, shapePair.Value)
+                ).ToImmutableList());
         }
         
         private IEnumerable<RenderGroup> ShapesToGroups(GameObject avatarRoot, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> shapes)
@@ -266,3 +296,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

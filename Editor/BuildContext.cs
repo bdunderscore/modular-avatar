@@ -71,7 +71,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!SaveImmediate || AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) return;
 
-            AssetDatabase.AddObjectToAsset(obj, AssetContainer);
+            PluginBuildContext.AssetSaver.SaveAsset(obj);
         }
 
         public AnimatorController CreateAnimator(AnimatorController toClone = null)

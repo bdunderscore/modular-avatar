@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [AddComponentMenu("Modular Avatar/MA Object Toggle")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/object-toggle?lang=auto")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/object-toggle?lang=auto")]
     public class ModularAvatarObjectToggle : ReactiveComponent, IHaveObjReferences
     {
         [SerializeField] private List<ToggledObject> m_objects = new();

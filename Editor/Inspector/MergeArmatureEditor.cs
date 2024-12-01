@@ -84,6 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private bool posResetOptionFoldout = false;
+        private bool posReset_convertATPose = true;
         private bool posReset_adjustRotation = false;
         private bool posReset_adjustScale = false;
         private bool posReset_heuristicRootScale = true;
@@ -99,7 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 serializedObject.ApplyModifiedProperties();
 
-                if (target.mergeTargetObject != null && priorMergeTarget == null
+                if (target.mergeTargetObject != null && priorMergeTarget != target.mergeTargetObject
                                                      && string.IsNullOrEmpty(target.prefix)
                                                      && string.IsNullOrEmpty(target.suffix))
                 {
@@ -114,7 +115,27 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (GUILayout.Button(G("merge_armature.adjust_names")))
                 {
-                    HeuristicBoneMapper.RenameBonesByHeuristic(target);
+                    var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(target.mergeTarget.Get(target).transform);
+                    var avatarAnimator = avatarRoot != null ? avatarRoot.GetComponent<Animator>() : null;
+
+                    // Search Outfit Root Animator
+                    var outfitRoot = ((ModularAvatarMergeArmature)serializedObject.targetObject).transform;
+                    Animator outfitAnimator = null;
+                    while (outfitRoot != null)
+                    {
+                        if (outfitRoot == avatarRoot)
+                        {
+                            outfitAnimator = null;
+                            break;
+                        }
+                        outfitAnimator = outfitRoot.GetComponent<Animator>();
+                        if (outfitAnimator != null && outfitAnimator.isHuman) break;
+                        outfitAnimator = null;
+                        outfitRoot = outfitRoot.parent;
+                    }
+
+                    var outfitHumanoidBones = SetupOutfit.GetOutfitHumanoidBones(outfitRoot, outfitAnimator);
+                    HeuristicBoneMapper.RenameBonesByHeuristic(target, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
                 }
             }
 
@@ -134,14 +155,17 @@ namespace nadena.dev.modular_avatar.core.editor
                             MessageType.Info
                         );
 
+                        posReset_heuristicRootScale = EditorGUILayout.ToggleLeft(
+                            G("merge_armature.reset_pos.heuristic_scale"),
+                            posReset_heuristicRootScale);
+                        posReset_convertATPose = EditorGUILayout.ToggleLeft(
+                            G("merge_armature.reset_pos.convert_atpose"),
+                            posReset_convertATPose);
                         posReset_adjustRotation = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.adjust_rotation"),
                             posReset_adjustRotation);
                         posReset_adjustScale = EditorGUILayout.ToggleLeft(G("merge_armature.reset_pos.adjust_scale"),
                             posReset_adjustScale);
-                        posReset_heuristicRootScale = EditorGUILayout.ToggleLeft(
-                            G("merge_armature.reset_pos.heuristic_scale"),
-                            posReset_heuristicRootScale);
 
                         if (GUILayout.Button(G("merge_armature.reset_pos.execute")))
                         {
@@ -186,6 +210,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
+            }
+
+            if (posReset_convertATPose)
+            {
+                SetupOutfit.FixAPose(RuntimeUtil.FindAvatarTransformInParents(mergeTarget.transform).gameObject, mama.transform, false);
             }
 
             if (posReset_heuristicRootScale && !suppressRootScale)

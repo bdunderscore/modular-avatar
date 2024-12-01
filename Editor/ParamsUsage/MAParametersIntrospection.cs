@@ -59,7 +59,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public IEnumerable<ProvidedParameter> GetSuppliedParameters(ndmf.BuildContext context = null)
         {
-            return _component.parameters.Select(p =>
+            return _component.parameters
+                .Select(p =>
             {
                 AnimatorControllerParameterType paramType;
                 bool animatorOnly = false;
@@ -87,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     _component, PluginDefinition.Instance, paramType)
                 {
                     IsAnimatorOnly = animatorOnly,
-                    WantSynced = !p.localOnly,
+                    WantSynced = !p.localOnly && !animatorOnly,
                     IsHidden = p.internalParameter,
                     DefaultValue = p.defaultValue
                 };

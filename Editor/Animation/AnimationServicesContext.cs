@@ -7,7 +7,9 @@ using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 #endregion
 
@@ -89,12 +91,16 @@ namespace nadena.dev.modular_avatar.animation
         // HACK: This is a temporary crutch until we rework the entire animator services system
         public void AddPropertyDefinition(AnimatorControllerParameter paramDef)
         {
+#if MA_VRCSDK3_AVATARS
+            if (!_context.AvatarDescriptor) return;
+
             var fx = (AnimatorController)
                 _context.AvatarDescriptor.baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;
 
             fx.parameters = fx.parameters.Concat(new[] { paramDef }).ToArray();
+#endif
         }
 
         public string GetActiveSelfProxy(GameObject obj)

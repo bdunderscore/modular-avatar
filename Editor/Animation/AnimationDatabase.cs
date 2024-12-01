@@ -53,7 +53,21 @@ namespace nadena.dev.modular_avatar.animation
                 set
                 {
                     _originalClip = value;
-                    IsProxyAnimation = value != null && Util.IsProxyAnimation(value);
+
+                    var baseClip = ObjectRegistry.GetReference(value)?.Object as AnimationClip;
+
+                    IsProxyAnimation = false;
+                    if (value != null && Util.IsProxyAnimation(value))
+                    {
+                        IsProxyAnimation = true;
+                    }
+                    else if (baseClip != null && Util.IsProxyAnimation(baseClip))
+                    {
+                        // RenameParametersPass replaces proxy clips outside of the purview of the animation database,
+                        // so trace this using ObjectRegistry and correct the reference.
+                        IsProxyAnimation = true;
+                        _originalClip = baseClip;
+                    }
                 }
             }
 
@@ -144,6 +158,7 @@ namespace nadena.dev.modular_avatar.animation
 
 #if MA_VRCSDK3_AVATARS
             var avatarDescriptor = context.AvatarDescriptor;
+            if (!avatarDescriptor) return;
 
             foreach (var layer in avatarDescriptor.baseAnimationLayers)
             {
@@ -401,7 +416,7 @@ namespace nadena.dev.modular_avatar.animation
             {
                 try
                 {
-                    AssetDatabase.AddObjectToAsset(curClip, _context.AssetContainer);
+                    _context.AssetSaver.SaveAsset(curClip);
                 }
                 catch (Exception e)
                 {

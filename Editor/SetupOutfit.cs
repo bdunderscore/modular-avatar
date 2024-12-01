@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using static nadena.dev.modular_avatar.core.editor.Localization;
+using System;
 
 #endregion
 
@@ -145,25 +146,57 @@ namespace nadena.dev.modular_avatar.core.editor
                     out var avatarRoot, out var avatarHips, out var outfitHips)
                ) return;
 
+            Undo.SetCurrentGroupName("Setup Outfit");
+
             var avatarArmature = avatarHips.transform.parent;
             var outfitArmature = outfitHips.transform.parent;
             
-            if (outfitArmature.GetComponent<ModularAvatarMergeArmature>() == null)
+            var merge = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
+            if (merge == null)
             {
-                var merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+                merge = Undo.AddComponent<ModularAvatarMergeArmature>(outfitArmature.gameObject);
+            } else {
+                Undo.RecordObject(merge, "");
+            }
+
+            if (merge.mergeTarget == null || merge.mergeTargetObject == null)
+            {
                 merge.mergeTarget = new AvatarObjectReference();
                 merge.mergeTarget.referencePath = RuntimeUtil.RelativePath(avatarRoot, avatarArmature.gameObject);
                 merge.LockMode = ArmatureLockMode.BaseToMerge;
+            }
+
+            if (string.IsNullOrEmpty(merge.prefix) && string.IsNullOrEmpty(merge.suffix))
+            {
                 merge.InferPrefixSuffix();
+            }
 
-                List<Transform> subRoots = new List<Transform>();
-                HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(merge);
 
-                // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
-                // help with this
-                foreach (var subRoot in subRoots)
+            var outfitAnimator = outfitRoot.GetComponent<Animator>();
+            var outfitHumanoidBones = GetOutfitHumanoidBones(outfitRoot.transform, outfitAnimator);
+            var avatarAnimator = avatarRoot.GetComponent<Animator>();
+            List<Transform> subRoots = new List<Transform>();
+            HeuristicBoneMapper.RenameBonesByHeuristic(merge, skipped: subRoots, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
+
+            // If the outfit has an UpperChest bone but the avatar doesn't, add an additional MergeArmature to
+            // help with this
+            foreach (var subRoot in subRoots)
+            {
+                var subConfig = subRoot.GetComponent<ModularAvatarMergeArmature>();
+                var subConfigMangleNames = false;
+                if (subConfig == null)
                 {
-                    var subConfig = Undo.AddComponent<ModularAvatarMergeArmature>(subRoot.gameObject);
+                    subConfig = Undo.AddComponent<ModularAvatarMergeArmature>(subRoot.gameObject);
+                }
+                else
+                {
+                    Undo.RecordObject(subConfig, "");
+                    subConfigMangleNames = subConfig.mangleNames;
+                }
+
+                if (subConfig.mergeTarget == null || subConfig.mergeTargetObject == null)
+                {
                     var parentTransform = subConfig.transform.parent;
                     var parentConfig = parentTransform.GetComponentInParent<ModularAvatarMergeArmature>();
                     var parentMapping = parentConfig.MapBone(parentTransform);
@@ -174,34 +207,51 @@ namespace nadena.dev.modular_avatar.core.editor
                     subConfig.LockMode = ArmatureLockMode.BaseToMerge;
                     subConfig.prefix = merge.prefix;
                     subConfig.suffix = merge.suffix;
-                    subConfig.mangleNames = false;
+                    subConfig.mangleNames = subConfigMangleNames;
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(subConfig);
                 }
+            }
 
-                var avatarRootMatchingArmature = avatarRoot.transform.Find(outfitArmature.gameObject.name);
-                if (merge.prefix == "" && merge.suffix == "" && avatarRootMatchingArmature != null)
-                {
-                    // We have an armature whose names exactly match the root armature - this can cause some serious
-                    // confusion in Unity's humanoid armature matching system. Fortunately, we can avoid this by
-                    // renaming a bone close to the root; this will ensure the number of matching bones is small, and
-                    // Unity's heuristics (apparently) will choose the base avatar's armature as the "true" armature.
-                    outfitArmature.name += ".1";
+            var avatarRootMatchingArmature = avatarRoot.transform.Find(outfitArmature.gameObject.name);
+            if (merge.prefix == "" && merge.suffix == "" && avatarRootMatchingArmature != null)
+            {
+                // We have an armature whose names exactly match the root armature - this can cause some serious
+                // confusion in Unity's humanoid armature matching system. Fortunately, we can avoid this by
+                // renaming a bone close to the root; this will ensure the number of matching bones is small, and
+                // Unity's heuristics (apparently) will choose the base avatar's armature as the "true" armature.
+                outfitArmature.name += ".1";
 
-                    // Also make sure to refresh the avatar's animator humanoid bone cache.
-                    var avatarAnimator = avatarRoot.GetComponent<Animator>();
-                    var humanDescription = avatarAnimator.avatar;
-                    avatarAnimator.avatar = null;
-                    // ReSharper disable once Unity.InefficientPropertyAccess
-                    avatarAnimator.avatar = humanDescription;
-                }
+                // Also make sure to refresh the avatar's animator humanoid bone cache.
+                var humanDescription = avatarAnimator.avatar;
+                avatarAnimator.avatar = null;
+                // ReSharper disable once Unity.InefficientPropertyAccess
+                avatarAnimator.avatar = humanDescription;
             }
 
             FixAPose(avatarRoot, outfitArmature);
 
-            if (outfitRoot != null
-                && outfitRoot.GetComponent<ModularAvatarMeshSettings>() == null
-                && outfitRoot.GetComponentInParent<ModularAvatarMeshSettings>() == null)
+            var meshSettings = outfitRoot.GetComponent<ModularAvatarMeshSettings>();
+            var mSInheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
+            var mSInheritBounds = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
+
+            if (outfitRoot != null)
             {
-                var meshSettings = Undo.AddComponent<ModularAvatarMeshSettings>(outfitRoot.gameObject);
+                if (meshSettings == null)
+                {
+                    meshSettings = Undo.AddComponent<ModularAvatarMeshSettings>(outfitRoot.gameObject);
+                }
+                else
+                {
+                    Undo.RecordObject(meshSettings, "");
+                    mSInheritProbeAnchor = meshSettings.InheritProbeAnchor;
+                    mSInheritBounds = meshSettings.InheritBounds;
+                }
+            }
+
+            if (meshSettings != null
+                && (meshSettings.ProbeAnchor == null || meshSettings.ProbeAnchor.Get(meshSettings) == null
+                || meshSettings.RootBone == null || meshSettings.RootBone.Get(meshSettings) == null))
+            {
                 Transform rootBone = null, probeAnchor = null;
                 Bounds bounds = ModularAvatarMeshSettings.DEFAULT_BOUNDS;
 
@@ -217,8 +267,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     rootBone = avatarRoot.transform;
                 }
 
-                meshSettings.InheritProbeAnchor = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
-                meshSettings.InheritBounds = ModularAvatarMeshSettings.InheritMode.SetOrInherit;
+                meshSettings.InheritProbeAnchor = mSInheritProbeAnchor;
+                meshSettings.InheritBounds = mSInheritBounds;
 
                 meshSettings.ProbeAnchor = new AvatarObjectReference();
                 meshSettings.ProbeAnchor.referencePath = RuntimeUtil.RelativePath(avatarRoot, probeAnchor.gameObject);
@@ -226,10 +276,43 @@ namespace nadena.dev.modular_avatar.core.editor
                 meshSettings.RootBone = new AvatarObjectReference();
                 meshSettings.RootBone.referencePath = RuntimeUtil.RelativePath(avatarRoot, rootBone.gameObject);
                 meshSettings.Bounds = bounds;
+
+                PrefabUtility.RecordPrefabInstancePropertyModifications(meshSettings);
             }
         }
 
-        private static void FixAPose(GameObject avatarRoot, Transform outfitArmature)
+        internal static Dictionary<Transform, HumanBodyBones> GetOutfitHumanoidBones(Transform outfitRoot, Animator outfitAnimator)
+        {
+            if (outfitAnimator != null)
+            {
+                var hipsCheck = outfitAnimator.isHuman ? outfitAnimator.GetBoneTransform(HumanBodyBones.Hips) : null;
+                if (hipsCheck != null && hipsCheck.parent == outfitRoot)
+                {
+                    // Sometimes broken rigs can have the hips as a direct child of the root, instead of having
+                    // an intermediate Armature object. We do not currently support this kind of rig, and so we'll
+                    // assume the outfit's humanoid rig is broken and move on to heuristic matching.
+                    outfitAnimator = null;
+                } else if (hipsCheck == null) {
+                    outfitAnimator = null;
+                }
+            }
+
+            Dictionary<Transform, HumanBodyBones> outfitHumanoidBones = null;
+            if (outfitAnimator != null)
+            {
+                outfitHumanoidBones = new Dictionary<Transform, HumanBodyBones>();
+                foreach (HumanBodyBones boneIndex in Enum.GetValues(typeof(HumanBodyBones)))
+                {
+                    var bone = boneIndex != HumanBodyBones.LastBone ? outfitAnimator.GetBoneTransform(boneIndex) : null;
+                    if (bone == null) continue;
+                    outfitHumanoidBones[bone] = boneIndex;
+                }
+            }
+
+            return outfitHumanoidBones;
+        }
+
+        internal static void FixAPose(GameObject avatarRoot, Transform outfitArmature, bool strictMode = true)
         {
             var mergeArmature = outfitArmature.GetComponent<ModularAvatarMergeArmature>();
             if (mergeArmature == null) return;
@@ -249,7 +332,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var lowerArm = (HumanBodyBones)((int)arm + 2);
 
-                // check if the rotation of the arm differs, but distances and origin point are the same
+                // check if the rotation of the arm differs(, but distances and origin point are the same when strictMode)
                 var avatarArm = rootAnimator.GetBoneTransform(arm);
                 var outfitArm = avatarToOutfit(avatarArm);
 
@@ -259,22 +342,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (outfitArm == null) return;
                 if (outfitLowerArm == null) return;
 
-                if ((avatarArm.position - outfitArm.position).magnitude > 0.001f) return;
+                if (strictMode)
+                {
+                    if ((avatarArm.position - outfitArm.position).magnitude > 0.001f) return;
 
-                // check relative distance to lower arm as well
-                var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
-                var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
+                    // check relative distance to lower arm as well
+                    var avatarArmLength = (avatarLowerArm.position - avatarArm.position).magnitude;
+                    var outfitArmLength = (outfitLowerArm.position - outfitArm.position).magnitude;
 
-                if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.001f) return;
+                    if (Mathf.Abs(avatarArmLength - outfitArmLength) > 0.001f) return;
+                } else {
+                    if (Vector3.Dot((outfitLowerArm.position - outfitArm.position).normalized, (avatarLowerArm.position - avatarArm.position).normalized) > 0.999f) return;
+                }
 
-                // Rotate the outfit arm to ensure these two points match.
+                // Rotate the outfit arm to ensure these two bone orientations match.
+                Undo.RecordObject(outfitArm, "Convert A/T Pose");
                 var relRot = Quaternion.FromToRotation(
                     outfitLowerArm.position - outfitArm.position,
                     avatarLowerArm.position - avatarArm.position
                 );
                 outfitArm.rotation = relRot * outfitArm.rotation;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(outfitArm);
-                EditorUtility.SetDirty(outfitArm);
             }
 
             Transform avatarToOutfit(Transform avBone)
@@ -490,6 +578,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var hipsCandidates = new List<string>();
+            var hipsExtraCandidateRoots = new List<Transform>();
 
             if (outfitHips == null)
             {
@@ -505,12 +594,30 @@ namespace nadena.dev.modular_avatar.core.editor
                             // Prefer the first hips we find
                             break;
                         }
+                        hipsExtraCandidateRoots.Add(tempHip);
+                    }
+
+                    if (outfitHips != null) return true; // found an exact match, bail outgit
+                }
+
+                // Sometimes, Hips is in deeper place(like root -> Armature -> Armature 1 -> Hips).
+                foreach (Transform extraCandidateRoot in hipsExtraCandidateRoots)
+                {
+                    foreach (Transform tempHip in extraCandidateRoot)
+                    {
+                        if (tempHip.name.Contains(avatarHips.name))
+                        {
+                            outfitHips = tempHip.gameObject;
+                            // Prefer the first hips we find
+                            break;
+                        }
                     }
 
                     if (outfitHips != null) return true; // found an exact match, bail outgit
                 }
 
                 hipsCandidates.Add(avatarHips.name);
+                hipsExtraCandidateRoots = new List<Transform>();
 
                 // If that doesn't work out, we'll check for heuristic bone mapper mappings.
                 foreach (var hbm in HeuristicBoneMapper.BoneToNameMap[HumanBodyBones.Hips])
@@ -530,6 +637,25 @@ namespace nadena.dev.modular_avatar.core.editor
                             if (HeuristicBoneMapper.NormalizeName(tempHip.name).Contains(candidate))
                             {
                                 outfitHips = tempHip.gameObject;
+                            }
+                            hipsExtraCandidateRoots.Add(tempHip);
+                        }
+                    }
+                }
+
+                if (outfitHips == null)
+                {
+                    // Sometimes, Hips is in deeper place(like root -> Armature -> Armature 1 -> Hips).
+                    foreach (Transform extraCandidateRoot in hipsExtraCandidateRoots)
+                    {
+                        foreach (Transform tempHip in extraCandidateRoot)
+                        {
+                            foreach (var candidate in hipsCandidates)
+                            {
+                                if (HeuristicBoneMapper.NormalizeName(tempHip.name).Contains(candidate))
+                                {
+                                    outfitHips = tempHip.gameObject;
+                                }
                             }
                         }
                     }

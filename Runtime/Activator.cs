@@ -19,7 +19,7 @@ namespace nadena.dev.modular_avatar.core
     /// initially inactive in the scene (which can have high overhead if the user has a lot of inactive avatars in the
     /// scene).
     /// </summary>
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [ExecuteInEditMode]
     [DefaultExecutionOrder(-9998)]
     public class Activator : MonoBehaviour, IEditorOnly
@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 
-    [AddComponentMenu("")]
+    [AddComponentMenu("/")]
     [ExecuteInEditMode]
     [DefaultExecutionOrder(-9997)]
     public class AvatarActivator : MonoBehaviour, IEditorOnly

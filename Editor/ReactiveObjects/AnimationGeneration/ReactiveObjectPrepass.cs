@@ -1,4 +1,5 @@
-﻿using nadena.dev.ndmf;
+﻿#if MA_VRCSDK3_AVATARS
+using nadena.dev.ndmf;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -14,11 +15,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void Execute(ndmf.BuildContext context)
         {
-            var hasShapeChanger = context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>() != null;
+            var hasShapeChanger = context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>(true) != null;
             var hasObjectSwitcher =
-                context.AvatarRootObject.GetComponentInChildren<ModularAvatarObjectToggle>() != null;
+                context.AvatarRootObject.GetComponentInChildren<ModularAvatarObjectToggle>(true) != null;
             var hasMaterialSetter =
-                context.AvatarRootObject.GetComponentInChildren<ModularAvatarMaterialSetter>() != null;
+                context.AvatarRootObject.GetComponentInChildren<ModularAvatarMaterialSetter>(true) != null;
             if (hasShapeChanger || hasObjectSwitcher || hasMaterialSetter)
             {
                 var clip = new AnimationClip();
@@ -54,3 +55,4 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#endif

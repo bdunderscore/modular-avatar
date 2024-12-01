@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
@@ -13,6 +15,43 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
 {
     public class AutoValueAssignmentTests : TestBase
     {
+        [Test]
+        public void AutoValueWithMAParameters()
+        {
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            
+            var parameters = child.AddComponent<ModularAvatarParameters>();
+            parameters.parameters = new()
+            {
+                new ParameterConfig()
+                {
+                    defaultValue = 1.0f,
+                    hasExplicitDefaultValue = true,
+                    nameOrPrefix = "foo",
+                    syncType = ParameterSyncType.Bool
+                }
+            };
+
+            var mami = child.AddComponent<ModularAvatarMenuItem>();
+            mami.Control = new()
+            {
+                parameter = new()
+                {
+                    name = "foo"
+                },
+                name = "x"
+            };
+            mami.automaticValue = true;
+
+            child.AddComponent<ModularAvatarMenuInstaller>();
+
+            AvatarProcessor.ProcessAvatar(root);
+            var menu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu
+                .controls.First(c => c.name == "child");
+            Assert.AreEqual(1, menu.value);
+        }
+        
         [Test]
         public void ManuallyAssignedParametersAreNotReplaced()
         {
@@ -113,3 +152,5 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         }
     }
 }
+
+#endif
