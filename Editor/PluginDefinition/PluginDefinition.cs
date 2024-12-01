@@ -88,8 +88,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
                     FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
-                seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
+                seq.Run(SyncParameterSequencePass.Instance);
 #endif
+                seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
                 seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
                 {
