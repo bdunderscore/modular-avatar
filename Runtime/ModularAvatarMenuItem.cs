@@ -49,6 +49,14 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         public bool automaticValue;
 
+        /// <summary>
+        ///     Although unspecified, the label of a menu may contain rich text and line breaks.
+        ///     If label is not an empty string, this MenuItem will use that as its name.
+        ///     Otherwise, it will use the name of the containing game object as the label.
+        /// </summary>
+        [Multiline]
+        public string label = "";
+        
         private void Reset()
         {
             // Init settings only when added or reset manually from the Inspector.
@@ -98,7 +106,7 @@ namespace nadena.dev.modular_avatar.core
 
             var cloned = new VirtualControl(Control);
             cloned.subMenu = null;
-            cloned.name = gameObject.name;
+            cloned.name = string.IsNullOrEmpty(label) ? gameObject.name : label;
 
             FilterSubParameters(cloned);
 
