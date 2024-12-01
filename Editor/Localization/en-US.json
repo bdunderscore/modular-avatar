@@ -284,5 +284,8 @@
   
   "ro_sim.effect_group.rule_inverted": "This rule is inverted",
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
-  "ro_sim.effect_group.conditions": "Conditions"
+  "ro_sim.effect_group.conditions": "Conditions",
+  "remove-vertex-color.mode": "Mode",
+  "remove-vertex-color.mode.Remove": "Remove Vertex Colors",
+  "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors"
 }
