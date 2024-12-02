@@ -286,6 +286,10 @@
   "ro_sim.effect_group.rule_inverted": "This rule is inverted",
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
   "ro_sim.effect_group.conditions": "Conditions",
+
+  "menuitem.label.long_name.tooltip": "Use a long name which may contain rich text and line breaks.",
+  "menuitem.label.gameobject_name.tooltip": "Use the GameObject name.",
+
   "remove-vertex-color.mode": "Mode",
   "remove-vertex-color.mode.Remove": "Remove Vertex Colors",
   "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors",
@@ -296,4 +300,5 @@
   "sync-param-sequence.parameters.tooltip": "The asset to store common parameters in. Do not use the same Expression Parameters that you have set in your avatar descriptor.",
   "sync-param-sequence.create-asset": "New",
   "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset"
+
 }
