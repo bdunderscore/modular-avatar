@@ -269,8 +269,8 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.BeginVertical();
 
             EditorGUILayout.BeginHorizontal();
-            
-            if (_parameterReference == null)
+
+            if (_prop_label == null)
             {
                 EditorGUI.BeginChangeCheck();
                 if (_obj != null && _obj.isEditingMultipleObjects)
