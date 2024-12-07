@@ -198,13 +198,7 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             _anyError[0] = false;
             _anyDirty[0] = false;
-
-            var clearErrors = new JClearErrorFlags
-            {
-                ErrorFlags = _errorFlags
-            };
-            var clearErrorsHandle = clearErrors.Schedule(_errorFlags.Length, 16);
-
+            
             var readVp = new JReadTransforms
             {
                 States = _vpState,
@@ -227,15 +221,17 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 SceneRootParent = _falseArray
             };
 
-            var readVpHandle = readVp.Schedule(_virtualParents, clearErrorsHandle);
-            var clearVpHandle = new JClearRootTransforms
+            var clearVpHandle = new JInitLocalStateAndErrorFlags
             {
                 States = _vpState,
-                SceneRootParent = _sceneRootParent
-            }.Schedule(_vpState.Length, 16, readVpHandle);
-            var readTpHandle = readTp.Schedule(_trueParents, clearErrorsHandle);
-            var readTargetHandle = readTarget.Schedule(_targets, clearErrorsHandle);
-            var readHandle = JobHandle.CombineDependencies(clearVpHandle, readTpHandle, readTargetHandle);
+                SceneRootParent = _sceneRootParent,
+                ErrorFlags = _errorFlags
+            }.Schedule(_vpState.Length, 16);
+
+            var readVpHandle = readVp.Schedule(_virtualParents, clearVpHandle);
+            var readTpHandle = readTp.Schedule(_trueParents, clearVpHandle);
+            var readTargetHandle = readTarget.Schedule(_targets, clearVpHandle);
+            var readHandle = JobHandle.CombineDependencies(readVpHandle, readTpHandle, readTargetHandle);
 
             var compute = new JCompute
             {
@@ -301,8 +297,17 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 {
                     if (_errorFlags[i] && _slotToState.TryGetValue(i, out var state))
                     {
-                        Deactivate(state);
-                        reactivate.Add(state.MoveIndep);
+                        if (state != null)
+                        {
+                            Deactivate(state);
+                            reactivate.Add(state.MoveIndep);
+                        }
+                        else
+                        {
+                            // Hmm - how did we end up with a null here?
+                            _slotToState.Remove(i);
+                            _enabled[i] = false;
+                        }
                     }
                 }
 
@@ -433,22 +438,24 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         private void Deactivate(State state)
         {
+            if (state?.Segment == null) return;
             if (!_anyDirty.IsCreated) return; // domain reload timing issues
 
+            _moveIndeps.Remove(state.MoveIndep);
+            if (_moveIndeps.Count == 0) UpdateRegistered = false;
+            
             for (var i = 0; i < state.Segment.Length; i++)
             {
                 var j = i + state.Segment.Offset;
                 _enabled[j] = false;
-                _virtualParents[j] = null;
-                _trueParents[j] = null;
-                _targets[j] = null;
+                if (_virtualParents.isCreated && _virtualParentsT.Length > j) _virtualParents[j] = null;
+                if (_trueParents.isCreated && _trueParents.length > j) _trueParents[j] = null;
+                if (_targets.isCreated && _targets.length > j) _targets[j] = null;
                 _slotToState.Remove(j);
             }
 
             _nativeMemoryManager.Free(state.Segment);
-            _moveIndeps.Remove(state.MoveIndep);
-
-            if (_moveIndeps.Count == 0) UpdateRegistered = false;
+            state.Segment = null;
         }
 
         [BurstCompile]
@@ -482,15 +489,21 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
         // For some reason checking SceneRootParent in JReadTransforms was ignored...?
         // Maybe IJobParallelForTransform doesn't execute on null transforms.
-        private struct JClearRootTransforms : IJobParallelFor
+        private struct JInitLocalStateAndErrorFlags : IJobParallelFor
         {
-            [WriteOnly] public NativeArray<TransformState> States;
             [ReadOnly] public NativeArray<bool> SceneRootParent;
+            [WriteOnly] public NativeArray<TransformState> States;
+            [WriteOnly] public NativeArray<bool> ErrorFlags;
 
             public void Execute(int index)
             {
+                ErrorFlags[index] = true;
+                
                 if (SceneRootParent[index])
                 {
+                    // Clear error flags since we're effectively handling the read
+                    ErrorFlags[index] = false;
+                    
                     States[index] = new TransformState
                     {
                         localToWorldMatrix = Matrix4x4.identity,
@@ -518,10 +531,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 if (!Enabled[index]) return;
 
                 if (SceneRootParent[index]) return;
-                
-                if (!transform.isValid)
+
+                var failed = !transform.isValid;
+                ErrorFlags[index] = failed;
+                if (failed)
                 {
-                    ErrorFlags[index] = true;
                     return;
                 }
 
