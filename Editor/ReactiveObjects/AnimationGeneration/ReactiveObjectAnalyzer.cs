@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor.Simulator;
+using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 
@@ -17,7 +18,9 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly ComputeContext _computeContext;
         private readonly ndmf.BuildContext _context;
-        private readonly AnimationServicesContext _asc;
+        private readonly AnimatorServicesContext _asc;
+        private readonly ReadablePropertyExtension _rpe;
+        
         private Dictionary<string, float> _simulationInitialStates;
 
         public const string BlendshapePrefix = "blendShape.";
@@ -34,7 +37,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _computeContext = ComputeContext.NullContext;
             _context = context;
-            _asc = context.Extension<AnimationServicesContext>();
+            _asc = context.Extension<AnimatorServicesContext>();
+            _rpe = context.Extension<ReadablePropertyExtension>();
             _simulationInitialStates = null;
         }
 
@@ -145,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="shapes"></param>
         private void AnalyzeConstants(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var asc = _context?.Extension<AnimationServicesContext>();
+            var asc = _context?.Extension<AnimatorServicesContext>();
             HashSet<GameObject> toggledObjects = new();
 
             if (asc == null) return;
@@ -160,7 +164,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (var condition in actionGroup.ControllingConditions)
                         if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
-                            condition.IsConstant = asc.AnimationDatabase.ClipsForPath(asc.PathMappings.GetObjectIdentifier(condition.ReferenceObject)).IsEmpty;
+                            condition.IsConstant = !asc.AnimationIndex.GetClipsForObjectPath(
+                                asc.ObjectPathRemapper.GetVirtualPathForObject(condition.ReferenceObject) ??
+                                "___NONEXISTENT___"
+                            ).Any();
 
                     // Remove redundant active conditions.
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
@@ -187,7 +194,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="groups"></param>
         private void ResolveToggleInitialStates(Dictionary<TargetProp, AnimatedProperty> groups)
         {
-            var asc = _context?.Extension<AnimationServicesContext>();
+            var asc = _context?.Extension<AnimatorServicesContext>();
             
             Dictionary<string, float> propStates = new();
             Dictionary<string, float> nextPropStates = new();
