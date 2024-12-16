@@ -24,52 +24,23 @@
 
 #if MA_VRCSDK3_AVATARS
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
-using UnityEditor;
-using UnityEditor.Animations;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
-using VRC.SDKBase;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class MergeAnimatorProcessor
     {
-        private const string SAMPLE_PATH_PACKAGE =
-            "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
-
-        private const string SAMPLE_PATH_LEGACY = "Assets/VRCSDK/Examples3/Animation/Controllers";
-
-        private const string GUID_GESTURE_HANDSONLY_MASK = "b2b8bad9583e56a46a3e21795e96ad92";
-
-        private BuildContext _context;
-
-        private Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController> defaultControllers_ =
-            new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorController>();
-
-        private Dictionary<VRCAvatarDescriptor.AnimLayerType, bool?> writeDefaults_ =
-            new Dictionary<VRCAvatarDescriptor.AnimLayerType, bool?>();
-
-        Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner> mergeSessions =
-            new Dictionary<VRCAvatarDescriptor.AnimLayerType, AnimatorCombiner>();
+        private AnimatorServicesContext _asc;
 
         internal void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
         {
-            _context = context;
-
-            defaultControllers_.Clear();
-            mergeSessions.Clear();
-
-            var descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
-            if (!descriptor) return;
-
-            if (descriptor.baseAnimationLayers != null) InitSessions(descriptor.baseAnimationLayers);
-            if (descriptor.specialAnimationLayers != null) InitSessions(descriptor.specialAnimationLayers);
-
+            _asc = context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            
             var toMerge = avatarGameObject.transform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true);
             Dictionary<VRCAvatarDescriptor.AnimLayerType, List<ModularAvatarMergeAnimator>> byLayerType
                 = new Dictionary<VRCAvatarDescriptor.AnimLayerType, List<ModularAvatarMergeAnimator>>();
@@ -89,10 +60,6 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 ProcessLayerType(context, entry.Key, entry.Value);
             }
-
-            descriptor.baseAnimationLayers = FinishSessions(descriptor.baseAnimationLayers);
-            descriptor.specialAnimationLayers = FinishSessions(descriptor.specialAnimationLayers);
-            descriptor.customizeAnimationLayers = true;
         }
 
         private void ProcessLayerType(
@@ -109,33 +76,33 @@ namespace nadena.dev.modular_avatar.core.editor
             var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
                 .ToList();
 
-            var session = new AnimatorCombiner(context.PluginBuildContext, layerType.ToString() + " (merged)");
-            mergeSessions[layerType] = session;
-            mergeSessions[layerType].BlendableLayer = BlendableLayerFor(layerType);
+            var controller = _asc.ControllerContext[layerType];
+            
+            var wdStateCounter = controller.Layers.SelectMany(l => l.StateMachine.AllStates())
+                .Select(s => s.WriteDefaultValues)
+                .GroupBy(b => b)
+                .ToDictionary(g => g.Key, g => g.Count());
 
-            foreach (var component in beforeOriginal)
+            bool? writeDefaults = null;
+            if (wdStateCounter.Count == 1) writeDefaults = wdStateCounter.First().Key;
+            
+            foreach (var component in sorted)
             {
-                MergeSingle(context, session, component);
-            }
-
-            if (defaultControllers_.TryGetValue(layerType, out var defaultController) &&
-                defaultController.layers.Length > 0)
-            {
-                session.AddController("", defaultController, null, forceFirstLayerWeight: true);
-            }
-
-            foreach (var component in afterOriginal)
-            {
-                MergeSingle(context, session, component);
+                MergeSingle(context, controller, component, writeDefaults);
             }
         }
 
-        private void MergeSingle(BuildContext context, AnimatorCombiner session, ModularAvatarMergeAnimator merge)
+        private void MergeSingle(BuildContext context, VirtualAnimatorController controller, ModularAvatarMergeAnimator merge, bool? initialWriteDefaults)
         {
             if (merge.animator == null)
             {
                 return;
             }
+            
+            var stash = context.PluginBuildContext.GetState<RenamedMergeAnimators>();
+
+            var clonedController = stash.Controllers.GetValueOrDefault(merge)
+                ?? _asc.ControllerContext.CloneContext.Clone(merge.animator);
             
             string basePath;
             if (merge.pathMode == MergeAnimatorPathMode.Relative)
@@ -145,199 +112,59 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var relativePath = RuntimeUtil.RelativePath(context.AvatarRootObject, targetObject);
                 basePath = relativePath != "" ? relativePath + "/" : "";
+
+                var animationIndex = new AnimationIndex(new[] { clonedController });
+                animationIndex.RewritePaths(p => p == "" ? relativePath : basePath + p);
             }
             else
             {
                 basePath = "";
             }
 
-            var writeDefaults = merge.matchAvatarWriteDefaults
-                ? writeDefaults_.GetValueOrDefault(merge.layerType)
-                : null;
-            var controller = _context.ConvertAnimatorController(merge.animator);
-            session.AddController(basePath, controller, writeDefaults);
+            foreach (var l in clonedController.Layers)
+            {
+                if (initialWriteDefaults != null)
+                {
+                    foreach (var s in l.StateMachine.AllStates())
+                    {
+                        s.WriteDefaultValues = initialWriteDefaults.Value;
+                    }
+                }
+                controller.AddLayer(new LayerPriority(merge.layerPriority), l);
+            }
 
+            foreach (var (name, parameter) in clonedController.Parameters)
+            {
+                if (controller.Parameters.TryGetValue(name, out var existingParam))
+                {
+                    if (existingParam.type != parameter.type)
+                    {
+                        // Force to float
+                        switch (parameter.type)
+                        {
+                            case AnimatorControllerParameterType.Bool:
+                                existingParam.defaultFloat = existingParam.defaultBool ? 1.0f : 0.0f;
+                                break;
+                            case AnimatorControllerParameterType.Int:
+                                existingParam.defaultFloat = existingParam.defaultInt;
+                                break;
+                        }
+
+                        existingParam.type = AnimatorControllerParameterType.Float;
+
+                        controller.Parameters = controller.Parameters.SetItem(name, existingParam);
+                    }
+                    continue;
+                }
+                
+                controller.Parameters = controller.Parameters.Add(name, parameter);
+            }
+            
             if (merge.deleteAttachedAnimator)
             {
                 var animator = merge.GetComponent<Animator>();
                 if (animator != null) Object.DestroyImmediate(animator);
             }
-        }
-
-        private VRCAvatarDescriptor.CustomAnimLayer[] FinishSessions(
-            VRCAvatarDescriptor.CustomAnimLayer[] layers
-        )
-        {
-            layers = (VRCAvatarDescriptor.CustomAnimLayer[])layers.Clone();
-
-            // Ensure types are consistent across layers
-            Dictionary<string, AnimatorControllerParameterType> types =
-                new Dictionary<string, AnimatorControllerParameterType>();
-            // Learn types...
-            foreach (var session in mergeSessions.Values)
-            {
-                session.MergeTypes(types);
-            }
-            // And propagate them
-            foreach (var session in mergeSessions.Values)
-            {
-                session.MergeTypes(types);
-            }
-            
-            for (int i = 0; i < layers.Length; i++)
-            {
-                if (mergeSessions.TryGetValue(layers[i].type, out var session))
-                {
-                    if (layers[i].type == VRCAvatarDescriptor.AnimLayerType.Gesture && layers[i].isDefault)
-                    {
-                        // We need to set the mask field for the gesture layer on initial configuration
-                        layers[i].mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(
-                            AssetDatabase.GUIDToAssetPath(GUID_GESTURE_HANDSONLY_MASK)
-                        );
-                    }
-
-                    layers[i].isDefault = false;
-                    layers[i].animatorController = session.Finish();
-                }
-            }
-
-            return layers;
-        }
-
-        private void InitSessions(VRCAvatarDescriptor.CustomAnimLayer[] layers)
-        {
-            foreach (var layer in layers)
-            {
-                var controller = ResolveLayerController(layer);
-                if (controller == null) controller = new AnimatorController();
-
-                defaultControllers_[layer.type] = controller;
-                writeDefaults_[layer.type] = ProbeWriteDefaults(controller);
-                if (!layer.isDefault)
-                {
-                    // For non-default layers, ensure we always clone the controller for the benefit of subsequent
-                    // processing phases
-                    mergeSessions[layer.type] =
-                        new AnimatorCombiner(_context.PluginBuildContext, layer.type.ToString());
-                    mergeSessions[layer.type].BlendableLayer = BlendableLayerFor(layer.type);
-                    mergeSessions[layer.type].AddController("", controller, null);
-                }
-            }
-        }
-
-        private VRC_AnimatorLayerControl.BlendableLayer? BlendableLayerFor(VRCAvatarDescriptor.AnimLayerType layerType)
-        {
-            if (Enum.TryParse(layerType.ToString(), out VRC_AnimatorLayerControl.BlendableLayer result))
-            {
-                return result;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        internal static bool? ProbeWriteDefaults(AnimatorController controller)
-        {
-            if (controller == null) return null;
-            
-            bool hasWDOn = false;
-            bool hasWDOff = false;
-
-            var stateMachineQueue = new Queue<AnimatorStateMachine>();
-            foreach (var layer in controller.layers)
-            {
-                // Special case: A layer with a single state, which contains a blend tree, is ignored for WD analysis.
-                // This is because WD ON blend trees have different behavior from most WD ON states, and can be safely
-                // used in a WD OFF animator.
-
-                if (layer.stateMachine.states.Length == 1
-                    && layer.stateMachine.states[0].state.motion is BlendTree
-                    && layer.stateMachine.stateMachines.Length == 0
-                   )
-                {
-                    continue;
-                }
-                
-                stateMachineQueue.Enqueue(layer.stateMachine);
-            }
-
-            while (stateMachineQueue.Count > 0)
-            {
-                var stateMachine = stateMachineQueue.Dequeue();
-                foreach (var state in stateMachine.states)
-                {
-                    if (state.state.writeDefaultValues) hasWDOn = true;
-                    else hasWDOff = true;
-                }
-
-                foreach (var child in stateMachine.stateMachines)
-                {
-                    stateMachineQueue.Enqueue(child.stateMachine);
-                }
-            }
-
-            if (hasWDOn == hasWDOff) return null;
-            return hasWDOn;
-        }
-
-
-        private static AnimatorController ResolveLayerController(VRCAvatarDescriptor.CustomAnimLayer layer)
-        {
-            AnimatorController controller = null;
-
-            if (!layer.isDefault && layer.animatorController != null &&
-                layer.animatorController is AnimatorController c)
-            {
-                controller = c;
-            }
-            else
-            {
-                string name;
-                switch (layer.type)
-                {
-                    case VRCAvatarDescriptor.AnimLayerType.Action:
-                        name = "Action";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.Additive:
-                        name = "Idle";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.Base:
-                        name = "Locomotion";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.Gesture:
-                        name = "Hands";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.Sitting:
-                        name = "Sitting";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.FX:
-                        name = "Face";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.TPose:
-                        name = "UtilityTPose";
-                        break;
-                    case VRCAvatarDescriptor.AnimLayerType.IKPose:
-                        name = "UtilityIKPose";
-                        break;
-                    default:
-                        name = null;
-                        break;
-                }
-
-                if (name != null)
-                {
-                    name = "/vrc_AvatarV3" + name + "Layer.controller";
-
-                    controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(SAMPLE_PATH_PACKAGE + name);
-                    if (controller == null)
-                    {
-                        controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(SAMPLE_PATH_LEGACY + name);
-                    }
-                }
-            }
-
-            return controller;
         }
     }
 }
