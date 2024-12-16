@@ -20,7 +20,7 @@ namespace nadena.dev.modular_avatar.animation
         }
 
         private AnimatorServicesContext? _asc;
-        private Retained _retained;
+        private Retained _retained = null!;
 
         private AnimatorServicesContext asc =>
             _asc ?? throw new InvalidOperationException("ActiveSelfProxyExtension is not active");

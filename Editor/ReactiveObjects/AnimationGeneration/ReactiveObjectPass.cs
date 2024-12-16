@@ -39,7 +39,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
             // and if mixed, use WD ON to maximize compatibility.
-            _writeDefaults = MergeAnimatorProcessor.ProbeWriteDefaults(FindFxController().animatorController as AnimatorController) ?? true;
+            var asc = context.Extension<AnimatorServicesContext>();
+            _writeDefaults = asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX]?.Layers.Any(
+                l => l.StateMachine.StateMachines.Any(
+                    sm => sm.StateMachine.AllStates().Any(
+                        s => s.WriteDefaultValues && s.Motion is not VirtualBlendTree
+                    )
+                )
+            ) ?? true;
             
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 

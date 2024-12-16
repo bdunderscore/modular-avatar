@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.menu;
 using nadena.dev.modular_avatar.core.menu;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -644,6 +645,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             };
 
             var buildContext = new BuildContext(av_root.GetComponent<VRCAvatarDescriptor>());
+            buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new RenameParametersHook().OnPreprocessAvatar(av_root, buildContext);
 
             var virtualMenu = VirtualMenu.ForAvatar(av_root.GetComponent<VRCAvatarDescriptor>(), buildContext);
@@ -663,6 +665,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             var root = CreatePrefab("InternalParameterTest.prefab");
 
             BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
             var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
 
@@ -676,6 +679,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             var root = CreatePrefab("UnusedSubParametersAreStripped.prefab");
             
             BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
+            buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
             var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
             

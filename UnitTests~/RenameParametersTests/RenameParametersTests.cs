@@ -7,6 +7,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -79,6 +80,7 @@ namespace modular_avatar_tests.RenameParametersTests
 
             var context = CreateContext(prefab);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(
                 () =>
@@ -209,6 +211,7 @@ namespace modular_avatar_tests.RenameParametersTests
 
             var context = CreateContext(av);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
             
@@ -243,6 +246,7 @@ namespace modular_avatar_tests.RenameParametersTests
 
             var context = CreateContext(av);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
             

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -21,40 +22,34 @@ namespace nadena.dev.modular_avatar.core.editor
             var values = context.GetState<DefaultValues>()?.InitialValueOverrides
                          ?? ImmutableDictionary<string, float>.Empty;
 
-            foreach (var layer in context.AvatarDescriptor.baseAnimationLayers
-                         .Concat(context.AvatarDescriptor.specialAnimationLayers))
+            var asc = context.Extension<AnimatorServicesContext>();
+
+            foreach (var controller in asc.ControllerContext.GetAllControllers())
             {
-                if (layer.isDefault || layer.animatorController == null) continue;
-                
-                // We should have converted anything that's not an AnimationController by now
-                var controller = layer.animatorController as AnimatorController;
-                if (controller == null || !context.IsTemporaryAsset(controller))
+                var parameters = controller.Parameters;
+                foreach (var (name, parameter) in parameters)
                 {
-                    throw new Exception("Leaked unexpected controller: " + layer.animatorController + " (type " + layer.animatorController?.GetType() + ")");
-                }
+                    if (!values.TryGetValue(name, out var defaultValue)) continue;
 
-                var parameters = controller.parameters;
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    if (!values.TryGetValue(parameters[i].name, out var defaultValue)) continue;
-
-                    switch (parameters[i].type)
+                    switch (parameter.type)
                     {
                         case AnimatorControllerParameterType.Bool:
-                            parameters[i].defaultBool = defaultValue != 0.0f;
+                            parameter.defaultBool = defaultValue != 0.0f;
                             break;
                         case AnimatorControllerParameterType.Int:
-                            parameters[i].defaultInt = Mathf.RoundToInt(defaultValue);
+                            parameter.defaultInt = Mathf.RoundToInt(defaultValue);
                             break;
                         case AnimatorControllerParameterType.Float:
-                            parameters[i].defaultFloat = defaultValue;
+                            parameter.defaultFloat = defaultValue;
                             break;
                         default:
                             continue; // unhandled type, e.g. trigger
                     }
+
+                    parameters = parameters.SetItem(name, parameter);
                 }
                 
-                controller.parameters = parameters;
+                controller.Parameters = parameters;
             }
         }
     }

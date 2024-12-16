@@ -2,6 +2,7 @@ using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine.Animations;
 
@@ -16,7 +17,7 @@ public class WorldFixedObjectTest : TestBase
 
         // initialize context
         var buildContext = new BuildContext(avatar);
-        buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
+        buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
         new WorldFixedObjectProcessor().Process(buildContext);
 
@@ -42,7 +43,7 @@ public class WorldFixedObjectTest : TestBase
 
         // initialize context
         var buildContext = new BuildContext(avatar);
-        buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
+        buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
         new WorldFixedObjectProcessor().Process(buildContext);
 
@@ -75,7 +76,7 @@ public class WorldFixedObjectTest : TestBase
         
         // initialize context
         var buildContext = new BuildContext(avatar);
-        var animationServices = buildContext.PluginBuildContext.ActivateExtensionContext<AnimationServicesContext>();
+        var animationServices = buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
         new WorldFixedObjectProcessor().Process(buildContext);
         

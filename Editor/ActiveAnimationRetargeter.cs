@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 using EditorCurveBinding = UnityEditor.EditorCurveBinding;
@@ -16,7 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly BuildContext _context;
         private readonly BoneDatabase _boneDatabase;
-        private readonly PathMappings _pathMappings;
+        private readonly AnimatorServicesContext _asc;
         private readonly List<IntermediateObj> _intermediateObjs = new List<IntermediateObj>();
 
         /// <summary>
@@ -55,15 +56,15 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _context = context;
             _boneDatabase = boneDatabase;
-            _pathMappings = context.PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
+            _asc = context.PluginBuildContext.Extension<AnimatorServicesContext>();
 
             while (root != null && !RuntimeUtil.IsAvatarRoot(root))
             {
                 var originalPath = RuntimeUtil.AvatarRootPath(root.gameObject);
                 System.Diagnostics.Debug.Assert(originalPath != null);
 
-                if (context.AnimationDatabase.ClipsForPath(originalPath).Any(clip =>
-                        GetActiveBinding(clip.CurrentClip as AnimationClip, originalPath) != null
+                if (_asc.AnimationIndex.GetClipsForObjectPath(originalPath).Any(clip =>
+                        GetActiveBinding(clip, originalPath) != null
                     ))
                 {
                     _intermediateObjs.Add(new IntermediateObj
@@ -118,7 +119,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Ensure mesh retargeting looks through this 
                 _boneDatabase.AddMergedBone(sourceBone.transform);
                 _boneDatabase.RetainMergedBone(sourceBone.transform);
-                _pathMappings.MarkTransformLookthrough(sourceBone);
             }
 
             return sourceBone;
@@ -130,22 +130,14 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var path = intermediate.OriginalPath;
 
-                foreach (var holder in _context.AnimationDatabase.ClipsForPath(path))
+                foreach (var clip in _asc.AnimationIndex.GetClipsForObjectPath(path))
                 {
-                    if (!_context.PluginBuildContext.IsTemporaryAsset(holder.CurrentClip))
-                    {
-                        holder.CurrentClip = Object.Instantiate(holder.CurrentClip);
-                    }
-
-                    var clip = holder.CurrentClip as AnimationClip;
-                    if (clip == null) continue;
-
                     var curve = GetActiveBinding(clip, path);
                     if (curve != null)
                     {
                         foreach (var mapping in intermediate.Created)
                         {
-                            clip.SetCurve(_pathMappings.GetObjectIdentifier(mapping), typeof(GameObject), "m_IsActive",
+                            clip.SetFloatCurve(_asc.ObjectPathRemapper.GetVirtualPathForObject(mapping), typeof(GameObject), "m_IsActive",
                                 curve);
                         }
                     }
@@ -153,10 +145,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private AnimationCurve GetActiveBinding(AnimationClip clip, string path)
+        private AnimationCurve GetActiveBinding(VirtualClip clip, string path)
         {
-            return AnimationUtility.GetEditorCurve(clip,
-                EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
+            return clip.GetFloatCurve(EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
         }
     }
 }

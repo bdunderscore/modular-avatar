@@ -27,6 +27,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -84,13 +85,15 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class RetargetMeshes
     {
         private BoneDatabase _boneDatabase;
-        private PathMappings _pathTracker;
+        private AnimationIndex _animationIndex;
+        private ObjectPathRemapper _pathRemapper;
 
         internal void OnPreprocessAvatar(GameObject avatarGameObject, BoneDatabase boneDatabase,
-            PathMappings pathMappings)
+            AnimatorServicesContext pathMappings)
         {
             this._boneDatabase = boneDatabase;
-            this._pathTracker = pathMappings;
+            this._animationIndex = pathMappings.AnimationIndex;
+            this._pathRemapper = pathMappings.ObjectPathRemapper;
 
             foreach (var renderer in avatarGameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
@@ -153,7 +156,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         child.SetParent(destBone, true);
                     }
 
-                    _pathTracker.MarkRemoved(sourceBone.gameObject);
+                    // Remap any animation clips that reference this bone into its parent
+                    _pathRemapper.ReplaceObject(sourceBone.gameObject, sourceBone.transform.parent.gameObject);
                     UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
                 }
             }
