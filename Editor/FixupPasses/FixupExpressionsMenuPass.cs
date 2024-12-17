@@ -93,6 +93,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         control.icon = newIcon;
                     }
 
+                    if (control.subMenu != null)
+                    {
+                        VisitMenu(control.subMenu);
+                    }
+
                     if (control.labels != null)
                     {
                         for (int i = 0; i < control.labels.Length; i++)
