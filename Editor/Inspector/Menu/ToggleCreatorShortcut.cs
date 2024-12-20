@@ -9,16 +9,23 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class ToggleCreatorShortcut
     {
         [MenuItem(UnityMenuItems.GameObject_SetupToggle, false, UnityMenuItems.GameObject_SetupToggleOrder)]
-        private static void SetupToggle() => CreateToggleImpl(true);
+        private static void SetupToggle() => CreateToggles(true);
 
         [MenuItem(UnityMenuItems.GameObject_CreateToggle, false, UnityMenuItems.GameObject_CreateToggleOrder)]
-        private static void CreateToggle() => CreateToggleImpl(false);
-
-        private static void CreateToggleImpl(bool setup)
+        private static void CreateToggle() => CreateToggles(false);
+        
+        private static void CreateToggles(bool setup)
         {
-            var selected = Selection.activeGameObject;
-            if (selected == null) return;
-            
+            var selections = Selection.objects;
+            foreach (var selection in selections) {
+                if (selection == null) continue;
+                CreateToggleImpl(selection as GameObject, setup);
+            }
+            Selection.objects = null;
+        }
+
+        private static void CreateToggleImpl(GameObject selected, bool setup)
+        {
             var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selected.transform);
             if (avatarRoot == null) return;
 
