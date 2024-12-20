@@ -8,8 +8,13 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class ToggleCreatorShortcut
     {
+        [MenuItem(UnityMenuItems.GameObject_SetupToggle, false, UnityMenuItems.GameObject_SetupToggleOrder)]
+        private static void SetupToggle() => CreateToggleImpl(true);
+
         [MenuItem(UnityMenuItems.GameObject_CreateToggle, false, UnityMenuItems.GameObject_CreateToggleOrder)]
-        private static void CreateToggle()
+        private static void CreateToggle() => CreateToggleImpl(false);
+
+        private static void CreateToggleImpl(bool setup)
         {
             var selected = Selection.activeGameObject;
             if (selected == null) return;
@@ -35,10 +40,22 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 // ignore
             }
+
+            var name = setup ? selected.name + " Toggle"  : "New Toggle";
             
-            var toggle = new GameObject("New Toggle");
+            var toggle = new GameObject(name);
             
             var objToggle = toggle.AddComponent<ModularAvatarObjectToggle>();
+            if (setup)
+            {
+                var path = RuntimeUtil.RelativePath(avatarRoot.gameObject, selected);
+                objToggle.Objects.Add(new ToggledObject
+                {
+                    Object = new AvatarObjectReference(){ referencePath = path },
+                    Active = false
+                });
+            }
+
 
             toggle.transform.SetParent(parent, false);
 
@@ -47,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor
             mami.Control = new VRCExpressionsMenu.Control
             {
                 type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                name = "New Toggle",
+                name = name,
                 value = 1,
             };
             
