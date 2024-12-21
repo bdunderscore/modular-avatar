@@ -59,7 +59,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 objToggle.Objects.Add(new ToggledObject
                 {
                     Object = new AvatarObjectReference(){ referencePath = path },
-                    Active = false
+                    Active = !selected.activeSelf
                 });
             }
 
