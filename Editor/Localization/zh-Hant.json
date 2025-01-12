@@ -51,6 +51,7 @@
   "merge_parameter.ui.add_button": "添加",
   "merge_parameter.ui.details": "參數設定",
   "merge_parameter.ui.overrideAnimatorDefaults": "覆蓋 Animator 預設值",
+  "merge_parameter.ui.importFromAsset": "從 Assets 匯入",
   "merge_armature.merge_target": "合併目標",
   "merge_armature.merge_target.tooltip": "當前物件要合併到的骨架（或其子級）",
   "merge_armature.prefix": "骨骼前綴",
@@ -86,6 +87,7 @@
   "merge_armature.lockmode.bidirectional.body": "Avatar 骨骼和當前物件的骨骼的位置始終相同。\n此模式對創建基於 Avatar 骨骼的動畫時非常有用。\n啟用此模式要求 Avatar 骨骼和當前物件的骨骼位置完全相同。",
   "merge_armature.reset_pos": "將位置與 Avatar 進行對齊",
   "merge_armature.reset_pos.info": "此命令將強制服裝骨骼與 Avatar 骨骼進行對齊，在使用非 Avatar 對應的服裝時可能有幫助。",
+  "merge_armature.reset_pos.convert_atpose": "轉換 A-Pose/T-Pose 以符合角色",
   "merge_armature.reset_pos.adjust_rotation": "也對齊旋轉",
   "merge_armature.reset_pos.adjust_scale": "也對齊縮放",
   "merge_armature.reset_pos.execute": "執行",
@@ -148,6 +150,7 @@
   "error.rename_params.default_value_conflict:hint": "為了避免不可預測的行為，請將 MA Parameters 元件中所有預設值留空，只留一個。如果存在多個值，Modular Avatar 將選擇第一個預設值。",
   "error.replace_object.null_target": "[MA-0008] 未指定要替換的物件",
   "error.replace_object.null_target:hint": "Replace object 需要知道要替換掉哪個物件。嘗試指定一個。",
+  "error.replace_object.parent_of_target": "[MA-0010] 目標物件不能是此物件的父級",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此物件上找不到 Renderer",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用於所在物件上的 Skinned Mesh Renderer。你是否將它附加到正確的物件上？",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此物件的 Renderer 上找不到網格（Mesh）",
@@ -187,6 +190,7 @@
   "menuitem.prop.value": "參數值",
   "menuitem.prop.value.tooltip": "設定選單項觸發時的參數值",
   "menuitem.prop.automatic_value": "自動",
+  "menuitem.prop.automatic_value.tooltip": "自動將此控制設定為唯一值",
   "menuitem.prop.parameter": "參數",
   "menuitem.prop.label": "名稱",
   "menuitem.prop.submenu_asset": "子選單資源",
@@ -272,5 +276,8 @@
   "ro_sim.effect_group.material.tooltip": "Reactive Component 啟用時，將被設在目標元件上的材質",
   "ro_sim.effect_group.rule_inverted": "規則的條件已反轉",
   "ro_sim.effect_group.rule_inverted.tooltip": "這條規則將在未達成其任一條件時套用。",
-  "ro_sim.effect_group.conditions": "條件"
+  "ro_sim.effect_group.conditions": "條件",
+  "remove-vertex-color.mode": "模式",
+  "remove-vertex-color.mode.Remove": "移除頂點顏色",
+  "remove-vertex-color.mode.DontRemove": "保留頂點顏色"
 }
