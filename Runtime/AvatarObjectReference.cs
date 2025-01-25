@@ -141,7 +141,14 @@ namespace nadena.dev.modular_avatar.core
         internal bool IsConsistent(GameObject avatarRoot)
         {
             if (referencePath == AVATAR_ROOT) return targetObject == avatarRoot;
-            return avatarRoot.transform.Find(referencePath)?.gameObject == targetObject;
+            if (avatarRoot.transform.Find(referencePath)?.gameObject == targetObject)
+            {
+                return true;
+            }
+
+            // If multiple objects match the same path, then we accept that the reference is consistent.
+            var targetObjectPath = RuntimeUtil.AvatarRootPath(targetObject);
+            return targetObjectPath == referencePath;
         }
         
         protected bool Equals(AvatarObjectReference other)
