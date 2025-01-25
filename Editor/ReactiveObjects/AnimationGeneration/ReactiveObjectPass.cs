@@ -286,6 +286,15 @@ namespace nadena.dev.modular_avatar.core.editor
                     });
                 }
             }
+
+            // Remove all deletedShape. props to avoid creating animator noise that'll confuse tools like AAO
+            foreach (var key in shapes.Keys.ToList())
+            {
+                if (key.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                {
+                    shapes.Remove(key);
+                }
+            }
         }
 
         #endregion
