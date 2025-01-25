@@ -110,13 +110,15 @@ jobs:
             fi
           done
 
-      - uses: anatawa12/sh-actions/resolve-vpm-packages@master
-        name: Resolve VPM packages
-        if: ${{ matrix.sdk == 'vrcsdk' && steps.setup.outputs.should_test == 'true' }}
-        with:
-          repos: |
-            https://vpm.nadena.dev/vpm-prerelease.json
-            https://vrchat.github.io/packages/index.json?download
+      - uses: anatawa12/sh-actions/setup-vrc-get@master
+
+      - name: Resolve packages
+        if: ${{ steps.setup.outputs.should_test == 'true' }}
+        run: |
+          vrc-get repo add -- "https://vpm.nadena.dev/vpm-prerelease.json" || true
+          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download" || true
+          vrc-get resolve --project .
+          vrc-get info project --project .
 
       - if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: "Debug: List project contents"
