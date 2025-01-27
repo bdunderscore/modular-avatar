@@ -27,7 +27,7 @@ MA Parametersリストの各エントリーは、一つのパラメーター、�
 
 「Animatorのみ」を選択すると、そのパラメーターはExpressions Parametersリストに追加されません。ただし、下記の名前変更はできます。
 
-「PB前置詞」設定は、このパラメーター前置詞がPhysBonesコンポー年tおに設定されている場合に使います。Animatorのみと同様、Expressions Parameters
+「PB前置詞」設定は、このパラメーター前置詞がPhysBonesコンポーネントに設定されている場合に使います。Animatorのみと同様、Expressions Parameters
 リストには追加されません。
 
 ### パラメーターのリネーム
