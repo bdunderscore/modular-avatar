@@ -319,10 +319,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var yInc = 60;
 
             asm.anyStatePosition = new Vector3(-200, 0);
-
-            var initial = new AnimationClip();
+            
             var initialState = new AnimatorState();
-            initialState.motion = initial;
             initialState.writeDefaultValues = _writeDefaults;
             initialState.name = "<default>";
             asm.defaultState = initialState;
@@ -343,7 +341,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
 
-            foreach (var group in info.actionGroups.Skip(lastConstant))
+            // Note: We need to generate a group for any base constant state as well; this is because we generate the
+            // scene initial value as a base animation curve in the base blend tree, which would be exposed in the
+            // default state. This is incorrect when there is a constant-on Object Toggle or similar changing the
+            // initial state of a property.
+            //
+            // We can, however, skip any groups _before_ that constant state, as they'll be overridden in all cases.
+            foreach (var group in info.actionGroups.Skip(Math.Max(0, lastConstant - 1)))
             {
                 y += yInc;
 
@@ -453,6 +457,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
+            if (initialState.motion == null)
+            {
+                // For some reason, if we set the state's motion multiple times, Unity will sometimes revert to the
+                // first motion set; as such, make sure to set the empty motion only if we really mean it. 
+                var initial = new AnimationClip();
+                initial.name = "empty motion";
+                initialState.motion = initial;
+            }
+            
             foreach (var (st, transitions) in transitionBuffer) st.transitions = transitions.ToArray();
 
             asm.states = states.ToArray();
