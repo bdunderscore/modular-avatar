@@ -137,7 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
 
-                    if (mami_condition != null &&
+                    if (mami_condition != null && ForceMenuItems != null &&
                         ForceMenuItems.TryGetValue(mami_condition.Parameter, out var forcedMenuItem))
                     {
                         var enable = forcedMenuItem == mami;
