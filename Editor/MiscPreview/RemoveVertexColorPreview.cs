@@ -18,7 +18,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
-            var roots = context.GetAvatarRoots();
+            var roots = context.GetAvatarRoots()
+                .Where(r => context.ActiveInHierarchy(r) is true);
             var removers = roots
                 .SelectMany(r => context.GetComponentsInChildren<ModularAvatarRemoveVertexColor>(r, true))
                 .Select(rvc => (ToPathString(context, rvc.transform),
