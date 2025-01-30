@@ -1,4 +1,4 @@
-#region
+﻿#region
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -56,8 +56,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext ctx)
         {
-            var scaleAdjusters = ctx.GetComponentsByType<ModularAvatarScaleAdjuster>();
-
             var avatarToRenderer =
                 new Dictionary<GameObject, HashSet<Renderer>>();
 
