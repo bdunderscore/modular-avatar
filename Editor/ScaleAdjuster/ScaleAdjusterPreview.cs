@@ -1,4 +1,4 @@
-﻿#region
+#region
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,6 +63,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var root in ctx.GetAvatarRoots())
             {
+                if (ctx.ActiveInHierarchy(root) is false)
+                {
+                    continue;
+                }
+
                 if (ctx.GetComponentsInChildren<ModularAvatarScaleAdjuster>(root, true).Length == 0)
                 {
                     continue;
