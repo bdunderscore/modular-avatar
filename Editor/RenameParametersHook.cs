@@ -439,6 +439,18 @@ namespace nadena.dev.modular_avatar.core.editor
                                 }
                             }
 
+                            if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                            {
+                                _context.PostProcessControls.Add(menuItem, control =>
+                                {
+                                    control.parameter.name = remap(remaps, control.parameter.name);
+                                    foreach (var subParam in control.subParameters)
+                                    {
+                                        subParam.name = remap(remaps, subParam.name);
+                                    }
+                                });
+                            }
+
                             break;
                         }
                     }

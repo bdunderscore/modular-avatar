@@ -11,6 +11,7 @@ using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor.menu
 {
@@ -41,9 +42,9 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         private readonly ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>>
             _menuToInstallerMap;
 
-        private readonly ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>
+        private readonly ImmutableDictionary<Object, Action<VRCExpressionsMenu.Control>>
             _postProcessControls
-                = ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>.Empty;
+                = ImmutableDictionary<Object, Action<VRCExpressionsMenu.Control>>.Empty;
 
         private readonly VirtualMenuNode _node;
         private readonly NodeForDelegate _nodeFor;
@@ -76,7 +77,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             VirtualMenuNode node,
             NodeForDelegate nodeFor,
             ImmutableDictionary<object, ImmutableList<ModularAvatarMenuInstaller>> menuToInstallerMap,
-            ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>> postProcessControls,
+            ImmutableDictionary<Object, Action<VRCExpressionsMenu.Control>> postProcessControls,
             Action<VRCExpressionsMenu> visitedMenu,
             Action<VRCExpressionsMenu.Control> postprocessor
         )
@@ -128,7 +129,13 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             if (_visited.Contains(source)) return;
             _visited.Add(source);
 
-            BuildReport.ReportingObject(source as UnityEngine.Object, () => source.Visit(this));
+            var sourceObj = source as Object;
+            var postProcessor = sourceObj != null ? _postProcessControls.GetValueOrDefault(sourceObj) : default;
+
+            using (new PostprocessorContext(this, postProcessor))
+            {
+                BuildReport.ReportingObject(source as Object, () => source.Visit(this));
+            }
 
             _visited.Remove(source);
         }
@@ -229,9 +236,9 @@ namespace nadena.dev.modular_avatar.core.editor.menu
         private Dictionary<ModularAvatarMenuInstaller, List<ModularAvatarMenuInstallTarget>> _installerToTargetComponent
             = new Dictionary<ModularAvatarMenuInstaller, List<ModularAvatarMenuInstallTarget>>();
 
-        private ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>
+        private ImmutableDictionary<Object, Action<VRCExpressionsMenu.Control>>
             _postprocessControlsHooks =
-                ImmutableDictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>.Empty;
+                ImmutableDictionary<Object, Action<VRCExpressionsMenu.Control>>.Empty;
 
         private Dictionary<object, VirtualMenuNode> _resolvedMenu = new Dictionary<object, VirtualMenuNode>();
 
@@ -406,7 +413,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
 
                 _pendingGeneration.Enqueue(() =>
                 {
-                    BuildReport.ReportingObject(key as UnityEngine.Object, () =>
+                    BuildReport.ReportingObject(key as Object, () =>
                     {
                         var context = new NodeContextImpl(node, NodeFor, menuToInstallerFiltered,
                             _postprocessControlsHooks,
@@ -431,7 +438,7 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             }
         }
 
-        internal VRCExpressionsMenu SerializeMenu(Action<UnityEngine.Object> SaveAsset)
+        internal VRCExpressionsMenu SerializeMenu(Action<Object> SaveAsset)
         {
             Dictionary<object, VRCExpressionsMenu> serializedMenus = new Dictionary<object, VRCExpressionsMenu>();
 
