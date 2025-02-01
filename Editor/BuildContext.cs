@@ -1,23 +1,21 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
+#endif
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-
-#if MA_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-using VRC.SDK3.Avatars.ScriptableObjects;
-#endif
-
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class BuildContext
     {
-        internal readonly nadena.dev.ndmf.BuildContext PluginBuildContext;
+        internal readonly ndmf.BuildContext PluginBuildContext;
 
 #if MA_VRCSDK3_AVATARS
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
@@ -31,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal PathMappings PathMappings =>
             PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
 
-        internal UnityEngine.Object AssetContainer => PluginBuildContext.AssetContainer;
+        internal Object AssetContainer => PluginBuildContext.AssetContainer;
 
         private bool SaveImmediate = false;
 
@@ -44,13 +42,12 @@ namespace nadena.dev.modular_avatar.core.editor
         /// replace the source menu for the purposes of identifying any other MAMIs that might install to the same
         /// menu asset.
         /// </summary>
-        internal readonly Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>> PostProcessControls
-            = new Dictionary<ModularAvatarMenuInstaller, Action<VRCExpressionsMenu.Control>>();
+        internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
         public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
             ctx.Extension<ModularAvatarContext>().BuildContext;
 
-        public BuildContext(nadena.dev.ndmf.BuildContext PluginBuildContext)
+        public BuildContext(ndmf.BuildContext PluginBuildContext)
         {
             this.PluginBuildContext = PluginBuildContext;
         }
