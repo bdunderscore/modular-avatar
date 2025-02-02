@@ -49,6 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (forSelection)
             {
                 var path = RuntimeUtil.RelativePath(avatarRoot.gameObject, selected);
+                objToggle.Inverted = selected.activeSelf;
                 objToggle.Objects.Add(new ToggledObject
                 {
                     Object = new AvatarObjectReference(){ referencePath = path },
@@ -67,6 +68,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 name = name,
                 value = 1,
             };
+            if (forSelection)
+            {
+                mami.isDefault = selected.activeSelf;
+            }
             
             if (createInstaller)
             {
