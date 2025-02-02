@@ -8,11 +8,11 @@
         internal const string GameObject_CreateToggle = "GameObject/Modular Avatar/Create Toggle";
         internal const int GameObject_CreateToggleOrder = GameObject_SetupOutfitOrder + 1;
 
-        internal const string GameObject_SetupToggle = "GameObject/Modular Avatar/Setup Toggle";
-        internal const int GameObject_SetupToggleOrder = GameObject_CreateToggleOrder + 1;
+        internal const string GameObject_CreateToggleForSelection = "GameObject/Modular Avatar/Create Toggle for Selection";
+        internal const int GameObject_CreateToggleForSelectionOrder = GameObject_CreateToggleOrder + 1;
 
         internal const string GameObject_ManualBake = "GameObject/Modular Avatar/Manual Bake Avatar";
-        internal const int GameObject_ManualBakeOrder = GameObject_SetupToggleOrder + 1;
+        internal const int GameObject_ManualBakeOrder = GameObject_CreateToggleForSelectionOrder + 1;
 
         // <separator>
 

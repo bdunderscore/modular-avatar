@@ -8,13 +8,13 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class ToggleCreatorShortcut
     {
-        [MenuItem(UnityMenuItems.GameObject_SetupToggle, false, UnityMenuItems.GameObject_SetupToggleOrder)]
-        private static void SetupToggle(MenuCommand command) => CreateToggleImpl(command, true);
+        [MenuItem(UnityMenuItems.GameObject_CreateToggleForSelection, false, UnityMenuItems.GameObject_CreateToggleForSelectionOrder)]
+        private static void CreateToggleForSelection(MenuCommand command) => CreateToggleImpl(command, true);
 
         [MenuItem(UnityMenuItems.GameObject_CreateToggle, false, UnityMenuItems.GameObject_CreateToggleOrder)]
         private static void CreateToggle(MenuCommand command) => CreateToggleImpl(command, false);
         
-        private static void CreateToggleImpl(MenuCommand command, bool setup)
+        private static void CreateToggleImpl(MenuCommand command, bool forSelection)
         {
             var selected = command.context as GameObject;
             if (selected == null) return;
@@ -41,12 +41,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 // ignore
             }
 
-            var name = setup ? selected.name + " Toggle"  : "New Toggle";
+            var name = forSelection ? selected.name + " Toggle"  : "New Toggle";
             
             var toggle = new GameObject(name);
             
             var objToggle = toggle.AddComponent<ModularAvatarObjectToggle>();
-            if (setup)
+            if (forSelection)
             {
                 var path = RuntimeUtil.RelativePath(avatarRoot.gameObject, selected);
                 objToggle.Objects.Add(new ToggledObject
