@@ -2,15 +2,10 @@
 
 #region
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
-using nadena.dev.ndmf.util;
 using UnityEditor.Animations;
-using UnityEditor.Search;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -57,7 +52,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     name = name,
                     type = AnimatorControllerParameterType.Float,
-                    defaultFloat = 1.0f
+                    defaultFloat = 0.0f
                 });
             }
         }
