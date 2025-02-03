@@ -25,6 +25,8 @@ public class PreexistingParamsTest : TestBase
 
         foreach (var kvp in paramDict)
         {
+            if (kvp.Key.StartsWith("__ModularAvatarInternal/")) continue;
+            
             if (kvp.Key == "default_override" || kvp.Key == "animator_only")
             {
                 Assert.AreEqual(1, kvp.Value);

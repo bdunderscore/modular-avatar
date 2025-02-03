@@ -5,6 +5,7 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -46,27 +47,39 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(ClearEditorOnlyTags.Instance);
                 seq.Run(MeshSettingsPluginPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
+                
+                // All these need to move to the new ASC
 #if MA_VRCSDK3_AVATARS
                 seq.Run(ReactiveObjectPrepass.Instance);
-                seq.Run(RenameParametersPluginPass.Instance);
-                seq.Run(ParameterAssignerPass.Instance);
-                seq.Run(MergeBlendTreePass.Instance);
-                seq.Run(MergeAnimatorPluginPass.Instance);
-                seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 #endif
-                seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
+                seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
-                    seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
-                        .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(), new MaterialSetterPreview());
+                    seq.Run(RenameParametersPluginPass.Instance);
+                    seq.Run(ParameterAssignerPass.Instance);
+                    seq.Run(MergeBlendTreePass.Instance);
+                    seq.Run(MergeAnimatorPluginPass.Instance);
+                    seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
+
+                    seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
+                    {
+                        seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
+                            .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(),
+                                new MaterialSetterPreview());
+                    });
+                    seq.Run(GameObjectDelayDisablePass.Instance);
 
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
                     // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
                     // to retain those objects? maybe?
                     seq.Run(MenuInstallPluginPass.Instance);
 #endif
-
                     seq.Run(MergeArmaturePluginPass.Instance);
+
+                });
+                
+                seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
+                {
                     seq.Run(BoneProxyPluginPass.Instance);
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
@@ -77,7 +90,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPluginPass.Instance);
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
-                    seq.Run(GameObjectDelayDisablePass.Instance);
+                    // seq.Run(GameObjectDelayDisablePass.Instance); - TODO, move back here
 #endif
                     seq.Run(ConstraintConverterPass.Instance);
                 });
