@@ -108,9 +108,10 @@ namespace modular_avatar_tests
             Assert.Greater(animRootIndex, parentIndex);
             Assert.Greater(bodyIndex, animRootIndex);
             
-            // Body is still enabled; the injected parent and parent/anim-root are not
+            // Body is still enabled; the injected parent is not. anim-root should be enabled, since the test mask has
+            // the root element enabled.
             Assert.IsTrue(state.transformMaskElements[parentIndex].Item2 < 0.5f);
-            Assert.IsTrue(state.transformMaskElements[animRootIndex].Item2 < 0.5f);
+            Assert.IsTrue(state.transformMaskElements[animRootIndex].Item2 > 0.5f);
             Assert.IsTrue(state.transformMaskElements[bodyIndex].Item2 > 0.5f);
             
             // Original paths are removed
