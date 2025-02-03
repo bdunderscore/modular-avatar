@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor
             .PathMappings;
 
         private HashSet<Transform> humanoidBones = new HashSet<Transform>();
-        private HashSet<Transform> mergedObjects = new HashSet<Transform>();
+        private readonly HashSet<Transform> prunePBsObjects = new();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
 
         internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
@@ -217,7 +217,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             BuildReport.ReportingObject(config, () =>
             {
-                mergedObjects.Clear();
+                prunePBsObjects.Clear();
                 thisPassAdded.Clear();
                 MergeArmature(config, target);
 #if MA_VRCSDK3_AVATARS
@@ -303,7 +303,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private void RecursiveMerge(ModularAvatarMergeArmature config,
             GameObject src,
             GameObject newParent,
-            bool zipMerge)
+            bool zipMerge
+        )
         {
             if (src == newParent)
             {
@@ -313,10 +314,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (zipMerge)
             {
-                mergedObjects.Add(src.transform);
                 thisPassAdded.Add(src.transform);
             }
-
+            
             bool retain = HasAdditionalComponents(src) || !zipMerge;
             zipMerge = zipMerge && src.GetComponent<IConstraint>() == null;
 
@@ -367,10 +367,26 @@ namespace nadena.dev.modular_avatar.core.editor
                 src.name = src.name + "$" + Guid.NewGuid();
             }
 
-            src.GetOrAddComponent<ModularAvatarPBBlocker>();
             mergedSrcBone = src;
 
-            if (zipMerge)
+            HashSet<Transform> childPhysBonesBlockedSet = null;
+
+#if MA_VRCSDK3_AVATARS
+            src.GetOrAddComponent<ModularAvatarPBBlocker>();
+
+            if (physBoneByRootBone.TryGetValue(src.transform, out var pb)
+                && !NotAffectedByPhysBoneOrSimilarChainsAsTarget(src.transform, newParent.transform))
+            {
+                childPhysBonesBlockedSet = new HashSet<Transform>(pb.ignoreTransforms);
+            }
+            else if (zipMerge)
+            {
+                prunePBsObjects.Add(src.transform);
+            }
+#endif
+
+            // If we're zipping, and the current object is not being used for PBs, we can remove it later.
+            if (zipMerge && childPhysBonesBlockedSet == null)
             {
                 PathMappings.MarkTransformLookthrough(src);
                 BoneDatabase.AddMergedBone(src.transform);
@@ -384,6 +400,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (zipMerge)
             {
+                var reportedHumanoidBoneError = false;
+                
                 foreach (Transform child in children)
                 {
                     if (child.GetComponent <ModularAvatarMergeArmature>() != null)
@@ -407,15 +425,26 @@ namespace nadena.dev.modular_avatar.core.editor
                         // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            if (NotAffectedByPhysBoneOrSimilarChainsAsTarget(child, targetObject))
+                            if (childPhysBonesBlockedSet != null
+                                && !childPhysBonesBlockedSet.Contains(child)
+                                && !child.TryGetComponent<ModularAvatarPBBlocker>(out _))
+                            {
+                                // This object is potentially impacted by the parent's physbones; is it humanoid?
+                                if (!reportedHumanoidBoneError && humanoidBones.Contains(targetObject.transform))
+                                {
+                                    // If so, fail the build, as we won't properly apply this to humanoid children.
+                                    BuildReport.LogFatal(
+                                        "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
+                                    reportedHumanoidBoneError = true;
+                                }
+
+                                // Don't move this child object
+                                continue;
+                            }
+                            else
                             {
                                 childNewParent = targetObject.gameObject;
                                 shouldZip = true;
-                            }
-                            else if (humanoidBones.Contains(targetObject))
-                            {
-                                BuildReport.LogFatal(
-                                    "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
                             }
                         }
                     }
@@ -468,7 +497,7 @@ namespace nadena.dev.modular_avatar.core.editor
          */
         private void PruneDuplicatePhysBones()
         {
-            foreach (var obj in mergedObjects)
+            foreach (var obj in prunePBsObjects)
             {
                 if (obj.GetComponent<VRCPhysBone>() == null) continue;
                 var baseObj = FindOriginalParent(obj);
