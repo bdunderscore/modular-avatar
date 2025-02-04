@@ -1,4 +1,5 @@
 ﻿#if MA_VRCSDK3_AVATARS
+using System.Linq;
 using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
@@ -9,39 +10,80 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class ToggleCreatorShortcut
     {
         [MenuItem(UnityMenuItems.GameObject_CreateToggleForSelection, false, UnityMenuItems.GameObject_CreateToggleForSelectionOrder)]
-        private static void CreateToggleForSelection(MenuCommand command) => CreateToggleImpl(command, true);
+        private static void CreateToggleForSelection()
+        {
+            var forSelection = true;
+
+            var selections = Selection.objects.OfType<GameObject>();
+            // Ignore GameObjects with submenu in the context of CreateToggleForSelection.
+            selections = selections.Where(s => !TryGetChildrenSourceSubmenu(s, out var _));
+            if (selections.Count() == 0) return;
+
+            foreach (var selected in selections)
+            {
+                var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selected.transform);
+                if (avatarRoot == null) return;
+
+                var parent = selected.transform.parent?.gameObject;
+                if (parent == null) continue;
+
+                CreateToggleImpl(selected, parent, selected.name + " Toggle", forSelection, createInstaller:true);
+            }
+
+            Selection.objects = null;
+        }
 
         [MenuItem(UnityMenuItems.GameObject_CreateToggle, false, UnityMenuItems.GameObject_CreateToggleOrder)]
-        private static void CreateToggle(MenuCommand command) => CreateToggleImpl(command, false);
-        
-        private static void CreateToggleImpl(MenuCommand command, bool forSelection)
+        private static void CreateToggle()
         {
-            var selected = command.context as GameObject;
-            if (selected == null) return;
+            var selections = Selection.objects.OfType<GameObject>();
+            if (selections.Count() == 0) return;
 
-            var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selected.transform);
-            if (avatarRoot == null) return;
+            foreach (var selected in selections)
+            {
+                var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selected.transform);
+                if (avatarRoot == null) return;
 
-            bool createInstaller = true;
-            Transform parent = avatarRoot;
+                var parent = avatarRoot.gameObject;
+                var createInstaller = true;
 
+                if (TryGetChildrenSourceSubmenu(selected, out var _))
+                {
+                    parent = selected;
+                    createInstaller = false;
+                }
+
+                CreateToggleImpl(selected, parent, "New Toggle", createInstaller:createInstaller);
+            }
+
+            Selection.objects = null;
+        }
+        
+        private static bool TryGetChildrenSourceSubmenu(GameObject target, out ModularAvatarMenuItem subMenu)
+        {
+            subMenu = null;
             try
             {
-                var selectedMenuItem = selected.GetComponent<ModularAvatarMenuItem>();
-                if (selectedMenuItem?.Control?.type == VRCExpressionsMenu.Control.ControlType.SubMenu
-                    && selectedMenuItem.MenuSource == SubmenuSource.Children
+                var mami = target.GetComponent<ModularAvatarMenuItem>();
+                if (mami?.Control?.type == VRCExpressionsMenu.Control.ControlType.SubMenu
+                    && mami.MenuSource == SubmenuSource.Children
                    )
                 {
-                    parent = selected.transform;
-                    createInstaller = false;
+                    subMenu = mami;
+                    return true;
                 }
             }
             catch (MissingComponentException)
             {
                 // ignore
             }
+            return false;
+        }
 
-            var name = forSelection ? selected.name + " Toggle"  : "New Toggle";
+        private static void CreateToggleImpl(GameObject selected, GameObject parent, string name, bool forSelection = false, bool createInstaller = true)
+        {
+            var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(selected.transform);
+            if (avatarRoot == null) return;
             
             var toggle = new GameObject(name);
             
@@ -57,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
 
-            toggle.transform.SetParent(parent, false);
+            toggle.transform.SetParent(parent.transform, false);
 
             var mami = toggle.AddComponent<ModularAvatarMenuItem>();
             mami.InitSettings();
