@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -570,6 +568,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 switch (node)
                 {
+                    case VirtualStateMachine vsm: ProcessStateMachine(vsm, remap); break;
                     case VirtualState vs: ProcessState(vs, remap); break;
                     case VirtualTransition vt: ProcessTransition(vt, remap); break;
                     case VirtualClip vc: ProcessClip(vc, remap); break;
@@ -592,6 +591,18 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             controller.Parameters = newParameters;
+        }
+
+        private void ProcessStateMachine(VirtualStateMachine vsm,
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        {
+            foreach (var behavior in vsm.Behaviours)
+            {
+                if (behavior is VRCAvatarParameterDriver driver)
+                {
+                    ProcessDriver(driver, remaps);
+                }
+            }
         }
 
         private void ProcessState(VirtualState state, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
