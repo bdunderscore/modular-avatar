@@ -100,9 +100,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             var stash = context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-
+            
             var clonedController = stash.Controllers.GetValueOrDefault(merge)
-                ?? _asc.ControllerContext.CloneContext.Clone(merge.animator);
+                                   ?? _asc.ControllerContext.CloneContext.CloneDistinct(merge.animator);
             
             string basePath;
             if (merge.pathMode == MergeAnimatorPathMode.Relative)

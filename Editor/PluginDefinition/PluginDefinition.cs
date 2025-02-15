@@ -79,6 +79,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 
                     seq.Run("Prune empty animator layers",
                         ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
+                    seq.Run("Harmonize animator parameter types",
+                        ctx => { ctx.Extension<AnimatorServicesContext>().HarmonizeParameterTypes(); });
                 });
                 
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>

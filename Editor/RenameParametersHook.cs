@@ -70,7 +70,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (mama.animator == null) return null;
 
-            var cloned = AnimatorServices.ControllerContext.CloneContext.Clone(mama.animator, mama.layerType);
+            var cloned = AnimatorServices.ControllerContext.CloneContext.CloneDistinct(mama.animator, mama.layerType);
             Controllers[mama] = cloned;
             
             return cloned;
