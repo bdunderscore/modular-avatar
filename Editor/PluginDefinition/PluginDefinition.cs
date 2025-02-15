@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.fluent;
+using nadena.dev.ndmf.util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -76,6 +77,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                     seq.Run(MergeArmaturePluginPass.Instance);
 
+                    seq.Run("Prune empty animator layers",
+                        ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
                 });
                 
                 seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
