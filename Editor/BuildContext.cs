@@ -4,10 +4,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 using System;
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.animation;
-using nadena.dev.ndmf;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -22,14 +19,6 @@ namespace nadena.dev.modular_avatar.core.editor
 #endif
         internal GameObject AvatarRootObject => PluginBuildContext.AvatarRootObject;
         internal Transform AvatarRootTransform => PluginBuildContext.AvatarRootTransform;
-
-        internal AnimationDatabase AnimationDatabase =>
-            PluginBuildContext.Extension<AnimationServicesContext>().AnimationDatabase;
-
-        internal PathMappings PathMappings =>
-            PluginBuildContext.Extension<AnimationServicesContext>().PathMappings;
-
-        internal Object AssetContainer => PluginBuildContext.AssetContainer;
 
         private bool SaveImmediate = false;
 
@@ -71,61 +60,6 @@ namespace nadena.dev.modular_avatar.core.editor
             PluginBuildContext.AssetSaver.SaveAsset(obj);
         }
 
-        public AnimatorController CreateAnimator(AnimatorController toClone = null)
-        {
-            AnimatorController controller;
-            if (toClone != null)
-            {
-                controller = Object.Instantiate(toClone);
-            }
-            else
-            {
-                controller = new AnimatorController();
-            }
-
-            SaveAsset(controller);
-
-            return controller;
-        }
-
-        public AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
-        {
-            if (controller == null) return null;
-
-            var merger = new AnimatorCombiner(PluginBuildContext, controller.name + " (clone)");
-            switch (controller)
-            {
-                case AnimatorController ac:
-                    merger.AddController("", ac, null);
-                    break;
-                case AnimatorOverrideController oac:
-                    merger.AddOverrideController("", oac, null);
-                    break;
-                default:
-                    throw new Exception("Unknown RuntimeAnimatorContoller type " + controller.GetType());
-            }
-
-            var result = merger.Finish();
-
-            ObjectRegistry.RegisterReplacedObject(controller, result);
-
-            return result;
-        }
-
-        public AnimatorController ConvertAnimatorController(RuntimeAnimatorController anyController)
-        {
-            switch (anyController)
-            {
-                case AnimatorController ac:
-                    return ac;
-                case AnimatorOverrideController aoc:
-                    var merger = new AnimatorCombiner(PluginBuildContext, anyController.name + " (clone)");
-                    merger.AddOverrideController("", aoc, null);
-                    return merger.Finish();
-                default:
-                    throw new Exception("Unknown RuntimeAnimatorContoller type " + anyController.GetType());
-            }
-        }
 
 #if MA_VRCSDK3_AVATARS
         public VRCExpressionsMenu CloneMenu(VRCExpressionsMenu menu)

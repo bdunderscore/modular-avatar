@@ -408,12 +408,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         case ModularAvatarMergeAnimator merger:
                         {
-                            // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
-                            if (merger.animator is AnimatorOverrideController overrideController)
-                            {
-                                merger.animator = _context.ConvertAnimatorController(overrideController);
-                            }
-
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
                             var remap = mappings.SelectMany(item =>
                             {

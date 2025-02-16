@@ -37,8 +37,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         {
             Sequence seq = InPhase(BuildPhase.Resolving);
             seq.Run(ResolveObjectReferences.Instance);
-            // Protect against accidental destructive edits by cloning the input controllers ASAP
-            seq.Run("Clone animators", AnimationUtil.CloneAllControllers);
 
             seq = InPhase(BuildPhase.Transforming);
             seq.Run("Validate configuration",
