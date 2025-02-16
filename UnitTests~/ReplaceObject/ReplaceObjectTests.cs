@@ -5,6 +5,7 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -12,12 +13,12 @@ namespace modular_avatar_tests.ReplaceObject
 {
     public class ReplaceObjectTests : TestBase
     {
-        private PathMappings pathMappings;
+        private ObjectPathRemapper pathMappings;
 
         void Process(GameObject root)
         {
             var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
-            pathMappings = buildContext.ActivateExtensionContext<AnimationServicesContext>().PathMappings;
+            pathMappings = buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>().ObjectPathRemapper;
             new ReplaceObjectPass(buildContext).Process();
         }
 
@@ -162,7 +163,7 @@ namespace modular_avatar_tests.ReplaceObject
 
             Process(root);
 
-            Assert.AreEqual("replacement", pathMappings.MapPath("replacee"));
+            Assert.AreEqual("replacement", pathMappings.GetVirtualPathForObject(pathMappings.GetObjectForPath("replacee")!));
         }
     }
 }

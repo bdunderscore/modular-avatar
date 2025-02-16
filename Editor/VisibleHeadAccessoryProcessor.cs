@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -164,33 +165,34 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessAnimations()
         {
-            var animdb = _context.AnimationDatabase;
-            var paths = _context.PathMappings;
+            var animdb = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            var paths = animdb.ObjectPathRemapper;
             Dictionary<string, string> pathMappings = new Dictionary<string, string>();
+            HashSet<VirtualClip> clips = new();
 
             foreach (var kvp in _boneShims)
             {
-                var orig = paths.GetObjectIdentifier(kvp.Key.gameObject);
-                var shim = paths.GetObjectIdentifier(kvp.Value.gameObject);
+                var orig = paths.GetVirtualPathForObject(kvp.Key.gameObject);
+                var shim = paths.GetVirtualPathForObject(kvp.Value.gameObject);
 
                 pathMappings[orig] = shim;
+
+                clips.UnionWith(animdb.AnimationIndex.GetClipsForObjectPath(orig));
             }
 
-            animdb.ForeachClip(motion =>
+            foreach (var clip in clips)
             {
-                if (!(motion.CurrentClip is AnimationClip clip)) return;
-
-                var bindings = AnimationUtility.GetCurveBindings(clip);
-                foreach (var binding in bindings)
+                foreach (var binding in clip.GetFloatCurveBindings())
                 {
-                    if (binding.type != typeof(Transform)) continue;
-                    if (!pathMappings.TryGetValue(binding.path, out var newPath)) continue;
-
-                    var newBinding = binding;
-                    newBinding.path = newPath;
-                    AnimationUtility.SetEditorCurve(clip, newBinding, AnimationUtility.GetEditorCurve(clip, binding));
+                    if (binding.type == typeof(Transform) && pathMappings.TryGetValue(binding.path, out var newPath))
+                    {
+                        clip.SetFloatCurve(
+                            EditorCurveBinding.FloatCurve(newPath, typeof(Transform), binding.propertyName),
+                            clip.GetFloatCurve(binding)
+                        );
+                    }
                 }
-            });
+            }
         }
 
         private Transform CreateShim(Transform target)

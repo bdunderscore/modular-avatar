@@ -77,27 +77,28 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                     seq.Run(MergeArmaturePluginPass.Instance);
 
+                    seq.Run(BoneProxyPluginPass.Instance);
+                    
+#if MA_VRCSDK3_AVATARS
+                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+#endif
+                    
+                    seq.Run("World Fixed Object",
+                        ctx => new WorldFixedObjectProcessor().Process(ctx)
+                    );
+                    
+                    seq.Run(ReplaceObjectPluginPass.Instance);
+                    
+#if MA_VRCSDK3_AVATARS
+                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+#endif
+                    
+                    seq.Run(ConstraintConverterPass.Instance);
+
                     seq.Run("Prune empty animator layers",
                         ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
                     seq.Run("Harmonize animator parameter types",
                         ctx => { ctx.Extension<AnimatorServicesContext>().HarmonizeParameterTypes(); });
-                });
-                
-                seq.WithRequiredExtension(typeof(AnimationServicesContext), _s2 =>
-                {
-                    seq.Run(BoneProxyPluginPass.Instance);
-#if MA_VRCSDK3_AVATARS
-                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
-#endif
-                    seq.Run("World Fixed Object",
-                        ctx => new WorldFixedObjectProcessor().Process(ctx)
-                    );
-                    seq.Run(ReplaceObjectPluginPass.Instance);
-#if MA_VRCSDK3_AVATARS
-                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
-                    // seq.Run(GameObjectDelayDisablePass.Instance); - TODO, move back here
-#endif
-                    seq.Run(ConstraintConverterPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
@@ -258,7 +259,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            new BlendshapeSyncAnimationProcessor().OnPreprocessAvatar(MAContext(context));
+            new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
         }
     }
 
