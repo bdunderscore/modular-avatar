@@ -250,11 +250,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     info = new AnimatedProperty(key, currentValue);
                     shapeKeys[key] = info;
-
-                    // Add initial state
-                    var agk = new ReactionRule(key, value);
-                    agk.Value = currentValue;
-                    info.actionGroups.Add(agk);
                 }
 
                 var action = ObjectRule(key, changer, value);
