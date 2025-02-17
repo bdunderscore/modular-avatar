@@ -31,7 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (_asc != null)
             {
-                return _asc.GetActiveSelfProxy(obj);
+                return _rpe.GetActiveSelfProxy(obj);
             }
             else
             {

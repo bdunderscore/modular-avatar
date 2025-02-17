@@ -31,8 +31,8 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -54,12 +54,13 @@ namespace nadena.dev.modular_avatar.core.editor
 #endif
         private BoneDatabase BoneDatabase = new BoneDatabase();
 
-        private PathMappings PathMappings => frameworkContext.Extension<AnimationServicesContext>()
-            .PathMappings;
+        private AnimatorServicesContext AnimatorServices => frameworkContext.Extension<AnimatorServicesContext>();
 
         private HashSet<Transform> humanoidBones = new HashSet<Transform>();
         private HashSet<Transform> mergedObjects = new HashSet<Transform>();
         private HashSet<Transform> thisPassAdded = new HashSet<Transform>();
+        
+        private HashSet<Transform> transformLookthrough = new HashSet<Transform>();
 
         internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
@@ -135,7 +136,68 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, BoneDatabase, PathMappings);
+            new RetargetMeshes().OnPreprocessAvatar(avatarGameObject, BoneDatabase, AnimatorServices);
+
+            ProcessTransformLookthrough();
+        }
+
+        private void ProcessTransformLookthrough()
+        {
+            var asc = frameworkContext.Extension<AnimatorServicesContext>();
+
+            transformLookthrough.RemoveWhere(t => !t);
+
+            var clipsToEdit = transformLookthrough.SelectMany(
+                xform =>
+                {
+                    var path = asc.ObjectPathRemapper.GetVirtualPathForObject(xform);
+                    return asc.AnimationIndex.GetClipsForObjectPath(path);
+                });
+
+            Dictionary<string, string> parentCache = new();
+
+            foreach (var clip in clipsToEdit)
+            {
+                foreach (var binding in clip.GetFloatCurveBindings())
+                {
+                    if (binding.type == typeof(Transform))
+                    {
+                        var newPath = GetReplacementPath(binding.path);
+
+                        var newBinding = EditorCurveBinding.FloatCurve(newPath, binding.type, binding.propertyName);
+                        clip.SetFloatCurve(newBinding, clip.GetFloatCurve(binding));
+                        clip.SetFloatCurve(binding, null);
+                    }
+                }
+            }
+            
+            string GetReplacementPath(string bindingPath)
+            {
+                if (parentCache.TryGetValue(bindingPath, out var cached))
+                {
+                    return cached;
+                }
+
+                var obj = asc.ObjectPathRemapper.GetObjectForPath(bindingPath)!.transform;
+                while (obj != null && transformLookthrough.Contains(obj))
+                {
+                    obj = obj.parent;
+                }
+
+                string path;
+                if (obj == null)
+                {
+                    path = bindingPath;
+                }
+                else
+                {
+                    path = asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
+                }
+                
+                parentCache[bindingPath] = path;
+                
+                return path;
+            }
         }
 
         private void TopoProcessMergeArmatures(ModularAvatarMergeArmature[] mergeArmatures)
@@ -294,6 +356,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _activeRetargeter.FixupAnimations();
 
             thisPassAdded.UnionWith(_activeRetargeter.AddedGameObjects.Select(x => x.transform));
+            transformLookthrough.UnionWith(_activeRetargeter.AddedGameObjects.Select(x => x.transform));
         }
 
         /**
@@ -357,7 +420,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 BoneDatabase.AddMergedBone(mergedSrcBone.transform);
                 BoneDatabase.RetainMergedBone(mergedSrcBone.transform);
-                PathMappings.MarkTransformLookthrough(mergedSrcBone);
+                transformLookthrough.Add(mergedSrcBone.transform);
                 thisPassAdded.Add(mergedSrcBone.transform);
             }
 
@@ -372,7 +435,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (zipMerge)
             {
-                PathMappings.MarkTransformLookthrough(src);
+                transformLookthrough.Add(src.transform);
                 BoneDatabase.AddMergedBone(src.transform);
             }
 

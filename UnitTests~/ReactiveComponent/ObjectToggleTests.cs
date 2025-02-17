@@ -13,7 +13,7 @@ namespace UnitTests.ReactiveComponent
     internal class ObjectToggleTests : TestBase
     {
         [Test]
-        public void WhenObjectIsAlwaysOn_CorrectProxyParameterIsGenerated()
+        public void WhenObjectIsAlwaysOn_CorrectObjectStateIsSelected()
         {
             var root = CreateRoot("root");
             var obj = CreateChild(root, "obj");
@@ -36,15 +36,6 @@ namespace UnitTests.ReactiveComponent
             };
             
             AvatarProcessor.ProcessAvatar(root);
-
-            // TODO: Ideally we should start using play mode testing for these things...
-            var fx = (AnimatorController)FindFxController(root).animatorController;
-            var readableProp = fx.parameters.FirstOrDefault(
-                p => p.name.StartsWith("__MA/ReadableProp/obj/UnityEngine.GameObject/m_IsActive")
-            );
-            
-            Assert.IsNotNull(readableProp);
-            Assert.AreEqual(readableProp.defaultFloat, 0);
             
             Assert.IsFalse(obj.activeSelf);
         }

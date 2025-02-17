@@ -1,8 +1,10 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using HarmonyLib;
 using modular_avatar_tests;
 using nadena.dev.ndmf;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
@@ -16,7 +18,9 @@ namespace UnitTests.MergeAnimatorTests.SyncedLayerOverrideInSubStatemachine
             var controller = LoadAsset<AnimatorController>("syncedlayer.controller");
             var root = CreateRoot("root");
             var vrc_descriptor = root.GetComponent<VRCAvatarDescriptor>();
-
+            
+            vrc_descriptor.customizeAnimationLayers = true;
+            
             var layers = vrc_descriptor.baseAnimationLayers;
             for (int i = 0; i < layers.Length; i++)
             {

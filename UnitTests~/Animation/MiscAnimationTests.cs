@@ -3,6 +3,7 @@
 using nadena.dev.ndmf;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -16,8 +17,9 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab("HighQualityCurvesSettingPreserved.prefab");
             var context = new BuildContext(prefab, null);
-            context.ActivateExtensionContext<AnimationServicesContext>();
-            context.DeactivateExtensionContext<AnimationServicesContext>();
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            context.DeactivateExtensionContext<AnimatorServicesContext>();
+            context.DeactivateExtensionContext<VirtualControllerContext>();
 
             var layer = findFxLayer(prefab, "Base Layer");
 

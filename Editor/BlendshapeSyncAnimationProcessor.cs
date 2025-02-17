@@ -1,12 +1,14 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+#nullable enable
+
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -17,11 +19,16 @@ namespace nadena.dev.modular_avatar.core.editor
      */
     internal class BlendshapeSyncAnimationProcessor
     {
-        private BuildContext _context;
-        private Dictionary<Motion, Motion> _motionCache;
+        private readonly ndmf.BuildContext _context;
         private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
 
-        private struct SummaryBinding
+        internal BlendshapeSyncAnimationProcessor(ndmf.BuildContext context)
+        {
+            _context = context;
+            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
+        }
+
+        private struct SummaryBinding : IEquatable<SummaryBinding>
         {
             private const string PREFIX = "blendShape.";
             public string path;
@@ -33,70 +40,75 @@ namespace nadena.dev.modular_avatar.core.editor
                 this.propertyName = PREFIX + blendShape;
             }
 
-            public static SummaryBinding FromEditorBinding(EditorCurveBinding binding)
+            public static SummaryBinding? FromEditorBinding(EditorCurveBinding binding)
             {
                 if (binding.type != typeof(SkinnedMeshRenderer) || !binding.propertyName.StartsWith(PREFIX))
                 {
-                    return new SummaryBinding();
+                    return null;
                 }
 
                 return new SummaryBinding(binding.path, binding.propertyName.Substring(PREFIX.Length));
             }
+
+            public EditorCurveBinding ToEditorCurveBinding()
+            {
+                return EditorCurveBinding.FloatCurve(
+                    path,
+                    typeof(SkinnedMeshRenderer),
+                    propertyName
+                );
+            }
+
+            public bool Equals(SummaryBinding other)
+            {
+                return path == other.path && propertyName == other.propertyName;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SummaryBinding other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(path, propertyName);
+            }
         }
 
-        public void OnPreprocessAvatar(BuildContext context)
+        public void OnPreprocessAvatar()
         {
-            _context = context;
-            var avatarGameObject = context.AvatarRootObject;
-            var animDb = _context.AnimationDatabase;
-
-            var avatarDescriptor = context.AvatarDescriptor;
+            var avatarGameObject = _context.AvatarRootObject;
+            var animDb = _context.Extension<AnimatorServicesContext>().AnimationIndex;
+            
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
-            _motionCache = new Dictionary<Motion, Motion>();
 
             var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
-
-            var layers = avatarDescriptor.baseAnimationLayers;
-            var fxIndex = -1;
-            AnimatorController controller = null;
-            for (int i = 0; i < layers.Length; i++)
-            {
-                if (layers[i].type == VRCAvatarDescriptor.AnimLayerType.FX && !layers[i].isDefault)
-                {
-                    if (layers[i].animatorController is AnimatorController c && c != null)
-                    {
-                        fxIndex = i;
-                        controller = c;
-                        break;
-                    }
-                }
-            }
-
-            if (controller == null)
-            {
-                // Nothing to do, return
-            }
 
             foreach (var component in components)
             {
                 BuildReport.ReportingObject(component, () => ProcessComponent(avatarGameObject, component));
             }
 
-            // Walk and transform all clips
-            animDb.ForeachClip(clip =>
+            var clips = new HashSet<VirtualClip>();
+            foreach (var key in _bindingMappings.Keys)
             {
-                if (clip.CurrentClip is AnimationClip anim)
-                {
-                    BuildReport.ReportingObject(clip.CurrentClip,
-                        () => { clip.CurrentClip = TransformMotion(anim); });
-                }
-            });
+                var ecb = key.ToEditorCurveBinding();
+                clips.UnionWith(animDb.GetClipsForBinding(ecb));
+            }
+
+            // Walk and transform all clips
+            foreach (var clip in clips)
+            {
+                ProcessClip(clip);
+            }
         }
 
         private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component)
         {
             var targetObj = RuntimeUtil.RelativePath(avatarGameObject, component.gameObject);
+
+            if (targetObj == null) return;
 
             foreach (var binding in component.Bindings)
             {
@@ -106,6 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (refSmr == null) continue;
 
                 var refPath = RuntimeUtil.RelativePath(avatarGameObject, refObj);
+                if (refPath == null) continue;
 
                 var srcBinding = new SummaryBinding(refPath, binding.Blendshape);
 
@@ -123,108 +136,20 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        Motion TransformMotion(Motion motion)
+        private void ProcessClip(VirtualClip clip)
         {
-            if (motion == null) return null;
-            if (_motionCache.TryGetValue(motion, out var cached)) return cached;
-
-            switch (motion)
+            foreach (var binding in clip.GetFloatCurveBindings().ToList())
             {
-                case AnimationClip clip:
-                {
-                    motion = ProcessClip(clip);
-
-                    break;
-                }
-
-                case BlendTree tree:
-                {
-                    bool anyChanged = false;
-                    var children = tree.children;
-
-                    for (int i = 0; i < children.Length; i++)
-                    {
-                        var newM = TransformMotion(children[i].motion);
-                        if (newM != children[i].motion)
-                        {
-                            anyChanged = true;
-                            children[i].motion = newM;
-                        }
-                    }
-
-                    if (anyChanged)
-                    {
-                        var newTree = new BlendTree();
-                        EditorUtility.CopySerialized(tree, newTree);
-                        _context.SaveAsset(newTree);
-
-                        newTree.children = children;
-                        motion = newTree;
-                    }
-
-                    break;
-                }
-                default:
-                    Debug.LogWarning($"Ignoring unsupported motion type {motion.GetType()}");
-                    break;
-            }
-
-            _motionCache[motion] = motion;
-            return motion;
-        }
-
-        AnimationClip ProcessClip(AnimationClip origClip)
-        {
-            var clip = origClip;
-            EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(clip);
-
-            foreach (var binding in bindings)
-            {
-                if (!_bindingMappings.TryGetValue(SummaryBinding.FromEditorBinding(binding), out var dstBindings))
+                var srcBinding = SummaryBinding.FromEditorBinding(binding);
+                if (srcBinding == null || !_bindingMappings.TryGetValue(srcBinding.Value, out var dstBindings))
                 {
                     continue;
                 }
 
-                if (clip == origClip)
-                {
-                    clip = Object.Instantiate(clip);
-                }
-
+                var curve = clip.GetFloatCurve(binding);
                 foreach (var dst in dstBindings)
                 {
-                    clip.SetCurve(dst.path, typeof(SkinnedMeshRenderer), dst.propertyName,
-                        AnimationUtility.GetEditorCurve(origClip, binding));
-                }
-            }
-
-            return clip;
-        }
-
-        IEnumerable<AnimatorState> AllStates(AnimatorController controller)
-        {
-            HashSet<AnimatorStateMachine> visitedStateMachines = new HashSet<AnimatorStateMachine>();
-            Queue<AnimatorStateMachine> stateMachines = new Queue<AnimatorStateMachine>();
-
-            foreach (var layer in controller.layers)
-            {
-                if (layer.stateMachine != null)
-                    stateMachines.Enqueue(layer.stateMachine);
-            }
-
-            while (stateMachines.Count > 0)
-            {
-                var next = stateMachines.Dequeue();
-                if (visitedStateMachines.Contains(next)) continue;
-                visitedStateMachines.Add(next);
-
-                foreach (var state in next.states)
-                {
-                    yield return state.state;
-                }
-
-                foreach (var sm in next.stateMachines)
-                {
-                    stateMachines.Enqueue(sm.stateMachine);
+                    clip.SetFloatCurve(dst.ToEditorCurveBinding(), curve);
                 }
             }
         }

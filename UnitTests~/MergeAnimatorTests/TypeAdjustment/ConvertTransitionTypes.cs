@@ -237,7 +237,10 @@ public class ConvertTransitionTypes : TestBase
         
         var fx = (AnimatorController) FindFxController(prefab).animatorController;
         
-        Assert.AreEqual(fx.parameters[0].type, AnimatorControllerParameterType.Bool);
+        Assert.AreEqual(
+            AnimatorControllerParameterType.Bool,
+            fx.parameters.First(p => p.name == "bool").type
+        );
     }
     
     void AssertTransitions(AnimatorControllerLayer layer, string src, string dest, int index,

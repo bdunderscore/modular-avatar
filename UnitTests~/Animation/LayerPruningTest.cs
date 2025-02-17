@@ -32,8 +32,12 @@ namespace modular_avatar_tests
             Assert.AreEqual("L3", l3.name);
             Assert.AreEqual("L3.a", l3a.name);
 
-            Assert.AreEqual(2, l3.stateMachine.defaultState.behaviours.Length);
-            Assert.AreEqual(4, ((VRCAnimatorLayerControl)l3.stateMachine.defaultState.behaviours[0]).layer);
+            // The layer control behavior referencing the deleted layer should be removed
+            Assert.AreEqual(3, l3.stateMachine.defaultState.behaviours.Length);
+            Assert.AreEqual("2", ((VRCAnimatorLayerControl)l3.stateMachine.defaultState.behaviours[0]).debugString);
+            Assert.IsTrue(l3.stateMachine.defaultState.behaviours[1] is VRCAnimatorTrackingControl);
+            Assert.AreEqual("3", ((VRCAnimatorLayerControl)l3.stateMachine.defaultState.behaviours[2]).debugString);
+            Assert.AreEqual(3, ((VRCAnimatorLayerControl)l3.stateMachine.defaultState.behaviours[0]).layer);
             
             Assert.AreEqual(1, l3a.stateMachine.defaultState.behaviours.Length);
             Assert.AreEqual(3, ((VRCAnimatorLayerControl)l3a.stateMachine.defaultState.behaviours[0]).layer);

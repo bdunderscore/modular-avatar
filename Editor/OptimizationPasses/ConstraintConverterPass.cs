@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 using nadena.dev.ndmf;
 using UnityEditor;
 #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER
@@ -6,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using VRC.SDK3.Avatars;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf.animator;
 using VRC.Dynamics;
 #endif
 
@@ -60,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             AvatarDynamicsSetup.DoConvertUnityConstraints(targetConstraintComponents, null, false);
 
-            var asc = context.Extension<AnimationServicesContext>();
+            var asc = context.Extension<AnimatorServicesContext>();
 
             // Also look for preexisting VRCConstraints so we can go fix up any broken animation clips from people who
             // clicked auto fix :(
@@ -70,24 +72,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var targetPaths = constraintGameObjects
                 .Union(existingVRCConstraints)
-                .Select(c => asc.PathMappings.GetObjectIdentifier(c))
+                .Select(c => asc.ObjectPathRemapper.GetVirtualPathForObject(c))
                 .ToHashSet();
 
             // Update animation clips
-            var clips = targetPaths.SelectMany(tp => asc.AnimationDatabase.ClipsForPath(tp))
+
+            var clips = targetPaths.SelectMany(tp => asc.AnimationIndex.GetClipsForObjectPath(tp))
                 .ToHashSet();
 
             foreach (var clip in clips) RemapSingleClip(clip, targetPaths);
         }
 
-        private void RemapSingleClip(AnimationDatabase.ClipHolder clip, HashSet<string> targetPaths)
+        private void RemapSingleClip(VirtualClip clip, HashSet<string> targetPaths)
         {
-            var motion = clip.CurrentClip as AnimationClip;
-            if (motion == null) return;
-
-            var bindings = AnimationUtility.GetCurveBindings(motion);
-            var toUpdateBindings = new List<EditorCurveBinding>();
-            var toUpdateCurves = new List<AnimationCurve>();
+            var bindings = clip.GetFloatCurveBindings().ToList();
 
             foreach (var ecb in bindings)
             {
@@ -102,20 +100,11 @@ namespace nadena.dev.modular_avatar.core.editor
                             type = newType,
                             propertyName = newProp
                         };
-                        var curve = AnimationUtility.GetEditorCurve(motion, ecb);
-                        if (curve != null)
-                        {
-                            toUpdateBindings.Add(newBinding);
-                            toUpdateCurves.Add(curve);
-
-                            toUpdateBindings.Add(ecb);
-                            toUpdateCurves.Add(null);
-                        }
+                        var curve = clip.GetFloatCurve(ecb);
+                        clip.SetFloatCurve(newBinding, curve);
+                        clip.SetFloatCurve(newBinding, null);
                     }
             }
-
-            if (toUpdateBindings.Count == 0) return;
-            AnimationUtility.SetEditorCurves(motion, toUpdateBindings.ToArray(), toUpdateCurves.ToArray());
         }
 
 #else

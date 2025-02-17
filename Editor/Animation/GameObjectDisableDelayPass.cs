@@ -2,6 +2,7 @@
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -18,14 +19,13 @@ namespace nadena.dev.modular_avatar.animation
     {
         protected override void Execute(BuildContext context)
         {
-            var asc = context.Extension<AnimationServicesContext>();
-            if (!asc.BoundReadableProperties.Any()) return;
+            var asc = context.Extension<AnimatorServicesContext>();
+            var activeProxies = context.GetState<ReadablePropertyExtension.Retained>().proxyProps;
+            if (activeProxies.Count == 0) return;
 
-            var fx = (AnimatorController)context.AvatarDescriptor.baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
-
+            var fx = asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fx == null) return;
-
+            
             var nullMotion = new AnimationClip();
             nullMotion.name = "NullMotion";
             
@@ -33,48 +33,31 @@ namespace nadena.dev.modular_avatar.animation
             blendTree.blendType = BlendTreeType.Direct;
             blendTree.useAutomaticThresholds = false;
 
-            blendTree.children = asc.BoundReadableProperties
-                .Select(prop => GenerateDelayChild(nullMotion, prop))
+            blendTree.children = activeProxies
+                .Select(prop => GenerateDelayChild(nullMotion, (prop.Key, prop.Value)))
                 .ToArray();
 
-            var asm = new AnimatorStateMachine();
-            var state = new AnimatorState();
-            state.name = "DelayDisable";
-            state.motion = blendTree;
-            state.writeDefaultValues = true;
+            var layer = fx.AddLayer(LayerPriority.Default, "DelayDisable");
+            var state = layer.StateMachine.AddState("DelayDisable");
+            layer.StateMachine.DefaultState = state;
 
-            asm.defaultState = state;
-            asm.states = new[]
-            {
-                new ChildAnimatorState
-                {
-                    state = state,
-                    position = Vector3.zero
-                }
-            };
-
-            fx.layers = fx.layers.Append(new AnimatorControllerLayer
-            {
-                name = "DelayDisable",
-                stateMachine = asm,
-                defaultWeight = 1,
-                blendingMode = AnimatorLayerBlendingMode.Override
-            }).ToArray();
+            state.WriteDefaultValues = true;
+            state.Motion = asc.ControllerContext.Clone(blendTree);
 
             // Ensure the initial state of readable props matches the actual state of the gameobject
-            var parameters = fx.parameters;
-            var paramToIndex = parameters.Select((p, i) => (p, i)).ToDictionary(x => x.p.name, x => x.i);
-            foreach (var (binding, prop) in asc.BoundReadableProperties)
+            foreach (var controller in asc.ControllerContext.GetAllControllers())
             {
-                var obj = asc.PathMappings.PathToObject(binding.path);
-
-                if (obj != null && paramToIndex.TryGetValue(prop, out var index))
+                foreach (var (binding, prop) in activeProxies)
                 {
-                    parameters[index].defaultFloat = obj.activeSelf ? 1 : 0;
+                    var obj = asc.ObjectPathRemapper.GetObjectForPath(binding.path);
+
+                    if (obj != null && controller.Parameters.TryGetValue(prop, out var p))
+                    {
+                        p.defaultFloat = obj.activeSelf ? 1 : 0;
+                        controller.Parameters = controller.Parameters.SetItem(prop, p);
+                    }
                 }
             }
-
-            fx.parameters = parameters;
         }
 
         private ChildMotion GenerateDelayChild(Motion nullMotion, (EditorCurveBinding, string) binding)

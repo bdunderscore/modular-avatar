@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -54,6 +53,43 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class DefaultValues
     {
         public ImmutableDictionary<string, float> InitialValueOverrides;
+    }
+
+    internal class RenamedMergeAnimators
+    {
+        public AnimatorServicesContext AnimatorServices;
+        public Dictionary<ModularAvatarMergeAnimator, VirtualAnimatorController> Controllers = new();
+        public Dictionary<ModularAvatarMergeBlendTree, VirtualBlendTree> BlendTrees = new();
+
+        public VirtualAnimatorController Clone(ModularAvatarMergeAnimator mama)
+        {
+            if (Controllers.TryGetValue(mama, out var controller))
+            {
+                return controller;
+            }
+
+            if (mama.animator == null) return null;
+
+            var cloned = AnimatorServices.ControllerContext.CloneContext.CloneDistinct(mama.animator, mama.layerType);
+            Controllers[mama] = cloned;
+            
+            return cloned;
+        }
+        
+        public VirtualBlendTree Clone(ModularAvatarMergeBlendTree mbt)
+        {
+            if (BlendTrees.TryGetValue(mbt, out var blendTree))
+            {
+                return blendTree;
+            }
+
+            if (mbt.BlendTree is not BlendTree bt) return null;
+            
+            var cloned = (VirtualBlendTree)AnimatorServices.ControllerContext.CloneContext.Clone(bt);
+            BlendTrees[mbt] = cloned;
+            
+            return cloned;
+        }
     }
     
     internal class RenameParametersHook
@@ -163,6 +199,10 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!context.AvatarDescriptor) return;
 
             _context = context;
+            
+            var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
+            var asc = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            stash.AnimatorServices = asc;
 
             var syncParams = WalkTree(avatar);
 
@@ -368,12 +408,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         case ModularAvatarMergeAnimator merger:
                         {
-                            // RuntimeAnimatorController may be AnimatorOverrideController, convert in case of AnimatorOverrideController
-                            if (merger.animator is AnimatorOverrideController overrideController)
-                            {
-                                merger.animator = _context.ConvertAnimatorController(overrideController);
-                            }
-
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
                             var remap = mappings.SelectMany(item =>
                             {
@@ -389,11 +423,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             if (merger.animator != null)
                             {
-                                Profiler.BeginSample("DeepCloneAnimator");
-                                merger.animator = new DeepClone(_context.PluginBuildContext).DoClone(merger.animator);
-                                Profiler.EndSample();
+                                var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
 
-                                ProcessRuntimeAnimatorController(merger.animator, remap);
+                                var controller = stash.Clone(merger);
+
+                                ProcessVirtualAnimatorController(controller, remap);
+                                
+                                stash.Controllers[merger] = controller;
                             }
 
                             break;
@@ -404,8 +440,12 @@ namespace nadena.dev.modular_avatar.core.editor
                             var bt = merger.BlendTree as BlendTree;
                             if (bt != null)
                             {
-                                merger.BlendTree = bt = new DeepClone(_context.PluginBuildContext).DoClone(bt);
-                                ProcessBlendtree(bt, paramInfo.GetParameterRemappingsAt(obj));
+                                var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
+
+                                var virtualbt = stash.Clone(merger); 
+                                ProcessBlendtree(virtualbt, paramInfo.GetParameterRemappingsAt(obj));
+                                
+                                stash.BlendTrees[merger] = virtualbt;
                             }
 
                             break;
@@ -497,28 +537,6 @@ namespace nadena.dev.modular_avatar.core.editor
             return rv;
         }
 
-        private void ProcessRuntimeAnimatorController(RuntimeAnimatorController controller,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remap)
-        {
-            if (controller is AnimatorController ac)
-            {
-                ProcessAnimator(ac, remap);
-            }
-            else if (controller is AnimatorOverrideController aoc)
-            {
-                var list = new List<KeyValuePair<AnimationClip, AnimationClip>>();
-                aoc.GetOverrides(list);
-
-                for (var i = 0; i < list.Count; i++)
-                {
-                    var kvp = list[i];
-                    if (kvp.Value != null) ProcessClip(kvp.Value, remap);
-                }
-
-                ProcessRuntimeAnimatorController(aoc.runtimeAnimatorController, remap);
-            }
-        }
-
         private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
             ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
@@ -537,113 +555,70 @@ namespace nadena.dev.modular_avatar.core.editor
             });
         }
 
-        private void ProcessAnimator(AnimatorController controller,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessVirtualAnimatorController(VirtualAnimatorController controller,
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remap)
         {
-            if (remaps.IsEmpty) return;
+            foreach (var node in controller.AllReachableNodes())
+            {
+                switch (node)
+                {
+                    case VirtualStateMachine vsm: ProcessStateMachine(vsm, remap); break;
+                    case VirtualState vs: ProcessState(vs, remap); break;
+                    case VirtualTransition vt: ProcessTransition(vt, remap); break;
+                    case VirtualClip vc: ProcessClip(vc, remap); break;
+                    case VirtualBlendTree bt: ProcessBlendtree(bt, remap); break;
+                }
+            }
+
+            var newParameters = controller.Parameters.Clear();
+
+            foreach (var (name, parameter) in controller.Parameters)
+            {
+                if (remap.TryGetValue((ParameterNamespace.Animator, name), out var newParam))
+                {
+                    newParameters = newParameters.Add(newParam.ParameterName, parameter);
+                }
+                else
+                {
+                    newParameters = newParameters.Add(name, parameter);
+                }
+            }
             
-            var visited = new HashSet<AnimatorStateMachine>();
-            var queue = new Queue<AnimatorStateMachine>();
-
-
-            var parameters = controller.parameters;
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                if (remaps.TryGetValue((ParameterNamespace.Animator, parameters[i].name), out var newName))
-                {
-                    parameters[i].name = newName.ParameterName;
-                }
-            }
-
-            controller.parameters = parameters;
-
-            foreach (var layer in controller.layers)
-            {
-                if (layer.stateMachine != null)
-                {
-                    queue.Enqueue(layer.stateMachine);
-                }
-            }
-
-            Profiler.BeginSample("Walk animator graph");
-            while (queue.Count > 0)
-            {
-                var sm = queue.Dequeue();
-                if (visited.Contains(sm)) continue;
-                visited.Add(sm);
-
-                foreach (var behavior in sm.behaviours)
-                {
-                    if (behavior is VRCAvatarParameterDriver driver)
-                    {
-                        ProcessDriver(driver, remaps);
-                    }
-                }
-
-                foreach (var t in sm.anyStateTransitions)
-                {
-                    ProcessTransition(t, remaps);
-                }
-
-                foreach (var t in sm.entryTransitions)
-                {
-                    ProcessTransition(t, remaps);
-                }
-
-                foreach (var sub in sm.stateMachines)
-                {
-                    queue.Enqueue(sub.stateMachine);
-
-
-                    foreach (var t in sm.GetStateMachineTransitions(sub.stateMachine))
-                    {
-                        ProcessTransition(t, remaps);
-                    }
-                }
-
-                foreach (var st in sm.states)
-                {
-                    ProcessState(st.state, remaps);
-                }
-            }
-            Profiler.EndSample();
+            controller.Parameters = newParameters;
         }
 
-        private void ProcessState(AnimatorState state, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessStateMachine(VirtualStateMachine vsm,
+            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
-            state.mirrorParameter = remap(remaps, state.mirrorParameter);
-            state.timeParameter = remap(remaps, state.timeParameter);
-            state.speedParameter = remap(remaps, state.speedParameter);
-            state.cycleOffsetParameter = remap(remaps, state.cycleOffsetParameter);
-
-            foreach (var t in state.transitions)
-            {
-                ProcessTransition(t, remaps);
-            }
-
-            foreach (var behavior in state.behaviours)
+            foreach (var behavior in vsm.Behaviours)
             {
                 if (behavior is VRCAvatarParameterDriver driver)
                 {
                     ProcessDriver(driver, remaps);
                 }
             }
-
-            ProcessMotion(state.motion, remaps);
         }
 
-        private void ProcessMotion(Motion motion,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessState(VirtualState state, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
-            if (motion is BlendTree blendTree) ProcessBlendtree(blendTree, remaps);
+            state.MirrorParameter = remap(remaps, state.MirrorParameter);
+            state.TimeParameter = remap(remaps, state.TimeParameter);
+            state.SpeedParameter = remap(remaps, state.SpeedParameter);
+            state.CycleOffsetParameter = remap(remaps, state.CycleOffsetParameter);
 
-            if (motion is AnimationClip clip) ProcessClip(clip, remaps);
+            foreach (var behavior in state.Behaviours)
+            {
+                if (behavior is VRCAvatarParameterDriver driver)
+                {
+                    ProcessDriver(driver, remaps);
+                }
+            }
         }
 
-        private void ProcessClip(AnimationClip clip,
+        private void ProcessClip(VirtualClip clip,
             ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
-            var curveBindings = AnimationUtility.GetCurveBindings(clip);
+            var curveBindings = clip.GetFloatCurveBindings();
 
             var bindingsToUpdate = new List<EditorCurveBinding>();
             var newCurves = new List<AnimationCurve>();
@@ -653,48 +628,30 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (binding.path != "" || binding.type != typeof(Animator)) continue;
                 if (remaps.TryGetValue((ParameterNamespace.Animator, binding.propertyName), out var newBinding))
                 {
-                    var curCurve = AnimationUtility.GetEditorCurve(clip, binding);
-
-                    bindingsToUpdate.Add(binding);
-                    newCurves.Add(null);
-
-                    bindingsToUpdate.Add(new EditorCurveBinding
+                    var curCurve = clip.GetFloatCurve(binding);
+                    var newECB = new EditorCurveBinding
                     {
                         path = "",
                         type = typeof(Animator),
                         propertyName = newBinding.ParameterName
-                    });
-                    newCurves.Add(curCurve);
+                    };
+                    
+                    clip.SetFloatCurve(binding, null);
+                    clip.SetFloatCurve(newECB, curCurve);
                 }
-            }
-
-            if (bindingsToUpdate.Any())
-            {
-                AnimationUtility.SetEditorCurves(clip, bindingsToUpdate.ToArray(), newCurves.ToArray());
-
-                // Workaround apparent unity bug where the clip's curves are not deleted
-                for (var i = 0; i < bindingsToUpdate.Count; i++)
-                    if (newCurves[i] == null && AnimationUtility.GetEditorCurve(clip, bindingsToUpdate[i]) != null)
-                        AnimationUtility.SetEditorCurve(clip, bindingsToUpdate[i], newCurves[i]);
             }
         }
 
-        private void ProcessBlendtree(BlendTree blendTree, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessBlendtree(VirtualBlendTree blendTree, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
-            blendTree.blendParameter = remap(remaps, blendTree.blendParameter);
-            blendTree.blendParameterY = remap(remaps, blendTree.blendParameterY);
+            blendTree.BlendParameter = remap(remaps, blendTree.BlendParameter);
+            blendTree.BlendParameterY = remap(remaps, blendTree.BlendParameterY);
 
-            var children = blendTree.children;
-            for (int i = 0; i < children.Length; i++)
+            var children = blendTree.Children;
+            foreach (var child in children)
             {
-                var childMotion = children[i];
-                ProcessMotion(childMotion.motion, remaps);
-
-                childMotion.directBlendParameter = remap(remaps, childMotion.directBlendParameter);
-                children[i] = childMotion;
+                child.DirectBlendParameter = remap(remaps, child.DirectBlendParameter);
             }
-
-            blendTree.children = children;
         }
 
         private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
@@ -710,19 +667,17 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessTransition(AnimatorTransitionBase t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessTransition(VirtualTransitionBase t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
         {
             bool dirty = false;
-            var conditions = t.conditions;
-
-            for (int i = 0; i < conditions.Length; i++)
-            {
-                var cond = conditions[i];
-                cond.parameter = remap(remaps, cond.parameter, ref dirty);
-                conditions[i] = cond;
-            }
-
-            if (dirty) t.conditions = conditions;
+            var conditions = t.Conditions
+                .Select(cond =>
+                {
+                    cond.parameter = remap(remaps, cond.parameter, ref dirty);
+                    return cond;
+                })
+                .ToImmutableList();
+            t.Conditions = conditions;
         }
 
         private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,

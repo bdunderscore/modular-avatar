@@ -1,5 +1,6 @@
 ﻿using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -21,13 +22,12 @@ namespace modular_avatar_tests
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
             var build_context = new nadena.dev.ndmf.BuildContext(root, null);
-            var torc = new AnimationServicesContext();
-            torc.OnActivate(build_context);
+            var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
 
-            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc.PathMappings);
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
@@ -47,13 +47,12 @@ namespace modular_avatar_tests
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
 
             var build_context = new nadena.dev.ndmf.BuildContext(root, null);
-            var torc = new AnimationServicesContext();
-            torc.OnActivate(build_context);
+            var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
 
-            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, torc.PathMappings);
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
 
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
             Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)),

@@ -5,6 +5,7 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 using BuildContext = nadena.dev.ndmf.BuildContext;
@@ -22,9 +23,13 @@ namespace UnitTests.MergeAnimatorTests
 
             var ctx = new BuildContext(av, null);
             ctx.ActivateExtensionContext<ModularAvatarContext>();
-            ctx.ActivateExtensionContext<AnimationServicesContext>();
+            ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
-            var errors = ErrorReport.CaptureErrors(() => new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx));
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                ctx.DeactivateAllExtensionContexts();
+            });
             
             Assert.IsEmpty(errors);
         }
@@ -39,9 +44,15 @@ namespace UnitTests.MergeAnimatorTests
 
             var ctx = new BuildContext(av, null);
             ctx.ActivateExtensionContext<ModularAvatarContext>();
-            ctx.ActivateExtensionContext<AnimationServicesContext>();
+            ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
-            var errors = ErrorReport.CaptureErrors(() => new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx));
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                ctx.DeactivateAllExtensionContexts();
+            });
+            
+            ctx.DeactivateAllExtensionContexts();
             
             Assert.IsEmpty(errors);
 

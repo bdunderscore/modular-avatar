@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    using UnityObject = UnityEngine.Object;
+    using UnityObject = Object;
     // ReSharper disable once RedundantUsingDirective
     using Object = System.Object;
 
@@ -128,7 +129,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                _buildContext.Extension<AnimationServicesContext>().PathMappings
+                _buildContext.Extension<AnimatorServicesContext>().ObjectPathRemapper
                     .ReplaceObject(original, replacement);
 
                 // Destroy original

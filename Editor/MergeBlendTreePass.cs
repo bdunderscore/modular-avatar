@@ -2,11 +2,9 @@
 
 #region
 
-using System;
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf;
-using nadena.dev.ndmf.util;
+using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -20,56 +18,49 @@ namespace nadena.dev.modular_avatar.core.editor
         internal const string ALWAYS_ONE = "__ModularAvatarInternal/One";
         internal const string BlendTreeLayerName = "ModularAvatar: Merge Blend Tree";
 
-        private AnimatorController _controller;
-        private BlendTree _rootBlendTree;
-        private GameObject _mergeHost;
+        private AnimatorServicesContext _asc;
+        private VirtualBlendTree _rootBlendTree;
         private HashSet<string> _parameterNames;
 
         protected override void Execute(ndmf.BuildContext context)
         {
+            _asc = context.Extension<AnimatorServicesContext>();
             _rootBlendTree = null;
             _parameterNames = new HashSet<string>();
-            _controller = new AnimatorController();
             
+            var fx = _asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+
             foreach (var component in
                      context.AvatarRootObject.GetComponentsInChildren<ModularAvatarMergeBlendTree>(true))
             {
                 ErrorReport.WithContextObject(component, () => ProcessComponent(context, component));
             }
-
-            List<AnimatorControllerParameter> parameters = new List<AnimatorControllerParameter>(_parameterNames.Count + 1);
-            if (_mergeHost != null)
+            
+            // always add the ALWAYS_ONE parameter
+            fx.Parameters = fx.Parameters.SetItem(ALWAYS_ONE, new AnimatorControllerParameter()
             {
-                _parameterNames.Remove(ALWAYS_ONE);
+                name = ALWAYS_ONE,
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1
+            });
 
-                parameters.Add(new AnimatorControllerParameter()
-                {
-                    name = ALWAYS_ONE,
-                    type = AnimatorControllerParameterType.Float,
-                    defaultFloat = 1
-                });
+            foreach (var name in _parameterNames)
+            {
+                if (fx.Parameters.ContainsKey(name)) continue;
                 
-                foreach (var name in _parameterNames)
+                fx.Parameters = fx.Parameters.SetItem(name, new AnimatorControllerParameter()
                 {
-                    parameters.Add(new AnimatorControllerParameter()
-                    {
-                        name = name,
-                        type = AnimatorControllerParameterType.Float,
-                        defaultFloat = 0
-                    });
-                }
-
-                var paramsAnimator = new AnimatorController();
-                paramsAnimator.parameters = parameters.ToArray();
-
-                var paramsComponent = _mergeHost.AddComponent<ModularAvatarMergeAnimator>();
-                paramsComponent.animator = paramsAnimator;
-                paramsComponent.layerPriority = Int32.MaxValue;
+                    name = name,
+                    type = AnimatorControllerParameterType.Float,
+                    defaultFloat = 0.0f
+                });
             }
         }
 
-        private void ProcessComponent(ndmf.BuildContext context, ModularAvatarMergeBlendTree component)
+        private void ProcessComponent(BuildContext context, ModularAvatarMergeBlendTree component)
         {
+            var stash = context.PluginBuildContext.GetState<RenamedMergeAnimators>();
+            
             BlendTree componentBlendTree = component.BlendTree as BlendTree;
             
             if (componentBlendTree == null)
@@ -79,46 +70,60 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             string basePath = null;
+            string rootPath = null;
             if (component.PathMode == MergeAnimatorPathMode.Relative)
             {
                 var root = component.RelativePathRoot.Get(context.AvatarRootTransform);
                 if (root == null) root = component.gameObject;
                 
-                basePath = RuntimeUtil.AvatarRootPath(root) + "/";
+                rootPath = RuntimeUtil.AvatarRootPath(root);
+                basePath = rootPath + "/";
+            }
+
+            var bt = stash.BlendTrees.GetValueOrDefault(component) 
+                     ?? _asc.ControllerContext.CloneContext.Clone(componentBlendTree);
+
+            if (basePath != null)
+            {
+                var animationIndex = new AnimationIndex(new[] { bt });
+                animationIndex.RewritePaths(p => p == "" ? rootPath : basePath + p);
             }
             
-            var bt = new DeepClone(context).DoClone(componentBlendTree, basePath);
-            var rootBlend = GetRootBlendTree(context);
+            var rootBlend = GetRootBlendTree();
             
-            rootBlend.AddChild(bt);
-            var children = rootBlend.children;
-            children[children.Length - 1].directBlendParameter = ALWAYS_ONE;
-            rootBlend.children = children;
-
-            foreach (var asset in bt.ReferencedAssets(includeScene: false))
+            rootBlend.Children = rootBlend.Children.Add(new()
             {
-                if (asset is BlendTree bt2)
+                Motion = bt,
+                DirectBlendParameter = ALWAYS_ONE,
+                Threshold = 1,
+                CycleOffset = 1,
+                TimeScale = 1,
+            });
+
+            foreach (var asset in bt.AllReachableNodes())
+            {
+                if (asset is VirtualBlendTree bt2)
                 {
-                    if (!string.IsNullOrEmpty(bt2.blendParameter) && bt2.blendType != BlendTreeType.Direct)
+                    if (!string.IsNullOrEmpty(bt2.BlendParameter) && bt2.BlendType != BlendTreeType.Direct)
                     {
-                        _parameterNames.Add(bt2.blendParameter);
+                        _parameterNames.Add(bt2.BlendParameter);
                     }
 
-                    if (bt2.blendType != BlendTreeType.Direct && bt2.blendType != BlendTreeType.Simple1D)
+                    if (bt2.BlendType != BlendTreeType.Direct && bt2.BlendType != BlendTreeType.Simple1D)
                     {
-                        if (!string.IsNullOrEmpty(bt2.blendParameterY))
+                        if (!string.IsNullOrEmpty(bt2.BlendParameterY))
                         {
-                            _parameterNames.Add(bt2.blendParameterY);
+                            _parameterNames.Add(bt2.BlendParameterY);
                         }
                     }
 
-                    if (bt2.blendType == BlendTreeType.Direct)
+                    if (bt2.BlendType == BlendTreeType.Direct)
                     {
-                        foreach (var childMotion in bt2.children)
+                        foreach (var childMotion in bt2.Children)
                         {
-                            if (!string.IsNullOrEmpty(childMotion.directBlendParameter))
+                            if (!string.IsNullOrEmpty(childMotion.DirectBlendParameter))
                             {
-                                _parameterNames.Add(childMotion.directBlendParameter);
+                                _parameterNames.Add(childMotion.DirectBlendParameter);
                             }
                         }
                     }
@@ -126,59 +131,22 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private BlendTree GetRootBlendTree(ndmf.BuildContext context)
+        private VirtualBlendTree GetRootBlendTree()
         {
             if (_rootBlendTree != null) return _rootBlendTree;
             
-            var newController = new AnimatorController();
-            var newStateMachine = new AnimatorStateMachine();
-            var newState = new AnimatorState();
-
-            _rootBlendTree = new BlendTree();
-            _controller = newController;
-
-            newController.layers = new[]
-            {
-                new AnimatorControllerLayer
-                {
-                    blendingMode = AnimatorLayerBlendingMode.Override,
-                    defaultWeight = 1,
-                    name = BlendTreeLayerName,
-                    stateMachine = newStateMachine
-                }
-            };
-
-            newStateMachine.name = "ModularAvatarMergeBlendTree";
-            newStateMachine.states = new[]
-            {
-                new ChildAnimatorState
-                {
-                    state = newState,
-                    position = Vector3.zero
-                }
-            };
-            newStateMachine.defaultState = newState;
+            var fx = _asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+            var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
+            var stateMachine = controller.StateMachine;
             
-            newState.writeDefaultValues = true;
-            newState.motion = _rootBlendTree;
-
-            _rootBlendTree.blendType = BlendTreeType.Direct;
-            _rootBlendTree.blendParameter = ALWAYS_ONE;
+            _rootBlendTree = VirtualBlendTree.Create("Root");
+            var state = stateMachine.AddState("State", _rootBlendTree);
+            stateMachine.DefaultState = state;
+            state.WriteDefaultValues = true;
             
-            var mergeObject = new GameObject("ModularAvatarMergeBlendTree");
-            var merger = mergeObject.AddComponent<ModularAvatarMergeAnimator>();
-            merger.animator = newController;
-            merger.pathMode = MergeAnimatorPathMode.Absolute;
-            merger.matchAvatarWriteDefaults = false;
-            merger.layerType = VRCAvatarDescriptor.AnimLayerType.FX;
-            merger.deleteAttachedAnimator = false;
-            merger.layerPriority = Int32.MinValue;
+            _rootBlendTree.BlendType = BlendTreeType.Direct;
+            _rootBlendTree.BlendParameter = ALWAYS_ONE;
             
-            mergeObject.transform.SetParent(context.AvatarRootTransform, false);
-            mergeObject.transform.SetSiblingIndex(0);
-
-            _mergeHost = mergeObject;
-
             return _rootBlendTree;
         }
     }

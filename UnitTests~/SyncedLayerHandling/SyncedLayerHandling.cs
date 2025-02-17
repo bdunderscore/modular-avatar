@@ -76,7 +76,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
         }
 
         [Test]
-        public void WhenSyncedLayerIsOnMergedController_LayerControlBehaviorsAreAdjusted()
+        public void WhenSyncedLayerIsOnMergedController_LayerControlBehaviorsAreNotAdjusted_CrossPlayable()
         {
             var prefab = CreatePrefab("MergedController.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
@@ -93,7 +93,28 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var layercontrol = overrides[0] as VRCAnimatorLayerControl;
             Assert.NotNull(layercontrol);
 
-            Assert.AreEqual(2, layercontrol.layer);
+            Assert.AreEqual(1, layercontrol.layer);
+        }
+        
+        [Test]
+        public void WhenSyncedLayerIsOnMergedController_LayerControlBehaviorsAreAdjusted_SamePlayable()
+        {
+            var prefab = CreatePrefab("MergedController_AC2.prefab");
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            var mainLayer = findFxLayer(prefab, "main");
+            var syncLayer = findFxLayer(prefab, "sync");
+
+            Assert.AreEqual(2, syncLayer.syncedLayerIndex);
+
+            var m1State = FindStateInLayer(mainLayer, "m1");
+            var overrides = syncLayer.GetOverrideBehaviours(m1State);
+            Assert.AreEqual(1, overrides.Length);
+
+            var layercontrol = overrides[0] as VRCAnimatorLayerControl;
+            Assert.NotNull(layercontrol);
+
+            Assert.AreEqual(1, layercontrol.layer);
         }
     }
 }

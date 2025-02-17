@@ -2,6 +2,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -54,7 +55,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
-            context.ActivateExtensionContext<AnimationServicesContext>();
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(bone.GetComponentInChildren<TestComponentA>() != null);
@@ -82,7 +83,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
-            context.ActivateExtensionContext<AnimationServicesContext>();
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(m_bone == null); // destroyed by retargeting pass
@@ -106,7 +107,7 @@ namespace modular_avatar_tests.MergeArmatureTests
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
             context.ActivateExtensionContext<ModularAvatarContext>();
-            context.ActivateExtensionContext<AnimationServicesContext>();
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
 
             Assert.IsTrue(m_bone == null); // destroyed by retargeting pass
