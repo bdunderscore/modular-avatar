@@ -178,7 +178,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     return cached;
                 }
 
-                var obj = asc.ObjectPathRemapper.GetObjectForPath(bindingPath)!.transform;
+                var obj = asc.ObjectPathRemapper.GetObjectForPath(bindingPath)?.transform;
                 while (obj != null && transformLookthrough.Contains(obj))
                 {
                     obj = obj.parent;
