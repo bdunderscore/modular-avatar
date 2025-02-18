@@ -694,6 +694,7 @@ MonoBehaviour:
   matchAvatarWriteDefaults: 0
   relativePathRoot:
     referencePath: 
+    targetObject: {fileID: 0}
   layerPriority: 0
 --- !u!95 &5357983429381432312
 Animator:
