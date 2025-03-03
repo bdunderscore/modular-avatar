@@ -37,6 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public static ImmutableHashSet<string> VRCSDKParameters = new string[]
         {
             "IsLocal",
+            "PreviewMode",
             "Viseme",
             "Voice",
             "GestureLeft",
