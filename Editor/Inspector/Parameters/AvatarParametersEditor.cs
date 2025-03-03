@@ -211,18 +211,14 @@ namespace nadena.dev.modular_avatar.core.editor
                         default: pst = ParameterSyncType.Float; break;
                     }
 
-                    if (!parameter.networkSynced)
-                    {
-                        pst = ParameterSyncType.NotSynced;
-                    }
-                    
                     target.parameters.Add(new ParameterConfig()
                     {
                         internalParameter = false,
                         nameOrPrefix = parameter.name,
                         isPrefix = false,
                         remapTo = "",
-                        syncType = pst, 
+                        syncType = pst,
+                        localOnly = !parameter.networkSynced,
                         defaultValue = parameter.defaultValue,
                         saved = parameter.saved,
                     });
