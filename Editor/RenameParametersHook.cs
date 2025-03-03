@@ -1,4 +1,4 @@
-﻿#if MA_VRCSDK3_AVATARS
+#if MA_VRCSDK3_AVATARS
 
 #region
 
@@ -564,7 +564,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     case VirtualStateMachine vsm: ProcessStateMachine(vsm, remap); break;
                     case VirtualState vs: ProcessState(vs, remap); break;
-                    case VirtualTransition vt: ProcessTransition(vt, remap); break;
+                    case VirtualTransitionBase vt: ProcessTransition(vt, remap); break;
                     case VirtualClip vc: ProcessClip(vc, remap); break;
                     case VirtualBlendTree bt: ProcessBlendtree(bt, remap); break;
                 }
