@@ -254,8 +254,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var action = ObjectRule(key, changer, value);
                 action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
-
-                if (changer.gameObject.activeInHierarchy ^ changer.Inverted) info.currentState = action.Value;
+                
+                info.currentState = currentValue;
 
                 if (info.actionGroups.Count == 0)
                 {
