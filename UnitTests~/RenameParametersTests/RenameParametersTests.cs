@@ -45,6 +45,18 @@ namespace modular_avatar_tests.RenameParametersTests
         }
 
         [Test]
+        public void RenameParametersRenamesTransitionParameters()
+        {
+            var prefab = CreatePrefab("RenamesTransitionParameters.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var layer = findFxLayer(prefab, "test");
+            var transition = layer.stateMachine.states[0].state.transitions[0];
+            Assert.AreEqual("y", transition.conditions[0].parameter);
+        }
+
+        [Test]
         public void RenameInstalledMenu()
         {
             var prefab = CreatePrefab("RenameInstalledMenu.prefab");
