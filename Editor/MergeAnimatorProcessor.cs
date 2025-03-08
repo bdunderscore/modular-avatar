@@ -121,6 +121,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 basePath = "";
             }
 
+            var firstLayer = clonedController.Layers.FirstOrDefault();
+            // the first layer in an animator controller always has weight 1.0f (regardless of what is serialized)
+            if (firstLayer != null) firstLayer.DefaultWeight = 1.0f;
+
             foreach (var l in clonedController.Layers)
             {
                 if (initialWriteDefaults != null)

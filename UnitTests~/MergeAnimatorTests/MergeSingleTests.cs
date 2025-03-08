@@ -7,7 +7,9 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 
 namespace UnitTests.MergeAnimatorTests
@@ -58,6 +60,45 @@ namespace UnitTests.MergeAnimatorTests
 
             var state = FindStateInLayer(findFxLayer(av, "Target"), "Anim1");
             Assert.IsTrue(state.motion.name.StartsWith("Anim2"));
+        }
+
+        [Test]
+        public void MergeAnimation_ForcesFirstLayerToWeightOne()
+        {
+            var av = CreateRoot("root");
+            
+            var controller = new AnimatorController();
+            var stateMachine = new AnimatorStateMachine();
+            stateMachine.name = "test machine";
+            
+            controller.AddLayer(new AnimatorControllerLayer()
+            {
+                name = "Base",
+                stateMachine = stateMachine,
+                defaultWeight = 0
+            });
+            
+            var merge = av.AddComponent<ModularAvatarMergeAnimator>();
+            merge.animator = controller;
+            merge.layerType = VRCAvatarDescriptor.AnimLayerType.FX;
+            
+            
+            var ctx = new BuildContext(av, null);
+            ctx.ActivateExtensionContext<ModularAvatarContext>();
+            ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                ctx.DeactivateAllExtensionContexts();
+            });
+            
+            ctx.DeactivateAllExtensionContexts();
+            
+            Assert.IsEmpty(errors);
+
+            var layer = ((AnimatorController) FindFxController(av).animatorController).layers[^1];
+            Assert.AreEqual(1, layer.defaultWeight);
         }
     }
 }
