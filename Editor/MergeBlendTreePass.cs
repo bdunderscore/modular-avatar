@@ -43,8 +43,8 @@ namespace nadena.dev.modular_avatar.core.editor
             _asc = context.Extension<AnimatorServicesContext>();
             _rootBlendTree = null;
             _parameterNames = new HashSet<string>();
-            
-            var fx = _asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+
+            var fx = _asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
 
             foreach (var component in
                      context.AvatarRootObject.GetComponentsInChildren<ModularAvatarMergeBlendTree>(true))
@@ -132,8 +132,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private VirtualBlendTree GetRootBlendTree()
         {
             if (_rootBlendTree != null) return _rootBlendTree;
-            
-            var fx = _asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+
+            var fx = _asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
             var stateMachine = controller.StateMachine;
             

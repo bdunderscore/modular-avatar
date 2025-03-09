@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
                 .ToList();
 
-            var controller = _asc.ControllerContext[layerType];
+            var controller = _asc.ControllerContext.Controllers[layerType];
             
             var wdStateCounter = controller.Layers.SelectMany(l => l.StateMachine.AllStates())
                 .Select(s => s.WriteDefaultValues)
