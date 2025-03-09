@@ -25,6 +25,7 @@
 #if MA_VRCSDK3_AVATARS
 
 using System;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -38,8 +39,11 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Merge Animator")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-animator?lang=auto")]
-    public class ModularAvatarMergeAnimator : AvatarTagComponent
+    public class ModularAvatarMergeAnimator : AvatarTagComponent, IVirtualizeAnimatorController
     {
+        internal static Func<ModularAvatarMergeAnimator, object, string> GetMotionBasePathCallback =
+            (_, _) => "";
+        
         public RuntimeAnimatorController animator;
         public VRCAvatarDescriptor.AnimLayerType layerType = VRCAvatarDescriptor.AnimLayerType.FX;
         public bool deleteAttachedAnimator;
@@ -47,7 +51,7 @@ namespace nadena.dev.modular_avatar.core
         public bool matchAvatarWriteDefaults;
         public AvatarObjectReference relativePathRoot = new AvatarObjectReference();
         public int layerPriority = 0;
-
+ 
         public override void ResolveReferences()
         {
             // no-op
@@ -67,6 +71,22 @@ namespace nadena.dev.modular_avatar.core
         {
             deleteAttachedAnimator = true;
         }
+
+        RuntimeAnimatorController IVirtualizeAnimatorController.AnimatorController
+        {
+            get => animator;
+            set => animator = value;
+        }
+
+        string IVirtualizeAnimatorController.GetMotionBasePath(object ndmfBuildContext, bool clearPath = true)
+        {
+            var path = GetMotionBasePathCallback(this, ndmfBuildContext);
+            if (clearPath) pathMode = MergeAnimatorPathMode.Absolute;
+
+            return path;
+        }
+
+        object IVirtualizeAnimatorController.TargetControllerKey => layerType;
     }
 }
 

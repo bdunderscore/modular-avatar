@@ -23,9 +23,9 @@
  */
 
 using System;
+using nadena.dev.ndmf;
 using UnityEngine;
 #if MA_VRCSDK3_AVATARS
-using VRC.SDKBase;
 #endif
 
 namespace nadena.dev.modular_avatar.core
@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core
     /// inherited by user classes, and will be removed in Modular Avatar 2.0.
     /// </summary>
     [DefaultExecutionOrder(-9999)] // run before av3emu
-    public abstract class AvatarTagComponent : MonoBehaviour, IEditorOnly
+    public abstract class AvatarTagComponent : MonoBehaviour, INDMFEditorOnly
     {
         internal static event Action OnChangeAction;
 

@@ -1,7 +1,9 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
+using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests.SyncedLayerHandling
@@ -102,6 +104,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var prefab = CreatePrefab("MergedController_AC2.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
 
+            var fx = (AnimatorController) FindFxController(prefab).animatorController;
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
@@ -114,7 +117,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var layercontrol = overrides[0] as VRCAnimatorLayerControl;
             Assert.NotNull(layercontrol);
 
-            Assert.AreEqual(1, layercontrol.layer);
+            Assert.AreEqual(layercontrol.layer, fx.layers.TakeWhile(l => l.name != "main").Count());
         }
     }
 }

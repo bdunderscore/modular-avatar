@@ -10,7 +10,6 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -55,43 +54,6 @@ namespace nadena.dev.modular_avatar.core.editor
         public ImmutableDictionary<string, float> InitialValueOverrides;
     }
 
-    internal class RenamedMergeAnimators
-    {
-        public AnimatorServicesContext AnimatorServices;
-        public Dictionary<ModularAvatarMergeAnimator, VirtualAnimatorController> Controllers = new();
-        public Dictionary<ModularAvatarMergeBlendTree, VirtualBlendTree> BlendTrees = new();
-
-        public VirtualAnimatorController Clone(ModularAvatarMergeAnimator mama)
-        {
-            if (Controllers.TryGetValue(mama, out var controller))
-            {
-                return controller;
-            }
-
-            if (mama.animator == null) return null;
-
-            var cloned = AnimatorServices.ControllerContext.CloneContext.CloneDistinct(mama.animator, mama.layerType);
-            Controllers[mama] = cloned;
-            
-            return cloned;
-        }
-        
-        public VirtualBlendTree Clone(ModularAvatarMergeBlendTree mbt)
-        {
-            if (BlendTrees.TryGetValue(mbt, out var blendTree))
-            {
-                return blendTree;
-            }
-
-            if (mbt.BlendTree is not BlendTree bt) return null;
-            
-            var cloned = (VirtualBlendTree)AnimatorServices.ControllerContext.CloneContext.Clone(bt);
-            BlendTrees[mbt] = cloned;
-            
-            return cloned;
-        }
-    }
-    
     internal class RenameParametersHook
     {
         private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
@@ -200,10 +162,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _context = context;
             
-            var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-            var asc = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
-            stash.AnimatorServices = asc;
-
             var syncParams = WalkTree(avatar);
 
             SetExpressionParameters(avatar, syncParams);
@@ -359,6 +317,8 @@ namespace nadena.dev.modular_avatar.core.editor
             GameObject obj
         )
         {
+            var animServices = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            
             var paramInfo = ndmf.ParameterInfo.ForContext(_context.PluginBuildContext);
             
             ImmutableDictionary<string, ParameterInfo> rv = ImmutableDictionary<string, ParameterInfo>.Empty;
@@ -406,7 +366,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             break;
                         }
 
-                        case ModularAvatarMergeAnimator merger:
+                        case IVirtualizeAnimatorController virtualized:
                         {
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
                             var remap = mappings.SelectMany(item =>
@@ -421,15 +381,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                 );
                             }).ToImmutableDictionary();
 
-                            if (merger.animator != null)
+                            var controller = animServices.ControllerContext[virtualized];
+                            if (controller != null)
                             {
-                                var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-
-                                var controller = stash.Clone(merger);
-
                                 ProcessVirtualAnimatorController(controller, remap);
-                                
-                                stash.Controllers[merger] = controller;
                             }
 
                             break;
@@ -437,15 +392,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         case ModularAvatarMergeBlendTree merger:
                         {
-                            var bt = merger.BlendTree as BlendTree;
-                            if (bt != null)
+                            var motion = animServices.ControllerContext.GetVirtualizedMotion(merger);
+                            if (motion is VirtualBlendTree bt)
                             {
-                                var stash = _context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-
-                                var virtualbt = stash.Clone(merger); 
-                                ProcessBlendtree(virtualbt, paramInfo.GetParameterRemappingsAt(obj));
-                                
-                                stash.BlendTrees[merger] = virtualbt;
+                                ProcessBlendtree(bt, paramInfo.GetParameterRemappingsAt(obj));
                             }
 
                             break;
