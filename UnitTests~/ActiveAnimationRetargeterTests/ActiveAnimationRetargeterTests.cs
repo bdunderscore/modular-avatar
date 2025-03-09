@@ -31,7 +31,7 @@ public class ActiveAnimationRetargeterTests : TestBase
         var created = retargeter.CreateIntermediateObjects(newParent.gameObject);
         retargeter.FixupAnimations();
 
-        var fx = asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX]!;
+        var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!;
         var clip = (VirtualClip) fx.Layers.First(l => l.Name == "retarget").StateMachine.DefaultState!.Motion;
         var curveBindings = clip!.GetFloatCurveBindings();
 

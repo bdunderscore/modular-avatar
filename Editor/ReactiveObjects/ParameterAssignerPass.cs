@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -203,7 +202,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (mamiWithRC.Count > 0)
             {
                 var asc = context.Extension<AnimatorServicesContext>();
-                var fx = asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+                var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
 
                 foreach (var (name, _) in mamiWithRC)
                 {

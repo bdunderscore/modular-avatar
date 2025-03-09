@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.animation
             var activeProxies = context.GetState<ReadablePropertyExtension.Retained>().proxyProps;
             if (activeProxies.Count == 0) return;
 
-            var fx = asc.ControllerContext[VRCAvatarDescriptor.AnimLayerType.FX];
+            var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fx == null) return;
             
             var nullMotion = new AnimationClip();
