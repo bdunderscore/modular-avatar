@@ -27,6 +27,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.animator;
+using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
@@ -37,6 +38,23 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private AnimatorServicesContext _asc;
 
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            ModularAvatarMergeAnimator.GetMotionBasePathCallback = (merge, objectBuildContext) =>
+            {
+                if (merge.pathMode == MergeAnimatorPathMode.Absolute) return "";
+
+                var context = (ndmf.BuildContext)objectBuildContext;
+
+                var targetObject = merge.relativePathRoot.Get(context.AvatarRootTransform);
+                if (targetObject == null) targetObject = merge.gameObject;
+
+                var relativePath = RuntimeUtil.RelativePath(context.AvatarRootObject, targetObject);
+                return relativePath != "" ? relativePath : "";
+            };
+        }
+        
         internal void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
         {
             _asc = context.PluginBuildContext.Extension<AnimatorServicesContext>();
@@ -92,35 +110,18 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void MergeSingle(BuildContext context, VirtualAnimatorController controller, ModularAvatarMergeAnimator merge, bool? initialWriteDefaults)
+        private void MergeSingle(BuildContext context, VirtualAnimatorController targetController,
+            ModularAvatarMergeAnimator merge, bool? initialWriteDefaults)
         {
             if (merge.animator == null)
             {
                 return;
             }
-            
-            var stash = context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-            
-            var clonedController = stash.Controllers.GetValueOrDefault(merge)
-                                   ?? _asc.ControllerContext.CloneContext.CloneDistinct(merge.animator);
-            
-            string basePath;
-            if (merge.pathMode == MergeAnimatorPathMode.Relative)
-            {
-                var targetObject = merge.relativePathRoot.Get(context.AvatarRootTransform);
-                if (targetObject == null) targetObject = merge.gameObject;
 
-                var relativePath = RuntimeUtil.RelativePath(context.AvatarRootObject, targetObject);
-                basePath = relativePath != "" ? relativePath + "/" : "";
+            var vac = context.PluginBuildContext.Extension<VirtualControllerContext>();
 
-                var animationIndex = new AnimationIndex(new[] { clonedController });
-                animationIndex.RewritePaths(p => p == "" ? relativePath : basePath + p);
-            }
-            else
-            {
-                basePath = "";
-            }
-
+            if (!vac.Controllers.TryGetValue(merge, out var clonedController)) return;
+            
             var firstLayer = clonedController.Layers.FirstOrDefault();
             // the first layer in an animator controller always has weight 1.0f (regardless of what is serialized)
             if (firstLayer != null) firstLayer.DefaultWeight = 1.0f;
@@ -134,12 +135,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         s.WriteDefaultValues = initialWriteDefaults.Value;
                     }
                 }
-                controller.AddLayer(new LayerPriority(merge.layerPriority), l);
+
+                targetController.AddLayer(new LayerPriority(merge.layerPriority), l);
             }
 
             foreach (var (name, parameter) in clonedController.Parameters)
             {
-                if (controller.Parameters.TryGetValue(name, out var existingParam))
+                if (targetController.Parameters.TryGetValue(name, out var existingParam))
                 {
                     if (existingParam.type != parameter.type)
                     {
@@ -156,12 +158,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         existingParam.type = AnimatorControllerParameterType.Float;
 
-                        controller.Parameters = controller.Parameters.SetItem(name, existingParam);
+                        targetController.Parameters = targetController.Parameters.SetItem(name, existingParam);
                     }
                     continue;
                 }
-                
-                controller.Parameters = controller.Parameters.Add(name, parameter);
+
+                targetController.Parameters = targetController.Parameters.Add(name, parameter);
             }
             
             if (merge.deleteAttachedAnimator)
@@ -169,6 +171,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 var animator = merge.GetComponent<Animator>();
                 if (animator != null) Object.DestroyImmediate(animator);
             }
+
+            Object.DestroyImmediate(merge);
         }
     }
 }

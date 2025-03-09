@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -21,6 +22,21 @@ namespace nadena.dev.modular_avatar.core.editor
         private AnimatorServicesContext _asc;
         private VirtualBlendTree _rootBlendTree;
         private HashSet<string> _parameterNames;
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            ModularAvatarMergeBlendTree.GetMotionBasePathCallback = (mbt, objectBuildContext) =>
+            {
+                if (mbt.PathMode == MergeAnimatorPathMode.Absolute) return "";
+
+                var buildContext = (ndmf.BuildContext)objectBuildContext;
+                var root = mbt.RelativePathRoot.Get(buildContext.AvatarRootTransform);
+                if (root == null) root = mbt.gameObject;
+
+                return RuntimeUtil.AvatarRootPath(root);
+            };
+        }
 
         protected override void Execute(ndmf.BuildContext context)
         {
@@ -59,48 +75,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessComponent(BuildContext context, ModularAvatarMergeBlendTree component)
         {
-            var stash = context.PluginBuildContext.GetState<RenamedMergeAnimators>();
-            
-            BlendTree componentBlendTree = component.BlendTree as BlendTree;
-            
-            if (componentBlendTree == null)
+            var virtualBlendTree = _asc.ControllerContext.GetVirtualizedMotion(component);
+
+            if (virtualBlendTree == null)
             {
                 ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal, "error.merge_blend_tree.missing_tree");
                 return;
             }
 
             string basePath = null;
-            string rootPath = null;
-            if (component.PathMode == MergeAnimatorPathMode.Relative)
-            {
-                var root = component.RelativePathRoot.Get(context.AvatarRootTransform);
-                if (root == null) root = component.gameObject;
-                
-                rootPath = RuntimeUtil.AvatarRootPath(root);
-                basePath = rootPath + "/";
-            }
-
-            var bt = stash.BlendTrees.GetValueOrDefault(component) 
-                     ?? _asc.ControllerContext.CloneContext.Clone(componentBlendTree);
-
-            if (basePath != null)
-            {
-                var animationIndex = new AnimationIndex(new[] { bt });
-                animationIndex.RewritePaths(p => p == "" ? rootPath : basePath + p);
-            }
             
             var rootBlend = GetRootBlendTree();
             
             rootBlend.Children = rootBlend.Children.Add(new()
             {
-                Motion = bt,
+                Motion = virtualBlendTree,
                 DirectBlendParameter = ALWAYS_ONE,
                 Threshold = 1,
                 CycleOffset = 1,
                 TimeScale = 1,
             });
 
-            foreach (var asset in bt.AllReachableNodes())
+            foreach (var asset in virtualBlendTree.AllReachableNodes())
             {
                 if (asset is VirtualBlendTree bt2)
                 {
@@ -129,6 +125,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
             }
+
+            Object.DestroyImmediate(component);
         }
 
         private VirtualBlendTree GetRootBlendTree()
