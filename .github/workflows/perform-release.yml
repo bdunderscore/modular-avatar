@@ -205,8 +205,8 @@ jobs:
         with:
           draft: true
           body_path: .github/release-note.md
-          tag_name: ${{ needs.prechecks.outputs.version }}
-          name: ${{ needs.prechecks.outputs.version }}
+          tag_name: ${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.version }}
           make_latest: ${{ github.event.inputs.release_kind == 'stable' }}
           files: |
             ${{ env.zipFile }}
