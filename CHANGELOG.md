@@ -14,10 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added CHANGELOG files
 
 ### Fixed
-
-### Changed
 - [#1460] When importing parameter assets in MA Parameters, "local only" parameters were incorrectly treated as
   "animator only"
+
+### Changed
+- [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`) 
 
 ### Removed
 
