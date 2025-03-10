@@ -1,0 +1,206 @@
+name: Perform Release
+
+# Portions of this workflow are based on https://github.com/anatawa12/AvatarOptimizer/blob/master/.github/workflows/release.yml
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_kind:
+        type: choice
+        description: The type of release.
+        default: prerelease
+        required: true
+        options:
+          - prerelease
+          - stable
+          - adhoc
+      publish:
+        description: "True to publish release to git, vpm. if false, this creates release asset only"
+        type: boolean
+        required: false
+      version:
+        description: "Version to release"
+        type: string
+        required: false
+        
+env:
+  PKG_NAME: nadena.dev.modular-avatar
+  RELEASE_TYPE: ${{ github.event.inputs.release_kind }}
+
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
+permissions: write-all
+
+jobs:
+  check-gameci:
+    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@main
+    permissions:
+      checks: write
+      contents: read
+    secrets: inherit
+  
+  check-docs:
+    name: Build documentation (latest release)
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+  
+  create-release:
+    needs: [check-gameci, check-docs]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Validate prerelease version
+        id: check-version
+        if: ${{ github.event.inputs.release_kind == 'prerelease' && !contains(github.event.inputs.version, '-') }}
+        run:
+          echo "Prerelease version must contain a hyphen"
+          exit 1
+        
+      - name: Validate stable version
+        id: check-version-stable
+        if: ${{ github.event.inputs.release_kind == 'stable' && contains(github.event.inputs.version, '-') }}
+        run:
+          echo "Stable version must not contain a hyphen"
+          exit 1
+        
+      - name: Validate adhoc
+        id: validate-adhocc
+        if: ${{ github.event.inputs.release_kind == 'adhoc' && github.event.inputs.publish == 'true' }}
+        run:
+          echo "Adhoc release cannot be published"
+          exit 1
+
+      - name: Set Environment Variables
+        run: |
+          echo "zipFile=${{ env.PKG_NAME }}-${{ github.event.inputs.version }}".zip >> $GITHUB_ENV
+          echo "unityPackage=${{ env.PKG_NAME }}-${{ github.event.inputs.version }}.unitypackage" >> $GITHUB_ENV
+          
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          
+          case "$RELEASE_TYPE" in
+            prerelease)
+              echo "PRERELEASE=true" >> $GITHUB_ENV
+              ;;
+            stable)
+              echo "PRERELEASE=false" >> $GITHUB_ENV
+              ;;
+            adhoc)
+              echo "PRERELEASE=true" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Check semver syntax
+        if: steps.check-tag.outputs.need-new-tag == 'true'
+        id: semver-check
+        run: |
+          chmod +x .github/workflows/*.sh
+          .github/workflows/check-semver-syntax.sh ${{ github.event.inputs.version }}      
+      
+      - name: Set git user and email
+        id: git-config
+        run: |
+          git config --global user.name "nadena.dev release bot"
+          git config --global user.email "ci@nadena.dev"
+      - name: Update version
+        id: update-version
+        run: |
+          jq '.version = env.VERSION' package.json > package.json.tmp
+          mv package.json.tmp package.json
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          
+      - name: Update changelog
+        id: changelog
+        run: |
+          chmod +x .github/*.pl
+          
+          if [ "${{ env.PRERELEASE }}" == "true" ]; then
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-jp.md
+          else
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
+            ./.github/cut-changelog.pl CHANGELOG.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+            ./.github/cut-changelog.pl CHANGELOG-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-jp.md
+          fi
+          
+          echo Version ${{ env.VERSION }} > release-note.md
+          echo >> release-note.md
+          if [ "${{ env.PRERELEASE }}" == "true" ]; then
+            echo '**This is a prerelease version.** There may be bugs, and API compatibility is not yet guaranteed.' >> release-note.md
+            echo 'Please: **BACK UP YOUR PROJECTS**' >> release-note.md
+            echo >> release-note.md
+          fi
+          echo '## Notable changes' >> release-note.md
+          cat .github/relnote-en.md >> release-note.md
+          echo '## 主な変更点' >> release-note.md
+          cat .github/relnote-jp.md >> release-note.md
+
+      - name: Upload CHANGELOG.md
+        if: ${{ github.event.inputs.release_kind == 'stable' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHANGELOG
+          path: CHANGELOG.md
+      - name: Upload CHANGELOG-PRERELEASE.md
+        if: ${{ github.event.inputs.release_kind == 'prerelease' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHANGELOG-PRERELEASE
+          path: CHANGELOG-PRERELEASE.md
+      - name: Upload release note
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: release-note.md
+      - run: mv release-note.md .github
+
+      - name: Commit and tag version update
+        run: |
+          git commit -am "Release ${{ github.event.inputs.version }}"
+          git tag -a ${{ github.event.inputs.version }} -m "Release ${{ github.event.inputs.version }}"
+      - name: Publish tag
+        if: ${{ github.event.inputs.publish == 'true' }}
+        run: |
+          git push origin ${{ github.event.workflow_dispatch.base.ref }} ${{ github.event.inputs.version }}
+
+      - name: Create Zip
+        run: |
+          zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
+
+      - name: Move zipfile
+        run: |
+          mv .github/${{env.zipFile}} ${{env.zipFile}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-zip
+          path: ${{ env.zipFile }}
+
+      - name: Dump release notes
+        run: |
+          cat .github/release-note.md
+
+      - name: Make Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
+        if: ${{ github.event.inputs.publish == 'true' }}
+        with:
+          draft: true
+          body_path: .github/release-note.md
+          tag_name: ${{ needs.prechecks.outputs.version }}
+          name: ${{ needs.prechecks.outputs.version }}
+          make_latest: ${{ github.event.inputs.release_kind == 'stable' }}
+          files: |
+            ${{ env.zipFile }}
+            package.json
