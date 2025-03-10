@@ -8,18 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added CHANGELOG files
 
 ### Fixed
 
 ### Changed
-- [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.7.0-alpha.2] - [2025-03-10]
+
+### Added
+- Added CHANGELOG files
+
+### Changed
+- [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
 
 ## Older versions
 
