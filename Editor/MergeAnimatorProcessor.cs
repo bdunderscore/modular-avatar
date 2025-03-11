@@ -24,11 +24,13 @@
 
 #if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
@@ -144,9 +146,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var l in clonedController.Layers)
             {
-                if (initialWriteDefaults != null)
+                if (initialWriteDefaults != null && !IsWriteDefaultsSafeLayer(l))
                 {
-                    foreach (var s in l.StateMachine.AllStates())
+                    foreach (var s in l.StateMachine?.AllStates() ?? Array.Empty<VirtualState>())
                     {
                         s.WriteDefaultValues = initialWriteDefaults.Value;
                     }
@@ -189,6 +191,16 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             Object.DestroyImmediate(merge);
+        }
+
+        private bool IsWriteDefaultsSafeLayer(VirtualLayer virtualLayer)
+        {
+            if (virtualLayer.BlendingMode == AnimatorLayerBlendingMode.Additive) return true;
+            var sm = virtualLayer.StateMachine;
+
+            if (sm.StateMachines.Count != 0) return false;
+            return sm.States.Count == 1 && sm.AnyStateTransitions.Count == 0 &&
+                   sm.DefaultState.Transitions.Count == 0;
         }
     }
 }
