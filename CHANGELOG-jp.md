@@ -10,6 +10,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 - CHANGELOGファイルを追加
+- [World Scale Object](https://m-a.nadena.dev/ja/docs/reference/world-scale-object)を追加
 
 ### Fixed
 - [#1460] パラメーターアセットをMA Parametersにインポートするとき、ローカルのみのパラメーターが間違ってアニメーターのみ扱いになる問題を修正

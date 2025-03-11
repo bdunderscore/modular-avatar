@@ -84,6 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run("World Fixed Object",
                         ctx => new WorldFixedObjectProcessor().Process(ctx)
                     );
+                    seq.Run(WorldScaleObjectPass.Instance);
                     
                     seq.Run(ReplaceObjectPluginPass.Instance);
                     
