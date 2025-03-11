@@ -37,6 +37,12 @@ namespace nadena.dev.modular_avatar.core
         Absolute
     }
 
+    public enum MergeAnimatorMode
+    {
+        Append,
+        Replace
+    }
+
     [AddComponentMenu("Modular Avatar/MA Merge Animator")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/merge-animator?lang=auto")]
     public class ModularAvatarMergeAnimator : AvatarTagComponent, IVirtualizeAnimatorController
@@ -51,7 +57,8 @@ namespace nadena.dev.modular_avatar.core
         public bool matchAvatarWriteDefaults;
         public AvatarObjectReference relativePathRoot = new AvatarObjectReference();
         public int layerPriority = 0;
- 
+        public MergeAnimatorMode mergeAnimatorMode = MergeAnimatorMode.Append;
+        
         public override void ResolveReferences()
         {
             // no-op

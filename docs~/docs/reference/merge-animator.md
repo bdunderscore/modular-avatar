@@ -43,6 +43,24 @@ control which object is used as the root for paths in animations by setting the 
 If you want to animate objects that are already attached to the avatar (that aren't under your object), set the path mode to "Absolute". This will cause the animator to use absolute paths, and will not attempt to interpret paths relative to the Merge Animator component.
 This means you will need to record your animations using the avatar's root animator instead.
 
+### Layer Priority
+
+Layer priority controls the order in which Merge Animators are applied. They will be placed in the final animator in
+increasing order of priority (that is, lower numbers are first in animator order, and higher numbers override them).
+Merge Animators with the same priority will be placed in the order they are in the hierarchy. Any pre-existing animator
+is considered to be at priority zero, before all priority-zero Merge Animators.
+
+### Merge Mode
+
+By default, Merge Animator will add the animator to the specified layer. If you want to replace the layer instead, set
+the merge mode to "Replace Existing Animator". This will replace any animator configured on the VRChat Avatar Descriptor
+with the one you provide.
+
+The replaced animator will keep the priority you specified, but it will be applied before any other Merge Animators
+at that priority level.
+
+Having multiple Merge Animators set to the same Layer Type and Replace mode will result in an error.
+
 ### Write Defaults
 
 By default, the write defaults state of your animator will not be changed. If you want to ensure that the WD settings of your animator states always matches the avatar's animator, click "Match Avatar Write Defaults".

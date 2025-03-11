@@ -11,6 +11,12 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override string localizationPrefix => "path_mode";
     }
 
+    [CustomPropertyDrawer(typeof(MergeAnimatorMode))]
+    internal class MergeModeDrawer : EnumDrawer<MergeAnimatorMode>
+    {
+        protected override string localizationPrefix => "merge_animator.merge_mode";
+    }
+
     [CustomEditor(typeof(ModularAvatarMergeAnimator))]
     class MergeAnimationEditor : MAEditorBase
     {
@@ -20,7 +26,8 @@ namespace nadena.dev.modular_avatar.core.editor
             prop_pathMode,
             prop_matchAvatarWriteDefaults,
             prop_relativePathRoot,
-            prop_layerPriority;
+            prop_layerPriority,
+            prop_mergeMode;
 
         private void OnEnable()
         {
@@ -34,6 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor
             prop_relativePathRoot =
                 serializedObject.FindProperty(nameof(ModularAvatarMergeAnimator.relativePathRoot));
             prop_layerPriority = serializedObject.FindProperty(nameof(ModularAvatarMergeAnimator.layerPriority));
+            prop_mergeMode = serializedObject.FindProperty(nameof(ModularAvatarMergeAnimator.mergeAnimatorMode));
         }
 
         protected override void OnInnerInspectorGUI()
@@ -47,8 +55,12 @@ namespace nadena.dev.modular_avatar.core.editor
             if (prop_pathMode.enumValueIndex == (int) MergeAnimatorPathMode.Relative)
                 EditorGUILayout.PropertyField(prop_relativePathRoot, G("merge_animator.relative_path_root"));
             EditorGUILayout.PropertyField(prop_layerPriority, G("merge_animator.layer_priority"));
-            EditorGUILayout.PropertyField(prop_matchAvatarWriteDefaults,
-                G("merge_animator.match_avatar_write_defaults"));
+            EditorGUILayout.PropertyField(prop_mergeMode, G("merge_animator.merge_mode"));
+            using (new EditorGUI.DisabledScope(prop_mergeMode.enumValueIndex == (int)MergeAnimatorMode.Replace))
+            {
+                EditorGUILayout.PropertyField(prop_matchAvatarWriteDefaults,
+                    G("merge_animator.match_avatar_write_defaults"));
+            }
 
             serializedObject.ApplyModifiedProperties();
 

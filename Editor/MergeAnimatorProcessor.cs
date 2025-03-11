@@ -26,6 +26,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
@@ -86,22 +87,37 @@ namespace nadena.dev.modular_avatar.core.editor
             List<ModularAvatarMergeAnimator> toMerge
         )
         {
-            // Stable sort
-            var sorted = toMerge.OrderBy(x => x.layerPriority)
-                .ToList();
-            var beforeOriginal = sorted.Where(x => x.layerPriority < 0)
-                .ToList();
-            var afterOriginal = sorted.Where(x => x.layerPriority >= 0)
+            // Layer priority sorting is handled by NDMF, so we just need to worry about replace mode going first
+            var sorted = toMerge.OrderBy(x => x.mergeAnimatorMode == MergeAnimatorMode.Append)
                 .ToList();
 
             var controller = _asc.ControllerContext.Controllers[layerType];
+
+            var replacements = sorted.Count(x => x.mergeAnimatorMode == MergeAnimatorMode.Replace);
+            if (replacements > 1)
+            {
+                BuildReport.LogFatal("error.merge_animator.multiple_replacements",
+                    sorted.Where(x => x.mergeAnimatorMode == MergeAnimatorMode.Replace).ToArray<object>());
+            }
+            else if (replacements == 1)
+            {
+                // Delete all pre-existing layers.
+                controller.RemoveLayers(_ => true);
+
+                // Merge just the first controller (the one that replaces)
+                MergeSingle(context, controller, sorted.First(), null);
+                sorted.RemoveAt(0);
+
+                // We'll now continue processing the rest as normal.
+            }
+
+            bool? writeDefaults = null;
             
             var wdStateCounter = controller.Layers.SelectMany(l => l.StateMachine.AllStates())
                 .Select(s => s.WriteDefaultValues)
                 .GroupBy(b => b)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            bool? writeDefaults = null;
             if (wdStateCounter.Count == 1) writeDefaults = wdStateCounter.First().Key;
             
             foreach (var component in sorted)
