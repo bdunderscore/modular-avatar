@@ -45,7 +45,6 @@ namespace UnitTests.MergeAnimatorTests.Replacement
         [Test]
         public void MultipleReplacementIsForbidden()
         {
-            Assert.Ignore("https://github.com/bdunderscore/ndmf/issues/547");
             var prefab = CreatePrefab("doublereplace.prefab");
             
             var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(prefab));
