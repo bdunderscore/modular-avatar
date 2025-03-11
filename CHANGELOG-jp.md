@@ -20,6 +20,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1476] ModularAvatarMergeAnimator と ModularAvatarMergeParameter を新しい NDMF API (`IVirtualizeMotion` と `IVirtualizeAnimatorController`) を使用するように変更
 - [#1483] Merge Animator の 「アバターの Write Defaults 設定に合わせる」設定では、Additiveなレイヤー、および単一Stateかつ遷移のないレイヤー
 　に対してはWrite Defaultsを調整しないように変更。
+- [#1429] Merge Armature は、特定の場合にPhysBoneに指定されたヒューマノイドボーンをマージできるようになりました。
+  - 具体的には、子ヒューマノイドボーンがある場合はPhysBoneから除外される必要があります。
 
 ### Removed
 
