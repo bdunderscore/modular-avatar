@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [World Scale Object](https://m-a.nadena.dev/dev/ja/docs/reference/world-scale-object)を追加
 
 ### Fixed
 
