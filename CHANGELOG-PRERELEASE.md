@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- [#1482] Added support for replacing pre-existing animator controllers to `Merge Animator`
+- 
 ### Fixed
 
 ### Changed

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1482] `Merge Animator` に既存のアニメーターコントローラーを置き換える機能を追加
 
 ### Fixed
 

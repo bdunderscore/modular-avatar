@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added CHANGELOG files
+- [#1482] Added support for replacing pre-existing animator controllers to `Merge Animator`
 
 ### Fixed
 - [#1460] When importing parameter assets in MA Parameters, "local only" parameters were incorrectly treated as
