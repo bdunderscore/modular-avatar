@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1482] `Merge Animator` に既存のアニメーターコントローラーを置き換える機能を追加
+- [#1481] [World Scale Object](https://m-a.nadena.dev/dev/ja/docs/reference/world-scale-object)を追加
 
 ### Fixed
 
