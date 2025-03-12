@@ -1,6 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System.Linq;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -24,7 +25,7 @@ namespace modular_avatar_tests
             
             Assert.AreEqual(new []
             {
-                "1", "2", "3", "4", "5"
+                "1", MMDRelayPass.ControlLayerName, MMDRelayPass.DummyLayerName, "2", "3", "4", "5"
             }, layerNames);
         }
     }
