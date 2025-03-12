@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1483] Merge Animator の 「アバターの Write Defaults 設定に合わせる」設定では、Additiveなレイヤー、および単一Stateかつ遷移のないレイヤー
 　に対してはWrite Defaultsを調整しないように変更。
+- [#1429] Merge Armature は、特定の場合にPhysBoneに指定されたヒューマノイドボーンをマージできるようになりました。
+  - 具体的には、子ヒューマノイドボーンがある場合はPhysBoneから除外される必要があります。
 
 ### Removed
 

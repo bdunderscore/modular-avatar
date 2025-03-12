@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
 - [#1483] The Merge Animator "Match Avatar Write Defaults" option will no longer adjust write defaults on states in
   additive layers, or layers with only one state and no transitions.
+- [#1429] Merge Armature will now allow you to merge humanoid bones with PhysBones attached in certain cases.
+  - Specifically, child humanoid bones (if there are any) must be excluded from all attached Physbones. 
 
 ### Removed
 
