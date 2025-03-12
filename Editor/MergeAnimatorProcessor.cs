@@ -104,7 +104,8 @@ namespace nadena.dev.modular_avatar.core.editor
             else if (replacements == 1)
             {
                 // Delete all pre-existing layers.
-                controller.RemoveLayers(_ => true);
+                // Retain the blend tree layer, since that will generally be placed as the first layer in the animator
+                controller.RemoveLayers(l => l.Name != MergeBlendTreePass.BlendTreeLayerName);
 
                 // Merge just the first controller (the one that replaces)
                 MergeSingle(context, controller, sorted.First(), null);

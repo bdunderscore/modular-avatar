@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -53,6 +54,19 @@ namespace UnitTests.MergeAnimatorTests.Replacement
             var err = (SimpleError)errors.First().TheError;
             Assert.AreEqual("error.merge_animator.multiple_replacements", err.TitleKey);
             Assert.AreEqual(2, err._references.Count());
+        }
+
+        [Test]
+        public void ReplacementPreservesMergedBlendTrees()
+        {
+            var prefab = CreatePrefab("ReplacePreservesMergedBlendTrees.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+            
+            Assert.IsTrue(fxc.layers.Any(l => l.name == MergeBlendTreePass.BlendTreeLayerName));
         }
     }
 }
