@@ -484,31 +484,31 @@ namespace nadena.dev.modular_avatar.core.editor
                         var targetObjectName = childName.Substring(config.prefix.Length,
                             childName.Length - config.prefix.Length - config.suffix.Length);
                         var targetObject = newParent.transform.Find(targetObjectName);
+
+                        if (childPhysBonesBlockedSet != null
+                            && !childPhysBonesBlockedSet.Contains(child)
+                            && !child.TryGetComponent<ModularAvatarPBBlocker>(out _))
+                        {
+                            // This object is potentially impacted by the parent's physbones; is it humanoid?
+                            if (!reportedHumanoidBoneError && targetObject != null &&
+                                humanoidBones.Contains(targetObject.transform))
+                            {
+                                // If so, fail the build, as we won't properly apply this to humanoid children.
+                                BuildReport.LogFatal(
+                                    "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
+                                reportedHumanoidBoneError = true;
+                            }
+
+                            // Don't move this child object
+                            continue;
+                        }
+                        
                         // Zip merge bones if the names match and the outfit side is not affected by its own PhysBone.
                         // Also zip merge when it seems to have been copied from avatar side by checking the dinstance.
                         if (targetObject != null)
                         {
-                            if (childPhysBonesBlockedSet != null
-                                && !childPhysBonesBlockedSet.Contains(child)
-                                && !child.TryGetComponent<ModularAvatarPBBlocker>(out _))
-                            {
-                                // This object is potentially impacted by the parent's physbones; is it humanoid?
-                                if (!reportedHumanoidBoneError && humanoidBones.Contains(targetObject.transform))
-                                {
-                                    // If so, fail the build, as we won't properly apply this to humanoid children.
-                                    BuildReport.LogFatal(
-                                        "error.merge_armature.physbone_on_humanoid_bone", new string[0], config);
-                                    reportedHumanoidBoneError = true;
-                                }
-
-                                // Don't move this child object
-                                continue;
-                            }
-                            else
-                            {
-                                childNewParent = targetObject.gameObject;
-                                shouldZip = true;
-                            }
+                            childNewParent = targetObject.gameObject;
+                            shouldZip = true;
                         }
                     }
 
