@@ -43,11 +43,13 @@ public class MergeArmatureTests : TestBase
 
         var targetHips = root.transform.Find("Armature");
         
-        Assert.AreEqual(2, targetHips.childCount);
+        Assert.AreEqual(1, targetHips.childCount);
         Assert.AreEqual("L_1", targetHips.GetChild(0).gameObject.name);
-        Assert.That(targetHips.GetChild(1).gameObject.name, Does.StartWith("L_1$"));
+        var l1 = targetHips.GetChild(0).transform;
+        var l1x = l1.GetChild(l1.childCount - 1).transform;
+        Assert.That(l1x.gameObject.name, Does.StartWith("L_1$"));
 
-        Assert.That(targetHips.GetChild(1), Is.EqualTo(physBoneTarget));
+        Assert.That(l1x, Is.EqualTo(physBoneTarget));
         Assert.That(physBone.ignoreTransforms, Is.Empty);
     }
 
