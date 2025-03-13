@@ -31,6 +31,7 @@ jobs:
         || contains(github.event.pull_request.labels.*.name, 'localization')
         || contains(github.event.pull_request.labels.*.name, 'ci')
         || contains(github.event.pull_request.labels.*.name, 'refactor')
+        || startsWith(github.event.pull_request.head.label, 'bdunderscore:dependabot/')
         || '' }}
       SNAPSHOT_ONLY: ${{ contains(github.event.pull_request.labels.*.name, 'PRERELEASE-ONLY') || '' }}
     # Steps represent a sequence of tasks that will be executed as part of the job
