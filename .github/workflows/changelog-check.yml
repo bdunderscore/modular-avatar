@@ -17,13 +17,13 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   releasenote-check:
-    if: ${{ ! github.event.pull_request.draft }} && !env.NO_CHANGELOG && (startsWith(matrix.file, 'CHANGELOG-PRERELEASE') || !env.SNAPSHOT_ONLY)
+    if: ${{ ! github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     
     strategy:
       matrix:
         file: [CHANGELOG.md, CHANGELOG-jp.md, CHANGELOG-PRERELEASE.md, CHANGELOG-PRERELEASE-jp.md]
-    
+
     env:
       NO_CHANGELOG: ${{
         contains(github.event.pull_request.labels.*.name, 'NO-CHANGELOG')
