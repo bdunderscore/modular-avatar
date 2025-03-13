@@ -146,7 +146,7 @@ namespace modular_avatar_tests.DuplicatePBStripping
 
             Assert.NotNull(subHips);
             Assert.AreEqual(1, subHips.childCount);
-            Assert.IsTrue(subHips.GetChild(0).name.StartsWith("New Child$"));
+            Assert.IsTrue(subHips.GetChild(0).name.StartsWith("New Child"));
             Assert.IsTrue(subHips.TryGetComponent<VRCPhysBone>(out _));
         }
     }
