@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1481] Added [World Scale Object](https://m-a.nadena.dev/dev/docs/reference/world-scale-object)
 
 ### Fixed
+- [#1492] Fixed incorrect icon and logo assets in prior prerelease
 
 ### Changed
 - [#1483] The Merge Animator "Match Avatar Write Defaults" option will no longer adjust write defaults on states in
