@@ -108,6 +108,18 @@ jobs:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
 
+      - name: Checkout logo assets
+        uses: actions/checkout@v4
+        if: ${{ github.event.inputs.release_kind != 'adhoc' }}
+        with:
+          repository: bdunderscore/modular-avatar-images
+          path: .github/image-assets
+      - name: Inject logo assets
+        if: ${{ github.event.inputs.release_kind != 'adhoc' }}
+        run: |
+          cp -f .github/image-assets/img/logo/ma_logo.png Editor/Images/logo.png
+          cp -f .github/image-assets/img/logo/ma_icon.png Runtime/Icons/Icon_MA_Script.png
+
       - name: Check semver syntax
         if: steps.check-tag.outputs.need-new-tag == 'true'
         id: semver-check
