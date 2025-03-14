@@ -40,11 +40,13 @@ jobs:
   
   build-docs:
     name: Build documentation (latest release)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    # TODO - update to build-docs.yml
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@docs-snapshot
     needs:
       - snapshot-docs
     with:
       ref: docs-snapshot
+      #prerelease: false TODO - uncomment once we release
     
   build-docs-dev:
     name: Build documentation (main branch)
@@ -53,6 +55,7 @@ jobs:
       ref: main
       path: dev
       artifact: docs-dev
+      prerelease: true
 
   deploy-docs:
     name: Deploy documentation
