@@ -14,6 +14,8 @@ namespace nadena.dev.modular_avatar.core.editor
         // Objects which trigger deletion of this shape key. 
         public List<ReactionRule> actionGroups = new List<ReactionRule>();
 
+        public object? overrideStaticState = null;
+
         public AnimatedProperty(TargetProp key, float currentState)
         {
             TargetProp = key;
