@@ -1,4 +1,5 @@
 ﻿#if MA_VRCSDK3_AVATARS
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,6 +21,9 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext _context;
         private readonly AnimatorServicesContext _asc;
         private readonly ReadablePropertyExtension _rpe;
+
+        private static readonly ImmutableHashSet<Type> ActiveObjectTypes =
+            new[] { typeof(AudioSource) }.ToImmutableHashSet();
         
         private Dictionary<string, float> _simulationInitialStates;
 
@@ -115,6 +119,8 @@ namespace nadena.dev.modular_avatar.core.editor
             FindObjectToggles(shapes, root);
             FindMaterialSetters(shapes, root);
 
+            InjectActiveObjectFallbacks(shapes);
+
             ApplyInitialStateOverrides(shapes);
             AnalyzeConstants(shapes); 
             ResolveToggleInitialStates(shapes);
@@ -122,6 +128,48 @@ namespace nadena.dev.modular_avatar.core.editor
             result.Shapes = shapes;
 
             return result;
+        }
+
+        private void InjectActiveObjectFallbacks(Dictionary<TargetProp, AnimatedProperty> shapes)
+        {
+            var injectedComponents = new List<Behaviour>();
+
+            foreach (var targetProp in shapes.Keys)
+            {
+                if (targetProp.TargetObject is GameObject go && targetProp.PropertyName == "m_IsActive")
+                {
+                    foreach (var ty in ActiveObjectTypes)
+                    {
+                        foreach (var c in go.GetComponentsInChildren(ty, true))
+                        {
+                            if (c is Behaviour b)
+                            {
+                                injectedComponents.Add(b);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var component in injectedComponents)
+            {
+                var tp = new TargetProp
+                {
+                    TargetObject = component,
+                    PropertyName = "m_Enabled"
+                };
+                if (!shapes.TryGetValue(tp, out var shape))
+                {
+                    var currentState = component.enabled ? 1f : 0f;
+                    shape = new AnimatedProperty(tp, currentState);
+
+                    // Because we have no action groups, we'll reset current state in the base animation and otherwise
+                    // not touch the state.
+                    shapes[tp] = shape;
+                }
+
+                shape.overrideStaticState = 0f; // Static state is always off
+            }
         }
 
         private void ApplyInitialStateOverrides(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -182,9 +230,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     group.actionGroups.RemoveRange(0, lastAlwaysOnGroup - 1);
             }
 
-            // Remove shapes with no action groups
+            // Remove shapes with no action groups (unless we need to override static state)
             foreach (var kvp in shapes.ToList())
-                if (kvp.Value.actionGroups.Count == 0)
+                if (kvp.Value.actionGroups.Count == 0 && kvp.Value.overrideStaticState == null)
                     shapes.Remove(kvp.Key);
         }
 
@@ -290,7 +338,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             foreach (var (key, info) in shapes.ToList())
             {
-                if (info.actionGroups.Count == 0)
+                if (info.actionGroups.Count == 0 && info.overrideStaticState == null)
                 {
                     // never active control; ignore it entirely
                     if (OptimizeShapes) shapes.Remove(key);
@@ -305,9 +353,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 initialStates[key] = initialState;
                 
                 // If we're now constant-on, we can skip animation generation
-                if (info.actionGroups[^1].IsConstant)
+                if (info.actionGroups.Count == 0 || info.actionGroups[^1].IsConstant)
                 {
-                    if (OptimizeShapes) shapes.Remove(key);
+                    if (OptimizeShapes && info.overrideStaticState == null) shapes.Remove(key);
                 }
             }
         }

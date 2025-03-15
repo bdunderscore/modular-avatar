@@ -145,6 +145,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         applied = true;
                     }
                 }
+                else if (key.TargetObject is Component c)
+                {
+                    componentType = c.GetType();
+                    path = RuntimeUtil.RelativePath(context.AvatarRootObject, c.gameObject);
+                }
                 else
                 {
                     throw new InvalidOperationException("Invalid target object: " + key.TargetObject);
@@ -155,17 +160,19 @@ namespace nadena.dev.modular_avatar.core.editor
                     var serializedObject = new SerializedObject(key.TargetObject);
                     var prop = serializedObject.FindProperty(key.PropertyName);
 
+                    var staticState = shapes.GetValueOrDefault(key)?.overrideStaticState ?? initialState;
+
                     if (prop != null)
                     {
                         switch (prop.propertyType)
                         {
                             case SerializedPropertyType.Boolean:
                                 animBaseState = prop.boolValue ? 1.0f : 0.0f;
-                                prop.boolValue = ((float)initialState) > 0.5f;
+                                prop.boolValue = (float)staticState > 0.5f;
                                 break;
                             case SerializedPropertyType.Float:
                                 animBaseState = prop.floatValue;
-                                prop.floatValue = (float) initialState;
+                                prop.floatValue = (float)staticState;
                                 break;
                             case SerializedPropertyType.ObjectReference:
                                 animBaseState = prop.objectReferenceValue;
@@ -309,6 +316,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ProcessShapeKey(AnimatedProperty info)
         {
+            if (info.actionGroups.Count == 0)
+            {
+                // This is present only to override the static state; skip animation generation
+                return;
+            }
+            
             // TODO: prune non-animated keys
             var asm = GenerateStateMachine(info);
             ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
