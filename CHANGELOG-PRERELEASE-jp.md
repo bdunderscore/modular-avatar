@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1497] CHANGELOGをドキュメンテーションサイトに追加
 - [#1482] `Merge Animator` に既存のアニメーターコントローラーを置き換える機能を追加
 - [#1481] [World Scale Object](https://m-a.nadena.dev/dev/ja/docs/reference/world-scale-object)を追加
+- [#1489] [`MA MMD Layer Control`](https://modular-avatar.nadena.dev/docs/general-behavior/mmd)を追加
 
 ### Fixed
 - [#1492] 前回のプレリリースでアイコンとロゴアセットが間違っていた問題を修正
@@ -20,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 　に対してはWrite Defaultsを調整しないように変更。
 - [#1429] Merge Armature は、特定の場合にPhysBoneに指定されたヒューマノイドボーンをマージできるようになりました。
   - 具体的には、子ヒューマノイドボーンがある場合はPhysBoneから除外される必要があります。
+- [#1489] `Merge Blend Tree` やリアクティブコンポーネントとMMDワールドの互換性の問題を修正。
+  詳細は[ドキュメント](https://modular-avatar.nadena.dev/docs/general-behavior/mmd)を参照してください。
 
 ### Removed
 

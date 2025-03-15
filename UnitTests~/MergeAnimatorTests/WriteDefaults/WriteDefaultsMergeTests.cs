@@ -1,4 +1,5 @@
 ﻿using modular_avatar_tests;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf.animator;
@@ -40,6 +41,9 @@ namespace UnitTests.MergeAnimatorTests.WriteDefaults
             foreach (var layer in vfx.Layers)
             {
                 bool expectedState;
+                
+                if (MMDRelayPass.IsRelayLayer(layer.Name)) continue;
+                
                 switch (layer.Name[0])
                 {
                     case 'M': expectedState = wdMode ?? mergeSetMode; break;
