@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 　に対してはWrite Defaultsを調整しないように変更。
 - [#1429] Merge Armature は、特定の場合にPhysBoneに指定されたヒューマノイドボーンをマージできるようになりました。
   - 具体的には、子ヒューマノイドボーンがある場合はPhysBoneから除外される必要があります。
+- [#1499] `Object Toggle`で制御される`Audio Source`がアニメーションブロックされたときに常にアクティブにならないように、
+  アニメーションがブロックされたときにオーディオソースを無効にするように変更。
 
 ### Removed
 
