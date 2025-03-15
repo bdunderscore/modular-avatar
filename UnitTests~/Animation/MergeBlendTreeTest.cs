@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -115,7 +116,7 @@ namespace modular_avatar_tests
             var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
                 .layers.Select(l => l.name).ToArray();
             
-            Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
+            Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, MMDRelayPass.ControlLayerName, MMDRelayPass.DummyLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
         }
 
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)

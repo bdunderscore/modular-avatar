@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
@@ -20,10 +21,12 @@ namespace UnitTests.MergeAnimatorTests.Replacement
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
+
+            var layers = fxc.layers.Where(l => !MMDRelayPass.IsRelayLayer(l.name)).ToList();
             
-            Assert.AreEqual(2, fxc.layers.Length);
-            Assert.AreEqual("2", fxc.layers[0].name);
-            Assert.AreEqual("3", fxc.layers[1].name);
+            Assert.AreEqual(2, layers.Count);
+            Assert.AreEqual("2", layers[0].name);
+            Assert.AreEqual("3", layers[1].name);
         }
 
         [Test]
@@ -38,9 +41,11 @@ namespace UnitTests.MergeAnimatorTests.Replacement
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             
-            Assert.AreEqual(2, fxc.layers.Length);
-            Assert.AreEqual("3", fxc.layers[0].name);
-            Assert.AreEqual("2", fxc.layers[1].name);
+            var layers = fxc.layers.Where(l => !MMDRelayPass.IsRelayLayer(l.name)).ToList();
+            
+            Assert.AreEqual(2, layers.Count);
+            Assert.AreEqual("3", layers[0].name);
+            Assert.AreEqual("2", layers[1].name);
         }
 
         [Test]
