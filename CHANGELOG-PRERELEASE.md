@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   additive layers, or layers with only one state and no transitions.
 - [#1429] Merge Armature will now allow you to merge humanoid bones with PhysBones attached in certain cases.
     - Specifically, child humanoid bones (if there are any) must be excluded from all attached Physbones.
+- [#1437] Create Toggle for Selection now creates submenus as necessary when multiple items are selected, and creates toggles as children.
 
 ### Removed
 

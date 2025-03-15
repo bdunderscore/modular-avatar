@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 　に対してはWrite Defaultsを調整しないように変更。
 - [#1429] Merge Armature は、特定の場合にPhysBoneに指定されたヒューマノイドボーンをマージできるようになりました。
   - 具体的には、子ヒューマノイドボーンがある場合はPhysBoneから除外される必要があります。
+- [#1437] Create Toggle for Selectionにおいて、複数選択時時に必要に応じてサブメニューを生成し、子としてトグルを生成するように変更されました。
 
 ### Removed
 
