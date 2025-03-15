@@ -54,6 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
+                    seq.Run(MMDRelayEarlyPass.Instance);
                     seq.Run(RenameParametersPluginPass.Instance);
                     seq.Run(ParameterAssignerPass.Instance);
                     seq.Run(MergeBlendTreePass.Instance);
@@ -98,6 +99,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
                     seq.Run("Harmonize animator parameter types",
                         ctx => { ctx.Extension<AnimatorServicesContext>().HarmonizeParameterTypes(); });
+
+                    seq.Run(MMDRelayPass.Instance);
                 });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PhysbonesBlockerPluginPass.Instance);

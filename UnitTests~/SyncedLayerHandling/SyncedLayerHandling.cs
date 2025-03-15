@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor.Animations;
+using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
 namespace modular_avatar_tests.SyncedLayerHandling
@@ -19,7 +20,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
-            Assert.AreEqual(1, syncLayer.syncedLayerIndex);
+            Assert.AreEqual(FindFxLayerIndex(prefab, mainLayer), syncLayer.syncedLayerIndex);
 
             var m1State = FindStateInLayer(mainLayer, "m1");
             var m2State = FindStateInLayer(mainLayer, "m2");
@@ -42,7 +43,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
-            Assert.AreEqual(2, syncLayer.syncedLayerIndex);
+            Assert.AreEqual(FindFxLayerIndex(prefab, mainLayer), syncLayer.syncedLayerIndex);
 
             var m1State = FindStateInLayer(mainLayer, "m1");
             var m2State = FindStateInLayer(mainLayer, "m2");
@@ -61,11 +62,11 @@ namespace modular_avatar_tests.SyncedLayerHandling
         {
             var prefab = CreatePrefab("BaseController.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+            
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
-            Assert.AreEqual(1, syncLayer.syncedLayerIndex);
+            Assert.AreEqual(FindFxLayerIndex(prefab, mainLayer), syncLayer.syncedLayerIndex);
 
             var m1State = FindStateInLayer(mainLayer, "m1");
             var overrides = syncLayer.GetOverrideBehaviours(m1State);
@@ -86,7 +87,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
-            Assert.AreEqual(2, syncLayer.syncedLayerIndex);
+            Assert.AreEqual(FindFxLayerIndex(prefab, mainLayer), syncLayer.syncedLayerIndex);
 
             var m1State = FindStateInLayer(mainLayer, "m1");
             var overrides = syncLayer.GetOverrideBehaviours(m1State);
@@ -108,7 +109,7 @@ namespace modular_avatar_tests.SyncedLayerHandling
             var mainLayer = findFxLayer(prefab, "main");
             var syncLayer = findFxLayer(prefab, "sync");
 
-            Assert.AreEqual(2, syncLayer.syncedLayerIndex);
+            Assert.AreEqual(FindFxLayerIndex(prefab, mainLayer), syncLayer.syncedLayerIndex);
 
             var m1State = FindStateInLayer(mainLayer, "m1");
             var overrides = syncLayer.GetOverrideBehaviours(m1State);

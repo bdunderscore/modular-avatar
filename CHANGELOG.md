@@ -14,10 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added CHANGELOG files
 - [#1482] Added support for replacing pre-existing animator controllers to `Merge Animator`
 - [#1481] Added [World Scale Object](https://m-a.nadena.dev/docs/reference/world-scale-object)
+- [#1489] Added [`MA MMD Layer Control`](https://modular-avatar.nadena.dev/docs/general-behavior/mmd)
 
 ### Fixed
 - [#1460] When importing parameter assets in MA Parameters, "local only" parameters were incorrectly treated as
   "animator only"
+- [#1489] Fixed compatibility issues between `Merge Blend Tree` or reactive components and MMD worlds.
+  See [documentation](https://modular-avatar.nadena.dev/docs/general-behavior/mmd) for details on the new handling. 
 
 ### Changed
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
