@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1492] Fixed incorrect icon and logo assets in prior prerelease
 - [#1489] Fixed compatibility issues between `Merge Blend Tree` or reactive components and MMD worlds.
   See [documentation](https://modular-avatar.nadena.dev/docs/general-behavior/mmd) for details on the new handling.
+- [#1501] Unity keyboard shortcuts don't work when editing text fields on the MA Parameters component
 
 ### Changed
 - [#1483] The Merge Animator "Match Avatar Write Defaults" option will no longer adjust write defaults on states in
