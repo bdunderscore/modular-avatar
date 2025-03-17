@@ -148,9 +148,12 @@ jobs:
 
           if [ "${{ env.PRERELEASE }}" == "true" ]; then
             ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-jp.md
           else
             ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
             ./.github/cut-changelog.pl CHANGELOG.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+            ./github/cut-changelog.pl CHANGELOG-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-ja.md
           fi
 
           echo Version ${{ env.VERSION }} > release-note.md
@@ -162,7 +165,10 @@ jobs:
           fi
           echo '## Notable changes' >> release-note.md
           cat .github/relnote-en.md >> release-note.md
-
+          echo >> release-note.md
+          echo '## 主な変更点' >> release-note.md
+          cat .github/relnote-jp.md >> release-note.md
+          
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
         uses: actions/upload-artifact@v4
