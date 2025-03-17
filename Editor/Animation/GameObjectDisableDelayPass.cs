@@ -20,9 +20,25 @@ namespace nadena.dev.modular_avatar.animation
         protected override void Execute(BuildContext context)
         {
             var asc = context.Extension<AnimatorServicesContext>();
-            var activeProxies = context.GetState<ReadablePropertyExtension.Retained>().proxyProps;
+            var activeProxies = context.GetState<ReadablePropertyExtension.Retained>().proxyProps
+                .ToDictionary(kv => kv.Key, kv => kv.Value);
             if (activeProxies.Count == 0) return;
 
+            // Filter any proxies not used in animator transitions
+            var usedProxies = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]
+                .AllReachableNodes().OfType<VirtualTransitionBase>()
+                .SelectMany(t => t.Conditions)
+                .Select(c => c.parameter)
+                .ToHashSet();
+
+            foreach (var proxyBinding in activeProxies.ToList())
+            {
+                if (!usedProxies.Contains(proxyBinding.Value))
+                {
+                    activeProxies.Remove(proxyBinding.Key);
+                }
+            }
+            
             var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fx == null) return;
             
