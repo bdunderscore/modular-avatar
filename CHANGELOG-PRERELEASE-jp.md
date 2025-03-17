@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.0-beta.0] - [2025-03-17]
+
+### Added
 - [#1497] CHANGELOGをドキュメンテーションサイトに追加
 - [#1482] `Merge Animator` に既存のアニメーターコントローラーを置き換える機能を追加
 - [#1481] [World Scale Object](https://m-a.nadena.dev/dev/ja/docs/reference/world-scale-object)を追加
@@ -31,12 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1489] `Merge Blend Tree` やリアクティブコンポーネントとMMDワールドの互換性の問題を修正。
   詳細は[ドキュメント](https://modular-avatar.nadena.dev/docs/general-behavior/mmd)を参照してください。
 - [#1502] `World Fixed Object` は `VRCParentConstraint` を使用するようになり、Androidビルドで使用可能になりました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.0-alpha.2] - [2025-03-10]
 
