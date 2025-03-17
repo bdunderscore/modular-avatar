@@ -4,7 +4,12 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+#if MA_VRCSDK3_AVATARS
+using VRC.SDK3.Dynamics.Constraint.Components;
+#else
 using UnityEngine.Animations;
+#endif
+
 
 public class WorldFixedObjectTest : TestBase
 {
@@ -26,7 +31,11 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
+        #if MA_VRCSDK3_AVATARS
+        Assert.That(fixedRoot.GetComponent<VRCParentConstraint>(), Is.Not.Null);
+        #else
         Assert.That(fixedRoot.GetComponent<ParentConstraint>(), Is.Not.Null);
+        #endif
 
         // objects are moved to fixed root
         Assert.That(movedFixedObject, Is.Not.Null);
@@ -53,7 +62,11 @@ public class WorldFixedObjectTest : TestBase
 
         // fixed root is created
         Assert.That(fixedRoot, Is.Not.Null);
+#if MA_VRCSDK3_AVATARS
+        Assert.That(fixedRoot.GetComponent<VRCParentConstraint>(), Is.Not.Null);
+#else
         Assert.That(fixedRoot.GetComponent<ParentConstraint>(), Is.Not.Null);
+#endif
 
         // objects are moved to fixed root
         Assert.That(movedFixedObject, Is.Not.Null);
