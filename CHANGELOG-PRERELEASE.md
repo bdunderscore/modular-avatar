@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.0-beta.0] - [2025-03-17]
+
+### Added
 - [#1497] Added changelog to docs site
 - [#1482] Added support for replacing pre-existing animator controllers to `Merge Animator`
 - [#1481] Added [World Scale Object](https://m-a.nadena.dev/dev/docs/reference/world-scale-object)
@@ -31,12 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1499] When an audio source is controlled by an Object Toggle, disable the audio source when animations are blocked
   to avoid it unintentionally being constantly active.
 - [#1502] `World Fixed Object` now uses `VRCParentConstraint` and is therefore compatible with Android builds
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.0-alpha.2] - [2025-03-10]
 
