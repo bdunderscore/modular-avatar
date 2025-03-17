@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   See [documentation](https://modular-avatar.nadena.dev/docs/general-behavior/mmd) for details on the new handling. 
 - [#1501] Unity keyboard shortcuts don't work when editing text fields on the MA Parameters component 
 - [#1410] Motion overrides on synced layers are not updated for Bone Proxy/Merge Armature object movement
+- [#1504] The internal `DelayDisable` layer no longer references unnecessary objects in some situations
+  - This helps improve compatibility with AAO and other tools that track whether objects are animated 
 
 ### Changed
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
