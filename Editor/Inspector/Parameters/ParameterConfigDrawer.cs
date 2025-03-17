@@ -2,6 +2,7 @@
 
 using System;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Toggle = UnityEngine.UIElements.Toggle;
 
@@ -83,8 +84,12 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
 
             foreach (var elem in root.Query<TextElement>().Build())
             {
-                // Prevent keypresses from bubbling up
-                elem.RegisterCallback<KeyDownEvent>(evt => evt.StopPropagation(), TrickleDown.NoTrickleDown);
+                // Prevent delete keypresses from bubbling up if we're in a text field
+                elem.RegisterCallback<KeyDownEvent>(evt =>
+                {
+                    if (evt.keyCode == KeyCode.Delete && evt.modifiers == EventModifiers.FunctionKey)
+                        evt.StopPropagation();
+                });
             }
 
             return root;

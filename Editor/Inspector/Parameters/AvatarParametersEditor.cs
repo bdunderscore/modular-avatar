@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
@@ -42,7 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor
             listView.selectionType = SelectionType.Multiple;
             listView.RegisterCallback<KeyDownEvent>(evt =>
             {
-                if (evt.keyCode == KeyCode.Delete)
+                if (evt.keyCode == KeyCode.Delete && evt.modifiers == EventModifiers.FunctionKey)
                 {
                     serializedObject.Update();
                     
@@ -66,9 +65,9 @@ namespace nadena.dev.modular_avatar.core.editor
                             listView.SetSelectionWithoutNotify(indices);
                         };
                     }
+
+                    evt.StopPropagation();
                 }
-                
-                evt.StopPropagation();
             }, TrickleDown.NoTrickleDown);
             
             unregisteredListView = root.Q<ListView>("UnregisteredParameters");

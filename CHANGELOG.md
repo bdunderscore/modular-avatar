@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "animator only"
 - [#1489] Fixed compatibility issues between `Merge Blend Tree` or reactive components and MMD worlds.
   See [documentation](https://modular-avatar.nadena.dev/docs/general-behavior/mmd) for details on the new handling. 
+- [#1501] Unity keyboard shortcuts don't work when editing text fields on the MA Parameters component 
 
 ### Changed
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
