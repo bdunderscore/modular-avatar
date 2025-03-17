@@ -29,6 +29,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1437] Create Toggle for Selectionにおいて、複数選択時時に必要に応じてサブメニューを生成し、子としてトグルを生成するように変更されました。
 - [#1499] `Object Toggle`で制御される`Audio Source`がアニメーションブロックされたときに常にアクティブにならないように、
     アニメーションがブロックされたときにオーディオソースを無効にするように変更。
+- [#1502] `World Fixed Object` は `VRCParentConstraint` を使用するようになり、Androidビルドで使用可能になりました。
 
 ### Removed
 

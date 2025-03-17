@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1437] Create Toggle for Selection now creates submenus as necessary when multiple items are selected, and creates toggles as children.
 - [#1499] When an audio source is controlled by an Object Toggle, disable the audio source when animations are blocked
   to avoid it unintentionally being constantly active.
+- [#1502] `World Fixed Object` now uses `VRCParentConstraint` and is therefore compatible with Android builds 
 
 ### Removed
 

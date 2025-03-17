@@ -1,9 +1,14 @@
 ﻿using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
+using VRC.Dynamics;
+#if MA_VRCSDK3_AVATARS
+using VRC.SDK3.Dynamics.Constraint.Components;
+
+#else
 using UnityEngine.Animations;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -31,17 +36,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         void Process(ModularAvatarWorldFixedObject target)
         {
-            switch (EditorUserBuildSettings.activeBuildTarget)
-            {
-                case BuildTarget.StandaloneWindows:
-                case BuildTarget.StandaloneWindows64:
-                case BuildTarget.StandaloneLinux64: // for CI
-                    break;
-                default:
-                    BuildReport.Log(ErrorSeverity.NonFatal, "world_fixed_object.err.unsupported_platform");
-                    return;
-            }
-            
             var retargeter = new ActiveAnimationRetargeter(
                 _context,
                 new BoneDatabase(),
@@ -86,7 +80,30 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
 
-            var constraint = obj.AddComponent<ParentConstraint>();
+            CreateConstraint(obj, fixedGameObject);
+
+            _proxy = obj.transform;
+
+            return obj.transform;
+        }
+#if MA_VRCSDK3_AVATARS
+        private static void CreateConstraint(GameObject target, GameObject fixedGameObject)
+        {
+            var constraint = target.AddComponent<VRCParentConstraint>();
+            constraint.Sources.Add(new VRCConstraintSource
+            {
+                Weight = 1.0f,
+                SourceTransform = fixedGameObject.transform,
+                ParentRotationOffset = Vector3.zero,
+                ParentPositionOffset = Vector3.zero
+            });
+            constraint.IsActive = true;
+            constraint.Locked = true;
+        }
+#else
+private static void CreateConstraint(GameObject target, GameObject fixedGameObject)
+        {
+            var constraint = target.AddComponent<ParentConstraint>();
             constraint.AddSource(new ConstraintSource()
             {
                 weight = 1.0f,
@@ -96,10 +113,7 @@ namespace nadena.dev.modular_avatar.core.editor
             constraint.locked = true;
             constraint.rotationOffsets = new[] {Vector3.zero};
             constraint.translationOffsets = new[] {Vector3.zero};
-
-            _proxy = obj.transform;
-
-            return obj.transform;
         }
+#endif
     }
 }
