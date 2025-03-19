@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using Object = UnityEngine.Object;
 
@@ -121,9 +120,9 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
 #if UNITY_ANDROID
-        private const TextureFormat TargetFormat = TextureFormat.ASTC_4x4;
+        internal const TextureFormat TargetFormat = TextureFormat.ASTC_4x4;
 #else
-        private const TextureFormat TargetFormat = TextureFormat.DXT5;
+        internal const TextureFormat TargetFormat = TextureFormat.DXT5;
 #endif
 
         private static Texture2D MaybeScaleIcon(BuildContext context, Texture2D original)
@@ -133,9 +132,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 return original;
             }
 
-            var newRatio = Math.Min(256f / original.width, 256f / original.height);
+            var newRatio = Math.Min(1, Math.Min(256f / original.width, 256f / original.height));
             var newWidth = Math.Min(256, Mathf.RoundToInt(original.width * newRatio));
             var newHeight = Math.Min(256, Mathf.RoundToInt(original.height * newRatio));
+
+            // Round up to a multiple of four
+            newWidth = (newWidth + 3) & ~3;
+            newHeight = (newHeight + 3) & ~3;
 
             var newTex = new Texture2D(newWidth, newHeight, TextureFormat.RGBA32, true);
             context.SaveAsset(newTex);

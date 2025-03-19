@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1410] Motion overrides on synced layers are not updated for Bone Proxy/Merge Armature object movement
 - [#1504] The internal `DelayDisable` layer no longer references unnecessary objects in some situations
   - This helps improve compatibility with AAO and other tools that track whether objects are animated 
+- [#1508] Fix an issue where automatic compression of expressions menu icons would fail when the texture dimensions were
+  not divisible by four.
 
 ### Changed
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
