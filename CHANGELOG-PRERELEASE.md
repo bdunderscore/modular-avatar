@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1508] Fix an issue where automatic compression of expressions menu icons would fail when the texture dimensions were
+  not divisible by four.
 
 ### Changed
 
