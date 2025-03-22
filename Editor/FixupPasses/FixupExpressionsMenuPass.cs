@@ -43,7 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var parameters = context.AvatarDescriptor.expressionParameters.parameters
-                             ?? new VRCExpressionParameters.Parameter[0];
+                             ?? Array.Empty<VRCExpressionParameters.Parameter>();
             var parameterNames = parameters.Select(p => p.name).ToImmutableHashSet();
 
             if (!context.PluginBuildContext.IsTemporaryAsset(expressionsMenu))
