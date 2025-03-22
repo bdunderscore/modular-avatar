@@ -49,7 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var obj = new GameObject("MA SC Defaults");
                 obj.transform.SetParent(context.AvatarRootTransform);
                 var mambt = obj.AddComponent<ModularAvatarMergeBlendTree>();
-                mambt.BlendTree = bt;
+                mambt.Motion = bt;
                 mambt.PathMode = MergeAnimatorPathMode.Absolute;
             }
         }

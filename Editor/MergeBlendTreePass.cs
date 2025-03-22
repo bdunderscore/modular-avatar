@@ -2,6 +2,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
@@ -9,6 +10,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -83,8 +85,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            string basePath = null;
-            
             var rootBlend = GetRootBlendTree();
             
             rootBlend.Children = rootBlend.Children.Add(new()
@@ -136,6 +136,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var fx = _asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
             var stateMachine = controller.StateMachine;
+            if (fx == null)
+            {
+                throw new Exception("FX layer not found");
+            }
             
             _rootBlendTree = VirtualBlendTree.Create("Root");
             var state = stateMachine.AddState("State", _rootBlendTree);

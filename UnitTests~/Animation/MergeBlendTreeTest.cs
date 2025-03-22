@@ -11,6 +11,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace modular_avatar_tests
 {

@@ -63,10 +63,12 @@ namespace nadena.dev.modular_avatar.animation
 
             foreach (var layer in fx.Layers)
             {
+                if (layer.StateMachine == null) continue;
+                
                 var rootMMDModeBehaviors = layer.StateMachine.Behaviours
                     .OfType<ModularAvatarMMDLayerControl>()
                     .ToList();
-
+                
                 if (rootMMDModeBehaviors.Count == 0) continue;
                 if (rootMMDModeBehaviors.Count > 1)
                 {

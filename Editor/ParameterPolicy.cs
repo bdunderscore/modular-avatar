@@ -156,7 +156,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     case ModularAvatarMergeBlendTree mergeBlendTree:
                     {
-                        WalkBlendTree(parameters, mergeBlendTree.BlendTree as BlendTree);
+                        WalkBlendTree(parameters, mergeBlendTree.Motion as BlendTree);
                         break;
                     }
 

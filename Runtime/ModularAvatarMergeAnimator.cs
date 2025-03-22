@@ -85,7 +85,7 @@ namespace nadena.dev.modular_avatar.core
             set => animator = value;
         }
 
-        string IVirtualizeAnimatorController.GetMotionBasePath(object ndmfBuildContext, bool clearPath = true)
+        string IVirtualizeAnimatorController.GetMotionBasePath(object ndmfBuildContext, bool clearPath)
         {
             var path = GetMotionBasePathCallback(this, ndmfBuildContext);
             if (clearPath) pathMode = MergeAnimatorPathMode.Absolute;

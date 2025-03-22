@@ -16,8 +16,6 @@ namespace nadena.dev.modular_avatar.core
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/move-independently?lang=auto")]
     class MAMoveIndependently : MonoBehaviour, IEditorOnly
     {
-        private float EPSILON = 0.0000001f;
-
         [SerializeField]
         private GameObject[] m_groupedBones;
 

@@ -39,11 +39,13 @@ namespace nadena.dev.modular_avatar.core
         
         Motion IVirtualizeMotion.Motion
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             get => (Motion)BlendTree;
             set => BlendTree = value;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        string IVirtualizeMotion.GetMotionBasePath(object ndmfBuildContext, bool clearPath = true)
+        string IVirtualizeMotion.GetMotionBasePath(object ndmfBuildContext, bool clearPath)
         {
             var path = GetMotionBasePathCallback(this, ndmfBuildContext);
 
