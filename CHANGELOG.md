@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not divisible by four.
 
 ### Changed
+- [#1514] `Merge Blend Tree` is now `Merge Motion (Blend Tree)` and supports merging animation clips as well as blend trees
 - [#1476] Switch ModularAvatarMergeAnimator and ModularAvatarMergeParameter to use new NDMF APIs (`IVirtualizeMotion` and `IVirtualizeAnimatorController`)
 - [#1483] The Merge Animator "Match Avatar Write Defaults" option will no longer adjust write defaults on states in
   additive layers, or layers with only one state and no transitions.

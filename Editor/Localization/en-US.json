@@ -96,7 +96,7 @@
   "merge_armature.reset_pos.execute": "Do it!",
   "merge_armature.reset_pos.heuristic_scale": "Adjust outfit overall scale to match base avatar",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "Will set the overall scale of the outfit as a whole based on armspan measurements. Recommended for setting up outfits.",
-  "merge_blend_tree.blend_tree": "Blend Tree",
+  "merge_blend_tree.motion": "Motion (or Blend Tree) to merge",
   "merge_blend_tree.path_mode": "Path Mode",
   "merge_blend_tree.path_mode.tooltip": "How to interpret paths in animations. Using relative mode lets you record animations from an animator on this object.",
   "merge_blend_tree.relative_path_root": "Relative Path Root",
