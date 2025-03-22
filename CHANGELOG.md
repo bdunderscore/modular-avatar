@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - This helps improve compatibility with AAO and other tools that track whether objects are animated 
 - [#1508] Fix an issue where automatic compression of expressions menu icons would fail when the texture dimensions were
   not divisible by four.
+- [#1513] Expression menu icon compression broke on iOS builds
 
 ### Changed
 - [#1514] `Merge Blend Tree` is now `Merge Motion (Blend Tree)` and supports merging animation clips as well as blend trees
