@@ -23,6 +23,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1504] 一部の状況で内部の`DelayDisable`レイヤーが不要なオブジェクトを参照しないように変更
   - これにより、オブジェクトがアニメーションされているかどうかを追跡するAAOなどのツールとの互換性が向上します
 - [#1508] テクスチャのサイズが4の倍数でない場合に、エクスプレッションメニューアイコンの自動圧縮が失敗する問題を修正
+- [#1513] iOSビルドでエクスプレッションメニューアイコンの圧縮処理が壊れる問題を修正
 
 ### Changed
 - [#1476] ModularAvatarMergeAnimator と ModularAvatarMergeParameter を新しい NDMF API (`IVirtualizeMotion` と `IVirtualizeAnimatorController`) を使用するように変更

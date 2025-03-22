@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -119,11 +117,20 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-#if UNITY_ANDROID
-        internal const TextureFormat TargetFormat = TextureFormat.ASTC_4x4;
-#else
-        internal const TextureFormat TargetFormat = TextureFormat.DXT5;
-#endif
+        internal static TextureFormat TargetFormat
+        {
+            get
+            {
+                switch (EditorUserBuildSettings.activeBuildTarget)
+                {
+                    case BuildTarget.StandaloneWindows64:
+                        return TextureFormat.DXT5;
+                    default:
+                        return TextureFormat.ASTC_4x4;
+                }
+            }
+        }
+        
 
         private static Texture2D MaybeScaleIcon(BuildContext context, Texture2D original)
         {
