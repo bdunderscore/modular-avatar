@@ -98,6 +98,28 @@ namespace modular_avatar_tests
         }
 
         [Test]
+        public void SupportsMergingMotions()
+        {
+            AnimationClip clip = new AnimationClip();
+            clip.name = "test clip";
+            
+            var root = CreateRoot("root");
+            var c1 = CreateChild(root, "child1");
+            var mergeComponent = c1.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent.Motion = clip;
+            mergeComponent.PathMode = MergeAnimatorPathMode.Relative;
+            mergeComponent.RelativePathRoot.referencePath = "child2";
+            CreateChild(c1, "a");
+            
+            AvatarProcessor.ProcessAvatar(root);
+            
+            var fx = findFxLayer(root, MergeBlendTreePass.BlendTreeLayerName);
+            var motion = fx.stateMachine.states[0].state.motion as BlendTree;
+            
+            Assert.IsTrue(motion!.children.Any(m => m.motion.name == clip.name));
+        }
+
+        [Test]
         public void MergeOrderTest()
         {
             var root = CreateRoot("root");

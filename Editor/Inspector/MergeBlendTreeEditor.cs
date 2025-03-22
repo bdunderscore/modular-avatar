@@ -1,7 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using UnityEditor;
-using UnityEditor.Animations;
+using UnityEngine;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -15,7 +15,9 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void OnEnable()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             _blendTree = serializedObject.FindProperty(nameof(ModularAvatarMergeBlendTree.BlendTree));
+#pragma warning restore CS0618 // Type or member is obsolete
             _pathMode = serializedObject.FindProperty(nameof(ModularAvatarMergeBlendTree.PathMode));
             _relativePathRoot = serializedObject.FindProperty(nameof(ModularAvatarMergeBlendTree.RelativePathRoot));
         }
@@ -24,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             serializedObject.Update();
 
-            EditorGUILayout.ObjectField(_blendTree, typeof(BlendTree), G("merge_blend_tree.blend_tree"));
+            EditorGUILayout.ObjectField(_blendTree, typeof(Motion), G("merge_blend_tree.motion"));
             EditorGUILayout.PropertyField(_pathMode, G("merge_blend_tree.path_mode"));
             if (_pathMode.enumValueIndex == (int) MergeAnimatorPathMode.Relative)
             {

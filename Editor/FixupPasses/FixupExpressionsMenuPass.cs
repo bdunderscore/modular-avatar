@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -41,7 +43,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var parameters = context.AvatarDescriptor.expressionParameters.parameters
-                             ?? new VRCExpressionParameters.Parameter[0];
+                             ?? Array.Empty<VRCExpressionParameters.Parameter>();
             var parameterNames = parameters.Select(p => p.name).ToImmutableHashSet();
 
             if (!context.PluginBuildContext.IsTemporaryAsset(expressionsMenu))
