@@ -89,8 +89,8 @@ namespace nadena.dev.modular_avatar.core.editor
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context,
                 RenderAspects updatedAspects)
             {
-                if (updatedAspects.HasFlag(RenderAspects.Mesh)) return Task.FromResult<IRenderFilterNode>(null);
-                if (_theMesh == null) return Task.FromResult<IRenderFilterNode>(null);
+                if (updatedAspects.HasFlag(RenderAspects.Mesh)) return Task.FromResult<IRenderFilterNode>(null!);
+                if (_theMesh == null) return Task.FromResult<IRenderFilterNode>(null!);
 
                 return Task.FromResult<IRenderFilterNode>(this);
             }

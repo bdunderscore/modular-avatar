@@ -52,13 +52,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var constraintGameObjects = context.AvatarRootObject.GetComponentsInChildren<IConstraint>(true)
                 .Select(c => (c as Component)?.gameObject)
+                .Where(go => go != null)
                 .Distinct()
-                .Where(go => go.GetComponentsInParent<ModularAvatarConvertConstraints>(true)
+                .Where(go => go!.GetComponentsInParent<ModularAvatarConvertConstraints>(true)
                     .Select(c => c.gameObject)
                     .Any(converters.Contains)
                 ).ToArray();
             var targetConstraintComponents =
-                constraintGameObjects.SelectMany(go => go.GetComponents<IConstraint>()).ToArray();
+                constraintGameObjects.SelectMany(go => go!.GetComponents<IConstraint>()).ToArray();
 
             AvatarDynamicsSetup.DoConvertUnityConstraints(targetConstraintComponents, null, false);
 
@@ -72,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var targetPaths = constraintGameObjects
                 .Union(existingVRCConstraints)
-                .Select(c => asc.ObjectPathRemapper.GetVirtualPathForObject(c))
+                .Select(c => asc.ObjectPathRemapper.GetVirtualPathForObject(c!))
                 .ToHashSet();
 
             // Update animation clips

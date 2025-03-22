@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Object = UnityEngine.Object;
@@ -34,7 +36,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    TargetProp.Equals(other.TargetProp);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
