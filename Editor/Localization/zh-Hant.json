@@ -93,7 +93,6 @@
   "merge_armature.reset_pos.execute": "執行",
   "merge_armature.reset_pos.heuristic_scale": "根據 Avatar 調整服裝的整體比例",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "以臂展作為參考，調整服裝的整體比例。\n推薦用於非 Avatar 對應的服裝。",
-  "merge_blend_tree.blend_tree": "Blend Tree",
   "merge_blend_tree.path_mode": "路徑模式",
   "merge_blend_tree.path_mode.tooltip": "在動畫中路徑的工作模式。\n使用相對路徑可以讓你在當前物件上錄制動畫。",
   "merge_blend_tree.relative_path_root": "相對路徑根物件",
