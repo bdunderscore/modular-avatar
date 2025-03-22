@@ -10,17 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1508] テクスチャのサイズが4の倍数でない場合に、エクスプレッションメニューアイコンの自動圧縮が失敗する問題を修正
-- [#1513] iOSビルドでエクスプレッションメニューアイコンの圧縮が壊れる問題を修正
 
 ### Changed
-- [#1514] `Merge Blend Tree` は `Merge Motion (Blend Tree)` に改名され、アニメーションクリップにも対応するようになりました
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.12.0-rc.0] - [2025-03-22]
+
+### Fixed
+- [#1508] テクスチャのサイズが4の倍数でない場合に、エクスプレッションメニューアイコンの自動圧縮が失敗する問題を修正
+- [#1513] iOSビルドでエクスプレッションメニューアイコンの圧縮が壊れる問題を修正
+
+### Changed
+- [#1514] `Merge Blend Tree` は `Merge Motion (Blend Tree)` に改名され、アニメーションクリップにも対応するようになりました
 
 ## [1.12.0-beta.0] - [2025-03-17]
 
