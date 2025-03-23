@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1524] Added support for disabling MMD world handling at an avatar level
 
 ### Fixed
 - [#1522] `Convert Constraints` failed to convert animation references

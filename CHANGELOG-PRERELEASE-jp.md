@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1524] MMDワールド対応をアバター全体で無効にする機能を追加
 
 ### Fixed
 - [#1522] `Convert Constraints` がアニメーション参照を変換できない問題を修正

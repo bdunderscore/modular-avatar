@@ -27,6 +27,8 @@ namespace nadena.dev.modular_avatar.animation
     {
         protected override void Execute(BuildContext context)
         {
+            if (!MMDRelayPass.ShouldRun(context)) return;
+            
             var asc = context.Extension<AnimatorServicesContext>();
             if (asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
             {
@@ -53,8 +55,16 @@ namespace nadena.dev.modular_avatar.animation
         internal const string StateNameNotMMD = "NotMMD";
         internal const string StateNameMMD = "MMD";
 
+        internal static bool ShouldRun(BuildContext context)
+        {
+            var settings = context.AvatarRootObject.GetComponentsInChildren<ModularAvatarVRChatSettings>(true);
+            return settings.FirstOrDefault()?.MMDWorldSupport ?? true;
+        }
+        
         protected override void Execute(BuildContext context)
         {
+            if (!ShouldRun(context)) return;
+            
             var asc = context.Extension<AnimatorServicesContext>();
             if (!asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
                 return;

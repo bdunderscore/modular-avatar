@@ -44,10 +44,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
+                seq.Run(VRChatSettingsPass.Instance);
                 seq.Run(MeshSettingsPluginPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
                 
-                // All these need to move to the new ASC
 #if MA_VRCSDK3_AVATARS
                 seq.Run(ReactiveObjectPrepass.Instance);
 #endif

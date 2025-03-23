@@ -12,6 +12,9 @@ Layers added via Merge Animator (even in replace mode) will not be affected by t
 padding layers will be added to protect them. If you want to opt them into this behavior, you can attach the `MA MMD
 Layer Control` _state machine behavior_ to the layer you want to control.
 
+You can also disable this behavior entirely by attaching the [VRChat Settings](../reference/vrchat-settings) component
+to your avatar and disabling the relevant setting.
+
 :::warning
 
 The `MA MMD Layer Control` state machine behavior will only work when attached to the layer directly. Due to how state
