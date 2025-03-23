@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1508] Fix an issue where automatic compression of expressions menu icons would fail when the texture dimensions were
   not divisible by four.
 - [#1513] Expression menu icon compression broke on iOS builds
+- [#1522] `Convert Constraints` failed to convert animation references
 
 ### Changed
 - [#1514] `Merge Blend Tree` is now `Merge Motion (Blend Tree)` and supports merging animation clips as well as blend trees

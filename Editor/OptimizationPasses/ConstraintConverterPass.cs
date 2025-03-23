@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         };
                         var curve = clip.GetFloatCurve(ecb);
                         clip.SetFloatCurve(newBinding, curve);
-                        clip.SetFloatCurve(newBinding, null);
+                        clip.SetFloatCurve(ecb, null);
                     }
             }
         }
