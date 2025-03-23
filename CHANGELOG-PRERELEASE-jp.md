@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1522] `Convert Constraints` がアニメーション参照を変換できない問題を修正
+- [#1528] `Merge Animator` が `アバターのWrite Defaults設定に合わせる` 設定を無視し、常に合わせてしまう問題を修正
 
 ### Changed
 

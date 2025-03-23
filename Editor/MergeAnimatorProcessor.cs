@@ -137,6 +137,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
+            if (!merge.matchAvatarWriteDefaults)
+            {
+                initialWriteDefaults = null;
+            }
+
             var vac = context.PluginBuildContext.Extension<VirtualControllerContext>();
 
             if (!vac.Controllers.TryGetValue(merge, out var clonedController)) return;
