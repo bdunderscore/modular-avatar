@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1522] `Convert Constraints` failed to convert animation references
+- [#1528] `Merge Animator` ignored the `Match Avatar Write Defaults` setting and always matched
 
 ### Changed
 
