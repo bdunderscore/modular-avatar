@@ -304,6 +304,7 @@
   "sync-param-sequence.parameters": "Common parameters asset",
   "sync-param-sequence.parameters.tooltip": "The asset to store common parameters in. Do not use the same Expression Parameters that you have set in your avatar descriptor.",
   "sync-param-sequence.create-asset": "New",
-  "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset"
+  "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset",
+  "platform.vrchat.settings.mmd_world_support": "MMD world support"
 
 }
