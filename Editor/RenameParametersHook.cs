@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
@@ -30,8 +32,8 @@ namespace nadena.dev.modular_avatar.core.editor
             return ctx.GetState<ParameterRenameMappings>();
         }
 
-        public Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string> Remappings =
-            new Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string>();
+        private readonly HashSet<string> usedNames = new();
+        public Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string> Remappings = new();
 
         private int internalParamIndex;
 
@@ -41,7 +43,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (Remappings.TryGetValue(tuple, out var mapping)) return mapping;
 
-            mapping = s + "$$Internal_" + internalParamIndex++;
+            var path = RuntimeUtil.AvatarRootPath(p.gameObject)!;
+            string pathHash;
+            using (var sha = SHA256.Create())
+            {
+                var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(path));
+
+                StringBuilder sb = new();
+                for (var i = 0; i < 6; i++)
+                {
+                    sb.AppendFormat("{0:x2}", hashBytes[i]);
+                }
+
+                pathHash = sb.ToString();
+            }
+
+            mapping = s + "$" + pathHash;
+
+            for (var i = 0; !usedNames.Add(mapping); i++)
+            {
+                mapping = s + "$" + mapping + "." + i;
+            }
+            
             Remappings[tuple] = mapping;
             
             return mapping;

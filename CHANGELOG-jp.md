@@ -27,6 +27,10 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1513] iOSビルドでエクスプレッションメニューアイコンの圧縮処理が壊れる問題を修正
 
 ### Changed
+- [#1529] `MA Parameters` の自動リネームは、オブジェクトのパスに基づいて新しい名前を割り当てるように変更されました。これにより、
+  `MA Sync Parameter Sequence` との互換性が向上します。
+  - `MA Sync Parameter Sequence` を使用している場合は、このバージョンに更新した後、SyncedParamsアセットを空にして、
+    すべてのプラットフォームを再アップロードすることをお勧めします。
 - [#1514] `Merge Blend Tree` は `Merge Motion (Blend Tree)` に改名され、アニメーションクリップにも対応するようになりました
 - [#1476] ModularAvatarMergeAnimator と ModularAvatarMergeParameter を新しい NDMF API (`IVirtualizeMotion` と `IVirtualizeAnimatorController`) を使用するように変更
 - [#1483] Merge Animator の 「アバターの Write Defaults 設定に合わせる」設定では、Additiveなレイヤー、および単一Stateかつ遷移のないレイヤー

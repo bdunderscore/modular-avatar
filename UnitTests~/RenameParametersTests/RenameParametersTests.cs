@@ -63,8 +63,8 @@ namespace modular_avatar_tests.RenameParametersTests
             AvatarProcessor.ProcessAvatar(prefab);
 
             var menu = prefab.GetComponent<VRCAvatarDescriptor>().expressionsMenu;
-            Assert.AreEqual("test$$Internal_0", menu.controls[0].parameter.name);
-            Assert.AreEqual("test$$Internal_0", menu.controls[1].subMenu.controls[0].parameter.name);
+            Assert.AreEqual("test$33bf6fbd7cd8", menu.controls[0].parameter.name);
+            Assert.AreEqual("test$33bf6fbd7cd8", menu.controls[1].subMenu.controls[0].parameter.name);
         }
 
         [Test]
@@ -107,7 +107,7 @@ namespace modular_avatar_tests.RenameParametersTests
                 .Select(e => e.TheError)
                 .Cast<SimpleError>()
                 .First(e => e.TitleKey == "error.rename_params.default_value_conflict");
-            Assert.AreEqual("a$$Internal_1", valueConflict.DetailsSubst[0]);
+            Assert.AreEqual("a$014659ab9d98", valueConflict.DetailsSubst[0]);
             Assert.AreEqual("0", valueConflict.DetailsSubst[1]);
             Assert.AreEqual("1", valueConflict.DetailsSubst[2]);
             
@@ -119,7 +119,7 @@ namespace modular_avatar_tests.RenameParametersTests
                 .Cast<SimpleError>()
                 .First(e => e.TitleKey == "error.rename_params.type_conflict");
             
-            Assert.AreEqual("a$$Internal_2", typeConflict.DetailsSubst[0]);
+            Assert.AreEqual("a$88c01afc056a", typeConflict.DetailsSubst[0]);
             Assert.AreEqual("Int", typeConflict.DetailsSubst[1]);
             Assert.AreEqual("Float", typeConflict.DetailsSubst[2]);
             
