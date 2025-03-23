@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1528] `Merge Animator` ignored the `Match Avatar Write Defaults` setting and always matched
 
 ### Changed
+- [#1529] `MA Parameters` auto-rename now assigns new names based on the path of the object. This should improve
+  compatibility with `MA Sync Parameter Sequence`
+  - If you are using `MA Sync Parameter Sequence`, it's a good idea to empty your SyncedParams asset and reupload all
+    platforms after updating to this version.
 
 ### Removed
 

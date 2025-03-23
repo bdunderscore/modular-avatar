@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1528] `Merge Animator` が `アバターのWrite Defaults設定に合わせる` 設定を無視し、常に合わせてしまう問題を修正
 
 ### Changed
+- [#1529] `MA Parameters` の自動リネームは、オブジェクトのパスに基づいて新しい名前を割り当てるように変更されました。これにより、
+  `MA Sync Parameter Sequence` との互換性が向上します。
+  - `MA Sync Parameter Sequence` を使用している場合は、このバージョンに更新した後、SyncedParamsアセットを空にして、
+    すべてのプラットフォームを再アップロードすることをお勧めします。
 
 ### Removed
 
