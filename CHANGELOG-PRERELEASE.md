@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.0-rc.1] - [2025-03-28]
+
+### Added
 - [#1524] Added support for disabling MMD world handling at an avatar level
 
 ### Fixed
@@ -19,12 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compatibility with `MA Sync Parameter Sequence`
   - If you are using `MA Sync Parameter Sequence`, it's a good idea to empty your SyncedParams asset and reupload all
     platforms after updating to this version.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.0-rc.0] - [2025-03-22]
 
