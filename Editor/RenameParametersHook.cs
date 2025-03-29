@@ -19,8 +19,6 @@ using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Object = UnityEngine.Object;
 
-using UnityObject = UnityEngine.Object;
-
 #endregion
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -33,11 +31,11 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private readonly HashSet<string> usedNames = new();
-        public Dictionary<(ModularAvatarParameters, ParameterNamespace, string), string> Remappings = new();
+        public Dictionary<(Component, ParameterNamespace, string), string> Remappings = new();
 
         private int internalParamIndex;
 
-        public string Remap(ModularAvatarParameters p, ParameterNamespace ns, string s)
+        public string Remap(Component p, ParameterNamespace ns, string s)
         {
             var tuple = (p, ns, s);
 
@@ -96,8 +94,8 @@ namespace nadena.dev.modular_avatar.core.editor
             private static long encounterOrderCounter;
             
             public ParameterConfig ResolvedParameter;
-            public List<UnityObject> TypeSources = new List<UnityObject>();
-            public List<UnityObject> DefaultSources = new List<UnityObject>();
+            public List<Object> TypeSources = new List<Object>();
+            public List<Object> DefaultSources = new List<Object>();
             public ImmutableHashSet<float> ConflictingValues = ImmutableHashSet<float>.Empty;
             public ImmutableHashSet<ParameterSyncType> ConflictingSyncTypes = ImmutableHashSet<ParameterSyncType>.Empty;
             
@@ -197,7 +195,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // clean up all parameters objects before the ParameterAssignerPass runs
             foreach (var p in avatar.GetComponentsInChildren<ModularAvatarParameters>())
-                UnityObject.DestroyImmediate(p);
+                Object.DestroyImmediate(p);
         }
 
         private void SetExpressionParameters(GameObject avatarRoot, ImmutableDictionary<string, ParameterInfo> allParams)
