@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1531] lylicalInventoryとの互換性問題を修正
 
 ### Changed
 - [#1530] `MA Menu Item`の自動パラメーター機能も、オブジェクトのパスに基づいて名前を割り当てるようになりました。
