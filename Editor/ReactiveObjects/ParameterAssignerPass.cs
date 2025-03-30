@@ -54,6 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!context.AvatarDescriptor) return;
             
             var paramIndex = 0;
+            var mappings = ParameterRenameMappings.Get(context);
 
             var declaredParams = context.AvatarDescriptor.expressionParameters.parameters
                 .GroupBy(p => p.name).Select(l => l.First())
@@ -72,7 +73,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (mami.Control == null) mami.Control = new VRCExpressionsMenu.Control();
                     mami.Control.parameter = new VRCExpressionsMenu.Control.Parameter
                     {
-                        name = $"__MA/AutoParam/{mami.gameObject.name}${paramIndex++}"
+                        name = mappings.Remap(mami, ParameterNamespace.Animator,
+                            $"__MA/AutoParam/{mami.gameObject.name}")
                     };
                 }
                 

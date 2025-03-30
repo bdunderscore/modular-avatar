@@ -31,8 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1513] Expression menu icon compression broke on iOS builds
 
 ### Changed
-- [#1529] `MA Parameters` auto-rename now assigns new names based on the path of the object. This should improve
-  compatibility with `MA Sync Parameter Sequence`
+- [#1529] `MA Parameters` auto-rename and `MA Menu Item`'s automatic parameter feature now assign names based on the
+  path of the object. This should improve compatibility with `MA Sync Parameter Sequence`
   - If you are using `MA Sync Parameter Sequence`, it's a good idea to empty your SyncedParams asset and reupload all
     platforms after updating to this version.
 - [#1514] `Merge Blend Tree` is now `Merge Motion (Blend Tree)` and supports merging animation clips as well as blend trees

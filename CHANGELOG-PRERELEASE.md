@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1530] `MA Menu Item` auto parameters now also assign names based on object paths
 
 ### Removed
 

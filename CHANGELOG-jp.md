@@ -27,8 +27,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1513] iOSビルドでエクスプレッションメニューアイコンの圧縮処理が壊れる問題を修正
 
 ### Changed
-- [#1529] `MA Parameters` の自動リネームは、オブジェクトのパスに基づいて新しい名前を割り当てるように変更されました。これにより、
-  `MA Sync Parameter Sequence` との互換性が向上します。
+- [#1529] `MA Parameters` の自動リネームと `MA Menu Item` の自動パラメーター機能は、オブジェクトのパスに基づいて名前
+  を割り当てるように変更されました。
   - `MA Sync Parameter Sequence` を使用している場合は、このバージョンに更新した後、SyncedParamsアセットを空にして、
     すべてのプラットフォームを再アップロードすることをお勧めします。
 - [#1514] `Merge Blend Tree` は `Merge Motion (Blend Tree)` に改名され、アニメーションクリップにも対応するようになりました
