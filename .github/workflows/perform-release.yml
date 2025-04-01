@@ -153,7 +153,7 @@ jobs:
             ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
             ./.github/cut-changelog.pl CHANGELOG-PRERELEASE-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
             ./.github/cut-changelog.pl CHANGELOG.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
-            ./github/cut-changelog.pl CHANGELOG-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-ja.md
+            ./.github/cut-changelog.pl CHANGELOG-jp.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-ja.md
           fi
 
           echo Version ${{ env.VERSION }} > release-note.md
