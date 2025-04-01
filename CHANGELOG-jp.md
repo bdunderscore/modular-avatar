@@ -9,6 +9,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.0] - [2025-04-01]
+
+### Added
 - CHANGELOGファイルを追加
 - [#1482] `Merge Animator` に既存のアニメーターコントローラーを置き換える機能を追加
 - [#1481] [World Scale Object](https://m-a.nadena.dev/ja/docs/reference/world-scale-object)を追加
@@ -41,12 +55,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1499] `Object Toggle`で制御される`Audio Source`がアニメーションブロックされたときに常にアクティブにならないように、
     アニメーションがブロックされたときにオーディオソースを無効にするように変更。
 - [#1502] `World Fixed Object` は `VRCParentConstraint` を使用するようになり、Androidビルドで使用可能になりました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## それより前
 
