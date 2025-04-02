@@ -2,7 +2,7 @@
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
-#if VRC_SDK_VRCSDK3
+#if MA_VRCSDK3_AVATARS
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.Constraint.Components;
 
