@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1532] Modular Avatar has compiler errors in a newly created project
 
 ### Changed
 

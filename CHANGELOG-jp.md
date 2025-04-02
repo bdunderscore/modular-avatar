@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1532] Modular Avatarが新しく作成したプロジェクトでコンパイラエラーを出す問題を修正
 
 ### Changed
 
