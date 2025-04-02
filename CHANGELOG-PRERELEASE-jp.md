@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1532] Modular Avatarが新しく作成したプロジェクトでコンパイラエラーを出す問題を修正
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.12.1] - [2025-04-02]
+
+### Fixed
+- [#1532] Modular Avatarが新しく作成したプロジェクトでコンパイラエラーを出す問題を修正
 
 ## [1.12.0] - [2025-04-01]
 
