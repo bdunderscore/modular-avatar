@@ -9,6 +9,7 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -360,6 +361,43 @@ namespace modular_avatar_tests.RenameParametersTests
                 .ToImmutableDictionary();
             
             Assert.IsFalse(expParams["a"].networkSynced);
+        }
+
+        [Test]
+        public void RenamesParameterCurves_InMergeAnimator()
+        {
+            var prefab = CreatePrefab("RenamesParameterCurves.prefab");
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController as AnimatorController;
+
+            var state = fx.layers.First(l => l.name == "test").stateMachine.defaultState;
+            var motion = (AnimationClip)state.motion;
+
+            var bindings = AnimationUtility.GetCurveBindings(motion);
+            var theBinding = bindings[0];
+            Assert.AreEqual("test2", theBinding.propertyName);
+        }
+        
+        [Test]
+        public void RenamesParameterCurves_InMergeMotion()
+        {
+            var prefab = CreatePrefab("RenamesParameterCurves.prefab");
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
+                .animatorController as AnimatorController;
+
+            var state = fx.layers[0].stateMachine.defaultState;
+            var tree = (BlendTree)state.motion;
+            var motion = (AnimationClip)tree.children[0].motion;
+
+            var bindings = AnimationUtility.GetCurveBindings(motion);
+            var theBinding = bindings[0];
+            Assert.AreEqual("test2", theBinding.propertyName);
         }
     }
 }
