@@ -11,6 +11,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1537] アニメーターパラメーターをアニメーションさせるカーブが、`Merge Motion` コンポーネントを使用して追加された場合、
+  `Rename Parameters` によって更新されない問題を修正``
 
 ### Changed
 

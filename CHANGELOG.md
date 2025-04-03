@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1537] Curves which animated animator parameters, when added using a `Merge Motion` component, would not be updated by
+  `Rename Parameters`
 
 ### Changed
 

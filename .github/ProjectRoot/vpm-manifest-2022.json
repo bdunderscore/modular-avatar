@@ -4,7 +4,7 @@
       "version": "3.7.4"
     },
     "nadena.dev.ndmf": {
-      "version": "1.7.0"
+      "version": "1.7.2-rc.0"
     }
   },
   "locked": {
@@ -19,7 +19,7 @@
       "dependencies": {}
     },
     "nadena.dev.ndmf": {
-      "version": "1.7.0"
+      "version": "1.7.2-rc.0"
     }
   }
 }

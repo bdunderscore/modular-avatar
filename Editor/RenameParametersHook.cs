@@ -387,7 +387,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             break;
                         }
 
-                        case IVirtualizeAnimatorController virtualized:
+                        case IVirtualizeAnimatorController or IVirtualizeMotion:
                         {
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
                             var remap = mappings.SelectMany(item =>
@@ -402,21 +402,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                 );
                             }).ToImmutableDictionary();
 
-                            var controller = animServices.ControllerContext.Controllers[virtualized];
+                            var controller = animServices.ControllerContext.Controllers[component];
                             if (controller != null)
                             {
                                 ProcessVirtualAnimatorController(controller, remap);
-                            }
-
-                            break;
-                        }
-
-                        case ModularAvatarMergeBlendTree merger:
-                        {
-                            var motion = animServices.ControllerContext.GetVirtualizedMotion(merger);
-                            if (motion is VirtualBlendTree bt)
-                            {
-                                ProcessBlendtree(bt, paramInfo.GetParameterRemappingsAt(obj));
                             }
 
                             break;

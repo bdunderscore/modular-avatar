@@ -1,7 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System;
-using API;
+using nadena.dev.ndmf.animator;
 using JetBrains.Annotations;
 using UnityEngine;
 using Object = UnityEngine.Object;
