@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Fixed issues with additive layers (via NDMF version upgrade)
 
 ### Changed
 - [#1542] Merge Animator now will match WD settings for layers with a single state containing an animation clip,
