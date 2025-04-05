@@ -10,18 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Fixed issues with additive layers (via NDMF version upgrade)
 
 ### Changed
-- [#1542] Merge Animator now will match WD settings for layers with a single state containing an animation clip,
-  but not if it contains a blend tree. This fixes some compatibility issues introduced in 1.12 (where the behavior
-  was changed to not match WD settings for single-state animation clips).
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.12.3] - [2025-04-05]
+
+### Fixed
+- Fixed issues with additive layers (via NDMF version upgrade)
+
+### Changed
+- [#1542] Merge Animator now will match WD settings for layers with a single state containing an animation clip,
+  but not if it contains a blend tree. This fixes some compatibility issues introduced in 1.12 (where the behavior
+  was changed to not match WD settings for single-state animation clips).
 
 ## [1.12.2] - [2025-04-03]
 
