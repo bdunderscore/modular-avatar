@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1542] Merge Animatorは、アニメーションクリップを含む単一のstateを持つレイヤーに対してWD設定を一致させるが、
+　    ブレンドツリーを含む場合は一致させないように変更されました。
+  - これにより、1.12で導入された互換性の問題が修正されます（1.12.0では、単一のstateアニメーションクリップに対してWD設定
+    と一致しないように変更されました）。
 
 ### Removed
 

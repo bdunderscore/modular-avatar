@@ -206,7 +206,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (sm.StateMachines.Count != 0) return false;
             return sm.States.Count == 1 && sm.AnyStateTransitions.Count == 0 &&
-                   sm.DefaultState.Transitions.Count == 0;
+                   sm.DefaultState?.Transitions.Count == 0 && sm.DefaultState.Motion is VirtualBlendTree;
         }
     }
 }
