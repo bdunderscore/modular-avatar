@@ -12,6 +12,7 @@ using UnityEngine.Animations;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class WorldScaleObjectPass : Pass<WorldScaleObjectPass>
     {
         protected override void Execute(ndmf.BuildContext context)

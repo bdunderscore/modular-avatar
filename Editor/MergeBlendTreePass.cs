@@ -16,6 +16,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class MergeBlendTreePass : Pass<MergeBlendTreePass>
     {
         internal const string ALWAYS_ONE = "__ModularAvatarInternal/One";

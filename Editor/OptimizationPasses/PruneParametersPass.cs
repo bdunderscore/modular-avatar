@@ -5,6 +5,7 @@ using nadena.dev.ndmf;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class PruneParametersPass : Pass<PruneParametersPass>
     {
         protected override void Execute(ndmf.BuildContext context)

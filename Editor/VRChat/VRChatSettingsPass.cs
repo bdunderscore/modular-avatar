@@ -4,6 +4,7 @@ using nadena.dev.ndmf;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class VRChatSettingsPass : Pass<VRChatSettingsPass>
     {
         protected override void Execute(ndmf.BuildContext context)

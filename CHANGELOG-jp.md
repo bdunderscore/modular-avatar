@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- (実験的機能) VRC以外のプラットフォームのサポートを有効化
 
 ### Fixed
 
