@@ -56,7 +56,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       # https://github.com/orgs/community/discussions/13836#discussioncomment-8535364
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.RELEASER_APP_ID }}
