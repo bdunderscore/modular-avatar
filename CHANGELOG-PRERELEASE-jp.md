@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- (実験的機能) VRC以外のプラットフォームのサポートを有効化
 
 ### Fixed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-alpha.0] - [2025-04-08]
+
+### Added
+- (実験的機能) VRC以外のプラットフォームのサポートを有効化
 
 ## [1.12.3] - [2025-04-05]
 

@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- (Experimental feature) Enabled support for non-VRC platforms
 
 ### Fixed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-alpha.0] - [2025-04-08]
+
+### Added
+- (Experimental feature) Enabled support for non-VRC platforms
 
 ## [1.12.3] - [2025-04-05]
 
