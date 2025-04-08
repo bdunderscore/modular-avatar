@@ -14,6 +14,7 @@ using VRC.Dynamics;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class ConstraintConverterPass : Pass<ConstraintConverterPass>
     {
 #if MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER

@@ -9,6 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor
     ///     Reserve an animator layer for reactive object use. We do this here so that we can take advantage of MergeAnimator's
     ///     layer reference correction logic; this can go away once we have a more unified animation services API.
     /// </summary>
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class ReactiveObjectPrepass : Pass<ReactiveObjectPrepass>
     {
         internal const string TAG_PATH = "__MA/ShapeChanger/PrepassPlaceholder";

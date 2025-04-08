@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.fluent;
+using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.util;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -19,6 +20,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor.plugin
 {
+    [RunsOnAllPlatforms]
     class PluginDefinition : Plugin<PluginDefinition>
     {
         public override string QualifiedName => "nadena.dev.modular-avatar";
@@ -58,6 +60,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                 seq.Run(ReactiveObjectPrepass.Instance);
 #endif
+                
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
@@ -70,7 +73,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
-                        seq.Run("Shape Changer", ctx => new ReactiveObjectPass(ctx).Execute())
+                        // TODO - refactor out VRChat-specific bits
+                        seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
                             .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(),
                                 new MaterialSetterPreview());
                     });
@@ -82,26 +86,27 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MenuInstallPluginPass.Instance);
 #endif
                     seq.Run(MergeArmaturePluginPass.Instance);
-
                     seq.Run(BoneProxyPluginPass.Instance);
                     
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
 #endif
-                    
-                    seq.Run("World Fixed Object",
-                        ctx => new WorldFixedObjectProcessor().Process(ctx)
-                    );
+
+                    seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
+                    {
+                        seq.Run("World Fixed Object",
+                            ctx => new WorldFixedObjectProcessor().Process(ctx)
+                        );
+                    });
                     seq.Run(WorldScaleObjectPass.Instance);
-                    
+
                     seq.Run(ReplaceObjectPluginPass.Instance);
                     
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                    seq.Run(ConstraintConverterPass.Instance);
 #endif
                     
-                    seq.Run(ConstraintConverterPass.Instance);
-
                     seq.Run("Prune empty animator layers",
                         ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
                     seq.Run("Harmonize animator parameter types",
@@ -111,10 +116,13 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PhysbonesBlockerPluginPass.Instance);
-                seq.Run("Fixup Expressions Menu", ctx =>
+                seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
                 {
-                    var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
-                    FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
+                    seq.Run("Fixup Expressions Menu", ctx =>
+                    {
+                        var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
+                        FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
+                    });
                 });
                 seq.Run(SyncParameterSequencePass.Instance);
 #endif
@@ -212,6 +220,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     class MergeAnimatorPluginPass : MAPass<MergeAnimatorPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -220,6 +229,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     class MenuInstallPluginPass : MAPass<MenuInstallPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -246,6 +256,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     }
 
 #if MA_VRCSDK3_AVATARS
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     class VisibleHeadAccessoryPluginPass : MAPass<VisibleHeadAccessoryPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -264,6 +275,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     }
 
 #if MA_VRCSDK3_AVATARS
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)] // TODO - support other platforms
     class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -271,7 +283,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
         }
     }
-
+    
     class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)

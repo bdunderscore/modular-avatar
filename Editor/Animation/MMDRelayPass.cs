@@ -23,6 +23,7 @@ namespace nadena.dev.modular_avatar.animation
         internal HashSet<VirtualLayer> mmdAffectedOriginalLayers = new();
     }
 
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class MMDRelayEarlyPass : Pass<MMDRelayEarlyPass>
     {
         protected override void Execute(BuildContext context)
@@ -46,6 +47,7 @@ namespace nadena.dev.modular_avatar.animation
     ///     layer to relay this to layers which should be affected. Finally, any layer which _shouldn't_ be affected is
     ///     pushed out of the first three layers by injecting dummy layers.
     /// </summary>
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class MMDRelayPass : Pass<MMDRelayPass>
     {
         private const string MMDRelayParam = "__MA/Internal/MMDNotActive";

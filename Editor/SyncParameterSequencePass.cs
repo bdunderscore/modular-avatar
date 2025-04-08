@@ -12,6 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     public class SyncParameterSequencePass : Pass<SyncParameterSequencePass>
     {
         private static Platform? CurrentPlatform

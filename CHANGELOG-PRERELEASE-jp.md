@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- (実験的機能) VRC以外のプラットフォームのサポートを有効化
 
 ### Fixed
 

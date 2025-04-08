@@ -13,6 +13,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class ApplyAnimatorDefaultValuesPass : Pass<ApplyAnimatorDefaultValuesPass>
     {
         protected override void Execute(ndmf.BuildContext context)
