@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1551] Merge Animator will always set WD ON for single-state blendtree layers with no any state transitions.
+  - This fixes compatibility issues with assets which relied on the prior behavior.
 
 ### Removed
 
