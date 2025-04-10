@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (Experimental feature) Enabled support for non-VRC platforms
 
 ### Fixed
+- [#1552] Merge Blend Tree failed to correct parameter types when the main avatar FX layer contained an int or bool
+parameter with the same name as one used in the blend tree.
 - [#1553] Reactive components might generate states with incorrect write default settings
 
 ### Changed

@@ -141,6 +141,49 @@ namespace modular_avatar_tests
             
             Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, MMDRelayPass.ControlLayerName, MMDRelayPass.DummyLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
         }
+    
+        [Test]
+        public void BoolParameterConvertedToFloat()
+        {
+            // Create an animator controller with a bool parameter
+            var controller = new AnimatorController();
+            controller.AddParameter("testBool", AnimatorControllerParameterType.Bool);
+        
+            // Create the root object and set the FX layer to the created controller
+            var root = CreateRoot("root");
+            var vrcDesc = root.GetComponent<VRCAvatarDescriptor>();
+            var baseLayers = vrcDesc.baseAnimationLayers;
+
+            for (int i = 0; i < baseLayers.Length; i++)
+            {
+                if (baseLayers[i].type == VRCAvatarDescriptor.AnimLayerType.FX)
+                {
+                    baseLayers[i].animatorController = controller;
+                    baseLayers[i].isDefault = false;
+                }
+            }
+
+            vrcDesc.customizeAnimationLayers = true;
+        
+            // Add a Merge Blend Tree component using the same parameter
+            var child = CreateChild(root, "child");
+            var mergeComponent = child.AddComponent<ModularAvatarMergeBlendTree>();
+            var blendTree = new BlendTree
+            {
+                blendParameter = "testBool",
+                blendType = BlendTreeType.Simple1D
+            };
+            blendTree.AddChild(AnimationTestUtil.AnimationWithPath("a"));
+            mergeComponent.BlendTree = blendTree;
+        
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+        
+            // Verify that the parameter is converted to a float
+            var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController;
+            Assert.IsTrue(fxController!.parameters.Any(p =>
+                p.name == "testBool" && p.type == AnimatorControllerParameterType.Float));
+        }
 
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)
         {
