@@ -63,6 +63,7 @@ namespace UnitTests.MergeAnimatorTests.WriteDefaults
                         break;
                     }
                     case 'X': expectedState = mergeAnimatorInitialState; break;
+                    case '1': expectedState = true; break;
                     default: continue;
                 }
 

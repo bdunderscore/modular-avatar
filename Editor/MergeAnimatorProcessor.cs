@@ -114,19 +114,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 // We'll now continue processing the rest as normal.
             }
 
+            var writeDefaults = AnalyzeLayerWriteDefaults(controller);
+
+            foreach (var component in sorted)
+            {
+                MergeSingle(context, controller, component, writeDefaults);
+            }
+        }
+
+        internal static bool? AnalyzeLayerWriteDefaults(VirtualAnimatorController controller)
+        {
             bool? writeDefaults = null;
-            
-            var wdStateCounter = controller.Layers.SelectMany(l => l.StateMachine.AllStates())
+
+            var wdStateCounter = controller.Layers
+                .Where(l => !IsWriteDefaultsSafeLayer(l))
+                .SelectMany(l => l.StateMachine.AllStates())
                 .Select(s => s.WriteDefaultValues)
                 .GroupBy(b => b)
                 .ToDictionary(g => g.Key, g => g.Count());
 
             if (wdStateCounter.Count == 1) writeDefaults = wdStateCounter.First().Key;
-            
-            foreach (var component in sorted)
-            {
-                MergeSingle(context, controller, component, writeDefaults);
-            }
+            return writeDefaults;
         }
 
         private void MergeSingle(BuildContext context, VirtualAnimatorController targetController,
@@ -141,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 initialWriteDefaults = null;
             }
-
+            
             var vac = context.PluginBuildContext.Extension<VirtualControllerContext>();
 
             if (!vac.Controllers.TryGetValue(merge, out var clonedController)) return;
@@ -160,6 +168,15 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                if (l.StateMachine?.DefaultState?.Motion is VirtualBlendTree
+                    && l.StateMachine.States.Count == 1
+                    && l.StateMachine.StateMachines.Count == 0
+                    && l.StateMachine.AnyStateTransitions.Count == 0)
+                {
+                    // Force WD on for single state blendtree layers
+                    l.StateMachine.DefaultState.WriteDefaultValues = true;
+                }
+                
                 targetController.AddLayer(new LayerPriority(merge.layerPriority), l);
             }
 
@@ -199,7 +216,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Object.DestroyImmediate(merge);
         }
 
-        private bool IsWriteDefaultsSafeLayer(VirtualLayer virtualLayer)
+        private static bool IsWriteDefaultsSafeLayer(VirtualLayer virtualLayer)
         {
             if (virtualLayer.BlendingMode == AnimatorLayerBlendingMode.Additive) return true;
             var sm = virtualLayer.StateMachine;
