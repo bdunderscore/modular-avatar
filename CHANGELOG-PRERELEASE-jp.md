@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1553] リアクティブコンポーネントが生成するステートに、WD設定が正しくない問題を修正
 
 ### Changed
 - [#1551] Merge Animatorは、遷移のない単一のstateを持つブレンドツリーのレイヤーに対して常にWDをONに設定します。
