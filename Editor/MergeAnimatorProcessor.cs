@@ -141,7 +141,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 initialWriteDefaults = null;
             }
-
+            
             var vac = context.PluginBuildContext.Extension<VirtualControllerContext>();
 
             if (!vac.Controllers.TryGetValue(merge, out var clonedController)) return;
@@ -160,6 +160,15 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                if (l.StateMachine?.DefaultState?.Motion is VirtualBlendTree
+                    && l.StateMachine.States.Count == 1
+                    && l.StateMachine.StateMachines.Count == 0
+                    && l.StateMachine.AnyStateTransitions.Count == 0)
+                {
+                    // Force WD on for single state blendtree layers
+                    l.StateMachine.DefaultState.WriteDefaultValues = true;
+                }
+                
                 targetController.AddLayer(new LayerPriority(merge.layerPriority), l);
             }
 
