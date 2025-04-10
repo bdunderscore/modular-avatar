@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.4] - [2025-04-10]
+
+### Fixed
 - [#1552] Merge Blend Treeにて、メインアバターFXレイヤーと同じ名前のintやboolパラメーターがBlend Treeに含まれている場合、
   パラメーター型が修正されない問題を修正
 - [#1553] リアクティブコンポーネントが生成するステートに、WD設定が正しくない問題を修正
@@ -17,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1551] Merge Animatorは、遷移のない単一のstateを持つブレンドツリーのレイヤーに対して常にWDをONに設定します。
   - 一部、以前の挙動に依存したアセットとの互換性を向上させるための変更です。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.3] - [2025-04-05]
 

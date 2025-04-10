@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.4] - [2025-04-10]
+
+### Fixed
 - [#1552] Merge Blend Tree failed to correct parameter types when the main avatar FX layer contained an int or bool
 parameter with the same name as one used in the blend tree.
 - [#1553] Reactive components might generate states with incorrect write default settings
@@ -20,12 +32,6 @@ parameter with the same name as one used in the blend tree.
 ### Changed
 - [#1551] Merge Animator will always set WD ON for single-state blendtree layers with no any state transitions.
   - This fixes compatibility issues with assets which relied on the prior behavior. 
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.3] - [2025-04-05]
 
