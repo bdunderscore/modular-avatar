@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1553] Reactive components might generate states with incorrect write default settings
 
 ### Changed
 - [#1551] Merge Animator will always set WD ON for single-state blendtree layers with no any state transitions.
