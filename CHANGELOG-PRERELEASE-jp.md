@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1552] Merge Blend Treeにて、メインアバターFXレイヤーと同じ名前のintやboolパラメーターがBlend Treeに含まれている場合、
+  パラメーター型が修正されない問題を修正
 - [#1553] リアクティブコンポーネントが生成するステートに、WD設定が正しくない問題を修正
 
 ### Changed

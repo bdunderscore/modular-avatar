@@ -64,14 +64,31 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var name in _parameterNames)
             {
-                if (fx.Parameters.ContainsKey(name)) continue;
-                
-                fx.Parameters = fx.Parameters.SetItem(name, new AnimatorControllerParameter()
+                if (fx.Parameters.TryGetValue(name, out var existingParameter))
                 {
-                    name = name,
-                    type = AnimatorControllerParameterType.Float,
-                    defaultFloat = 0.0f
-                });
+                    switch (existingParameter.type)
+                    {
+                        case AnimatorControllerParameterType.Bool:
+                            existingParameter.defaultFloat = existingParameter.defaultBool ? 1 : 0;
+                            break;
+                        case AnimatorControllerParameterType.Int:
+                            existingParameter.defaultFloat = existingParameter.defaultInt;
+                            break;
+                    }
+
+                    existingParameter.type = AnimatorControllerParameterType.Float;
+                }
+                else
+                {
+                    existingParameter = new AnimatorControllerParameter
+                    {
+                        name = name,
+                        type = AnimatorControllerParameterType.Float,
+                        defaultFloat = 0.0f
+                    };
+                }
+
+                fx.Parameters = fx.Parameters.SetItem(name, existingParameter);
             }
         }
 
