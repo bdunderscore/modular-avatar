@@ -12,6 +12,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - (実験的機能) VRC以外のプラットフォームのサポートを有効化
 
 ### Fixed
+- [#1552] Merge Blend Treeにて、メインアバターFXレイヤーと同じ名前のintやboolパラメーターがBlend Treeに含まれている場合、
+パラメーター型が修正されない問題を修正
 
 ### Changed
 
