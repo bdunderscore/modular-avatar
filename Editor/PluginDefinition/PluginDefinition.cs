@@ -7,7 +7,6 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.fluent;
-using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.util;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -64,6 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
+                    seq.Run(FixupAbsolutePlayAudioPass.Instance);
                     seq.Run(MMDRelayEarlyPass.Instance);
                     seq.Run(RenameParametersPluginPass.Instance);
                     seq.Run(ParameterAssignerPass.Instance);

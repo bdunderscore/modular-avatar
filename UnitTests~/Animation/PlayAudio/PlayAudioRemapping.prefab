@@ -335,6 +335,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2374223349072045661}
   - component: {fileID: 2173147159387031478}
+  - component: {fileID: 4651177154340700720}
   m_Layer: 0
   m_Name: Bone Proxy
   m_TagString: Untagged
@@ -373,6 +374,28 @@ MonoBehaviour:
   boneReference: 55
   subPath: New Parent
   attachmentMode: 1
+--- !u!114 &4651177154340700720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6739982813768973813}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bb122659f724ebf85fe095ac02dc339, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 9100000, guid: 025d88351bb99eb4f8b38dbe071eaf2a, type: 2}
+  layerType: 5
+  deleteAttachedAnimator: 1
+  pathMode: 0
+  matchAvatarWriteDefaults: 0
+  relativePathRoot:
+    referencePath: 
+    targetObject: {fileID: 0}
+  layerPriority: 0
+  mergeAnimatorMode: 0
 --- !u!1 &7552762365415873619
 GameObject:
   m_ObjectHideFlags: 0
