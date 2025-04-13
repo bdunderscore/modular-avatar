@@ -61,6 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
+                    seq.Run(FixupAbsolutePlayAudioPass.Instance);
                     seq.Run(MMDRelayEarlyPass.Instance);
                     seq.Run(RenameParametersPluginPass.Instance);
                     seq.Run(ParameterAssignerPass.Instance);

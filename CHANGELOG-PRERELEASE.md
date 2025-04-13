@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1552] Merge Blend Tree failed to correct parameter types when the main avatar FX layer contained an int or bool
   parameter with the same name as one used in the blend tree.
 - [#1553] Reactive components might generate states with incorrect write default settings
+- [#1555] Fixed compatibility regression from 1.11.x: VRC Animator Play Audio, when configured with an absolute path
+  but merged with a relative-path merge animator component, will now detect that the indicated object does not
+  exist, and treat the reference as an absolute path.
+  - Note that if there is an object in the target path, then it will be treated as a relative path. Using
+    addressing for Play Audio behaviors consistent with Merge Animator settings is therefore recommended as it will be
+    more robust.
 
 ### Changed
 - [#1551] Merge Animator will always set WD ON for single-state blendtree layers with no any state transitions.
