@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (Experimental feature) Enabled support for non-VRC platforms
 
 ### Fixed
+- [#1555] Fixed compatibility regression from 1.11.x: VRC Animator Play Audio, when configured with an absolute path
+  but merged with a relative-path merge animator component, will now detect that the indicated object does not
+  exist, and treat the reference as an absolute path.
+  - Note that if there is an object in the target path, then it will be treated as a relative path. Using
+    addressing for Play Audio behaviors consistent with Merge Animator settings is therefore recommended as it will be
+    more robust.
 
 ### Changed
 

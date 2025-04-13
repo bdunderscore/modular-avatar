@@ -26,6 +26,11 @@ namespace modular_avatar_tests
             var subState = layer.stateMachine.stateMachines[0].stateMachine.states[0].state;
             var playAudio2 = (VRCAnimatorPlayAudio) subState.behaviours[0];
             Assert.AreEqual("New Parent/Bone Proxy/Audio Source", playAudio2.SourcePath);
+
+            var absLayer = findFxLayer(prefab, "absolute");
+            state = absLayer.stateMachine.states[0].state;
+            playAudio = (VRCAnimatorPlayAudio) state.behaviours[0];
+            Assert.AreEqual("New Parent/Bone Proxy/Audio Source", playAudio.SourcePath);
         }
     }
 }

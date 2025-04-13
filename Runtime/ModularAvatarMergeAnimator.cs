@@ -58,6 +58,8 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference relativePathRoot = new AvatarObjectReference();
         public int layerPriority = 0;
         public MergeAnimatorMode mergeAnimatorMode = MergeAnimatorMode.Append;
+
+        internal bool _wasRelative;
         
         public override void ResolveReferences()
         {
@@ -88,7 +90,11 @@ namespace nadena.dev.modular_avatar.core
         string IVirtualizeAnimatorController.GetMotionBasePath(object ndmfBuildContext, bool clearPath)
         {
             var path = GetMotionBasePathCallback(this, ndmfBuildContext);
-            if (clearPath) pathMode = MergeAnimatorPathMode.Absolute;
+            if (clearPath)
+            {
+                _wasRelative = _wasRelative || pathMode == MergeAnimatorPathMode.Relative;
+                pathMode = MergeAnimatorPathMode.Absolute;
+            }
 
             return path;
         }
