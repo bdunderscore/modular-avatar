@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     addressing for Play Audio behaviors consistent with Merge Animator settings is therefore recommended as it will be
     more robust.
 - [#1558] Fixed an issue where Merge Animators animating transforms in the base avatar's armature would break.
+- Update NDMF dependency
+  - Fixed an issue where duplicate layer entries in the VRChat Avatar Descriptor would cause all animator contents
+    to be ignored.
+  - Fixed a benign `NullReferenceException` at initialization
+  - Fixed a NullReferenceException in AnimationIndex
+  - Fixed an issue where animation curve paths being rewritten multiple times might be deleted
 
 ### Changed
 

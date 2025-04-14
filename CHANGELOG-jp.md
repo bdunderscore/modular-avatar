@@ -16,6 +16,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 対象のパスにオブジェクトがある場合は、相対パスとして扱われます。安定性向上のためMerge Animatorコンポーネントと同じ
   　指定方法を使用することをお勧めします。
 - [#1558] Merge AnimatorでベースアバターのArmature内のTransformをアニメーションさせると壊れる問題を修正
+- NDMFの依存バージョンを更新
+  - VRChat Avatar Descriptor内のレイヤーが重複している場合、すべてのアニメーターコンテンツが無視される問題を修正
+  - 起動時に発生する `NullReferenceException` を修正
+  - AnimationIndex内の `NullReferenceException` を修正
+  - アニメーションカーブのパスが複数回書き換えられると削除される問題を修正
 
 ### Changed
 
