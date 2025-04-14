@@ -11,7 +11,7 @@ Merge Animatorなどで追加されたレイヤーは、（置換モードでも
 `MA MMD Layer Control` という_ステートマシンビヘイビア_を制御したいレイヤーに追加することができます。
 
 また、全体的にこの対応を無効にする場合は、[VRChat Settings](../reference/vrchat-settings)コンポーネントをアバターにつけて、
-該当設置絵を無効にしてください。
+該当設定を無効にしてください。
 
 :::warning
 
