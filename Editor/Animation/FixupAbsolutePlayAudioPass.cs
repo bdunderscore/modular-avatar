@@ -8,7 +8,7 @@ using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.animation
 {
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+    //[RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     public class FixupAbsolutePlayAudioPass : Pass<FixupAbsolutePlayAudioPass>
     {
         protected override void Execute(BuildContext context)
