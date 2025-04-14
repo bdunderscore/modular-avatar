@@ -22,12 +22,6 @@ Then, go to "manage project" for your project, and click the + next to Modular A
 
 To update to the latest version, just click the green arrow in the "Latest Version" column.
 
-Once you've installed MA, check out one of the tutorials below:
-* [Simple clothing setup](/docs/tutorials/clothing)
-* [Advanced clothing setup](/docs/tutorials/adv_clothing)
-* [Toggle an object](/docs/tutorials/object_toggle/)
-* [Edit menus](/docs/tutorials/menu/)
-
 ## Prerelease versions
 
 To make prerelease versions available in the VCC, [click here](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
@@ -40,3 +34,34 @@ The documentation for the prerelease branch can be [found here](https://modular-
 
 Prerelease versions may contain bugs, and/or may have compatibility breaks as development progresses. Please leave
 feedback and bug reports at the [github issues page](https://github.com/bdunderscore/modular-avatar/issues).
+
+## Installation via ALCOM
+
+If you are using [ALCOM](https://vrc-get.anatawa12.com/en/alcom/) to install Modular Avatar, follow these steps:
+
+1. Open "Packages" and select "ADD REPOSITORY".
+2. Enter the following values under "Enter informatino about the repository" and click "ADD REPOSITORY":
+    - Stable: `https://vpm.nadena.dev/vpm.json`
+    - Prerelease: `https://vpm.nadena.dev/vpm-prerelease.json`
+3. Confirm the following details are displayed, then click "Add VPM Repository":
+    - Repository Name: `bd_` or `bd_ (prereleases)`
+    - URL: The URL you entered.
+
+Afterward, open "Manage Project" for your project, click the + next to Modular Avatar, and then click `APPLY`.
+
+![ALCOM Install UI](alcom-install.png)
+
+![ALCOM Install Confirm UI](alcom-install-confirm.png)
+
+To update to the latest version, click the area with the version number and green arrow, then click `APPLY`.
+
+![ALCOM Update UI](alcom-update.png)
+
+
+## What to read next
+
+Once you've installed MA, check out one of the tutorials below:
+* [Simple clothing setup](/docs/tutorials/clothing)
+* [Advanced clothing setup](/docs/tutorials/adv_clothing)
+* [Toggle an object](/docs/tutorials/object_toggle/)
+* [Edit menus](/docs/tutorials/menu/)
