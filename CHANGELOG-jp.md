@@ -11,6 +11,18 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.5] - [2025-04-14]
+
+### Fixed
 - [#1555] VRC Animator Play Audioが、Audio Sourceまでの絶対パスで設定されている場合に、相対パスのMerge Animator
   コンポーネントとマージされた場合、指定されたオブジェクトが存在しないことを検出し、参照を絶対パスとして扱うように修正
   - 対象のパスにオブジェクトがある場合は、相対パスとして扱われます。安定性向上のためMerge Animatorコンポーネントと同じ
@@ -21,14 +33,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 起動時に発生する `NullReferenceException` を修正
   - AnimationIndex内の `NullReferenceException` を修正
   - アニメーションカーブのパスが複数回書き換えられると削除される問題を修正
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.4] - [2025-04-10]
 

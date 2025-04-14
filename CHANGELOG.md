@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.5] - [2025-04-14]
+
+### Fixed
 - [#1555] Fixed compatibility regression from 1.11.x: VRC Animator Play Audio, when configured with an absolute path
   but merged with a relative-path merge animator component, will now detect that the indicated object does not
   exist, and treat the reference as an absolute path.
@@ -26,14 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed a benign `NullReferenceException` at initialization
   - Fixed a NullReferenceException in AnimationIndex
   - Fixed an issue where animation curve paths being rewritten multiple times might be deleted
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.4] - [2025-04-10]
 

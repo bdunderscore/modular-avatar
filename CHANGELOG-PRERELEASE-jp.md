@@ -10,12 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1558] Merge AnimatorでベースアバターのArmature内のTransformをアニメーションさせると壊れる問題を修正
-- NDMFの依存バージョンを更新
-  - VRChat Avatar Descriptor内のレイヤーが重複している場合、すべてのアニメーターコンテンツが無視される問題を修正
-  - 起動時に発生する `NullReferenceException` を修正
-  - AnimationIndex内の `NullReferenceException` を修正
-  - アニメーションカーブのパスが複数回書き換えられると削除される問題を修正
 
 ### Changed
 
@@ -24,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.12.5] - [2025-04-14]
+
+### Fixed
+- [#1558] Merge AnimatorでベースアバターのArmature内のTransformをアニメーションさせると壊れる問題を修正
+- NDMFの依存バージョンを更新
+  - VRChat Avatar Descriptor内のレイヤーが重複している場合、すべてのアニメーターコンテンツが無視される問題を修正
+  - 起動時に発生する `NullReferenceException` を修正
+  - AnimationIndex内の `NullReferenceException` を修正
+  - アニメーションカーブのパスが複数回書き換えられると削除される問題を修正
 
 ## [1.12.4] - [2025-04-10]
 
