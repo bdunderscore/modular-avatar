@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1558] Fixed an issue where Merge Animators animating transforms in the base avatar's armature would break.
 
 ### Changed
 

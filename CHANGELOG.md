@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Note that if there is an object in the target path, then it will be treated as a relative path. Using
     addressing for Play Audio behaviors consistent with Merge Animator settings is therefore recommended as it will be
     more robust.
+- [#1558] Fixed an issue where Merge Animators animating transforms in the base avatar's armature would break.
 
 ### Changed
 

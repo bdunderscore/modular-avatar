@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -7,6 +8,8 @@ using UnityEngine;
 using ModularAvatarMergeArmature = nadena.dev.modular_avatar.core.ModularAvatarMergeArmature;
 
 #if MA_VRCSDK3_AVATARS
+using System;
+using nadena.dev.modular_avatar.core;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
@@ -100,6 +103,36 @@ public class MergeArmatureTests : TestBase
         }
     }
 
+    [Test]
+    public void RetainsTransformLookthroughTest()
+    {
+        var root = CreatePrefab("TransformLookthrough/RetainsTransformLookthroughCurves.prefab");
+
+        AvatarProcessor.ProcessAvatar(root);
+
+        var testLayer = findFxLayer(root, "test");
+        var motion = (AnimationClip)testLayer.stateMachine.defaultState.motion;
+
+        var subArmature = root.transform.GetChild(0).GetChild(0).GetChild(0);
+        var armaturePath = RuntimeUtil.AvatarRootPath(subArmature.gameObject);
+        var hipsPath = "Armature/Hips";
+            
+        var curves = AnimationUtility.GetCurveBindings(motion)
+            .Select(ecb => (ecb.path,  ecb.type, ecb.propertyName))
+            .ToHashSet();
+        var expectedCurves = new HashSet<(string, Type, string)>()
+        {
+            (armaturePath, typeof(GameObject), "m_IsActive"),
+            (hipsPath, typeof(Transform), "m_LocalScale.x"),
+            (hipsPath, typeof(Transform), "m_LocalScale.y"),
+            (hipsPath, typeof(Transform), "m_LocalScale.z"),
+            // It's not clear if we should be animating the root Armature object here, but this matches the pre-1.12
+            // behavior and is therefore probably best from a compatibility perspective
+            ("Armature", typeof(GameObject), "m_IsActive")
+        };
+            
+        Assert.That(expectedCurves, Is.EquivalentTo(curves));
+    }
 #endif
 
     private static GameObject LoadShapell()
