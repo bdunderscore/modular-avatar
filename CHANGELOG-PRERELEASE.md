@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1558] Fixed an issue where Merge Animators animating transforms in the base avatar's armature would break.
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-alpha.2] - [2025-04-14]
+
+### Fixed
+- [#1558] Fixed an issue where Merge Animators animating transforms in the base avatar's armature would break.
 
 ## [1.13.0-alpha.1] - [2025-04-10]
 
