@@ -22,13 +22,14 @@
  * SOFTWARE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.animator;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -158,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     // Remap any animation clips that reference this bone into its parent
                     _pathRemapper.ReplaceObject(sourceBone.gameObject, sourceBone.transform.parent.gameObject);
-                    UnityEngine.Object.DestroyImmediate(sourceBone.gameObject);
+                    Object.DestroyImmediate(sourceBone.gameObject);
                 }
             }
         }
@@ -185,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public Mesh Retarget()
         {
             var avatarTransform = RuntimeUtil.FindAvatarTransformInParents(renderer.transform);
-            if (avatarTransform == null) throw new System.Exception("Could not find avatar in parents of " + renderer.name);
+            if (avatarTransform == null) throw new Exception("Could not find avatar in parents of " + renderer.name);
 
             var avPos = avatarTransform.position;
             var avRot = avatarTransform.rotation;

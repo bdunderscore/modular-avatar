@@ -1,5 +1,8 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
@@ -7,9 +10,11 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 
 namespace UnitTests.MergeAnimatorTests

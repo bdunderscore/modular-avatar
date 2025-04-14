@@ -164,9 +164,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         var newPath = GetReplacementPath(binding.path);
 
-                        var newBinding = EditorCurveBinding.FloatCurve(newPath, binding.type, binding.propertyName);
-                        clip.SetFloatCurve(newBinding, clip.GetFloatCurve(binding));
-                        clip.SetFloatCurve(binding, null);
+                        if (newPath != binding.path)
+                        {
+                            var newBinding = EditorCurveBinding.FloatCurve(newPath, binding.type, binding.propertyName);
+                            clip.SetFloatCurve(newBinding, clip.GetFloatCurve(binding));
+                            clip.SetFloatCurve(binding, null);
+                        }
                     }
                 }
             }
