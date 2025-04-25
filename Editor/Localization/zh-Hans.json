@@ -78,6 +78,9 @@
   "merge_animator.relative_path_root.tooltip": "解析相对路径时使用的根对象。\n如果未指定，则使用当前对象。",
   "merge_animator.layer_priority": "Animator layer 的合并优先级",
   "merge_animator.layer_priority.tooltip": "控制动画层合并后在 Animator 里的位置，\n由小到大。负值将合并于原有动画层之前，\n0 或正值将合并于之后。",
+  "merge_animator.merge_mode": "合并模式",
+  "merge_animator.merge_mode.Append": "追加到 Animator Controller",
+  "merge_animator.merge_mode.Replace": "替换现有 Animator Controller",
   "merge_armature.lockmode": "位置同步模式",
   "merge_armature.lockmode.not_locked.title": "不同步",
   "merge_armature.lockmode.not_locked.body": "当前对象的骨骼不会和 Avatar 的骨骼位置同步。",
@@ -93,6 +96,7 @@
   "merge_armature.reset_pos.execute": "执行！",
   "merge_armature.reset_pos.heuristic_scale": "根据 Avatar 调整服装的整体比例",
   "merge_armature.reset_pos.heuristic_scale.tooltip": "以臂展作为参考，调整服装的整体比例。\n推荐用于不适配当前 Avatar 的服装。",
+  "merge_blend_tree.motion": "要合并的动画（或 BlendTree）",
   "merge_blend_tree.path_mode": "路径模式",
   "merge_blend_tree.path_mode.tooltip": "在动画中路径的工作模式。\n使用相对路径可以让你在当前对象上录制动画。",
   "merge_blend_tree.relative_path_root": "相对路径根对象",
@@ -153,6 +157,8 @@
   "error.replace_object.replacing_replacement": "[MA-0009] 不能在多个 Replace Object 组件中指定相同的目标对象",
   "error.replace_object.parent_of_target": "[MA-0010] 目标对象不能是此对象的父级",
   "error.singleton": "[MA-0011] 一个 Avatar 中只允许存在一个 {0} 组件",
+  "error.merge_animator.multiple_replacements": "[MA-0012] 多个 Merge Animator 正在尝试替换相同的 Layer",
+  "error.merge_animator.multiple_replacements:hint": "由于 Merge Animator 的“替换”模式会将整个 Animator Controller 替换为另一个 Animator Controller，因此无法确定你要保留哪一个。请尝试只保留一个使用“替换”模式的 Merge Animator，或将它们设置为“追加”模式。",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此部件上找不到 Renderer",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用于所在对象上的 Skinned Mesh Renderer。你是否将它附加到了正确的对象上？",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此部件的 Renderer 上找不到网格（Mesh）",
@@ -292,5 +298,6 @@
   "sync-param-sequence.parameters": "共用参数的 Asset",
   "sync-param-sequence.parameters.tooltip": "用于存储共用参数的 Assets。请勿使用已经在 Avatar descriptor 中设置的相同参数 。",
   "sync-param-sequence.create-asset": "新增",
-  "sync-param-sequence.create-asset.tooltip": "创建一个新的 expression parameters"
+  "sync-param-sequence.create-asset.tooltip": "创建一个新的 expression parameters",
+  "platform.vrchat.settings.mmd_world_support": "MMD 世界支持"
 }
