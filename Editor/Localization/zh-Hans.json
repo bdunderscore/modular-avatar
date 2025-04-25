@@ -76,7 +76,7 @@
   "merge_animator.match_avatar_write_defaults.tooltip": "使用与 Avatar 一样的 Write Defaults 设置。\n如果 Avatar 将 WD 混用，Animator 的 WD 设置将维持不变。",
   "merge_animator.relative_path_root": "相对路径根对象",
   "merge_animator.relative_path_root.tooltip": "解析相对路径时使用的根对象。\n如果未指定，则使用当前对象。",
-  "merge_animator.layer_priority": "Animator layer 的合并优先级",
+  "merge_animator.layer_priority": "Animator Layer 的合并优先级",
   "merge_animator.layer_priority.tooltip": "控制动画层合并后在 Animator 里的位置，\n由小到大。负值将合并于原有动画层之前，\n0 或正值将合并于之后。",
   "merge_animator.merge_mode": "合并模式",
   "merge_animator.merge_mode.Append": "追加到 Animator Controller",
@@ -298,6 +298,6 @@
   "sync-param-sequence.parameters": "共用参数的 Asset",
   "sync-param-sequence.parameters.tooltip": "用于存储共用参数的 Assets。请勿使用已经在 Avatar descriptor 中设置的相同参数 。",
   "sync-param-sequence.create-asset": "新增",
-  "sync-param-sequence.create-asset.tooltip": "创建一个新的 expression parameters",
+  "sync-param-sequence.create-asset.tooltip": "创建一个新的 Expression Parameters",
   "platform.vrchat.settings.mmd_world_support": "MMD 世界支持"
 }
