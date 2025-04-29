@@ -16,6 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         private static readonly Action<Harmony>[] patches = new Action<Harmony>[]
         {
             //HierarchyViewPatches.Patch,
+            PatchAddCurveWindow.Patch
         };
 
         [InitializeOnLoadMethod]
