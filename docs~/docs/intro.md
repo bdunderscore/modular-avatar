@@ -13,7 +13,10 @@ you want to use. It can automatically merge outfits onto your avatar, build an a
 
 ## Installation
 
+### Install via VCC
+
 The recommended way to install Modular Avatar is using the VRChat Creator Companion. After installing the VCC, click here:
+
 * [Add Modular Avatar to VCC](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json)
 
 Then, go to "manage project" for your project, and click the + next to Modular Avatar.
@@ -22,29 +25,16 @@ Then, go to "manage project" for your project, and click the + next to Modular A
 
 To update to the latest version, just click the green arrow in the "Latest Version" column.
 
-## Prerelease versions
-
-To make prerelease versions available in the VCC, [click here](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
-
-Then, in your VCC Settings -> Packages window, uncheck the `bd_` repository, check the `bd_ prerelease` repository, and enable `Show pre-release packages`.
-
-![Pre-release settings](prerelease.png)
-
-The documentation for the prerelease branch can be [found here](https://modular-avatar.nadena.dev/dev).
-
-Prerelease versions may contain bugs, and/or may have compatibility breaks as development progresses. Please leave
-feedback and bug reports at the [github issues page](https://github.com/bdunderscore/modular-avatar/issues).
-
-## Installation via ALCOM
+### Install via ALCOM
 
 If you are using [ALCOM](https://vrc-get.anatawa12.com/en/alcom/) to install Modular Avatar, follow these steps:
 
 1. Open "Packages" and select "ADD REPOSITORY".
 2. Enter the following values under "Enter information about the repository" and click "ADD REPOSITORY":
-    - `https://vpm.nadena.dev/vpm.json`
+    * `https://vpm.nadena.dev/vpm.json`
 3. Confirm the following details are displayed, then click "Add VPM Repository":
-    - Repository Name: `bd_`
-    - URL: The URL you entered.
+    * Repository Name: `bd_`
+    * URL: The URL you entered.
 
 Afterward, open "Manage Project" for your project, click the + next to Modular Avatar, and then click `APPLY`.
 
@@ -56,16 +46,31 @@ To update to the latest version, click the area with the version number and gree
 
 ![ALCOM Update UI](alcom-update.png)
 
-## Install Prerelease versions via ALCOM
+## Prerelease versions
+
+The documentation for the prerelease branch can be [found here](https://modular-avatar.nadena.dev/dev).
+
+Prerelease versions may contain bugs, and/or may have compatibility breaks as development progresses. Please leave
+feedback and bug reports at the [github issues page](https://github.com/bdunderscore/modular-avatar/issues).
+
+### Install Prerelease versions via VCC
+
+To make prerelease versions available in the VCC, [click here](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
+
+Then, in your VCC Settings -> Packages window, uncheck the `bd_` repository, check the `bd_ prerelease` repository, and enable `Show pre-release packages`.
+
+![Pre-release settings](prerelease.png)
+
+### Install Prerelease versions via ALCOM
 
 If you are using [ALCOM](https://vrc-get.anatawa12.com/en/alcom/) to install Modular Avatar, follow these steps:
 
 1. Open "Packages" and select "ADD REPOSITORY".
 2. Enter the following values under "Enter information about the repository" and click "ADD REPOSITORY":
-    - `https://vpm.nadena.dev/vpm-prerelease.json`
+    * `https://vpm.nadena.dev/vpm-prerelease.json`
 3. Confirm the following details are displayed, then click "Add VPM Repository":
-    - Repository Name: `bd_ (prereleases)`
-    - URL: The URL you entered.
+    * Repository Name: `bd_ (prereleases)`
+    * URL: The URL you entered.
 4. When you currenly uses stable version, In your ALCOM Packages window, uncheck `bd_` repo and check `bd_ (prereleases)` repo.
 5. In your ALCOM Settings window, enable `Show Prerelease Packages`.
 
@@ -86,6 +91,7 @@ To update to the latest version, click the area with the version number and gree
 ## What to read next
 
 Once you've installed MA, check out one of the tutorials below:
+
 * [Simple clothing setup](/docs/tutorials/clothing)
 * [Advanced clothing setup](/docs/tutorials/adv_clothing)
 * [Toggle an object](/docs/tutorials/object_toggle/)

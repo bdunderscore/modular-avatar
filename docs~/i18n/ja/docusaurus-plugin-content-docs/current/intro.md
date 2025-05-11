@@ -11,7 +11,10 @@ Modular Avatarの機能はそれぞれコンポーネントとして提供され
 
 ## インストール
 
+### VCCでのインストール
+
 VRChat Creator CompanionでModular Avatarをインストールすることをお勧めします。VCCをインストールしたら、こちらをクリックしてください：
+
 * [Modular AvatarをVCCに追加](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json)
 
 その後、プロジェクトの"manage project"を開き、Modular Avatarの+をクリックしてください。
@@ -20,24 +23,12 @@ VRChat Creator CompanionでModular Avatarをインストールすることをお
 
 最新版にアップデートするには、"Latest Version"の緑色の矢印をクリックしてください。
 
-## テスト版
-
-VCCでテスト版をインストールできるようにするには、[こちらをクリック](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
-
-そして、VCCの設定画面のPackagesタブで、`bd_`のリポジトリをチェックを外し、`bd_ prerelease`のリポジトリをチェックを入れ、`Show pre-release packages`にチェックを入れてください。
-
-![Pre-release settings](prerelease.png)
-
-テスト版のドキュメントは[こちら](https://modular-avatar.nadena.dev/dev)にあります.
-
-テスト版は開発中のため、バグがあったり、互換性のない変更を加える可能性があります。
-バグ報告やフィードバックは[GitHubのissueページ](https://github.com/bdunderscore/modular-avatar/issues)へお願いします。
-
-## ALCOMでのインストール
+### ALCOMでのインストール
 
 [ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)でModular Avatarのインストールを指定する場合があります。
 
 インストール後、以下の手順でVPMリポジトリを追加してください。
+
 * 「パッケージ管理」 > 「VPMリポジトリを追加」
 * 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
   * `https://vpm.nadena.dev/vpm.json`
@@ -55,11 +46,27 @@ VCCでテスト版をインストールできるようにするには、[こち�
 
 ![ALCOM Update UI](alcom-update.png)
 
-## ALCOMでのテスト版インストール
+## テスト版
+
+テスト版のドキュメントは[こちら](https://modular-avatar.nadena.dev/dev)にあります.
+
+テスト版は開発中のため、バグがあったり、互換性のない変更を加える可能性があります。
+バグ報告やフィードバックは[GitHubのissueページ](https://github.com/bdunderscore/modular-avatar/issues)へお願いします。
+
+### VCCでのテスト版インストール
+
+VCCでテスト版をインストールできるようにするには、[こちらをクリック](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
+
+そして、VCCの設定画面のPackagesタブで、`bd_`のリポジトリをチェックを外し、`bd_ prerelease`のリポジトリをチェックを入れ、`Show pre-release packages`にチェックを入れてください。
+
+![Pre-release settings](prerelease.png)
+
+### ALCOMでのテスト版インストール
 
 [ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)でModular Avatarのインストールを指定する場合があります。
 
 インストール後、以下の手順でVPMリポジトリを追加してください。
+
 * 「パッケージ管理」 > 「VPMリポジトリを追加」
 * 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
   * `https://vpm.nadena.dev/vpm-prerelease.json`
@@ -68,6 +75,7 @@ VCCでテスト版をインストールできるようにするには、[こち�
   * URL: 入力したURL
 
 VPMリポジトリの追加が完了したら、テスト版が表示されるように変更します。
+
 * （現在「通常版」を使用している場合は）「パッケージ管理」タブで、`bd_`リポジトリのチェックを外し、`bd_ (prereleases)`リポジトリのチェックを入れてください。
 * 「設定」タブで、 `VPMパッケージ` の中にある `プレリリース版のパッケージを表示する`にチェックを入れてください。
 
