@@ -40,11 +40,10 @@ feedback and bug reports at the [github issues page](https://github.com/bdunders
 If you are using [ALCOM](https://vrc-get.anatawa12.com/en/alcom/) to install Modular Avatar, follow these steps:
 
 1. Open "Packages" and select "ADD REPOSITORY".
-2. Enter the following values under "Enter informatino about the repository" and click "ADD REPOSITORY":
-    - Stable: `https://vpm.nadena.dev/vpm.json`
-    - Prerelease: `https://vpm.nadena.dev/vpm-prerelease.json`
+2. Enter the following values under "Enter information about the repository" and click "ADD REPOSITORY":
+    - `https://vpm.nadena.dev/vpm.json`
 3. Confirm the following details are displayed, then click "Add VPM Repository":
-    - Repository Name: `bd_` or `bd_ (prereleases)`
+    - Repository Name: `bd_`
     - URL: The URL you entered.
 
 Afterward, open "Manage Project" for your project, click the + next to Modular Avatar, and then click `APPLY`.
@@ -57,6 +56,32 @@ To update to the latest version, click the area with the version number and gree
 
 ![ALCOM Update UI](alcom-update.png)
 
+## Install Prerelease versions via ALCOM
+
+If you are using [ALCOM](https://vrc-get.anatawa12.com/en/alcom/) to install Modular Avatar, follow these steps:
+
+1. Open "Packages" and select "ADD REPOSITORY".
+2. Enter the following values under "Enter information about the repository" and click "ADD REPOSITORY":
+    - `https://vpm.nadena.dev/vpm-prerelease.json`
+3. Confirm the following details are displayed, then click "Add VPM Repository":
+    - Repository Name: `bd_ (prereleases)`
+    - URL: The URL you entered.
+4. When you currenly uses stable version, In your ALCOM Packages window, uncheck `bd_` repo and check `bd_ (prereleases)` repo.
+5. In your ALCOM Settings window, enable `Show Prerelease Packages`.
+
+![ALCOM Change Repogitories UI](alcom-prerelease-repo.png)
+
+![ALCOM enable Prerelease UI](alcom-prerelease-settings.png)
+
+Afterward, open "Manage Project" for your project, click the + next to Modular Avatar, and then click `APPLY`.
+
+![ALCOM Install UI](alcom-install.png)
+
+![ALCOM Install Confirm UI](alcom-install-confirm.png)
+
+To update to the latest version, click the area with the version number and green arrow, then click `APPLY`.
+
+![ALCOM Update UI](alcom-update.png)
 
 ## What to read next
 

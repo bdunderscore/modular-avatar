@@ -40,13 +40,42 @@ VCCでテスト版をインストールできるようにするには、[こち�
 インストール後、以下の手順でVPMリポジトリを追加してください。
 * 「パッケージ管理」 > 「VPMリポジトリを追加」
 * 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
-  * 通常版: `https://vpm.nadena.dev/vpm.json`
-  * テスト版: `https://vpm.nadena.dev/vpm-prerelease.json`
+  * `https://vpm.nadena.dev/vpm.json`
 * 以下の情報が記載されることを確認し、「VPMリポジトリを追加」
-  * リポジトリ名: `bd_`　もしくは `bd_ (prereleases)`
+  * リポジトリ名: `bd_`
   * URL: 入力したURL
 
 その後、プロジェクトの"管理"を開き、Modular Avatarの+をクリックし、「適用」をクリックしてください。
+
+![ALCOM Install UI](alcom-install.png)
+
+![ALCOM Install Confirm UI](alcom-install-confirm.png)
+
+最新版にアップデートするには、バージョン番号と緑色の矢印を囲った枠内をクリックし、「適用」をクリックしてください。
+
+![ALCOM Update UI](alcom-update.png)
+
+## ALCOMでのテスト版インストール
+
+[ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)でModular Avatarのインストールを指定する場合があります。
+
+インストール後、以下の手順でVPMリポジトリを追加してください。
+* 「パッケージ管理」 > 「VPMリポジトリを追加」
+* 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
+  * `https://vpm.nadena.dev/vpm-prerelease.json`
+* 以下の情報が記載されることを確認し、「VPMリポジトリを追加」
+  * リポジトリ名: `bd_ (prereleases)`
+  * URL: 入力したURL
+
+VPMリポジトリの追加が完了したら、テスト版が表示されるように変更します。
+* （現在「通常版」を使用している場合は）「パッケージ管理」タブで、`bd_`リポジトリのチェックを外し、`bd_ (prereleases)`リポジトリのチェックを入れてください。
+* 「設定」タブで、 `VPMパッケージ` の中にある `プレリリース版のパッケージを表示する`にチェックを入れてください。
+
+![ALCOM Change Repogitories UI](alcom-prerelease-repo.png)
+
+![ALCOM enable Prerelease UI](alcom-prerelease-settings.png)
+
+終わったら、プロジェクトの"管理"を開き、Modular Avatarの+をクリックし、「適用」をクリックしてください。
 
 ![ALCOM Install UI](alcom-install.png)
 
