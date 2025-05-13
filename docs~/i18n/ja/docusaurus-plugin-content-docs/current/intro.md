@@ -2,6 +2,9 @@
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Modular Avatar
 
 Modular Avatar（モジュラーアバター）は、**非破壊的な**アバター製作用、そしてアバター部品の配布補助ツールの集まりです。
@@ -11,73 +14,22 @@ Modular Avatarの機能はそれぞれコンポーネントとして提供され
 
 ## インストール
 
-### VCCでのインストール
+ALCOMでModular Avatarをインストールすることをお勧めします。VRChat Creator Companionを使用してインストールすることもできます。
 
-VRChat Creator CompanionでModular Avatarをインストールすることをお勧めします。VCCをインストールしたら、こちらをクリックしてください：
+<Tabs>
+<TabItem value="ALCOM" label="ALCOM" default>
 
-* [Modular AvatarをVCCに追加](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json)
-
-その後、プロジェクトの"manage project"を開き、Modular Avatarの+をクリックしてください。
-
-![VCC UI](vcc-install.png)
-
-最新版にアップデートするには、"Latest Version"の緑色の矢印をクリックしてください。
-
-### ALCOMでのインストール
-
-[ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)でModular Avatarのインストールを指定する場合があります。
+まずは[ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)をインストールしてください。
 
 インストール後、以下の手順でVPMリポジトリを追加してください。
 
 * 「パッケージ管理」 > 「VPMリポジトリを追加」
 * 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
-  * `https://vpm.nadena.dev/vpm.json`
+  * 通常版: `https://vpm.nadena.dev/vpm.json`
+  * テスト版: `https://vpm.nadena.dev/vpm-prerelease.json` (ベータ版使用の場合)
 * 以下の情報が記載されることを確認し、「VPMリポジトリを追加」
   * リポジトリ名: `bd_`
   * URL: 入力したURL
-
-その後、プロジェクトの"管理"を開き、Modular Avatarの+をクリックし、「適用」をクリックしてください。
-
-![ALCOM Install UI](alcom-install.png)
-
-![ALCOM Install Confirm UI](alcom-install-confirm.png)
-
-最新版にアップデートするには、バージョン番号と緑色の矢印を囲った枠内をクリックし、「適用」をクリックしてください。
-
-![ALCOM Update UI](alcom-update.png)
-
-## テスト版
-
-テスト版のドキュメントは[こちら](https://modular-avatar.nadena.dev/dev)にあります.
-
-テスト版は開発中のため、バグがあったり、互換性のない変更を加える可能性があります。
-バグ報告やフィードバックは[GitHubのissueページ](https://github.com/bdunderscore/modular-avatar/issues)へお願いします。
-
-### VCCでのテスト版インストール
-
-VCCでテスト版をインストールできるようにするには、[こちらをクリック](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm-prerelease.json)
-
-そして、VCCの設定画面のPackagesタブで、`bd_`のリポジトリをチェックを外し、`bd_ prerelease`のリポジトリをチェックを入れ、`Show pre-release packages`にチェックを入れてください。
-
-![Pre-release settings](prerelease.png)
-
-### ALCOMでのテスト版インストール
-
-[ALCOM](https://vrc-get.anatawa12.com/ja/alcom/)でModular Avatarのインストールを指定する場合があります。
-
-インストール後、以下の手順でVPMリポジトリを追加してください。
-
-* 「パッケージ管理」 > 「VPMリポジトリを追加」
-* 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」
-  * `https://vpm.nadena.dev/vpm-prerelease.json`
-* 以下の情報が記載されることを確認し、「VPMリポジトリを追加」
-  * リポジトリ名: `bd_ (prereleases)`
-  * URL: 入力したURL
-
-VPMリポジトリの追加が完了したら、テスト版が表示されるように変更します。
-
-* （現在「通常版」を使用している場合は）「パッケージ管理」タブで、`bd_`リポジトリのチェックを外し、`bd_ (prereleases)`リポジトリのチェックを入れてください。
-* 「設定」タブで、 `VPMパッケージ` の中にある `プレリリース版のパッケージを表示する`にチェックを入れてください。
 
 ![ALCOM Change Repogitories UI](alcom-prerelease-repo.png)
 
@@ -92,6 +44,52 @@ VPMリポジトリの追加が完了したら、テスト版が表示される�
 最新版にアップデートするには、バージョン番号と緑色の矢印を囲った枠内をクリックし、「適用」をクリックしてください。
 
 ![ALCOM Update UI](alcom-update.png)
+</TabItem>
+
+<TabItem value="VCC" label="VRChat Creator Companion">
+VRChat Creator Companionを使用したい場合、[こちらからVCCをインストール](https://vrchat.com/home/download)してください。
+
+VCCをインストールしたら、こちらをクリックしてください：
+* [Modular AvatarをVCCに追加](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json)
+
+その後、プロジェクトの"manage project"を開き、Modular Avatarの+をクリックしてください。
+
+![VCC UI](vcc-install.png)
+
+最新版にアップデートするには、"Latest Version"の緑色の矢印をクリックしてください。
+
+</TabItem>
+</Tabs>
+
+## テスト版 {#betas}
+
+:::warning
+
+テスト版のインストールにはALCOMを使用してください。VCCの依存関係解決のバグのため、VCCではテスト版をインストールすることをお勧めしません。
+
+:::
+
+ALCOMでテスト版を使用するには、以下の手順を実行してください。
+1. 「パッケージ管理」 > 「VPMリポジトリを追加」
+2. 「リポジトリ情報を入力」に次の値を入力し、「VPMリポジトリを追加」: `https://vpm.nadena.dev/vpm-prerelease.json`
+3. 以下の情報が記載されることを確認し、「VPMリポジトリを追加」
+   * リポジトリ名: `bd_ (prereleases)`
+   * URL: 入力したURL
+
+VPMリポジトリの追加が完了したら、テスト版が表示されるように変更します。
+
+* （現在「通常版」を使用している場合は）「パッケージ管理」タブで、`bd_`リポジトリのチェックを外し、`bd_ (prereleases)`リポジトリのチェックを入れてください。
+* 「設定」タブで、 `VPMパッケージ` の中にある `プレリリース版のパッケージを表示する`にチェックを入れてください。
+
+![Pre-release settings](prerelease.png)
+
+テスト版のドキュメントは[こちら](https://modular-avatar.nadena.dev/dev)にあります.
+
+テスト版は開発中のため、バグがあったり、互換性のない変更を加える可能性があります。
+バグ報告やフィードバックは[GitHubのissueページ](https://github.com/bdunderscore/modular-avatar/issues)へお願いします。
+
+## ALCOMでのインストール
+
 
 ## インストール後
 

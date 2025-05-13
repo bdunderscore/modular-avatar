@@ -8,9 +8,13 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Translate, {translate} from '@docusaurus/Translate';
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 import styles from '@site/src/pages/index.module.css';
 
-const install_help = require('@site/static/img/ma-install-help.png').default;
+const install_help_alcom = require('@site/static/img/ma-install-help-alcom.png').default;
+const install_help_vcc = require('@site/static/img/ma-install-help-vcc.png').default;
 
 function ModalContent({closeModal}) {
     return <div className="card card--modal">
@@ -20,9 +24,8 @@ function ModalContent({closeModal}) {
         <div className={"card__body"}>
             <p>
                 <Translate>
-                    You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion
-                    and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking
-                    the button shown below.
+                    You should have seen a prompt to add Modular Avatar to ALCOM or VCC. If you didn't, try installing or reinstalling ALCOM or VCC using the links below.
+                    Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown below.
                 </Translate>
             </p>
             <p>
@@ -32,7 +35,17 @@ function ModalContent({closeModal}) {
                     </Translate>
                 </a>
             </p>
-            <img src={install_help} alt={translate({message: "Click the plus button to install"})}/>
+
+            <Tabs>
+                <TabItem value="alcom" label="ALCOM" default>
+                    <a href="https://vrc-get.anatawa12.com/en/alcom/"><Translate>Download ALCOM here</Translate></a>
+                    <img src={install_help_alcom} alt={translate({message: "Click the plus button to install"})}/>
+                </TabItem>
+                <TabItem value="vcc" label="VRChat Creator Companion">
+                    <a href="https://vrchat.com/home/download"><Translate>Download VRChat Creator Companion here</Translate></a>
+                    <img src={install_help_vcc} alt={translate({message: "Click the plus button to install"})}/>
+                </TabItem>
+            </Tabs>
         </div>
         <div className={"card__footer"}>
             <button className={"button button--secondary button--block"} onClick={closeModal}>
@@ -61,7 +74,7 @@ export default function InstallButton() {
                 to="vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json"
                 onClick={() => { setShowModal(true); return true; }}
             >
-                <Translate>Download (using VCC)</Translate>
+                <Translate>Download</Translate>
             </Link>
             { showModal && 
             <Modal isOpen={{showModal}} onRequestClose={() => setShowModal(false)}
