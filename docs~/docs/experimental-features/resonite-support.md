@@ -8,6 +8,9 @@ To build an avatar for resonite, open the NDMF Console (Tools -> NDM Framework -
 If all goes well, you'll see a "Build finished!" message. You can then either "copy to clipboard", and then hit Ctrl-V in resonite, or click "Save as..." to save the avatar as a `resonitepackage` file.
 
 The resonite build process will automatically copy certain avatar features, such as visemes, eye position, and physbones/dynamic bones to the Resonite avatar.
+If you've already set up your avatar for VRChat, no additional configuration is needed. If your avatar is not set up
+for VRChat, or if you don't have the VRCSDK installed, refer to the documentation on [portable avatar components](./portable-avatar-components.md)
+for more information on how to set up your avatar.
 
 ## Supported features
 
@@ -53,7 +56,7 @@ The resonite build process will automatically copy certain avatar features, such
 Modular Avatar will detect dynamic bones created using either [Portable Dynamic Bones](./portable-avatar-components#portable-dynamic-bones) or VRChat's PhysBones, and attempt to convert them to Resonite's dynamic bones, including any colliders.
 
 Since Resonite has its own dynamic bone system, most configuration options are not converted.
-However, exclusions (including Physbone Blockers), colliders, and collision radius are converted.
+However, exclusions (including Physbone Blockers), colliders, collision radius, and grabbability are converted.
 
 Modular Avatar will group Dynamic Bones into a number of named "templates" based on their bone names.
 You can override the template name by either adding a portable dynamic bone component with a group name specified. Alternately, in resonite, you can create a new template by cloning an object under the `Avatar Settings` -> `Dynamic Bone Settings` Slot, setting its name to the new template name,  and then changing the name found on the `Template Name` slot underneath the slot that defined the dynamic bone.
@@ -76,15 +79,15 @@ Modular Avatar defines a number of default Dynamic Variables that can be used by
 
 Some of these dynvars are still somewhat experimental, and may change in the future.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| `modular_avatar/AvatarRoot` | `Slot` | The root slot of the avatar (parent of `CenteredRoot`) |
-| `modular_avatar/AvatarWorn` | `bool` | Whether the avatar is currently worn (detected by the avatar being a direct child of the User slot) |
-| `modular_avatar/AvatarSettingsRoot` | `Slot` | The `Avatar Settings` object |
+| Name                                   | Type | Description |
+|----------------------------------------| ---- | ----------- |
+| `modular_avatar/AvatarRoot`            | `Slot` | The root slot of the avatar (parent of `CenteredRoot`) |
+| `modular_avatar/AvatarWorn`            | `bool` | Whether the avatar is currently worn (detected by the avatar being a direct child of the User slot) |
+| `modular_avatar/AvatarSettingsRoot`    | `Slot` | The `Avatar Settings` object |
 | `modular_avatar/AvatarPoseNode.[type]` | `Slot` | The Slot containing the `AvatarPoseNode` component for node `[type]` (e.g. `Head Proxy`) |
-| `modular_avatar/MeshNotLoaded` | `bool` | _False_ if there are any unloaded meshes in the avatar, _missing_ otherwise. _This dynvar is subject to change in the future._ |
-| `modular_avatar/BoneRef_[name]` | `Slot` | References a humanoid bone by name. _Name is subject to change in the future._ |
-| `modular_avatar/BonePose_[name]` | `float4x4` | The initial pose of the bone referenced by `BoneRef_[name]`. _Name is subject to change in the future. Values might not be quite correct yet._ |
+| `modular_avatar/MeshNotLoaded`         | `bool` | _False_ if there are any unloaded meshes in the avatar, _missing_ otherwise. _This dynvar is subject to change in the future._ |
+| `modular_avatar/HumanBone.[name]`      | `Slot` | References a humanoid bone by name. _Name is subject to change in the future._ |
+| `modular_avatar/HumanBonePose.[name]`  | `float4x4` | The initial pose of the bone referenced by `BoneRef_[name]`. _Name is subject to change in the future. Values might not be quite correct yet._ |
 
 Additionally, an `Avatar` Dynamic Variable Space is created on the avatar root for use by other gimmicks.
 
