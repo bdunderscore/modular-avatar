@@ -1,11 +1,50 @@
 # Resonite対応
 
-Modular Avatarには、実験的な機能として、Resonite向けのアバターをビルドできます。
-この機能を有効にするには、ALCOMを使用して「Modular Avatar - Resonite support」パッケージをインストールし、[実験的な機能のサポート](../experimental-features)を有効にする必要があります。
+Modular Avatarでは、実験的な機能として、Resonite向けのアバターをビルドできます。
 
-Resonite向けのアバターをビルドするには、NDMFコンソール (Tools -> NDM Framework -> NDMF Console)を開き、ウィンドウの上部でアバターを選択し、「Avatar platform」として「Resonite」を選択し、Buildをクリックしてください。
-正常にビルドが完了すると、「Build finished!」というメッセージが表示されます。
-その後、「copy to clipboard」をクリックして、resoniteでCtrl-Vを押すか、「Save as...」をクリックして、アバターを`resonitepackage`ファイルとして保存できます。
+## ビルドに必要なツールの事前インストール
+
+Resoniteアバターのビルドには、`Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0` が必要です。
+インストールされていない方は、以下の手順にでインストールしてください。
+
+### Modular Avatar - Resonite support
+
+1. [インストール](../intro.md) を確認し、テスト版のリポジトリを追加します。
+2. プロジェクトの "管理" より、 `Modular Avatar - Resonite support` の `+` をクリックし、「適用」をクリックしてください。
+
+インストール後、[「実験的な機能のサポート」の有効化](../experimental-features)を実施してください。
+
+### Microsoft .NET Runtime 9.0
+
+1. Windowsの下部にある `検索` をクリック。 `terminal` と入力し、 `ターミナル アプリ` をクリックします。
+2. 次の通り入力し、Enterを押してください: `winget install Microsoft.DotNet.Runtime.9`
+3. 利用規約表示が出た場合は、 `Y` を入力し、Enterを押して進めてください。
+
+## ビルド
+
+以下の手順でResonite向けアバターをビルドします。
+
+1. NDMFコンソール (Tools -> NDM Framework -> NDMF Console)を開く
+2. ウィンドウの上部でアバターを選択
+3. ウィンドウの下部「Avatar platform」で「Resonite」を選択
+4. Buildをクリック
+
+![Resonite Build Howto](build-resonite_support.png)
+
+正常にビルドが完了すると、NDMF Console の下部に「Build finished!」というメッセージが表示されます。
+
+![Resonite Build Success](result-resonite_support.png)
+
+:::tip
+
+エラーが出る場合は `Console` タブをクリックし、一番下に出ている **赤色のビックリマーク** を確認してください。
+
+:::
+
+ビルドが完了したら、Resoniteにインストールします。以下の2通りの方法でインストールできます。
+
+1. 「Copy to Clipboard」をクリックして、Resonite のダッシュメニューより 「クリップボードからインポート」 を押す
+2. 「Save as...」をクリックして、アバターファイルを Resonite Package として保存後、必要に応じて Resonite に ドラッグ & ドロップ
 
 Resoniteのビルドプロセスは、ビルド中にアバターの特定の機能（ビジュアル、目の位置、物理ボーン/ダイナミックボーンなど）を自動的にコピーします。
 すでにVRChat向けにアバターを設定している場合は、追加の設定は必要ありません。

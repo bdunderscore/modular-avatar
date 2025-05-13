@@ -1,6 +1,50 @@
 # Resonite support
 
 Modular Avatar has experimental support for building avatars for Resonite.
+
+## Pre-Build
+
+building avatars for resonite requires `Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0`.
+
+### Modular Avatar - Resonite support
+
+1. [Add pre-release repogitory](../intro.md).
+2. Afterward, open "Manage Project" for your project, click the + next to `Modular Avatar - Resonite support`, and then click `APPLY`.
+
+After install it, [enable experimental features](../experimental-features).
+
+### Microsoft .NET Runtime 9.0
+
+1. Click `Search` at the bottom of Windows, taskbar. enter `terminal` , then click `Terminal App`.
+2. Enter `winget install Microsoft.DotNet.Runtime.9`, then press `Enter`.
+3. If the terms of use are displayed, enter `Y` and press Enter to proceed.
+
+## Build
+
+Follow the steps below to build an avatar for Resonite.
+
+1. Open the NDMF console (Tools -> NDM Framework -> NDMF Console)
+2. Select the avatar at the top of the window
+3. Select `Resonite` under `Avatar platform` at the bottom of the window
+4. Click Build
+
+![Resonite Build Howto](build-resonite_support.png)
+
+When the build is completed successfully, the message `Build finished!` appears at the bottom of the NDMF Console.
+
+![Resonite Build Success](result-resonite_support.png)
+
+:::tip
+
+If you get an error, click on the `Console` tab and look at the bottom for a **red exclamation mark**.
+:::
+
+Once the build is complete, install it into Resonite. There are two ways to install it:
+
+1. Click "Copy to Clipboard" and then click `Paste content from clipboard` from the Resonite dash menu.
+2. Click "Save as..." to save the avatar file as a Resonite Package, then drag and drop it into Resonite.
+
+Modular Avatar has experimental support for building avatars for Resonite.
 Enabling this feature requires that you install the "Modular Avatar - Resonite support" package using ALCOM,
 and that you enable [experimental feature support](../experimental-features).
 
