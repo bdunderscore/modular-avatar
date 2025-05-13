@@ -301,5 +301,17 @@
   },
   "Tutorials": {
     "message": "チュートリアル"
+  },
+  "You should have seen a prompt to add Modular Avatar to ALCOM or VCC. If you didn't, try installing or reinstalling ALCOM or VCC using the links below. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown below.": {
+    "message": "ALCOMかVCCにModular Avatarを追加する確認画面が出たはずです。もし出てない場合は、下記のリンクからALCOMかVCCをインストールまたは再インストールしてみてください。設定したあとは、下記のボタンを押すことでプロジェクトにModular Avatarを追加できます。"
+  },
+  "Download ALCOM here": {
+    "message": "ALCOMのダウンロードはこちら"
+  },
+  "Download VRChat Creator Companion here": {
+    "message": "VRChat Creator Companionのダウンロードはこちら"
+  },
+  "Download": {
+    "message": "ダウンロード"
   }
 }

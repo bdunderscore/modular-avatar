@@ -18,5 +18,21 @@
   "sidebar.tutorialSidebar.category.Dealing with problems": {
     "message": "Dealing with problems",
     "description": "The label for category Dealing with problems in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Reactive Components": {
+    "message": "Reactive Components",
+    "description": "The label for category Reactive Components in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.General Behavior": {
+    "message": "General Behavior",
+    "description": "The label for category General Behavior in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Unity 2019 support": {
+    "message": "Unity 2019 support",
+    "description": "The label for category Unity 2019 support in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Experimental features": {
+    "message": "Experimental features",
+    "description": "The label for category Experimental features in sidebar tutorialSidebar"
   }
 }
