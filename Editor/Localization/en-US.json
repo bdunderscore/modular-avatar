@@ -311,5 +311,6 @@
   "platform.vrchat.settings.mmd_world_support": "MMD world support",
   "platform_filter.platform": "Platform",
   "platform_filter.exclude": "Exclude this platform",
-  "platform_filter.include": "Include this platform"
+  "platform_filter.include": "Include this platform",
+  "rename_collision_tags.label": "Tag"
 }

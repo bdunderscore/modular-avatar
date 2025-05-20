@@ -300,5 +300,6 @@
   "sync-param-sequence.parameters.tooltip": "共用パラメーターがこのアセットに保持されます。アバターデスクリプターに使われるアセットを流用しないでください。",
   "sync-param-sequence.create-asset": "新規作成",
   "sync-param-sequence.create-asset.tooltip": "新しい共用パラメーターアセットを作成します",
-  "platform.vrchat.settings.mmd_world_support": "MMDワールド対応"
+  "platform.vrchat.settings.mmd_world_support": "MMDワールド対応",
+  "rename_collision_tags.label": "タグ"
 }
