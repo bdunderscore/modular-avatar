@@ -4,11 +4,11 @@ Modular Avatar has experimental support for building avatars for Resonite.
 
 ## Pre-Build
 
-building avatars for resonite requires `Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0`.
+Building avatars for Resonite requires `Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0`.
 
 ### Modular Avatar - Resonite support
 
-1. [Add pre-release repogitory](../intro.md).
+1. [Add pre-release repository](../intro.md).
 2. Afterward, open "Manage Project" for your project, click the + next to `Modular Avatar - Resonite support`, and then click `APPLY`.
 
 After install it, [enable experimental features](../experimental-features).
