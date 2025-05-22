@@ -5,7 +5,7 @@ Modular Avatarでは、実験的な機能として、Resonite向けのアバタ�
 ## ビルドに必要なツールの事前インストール
 
 Resoniteアバターのビルドには、`Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0` が必要です。
-インストールされていない方は、以下の手順にでインストールしてください。
+インストールされていない方は、以下の手順でインストールしてください。
 
 ### Modular Avatar - Resonite support
 
