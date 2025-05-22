@@ -19,6 +19,8 @@ Before enabling experimental features, make sure you have the latest (beta) vers
 To enable experimental features, open "Tools -> NDM Framework -> Experimental Features" in the menu bar.
 This will open a window where you can enable or disable experimental features.
 
+![Experimental Features](activate-experimental_features.png)
+
 ## List of experimental features
 
 - [Resonite support](./resonite-support.md)
