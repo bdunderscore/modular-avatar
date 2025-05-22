@@ -2,22 +2,16 @@
 
 Modular Avatar has experimental support for building avatars for Resonite.
 
-## Pre-Build
+## Getting started, and your first avatar build
 
-Building avatars for Resonite requires `Modular Avatar - Resonite support` / `Microsoft .NET Runtime 9.0`.
+### Installing Modular Avatar - Resonite support
 
-### Modular Avatar - Resonite support
+Building avatars for Resonite requires installing the VCC package `Modular Avatar - Resonite support`. To install this package:
 
 1. [Add pre-release repository](../intro.md).
 2. Afterward, open "Manage Project" for your project, click the + next to `Modular Avatar - Resonite support`, and then click `APPLY`.
 
-After install it, [enable experimental features](../experimental-features).
-
-### Microsoft .NET Runtime 9.0
-
-1. Click `Search` at the bottom of Windows, taskbar. enter `terminal` , then click `Terminal App`.
-2. Enter `winget install Microsoft.DotNet.Runtime.9`, then press `Enter`.
-3. If the terms of use are displayed, enter `Y` and press Enter to proceed.
+After installing it, [enable experimental features](../experimental-features).
 
 ## Build
 
@@ -44,19 +38,12 @@ Once the build is complete, install it into Resonite. There are two ways to inst
 1. Click "Copy to Clipboard" and then click `Paste content from clipboard` from the Resonite dash menu.
 2. Click "Save as..." to save the avatar file as a Resonite Package, then drag and drop it into Resonite.
 
-Modular Avatar has experimental support for building avatars for Resonite.
-Enabling this feature requires that you install the "Modular Avatar - Resonite support" package using ALCOM,
-and that you enable [experimental feature support](../experimental-features).
-
-To build an avatar for resonite, open the NDMF Console (Tools -> NDM Framework -> NDMF Console), select your avatar at the top of the window, select "Resonite" as the "Avatar platform", and click build.
-If all goes well, you'll see a "Build finished!" message. You can then either "copy to clipboard", and then hit Ctrl-V in resonite, or click "Save as..." to save the avatar as a `resonitepackage` file.
+## Supported features
 
 The resonite build process will automatically copy certain avatar features, such as visemes, eye position, and physbones/dynamic bones to the Resonite avatar.
-If you've already set up your avatar for VRChat, no additional configuration is needed. If your avatar is not set up
+If you've already set up your avatar for VRChat, no additional configuration on your avatar is needed. If your avatar is not set up
 for VRChat, or if you don't have the VRCSDK installed, refer to the documentation on [portable avatar components](./portable-avatar-components.md)
 for more information on how to set up your avatar.
-
-## Supported features
 
 | Feature | Supported | Limitations |
 | ------- | --------- | ----------- |
