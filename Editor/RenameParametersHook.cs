@@ -402,8 +402,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                 );
                             }).ToImmutableDictionary();
 
-                            var controller = animServices.ControllerContext.Controllers[component];
-                            if (controller != null)
+                            if (animServices.ControllerContext.Controllers.TryGetValue(component, out var controller))
                             {
                                 ProcessVirtualAnimatorController(controller, remap);
                             }
