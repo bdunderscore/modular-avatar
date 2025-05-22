@@ -95,7 +95,8 @@ namespace nadena.dev.modular_avatar.core.editor
         [DrawGizmo(GizmoType.Selected)]
         private static void DrawGizmo(ModularAvatarMeshSettings component, GizmoType gizmoType)
         {
-            if (component.InheritBounds != ModularAvatarMeshSettings.InheritMode.Set) return;
+            if (component.InheritBounds != ModularAvatarMeshSettings.InheritMode.Set
+                && component.InheritBounds != ModularAvatarMeshSettings.InheritMode.SetOrInherit) return;
 
             Matrix4x4 oldMatrix = Gizmos.matrix;
 
