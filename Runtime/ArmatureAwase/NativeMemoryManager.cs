@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 
 #endregion
 
@@ -32,18 +31,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             if (Array.Length == n) return;
 
             var newArray = new NativeArray<T>(n, Allocator.Persistent);
-            
-            unsafe
-            {
-                UnsafeUtility.MemCpy(newArray.GetUnsafePtr(), Array.GetUnsafePtr(),
-                    Math.Min(n, Array.Length) * UnsafeUtility.SizeOf<T>());
-            }
 
-            /*
-            for (int i = 0; i < Math.Min(n, Array.Length); i++)
-            {
-                newArray[i] = Array[i];
-            }*/
+            var len = Math.Min(n, Array.Length);
+            newArray.GetSubArray(0, len).CopyFrom(Array.GetSubArray(0, len));
 
             Array.Dispose();
 
@@ -61,19 +51,11 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 throw new ArgumentOutOfRangeException();
             }
 
-            
-            unsafe
-            {
-                UnsafeUtility.MemMove(((T*)Array.GetUnsafePtr()) + dstOffset, ((T*)Array.GetUnsafePtr()) + srcOffset,
-                    count * UnsafeUtility.SizeOf<T>());
-            }
+            var span = Array.AsSpan();
+            var dst = span.Slice(dstOffset, count);
+            var src = span.Slice(srcOffset, count);
 
-            /*
-            // We assume dstOffset < srcOffset
-            for (int i = 0; i < count; i++)
-            {
-                Array[dstOffset + i] = Array[srcOffset + i];
-            }*/
+            src.CopyTo(dst);
         }
     }
 
@@ -152,13 +134,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
             if (length < 0)
             {
-                throw new ArgumentException("negative length");
+                throw new ArgumentException("negative length: " + length + " with offset: " + offset);
             }
-            
-            unsafe
-            {
-                UnsafeUtility.MemSet((byte*)InUseMask.Array.GetUnsafePtr() + offset, value ? (byte)1 : (byte)0, length);
-            }
+
+            InUseMask.Array.GetSubArray(offset, length).AsSpan().Fill(value);
 
             /*
             for (int i = 0; i < length; i++)
