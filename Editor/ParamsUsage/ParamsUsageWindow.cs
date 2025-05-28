@@ -218,10 +218,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 var free_space_label = Localization.S("ma_info.param_usage_ui.free_space");
                 byPlugin.Add((string.Format(free_space_label, freeSpace), freeSpace, Color.white));
             }
-            else if (freeSpace < 0)
+
+            if (freeSpace < 0)
             {
+                outerbox.AddToClassList("exceeded");
+                var exceeded = _root.Q<VisualElement>("Exceeded");
+                exceeded.Clear();
+                var exceededLabel = new Label();
                 var exceeded_space_label = Localization.S("ma_info.param_usage_ui.exceeded_space");
-                byPlugin.Add((string.Format(exceeded_space_label, freeSpace), 0, Color.black));
+                exceededLabel.text = string.Format(exceeded_space_label, freeSpace);
+                exceeded.Add(exceededLabel);
+            }
+            else
+            {
+                outerbox.RemoveFromClassList("exceeded");
             }
 
             foreach (var child in _legendContainer.Children().ToList())

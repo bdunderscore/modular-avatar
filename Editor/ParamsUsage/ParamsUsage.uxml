@@ -32,6 +32,9 @@
                 </ui:VisualElement>
 
             </ui:VisualElement>
+
+            <ui:VisualElement name="Exceeded">
+            </ui:VisualElement>
         </ui:Foldout>
 
         <ui:VisualElement name="Footer">
