@@ -109,3 +109,18 @@
     margin-top: 20px;
     margin-bottom: 20px;
 }
+
+#Exceeded {
+    display: none;
+}
+
+#Outerbox.exceeded #Exceeded {
+    display: block;
+    color: rgb(255, 128, 128);
+    margin-top: 4px;
+    padding: 3px;
+    background-color: rgba(255, 128, 128, 0.1);
+}
+#Outerbox.no-data #Exceeded {
+    display: none;
+}
