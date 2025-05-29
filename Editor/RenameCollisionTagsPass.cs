@@ -1,27 +1,33 @@
 #if MA_VRCSDK3_AVATARS
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
 
-using nadena.dev.modular_avatar.editor.ErrorReporting;
 using VRC.Dynamics;
+
+using nadena.dev.ndmf;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-  internal class RenameCollisionTagsPass
+
+  [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+  internal class RenameCollisionTagsPass : Pass<RenameCollisionTagsPass>
   {
-
-    public static void Process(GameObject avatarRoot)
+    internal void TestExecute(ndmf.BuildContext context)
     {
-      var renameCollisionTagsComponents = avatarRoot.GetComponentsInChildren<ModularAvatarRenameVRChatCollisionTags>(true);
+      Execute(context);
+    }
+    protected override void Execute(ndmf.BuildContext context)
+    {
+      var avatarRoot = context.AvatarRootObject;
 
+      var renameCollisionTagsComponents = avatarRoot.GetComponentsInChildren<ModularAvatarRenameVRChatCollisionTags>(true);
       if (renameCollisionTagsComponents.Length == 0) return;
 
       var contacts = avatarRoot.GetComponentsInChildren<ContactBase>(true);
-
       if (contacts.Length == 0) return;
 
       // Contacts から親を辿って最短で見つけた renameCollisionTags と紐づける
@@ -79,6 +85,7 @@ namespace nadena.dev.modular_avatar.core.editor
         });
       }
     }
+
   }
 }
 

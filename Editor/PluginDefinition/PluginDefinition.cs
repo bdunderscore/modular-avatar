@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 
 #if MA_VRCSDK3_AVATARS
-                seq.Run(RenameCollisionTagsPluginPass.Instance);
+                seq.Run(RenameCollisionTagsPass.Instance);
                 seq.Run(ReactiveObjectPrepass.Instance);
 #endif
 
@@ -296,18 +296,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             PhysboneBlockerPass.Process(context.AvatarRootObject);
         }
     }
-#endif
-
-#if MA_VRCSDK3_AVATARS
-
-    class RenameCollisionTagsPluginPass : MAPass<RenameCollisionTagsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            RenameCollisionTagsPass.Process(context.AvatarRootObject);
-        }
-    }
-
 #endif
 
     class RebindHumanoidAvatarPass : MAPass<RebindHumanoidAvatarPass>
