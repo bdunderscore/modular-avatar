@@ -5,11 +5,14 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+
 using NUnit.Framework;
+using VRC.SDK3.Dynamics.Contact.Components;
 
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
-using VRC.SDK3.Dynamics.Contact.Components;
+
+using BuildContext = nadena.dev.ndmf.BuildContext;
 
 #endregion
 
@@ -21,6 +24,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameCollisionTagsForReceiver()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -31,7 +35,8 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            // RenameCollisionTagsPass().Instance の方が適切？
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags[0], Does.StartWith("TagA$"));
             Assert.IsTrue(GUID.TryParse(contact.collisionTags[0]["TagA$".Length..], out _));
@@ -42,6 +47,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameCollisionTagsForSender()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -52,7 +58,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactSender>();
             contact.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags[0], Does.StartWith("TagA$"));
             Assert.IsTrue(GUID.TryParse(contact.collisionTags[0]["TagA$".Length..], out _));
@@ -62,6 +68,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void AllowEmptyTagString()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
@@ -71,7 +78,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string> { "" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags[0], Does.StartWith("$"));
             Assert.IsTrue(GUID.TryParse(contact.collisionTags[0]["$".Length..], out _));
@@ -81,6 +88,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void DoNotRenameUnspecifiedTags()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -91,7 +99,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string> { "TagB" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
             Assert.That(contact.collisionTags[0], Is.EqualTo("TagB"));
         }
 
@@ -99,6 +107,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void PreserveTagOrderAfterRename()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -109,7 +118,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string> { "TagA", "TagB", "TagC" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags[0], Is.EqualTo("TagA"));
             Assert.That(contact.collisionTags[1], Does.StartWith("TagB$"));
@@ -120,6 +129,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameSameTagsConsistently()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -133,7 +143,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact2 = avatar.AddComponent<VRCContactReceiver>();
             contact2.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact1.collisionTags[0], Does.StartWith("TagA$"));
             Assert.That(contact1.collisionTags[0], Is.EqualTo(contact2.collisionTags[0]));
@@ -143,6 +153,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameSameTagsForSenderAndReceiverConsistently()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
@@ -155,7 +166,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var receiver = avatar.AddComponent<VRCContactReceiver>();
             receiver.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(sender.collisionTags[0], Does.StartWith("TagA$"));
             Assert.That(receiver.collisionTags[0], Does.StartWith("TagA$"));
@@ -166,6 +177,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameMultipleTagsIndividually()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
 
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
@@ -177,7 +189,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string> { "TagA", "TagB" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags[0], Is.Not.EqualTo(contact.collisionTags[1]));
         }
@@ -186,6 +198,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameSameTagsForChildrenConsistently()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var child1 = new GameObject("child1");
             child1.transform.parent = avatar.transform;
             var child2 = new GameObject("child2");
@@ -203,7 +216,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact2 = child2.AddComponent<VRCContactReceiver>();
             contact2.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact1.collisionTags[0], Does.StartWith("TagA$"));
             Assert.That(contact2.collisionTags[0], Does.StartWith("TagA$"));
@@ -214,6 +227,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void PreferChildRenameCollisionTagsOverParent()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var child = new GameObject("child");
             child.transform.parent = avatar.transform;
 
@@ -234,7 +248,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contactB = child.AddComponent<VRCContactReceiver>();
             contactB.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contactA.collisionTags[0], Is.Not.EqualTo(contactB.collisionTags[0]));
         }
@@ -243,6 +257,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameTagsInDeepHierarchyConsistently()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var child = new GameObject("child");
             child.transform.parent = avatar.transform;
             var grandchild = new GameObject("grandchild");
@@ -261,7 +276,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contactGrandchild = grandchild.AddComponent<VRCContactReceiver>();
             contactGrandchild.collisionTags = new List<string> { "TagA" };
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contactRoot.collisionTags[0], Does.StartWith("TagA$"));
             Assert.That(contactRoot.collisionTags[0], Is.EqualTo(contactChild.collisionTags[0]));
@@ -272,6 +287,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void KeepCollisionTagsListEmpty()
         {
             var avatar = CreateRoot("avatar");
+            var context = new BuildContext(avatar, null);
             var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
@@ -281,7 +297,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var contact = avatar.AddComponent<VRCContactReceiver>();
             contact.collisionTags = new List<string>();
 
-            RenameCollisionTagsPass.Process(avatar);
+            new RenameCollisionTagsPass().TestExecute(context);
 
             Assert.That(contact.collisionTags, Is.Empty);
         }
