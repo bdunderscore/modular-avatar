@@ -1,8 +1,5 @@
 #region
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -12,7 +9,7 @@ using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-  [CustomEditor(typeof(ModularAvatarRenameCollisionTags))]
+  [CustomEditor(typeof(ModularAvatarRenameVRChatCollisionTags))]
   [CanEditMultipleObjects]
   internal class RenameCollisionTagsEditor : MAEditorBase
   {
@@ -37,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
     private void InitList()
     {
-      _collisionTags = serializedObject.FindProperty(nameof(ModularAvatarRenameCollisionTags.configs));
+      _collisionTags = serializedObject.FindProperty(nameof(ModularAvatarRenameVRChatCollisionTags.configs));
       _list = new ReorderableList(serializedObject,
           _collisionTags,
           true, false, true, true
