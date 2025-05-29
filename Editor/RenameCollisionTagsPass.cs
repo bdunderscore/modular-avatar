@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
     public static void Process(GameObject avatarRoot)
     {
-      var renameCollisionTagsComponents = avatarRoot.GetComponentsInChildren<ModularAvatarRenameCollisionTags>(true);
+      var renameCollisionTagsComponents = avatarRoot.GetComponentsInChildren<ModularAvatarRenameVRChatCollisionTags>(true);
 
       if (renameCollisionTagsComponents.Length == 0) return;
 
@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
           var node = contact.transform;
           while (node != null)
           {
-            if (node.TryGetComponent<ModularAvatarRenameCollisionTags>(out var renameCollisionTags))
+            if (node.TryGetComponent<ModularAvatarRenameVRChatCollisionTags>(out var renameCollisionTags))
             {
               if (contact.collisionTags.Intersect(renameCollisionTags.configs.Select(x => x.name)).Any())
               {

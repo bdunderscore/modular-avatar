@@ -22,7 +22,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -43,7 +43,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -62,7 +62,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void AllowEmptyTagString()
         {
             var avatar = CreateRoot("avatar");
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "" }
@@ -82,7 +82,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -100,7 +100,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagB" }
@@ -121,7 +121,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -143,7 +143,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void RenameSameTagsForSenderAndReceiverConsistently()
         {
             var avatar = CreateRoot("avatar");
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -167,7 +167,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         {
             var avatar = CreateRoot("avatar");
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" },
@@ -191,7 +191,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var child2 = new GameObject("child2");
             child2.transform.parent = avatar.transform;
 
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -217,12 +217,12 @@ namespace modular_avatar_tests.RenameCollisionTags
             var child = new GameObject("child");
             child.transform.parent = avatar.transform;
 
-            var renameCollisionTagsParent = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameCollisionTagsParent = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameCollisionTagsParent.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
             };
-            var renameCollisionTagsChild = child.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameCollisionTagsChild = child.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameCollisionTagsChild.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -248,7 +248,7 @@ namespace modular_avatar_tests.RenameCollisionTags
             var grandchild = new GameObject("grandchild");
             grandchild.transform.parent = child.transform;
 
-            var renameCollisionTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameCollisionTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameCollisionTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
@@ -272,7 +272,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         public void KeepCollisionTagsListEmpty()
         {
             var avatar = CreateRoot("avatar");
-            var renameTags = avatar.AddComponent<ModularAvatarRenameCollisionTags>();
+            var renameTags = avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
             renameTags.configs = new List<RenameCollisionTagConfig>
             {
                 new() { name = "TagA" }
