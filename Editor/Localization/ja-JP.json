@@ -301,5 +301,7 @@
   "sync-param-sequence.create-asset": "新規作成",
   "sync-param-sequence.create-asset.tooltip": "新しい共用パラメーターアセットを作成します",
   "platform.vrchat.settings.mmd_world_support": "MMDワールド対応",
-  "rename_collision_tags.label": "タグ"
+  "rename_collision_tags.label": "タグ",
+  "rename_collision_tags.rename_to": "名前を変更",
+  "rename_collision_tags.auto_rename": "自動リネーム"
 }
