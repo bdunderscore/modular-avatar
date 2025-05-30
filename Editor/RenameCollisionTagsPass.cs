@@ -31,33 +31,41 @@ namespace nadena.dev.modular_avatar.core.editor
         contact => contact.GetComponentInParent<ModularAvatarRenameVRChatCollisionTags>()
       );
 
-      // renameCollisionTags ごとに GUID を管理
+      // keep track of guid values for each ModularAvatarRenameVRChatCollisionTags component
       var guidMap = new Dictionary<ModularAvatarRenameVRChatCollisionTags, string>();
 
       foreach (var contact in contacts)
       {
         BuildReport.ReportingObject(contact, () =>
         {
-          // Contact の親方向に最も近い ModularAvatarRenameVRChatCollisionTags を取得
           var renameCollisionTags = contactToRenameMap[contact];
           if (renameCollisionTags == null) return;
 
-          // renameCollisionTags ごとの GUID を生成または取得
-          if (!guidMap.TryGetValue(renameCollisionTags, out var guid))
+          var newCollisionTags = contact.collisionTags.Select(tag =>
           {
-            guid = GUID.Generate().ToString();
-            guidMap[renameCollisionTags] = guid;
-          }
+            var configs = renameCollisionTags.configs.Where(config => config.name == tag);
+            if (configs.Count() == 0) return tag;
+            var config = configs.First();
 
-          var matchedTags = renameCollisionTags.configs.Select(x => x.name).Intersect(contact.collisionTags).ToHashSet();
-          if (matchedTags.Count == 0) return;
+            if (config.autoRename)
+            {
+              if (!guidMap.TryGetValue(renameCollisionTags, out var guid))
+              {
+                guid = GUID.Generate().ToString();
+                guidMap[renameCollisionTags] = guid;
+              }
+              return $"{tag}${guid}";
+            }
 
-          foreach (var tag in matchedTags)
-          {
-            var index = contact.collisionTags.IndexOf(tag);
-            string newTag = $"{tag}${guid}";
-            contact.collisionTags[index] = newTag;
-          }
+            if (!string.IsNullOrEmpty(config.renameTo))
+            {
+              return config.renameTo;
+            }
+
+            return tag;
+          }).ToList();
+
+          contact.collisionTags = newCollisionTags;
         });
       }
     }

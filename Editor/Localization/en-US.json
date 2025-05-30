@@ -300,5 +300,7 @@
   "sync-param-sequence.create-asset": "New",
   "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset",
   "platform.vrchat.settings.mmd_world_support": "MMD world support",
-  "rename_collision_tags.label": "Tag"
+  "rename_collision_tags.label": "Tag",
+  "rename_collision_tags.rename_to": "Change name to",
+  "rename_collision_tags.auto_rename": "Auto rename"
 }

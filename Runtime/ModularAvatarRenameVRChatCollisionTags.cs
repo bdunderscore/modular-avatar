@@ -12,21 +12,8 @@ namespace nadena.dev.modular_avatar.core
   public struct RenameCollisionTagConfig
   {
     public string name;
-
-    public readonly bool Equals(RenameCollisionTagConfig other)
-    {
-      return name == other.name;
-    }
-
-    public override readonly bool Equals(object obj)
-    {
-      return obj is RenameCollisionTagConfig other && Equals(other);
-    }
-
-    public override readonly int GetHashCode()
-    {
-      return name != null ? name.GetHashCode() : 0;
-    }
+    public bool autoRename;
+    public string renameTo;
   }
 
   [DisallowMultipleComponent]

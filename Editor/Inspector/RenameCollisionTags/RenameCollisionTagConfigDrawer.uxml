@@ -1,0 +1,18 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement class="horizontal">
+        <ui:TextField name="f-name" binding-path="name" label="" />
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal">
+        <ui:VisualElement name="rename-to-group-disabled" class="horizontal">
+            <ui:Label text="rename_collision_tags.rename_to" class="ndmf-tr" />
+            <ui:TextField name="f-rename-to-disabled" />
+        </ui:VisualElement>
+        <ui:VisualElement name="rename-to-group" class="horizontal">
+            <ui:Label text="rename_collision_tags.rename_to" class="ndmf-tr" />
+            <ui:TextField name="f-rename-to" binding-path="renameTo" />
+            <ui:Label name="f-rename-to-placeholder" />
+        </ui:VisualElement>
+        <ui:Toggle name="f-auto-rename" binding-path="autoRename" text="rename_collision_tags.auto_rename" class="ndmf-tr" />
+    </ui:VisualElement>
+</UXML>
