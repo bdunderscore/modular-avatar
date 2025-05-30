@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEditor;
 
 using VRC.Dynamics;
@@ -24,63 +23,40 @@ namespace nadena.dev.modular_avatar.core.editor
     {
       var avatarRoot = context.AvatarRootObject;
 
-      var renameCollisionTagsComponents = avatarRoot.GetComponentsInChildren<ModularAvatarRenameVRChatCollisionTags>(true);
-      if (renameCollisionTagsComponents.Length == 0) return;
-
       var contacts = avatarRoot.GetComponentsInChildren<ContactBase>(true);
       if (contacts.Length == 0) return;
 
-      // Contacts から親を辿って最短で見つけた renameCollisionTags と紐づける
-      Dictionary<Transform, List<ContactBase>> contactTagMap = new();
-      var avatarTransform = avatarRoot.transform;
+      var contactToRenameMap = contacts.ToDictionary(
+        contact => contact,
+        contact => contact.GetComponentInParent<ModularAvatarRenameVRChatCollisionTags>()
+      );
+
+      // renameCollisionTags ごとに GUID を管理
+      var guidMap = new Dictionary<ModularAvatarRenameVRChatCollisionTags, string>();
+
       foreach (var contact in contacts)
       {
         BuildReport.ReportingObject(contact, () =>
         {
-          var node = contact.transform;
-          while (node != null)
-          {
-            if (node.TryGetComponent<ModularAvatarRenameVRChatCollisionTags>(out var renameCollisionTags))
-            {
-              if (contact.collisionTags.Intersect(renameCollisionTags.configs.Select(x => x.name)).Any())
-              {
-                if (!contactTagMap.TryGetValue(node, out var list))
-                {
-                  list = new List<ContactBase>();
-                  contactTagMap.Add(node, list);
-                }
-                list.Add(contact);
-                break;
-              }
-            }
+          // Contact の親方向に最も近い ModularAvatarRenameVRChatCollisionTags を取得
+          var renameCollisionTags = contactToRenameMap[contact];
+          if (renameCollisionTags == null) return;
 
-            if (node == avatarTransform) break;
-            node = node.parent;
+          // renameCollisionTags ごとの GUID を生成または取得
+          if (!guidMap.TryGetValue(renameCollisionTags, out var guid))
+          {
+            guid = GUID.Generate().ToString();
+            guidMap[renameCollisionTags] = guid;
           }
-        });
-      }
 
-      foreach (var renameCollisionTags in renameCollisionTagsComponents)
-      {
-        BuildReport.ReportingObject(renameCollisionTags, () =>
-        {
-          if (contactTagMap.TryGetValue(renameCollisionTags.transform, out var contactsList))
+          var matchedTags = renameCollisionTags.configs.Select(x => x.name).Intersect(contact.collisionTags).ToHashSet();
+          if (matchedTags.Count == 0) return;
+
+          foreach (var tag in matchedTags)
           {
-            // renameCollisionTags ごとにGUIDを生成する
-            string guid = GUID.Generate().ToString();
-            foreach (var contact in contactsList)
-            {
-              var matchedTags = renameCollisionTags.configs.Select(x => x.name).Intersect(contact.collisionTags).ToHashSet();
-              if (matchedTags.Count == 0) continue;
-
-              foreach (var tag in matchedTags)
-              {
-                // 順序を維持したままタグを上書きする
-                var index = contact.collisionTags.IndexOf(tag);
-                string newTag = $"{tag}${guid}";
-                contact.collisionTags[index] = newTag;
-              }
-            }
+            var index = contact.collisionTags.IndexOf(tag);
+            string newTag = $"{tag}${guid}";
+            contact.collisionTags[index] = newTag;
           }
         });
       }

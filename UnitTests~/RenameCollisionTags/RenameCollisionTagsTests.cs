@@ -224,7 +224,7 @@ namespace modular_avatar_tests.RenameCollisionTags
         }
 
         [Test]
-        public void PreferChildRenameCollisionTagsOverParent()
+        public void PreferClosestRenameCollisionTags()
         {
             var avatar = CreateRoot("avatar");
             var context = new BuildContext(avatar, null);
