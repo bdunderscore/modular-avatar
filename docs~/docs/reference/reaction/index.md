@@ -13,6 +13,7 @@ The following reactive components are currently available:
 * [Object Toggle](./object-toggle.md) - controls the active state of other game objects
 * [Shape Changer](./shape-changer.md) - modifies blendshapes on a target renderer
 * [Material Setter](./material-setter.md) - changes materials on a target renderer
+* [Material Swap](./material-swap.md) - swaps materials with other materials
 
 ## General rules for reactive components
 

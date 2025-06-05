@@ -13,6 +13,8 @@ components.
 Material setter can be used to change out the material of an object, either directly in response to a menu item, or in
 response to some other object appearing or disappearing.
 
+In Material Swap, you specify the materials to be swapped, whereas in Material Setter, you specify the renderers whose materials will be changed.
+
 ## Setting up Material Setter
 
 Attach the Material Setter component to the GameObject that will control its state. This can either be an object that
