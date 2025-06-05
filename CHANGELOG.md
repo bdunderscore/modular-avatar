@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (Experimental feature) Enabled support for non-VRC platforms
 - [#1594] Display the exceeded parameter count in the MA Information
+- Implement `MA Material Swap`
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
