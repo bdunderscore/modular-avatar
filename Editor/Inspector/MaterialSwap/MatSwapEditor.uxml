@@ -1,0 +1,9 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField binding-path="From" label="reactive_object.material-swap.swap-from" class="ndmf-tr"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField binding-path="To" label="reactive_object.material-swap.swap-to" class="ndmf-tr"/>
+    </ui:VisualElement>
+</UXML>
