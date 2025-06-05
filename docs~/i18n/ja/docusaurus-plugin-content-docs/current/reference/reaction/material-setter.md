@@ -13,6 +13,8 @@ Material Setter は [リアクティブコンポーネント](./index.md) の一
 Material Setter は、オブジェクトのマテリアルを変更するために使用できます。Menu Item の動作、もしくは他のオブジェクトの表示/非表示に応じて、
 オブジェクトのマテリアルを変更することができます。
 
+Material Swap では置換対象のマテリアルを指定するのに対し、Material Setter では変更対象のレンダラーを指定します。
+
 ## Material Setter の設定
 
 Material Setter コンポーネントを、その状態を制御する GameObject にアタッチします。アタッチするオブジェクトは、アニメーションで有効/無効になる
