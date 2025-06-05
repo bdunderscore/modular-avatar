@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implement `MA Material Swap`
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
