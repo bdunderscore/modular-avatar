@@ -118,6 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
             FindObjectToggles(shapes, root);
+            FindMaterialSwaps(shapes, root);
             FindMaterialSetters(shapes, root);
 
             InjectActiveObjectFallbacks(shapes);
