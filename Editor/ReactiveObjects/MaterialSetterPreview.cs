@@ -52,7 +52,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
-                var activeRule = prop.actionGroups.FirstOrDefault(r => r.InitiallyActive);
+                var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
                 if (activeRule == null || activeRule.Value is not Material mat) continue;
                 
                 materials = materials.Add((index, mat));
@@ -76,7 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
-                var activeRule = prop.actionGroups.FirstOrDefault(r => r.InitiallyActive);
+                var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
                 if (activeRule == null || activeRule.Value is not Material mat) continue;
 
                 renderers.Add(r);
