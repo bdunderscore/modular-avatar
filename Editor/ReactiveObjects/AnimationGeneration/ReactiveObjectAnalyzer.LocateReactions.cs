@@ -1,9 +1,11 @@
 ﻿#if MA_VRCSDK3_AVATARS
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -292,10 +294,14 @@ namespace nadena.dev.modular_avatar.core.editor
             void PrepareMaterialSwaps()
             {
                 var swaps = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSwap>(root, true);
-                var materialsSwapFrom = swaps.SelectMany(c => c.Swaps, (_, m) => m.From).ToHashSet();
+                var materialsSwapFrom = swaps
+                    .Where(c => c.Swaps != null)
+                    .SelectMany(c => c.Swaps, (_, m) => m.From ? m.From : null)
+                    .Distinct()
+                    .ToArray();
                 foreach (var renderer in renderers)
                 {
-                    _computeContext.Observe(renderer, r => r.sharedMaterials.Select(m => materialsSwapFrom.Contains(m) ? m : null),
+                    _computeContext.Observe(renderer, r => r.sharedMaterials.Select(m => Array.IndexOf(materialsSwapFrom, m)),
                         Enumerable.SequenceEqual);
                 }
             }
@@ -321,11 +327,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var obj in _computeContext.Observe(swap, c => c.Swaps.Select(o => o.Clone()).ToList(),
                     Enumerable.SequenceEqual))
                 {
-                    if (obj.From == null) continue;
-
                     foreach (var (renderer, index, _) in renderers
                         .SelectMany(r => r.sharedMaterials.Select((m, i) => (renderer: r, index: i, material: m)))
-                        .Where(x => x.material == obj.From))
+                        .Where(x => x.material == (obj.From ? obj.From : null)))
                     {
                         RegisterAction(swap, renderer, index, obj.To);
                     }
