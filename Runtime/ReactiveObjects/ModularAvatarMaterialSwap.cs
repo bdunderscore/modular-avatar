@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Material Swap")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/material-swap?lang=auto")]
-    public class ModularAvatarMaterialSwap : ReactiveComponent
+    public class ModularAvatarMaterialSwap : ReactiveComponent, IModularAvatarMaterialChanger
     {
         [SerializeField]
         private List<MatSwap> m_swaps = new();

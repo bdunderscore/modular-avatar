@@ -268,20 +268,55 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private void FindMaterialSwaps(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+        private void FindMaterialChangers(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var swaps = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSwap>(root, true);
+            var changers = _computeContext.GetComponentsInChildren<IModularAvatarMaterialChanger>(root, true);
             var renderers = _computeContext.GetComponentsInChildren<Renderer>(root, true);
-            var materialsSwapFrom = swaps.SelectMany(x => x.Swaps, (_, y) => y.From).ToHashSet();
-            foreach (var renderer in renderers)
+
+            PrepareMaterialSetters();
+            PrepareMaterialSwaps();
+
+            foreach (var changer in changers)
             {
-                _computeContext.Observe(renderer, r => r.sharedMaterials.Select(x => materialsSwapFrom.Contains(x) ? x : null),
-                    Enumerable.SequenceEqual);
+                switch (changer)
+                {
+                    case ModularAvatarMaterialSetter setter: AddMaterialSetter(setter); break;
+                    case ModularAvatarMaterialSwap swap: AddMaterialSwap(swap); break;
+                }
             }
 
-            foreach (var swap in swaps)
+            void PrepareMaterialSetters()
             {
-                if (swap.Swaps == null) continue;
+            }
+
+            void PrepareMaterialSwaps()
+            {
+                var swaps = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSwap>(root, true);
+                var materialsSwapFrom = swaps.SelectMany(c => c.Swaps, (_, m) => m.From).ToHashSet();
+                foreach (var renderer in renderers)
+                {
+                    _computeContext.Observe(renderer, r => r.sharedMaterials.Select(m => materialsSwapFrom.Contains(m) ? m : null),
+                        Enumerable.SequenceEqual);
+                }
+            }
+
+            void AddMaterialSetter(ModularAvatarMaterialSetter setter)
+            {
+                if (setter.Objects == null) return;
+
+                foreach (var obj in _computeContext.Observe(setter, c => c.Objects.Select(o => o.Clone()).ToList(),
+                    Enumerable.SequenceEqual))
+                {
+                    var renderer = _computeContext.GetComponent<Renderer>(obj.Object.Get(setter));
+                    if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
+
+                    RegisterAction(setter, renderer, obj.MaterialIndex, obj.Material);
+                }
+            }
+
+            void AddMaterialSwap(ModularAvatarMaterialSwap swap)
+            {
+                if (swap.Swaps == null) return;
 
                 foreach (var obj in _computeContext.Observe(swap, c => c.Swaps.Select(o => o.Clone()).ToList(),
                     Enumerable.SequenceEqual))
@@ -289,65 +324,34 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (obj.From == null) continue;
 
                     foreach (var (renderer, index, _) in renderers
-                        .SelectMany(x => x.sharedMaterials.Select((y, i) => (renderer: x, index: i, material: y)))
+                        .SelectMany(r => r.sharedMaterials.Select((m, i) => (renderer: r, index: i, material: m)))
                         .Where(x => x.material == obj.From))
                     {
-                        var key = new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = "m_Materials.Array.data[" + index + "]",
-                        };
-
-                        if (!objectGroups.TryGetValue(key, out var group))
-                        {
-                            group = new(key, renderer.sharedMaterials[index]);
-                            objectGroups[key] = group;
-                        }
-
-                        var action = ObjectRule(key, swap, obj.To);
-                        action.Inverted = _computeContext.Observe(swap, c => c.Inverted);
-
-                        if (group.actionGroups.Count == 0)
-                            group.actionGroups.Add(action);
-                        else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
+                        RegisterAction(swap, renderer, index, obj.To);
                     }
                 }
             }
-        }
 
-        private void FindMaterialSetters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
-        {
-            var materialSetters = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSetter>(root, true);
-
-            foreach (var setter in materialSetters)
+            void RegisterAction(ReactiveComponent component, Renderer renderer, int index, Material material)
             {
-                if (setter.Objects == null) continue;
-
-                foreach (var obj in _computeContext.Observe(setter, c => c.Objects.Select(o => o.Clone()).ToList(),
-                             Enumerable.SequenceEqual))
+                var key = new TargetProp
                 {
-                    var renderer = _computeContext.GetComponent<Renderer>(obj.Object.Get(setter));
-                    if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
+                    TargetObject = renderer,
+                    PropertyName = "m_Materials.Array.data[" + index + "]",
+                };
 
-                    var key = new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = "m_Materials.Array.data[" + obj.MaterialIndex + "]",
-                    };
-
-                    if (!objectGroups.TryGetValue(key, out var group))
-                    {
-                        group = new AnimatedProperty(key, renderer.sharedMaterials[obj.MaterialIndex]);
-                        objectGroups[key] = group;
-                    }
-                    
-                    var action = ObjectRule(key, setter, obj.Material);
-                    action.Inverted = _computeContext.Observe(setter, c => c.Inverted);
-                    
-                    if (group.actionGroups.Count == 0)
-                        group.actionGroups.Add(action);
-                    else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
+                if (!objectGroups.TryGetValue(key, out var group))
+                {
+                    group = new(key, renderer.sharedMaterials[index]);
+                    objectGroups[key] = group;
                 }
+
+                var action = ObjectRule(key, component, material);
+                action.Inverted = _computeContext.Observe(component, c => c.Inverted);
+
+                if (group.actionGroups.Count == 0)
+                    group.actionGroups.Add(action);
+                else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
             }
         }
         
