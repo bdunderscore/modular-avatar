@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor.Simulator;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.preview;
+using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -211,11 +212,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var actionGroup in group.actionGroups)
                 {
                     foreach (var condition in actionGroup.ControllingConditions)
-                        if (condition.ReferenceObject != null && !toggledObjects.Contains(condition.ReferenceObject))
-                            condition.IsConstant = !asc.AnimationIndex.GetClipsForObjectPath(
-                                asc.ObjectPathRemapper.GetVirtualPathForObject(condition.ReferenceObject) ??
-                                "___NONEXISTENT___"
-                            ).Any();
+                        if (condition.ReferenceObject && !toggledObjects.Contains(condition.ReferenceObject))
+                        {
+                            var virtualPath = asc.ObjectPathRemapper.GetVirtualPathForObject(condition.ReferenceObject);
+
+                            condition.IsConstant = !asc.AnimationIndex.GetClipsForBinding(
+                                EditorCurveBinding.FloatCurve(
+                                    virtualPath,
+                                    typeof(GameObject),
+                                    "m_IsActive"
+                                )).Any();
+                        }
 
                     // Remove redundant active conditions.
                     actionGroup.ControllingConditions.RemoveAll(c => c.IsConstant && c.InitiallyActive);
