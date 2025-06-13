@@ -264,10 +264,8 @@
   "reactive_object.inverse": "Inverse Condition",
   "reactive_object.material-setter.set-to": "Set material to: ",
   "menuitem.misc.add_toggle": "Add toggle",
-  
   "ro_sim.open_debugger_button": "Open reaction debugger",
   "ro_sim.window.title": "MA Reaction Debugger",
-  
   "ro_sim.header.inspecting": "Inspecting object",
   "ro_sim.header.clear_overrides": "Clear all overrides",
   "ro_sim.header.object_state": "Object state",
@@ -276,7 +274,6 @@
   "ro_sim.header.override_gameobject_state": "Override GameObject state",
   "ro_sim.header.override_menuitem_state": "Override MenuItem state",
   "ro_sim.affected_by.title": "Affected by:",
-  
   "ro_sim.effect_group.component": "Reactive Component",
   "ro_sim.effect_group.controls_obj_state": "Controls object state:",
   "ro_sim.effect_group.target_component": "Target Component",
@@ -287,14 +284,11 @@
   "ro_sim.effect_group.value.tooltip": "The value that the property will be set to when the Reactive Object is active",
   "ro_sim.effect_group.material": "Material",
   "ro_sim.effect_group.material.tooltip": "The material to set on the target component when the Reactive Object is active",
-  
   "ro_sim.effect_group.rule_inverted": "This rule is inverted",
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
   "ro_sim.effect_group.conditions": "Conditions",
-
   "menuitem.label.long_name.tooltip": "Use a long name which may contain rich text and line breaks.",
   "menuitem.label.gameobject_name.tooltip": "Use the GameObject name.",
-
   "remove-vertex-color.mode": "Mode",
   "remove-vertex-color.mode.Remove": "Remove Vertex Colors",
   "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors",
@@ -305,6 +299,8 @@
   "sync-param-sequence.parameters.tooltip": "The asset to store common parameters in. Do not use the same Expression Parameters that you have set in your avatar descriptor.",
   "sync-param-sequence.create-asset": "New",
   "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset",
-  "platform.vrchat.settings.mmd_world_support": "MMD world support"
-
+  "platform.vrchat.settings.mmd_world_support": "MMD world support",
+  "rename_collision_tags.label": "Tag",
+  "rename_collision_tags.rename_to": "Change name to",
+  "rename_collision_tags.auto_rename": "Auto rename"
 }
