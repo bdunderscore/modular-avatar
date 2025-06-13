@@ -14,8 +14,28 @@ public class ShapeDeletionAnalysis : TestBase
     [Test]
     public void BasicShapeDeletionAnalysis()
     {
-        var root = CreatePrefab("DeletionTest.prefab");
+        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
 
+        var mesh = AssertPreviewDeletion(root);
+
+        AssertBuildDeletion(mesh, root);
+    }
+
+    [Test]
+    public void WhenAnimationExistsForOtherShape_DoesDelete()
+    {
+        var root = CreatePrefab("DeletionTest/DeletionTest_WithAnimation.prefab");
+        
+        var mesh = AssertPreviewDeletion(root);
+
+        AssertBuildDeletion(mesh, root);
+    }
+
+    [Test]
+    public void WhenChangerParentedUnderMesh_DoesDelete()
+    {
+        var root = CreatePrefab("DeletionTest/DeletionTest_UnderParent.prefab");
+        
         var mesh = AssertPreviewDeletion(root);
 
         AssertBuildDeletion(mesh, root);
@@ -24,7 +44,7 @@ public class ShapeDeletionAnalysis : TestBase
     [Test]
     public void WhenShapeDeletionIsConditionedOnSubsequentChanger_DoesNotDelete()
     {
-        var root = CreatePrefab("DeletionTest.prefab");
+        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         root.transform.Find("MenuSet").gameObject.SetActive(true);
 
         AssertPreviewDeletion(root);
@@ -38,7 +58,7 @@ public class ShapeDeletionAnalysis : TestBase
     [Test]
     public void WhenShapeDeletionIsConditionedOnItself_DoesNotDelete()
     {
-        var root = CreatePrefab("DeletionTest.prefab");
+        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         root.transform.Find("Delete").gameObject.AddComponent<ModularAvatarMenuItem>().InitSettings();
         
         AssertNoPreviewDeletion(root);
