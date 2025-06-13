@@ -1,18 +1,49 @@
 # Resonite support
 
 Modular Avatar has experimental support for building avatars for Resonite.
-Enabling this feature requires that you install the "Modular Avatar - Resonite support" package using ALCOM,
-and that you enable [experimental feature support](../experimental-features).
 
-To build an avatar for resonite, open the NDMF Console (Tools -> NDM Framework -> NDMF Console), select your avatar at the top of the window, select "Resonite" as the "Avatar platform", and click build.
-If all goes well, you'll see a "Build finished!" message. You can then either "copy to clipboard", and then hit Ctrl-V in resonite, or click "Save as..." to save the avatar as a `resonitepackage` file.
+## Getting started, and your first avatar build
 
-The resonite build process will automatically copy certain avatar features, such as visemes, eye position, and physbones/dynamic bones to the Resonite avatar.
-If you've already set up your avatar for VRChat, no additional configuration is needed. If your avatar is not set up
-for VRChat, or if you don't have the VRCSDK installed, refer to the documentation on [portable avatar components](./portable-avatar-components.md)
-for more information on how to set up your avatar.
+### Installing Modular Avatar - Resonite support
+
+Building avatars for Resonite requires installing the VCC package `Modular Avatar - Resonite support`. To install this package:
+
+1. [Add pre-release repository](../intro.md).
+2. Afterward, open "Manage Project" for your project, click the + next to `Modular Avatar - Resonite support`, and then click `APPLY`.
+
+After installing it, [enable experimental features](../experimental-features).
+
+## Build
+
+Follow the steps below to build an avatar for Resonite.
+
+1. Open the NDMF console (Tools -> NDM Framework -> NDMF Console)
+2. Select the avatar at the top of the window
+3. Select `Resonite` under `Avatar platform` at the bottom of the window
+4. Click Build
+
+![Resonite Build Howto](build-resonite_support.png)
+
+When the build is completed successfully, the message `Build finished!` appears at the bottom of the NDMF Console.
+
+![Resonite Build Success](result-resonite_support.png)
+
+:::tip
+
+If you get an error, click on the `Console` tab and look at the bottom for a **red exclamation mark**.
+:::
+
+Once the build is complete, install it into Resonite. There are two ways to install it:
+
+1. Click "Copy to Clipboard" and then click `Paste content from clipboard` from the Resonite dash menu.
+2. Click "Save as..." to save the avatar file as a Resonite Package, then drag and drop it into Resonite.
 
 ## Supported features
+
+The resonite build process will automatically copy certain avatar features, such as visemes, eye position, and physbones/dynamic bones to the Resonite avatar.
+If you've already set up your avatar for VRChat, no additional configuration on your avatar is needed. If your avatar is not set up
+for VRChat, or if you don't have the VRCSDK installed, refer to the documentation on [portable avatar components](./portable-avatar-components.md)
+for more information on how to set up your avatar.
 
 | Feature | Supported | Limitations |
 | ------- | --------- | ----------- |

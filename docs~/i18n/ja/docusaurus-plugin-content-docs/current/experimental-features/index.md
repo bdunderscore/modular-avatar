@@ -16,6 +16,8 @@ Modular Avatar（およびNDMF）には、デフォルトで無効になって�
 
 実験的な機能を有効にするには、メニューバーの「Tools」→「NDM Framework」→「Experimental Features」を開いてください。実験的な機能を有効または無効にするウィンドウが開きます。
 
+![Experimental Features](activate-experimental_features.png)
+
 ## 実験的な機能のリスト
 
 - [Resonite 対応](./resonite-support.md)

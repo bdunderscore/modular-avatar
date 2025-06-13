@@ -399,6 +399,14 @@ namespace modular_avatar_tests.RenameParametersTests
             var theBinding = bindings[0];
             Assert.AreEqual("test2", theBinding.propertyName);
         }
+
+        [Test]
+        public void WhenVirtualizedComponentsAreNull_DoesNotThrow()
+        {
+            var prefab = CreatePrefab("NullVirtualizedComponents.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+        }
     }
 }
 

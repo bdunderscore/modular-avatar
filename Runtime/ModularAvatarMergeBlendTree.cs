@@ -1,8 +1,8 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System;
-using nadena.dev.ndmf.animator;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -40,7 +40,7 @@ namespace nadena.dev.modular_avatar.core
         Motion IVirtualizeMotion.Motion
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            get => (Motion)BlendTree;
+            get => BlendTree as Motion;
             set => BlendTree = value;
 #pragma warning restore CS0618 // Type or member is obsolete
         }

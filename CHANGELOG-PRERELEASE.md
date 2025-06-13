@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
 - [#1608] Shape Changer will now correctly delete shapekeys even if some unrelated animation is present on a parent object.
+- [#1589] A `KeyNotFoundException` could occur when the target of a Merge Animator or Merge Motion component was null
 
 ### Changed
 
