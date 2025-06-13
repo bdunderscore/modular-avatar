@@ -19,9 +19,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var hasShapeChanger = context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>(true) != null;
             var hasObjectSwitcher =
                 context.AvatarRootObject.GetComponentInChildren<ModularAvatarObjectToggle>(true) != null;
-            var hasMaterialSetter =
-                context.AvatarRootObject.GetComponentInChildren<ModularAvatarMaterialSetter>(true) != null;
-            if (hasShapeChanger || hasObjectSwitcher || hasMaterialSetter)
+            var hasMaterialChanger =
+                context.AvatarRootObject.GetComponentInChildren<IModularAvatarMaterialChanger>(true) != null;
+            if (hasShapeChanger || hasObjectSwitcher || hasMaterialChanger)
             {
                 var clip = new AnimationClip();
                 clip.name = "MA Shape Changer Defaults";
