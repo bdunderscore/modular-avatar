@@ -1,6 +1,9 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf.animator;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -26,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public TargetProp TargetProp;
         public object Value;
 
-        public Component ControllingObject;
+        public Component? ControllingObject;
 
         public List<ControlCondition> ControllingConditions;
 
@@ -40,6 +43,8 @@ namespace nadena.dev.modular_avatar.core.editor
                                   || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
 
         public bool IsConstantActive => IsConstant && InitiallyActive ^ Inverted;
+
+        public VirtualClip? CustomApplyMotion; 
         
         public override string ToString()
         {
@@ -71,7 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    && Inverted == other.Inverted;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.ndmf.animator;
@@ -239,32 +240,44 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
+        private bool? GetConstantStateForTargetProp(
+            TargetProp prop,
+            Dictionary<TargetProp, object> initialStates,
+            Dictionary<TargetProp, AnimatedProperty> shapes
+        )
+        {
+            if (!shapes.ContainsKey(prop))
+            {
+                return initialStates.GetValueOrDefault(prop) as bool?;
+            }
+
+            var lastGroup = shapes[prop].actionGroups.LastOrDefault();
+            if (lastGroup?.IsConstantActive != true || lastGroup.Value is not float f) return null;
+
+            return f < 0.5f;
+        }
+        
         private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var renderers = initialStates
-                .Where(kvp => kvp.Key.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
-                .Where(kvp => kvp.Key.TargetObject is SkinnedMeshRenderer)
-                .Where(kvp => kvp.Value is float f && f > 0.5f)
-                // Filter any non-constant keys
-                .Where(kvp =>
-                {
-                    if (!shapes.ContainsKey(kvp.Key))
-                    {
-                        // Constant value
-                        return true;
-                    }
-
-                    var lastGroup = shapes[kvp.Key].actionGroups.LastOrDefault();
-                    return lastGroup?.IsConstantActive == true && lastGroup.Value is float f && f > 0.5f;
-                })
-                .GroupBy(kvp => kvp.Key.TargetObject as SkinnedMeshRenderer)
-                .Select(grouping => (grouping.Key, grouping.Select(
-                    kvp => kvp.Key.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length)
-                ).ToList()))
+            var renderers = initialStates.Keys
+                .Where(prop => prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                .Where(prop => prop.TargetObject is SkinnedMeshRenderer)
+                .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != false)
+                .GroupBy(prop => prop.TargetObject as SkinnedMeshRenderer)
                 .ToList();
-            foreach (var (renderer, shapeNamesToDelete) in renderers)
+            foreach (var grouping in renderers)
             {
+                var renderer = grouping.Key;
+                var shapeNamesToDelete = grouping
+                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) == true)
+                    .Select(prop => prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length))
+                    .ToList();
+                var nanimatedShapes = grouping
+                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != true)
+                    .Select(prop => prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length))
+                    .ToList();
+                
                 if (renderer == null) continue;
 
                 var mesh = renderer.sharedMesh;
@@ -275,7 +288,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     .Where(k => k >= 0)
                     .ToList();
 
-                renderer.sharedMesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
+                renderer.sharedMesh = mesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
 
                 foreach (var name in shapeNamesToDelete)
                 {
@@ -298,16 +311,137 @@ namespace nadena.dev.modular_avatar.core.editor
                         PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
                     });
                 }
-            }
 
-            // Remove all deletedShape. props to avoid creating animator noise that'll confuse tools like AAO
-            foreach (var key in shapes.Keys.ToList())
-            {
-                if (key.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                // Handle NaNimated shapes next
+                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, nanimatedShapes, renderer.bones.Length);
+                renderer.sharedMesh = mesh;
+
+                if (nanPlan.Count > 0)
                 {
-                    shapes.Remove(key);
+                    var shapeNameToBones = GenerateNaNimatedBones(renderer, nanPlan);
+
+                    foreach (var kv in shapeNameToBones)
+                    {
+                        var shapeName = kv.Key;
+                        var bones = kv.Value;
+
+                        shapes.Remove(new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        });
+
+                        initialStates.Remove(new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        });
+
+                        var deleteTarget = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + shapeName
+                        };
+                        var animProp = shapes[deleteTarget];
+
+                        var clip_delete = CreateNaNimationClip(renderer, shapeName, bones, true);
+                        var clip_retain = CreateNaNimationClip(renderer, shapeName, bones, false);
+
+                        foreach (var group in animProp.actionGroups)
+                        {
+                            var isDeleted = group.Value is > 0.5f;
+
+                            group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
+                        }
+
+                        // Since we won't be inserting this into the default states animation, make sure there's a default
+                        // motion to fall back on for non-WD setups.
+                        animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
+                        {
+                            CustomApplyMotion = clip_retain
+                        });
+                    }
                 }
             }
+        }
+
+        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string shapeName, List<GameObject> bones,
+            bool shouldDelete)
+        {
+            var asc = context.Extension<AnimatorServicesContext>();
+
+            var clip = VirtualClip.Create($"NaNimation for {shapeName} ({(shouldDelete ? "delete" : "retain")})");
+
+            var curve = new AnimationCurve();
+            curve.AddKey(new Keyframe(0, 0)
+            {
+                value = shouldDelete ? float.NaN : 1.0f
+            });
+
+            foreach (var bone in bones)
+            {
+                var boneName = asc.ObjectPathRemapper
+                    .GetVirtualPathForObject(bone);
+
+                foreach (var dim in new[] { "x", "y", "z" })
+                {
+                    var binding = EditorCurveBinding.FloatCurve(
+                        boneName,
+                        typeof(Transform),
+                        $"m_LocalScale.{dim}"
+                    );
+                    clip.SetFloatCurve(binding, curve);
+                }
+
+                if (shouldDelete)
+                {
+                    // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
+                    // when any NaNimation is active.
+                    clip.SetFloatCurve(
+                        asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
+                        typeof(SkinnedMeshRenderer),
+                        "m_UpdateWhenOffscreen",
+                        AnimationCurve.Constant(0, 1, 0)
+                    );
+                }
+            }
+
+            return clip;
+        }
+
+        private Dictionary<string, List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
+            Dictionary<string, List<NaNimationFilter.AddedBone>> plan)
+        {
+            List<(NaNimationFilter.AddedBone, string)> createdBones =
+                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key))).OrderBy(b => b.bone.originalBoneIndex)
+                    .ToList();
+
+            var maxNewBoneIndex = createdBones[^1].Item1.newBoneIndex;
+            var bonesArray = new Transform[maxNewBoneIndex + 1];
+            var curBonesArray = renderer.bones;
+            Array.Copy(curBonesArray, 0, bonesArray, 0, curBonesArray.Length);
+
+            foreach (var pair in createdBones)
+            {
+                var bone = pair.Item1;
+                var shape = pair.Item2;
+
+                if (bonesArray[bone.originalBoneIndex] == null) continue;
+                var newBone = new GameObject("NaNimated Bone for " + shape.Replace('/', '_'));
+                var newBoneTransform = newBone.transform;
+                newBoneTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
+                newBoneTransform.localPosition = Vector3.zero;
+                newBoneTransform.localRotation = Quaternion.identity;
+                newBoneTransform.localScale = Vector3.one;
+
+                newBone.AddComponent<ModularAvatarPBBlocker>();
+                bonesArray[bone.newBoneIndex] = newBoneTransform;
+            }
+
+            renderer.bones = bonesArray;
+
+            return plan.ToDictionary(kv => kv.Key,
+                kv => kv.Value.Select(b => bonesArray[b.newBoneIndex].gameObject).ToList());
         }
 
         #endregion
@@ -321,43 +455,32 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             // TODO: prune non-animated keys
-            var asm = GenerateStateMachine(info);
-            ApplyController(asm, "MA Responsive: " + info.TargetProp.TargetObject.name);
+            GenerateStateMachine(info);
         }
 
-        private AnimatorStateMachine GenerateStateMachine(AnimatedProperty info)
+        private void GenerateStateMachine(AnimatedProperty info)
         {
             var asc = context.Extension<AnimatorServicesContext>();
-            var asm = new AnimatorStateMachine();
-
-            // Workaround for the warning: "'.' is not allowed in State name"
-            asm.name = "RC " + info.TargetProp.TargetObject.name.Replace(".", "_");
+            var asm = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!
+                .AddLayer(LayerPriority.Default, $"MA Responsive: {info.TargetProp.TargetObject.name}").StateMachine!;
 
             var x = 200;
             var y = 0;
             var yInc = 60;
 
-            asm.anyStatePosition = new Vector3(-200, 0);
-            
-            var initialState = new AnimatorState();
-            initialState.writeDefaultValues = _writeDefaults;
-            initialState.name = "<default>";
-            asm.defaultState = initialState;
+            asm.AnyStatePosition = new Vector3(-200, 0);
 
-            asm.entryPosition = new Vector3(0, 0);
+            var initialState = asm.AddState("<default>");
+            initialState.WriteDefaultValues = _writeDefaults;
+            asm.DefaultState = initialState;
 
-            var states = new List<ChildAnimatorState>();
-            states.Add(new ChildAnimatorState
-            {
-                position = new Vector3(x, y),
-                state = initialState
-            });
+            asm.EntryPosition = new Vector3(0, 0);
 
             var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
-            var transitionBuffer = new List<(AnimatorState, List<AnimatorStateTransition>)>();
-            var entryTransitions = new List<AnimatorTransition>();
+            var transitionBuffer = new List<(VirtualState, List<VirtualStateTransition>)>();
+            var entryTransitions = new List<VirtualTransition>();
 
-            transitionBuffer.Add((initialState, new List<AnimatorStateTransition>()));
+            transitionBuffer.Add((initialState, new List<VirtualStateTransition>()));
 
             // Note: We need to generate a group for any base constant state as well; this is because we generate the
             // scene initial value as a base animation curve in the base blend tree, which would be exposed in the
@@ -369,16 +492,18 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 y += yInc;
 
-                var clip = AnimResult(group.TargetProp, group.Value);
+                // TODO - avoid clone
+                var clip = group.CustomApplyMotion ??
+                           asc.ControllerContext.Clone(AnimResult(group.TargetProp, group.Value));
 
                 if (group.IsConstant)
                 {
-                    clip.name = "Property Overlay constant " + group.Value;
-                    initialState.motion = clip;
+                    clip.Name = "Property Overlay constant " + group.Value;
+                    initialState.Motion = clip;
                 }
                 else
                 {
-                    clip.name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
+                    clip.Name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
                                 group.Value;
 
                     var conditions = GetTransitionConditions(group);
@@ -387,67 +512,58 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         if (!group.Inverted)
                         {
-                            var transition = new AnimatorStateTransition
-                            {
-                                isExit = true,
-                                hasExitTime = false,
-                                duration = 0,
-                                hasFixedDuration = true,
-                                conditions = (AnimatorCondition[])conditions.Clone()
-                            };
+                            var transition = VirtualStateTransition.Create();
+                            transition.SetExitDestination();
+                            transition.ExitTime = null;
+                            transition.Duration = 0;
+                            transition.HasFixedDuration = true;
+                            transition.Conditions = conditions.ToImmutableList();
                             transitions.Add(transition);
                         }
                         else
                         {
                             foreach (var cond in conditions)
                             {
-                                transitions.Add(new AnimatorStateTransition
-                                {
-                                    isExit = true,
-                                    hasExitTime = false,
-                                    duration = 0,
-                                    hasFixedDuration = true,
-                                    conditions = new[] { InvertCondition(cond) }
-                                });
+                                var transition = VirtualStateTransition.Create();
+                                transition.SetExitDestination();
+                                transition.ExitTime = null;
+                                transition.Duration = 0;
+                                transition.HasFixedDuration = true;
+                                transition.Conditions = new[] { InvertCondition(cond) }.ToImmutableList();
+                                transitions.Add(transition);
                             }
                         }
                     }
 
-                    var state = new AnimatorState();
-
                     // Workaround for the warning: "'.' is not allowed in State name"
-                    state.name = group.ControllingConditions[0].DebugName.Replace(".", "_");
+                    var state = asm.AddState(
+                        group.ControllingConditions[0].DebugName.Replace(".", "_"),
+                        clip,
+                        new Vector3(x, y)
+                    );
 
-                    state.motion = clip;
-                    state.writeDefaultValues = _writeDefaults;
-                    states.Add(new ChildAnimatorState
-                    {
-                        position = new Vector3(x, y),
-                        state = state
-                    });
+                    state.WriteDefaultValues = _writeDefaults;
 
-                    var transitionList = new List<AnimatorStateTransition>();
+                    var transitionList = new List<VirtualStateTransition>();
                     transitionBuffer.Add((state, transitionList));
 
                     if (!group.Inverted)
                     {
-                        entryTransitions.Add(new AnimatorTransition
-                        {
-                            destinationState = state,
-                            conditions = conditions
-                        });
+                        var entryTransition = VirtualTransition.Create();
+                        entryTransition.SetDestination(state);
+                        entryTransition.Conditions = conditions.ToImmutableList();
+                        entryTransitions.Add(entryTransition);
 
                         foreach (var cond in conditions)
                         {
                             var inverted = InvertCondition(cond);
-                            transitionList.Add(new AnimatorStateTransition
-                            {
-                                isExit = true,
-                                hasExitTime = false,
-                                duration = 0,
-                                hasFixedDuration = true,
-                                conditions = new[] { inverted }
-                            });
+                            var transition = VirtualStateTransition.Create();
+                            transition.SetExitDestination();
+                            transition.ExitTime = null;
+                            transition.Duration = 0;
+                            transition.HasFixedDuration = true;
+                            transition.Conditions = new[] { inverted }.ToImmutableList();
+                            transitionList.Add(transition);
                         }
                     }
                     else
@@ -455,42 +571,37 @@ namespace nadena.dev.modular_avatar.core.editor
                         // inverted condition
                         foreach (var cond in conditions)
                         {
-                            entryTransitions.Add(new AnimatorTransition()
-                            {
-                                destinationState = state,
-                                conditions = new[] { InvertCondition(cond) }
-                            });
+                            var entryTransition = VirtualTransition.Create();
+                            entryTransition.SetDestination(state);
+                            entryTransition.Conditions = new[] { InvertCondition(cond) }.ToImmutableList();
+                            entryTransitions.Add(entryTransition);
                         }
-                        
-                        transitionList.Add(new AnimatorStateTransition
-                        {
-                            isExit = true,
-                            hasExitTime = false,
-                            duration = 0,
-                            hasFixedDuration = true,
-                            conditions = conditions
-                        });
+
+                        var transition = VirtualStateTransition.Create();
+                        transition.SetExitDestination();
+                        transition.ExitTime = null;
+                        transition.Duration = 0;
+                        transition.HasFixedDuration = true;
+                        transition.Conditions = conditions.ToImmutableList();
+
+                        transitionList.Add(transition);
                     }
                 }
             }
 
-            if (initialState.motion == null)
+            if (initialState.Motion == null)
             {
                 // For some reason, if we set the state's motion multiple times, Unity will sometimes revert to the
                 // first motion set; as such, make sure to set the empty motion only if we really mean it. 
-                var initial = new AnimationClip();
-                initial.name = "empty motion";
-                initialState.motion = initial;
+                var initial = VirtualClip.Create("empty motion");
+                initialState.Motion = initial;
             }
-            
-            foreach (var (st, transitions) in transitionBuffer) st.transitions = transitions.ToArray();
 
-            asm.states = states.ToArray();
+            foreach (var (st, transitions) in transitionBuffer) st.Transitions = transitions.ToImmutableList();
+
             entryTransitions.Reverse();
-            asm.entryTransitions = entryTransitions.ToArray();
-            asm.exitPosition = new Vector3(500, 0);
-
-            return asm;
+            asm.EntryTransitions = entryTransitions.ToImmutableList();
+            asm.ExitPosition = new Vector3(500, 0);
         }
 
         private static AnimatorCondition InvertCondition(AnimatorCondition cond)
