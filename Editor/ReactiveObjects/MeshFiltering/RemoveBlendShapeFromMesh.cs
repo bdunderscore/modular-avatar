@@ -13,7 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class RemoveBlendShapeFromMesh
     {
-        private const float THRESHOLD = 0.001f;
+        internal const float SQR_EPSILON = 0.0001f;
 
         public static Mesh RemoveBlendshapes(Mesh original, IEnumerable<int> targets)
         {
@@ -282,7 +282,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     for (int i = 0; i < bsPos.Length; i++)
                     {
-                        if (bsPos[i].sqrMagnitude > 0.0001f)
+                        if (bsPos[i].sqrMagnitude > SQR_EPSILON)
                         {
                             toDeleteVertices[i] = true;
                         }
