@@ -213,7 +213,7 @@
   "menuitem.prop.is_saved.tooltip": "true이면, 이 메뉴 항목의 값이 아바타나 월드를 변경할 때 저장됩니다.",
   "menuitem.prop.is_synced": "동기화",
   "menuitem.prop.is_synced.tooltip": "true이면, 이 메뉴 항목의 값이 네트워크를 통해 다른 플레이어에게 동기화됩니다.",
-  "menuitem.param.rotation": "매개변수: 회전전",
+  "menuitem.param.rotation": "매개변수: 회전",
   "menuitem.param.rotation.tooltip": "이 메뉴 항목의 회전에 따라 설정할 매개변수",
   "menuitem.param.horizontal": "매개변수: 수평",
   "menuitem.param.horizontal.tooltip": "썸스틱의 수평 위치에 따라 설정할 매개변수",
