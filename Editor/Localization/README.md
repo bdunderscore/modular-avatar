@@ -1,4 +1,4 @@
-Localizations are now being managed via Crowdin: https://crowdin.com/project/modular-avatar
+Localizations are now being managed via Crowdin: [https://crowdin.com/project/modular-avatar](https://crwd.in/modular-avatar/81d260e3f535f23038d3262b4c4aeb952464122)
 
 When adding new strings, please add them directly to the `en-US.json` file as part of your pull request.
 You may also add translated strings to the other language files; crowdin will automatically import them. Do not add
