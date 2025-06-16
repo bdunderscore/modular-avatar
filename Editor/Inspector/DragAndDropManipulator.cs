@@ -8,19 +8,19 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal abstract class DragAndDropManipulator<T, TObject> : PointerManipulator
-        where T : Component
-        where TObject : Object
+    internal abstract class DragAndDropManipulator<TTargetComponent, TDragObject> : PointerManipulator
+        where TTargetComponent : Component
+        where TDragObject : Object
     {
         private const string DragActiveClassName = "drop-area--drag-active";
 
-        public T TargetComponent { get; set; }
+        public TTargetComponent TargetComponent { get; set; }
         protected Transform AvatarRoot => _avatarRoot;
 
         private Transform _avatarRoot;
-        private TObject[] _draggingObjects = Array.Empty<TObject>();
+        private TDragObject[] _draggingObjects = Array.Empty<TDragObject>();
 
-        public DragAndDropManipulator(VisualElement targetElement, T targetComponent)
+        public DragAndDropManipulator(VisualElement targetElement, TTargetComponent targetComponent)
         {
             target = targetElement;
             TargetComponent = targetComponent;
@@ -51,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(TargetComponent.transform);
             if (_avatarRoot == null) return;
 
-            _draggingObjects = FilterObjects(DragAndDrop.objectReferences.OfType<TObject>())
+            _draggingObjects = FilterObjects(DragAndDrop.objectReferences.OfType<TDragObject>())
                 .ToArray();
             if (_draggingObjects.Length == 0) return;
 
@@ -60,13 +60,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OnDragLeave(DragLeaveEvent _)
         {
-            _draggingObjects = Array.Empty<TObject>();
+            _draggingObjects = Array.Empty<TDragObject>();
             target.RemoveFromClassList(DragActiveClassName);
         }
 
         private void OnDragExited(DragExitedEvent _)
         {
-            _draggingObjects = Array.Empty<TObject>();
+            _draggingObjects = Array.Empty<TDragObject>();
             target.RemoveFromClassList(DragActiveClassName);
         }
 
@@ -88,12 +88,12 @@ namespace nadena.dev.modular_avatar.core.editor
             AddObjects(_draggingObjects);
         }
 
-        protected virtual IEnumerable<TObject> FilterObjects(IEnumerable<TObject> objects)
+        protected virtual IEnumerable<TDragObject> FilterObjects(IEnumerable<TDragObject> objects)
         {
             return objects;
         }
 
-        protected abstract void AddObjects(IEnumerable<TObject> objects);
+        protected abstract void AddObjects(IEnumerable<TDragObject> objects);
     }
 
     internal abstract class DragAndDropManipulator<T> : DragAndDropManipulator<T, GameObject>
