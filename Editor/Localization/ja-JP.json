@@ -260,8 +260,6 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "条件を反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル",
-  "reactive_object.material-swap.swap-from": "置換元のマテリアル",
-  "reactive_object.material-swap.swap-to": "置換先のマテリアル",
   "menuitem.misc.add_toggle": "トグルを追加",
   "ro_sim.open_debugger_button": "Reaction デバッガーを開く",
   "ro_sim.window.title": "MA Reaction デバッガー",

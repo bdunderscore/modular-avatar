@@ -33,6 +33,7 @@
 
 .horizontal > PropertyField {
     flex-grow: 1;
+    flex-basis: 0;
 }
 
 .horizontal > PropertyField > * {
