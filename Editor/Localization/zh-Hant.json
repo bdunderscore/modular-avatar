@@ -259,6 +259,7 @@
   "ma_info.param_usage_ui.header": "Expressions 的參數使用狀況",
   "ma_info.param_usage_ui.other_objects": "此 Avatar 中的其他東西",
   "ma_info.param_usage_ui.free_space": "未使用的參數空間 ({0} bits)",
+  "ma_info.param_usage_ui.exceeded_space": "額外參數（{0} bits）",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
