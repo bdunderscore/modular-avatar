@@ -22,8 +22,10 @@ will be animated to enable/disable it, or it can be on a Menu Item (or a child t
 object that is always enabled, to swap materials on your avatar at all times.
 
 Next, click the + button to add a new entry.
-Drag the material you want to swap from onto the upper material field,
-and drag the material you want to swap to onto the lower material field.
+Drag the material you want to swap from onto the left material field,
+and drag the material you want to swap to onto the right material field.
+
+To limit the scope to a specific hierarchy, you can set "Target Root".
 
 By default, Material Swap will swap materials when the GameObject is enabled (and/or the associated menu item is
 selected). If you want to swap materials when the GameObject is disabled, you can select "Inverse condition".
