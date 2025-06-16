@@ -4,6 +4,8 @@
         <ui:VisualElement name="group-box">
             <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
 
+            <ed:PropertyField binding-path="m_root" label="reactive_object.material-swap.root" class="ndmf-tr"/>
+
             <ui:VisualElement name="ListViewContainer">
                 <ui:ListView virtualization-method="DynamicHeight"
                              reorder-mode="Animated"

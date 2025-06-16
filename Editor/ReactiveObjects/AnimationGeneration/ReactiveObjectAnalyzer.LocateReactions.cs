@@ -293,14 +293,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void PrepareMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                var materialsSwapFrom = swaps
+                var swapRootsByTargetMaterial = swaps
                     .Where(c => c.Swaps != null)
-                    .SelectMany(c => c.Swaps, (_, m) => m.From ? m.From : null)
-                    .Distinct()
+                    .SelectMany(c => c.Swaps, (c, m) => (root: c.Root.Get(c), mat: m.From ? m.From : null))
+                    .ToLookup(x => x.mat, x => x.root);
+                var targetMaterials = swapRootsByTargetMaterial
+                    .Select(x => x.Key)
                     .ToArray();
                 foreach (var renderer in renderers)
                 {
-                    _computeContext.Observe(renderer, r => r.sharedMaterials.Select(m => Array.IndexOf(materialsSwapFrom, m)),
+                    // Observe whether any of the renderer’s sharedMaterials
+                    // has become a swap target (-1 to index),
+                    // is no longer a swap target (index to -1),
+                    // or has switched to a different material among the swap targets (index to another index).
+                    _computeContext.Observe(renderer, r => r.sharedMaterials
+                            .Select(m =>
+                            {
+                                if (swapRootsByTargetMaterial[m].Any(x => x == null || r.transform.IsChildOf(x.transform)))
+                                {
+                                    return Array.IndexOf(targetMaterials, m);
+                                }
+                                return -1;
+                            }),
                         Enumerable.SequenceEqual);
                 }
             }
@@ -323,10 +337,12 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (swap.Swaps == null) return;
 
+                var swapRoot = _computeContext.Observe(swap, c => c.Root.Get(swap));
                 foreach (var obj in _computeContext.Observe(swap, c => c.Swaps.Select(o => o.Clone()).ToList(),
                     Enumerable.SequenceEqual))
                 {
                     foreach (var (renderer, index, _) in renderers
+                        .Where(r => swapRoot == null || r.transform.IsChildOf(swapRoot.transform))
                         .SelectMany(r => r.sharedMaterials.Select((m, i) => (renderer: r, index: i, material: m)))
                         .Where(x => x.material == (obj.From ? obj.From : null)))
                     {
