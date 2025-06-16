@@ -259,15 +259,14 @@
   "ma_info.param_usage_ui.header": "표현식 매개변수 사용량",
   "ma_info.param_usage_ui.other_objects": "이 아바타의 다른 오브젝트",
   "ma_info.param_usage_ui.free_space": "사용되지 않은 매개변수 공간 ({0} 비트)",
+  "ma_info.param_usage_ui.exceeded_space": "과도한 파라미터 ({0} 비트)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 비트)",
   "ma_info.param_usage_ui.no_data": "[ 데이터 없음 ]",
   "reactive_object.inverse": "역 조건",
   "reactive_object.material-setter.set-to": "머티리얼 설정: ",
   "menuitem.misc.add_toggle": "토글 추가",
-
   "ro_sim.open_debugger_button": "반응 디버거 열기",
   "ro_sim.window.title": "MA 반응 디버거",
-
   "ro_sim.header.inspecting": "검사 중인 오브젝트",
   "ro_sim.header.clear_overrides": "모든 재정의 지우기",
   "ro_sim.header.object_state": "오브젝트 상태",
@@ -276,7 +275,6 @@
   "ro_sim.header.override_gameobject_state": "GameObject 상태 재정의",
   "ro_sim.header.override_menuitem_state": "MenuItem 상태 재정의",
   "ro_sim.affected_by.title": "영향을 받는 요소:",
-
   "ro_sim.effect_group.component": "반응형 컴포넌트",
   "ro_sim.effect_group.controls_obj_state": "오브젝트 상태 제어:",
   "ro_sim.effect_group.target_component": "대상 컴포넌트",
@@ -287,14 +285,11 @@
   "ro_sim.effect_group.value.tooltip": "Reactive Object가 활성일 때 속성이 설정될 값",
   "ro_sim.effect_group.material": "머티리얼",
   "ro_sim.effect_group.material.tooltip": "Reactive Object가 활성일 때 대상 컴포넌트에 설정할 머티리얼",
-
   "ro_sim.effect_group.rule_inverted": "이 규칙은 역전됨",
   "ro_sim.effect_group.rule_inverted.tooltip": "이 규칙은 조건 중 하나가 충족되지 않을 때 적용됩니다",
   "ro_sim.effect_group.conditions": "조건",
-
   "menuitem.label.long_name.tooltip": "리치 텍스트와 줄 바꿈을 포함할 수 있는 긴 이름을 사용합니다.",
   "menuitem.label.gameobject_name.tooltip": "GameObject 이름을 사용합니다.",
-
   "remove-vertex-color.mode": "모드",
   "remove-vertex-color.mode.Remove": "버텍스 컬러 제거",
   "remove-vertex-color.mode.DontRemove": "버텍스 컬러 유지",
@@ -306,5 +301,4 @@
   "sync-param-sequence.create-asset": "새로 만들기",
   "sync-param-sequence.create-asset.tooltip": "새 표현식 매개변수 에셋을 생성합니다",
   "platform.vrchat.settings.mmd_world_support": "MMD 월드 지원"
-
 }
