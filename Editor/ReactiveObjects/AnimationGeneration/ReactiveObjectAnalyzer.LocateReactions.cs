@@ -275,25 +275,24 @@ namespace nadena.dev.modular_avatar.core.editor
             var changers = _computeContext.GetComponentsInChildren<IModularAvatarMaterialChanger>(root, true);
             var renderers = _computeContext.GetComponentsInChildren<Renderer>(root, true);
 
-            PrepareMaterialSetters();
-            PrepareMaterialSwaps();
+            PrepareMaterialSetters(changers.OfType<ModularAvatarMaterialSetter>());
+            PrepareMaterialSwaps(changers.OfType<ModularAvatarMaterialSwap>());
 
             foreach (var changer in changers)
             {
                 switch (changer)
                 {
-                    case ModularAvatarMaterialSetter setter: AddMaterialSetter(setter); break;
-                    case ModularAvatarMaterialSwap swap: AddMaterialSwap(swap); break;
+                    case ModularAvatarMaterialSetter setter: RegisterMaterialSetter(setter); break;
+                    case ModularAvatarMaterialSwap swap: RegisterMaterialSwap(swap); break;
                 }
             }
 
-            void PrepareMaterialSetters()
+            void PrepareMaterialSetters(IEnumerable<ModularAvatarMaterialSetter> setters)
             {
             }
 
-            void PrepareMaterialSwaps()
+            void PrepareMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                var swaps = _computeContext.GetComponentsInChildren<ModularAvatarMaterialSwap>(root, true);
                 var materialsSwapFrom = swaps
                     .Where(c => c.Swaps != null)
                     .SelectMany(c => c.Swaps, (_, m) => m.From ? m.From : null)
@@ -306,7 +305,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            void AddMaterialSetter(ModularAvatarMaterialSetter setter)
+            void RegisterMaterialSetter(ModularAvatarMaterialSetter setter)
             {
                 if (setter.Objects == null) return;
 
@@ -320,7 +319,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            void AddMaterialSwap(ModularAvatarMaterialSwap swap)
+            void RegisterMaterialSwap(ModularAvatarMaterialSwap swap)
             {
                 if (swap.Swaps == null) return;
 
