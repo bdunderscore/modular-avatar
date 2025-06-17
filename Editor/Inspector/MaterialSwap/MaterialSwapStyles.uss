@@ -45,13 +45,11 @@
     border-bottom-right-radius: 0;
 }
 
-#from-dropdown {
+#from-selector {
+    flex-direction: row;
     width: 20px;
     margin-left: -2px;
-}
-
-#from-dropdown .unity-base-field__input {
-    min-width: 0;
+    padding: 0 3px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }

@@ -27,9 +27,9 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             uxml.BindProperty(property);
 
             var fromField = uxml.Q<PropertyField>("from-field");
-            var fromDropdown = uxml.Q<DropdownField>("from-dropdown");
+            var fromSelector = uxml.Q<Button>("from-selector");
             var fromProperty = property.FindPropertyRelative("From");
-            fromDropdown.RegisterCallback<PointerDownEvent>(_ =>
+            fromSelector.clicked += () =>
             {
                 var swap = property.serializedObject.targetObject as ModularAvatarMaterialSwap;
                 if (swap == null)
@@ -55,8 +55,8 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                         fromProperty.serializedObject.ApplyModifiedProperties();
                     });
                 }
-                menu.DropDown(fromField.worldBound, fromDropdown);
-            });
+                menu.DropDown(fromField.worldBound, fromField);
+            };
 
             return uxml;
         }
