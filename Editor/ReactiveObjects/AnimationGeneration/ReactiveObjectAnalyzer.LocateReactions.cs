@@ -316,6 +316,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                 return -1;
                             }),
                         Enumerable.SequenceEqual);
+                    
+                    // Re-evaluate the context if the hierarchy changes. Note that this will force the above Observe
+                    // to be re-evaluated as well.
+                    _computeContext.ObservePath(renderer.transform);
                 }
             }
 
