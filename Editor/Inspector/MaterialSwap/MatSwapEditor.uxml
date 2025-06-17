@@ -1,6 +1,7 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
     <ui:VisualElement class="horizontal">
-        <ed:PropertyField binding-path="From" label=""/>
+        <ed:PropertyField name="from-field" binding-path="From" label=""/>
+        <ui:DropdownField name="from-dropdown"/>
         <ui:Label text="→"/>
         <ed:PropertyField binding-path="To" label=""/>
     </ui:VisualElement>
