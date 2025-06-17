@@ -1,23 +1,26 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal abstract class DragAndDropManipulator<T> : PointerManipulator where T : Component, IHaveObjReferences
+    internal abstract class DragAndDropManipulator<TTargetComponent, TDragObject> : PointerManipulator
+        where TTargetComponent : Component
+        where TDragObject : Object
     {
         private const string DragActiveClassName = "drop-area--drag-active";
 
-        public T TargetComponent { get; set; }
-
-        protected virtual bool AllowKnownObjects => true;
+        public TTargetComponent TargetComponent { get; set; }
+        protected Transform AvatarRoot => _avatarRoot;
 
         private Transform _avatarRoot;
-        private GameObject[] _draggingObjects = Array.Empty<GameObject>();
+        private TDragObject[] _draggingObjects = Array.Empty<TDragObject>();
 
-        public DragAndDropManipulator(VisualElement targetElement, T targetComponent)
+        public DragAndDropManipulator(VisualElement targetElement, TTargetComponent targetComponent)
         {
             target = targetElement;
             TargetComponent = targetComponent;
@@ -48,11 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(TargetComponent.transform);
             if (_avatarRoot == null) return;
 
-            var knownObjects = TargetComponent.GetObjectReferences().Select(x => x.Get(TargetComponent)).ToHashSet();
-            _draggingObjects = DragAndDrop.objectReferences.OfType<GameObject>()
-                .Where(x => AllowKnownObjects || !knownObjects.Contains(x))
-                .Where(x => RuntimeUtil.FindAvatarTransformInParents(x.transform) == _avatarRoot)
-                .Where(FilterGameObject)
+            _draggingObjects = FilterObjects(DragAndDrop.objectReferences.OfType<TDragObject>())
                 .ToArray();
             if (_draggingObjects.Length == 0) return;
 
@@ -61,13 +60,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void OnDragLeave(DragLeaveEvent _)
         {
-            _draggingObjects = Array.Empty<GameObject>();
+            _draggingObjects = Array.Empty<TDragObject>();
             target.RemoveFromClassList(DragActiveClassName);
         }
 
         private void OnDragExited(DragExitedEvent _)
         {
-            _draggingObjects = Array.Empty<GameObject>();
+            _draggingObjects = Array.Empty<TDragObject>();
             target.RemoveFromClassList(DragActiveClassName);
         }
 
@@ -86,7 +85,37 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_avatarRoot == null) return;
             if (_draggingObjects.Length == 0) return;
 
-            AddObjectReferences(_draggingObjects
+            AddObjects(_draggingObjects);
+        }
+
+        protected virtual IEnumerable<TDragObject> FilterObjects(IEnumerable<TDragObject> objects)
+        {
+            return objects;
+        }
+
+        protected abstract void AddObjects(IEnumerable<TDragObject> objects);
+    }
+
+    internal abstract class DragAndDropManipulator<T> : DragAndDropManipulator<T, GameObject>
+        where T : Component, IHaveObjReferences
+    {
+        protected virtual bool AllowKnownObjects => true;
+
+        public DragAndDropManipulator(VisualElement targetElement, T targetComponent)
+            : base(targetElement, targetComponent) { }
+
+        protected override IEnumerable<GameObject> FilterObjects(IEnumerable<GameObject> objects)
+        {
+            var knownObjects = TargetComponent.GetObjectReferences().Select(x => x.Get(TargetComponent)).ToHashSet();
+            return objects
+                .Where(x => AllowKnownObjects || !knownObjects.Contains(x))
+                .Where(x => RuntimeUtil.FindAvatarTransformInParents(x.transform) == AvatarRoot)
+                .Where(FilterGameObject);
+        }
+
+        protected override void AddObjects(IEnumerable<GameObject> objects)
+        {
+            AddObjectReferences(objects
                 .Select(x =>
                 {
                     var reference = new AvatarObjectReference();

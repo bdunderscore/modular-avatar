@@ -264,6 +264,7 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "Inverse Condition",
   "reactive_object.material-setter.set-to": "Set material to: ",
+  "reactive_object.material-swap.root": "Target Root",
   "menuitem.misc.add_toggle": "Add toggle",
   
   "ro_sim.open_debugger_button": "Open reaction debugger",

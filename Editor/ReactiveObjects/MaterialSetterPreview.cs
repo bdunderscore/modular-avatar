@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor
     public class MaterialSetterPreview : IRenderFilter
     {
         static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
-            () => "Material Setter",
+            () => "Material Setter / Material Swap",
             qualifiedName: "nadena.dev.modular-avatar/MaterialSetterPreview",
             true
         );

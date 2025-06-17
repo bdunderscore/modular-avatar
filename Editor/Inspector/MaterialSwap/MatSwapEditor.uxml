@@ -1,0 +1,7 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField binding-path="From" label=""/>
+        <ui:Label text="→"/>
+        <ed:PropertyField binding-path="To" label=""/>
+    </ui:VisualElement>
+</UXML>
