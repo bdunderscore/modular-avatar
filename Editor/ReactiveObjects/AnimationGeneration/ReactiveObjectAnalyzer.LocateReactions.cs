@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -347,7 +348,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (var (renderer, index, _) in renderers
                         .Where(r => swapRoot == null || r.transform.IsChildOf(swapRoot.transform))
-                        .SelectMany(r => r.sharedMaterials.Select((m, i) => (renderer: r, index: i, material: m)))
+                        .SelectMany(r => r.sharedMaterials.Select((m, i) =>
+                        {
+                            var originalMaterial = ObjectRegistry.GetReference(m)?.Object as Material ?? m;
+                            return (renderer: r, index: i, material: originalMaterial);
+                        }))
                         .Where(x => x.material == (obj.From ? obj.From : null)))
                     {
                         RegisterAction(swap, renderer, index, obj.To);
