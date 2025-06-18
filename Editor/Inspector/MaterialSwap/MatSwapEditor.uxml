@@ -5,6 +5,6 @@
             <ui:VisualElement class="unity-base-popup-field__arrow"/>
         </ui:Button>
         <ui:Label text="→"/>
-        <ed:PropertyField binding-path="To" label=""/>
+        <ed:PropertyField name="to-field" binding-path="To" label=""/>
     </ui:VisualElement>
 </UXML>
