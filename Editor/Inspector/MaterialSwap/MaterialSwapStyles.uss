@@ -40,6 +40,20 @@
     margin: 0;
 }
 
+#from-field .unity-base-field__input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#from-selector {
+    flex-direction: row;
+    width: 20px;
+    margin-left: -2px;
+    padding: 0 3px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 .drop-area--drag-active {
     background-color: rgba(0, 127, 255, 0.2);
 }

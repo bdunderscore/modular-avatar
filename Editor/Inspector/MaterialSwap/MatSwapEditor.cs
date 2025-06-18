@@ -1,7 +1,9 @@
 ﻿#region
 
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 #endregion
@@ -23,6 +25,38 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             Localization.UI.Localize(uxml);
             uxml.styleSheets.Add(uss);
             uxml.BindProperty(property);
+
+            var fromField = uxml.Q<PropertyField>("from-field");
+            var fromSelector = uxml.Q<Button>("from-selector");
+            var fromProperty = property.FindPropertyRelative("From");
+            fromSelector.clicked += () =>
+            {
+                var swap = property.serializedObject.targetObject as ModularAvatarMaterialSwap;
+                if (swap == null)
+                {
+                    return;
+                }
+                var root = swap.Root.Get(swap)?.transform ?? RuntimeUtil.FindAvatarTransformInParents(swap.transform);
+                if (root == null)
+                {
+                    return;
+                }
+
+                var menu = new GenericDropdownMenu();
+                foreach (var material in root.GetComponentsInChildren<Renderer>(true)
+                    .SelectMany(x => x.sharedMaterials)
+                    .Where(x => x != null)
+                    .Distinct())
+                {
+                    menu.AddItem(material.name, material == fromProperty.objectReferenceValue, () =>
+                    {
+                        fromProperty.serializedObject.Update();
+                        fromProperty.objectReferenceValue = material;
+                        fromProperty.serializedObject.ApplyModifiedProperties();
+                    });
+                }
+                menu.DropDown(fromField.worldBound, fromField);
+            };
 
             return uxml;
         }
