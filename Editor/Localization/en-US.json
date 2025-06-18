@@ -187,6 +187,8 @@
   "validation.merge_armature.no_target:hint": "Merge Armature needs to know which armature to merge into. Try setting the 'Merge Target' field.",
   "validation.merge_armature.target_is_child": "[MA-1500] Merge target cannot be a child of this object",
   "validation.merge_armature.target_is_child:hint": "Merge Armature cannot merge an armature into itself. Try setting the 'Merge Target' field to a different object.",
+  "validation.platform_filter.mixed_include_exclude": "[MA-0013] A single GameObject cannot have both included and excluded platforms in Platform Filter components.",
+  "validation.platform_filter.mixed_include_exclude:description": "Since you're using include mode, try only specifying the platforms you want to include.",
   "submenu_source.Children": "Children",
   "submenu_source.MenuAsset": "Expressions Menu Asset",
   "menuitem.showcontents": "Show menu contents",
@@ -307,6 +309,8 @@
   "sync-param-sequence.parameters.tooltip": "The asset to store common parameters in. Do not use the same Expression Parameters that you have set in your avatar descriptor.",
   "sync-param-sequence.create-asset": "New",
   "sync-param-sequence.create-asset.tooltip": "Creates a new expression parameters asset",
-  "platform.vrchat.settings.mmd_world_support": "MMD world support"
-
+  "platform.vrchat.settings.mmd_world_support": "MMD world support",
+  "platform_filter.platform": "Platform",
+  "platform_filter.exclude": "Exclude this platform",
+  "platform_filter.include": "Include this platform"
 }

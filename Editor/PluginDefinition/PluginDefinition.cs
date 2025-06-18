@@ -37,6 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         protected override void Configure()
         {
             Sequence seq = InPhase(BuildPhase.Resolving);
+            seq.Run(PlatformFilterPass.Instance);
             seq.Run(ResolveObjectReferences.Instance);
 
             // Protect against accidental destructive edits by cloning the input controllers ASAP
