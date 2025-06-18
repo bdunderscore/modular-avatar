@@ -28,7 +28,7 @@ namespace nadena.dev.modular_avatar.core
         private AvatarObjectReference m_root = new();
 
         [SerializeField]
-        private List<MatSwap> m_swaps = new();
+        internal List<MatSwap> m_swaps = new();
 
         public AvatarObjectReference Root
         {
