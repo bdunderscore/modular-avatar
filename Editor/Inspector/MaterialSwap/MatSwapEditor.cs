@@ -128,6 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 if (primaryLabel == null) return;
 
                 pathLabel = new Label();
+                pathLabel.pickingMode = PickingMode.Ignore;
                 pathLabel.AddToClassList("path-label");
                 primaryLabel.parent.Insert(primaryLabel.parent.IndexOf(primaryLabel), pathLabel);
             }
