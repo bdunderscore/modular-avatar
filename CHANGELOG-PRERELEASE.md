@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1594] Display the exceeded parameter count in the MA Information
 - [#1604] Implement `MA Material Swap`
-- [#1620] Add material selector to `MA Material Swap` Inspector
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
