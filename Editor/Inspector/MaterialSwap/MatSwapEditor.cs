@@ -102,7 +102,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             _uxml.BindProperty(property);
         }
 
-        private void RegisterCallbacks()
+        private void RegisterUniquePathCallbacks()
         {
             if (_parentEditor == null) return;
             
@@ -111,16 +111,16 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             if (fromProperty == null || toProperty == null) return;
 
-            RegisterCallbackForProperty(fromProperty, ref _deregisterFrom, _fromField, ref fromPathLabel);
-            RegisterCallbackForProperty(toProperty, ref _deregisterTo, _toField, ref toPathLabel);
+            RegisterUniquePathCallbackForProperty(fromProperty, ref _deregisterFrom, _fromField, ref fromPathLabel);
+            RegisterUniquePathCallbackForProperty(toProperty, ref _deregisterTo, _toField, ref toPathLabel);
         }
 
-        private void RegisterCallbackForProperty(SerializedProperty prop, ref IDisposable? deregister, PropertyField field, ref Label? pathLabel)
+        private void RegisterUniquePathCallbackForProperty(SerializedProperty prop, ref IDisposable? deregister, PropertyField field, ref Label? pathLabel)
         {
             deregister?.Dispose();
             deregister = null;
             
-            // The PropertyField creates its inner label after a delay, so look for it in this delayed RegisterCallbacks
+            // The PropertyField creates its inner label after a delay, so look for it in this delayed RegisterUniquePathCallbacks
             // callback.
             if (pathLabel == null)
             {
@@ -140,7 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             if (obj == null || !AssetDatabase.Contains(obj)) return;
 
             var pathLabel_ = pathLabel; // preserve the value as we can't carry a ref into the callback
-            deregister = _parentEditor?.RegisterMatNameCallback(obj.name, obj, path =>
+            deregister = _parentEditor?.RegisterUniquePathCallback(obj.name, obj, path =>
             {
                 pathLabel_.text = path;
                 pathLabel_.style.display = path == null ? DisplayStyle.None : DisplayStyle.Flex;
@@ -149,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private void OnAnyValueChanged(SerializedPropertyChangeEvent evt)
         {
-            RegisterCallbacks();
+            RegisterUniquePathCallbacks();
         }
 
         private void OnDetach(DetachFromPanelEvent evt)
@@ -164,7 +164,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private void OnAttach(AttachToPanelEvent evt)
         {
-            RegisterCallbacks();
+            RegisterUniquePathCallbacks();
         }
     }
 }

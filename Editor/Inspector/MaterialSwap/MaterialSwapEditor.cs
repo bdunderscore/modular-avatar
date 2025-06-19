@@ -25,7 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<string>>>> _matNameToUniquePathCallbacks = new();
 
-        internal IDisposable RegisterMatNameCallback(string name, UnityEngine.Object target, Action<string> callback)
+        internal IDisposable RegisterUniquePathCallback(string name, UnityEngine.Object target, Action<string> callback)
         {
             if (!_matNameToUniquePathCallbacks.TryGetValue(name, out var obj_to_cb_set))
             {
@@ -38,12 +38,12 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             }
             
             cb_set.Add(callback);
-            CallMatNameCallback(obj_to_cb_set);
+            CallUniquePathCallback(obj_to_cb_set);
 
             return new Deregister(this, name, target, callback);
         }
 
-        private void CallMatNameCallback(Dictionary<UnityEngine.Object, HashSet<Action<string>>> obj_to_cb_set)
+        private void CallUniquePathCallback(Dictionary<UnityEngine.Object, HashSet<Action<string>>> obj_to_cb_set)
         {
             var obj_to_folder_path = obj_to_cb_set.ToDictionary(x => x.Key, x => GetFolderPath(x.Key));
             foreach (var (obj, folder_path) in obj_to_folder_path)
@@ -110,7 +110,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 }
                 else
                 {
-                    _editor.CallMatNameCallback(obj_to_cb_set);
+                    _editor.CallUniquePathCallback(obj_to_cb_set);
                 }
             }
         }
