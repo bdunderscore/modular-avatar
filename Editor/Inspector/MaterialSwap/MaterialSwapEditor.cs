@@ -59,18 +59,22 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         private string GetFolderPath(UnityEngine.Object obj)
         {
             var path = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrEmpty(path)) return null;
+
             var splits = path.Split('/');
             return string.Join('/', splits[..^1]);
         }
 
         private string GetUniquePath(IReadOnlyCollection<string> paths, string path)
         {
+            if (string.IsNullOrEmpty(path)) return null;
+
             // Extract parent path segment from asset path
             var splits = path.Split('/');
             for (var i = 1; i <= splits.Length; i++)
             {
                 var suffix = string.Join('/', splits.TakeLast(i));
-                if (paths.All(p => p == path || !p.EndsWith(suffix)))
+                if (paths.All(p => p == null || p == path || !p.EndsWith(suffix)))
                 {
                     return $"{suffix}/";
                 }
