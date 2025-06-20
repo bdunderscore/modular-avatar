@@ -23,13 +23,13 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private DragAndDropManipulator _dragAndDropManipulator;
 
-        private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<int>>>> _matNameToNameCountCallbacks = new();
+        private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<string>>>> _matNameToUniquePathCallbacks = new();
 
-        internal IDisposable RegisterMatNameCallback(string name, UnityEngine.Object target, Action<int> callback)
+        internal IDisposable RegisterUniquePathCallback(string name, UnityEngine.Object target, Action<string> callback)
         {
-            if (!_matNameToNameCountCallbacks.TryGetValue(name, out var obj_to_cb_set))
+            if (!_matNameToUniquePathCallbacks.TryGetValue(name, out var obj_to_cb_set))
             {
-                _matNameToNameCountCallbacks[name] = obj_to_cb_set = new();
+                _matNameToUniquePathCallbacks[name] = obj_to_cb_set = new();
             }
 
             if (!obj_to_cb_set.TryGetValue(target, out var cb_set))
@@ -38,16 +38,48 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             }
             
             cb_set.Add(callback);
-            var count = obj_to_cb_set.Count;
-            foreach (var group in obj_to_cb_set)
-            {
-                foreach (var cb in group.Value)
-                {
-                    cb(count);
-                }
-            }
+            CallUniquePathCallback(obj_to_cb_set);
 
             return new Deregister(this, name, target, callback);
+        }
+
+        private void CallUniquePathCallback(Dictionary<UnityEngine.Object, HashSet<Action<string>>> obj_to_cb_set)
+        {
+            var obj_to_folder_path = obj_to_cb_set.ToDictionary(x => x.Key, x => GetFolderPath(x.Key));
+            foreach (var (obj, folder_path) in obj_to_folder_path)
+            {
+                var unique_path = obj_to_folder_path.Count <= 1 ? null : GetUniquePath(obj_to_folder_path.Values, folder_path);
+                foreach (var cb in obj_to_cb_set[obj])
+                {
+                    cb(unique_path);
+                }
+            }
+        }
+
+        private string GetFolderPath(UnityEngine.Object obj)
+        {
+            var path = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrEmpty(path)) return null;
+
+            var splits = path.Split('/');
+            return string.Join('/', splits[..^1]);
+        }
+
+        private string GetUniquePath(IReadOnlyCollection<string> paths, string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+
+            // Extract parent path segment from asset path
+            var splits = path.Split('/');
+            for (var i = 1; i <= splits.Length; i++)
+            {
+                var suffix = string.Join('/', splits.TakeLast(i));
+                if (paths.All(p => p == null || p == path || !p.EndsWith(suffix)))
+                {
+                    return $"{suffix}/";
+                }
+            }
+            return null;
         }
         
         private class Deregister : IDisposable
@@ -55,9 +87,9 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             private readonly MaterialSwapEditor _editor;
             private readonly string _name;
             private readonly UnityEngine.Object _target;
-            private readonly Action<int> _callback;
+            private readonly Action<string> _callback;
 
-            public Deregister(MaterialSwapEditor editor, string name, UnityEngine.Object target, Action<int> callback)
+            public Deregister(MaterialSwapEditor editor, string name, UnityEngine.Object target, Action<string> callback)
             {
                 _editor = editor;
                 _name = name;
@@ -67,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             public void Dispose()
             {
-                if (!_editor._matNameToNameCountCallbacks.TryGetValue(_name, out var obj_to_cb_set)) return;
+                if (!_editor._matNameToUniquePathCallbacks.TryGetValue(_name, out var obj_to_cb_set)) return;
                 if (!obj_to_cb_set.TryGetValue(_target, out var cb_set)) return;
 
                 cb_set.Remove(_callback);
@@ -78,17 +110,11 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
                 if (obj_to_cb_set.Count == 0)
                 {
-                    _editor._matNameToNameCountCallbacks.Remove(_name);
+                    _editor._matNameToUniquePathCallbacks.Remove(_name);
                 }
                 else
                 {
-                    foreach (var group in obj_to_cb_set)
-                    {
-                        foreach (var cb in group.Value)
-                        {
-                            cb(obj_to_cb_set.Count);
-                        }
-                    }
+                    _editor.CallUniquePathCallback(obj_to_cb_set);
                 }
             }
         }

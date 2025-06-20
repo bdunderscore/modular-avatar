@@ -102,7 +102,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             _uxml.BindProperty(property);
         }
 
-        private void RegisterCounts()
+        private void RegisterUniquePathCallbacks()
         {
             if (_parentEditor == null) return;
             
@@ -111,16 +111,16 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             if (fromProperty == null || toProperty == null) return;
 
-            RegisterCountsForProperty(fromProperty, ref _deregisterFrom, _fromField, ref fromPathLabel);
-            RegisterCountsForProperty(toProperty, ref _deregisterTo, _toField, ref toPathLabel);
+            RegisterUniquePathCallbackForProperty(fromProperty, ref _deregisterFrom, _fromField, ref fromPathLabel);
+            RegisterUniquePathCallbackForProperty(toProperty, ref _deregisterTo, _toField, ref toPathLabel);
         }
 
-        private void RegisterCountsForProperty(SerializedProperty prop, ref IDisposable? deregister, PropertyField field, ref Label? pathLabel)
+        private void RegisterUniquePathCallbackForProperty(SerializedProperty prop, ref IDisposable? deregister, PropertyField field, ref Label? pathLabel)
         {
             deregister?.Dispose();
             deregister = null;
             
-            // The PropertyField creates its inner label after a delay, so look for it in this delayed RegisterCounts
+            // The PropertyField creates its inner label after a delay, so look for it in this delayed RegisterUniquePathCallbacks
             // callback.
             if (pathLabel == null)
             {
@@ -128,57 +128,28 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 if (primaryLabel == null) return;
 
                 pathLabel = new Label();
+                pathLabel.pickingMode = PickingMode.Ignore;
                 pathLabel.AddToClassList("path-label");
                 primaryLabel.parent.Insert(primaryLabel.parent.IndexOf(primaryLabel), pathLabel);
             }
 
             pathLabel.style.display = DisplayStyle.None;
             
-            var (parentPath, name) = GetPathSegments(prop.objectReferenceValue);
-            if (name == null || parentPath == null) return;
-            pathLabel.text = $"{parentPath}/";
+            // Ignore if the object is not an asset
+            var obj = prop.objectReferenceValue;
+            if (obj == null || !AssetDatabase.Contains(obj)) return;
 
             var pathLabel_ = pathLabel; // preserve the value as we can't carry a ref into the callback
-            deregister = _parentEditor?.RegisterMatNameCallback(name, prop.objectReferenceValue, count =>
+            deregister = _parentEditor?.RegisterUniquePathCallback(obj.name, obj, path =>
             {
-                pathLabel_.style.display = count > 1 ? DisplayStyle.Flex : DisplayStyle.None;
+                pathLabel_.text = path;
+                pathLabel_.style.display = path == null ? DisplayStyle.None : DisplayStyle.Flex;
             });
         }
 
-        private (string?, string?) GetPathSegments(UnityEngine.Object? obj)
-        {
-            if (obj == null)
-            {
-                return (null, null);
-            }
-
-            var name = obj.name;
-            string? parentPathName = null;
-            
-            var path = AssetDatabase.GetAssetPath(obj);
-            if (string.IsNullOrEmpty(path))
-            {
-                // If the object is not an asset, we can only use the base name.
-                return (null, name);
-            }
-            
-            // Extract parent path segment from asset path
-            var splits = path.Split('/');
-            if (splits.Length > 1)
-            {
-                parentPathName = splits[^2];
-            }
-            else
-            {
-                parentPathName = null;
-            }
-
-            return (parentPathName, name);
-        }
-        
         private void OnAnyValueChanged(SerializedPropertyChangeEvent evt)
         {
-            RegisterCounts();
+            RegisterUniquePathCallbacks();
         }
 
         private void OnDetach(DetachFromPanelEvent evt)
@@ -193,7 +164,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private void OnAttach(AttachToPanelEvent evt)
         {
-            RegisterCounts();
+            RegisterUniquePathCallbacks();
         }
     }
 }
