@@ -12,6 +12,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - (実験的機能) VRC以外のプラットフォームのサポートを有効化
 - [#1594] MA Informationで超過したパラメーター量も表示
 - `MA Material Swap` を実装
+- [#1623] `MA Platform Filter` を実装
 
 ### Fixed
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正

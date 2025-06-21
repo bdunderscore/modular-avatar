@@ -33,13 +33,12 @@ namespace modular_avatar_tests
 
         [Test]
         [TestCaseSource(nameof(ComponentTypes))]
-        public void CheckDisallowMultipleComponentIsSpecified(Type type)
+        public void CheckIconIsSet(Type type)
         {
             // excluded types
             if (type == typeof(Activator)) return;
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
-            if (type == typeof(ModularAvatarShapeChanger)) return;
 
             // get icon
             var component = (MonoBehaviour) _gameObject.AddComponent(type);
