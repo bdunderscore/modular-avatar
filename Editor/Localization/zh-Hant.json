@@ -187,6 +187,8 @@
   "validation.merge_armature.no_target:hint": "Merge Armature 需要知道要合併到哪個骨架裡。請在「合併目標」中指定。",
   "validation.merge_armature.target_is_child": "[MA-1500] 合併目標不能是此物件的子級",
   "validation.merge_armature.target_is_child:hint": "Merge Armature 不能合併骨架到其自身。請將「合併目標」設定為其他物件。",
+  "validation.platform_filter.mixed_include_exclude": "[MA-0013] 在 Platform Filter 元件中單一物件無法同時設為包含和排除平台。",
+  "validation.platform_filter.mixed_include_exclude:description": "由於你正在使用「包含模式」，請嘗試只指定你想要包含的平台。",
   "submenu_source.Children": "子物件",
   "submenu_source.MenuAsset": "角色控制選單資源 (Expressions Menu)",
   "menuitem.showcontents": "顯示選單內容",
@@ -264,6 +266,7 @@
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
   "reactive_object.material-setter.set-to": "將材質設定為：",
+  "reactive_object.material-swap.root": "根物件",
   "menuitem.misc.add_toggle": "新增開關",
   "ro_sim.open_debugger_button": "開啟 Reaction 除錯工具",
   "ro_sim.window.title": "MA 響應除錯工具",
@@ -299,5 +302,8 @@
   "sync-param-sequence.parameters.tooltip": "用來儲存共用參數的資源檔。請勿使用已在 Avatar Descriptor 中設定的相同參數。",
   "sync-param-sequence.create-asset": "新增",
   "sync-param-sequence.create-asset.tooltip": "創建一個新的 Expression Parameters",
-  "platform.vrchat.settings.mmd_world_support": "MMD 世界支援"
+  "platform.vrchat.settings.mmd_world_support": "MMD 世界支援",
+  "platform_filter.platform": "平台",
+  "platform_filter.exclude": "排除此平台",
+  "platform_filter.include": "包含此平台"
 }
