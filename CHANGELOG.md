@@ -15,14 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1594] Display the exceeded parameter count in the MA Information
 - Implement `MA Material Swap`
 - [#1623] Implement `MA Platform Filter`
+- [#1610] Added threshold setting to `Shape Changer`
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
-- [#1608] Shape Changer will now correctly delete shapekeys even if some unrelated animation is present on a parent object.
 - [#1589] A `KeyNotFoundException` could occur when the target of a Merge Animator or Merge Motion component was null
 - [#1605] Fixed an issue where the preview differed from the build result when multiple Material Setters conflicted
 
 ### Changed
+- [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
 
 ### Removed
 
