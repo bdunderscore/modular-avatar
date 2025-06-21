@@ -362,7 +362,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 // If we're now constant-on, we can skip animation generation
                 if (info.actionGroups.Count == 0 || info.actionGroups[^1].IsConstant)
                 {
-                    if (OptimizeShapes && info.overrideStaticState == null) shapes.Remove(key);
+                    var isDelete = info.TargetProp.PropertyName.StartsWith(DeletedShapePrefix)
+                        && info.TargetProp.TargetObject is SkinnedMeshRenderer;
+                    if (!isDelete && OptimizeShapes && info.overrideStaticState == null) shapes.Remove(key);
                 }
             }
         }

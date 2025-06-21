@@ -252,9 +252,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var lastGroup = shapes[prop].actionGroups.LastOrDefault();
-            if (lastGroup?.IsConstantActive != true || lastGroup.Value is not float f) return null;
+            if (lastGroup?.IsConstantActive != true) return null;
 
-            return f < 0.5f;
+            return lastGroup.Value is float;
         }
         
         private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
@@ -271,11 +271,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 var renderer = grouping.Key;
                 var shapeNamesToDelete = grouping
                     .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) == true)
-                    .Select(prop => prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length))
+                    .Select(prop => (
+                        prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
+                        shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                    ))
                     .ToList();
+                
                 var nanimatedShapes = grouping
                     .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != true)
-                    .Select(prop => prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length))
+                    .Where(shapes.ContainsKey)
+                    .Select(prop => (
+                            prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
+                            shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                    ))
                     .ToList();
                 
                 if (renderer == null) continue;
@@ -284,8 +292,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (mesh == null) continue;
 
                 var shapesToDelete = shapeNamesToDelete
-                    .Select(shape => mesh.GetBlendShapeIndex(shape))
-                    .Where(k => k >= 0)
+                    .Select(kv => (mesh.GetBlendShapeIndex(kv.Item1), kv.Item2))
+                    .Where(kv => kv.Item1 >= 0)
                     .ToList();
 
                 renderer.sharedMesh = mesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
@@ -349,7 +357,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            var isDeleted = group.Value is > 0.5f;
+                            var isDeleted = group.Value is float;
 
                             group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
                         }
@@ -413,7 +421,8 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<string, List<NaNimationFilter.AddedBone>> plan)
         {
             List<(NaNimationFilter.AddedBone, string)> createdBones =
-                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key))).OrderBy(b => b.bone.originalBoneIndex)
+                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
+                    .OrderBy(b => b.bone.newBoneIndex)
                     .ToList();
 
             var maxNewBoneIndex = createdBones[^1].Item1.newBoneIndex;

@@ -63,10 +63,19 @@ namespace nadena.dev.modular_avatar.core
         [SerializeField] [FormerlySerializedAs("Shapes")]
         private List<ChangedShape> m_shapes = new();
 
+        [SerializeField]
+        private float m_threshold = 0.01f;
+
         public List<ChangedShape> Shapes
         {
             get => m_shapes;
             set => m_shapes = value;
+        }
+
+        public float Threshold
+        {
+            get => m_threshold;
+            set => m_threshold = value;
         }
 
         public override void ResolveReferences()

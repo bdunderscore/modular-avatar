@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, float value)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, float? value)
         {
             var rule = new ReactionRule(key, value);
 
@@ -185,11 +185,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     (a,b) => a.SequenceEqual(b)
                     );
 
+                var threshold = _computeContext.Observe(changer, c => c.Threshold);
+
                 foreach (var shape in shapes)
                 {
                     var renderer = _computeContext.GetComponent<SkinnedMeshRenderer>(shape.Object.Get(changer));
                     if (renderer == null) continue;
-
+                    
                     var mesh = renderer.sharedMesh;
                     _computeContext.Observe(mesh);
                     if (mesh == null) continue;
@@ -240,14 +242,18 @@ namespace nadena.dev.modular_avatar.core.editor
                         PropertyName = DeletedShapePrefix + shape.ShapeName
                     };
 
-                    value = shape.ChangeType == ShapeChangeType.Delete ? 1 : 0;
-                    RegisterAction(key, 0, value, changer);
+                    if (shape.ChangeType == ShapeChangeType.Delete)
+                    {
+                        // We encode the deletion threshold in the delete action's value property
+                        value = shape.ChangeType == ShapeChangeType.Delete ? threshold : 0;
+                        RegisterAction(key, null, value, changer);
+                    }
                 }
             }
 
             return shapeKeys;
 
-            void RegisterAction(TargetProp key, float currentValue, float value, ModularAvatarShapeChanger changer)
+            void RegisterAction(TargetProp key, float? currentValue, float? value, ModularAvatarShapeChanger changer)
             {
                 if (!shapeKeys.TryGetValue(key, out var info))
                 {
