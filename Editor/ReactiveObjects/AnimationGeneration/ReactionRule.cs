@@ -11,13 +11,13 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ReactionRule
     {
-        public ReactionRule(TargetProp key, float value)
-            : this(key, (object)value) { }
+        public ReactionRule(TargetProp key, float? value)
+            : this(key, (object?)value) { }
 
         public ReactionRule(TargetProp key, Object value)
             : this(key, (object)value) { }
             
-        private ReactionRule(TargetProp key, object value)
+        private ReactionRule(TargetProp key, object? value)
         {
             TargetProp = key;
 
@@ -27,7 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         public TargetProp TargetProp;
-        public object Value;
+        public object? Value;
 
         public Component? ControllingObject;
 

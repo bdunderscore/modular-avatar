@@ -17,8 +17,6 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal static class NaNimationFilter
     {
-        private const float SQR_EPSILON = RemoveBlendShapeFromMesh.SQR_EPSILON;
-
         public struct AddedBone
         {
             public int originalBoneIndex;
@@ -27,7 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static Dictionary<string, List<AddedBone>> ComputeNaNPlan(
             ref Mesh mesh,
-            List<string> targetShapeNames,
+            List<(string,float)> targetShapeNames,
             int initialBoneCount
         )
         {
@@ -73,8 +71,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var nextBoneIndex = initialBoneCount;
 
             Dictionary<string, List<AddedBone>> result = new();
-            foreach (var shapeName in targetShapeNames)
+            foreach ((var shapeName, var threshold) in targetShapeNames)
             {
+                var sqrThreshold = threshold * threshold;
                 var shape = mesh.GetBlendShapeIndex(shapeName);
                 if (shape < 0) continue; // shape not found
 
@@ -88,7 +87,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     for (var v = 0; v < vertexCount; v++)
                     {
-                        if (deltaPositions[v].sqrMagnitude > SQR_EPSILON)
+                        if (deltaPositions[v].sqrMagnitude > sqrThreshold)
                         {
                             affectedVertices.Add(v);
                             anyAffected = true;
