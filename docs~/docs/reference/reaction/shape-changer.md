@@ -31,12 +31,18 @@ view to see through the clothing and observe what's happening underneath.
 ### Shapechange modes
 
 Each blendshape can be set to either 'Delete' or 'Set' mode. In 'Set' mode, the blendshape will be set to the value
-indicated when the Shape Changer is active. In 'Delete' mode, Shape Changer will attempt to delete the
-polygons affected by this blendshape - however, if the shape changer is not always active (i.e. there is an animation
-toggling it on and off), the blendshape will be animated to 100% instead.
+indicated when the Shape Changer is active. In 'Delete' mode, Shape Changer will delete the polygons affected by this
+blendshape. If not animated, this will reduce the polygon count of the avatar, which can provide a performance benefit.
+If animated, it will still fully hide the polygons, but will not reduce the measured polygon count.
 
 In general, Delete should be used when the blendshape would shrink a bodypart to (almost) nothing, as it will produce a
 better optimized avatar when animations are not present.
+
+### Threshold
+
+The threshold setting allows you to adjust the determination of which vertices are considered to be affected by the
+blendshape. If you find that the Shape Changer is not deleting enough of the mesh, you can decrease the
+threshold value. This will cause more vertices to be affected by Shape Changer.
 
 ### Interaction with animations
 

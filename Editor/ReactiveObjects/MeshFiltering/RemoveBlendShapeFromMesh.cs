@@ -13,9 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class RemoveBlendShapeFromMesh
     {
-        private const float THRESHOLD = 0.001f;
-
-        public static Mesh RemoveBlendshapes(Mesh original, IEnumerable<int> targets)
+        public static Mesh RemoveBlendshapes(Mesh original, IEnumerable<(int, float)> targets)
         {
             var mesh = new Mesh();
             mesh.indexFormat = original.indexFormat;
@@ -268,12 +266,13 @@ namespace nadena.dev.modular_avatar.core.editor
             origToNewVertIndex = o2n.ToArray();
         }
 
-        private static void ProbeBlendshapes(Mesh mesh, bool[] toDeleteVertices, IEnumerable<int> shapes)
+        private static void ProbeBlendshapes(Mesh mesh, bool[] toDeleteVertices, IEnumerable<(int, float)> shapes)
         {
             var bsPos = new Vector3[mesh.vertexCount];
 
-            foreach (var index in shapes)
+            foreach ((var index, var threshold) in shapes)
             {
+                float sqrThreshold = threshold * threshold;
                 int frames = mesh.GetBlendShapeFrameCount(index);
 
                 for (int f = 0; f < frames; f++)
@@ -282,7 +281,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     for (int i = 0; i < bsPos.Length; i++)
                     {
-                        if (bsPos[i].sqrMagnitude > 0.0001f)
+                        if (bsPos[i].sqrMagnitude > sqrThreshold)
                         {
                             toDeleteVertices[i] = true;
                         }

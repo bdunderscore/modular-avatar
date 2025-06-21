@@ -12,14 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1604] `MA Material Swap` を実装
 - [#1620] `MA Material Swap` の Inspector にマテリアル選択ボタンを追加
 - [#1623] `MA Platform Filter` を実装
+- [#1610] `Shape Changer` にしきい値設定を追加
 
 ### Fixed
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正
-- [#1608] Shape Changerが、親オブジェクトに無関係なアニメーションが存在してもシェイプキーを削除できるように修正
 - [#1589] Merge AnimatorやMerge Motionコンポーネントのターゲットがnullの場合に `KeyNotFoundException` が発生する問題を修正
 - [#1605] 複数の Material Setter が競合したときのプレビューがビルド結果と異なる問題を修正
 
 ### Changed
+- [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました
 
 ### Removed
 
