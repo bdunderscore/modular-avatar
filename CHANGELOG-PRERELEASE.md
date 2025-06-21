@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-beta.0] - [2025-06-21]
+
+### Added
 - [#1594] Display the exceeded parameter count in the MA Information
 - [#1604] Implement `MA Material Swap`
 - [#1620] Add material selector to `MA Material Swap` Inspector
@@ -18,14 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1608] Shape Changer will now correctly delete shapekeys even if some unrelated animation is present on a parent object.
 - [#1589] A `KeyNotFoundException` could occur when the target of a Merge Animator or Merge Motion component was null
 - [#1605] Fixed an issue where the preview differed from the build result when multiple Material Setters conflicted
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-alpha.2] - [2025-04-14]
 

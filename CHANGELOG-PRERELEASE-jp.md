@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-beta.0] - [2025-06-21]
+
+### Added
 - [#1594] MA Informationで超過したパラメーター量も表示
 - [#1604] `MA Material Swap` を実装
 - [#1620] `MA Material Swap` の Inspector にマテリアル選択ボタンを追加
@@ -18,14 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1608] Shape Changerが、親オブジェクトに無関係なアニメーションが存在してもシェイプキーを削除できるように修正
 - [#1589] Merge AnimatorやMerge Motionコンポーネントのターゲットがnullの場合に `KeyNotFoundException` が発生する問題を修正
 - [#1605] 複数の Material Setter が競合したときのプレビューがビルド結果と異なる問題を修正
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-alpha.2] - [2025-04-14]
 
