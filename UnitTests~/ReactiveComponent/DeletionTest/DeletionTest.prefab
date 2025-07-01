@@ -379,6 +379,7 @@ MonoBehaviour:
     ShapeName: bottom
     ChangeType: 0
     Value: 50
+  m_threshold: 0.01
 --- !u!1 &7874409458034691206
 GameObject:
   m_ObjectHideFlags: 0
@@ -431,6 +432,7 @@ MonoBehaviour:
     ShapeName: bottom
     ChangeType: 1
     Value: 50
+  m_threshold: 0.01
 --- !u!1 &7956182162252432618
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,6 +486,7 @@ MonoBehaviour:
     ShapeName: bottom
     ChangeType: 1
     Value: 0
+  m_threshold: 0.01
 --- !u!114 &3280847981733507148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -566,6 +569,7 @@ MonoBehaviour:
     ShapeName: bottom
     ChangeType: 1
     Value: 0
+  m_threshold: 0.01
 --- !u!1001 &9210451080691405271
 PrefabInstance:
   m_ObjectHideFlags: 0

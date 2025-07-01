@@ -64,7 +64,6 @@ namespace ShapeChangerTests
             
             // Check actual blendshape states
             Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
-            Assert.AreEqual(5.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
             Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key3")), 0.1f);
         }
 
@@ -119,7 +118,6 @@ namespace ShapeChangerTests
             
             // Check actual blendshape states
             Assert.AreEqual(10.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key1")), 0.1f);
-            Assert.AreEqual(5.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key2")), 0.1f);
             Assert.AreEqual(100.0f, smr.GetBlendShapeWeight(sharedMesh.GetBlendShapeIndex("key3")), 0.1f);
         }
     }

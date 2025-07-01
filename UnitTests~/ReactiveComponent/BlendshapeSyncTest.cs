@@ -33,13 +33,7 @@ namespace UnitTests.ReactiveComponent
                 PropertyName = "blendShape.top"
             }];
             
-            Assert.IsTrue(analysis.Shapes.ContainsKey(new TargetProp()
-            {
-                TargetObject = root.transform.Find("m1").GetComponent<SkinnedMeshRenderer>(),
-                PropertyName = "deletedShape.bottom"
-            }));
-            
-            Assert.AreEqual(4, analysis.Shapes.Count);
+            Assert.AreEqual(3, analysis.Shapes.Count);
 
             foreach (var ag in m1.actionGroups)
             {

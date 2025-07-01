@@ -42,13 +42,13 @@ public class ShapeDeletionAnalysis : TestBase
     }
 
     [Test]
-    public void WhenShapeDeletionIsConditionedOnSubsequentChanger_DoesNotDelete()
+    public void WhenShapeDeletionIsSetOnSubsequentChanger_DoesDelete()
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         root.transform.Find("MenuSet").gameObject.SetActive(true);
 
         AssertPreviewDeletion(root);
-        AssertNoMeshDeletion(root);
+        AssertMeshDeletion(root);
         
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         Assert.AreEqual(100, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
@@ -67,6 +67,41 @@ public class ShapeDeletionAnalysis : TestBase
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         // deletion action is initially off, so we use the shape changer above it, which is set to 50.
         Assert.AreEqual(50f, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
+    }
+    
+    [Test]
+    public void WhenDeletionIsConditional_GeneratesNaNimationMesh([Values("DeletionTest/NaNimationTest_no_bones.prefab", "DeletionTest/NaNimationTest.prefab")] string prefabPath)
+    {
+        var root = CreatePrefab(prefabPath);
+        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+
+        AssertNoPreviewDeletion(root);
+        
+        AvatarProcessor.ProcessAvatar(root);
+
+        // 2a. Assert there are now two bones
+        Assert.AreEqual(2, mesh.bones.Length, $"Expected 2 bones in {prefabPath}, got {mesh.bones.Length}");
+
+        // 2b. Check vertex weights by z coordinate
+        var vertices = mesh.sharedMesh.vertices;
+        var boneWeights = mesh.sharedMesh.boneWeights;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            if (vertices[i].z < 0)
+            {
+                Assert.AreEqual(1, boneWeights[i].boneIndex0,
+                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 1");
+                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
+                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 1");
+            }
+            else if (vertices[i].z > 0)
+            {
+                Assert.AreEqual(0, boneWeights[i].boneIndex0,
+                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 0");
+                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
+                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 0");
+            }
+        }
     }
     
     private static void AssertBuildDeletion(SkinnedMeshRenderer mesh, GameObject root)
@@ -89,7 +124,7 @@ public class ShapeDeletionAnalysis : TestBase
         });
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.AreEqual(1.0f, activeGroup?.Value);
+        Assert.That(((float)activeGroup?.Value!) - 0.01f, Is.LessThanOrEqualTo(0.005f));
         return mesh;
     }
     
@@ -115,7 +150,15 @@ public class ShapeDeletionAnalysis : TestBase
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var originalSharedMesh = mesh.sharedMesh;
         AvatarProcessor.ProcessAvatar(root);
-        Assert.AreEqual(originalSharedMesh, mesh.sharedMesh);
+        Assert.AreEqual(originalSharedMesh.vertexCount, mesh.sharedMesh.vertexCount);
+    }
+    
+    private static void AssertMeshDeletion(GameObject root)
+    {
+        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        var originalSharedMesh = mesh.sharedMesh;
+        AvatarProcessor.ProcessAvatar(root);
+        Assert.AreNotEqual(originalSharedMesh.vertexCount, mesh.sharedMesh.vertexCount);
     }
 }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf;
 using Unity.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -29,7 +30,17 @@ namespace nadena.dev.modular_avatar.core.editor
             int initialBoneCount
         )
         {
+            var vertexCount = mesh.vertexCount;
+
+            if (vertexCount == 0)
+            {
+                // Nothing to do...
+                return new Dictionary<string, List<AddedBone>>();
+            }
+
+            var originalMesh = mesh;
             mesh = Object.Instantiate(mesh);
+            ObjectRegistry.RegisterReplacedObject(originalMesh, mesh);
 
             /*
              * Our high level algorithm is as follows:
@@ -45,8 +56,7 @@ namespace nadena.dev.modular_avatar.core.editor
              * If multiple shapes cover the same vertex, we can (but are not required to) use the same original bone
              * for both shapes. In this case, the NaNimated bones will be nested.
              */
-
-            var vertexCount = mesh.vertexCount;
+            
             var deltaPositions = new Vector3[vertexCount];
             var affectedVertices = new HashSet<int>(vertexCount);
             var firstBoneIndex = new int[vertexCount];
@@ -54,71 +64,100 @@ namespace nadena.dev.modular_avatar.core.editor
             var origBoneWeights = mesh.GetAllBoneWeights();
             var origBonesPerVertex = mesh.GetBonesPerVertex();
 
-            using var boneWeights = new NativeArray<BoneWeight1>(origBoneWeights.Length, Allocator.Temp);
-            using var bonesPerVertex = new NativeArray<byte>(origBonesPerVertex.Length, Allocator.Temp);
+            var boneWeights =
+                new NativeArray<BoneWeight1>(origBoneWeights.Length == 0 ? vertexCount : origBoneWeights.Length,
+                    Allocator.Temp);
+            var bonesPerVertex = new NativeArray<byte>(vertexCount, Allocator.Temp);
 
-            boneWeights.CopyFrom(origBoneWeights);
-            bonesPerVertex.CopyFrom(origBonesPerVertex);
-
-            var runningBoneIndex = 0;
-
-            for (var v = 0; v < vertexCount; v++)
+            try
             {
-                firstBoneIndex[v] = runningBoneIndex;
-                runningBoneIndex += origBonesPerVertex[v];
-            }
-
-            var nextBoneIndex = initialBoneCount;
-
-            Dictionary<string, List<AddedBone>> result = new();
-            foreach ((var shapeName, var threshold) in targetShapeNames)
-            {
-                var sqrThreshold = threshold * threshold;
-                var shape = mesh.GetBlendShapeIndex(shapeName);
-                if (shape < 0) continue; // shape not found
-
-                affectedVertices.Clear();
-
-                var frameCount = mesh.GetBlendShapeFrameCount(shape);
-                var anyAffected = false;
-                for (var i = 0; i < frameCount; i++)
+                if (origBoneWeights.Length == 0)
                 {
-                    mesh.GetBlendShapeFrameVertices(shape, i, deltaPositions, null, null);
-
-                    for (var v = 0; v < vertexCount; v++)
+                    // Generate new bone weights for a previously non-skinned mesh.
+                    for (var i = 0; i < vertexCount; i++)
                     {
-                        if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                        boneWeights[i] = new BoneWeight1
                         {
-                            affectedVertices.Add(v);
-                            anyAffected = true;
+                            boneIndex = 0,
+                            weight = 1f
+                        };
+                        bonesPerVertex[i] = 1;
+                    }
+
+                    initialBoneCount++;
+                }
+                else
+                {
+                    boneWeights.CopyFrom(origBoneWeights);
+                    bonesPerVertex.CopyFrom(origBonesPerVertex);
+                }
+
+                var runningBoneIndex = 0;
+
+                for (var v = 0; v < vertexCount; v++)
+                {
+                    firstBoneIndex[v] = runningBoneIndex;
+                    runningBoneIndex += bonesPerVertex[v];
+                }
+
+                var nextBoneIndex = initialBoneCount;
+
+                Dictionary<string, List<AddedBone>> result = new();
+                foreach (var (shapeName, threshold) in targetShapeNames)
+                {
+                    var sqrThreshold = threshold * threshold;
+                    var shape = mesh.GetBlendShapeIndex(shapeName);
+                    if (shape < 0) continue; // shape not found
+
+                    affectedVertices.Clear();
+
+                    var frameCount = mesh.GetBlendShapeFrameCount(shape);
+                    var anyAffected = false;
+                    for (var i = 0; i < frameCount; i++)
+                    {
+                        mesh.GetBlendShapeFrameVertices(shape, i, deltaPositions, null, null);
+
+                        for (var v = 0; v < vertexCount; v++)
+                        {
+                            if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                            {
+                                affectedVertices.Add(v);
+                                anyAffected = true;
+                            }
                         }
+                    }
+
+                    if (!anyAffected) continue;
+
+                    var shapePlan = ComputeNaNPlanForShape(ref nextBoneIndex, boneWeights, bonesPerVertex,
+                        firstBoneIndex,
+                        affectedVertices);
+
+                    if (shapePlan.Any())
+                    {
+                        result.Add(shapeName, shapePlan);
                     }
                 }
 
-                if (!anyAffected) continue;
+                var bindposes = mesh.bindposes;
+                Array.Resize(ref bindposes, nextBoneIndex);
 
-                var shapePlan = ComputeNaNPlanForShape(ref nextBoneIndex, boneWeights, bonesPerVertex, firstBoneIndex,
-                    affectedVertices);
-
-                if (shapePlan.Any())
+                foreach (var addedBone in result.SelectMany(kv => kv.Value).OrderBy(b => b.originalBoneIndex))
                 {
-                    result.Add(shapeName, shapePlan);
+                    bindposes[addedBone.newBoneIndex] = bindposes[addedBone.originalBoneIndex];
                 }
+
+                mesh.bindposes = bindposes;
+
+                mesh.SetBoneWeights(bonesPerVertex, boneWeights);
+
+                return result;
             }
-
-            var bindposes = mesh.bindposes;
-            Array.Resize(ref bindposes, nextBoneIndex);
-
-            foreach (var addedBone in result.SelectMany(kv => kv.Value).OrderBy(b => b.originalBoneIndex))
+            finally
             {
-                bindposes[addedBone.newBoneIndex] = bindposes[addedBone.originalBoneIndex];
+                boneWeights.Dispose();
+                bonesPerVertex.Dispose();
             }
-
-            mesh.bindposes = bindposes;
-
-            mesh.SetBoneWeights(bonesPerVertex, boneWeights);
-
-            return result;
         }
 
         private static List<AddedBone> ComputeNaNPlanForShape(

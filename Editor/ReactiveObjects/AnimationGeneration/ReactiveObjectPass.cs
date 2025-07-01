@@ -333,18 +333,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         var shapeName = kv.Key;
                         var bones = kv.Value;
 
-                        shapes.Remove(new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                        });
-
-                        initialStates.Remove(new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                        });
-
                         var deleteTarget = new TargetProp
                         {
                             TargetObject = renderer,
@@ -429,6 +417,12 @@ namespace nadena.dev.modular_avatar.core.editor
             var bonesArray = new Transform[maxNewBoneIndex + 1];
             var curBonesArray = renderer.bones;
             Array.Copy(curBonesArray, 0, bonesArray, 0, curBonesArray.Length);
+
+            // Special case for meshes with no bones; we need to create a bone 0 
+            if (curBonesArray.Length == 0)
+            {
+                bonesArray[0] = renderer.transform;
+            }
 
             foreach (var pair in createdBones)
             {
