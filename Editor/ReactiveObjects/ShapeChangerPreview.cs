@@ -34,14 +34,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private class StaticContext
         {
-            public StaticContext(GameObject avatarRoot, IEnumerable<int> shapes)
+            public StaticContext(GameObject avatarRoot, IEnumerable<(int, float)> shapes)
             {
                 AvatarRoot = avatarRoot;
-                Shapes = shapes.OrderBy(i => i).ToImmutableList();
+                Shapes = shapes.ToImmutableDictionary(kv => kv.Item1, kv => kv.Item2);
             }
          
             public GameObject AvatarRoot { get; }
-            public ImmutableList<int> Shapes { get; }
+            public ImmutableDictionary<int, float> Shapes { get; }
             
             public override bool Equals(object obj)
             {
@@ -60,23 +60,20 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>>
+        private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>>>
             _blendshapeCache = new("ShapesForAvatar", ShapesForAvatar);
         
-        private static ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> ShapesForAvatar(ComputeContext context, GameObject avatarRoot)
+        private static ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>> ShapesForAvatar(ComputeContext context, GameObject avatarRoot)
         {
             if (avatarRoot == null || !context.ActiveInHierarchy(avatarRoot))
             {
-                return ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>.Empty;
+                return ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>>.Empty;
             }
 
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatarRoot);
             var shapes = analysis.Shapes;
 
-            var rendererStates =
-                ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableDictionary<int, float>>(
-                    
-                );
+            var rendererStates = ImmutableDictionary.CreateBuilder<SkinnedMeshRenderer, ImmutableDictionary<int, ShapeInfo>>();
             var avatarRootTransform = avatarRoot.transform;
             
             foreach (var prop in shapes.Values)
@@ -106,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 if (!rendererStates.TryGetValue(r, out var states))
                 {
-                    states = ImmutableDictionary<int, float>.Empty;
+                    states = ImmutableDictionary<int, ShapeInfo>.Empty;
                     rendererStates[r] = states;
                 }
                 
@@ -116,11 +113,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 var activeRule = prop.actionGroups.LastOrDefault(rule => rule.InitiallyActive);
                 if (activeRule == null || activeRule.Value is not float value) continue;
                 if (activeRule.ControllingObject == null) continue; // default value is being inherited
-
+                
                 if (isDelete)
                 {
-                    if (value < 0.5f) continue;
-                    value = -1;
+                    if (activeRule.Value is not float threshold) continue;
+                    var info = ShapeInfo.SetDeletedShape(threshold);
+                    states = states.SetItem(index, info);
                 }
                 else
                 {
@@ -131,9 +129,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     value = Math.Clamp(value, 0, 100);
+                    var info = ShapeInfo.SetBlendshapeValue(value);
+                    if (!states.ContainsKey(index))
+                    {
+                        states = states.Add(index, info);
+                    }
                 }
 
-                states = states.SetItem(index, value);
                 rendererStates[r] = states;
             }
 
@@ -143,10 +145,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 ).ToImmutableList());
         }
         
-        private IEnumerable<RenderGroup> ShapesToGroups(GameObject avatarRoot, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>> shapes)
+        private IEnumerable<RenderGroup> ShapesToGroups(GameObject avatarRoot, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>> shapes)
         {
             return shapes.Select(kv => RenderGroup.For(kv.Key).WithData(
-                new StaticContext(avatarRoot, kv.Value.Where(shape => shape.Item2 < 0).Select(shape => shape.Item1))
+                new StaticContext(avatarRoot, kv.Value.Where(shape => shape.Item2.deleteThreshold.HasValue)
+                    .Select(shape => (shape.Item1, shape.Item2.deleteThreshold.Value)))
             ));
         }
         
@@ -176,22 +179,56 @@ namespace nadena.dev.modular_avatar.core.editor
             return node;
         }
 
+        private class ShapeInfo
+        {
+            public float blendshapeValue { get; private set; }
+            public float? deleteThreshold { get; private set; }
+            
+            public static ShapeInfo SetBlendshapeValue(float value)
+            {
+                return new ShapeInfo { blendshapeValue = value, deleteThreshold = null };
+            }
+            
+            public static ShapeInfo SetDeletedShape(float threshold)
+            {
+                return new ShapeInfo { blendshapeValue = -1, deleteThreshold = threshold };
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ShapeInfo other &&
+                       blendshapeValue == other.blendshapeValue &&
+                       deleteThreshold == other.deleteThreshold;
+            }
+            
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = 17;
+                    hash = hash * 23 + blendshapeValue.GetHashCode();
+                    hash = hash * 23 + (deleteThreshold?.GetHashCode() ?? 0);
+                    return hash;
+                }
+            }
+        }
+        
         private class Node : IRenderFilterNode
         {
-            private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>> _blendshapeCache;
+            private readonly PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>>> _blendshapeCache;
             private readonly GameObject _avatarRoot;
-            private ImmutableList<(int, float)> _shapes;
-            private ImmutableHashSet<int> _toDelete;
+            private ImmutableList<(int, ShapeInfo)> _shapes;
+            private ImmutableDictionary<int, float> _toDelete;
             private Mesh _generatedMesh = null;
 
             public RenderAspects WhatChanged => RenderAspects.Shapes | RenderAspects.Mesh;
 
-            internal Node(StaticContext staticContext, SkinnedMeshRenderer proxySmr, PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, float)>>> blendshapeCache)
+            internal Node(StaticContext staticContext, SkinnedMeshRenderer proxySmr, PropCache<GameObject, ImmutableDictionary<SkinnedMeshRenderer, ImmutableList<(int, ShapeInfo)>>> blendshapeCache)
             {
                 _blendshapeCache = blendshapeCache;
                 _avatarRoot = staticContext.AvatarRoot;
-                _toDelete = staticContext.Shapes.ToImmutableHashSet();
-                _shapes = ImmutableList<(int, float)>.Empty;
+                _toDelete = staticContext.Shapes;
+                _shapes = ImmutableList<(int, ShapeInfo)>.Empty;
                 _generatedMesh = GetGeneratedMesh(proxySmr, _toDelete);
             }
 
@@ -208,8 +245,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
 
-                var toDelete = shapes.Where(shape => shape.Item2 < 0).Select(shape => shape.Item1).ToImmutableHashSet();
-                if (!_toDelete.SetEquals(toDelete))
+                var toDelete = shapes.Where(shape => shape.Item2.deleteThreshold.HasValue)
+                    .Select(shape => (shape.Item1, shape.Item2.deleteThreshold.Value)).ToImmutableDictionary(
+                        p => p.Item1,
+                        p => p.Item2
+                    );
+                if (!_toDelete.OrderBy(kv => kv.Key).SequenceEqual(toDelete.OrderBy(kv => kv.Key)))
                 {
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
@@ -219,7 +260,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return Task.FromResult<IRenderFilterNode>(this);
             }
 
-            public Mesh GetGeneratedMesh(SkinnedMeshRenderer proxy, ImmutableHashSet<int> toDelete)
+            public Mesh GetGeneratedMesh(SkinnedMeshRenderer proxy, ImmutableDictionary<int, float> toDelete)
             {
                 var mesh = proxy.sharedMesh;
 
@@ -231,14 +272,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     bool[] targetVertex = new bool[mesh.vertexCount];
                     foreach (var bs in toDelete)
                     {
-                        int frames = mesh.GetBlendShapeFrameCount(bs);
+                        int index = bs.Key;
+                        float sqr_epsilon = bs.Value * bs.Value;
+                        int frames = mesh.GetBlendShapeFrameCount(index);
                         for (int f = 0; f < frames; f++)
                         {
-                            mesh.GetBlendShapeFrameVertices(bs, f, bsPos, null, null);
+                            mesh.GetBlendShapeFrameVertices(index, f, bsPos, null, null);
 
                             for (int i = 0; i < bsPos.Length; i++)
                             {
-                                if (bsPos[i].sqrMagnitude > 0.0001f)
+                                if (bsPos[i].sqrMagnitude > sqr_epsilon)
                                 {
                                     targetVertex[i] = true;
                                 }
@@ -285,7 +328,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var shape in _shapes)
                 {
-                    proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2 < 0 ? 100 : shape.Item2);
+                    proxySmr.SetBlendShapeWeight(shape.Item1, shape.Item2.deleteThreshold.HasValue ? 0 : shape.Item2.blendshapeValue);
                 }
             }
 
