@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1610] Added threshold setting to `Shape Changer`
+- [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 
 ### Fixed
 
