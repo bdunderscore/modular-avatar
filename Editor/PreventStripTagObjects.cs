@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase;
@@ -24,9 +25,15 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var f_callbacks = typeof(VRCBuildPipelineCallbacks).GetField("_preprocessAvatarCallbacks",
                     BindingFlags.Static | BindingFlags.NonPublic);
-                var callbacks = (List<IVRCSDKPreprocessAvatarCallback>) f_callbacks.GetValue(null);
+                var t_removeAvatarEditorOnly = AccessTools.AllAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "VRCSDKBase-Editor")
+                    ?.GetType("RemoveAvatarEditorOnly");
 
-                var filteredCallbacks = callbacks.Where(c => !(c is RemoveAvatarEditorOnly)).ToList();
+                if (t_removeAvatarEditorOnly == null || f_callbacks == null) return;
+                
+                var callbacks = (List<IVRCSDKPreprocessAvatarCallback>) f_callbacks.GetValue(null);
+                var filteredCallbacks = callbacks.Where(c => !t_removeAvatarEditorOnly.IsAssignableFrom(c.GetType()))
+                    .ToList();
 
                 f_callbacks.SetValue(null, filteredCallbacks);
             };
