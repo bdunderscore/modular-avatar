@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -127,8 +128,9 @@ namespace nadena.dev.modular_avatar.core.editor
             bool? writeDefaults = null;
 
             var wdStateCounter = controller.Layers
+                .Where(l => l.StateMachine != null)
                 .Where(l => !IsWriteDefaultsSafeLayer(l))
-                .SelectMany(l => l.StateMachine.AllStates())
+                .SelectMany(l => l.StateMachine!.AllStates())
                 .Select(s => s.WriteDefaultValues)
                 .GroupBy(b => b)
                 .ToDictionary(g => g.Key, g => g.Count());
@@ -160,6 +162,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var l in clonedController.Layers)
             {
+                if (l.StateMachine == null)
+                {
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.merge_animator.layer_no_state_machine",
+                        l.Name, merge, merge.animator);
+                    continue;
+                }
+                
                 if (initialWriteDefaults != null && !IsWriteDefaultsSafeLayer(l))
                 {
                     foreach (var s in l.StateMachine?.AllStates() ?? Array.Empty<VirtualState>())
@@ -220,6 +229,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (virtualLayer.BlendingMode == AnimatorLayerBlendingMode.Additive) return true;
             var sm = virtualLayer.StateMachine;
+            if (sm == null) return false;
 
             if (sm.StateMachines.Count != 0) return false;
             return sm.States.Count == 1 && sm.AnyStateTransitions.Count == 0 &&

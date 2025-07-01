@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - `MA Material Swap` を実装
 - [#1623] `MA Platform Filter` を実装
 - [#1610] `Shape Changer` にしきい値設定を追加
+- [#1629] Merge Animatorで統合されるアニメーターに破綻したレイヤー（ステートマシンが存在しないなど）を持つ場合、エラーを報告してビルドを続行するように変更
 
 ### Fixed
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `MA Material Swap`
 - [#1623] Implement `MA Platform Filter`
 - [#1610] Added threshold setting to `Shape Changer`
+- [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
