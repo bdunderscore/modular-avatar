@@ -161,7 +161,7 @@
   "error.merge_animator.multiple_replacements:hint": "Because the 'Replace' mode of Merge Animator replaces the entire animator with a different one, it's not clear which of these you wanted to have win. Try either deleting all but one of these Merge Animators, or setting them to Append mode.",
   "error.merge_animator.layer_no_state_machine": "[MA-0013] The Animator Controller specified by this Merge Animator is broken internally",
   "error.merge_animator.layer_no_state_machine:description": "The state state machine for layer {0} is missing. This layer will be ignored.",
-  "error.merge_animator.layer_no_state_machine:hint": "This indicates a problem with the animator itself. It is unusual for this to occur for a manually created animator; if you created this animator using some other tool, contact that tool's creator for advice.",
+  "error.merge_animator.layer_no_state_machine:hint": "This indicates a problem with the animator controller file itself. It is unusual for this to occur for a manually created animator; if you created this animator using some other tool, contact that tool's creator for advice.",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] No renderer found on this object",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync acts on a Skinned Mesh Renderer on the same GameObject. Did you attach it to the right object?",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] No mesh found on the renderer on this object",
@@ -273,10 +273,8 @@
   "reactive_object.shape_changer.threshold": "Displacement threshold",
   "reactive_object.shape_changer.threshold.tooltip": "Sets the minimum distance vertices must move to be considered part of a blendshape",
   "menuitem.misc.add_toggle": "Add toggle",
-  
   "ro_sim.open_debugger_button": "Open reaction debugger",
   "ro_sim.window.title": "MA Reaction Debugger",
-  
   "ro_sim.header.inspecting": "Inspecting object",
   "ro_sim.header.clear_overrides": "Clear all overrides",
   "ro_sim.header.object_state": "Object state",
@@ -285,7 +283,6 @@
   "ro_sim.header.override_gameobject_state": "Override GameObject state",
   "ro_sim.header.override_menuitem_state": "Override MenuItem state",
   "ro_sim.affected_by.title": "Affected by:",
-  
   "ro_sim.effect_group.component": "Reactive Component",
   "ro_sim.effect_group.controls_obj_state": "Controls object state:",
   "ro_sim.effect_group.target_component": "Target Component",
@@ -296,14 +293,11 @@
   "ro_sim.effect_group.value.tooltip": "The value that the property will be set to when the Reactive Object is active",
   "ro_sim.effect_group.material": "Material",
   "ro_sim.effect_group.material.tooltip": "The material to set on the target component when the Reactive Object is active",
-  
   "ro_sim.effect_group.rule_inverted": "This rule is inverted",
   "ro_sim.effect_group.rule_inverted.tooltip": "This rule will be applied when one of its conditions is NOT met",
   "ro_sim.effect_group.conditions": "Conditions",
-
   "menuitem.label.long_name.tooltip": "Use a long name which may contain rich text and line breaks.",
   "menuitem.label.gameobject_name.tooltip": "Use the GameObject name.",
-
   "remove-vertex-color.mode": "Mode",
   "remove-vertex-color.mode.Remove": "Remove Vertex Colors",
   "remove-vertex-color.mode.DontRemove": "Keep Vertex Colors",
