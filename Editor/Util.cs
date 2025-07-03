@@ -28,7 +28,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -43,6 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorApplication.hierarchyChanged += () => { RuntimeUtil.InvokeHierarchyChanged(); };
 
             EditorApplication.update += DisableMAGizmoIcons;
+            EditorApplication.update += RuntimeUtil.InvokeOnUpdate;
         }
 
         // From Acegikmo http://answers.unity.com/answers/1722605/view.html
@@ -231,7 +231,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
         }
 
-        public static T LoadAssetByGuid<T>(string guid) where T : UnityEngine.Object
+        public static T LoadAssetByGuid<T>(string guid) where T : Object
         {
             var path = AssetDatabase.GUIDToAssetPath(guid);
             if (string.IsNullOrWhiteSpace(path)) return null;

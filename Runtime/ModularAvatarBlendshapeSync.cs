@@ -31,6 +31,45 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 
+    internal static class BlendshapeSyncUpdateLoop
+    {
+        private static readonly HashSet<ModularAvatarBlendshapeSync> _syncs = new();
+
+        static BlendshapeSyncUpdateLoop()
+        {
+            RuntimeUtil.OnUpdate += () =>
+            {
+                foreach (var bss in _syncs)
+                {
+                    if (bss != null)
+                    {
+                        bss.EditorUpdate();
+                    }
+                }
+            };
+            RuntimeUtil.OnHierarchyChanged += () =>
+            {
+                foreach (var bss in _syncs)
+                {
+                    if (bss != null && bss.gameObject != null && bss.isActiveAndEnabled)
+                    {
+                        bss.Rebind();
+                    }
+                }
+            };
+        }
+
+        internal static void Register(ModularAvatarBlendshapeSync sync)
+        {
+            _syncs.Add(sync);
+        }
+
+        internal static void Unregister(ModularAvatarBlendshapeSync sync)
+        {
+            _syncs.Remove(sync);
+        }
+    }
+
     [RequireComponent(typeof(SkinnedMeshRenderer))]
     [DisallowMultipleComponent]
     [ExecuteAlways]
@@ -53,16 +92,20 @@ namespace nadena.dev.modular_avatar.core
         {
             base.OnValidate();
 
-            if (RuntimeUtil.isPlaying) return;
+            BlendshapeSyncUpdateLoop.Register(this);
             RuntimeUtil.delayCall(Rebind);
-            RuntimeUtil.OnHierarchyChanged -= Rebind;
-            RuntimeUtil.OnHierarchyChanged += Rebind;
+        }
+
+        private void Awake()
+        {
+            BlendshapeSyncUpdateLoop.Register(this);
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            RuntimeUtil.OnHierarchyChanged -= Rebind;
+
+            BlendshapeSyncUpdateLoop.Unregister(this);
         }
 
         public override void ResolveReferences()
@@ -70,7 +113,7 @@ namespace nadena.dev.modular_avatar.core
             // no-op
         }
 
-        private void Rebind()
+        internal void Rebind()
         {
             #if UNITY_EDITOR
             if (this == null) return;
@@ -111,11 +154,11 @@ namespace nadena.dev.modular_avatar.core
                 });
             }
 
-            Update();
+            EditorUpdate();
             #endif
         }
 
-        private void Update()
+        internal void EditorUpdate()
         {
             if (RuntimeUtil.isPlaying) return;
 
