@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1629] Merge Animatorで統合されるアニメーターに破綻したレイヤー（ステートマシンが存在しないなど）を持つ場合、エラーを報告してビルドを続行するように変更
 
 ### Fixed
+- [#1632] `Blendshape Sync` が無効化されたオブジェクト上でエディターで動作しない問題を修正
 
 ### Changed
 - [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました

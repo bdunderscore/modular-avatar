@@ -23,10 +23,12 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
-
+using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -42,6 +44,7 @@ namespace nadena.dev.modular_avatar.core
         // Initialized in Util
         public static Action<Action> delayCall = (_) => { };
         public static event Action OnHierarchyChanged;
+        public static event Action OnUpdate;
 
         internal static event Action OnMenuInvalidate;
 
@@ -100,23 +103,23 @@ namespace nadena.dev.modular_avatar.core
             return ndmf.runtime.RuntimeUtil.FindAvatarInParents(target);
         }
 
-        public static void MarkDirty(UnityEngine.Object obj)
+        public static void MarkDirty(Object obj)
         {
 #if UNITY_EDITOR
-            if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj))
+            if (PrefabUtility.IsPartOfPrefabInstance(obj))
             {
-                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
             }
 
-            UnityEditor.EditorUtility.SetDirty(obj);
+            EditorUtility.SetDirty(obj);
 #endif
         }
 
 #if UNITY_EDITOR
-        private static UnityEngine.Object cachedAnimationWindowState;
+        private static Object cachedAnimationWindowState;
 
         private static readonly Type animationWindowStateType
-            = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditorInternal.AnimationWindowState");
+            = typeof(Editor).Assembly.GetType("UnityEditorInternal.AnimationWindowState");
 
         private static readonly PropertyInfo recordingProp = animationWindowStateType.GetProperty(
             "recording",
@@ -171,7 +174,7 @@ namespace nadena.dev.modular_avatar.core
 #if !UNITY_EDITOR
             return false;
 #else
-            var frames = new System.Diagnostics.StackTrace(skipStackFrames).GetFrames();
+            var frames = new StackTrace(skipStackFrames).GetFrames();
 
             // Reset from component context menu
             if (frames.Length == 1)
@@ -187,6 +190,11 @@ namespace nadena.dev.modular_avatar.core
 
             return false;
 #endif
+        }
+
+        public static void InvokeOnUpdate()
+        {
+            OnUpdate?.Invoke();
         }
     }
 }

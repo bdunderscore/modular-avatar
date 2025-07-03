@@ -20,6 +20,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正
 - [#1589] Merge AnimatorやMerge Motionコンポーネントのターゲットがnullの場合に `KeyNotFoundException` が発生する問題を修正
 - [#1605] 複数の Material Setter が競合したときのプレビューがビルド結果と異なる問題を修正
+- [#1632] `Blendshape Sync` が無効化されたオブジェクト上でエディターで動作しない問題を修正
 
 ### Changed
 - [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました
