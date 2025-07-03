@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-beta.1] - [2025-07-03]
+
+### Added
 - [#1610] Added threshold setting to `Shape Changer`
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-beta.0] - [2025-06-21]
 

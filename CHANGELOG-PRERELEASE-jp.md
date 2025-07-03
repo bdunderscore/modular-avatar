@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-beta.1] - [2025-07-03]
+
+### Added
 - [#1610] `Shape Changer` にしきい値設定を追加
 - [#1629] Merge Animatorで統合されるアニメーターに破綻したレイヤー（ステートマシンが存在しないなど）を持つ場合、エラーを報告してビルドを続行するように変更
 
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-beta.0] - [2025-06-21]
 
