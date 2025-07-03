@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 
 ### Fixed
-- [#1632] BlendshapeSync would not work in the editor when on a disabled object
+- [#1632] `Blendshape Sync` would not work in the editor when on a disabled object
+- [#1633] `Blendshape Sync` would not be properly applied to the initial state of the avatar on build
 
 ### Changed
 - [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
