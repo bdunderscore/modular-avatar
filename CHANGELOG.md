@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+**Note**: This release contains new, portable APIs in `ModularAvatarMenuItem` to allow (in the future) menu items to be
+used in other platforms than VRChat. Plugins which generate menu items should be updated to use the new APIs; the old
+APIs will be deprecated in a future release, and removed in a future 2.0 release.
+
 ### Added
 - (Experimental feature) Enabled support for non-VRC platforms
 - [#1594] Display the exceeded parameter count in the MA Information
@@ -17,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1623] Implement `MA Platform Filter`
 - [#1610] Added threshold setting to `Shape Changer`
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
+- [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
