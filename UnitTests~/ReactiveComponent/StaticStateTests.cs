@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -83,3 +85,5 @@ namespace UnitTests.ReactiveComponent
         }
     }
 }
+
+#endif

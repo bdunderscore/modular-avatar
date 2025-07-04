@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Collections.Generic;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -41,3 +43,5 @@ namespace UnitTests.ReactiveComponent
         }
     }
 }
+
+#endif

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1634] プロジェクトにVRCSDKが存在しない場合のコンパイルエラーを修正
 
 ### Changed
 

@@ -1,3 +1,5 @@
+#if MA_VRCSDK3_AVATARS
+
 using System.Collections;
 using System.Collections.Generic;
 using modular_avatar_tests;
@@ -34,3 +36,5 @@ public class ReactiveComponentWriteDefaultsTest : TestBase
         );
     }
 }
+
+#endif

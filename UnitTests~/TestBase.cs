@@ -164,11 +164,12 @@ namespace modular_avatar_tests
             return prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .FirstOrDefault(l => l.type == layerType);
         }
-#endif
+        
         protected int FindFxLayerIndex(GameObject prefab, AnimatorControllerLayer layer)
         {
             var fx = (AnimatorController)FindFxController(prefab).animatorController;
             return fx.layers.TakeWhile(l => l.stateMachine != layer.stateMachine).Count();
         }
+#endif
     }
 }

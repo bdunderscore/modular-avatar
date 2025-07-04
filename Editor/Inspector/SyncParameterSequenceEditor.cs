@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -99,3 +101,5 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+
+#endif
