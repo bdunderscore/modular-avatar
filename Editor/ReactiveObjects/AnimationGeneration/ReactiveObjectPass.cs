@@ -52,16 +52,22 @@ namespace nadena.dev.modular_avatar.core.editor
             var shapes = analysis.Shapes;
             var initialStates = analysis.InitialStates;
             
+            var materialOverrides = shapes.Values
+                .SelectMany(p => p.actionGroups, (_, r) => r.Value)
+                .OfType<MaterialOverride>()
+                .Distinct()
+                .ToImmutableDictionary(x => x, x => x.ToMaterial());
+
             GenerateActiveSelfProxies(shapes);
 
             ProcessMeshDeletion(initialStates, shapes);
 
-            ProcessInitialStates(initialStates, shapes);
+            ProcessInitialStates(initialStates, shapes, materialOverrides);
             ProcessInitialAnimatorVariables(shapes);
             
             foreach (var groups in shapes.Values)
             {
-                ProcessShapeKey(groups);
+                ProcessShapeKey(groups, materialOverrides);
             }
         }
 
@@ -96,7 +102,7 @@ namespace nadena.dev.modular_avatar.core.editor
         } 
 
         private void ProcessInitialStates(Dictionary<TargetProp, object> initialStates,
-            Dictionary<TargetProp, AnimatedProperty> shapes)
+            Dictionary<TargetProp, AnimatedProperty> shapes, ImmutableDictionary<MaterialOverride, Material> materialOverrides)
         {
             var asc = context.Extension<AnimatorServicesContext>();
             var rpe = context.Extension<ReadablePropertyExtension>();
@@ -159,7 +165,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     var serializedObject = new SerializedObject(key.TargetObject);
                     var prop = serializedObject.FindProperty(key.PropertyName);
 
-                    var staticState = shapes.GetValueOrDefault(key)?.overrideStaticState ?? initialState;
+                    var initialValue = initialState;
+                    if (initialValue is MaterialOverride materialOverride)
+                    {
+                        initialValue = materialOverrides[materialOverride];
+                    }
+
+                    var staticValue = shapes.GetValueOrDefault(key)?.overrideStaticState ?? initialValue;
 
                     if (prop != null)
                     {
@@ -167,15 +179,15 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             case SerializedPropertyType.Boolean:
                                 animBaseState = prop.boolValue ? 1.0f : 0.0f;
-                                prop.boolValue = (float)staticState > 0.5f;
+                                prop.boolValue = (float)staticValue > 0.5f;
                                 break;
                             case SerializedPropertyType.Float:
                                 animBaseState = prop.floatValue;
-                                prop.floatValue = (float)staticState;
+                                prop.floatValue = (float)staticValue;
                                 break;
                             case SerializedPropertyType.ObjectReference:
                                 animBaseState = prop.objectReferenceValue;
-                                prop.objectReferenceValue = (Object) initialState;
+                                prop.objectReferenceValue = (Object) initialValue;
                                 break;
                         }
 
@@ -449,7 +461,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #endregion
 
-        private void ProcessShapeKey(AnimatedProperty info)
+        private void ProcessShapeKey(AnimatedProperty info, ImmutableDictionary<MaterialOverride, Material> materialOverrides)
         {
             if (info.actionGroups.Count == 0)
             {
@@ -458,10 +470,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             
             // TODO: prune non-animated keys
-            GenerateStateMachine(info);
+            GenerateStateMachine(info, materialOverrides);
         }
 
-        private void GenerateStateMachine(AnimatedProperty info)
+        private void GenerateStateMachine(AnimatedProperty info, ImmutableDictionary<MaterialOverride, Material> materialOverrides)
         {
             var asc = context.Extension<AnimatorServicesContext>();
             var asm = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!
@@ -495,19 +507,25 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 y += yInc;
 
+                var value = group.Value;
+                if (value is MaterialOverride materialOverride)
+                {
+                    value = materialOverrides[materialOverride];
+                }
+
                 // TODO - avoid clone
                 var clip = group.CustomApplyMotion ??
-                           asc.ControllerContext.Clone(AnimResult(group.TargetProp, group.Value));
+                           asc.ControllerContext.Clone(AnimResult(group.TargetProp, value));
 
                 if (group.IsConstant)
                 {
-                    clip.Name = "Property Overlay constant " + group.Value;
+                    clip.Name = "Property Overlay constant " + value;
                     initialState.Motion = clip;
                 }
                 else
                 {
                     clip.Name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
-                                group.Value;
+                                value;
 
                     var conditions = GetTransitionConditions(group);
 

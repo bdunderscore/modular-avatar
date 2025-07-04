@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor
     public class MaterialSetterPreview : IRenderFilter
     {
         static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
-            () => "Material Setter / Material Swap",
+            () => "Material Setter / Material Swap / Texture Swap",
             qualifiedName: "nadena.dev.modular-avatar/MaterialSetterPreview",
             true
         );
@@ -28,21 +28,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private const string PREFIX = "m_Materials.Array.data[";
         
-        private PropCache<Renderer, ImmutableList<(int, Material)>> _cache = new(
-            "GetMaterialOverridesForRenderer", GetMaterialOverridesForRenderer, Enumerable.SequenceEqual
+        private PropCache<Renderer, ImmutableList<(int, object)>> _cache = new(
+            "MaterialsForRenderer", MaterialsForRenderer, Enumerable.SequenceEqual
         );
 
-        private static ImmutableList<(int, Material)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)
+        private static ImmutableList<(int, object)> MaterialsForRenderer(ComputeContext ctx, Renderer r)
         {
             if (r == null)
             {
-                return ImmutableList<(int, Material)>.Empty;
+                return ImmutableList<(int, object)>.Empty;
             }
 
             var avatar = ctx.GetAvatarRoot(r.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(ctx, avatar);
 
-            var materials = ImmutableList<(int, Material)>.Empty;
+            var materials = ImmutableList<(int, object)>.Empty;
             
             foreach (var prop in analysis.Shapes.Values)
             {
@@ -53,9 +53,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
                 var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not Material mat) continue;
+                if (activeRule == null || activeRule.Value is not Material and not MaterialOverride) continue;
                 
-                materials = materials.Add((index, mat));
+                materials = materials.Add((index, activeRule.Value));
             }
 
             return materials.OrderBy(kv => kv.Item1).ToImmutableList();
@@ -77,7 +77,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
                 var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not Material mat) continue;
+                if (activeRule == null || activeRule.Value is not Material and not MaterialOverride) continue;
 
                 renderers.Add(r);
             }
@@ -93,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
-            var node = new Node(_cache, proxyPairs.First().Item1);
+            var node = new Node(_cache, proxyPairs.First().Item1, context);
 
             return node.Refresh(null, context, 0);
         }
@@ -101,27 +101,46 @@ namespace nadena.dev.modular_avatar.core.editor
         private class Node : IRenderFilterNode
         {
             private readonly Renderer _target;
-            private readonly PropCache<Renderer, ImmutableList<(int, Material)>> _cache;
-            private ImmutableList<(int, Material)> _materials = ImmutableList<(int, Material)>.Empty;
+            private readonly PropCache<Renderer, ImmutableList<(int, object)>> _cache;
+            private ImmutableList<(int, object)> _materials = ImmutableList<(int, object)>.Empty;
+            private ImmutableDictionary<MaterialOverride, Material> _generatedMaterials = ImmutableDictionary<MaterialOverride, Material>.Empty;
             
             public RenderAspects WhatChanged { get; private set; } = RenderAspects.Material;
             
-            public Node(PropCache<Renderer, ImmutableList<(int, Material)>> cache, Renderer renderer)
+            public Node(PropCache<Renderer, ImmutableList<(int, object)>> cache, Renderer renderer, ComputeContext context)
             {
                 _cache = cache;
                 _target = renderer;
+                _generatedMaterials = _cache.Get(context, _target)
+                    .Select(x => x.Item2)
+                    .OfType<MaterialOverride>()
+                    .Distinct()
+                    .ToImmutableDictionary(x => x, x => x.ToMaterial());
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                var newMaterials = _cache.Get(context, _target);
+                if ((updatedAspects & (RenderAspects.Material | RenderAspects.Texture)) != 0 && _generatedMaterials.Count > 0)
+                {
+                    return Task.FromResult<IRenderFilterNode>(null);
+                }
 
+                var newMaterials = _cache.Get(context, _target);
                 if (newMaterials.SequenceEqual(_materials))
                 {
                     WhatChanged = 0;
-                } else {
+                }
+                else if (newMaterials
+                    .Select(x => x.Item2)
+                    .OfType<MaterialOverride>()
+                    .All(_generatedMaterials.Keys.Contains))
+                {
                     _materials = newMaterials;
                     WhatChanged = RenderAspects.Material;
+                }
+                else
+                {
+                    return Task.FromResult<IRenderFilterNode>(null);
                 }
                 
                 return Task.FromResult<IRenderFilterNode>(this);
@@ -137,11 +156,31 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (mat.Item1 < mats.Length)
                     {
-                        mats[mat.Item1] = mat.Item2;
+                        switch (mat.Item2)
+                        {
+                            case Material material:
+                                mats[mat.Item1] = material;
+                                break;
+                            case MaterialOverride materialOverride when _generatedMaterials.TryGetValue(materialOverride, out var material):
+                                mats[mat.Item1] = material;
+                                break;
+                        }
                     }
                 }
 
                 proxy.sharedMaterials = mats;
+            }
+
+            public void Dispose()
+            {
+                foreach (var material in _generatedMaterials.Values)
+                {
+                    if (material != null)
+                    {
+                        Object.DestroyImmediate(material);
+                    }
+                }
+                _generatedMaterials = ImmutableDictionary<MaterialOverride, Material>.Empty;
             }
         }
     }
