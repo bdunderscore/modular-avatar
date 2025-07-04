@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
@@ -75,3 +77,5 @@ namespace UnitTests.MergeAnimatorTests.Replacement
         }
     }
 }
+
+#endif

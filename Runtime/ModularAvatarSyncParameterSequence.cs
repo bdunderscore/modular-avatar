@@ -1,11 +1,17 @@
 ﻿using System;
 using JetBrains.Annotations;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.ScriptableObjects;
+#endif
 
 namespace nadena.dev.modular_avatar.core
 {
+    #if MA_VRCSDK3_AVATARS
     [AddComponentMenu("Modular Avatar/MA Sync Parameter Sequence")]
+    #else
+    [AddComponentMenu("")]
+    #endif
     [DisallowMultipleComponent]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/sync-parameter-sequence?lang=auto")]
     [PublicAPI]

@@ -11,8 +11,10 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
+#endif
 using BuildContext = nadena.dev.ndmf.BuildContext;
 using Object = UnityEngine.Object;
 
@@ -23,6 +25,7 @@ namespace nadena.dev.modular_avatar.animation
         internal HashSet<VirtualLayer> mmdAffectedOriginalLayers = new();
     }
 
+#if MA_VRCSDK3_AVATARS
     [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
     internal class MMDRelayEarlyPass : Pass<MMDRelayEarlyPass>
     {
@@ -245,4 +248,5 @@ namespace nadena.dev.modular_avatar.animation
             return layerName == ControlLayerName || layerName == DummyLayerName;
         }
     }
+#endif
 }

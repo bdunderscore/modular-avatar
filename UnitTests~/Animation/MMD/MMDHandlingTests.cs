@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -136,3 +138,5 @@ namespace modular_avatar_tests.MMD
         }
     }
 }
+
+#endif

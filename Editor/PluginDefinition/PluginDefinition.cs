@@ -113,7 +113,9 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run("Harmonize animator parameter types",
                         ctx => { ctx.Extension<AnimatorServicesContext>().HarmonizeParameterTypes(); });
 
+#if MA_VRCSDK3_AVATARS
                     seq.Run(MMDRelayPass.Instance);
+#endif
                 });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PhysbonesBlockerPluginPass.Instance);

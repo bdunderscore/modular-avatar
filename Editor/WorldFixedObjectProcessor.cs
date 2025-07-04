@@ -2,8 +2,8 @@
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEditor;
 using UnityEngine;
-using VRC.Dynamics;
 #if MA_VRCSDK3_AVATARS
+using VRC.Dynamics;
 using VRC.SDK3.Dynamics.Constraint.Components;
 
 #else
