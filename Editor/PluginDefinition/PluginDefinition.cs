@@ -56,11 +56,12 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(VRChatSettingsPass.Instance);
                 seq.Run(MeshSettingsPluginPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
-                
+
 #if MA_VRCSDK3_AVATARS
+                seq.Run(RenameCollisionTagsPass.Instance);
                 seq.Run(ReactiveObjectPrepass.Instance);
 #endif
-                
+
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
                 {
 #if MA_VRCSDK3_AVATARS
@@ -88,7 +89,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
-                    
+
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
 #endif
@@ -101,13 +102,14 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     });
                     seq.Run(WorldScaleObjectPass.Instance);
 
+
                     seq.Run(ReplaceObjectPluginPass.Instance);
-                    
+
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
                     seq.Run(ConstraintConverterPass.Instance);
 #endif
-                    
+
                     seq.Run("Prune empty animator layers",
                         ctx => { ctx.Extension<AnimatorServicesContext>().RemoveEmptyLayers(); });
                     seq.Run("Harmonize animator parameter types",
@@ -286,7 +288,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
         }
     }
-    
+
     class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
