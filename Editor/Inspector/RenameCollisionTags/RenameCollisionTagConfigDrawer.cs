@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,18 +11,11 @@ namespace nadena.dev.modular_avatar.core.editor.RenameCollisionTags
   [CustomPropertyDrawer(typeof(RenameCollisionTagConfig))]
   internal class RenameCollisionTagConfigDrawer : PropertyDrawer
   {
-
+    private const string ScriptGUID = "407de235b1606634db6f47aab47e9bcd";
+    
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
-      // スクリプトのパスを動的に取得
-      var scriptGUIDs = AssetDatabase.FindAssets("RenameCollisionTagConfigDrawer t:MonoScript");
-      if (scriptGUIDs.Length == 0)
-      {
-        Debug.LogError("RenameCollisionTagConfigDrawer script not found.");
-        return new VisualElement();
-      }
-
-      var scriptPath = AssetDatabase.GUIDToAssetPath(scriptGUIDs[0]);
+      var scriptPath = AssetDatabase.GUIDToAssetPath(ScriptGUID);
       var rootPath = Path.GetDirectoryName(scriptPath);
       var ussPath = Path.Combine(rootPath, "RenameCollisionTagsEditor.uss").Replace("\\", "/");
       var uxmlPath = Path.Combine(rootPath, "RenameCollisionTagConfigDrawer.uxml").Replace("\\", "/");
