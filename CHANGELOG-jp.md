@@ -26,6 +26,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Changed
 - [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました
+- [#1636] `Write Defaults設定に合わせる` モードでは、`Merge Animator` がブレンドツリーのみを含むレイヤーに対して、
+　Direct Blend Treesが含まれていない場合はWrite Defaultsを強制的にONにしなくなりました。
 
 ### Removed
 
