@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
+- [#1636] In `Match Write Defaults` mode, `Merge Animator` will no longer force layers to be write defaults ON when they
+  contain only blend trees, if none of those blend trees are Direct Blend Trees.
 
 ### Removed
 

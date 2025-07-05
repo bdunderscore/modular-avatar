@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1634] プロジェクトにVRCSDKが存在しない場合のコンパイルエラーを修正
 
 ### Changed
+- [#1636] `Write Defaults設定に合わせる` モードでは、`Merge Animator` がブレンドツリーのみを含むレイヤーに対して、
+　Direct Blend Treesが含まれていない場合はWrite Defaultsを強制的にONにしなくなりました。
 
 ### Removed
 
