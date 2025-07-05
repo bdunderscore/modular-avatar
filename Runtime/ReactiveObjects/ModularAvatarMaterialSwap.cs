@@ -5,10 +5,13 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [Serializable]
-    public struct MatSwap
+    public struct MatSwap : IObjSwap<Material>
     {
         public Material From;
         public Material To;
+
+        Material IObjSwap<Material>.From { get => From; set => From = value; }
+        Material IObjSwap<Material>.To { get => To; set => To = value; }
 
         public MatSwap Clone()
         {
@@ -22,7 +25,7 @@ namespace nadena.dev.modular_avatar.core
 
     [AddComponentMenu("Modular Avatar/MA Material Swap")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/material-swap?lang=auto")]
-    public class ModularAvatarMaterialSwap : ReactiveComponent, IModularAvatarMaterialChanger, IHaveObjReferences
+    public class ModularAvatarMaterialSwap : ReactiveComponent, IModularAvatarMaterialChanger, IHaveObjReferences, IObjectSwap<Material, MatSwap>
     {
         [SerializeField]
         private AvatarObjectReference m_root = new();

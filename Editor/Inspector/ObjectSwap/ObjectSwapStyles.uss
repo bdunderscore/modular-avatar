@@ -64,6 +64,10 @@
     background-color: rgba(0, 0, 0, 0.0);
 }
 
+PropertyField .unity-object-field-display__icon {
+    flex-shrink: 0;
+}
+
 PropertyField .unity-label.path-label {
     padding: 0px;
     margin: 4px -2px 0 2px;

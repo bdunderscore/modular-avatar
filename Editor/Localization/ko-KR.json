@@ -264,7 +264,7 @@
   "ma_info.param_usage_ui.no_data": "[ 데이터 없음 ]",
   "reactive_object.inverse": "역 조건",
   "reactive_object.material-setter.set-to": "머티리얼 설정: ",
-  "reactive_object.material-swap.root": "대상 루트",
+  "reactive_object.object-swap.root": "대상 루트",
   "menuitem.misc.add_toggle": "토글 추가",
   "ro_sim.open_debugger_button": "반응 디버거 열기",
   "ro_sim.window.title": "MA 반응 디버거",

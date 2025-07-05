@@ -3,8 +3,6 @@
 #region
 
 using System;
-using System.Linq;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,16 +12,18 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 {
-    [CustomPropertyDrawer(typeof(MatSwap))]
-    internal class MatSwapEditor : VisualElement
+    internal class ObjSwapEditor<Tobj, TObjSwap, TObjectSwap> : VisualElement
+        where Tobj : UnityEngine.Object
+        where TObjSwap : IObjSwap<Tobj>, new()
+        where TObjectSwap : Component, IObjectSwap<Tobj, TObjSwap>
     {
-        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/MaterialSwap/";
-        private const string UxmlPath = Root + "MatSwapEditor.uxml";
-        private const string UssPath = Root + "MaterialSwapStyles.uss";
+        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/ObjectSwap/";
+        private const string UxmlPath = Root + "ObjSwap.uxml";
+        private const string UssPath = Root + "ObjectSwapStyles.uss";
 
         private bool _isAttached;
         private IDisposable? _deregisterFrom, _deregisterTo;
-        private MaterialSwapEditor _parentEditor;
+        private ObjectSwapEditor<Tobj, TObjSwap, TObjectSwap> _parentEditor;
 
         private PropertyField _fromField, _toField;
         
@@ -33,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         private SerializedProperty? _property;
         private TemplateContainer _uxml;
 
-        public MatSwapEditor(MaterialSwapEditor parentEditor)
+        public ObjSwapEditor(ObjectSwapEditor<Tobj, TObjSwap, TObjectSwap> parentEditor)
         {
             _parentEditor = parentEditor;
             
@@ -62,31 +62,18 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 
                 var fromProperty = _property.FindPropertyRelative("From");
                 var toProperty = _property.FindPropertyRelative("To");
-                var swap = _property.serializedObject.targetObject as ModularAvatarMaterialSwap;
-                if (swap == null)
-                {
-                    return;
-                }
-                var root = swap.Root.Get(swap)?.transform ?? RuntimeUtil.FindAvatarTransformInParents(swap.transform);
-                if (root == null)
-                {
-                    return;
-                }
 
                 var menu = new GenericDropdownMenu();
-                foreach (var material in root.GetComponentsInChildren<Renderer>(true)
-                             .SelectMany(x => x.sharedMaterials)
-                             .Where(x => x != null)
-                             .Distinct())
+                foreach (var obj in _parentEditor.GetObjects(_property))
                 {
-                    menu.AddItem(material.name, material == fromProperty.objectReferenceValue, () =>
+                    menu.AddItem(obj.name, obj == fromProperty.objectReferenceValue, () =>
                     {
                         fromProperty.serializedObject.Update();
-                        fromProperty.objectReferenceValue = material;
+                        fromProperty.objectReferenceValue = obj;
                         if (toProperty.objectReferenceValue == null)
                         {
                             // Avoid turning things purple when we first start setting things up.
-                            toProperty.objectReferenceValue = material;
+                            toProperty.objectReferenceValue = obj;
                         }
                         fromProperty.serializedObject.ApplyModifiedProperties();
                     });

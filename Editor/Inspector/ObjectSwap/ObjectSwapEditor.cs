@@ -12,8 +12,10 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 {
-    [CustomEditor(typeof(ModularAvatarMaterialSwap))]
-    internal class MaterialSwapEditor : MAEditorBase
+    internal abstract class ObjectSwapEditor<TObj, TObjSwap, TObjectSwap> : MAEditorBase
+        where TObj : UnityEngine.Object
+        where TObjSwap : IObjSwap<TObj>, new()
+        where TObjectSwap : Component, IObjectSwap<TObj, TObjSwap>
     {
         [SerializeField]
         private StyleSheet uss;
@@ -23,13 +25,15 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
         private DragAndDropManipulator _dragAndDropManipulator;
 
-        private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<string>>>> _matNameToUniquePathCallbacks = new();
+        private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<string>>>> _objNameToUniquePathCallbacks = new();
+
+        internal abstract IEnumerable<UnityEngine.Object> GetObjects(SerializedProperty property);
 
         internal IDisposable RegisterUniquePathCallback(string name, UnityEngine.Object target, Action<string> callback)
         {
-            if (!_matNameToUniquePathCallbacks.TryGetValue(name, out var obj_to_cb_set))
+            if (!_objNameToUniquePathCallbacks.TryGetValue(name, out var obj_to_cb_set))
             {
-                _matNameToUniquePathCallbacks[name] = obj_to_cb_set = new();
+                _objNameToUniquePathCallbacks[name] = obj_to_cb_set = new();
             }
 
             if (!obj_to_cb_set.TryGetValue(target, out var cb_set))
@@ -84,12 +88,12 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         
         private class Deregister : IDisposable
         {
-            private readonly MaterialSwapEditor _editor;
+            private readonly ObjectSwapEditor<TObj, TObjSwap, TObjectSwap> _editor;
             private readonly string _name;
             private readonly UnityEngine.Object _target;
             private readonly Action<string> _callback;
 
-            public Deregister(MaterialSwapEditor editor, string name, UnityEngine.Object target, Action<string> callback)
+            public Deregister(ObjectSwapEditor<TObj, TObjSwap, TObjectSwap> editor, string name, UnityEngine.Object target, Action<string> callback)
             {
                 _editor = editor;
                 _name = name;
@@ -99,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             public void Dispose()
             {
-                if (!_editor._matNameToUniquePathCallbacks.TryGetValue(_name, out var obj_to_cb_set)) return;
+                if (!_editor._objNameToUniquePathCallbacks.TryGetValue(_name, out var obj_to_cb_set)) return;
                 if (!obj_to_cb_set.TryGetValue(_target, out var cb_set)) return;
 
                 cb_set.Remove(_callback);
@@ -110,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
                 if (obj_to_cb_set.Count == 0)
                 {
-                    _editor._matNameToUniquePathCallbacks.Remove(_name);
+                    _editor._objNameToUniquePathCallbacks.Remove(_name);
                 }
                 else
                 {
@@ -139,14 +143,14 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             listView.itemsAdded += OnItemsAdded;
-            listView.makeItem = () => new MatSwapEditor(this);
+            listView.makeItem = () => new ObjSwapEditor<TObj, TObjSwap, TObjectSwap>(this);
             listView.bindItem = (e, i) =>
             {
-                var item = (MatSwapEditor)e;
-                item.BindProperty(serializedObject.FindProperty(nameof(ModularAvatarMaterialSwap.m_swaps)).GetArrayElementAtIndex(i));
+                var item = (ObjSwapEditor<TObj, TObjSwap, TObjectSwap>)e;
+                item.BindProperty(serializedObject.FindProperty("m_swaps").GetArrayElementAtIndex(i));
             };
 
-            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarMaterialSwap);
+            _dragAndDropManipulator = new(root.Q("group-box"), target as TObjectSwap);
 
             return root;
         }
@@ -155,11 +159,11 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         {
             foreach (var index in obj)
             {
-                var item = serializedObject.FindProperty(nameof(ModularAvatarMaterialSwap.m_swaps)).GetArrayElementAtIndex(index);
+                var item = serializedObject.FindProperty("m_swaps").GetArrayElementAtIndex(index);
                 
-                // Clear the initial material entries
-                var p_from = item.FindPropertyRelative(nameof(MatSwap.From));
-                var p_to = item.FindPropertyRelative(nameof(MatSwap.To));
+                // Clear the initial entries
+                var p_from = item.FindPropertyRelative("From");
+                var p_to = item.FindPropertyRelative("To");
 
                 p_from.objectReferenceValue = null;
                 p_to.objectReferenceValue = null;
@@ -172,28 +176,28 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         private void OnEnable()
         {
             if (_dragAndDropManipulator != null)
-                _dragAndDropManipulator.TargetComponent = target as ModularAvatarMaterialSwap;
+                _dragAndDropManipulator.TargetComponent = target as TObjectSwap;
         }
 
-        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarMaterialSwap, Material>
+        private class DragAndDropManipulator : DragAndDropManipulator<TObjectSwap, TObj>
         {
-            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarMaterialSwap targetComponent)
+            public DragAndDropManipulator(VisualElement targetElement, TObjectSwap targetComponent)
                 : base(targetElement, targetComponent)
             {
             }
 
-            protected override IEnumerable<Material> FilterObjects(IEnumerable<Material> materials)
+            protected override IEnumerable<TObj> FilterObjects(IEnumerable<TObj> objects)
             {
-                return materials.Where(x => TargetComponent.Swaps.All(y => x != y.From));
+                return objects.Where(x => TargetComponent.Swaps.All(y => x != y.From));
             }
 
-            protected override void AddObjects(IEnumerable<Material> materials)
+            protected override void AddObjects(IEnumerable<TObj> objects)
             {
-                Undo.RecordObject(TargetComponent, "Add MatSwap");
+                Undo.RecordObject(TargetComponent, "Add Swap Entry");
 
-                foreach (var material in materials)
+                foreach (var obj in objects)
                 {
-                    TargetComponent.Swaps.Add(new() { From = material });
+                    TargetComponent.Swaps.Add(new() { From = obj, To = obj });
                 }
 
                 EditorUtility.SetDirty(TargetComponent);

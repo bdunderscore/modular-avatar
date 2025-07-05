@@ -17,6 +17,7 @@
             <ui:TextField label="ro_sim.effect_group.property" text="blendShapes.x" name="effect__prop" class="ndmf-tr-label"/>
             <ed:FloatField label="ro_sim.effect_group.value" name="effect__value" class="ndmf-tr-label"/>
             <ed:ObjectField label="ro_sim.effect_group.material" name="effect__material" class="ndmf-tr"/>
+            <ui:VisualElement label="ro_sim.effect_group.textures" name="effect__textures" class="ndmf-tr"/>
             <ui:TextField label="ro_sim.effect_group.value" text="DELETE" name="effect__deleted" class="ndmf-tr-label"/>
             
             <ui:VisualElement name="controlling-conditions">
