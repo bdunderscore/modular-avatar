@@ -3,6 +3,7 @@
 #region
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -440,6 +441,235 @@ namespace modular_avatar_tests.RenameCollisionTags
             Assert.IsTrue(GUID.TryParse(contact.collisionTags[0]["TagA$".Length..], out _));
             Assert.That(contact.collisionTags[1], Is.EqualTo("CustomTagB"));
             Assert.That(contact.collisionTags[2], Is.EqualTo("TagC"));
+        }
+
+        [Test]
+        public void NestedComponents_RenameChain_AppliesInOrder()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (Y -> Z)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Y", autoRename = false, renameTo = "Z" }
+            };
+
+            // B (X -> Y)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var compB = goB.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compB.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "X", autoRename = false, renameTo = "Y" }
+            };
+
+            // C (Contact)
+            var goC = new GameObject("C");
+            goC.transform.parent = goB.transform;
+            var contact = goC.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "X" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // X -> Y (by B), then Y -> Z (by A), so result should be Z
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(1));
+            Assert.That(contact.collisionTags[0], Is.EqualTo("Z"));
+        }
+
+        [Test]
+        public void NestedComponents_AutoRenameNotOverriddenByParent()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (Y -> Z)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Y", autoRename = false, renameTo = "Z" }
+            };
+
+            // B (autoRename X)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var compB = goB.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compB.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "X", autoRename = true, renameTo = "" }
+            };
+
+            // C (Contact)
+            var goC = new GameObject("C");
+            goC.transform.parent = goB.transform;
+            var contact = goC.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "X" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // X -> X$GUID (by B), should NOT be renamed to Z by A
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(1));
+            Assert.That(contact.collisionTags[0], Does.StartWith("X$"));
+            Assert.IsTrue(GUID.TryParse(contact.collisionTags[0]["X$".Length..], out _));
+        }
+
+        [Test]
+        public void NestedComponents_MultipleRenamesInOneComponent()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (X -> Y, Y -> Z)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "X", autoRename = false, renameTo = "Y" },
+                new() { name = "Y", autoRename = false, renameTo = "Z" }
+            };
+
+            // B (Contact)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var contact = goB.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "X" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // X -> Y, then Y -> Z, so result should be Z
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(1));
+            Assert.That(contact.collisionTags[0], Is.EqualTo("Z"));
+        }
+
+        [Test]
+        public void NestedComponents_SomeTagsNotRenamed_PartialMatch()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (Y -> Z)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Y", autoRename = false, renameTo = "Z" }
+            };
+
+            // B (X -> Y)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var compB = goB.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compB.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "X", autoRename = false, renameTo = "Y" }
+            };
+
+            // C (Contact) with tags X, W, Y
+            var goC = new GameObject("C");
+            goC.transform.parent = goB.transform;
+            var contact = goC.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "X", "W", "Y" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // X -> Y (by B), then Y -> Z (by A), so X becomes Z
+            // W is not renamed by any component, so remains W
+            // Y is renamed by A to Z
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(2));
+            Assert.That(contact.collisionTags, Does.Contain("Z"));
+            Assert.That(contact.collisionTags, Does.Contain("W"));
+            // Only one Z should be present (X and Y both become Z, but .Distinct() is used)
+            Assert.That(contact.collisionTags.Count(t => t == "Z"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void NestedComponents_MultipleTags_MixedRenames()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (Y -> Z, Q -> R)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Y", autoRename = false, renameTo = "Z" },
+                new() { name = "Q", autoRename = false, renameTo = "R" }
+            };
+
+            // B (X -> Y)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var compB = goB.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compB.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "X", autoRename = false, renameTo = "Y" }
+            };
+
+            // C (Contact) with tags X, Q, W
+            var goC = new GameObject("C");
+            goC.transform.parent = goB.transform;
+            var contact = goC.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "X", "Q", "W" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // X -> Y (by B), then Y -> Z (by A), so X becomes Z
+            // Q -> R (by A)
+            // W is not renamed
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(3));
+            Assert.That(contact.collisionTags, Does.Contain("Z"));
+            Assert.That(contact.collisionTags, Does.Contain("R"));
+            Assert.That(contact.collisionTags, Does.Contain("W"));
+        }
+
+        [Test]
+        public void NestedComponents_MultipleTags_SomeUnmatched()
+        {
+            // Root
+            var root = CreateRoot("Root");
+            var context = new BuildContext(root, null);
+
+            // A (Y -> Z)
+            var goA = new GameObject("A");
+            goA.transform.parent = root.transform;
+            var compA = goA.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compA.configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Y", autoRename = false, renameTo = "Z" }
+            };
+
+            // B (no configs)
+            var goB = new GameObject("B");
+            goB.transform.parent = goA.transform;
+            var compB = goB.AddComponent<ModularAvatarRenameVRChatCollisionTags>();
+            compB.configs = new List<RenameCollisionTagConfig>();
+
+            // C (Contact) with tags Y, X
+            var goC = new GameObject("C");
+            goC.transform.parent = goB.transform;
+            var contact = goC.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { "Y", "X" };
+
+            new RenameCollisionTagsPass().TestExecute(context);
+
+            // Y -> Z (by A), X is not renamed
+            Assert.That(contact.collisionTags.Count, Is.EqualTo(2));
+            Assert.That(contact.collisionTags, Does.Contain("Z"));
+            Assert.That(contact.collisionTags, Does.Contain("X"));
         }
     }
 }
