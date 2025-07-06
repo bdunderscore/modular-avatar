@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1596]MA Rename Collision Tags コンポーネントを追加
   - Contacts のタグ（Collision Tags）を MA Parameters の自動リネームのようにユニークな名前にリネームできるようになりました
+- [#1638] `MA Texture Swap` を実装
 
 ### Fixed
 - [#1634] プロジェクトにVRCSDKが存在しない場合のコンパイルエラーを修正

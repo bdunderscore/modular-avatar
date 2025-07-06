@@ -11,12 +11,13 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 - (実験的機能) VRC以外のプラットフォームのサポートを有効化
 - [#1594] MA Informationで超過したパラメーター量も表示
-- `MA Material Swap` を実装
+- [#1604] `MA Material Swap` を実装
 - [#1623] `MA Platform Filter` を実装
 - [#1610] `Shape Changer` にしきい値設定を追加
 - [#1629] Merge Animatorで統合されるアニメーターに破綻したレイヤー（ステートマシンが存在しないなど）を持つ場合、エラーを報告してビルドを続行するように変更
 - [#1596] MA Rename Collision Tags コンポーネントを追加
   - Contacts のタグ（Collision Tags）を MA Parameters の「名前を変更」や「自動リネーム」と同様にリネームできるコンポーネントです。
+- [#1638] `MA Texture Swap` を実装
 
 ### Fixed
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正

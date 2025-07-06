@@ -13,12 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (Experimental feature) Enabled support for non-VRC platforms
 - [#1594] Display the exceeded parameter count in the MA Information
-- Implement `MA Material Swap`
+- [#1604] Implement `MA Material Swap`
 - [#1623] Implement `MA Platform Filter`
 - [#1610] Added threshold setting to `Shape Changer`
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 - [#1596] Added `MA Rename Collision Tags` component
   - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
+- [#1638] Implement `MA Texture Swap`
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
