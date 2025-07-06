@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-rc.0] - [2025-07-06]
+
+### Added
 - [#1596]MA Rename Collision Tags コンポーネントを追加
   - Contacts のタグ（Collision Tags）を MA Parameters の自動リネームのようにユニークな名前にリネームできるようになりました
 
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1636] `Write Defaults設定に合わせる` モードでは、`Merge Animator` がブレンドツリーのみを含むレイヤーに対して、
 　Direct Blend Treesが含まれていない場合はWrite Defaultsを強制的にONにしなくなりました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-beta.1] - [2025-07-03]
 

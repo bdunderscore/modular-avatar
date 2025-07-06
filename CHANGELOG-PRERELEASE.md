@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0-rc.0] - [2025-07-06]
+
+### Added
 - [#1596] Added `MA Rename Collision Tags` component
   - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
 
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1636] In `Match Write Defaults` mode, `Merge Animator` will no longer force layers to be write defaults ON when they
   contain only blend trees, if none of those blend trees are Direct Blend Trees.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.0-beta.1] - [2025-07-03]
 
