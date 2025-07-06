@@ -5,15 +5,15 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [Serializable]
-    public struct MatSwap : IObjSwap<Material>
+    public struct TexSwap : IObjSwap<Texture>
     {
-        public Material From;
-        public Material To;
+        public Texture From;
+        public Texture To;
 
-        Material IObjSwap<Material>.From { get => From; set => From = value; }
-        Material IObjSwap<Material>.To { get => To; set => To = value; }
+        Texture IObjSwap<Texture>.From { get => From; set => From = value; }
+        Texture IObjSwap<Texture>.To {  get => To; set => To = value; }
 
-        public MatSwap Clone()
+        public TexSwap Clone()
         {
             return new()
             {
@@ -23,15 +23,15 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 
-    [AddComponentMenu("Modular Avatar/MA Material Swap")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/material-swap?lang=auto")]
-    public class ModularAvatarMaterialSwap : ReactiveComponent, IModularAvatarMaterialChanger, IHaveObjReferences, IObjectSwap<Material, MatSwap>
+    [AddComponentMenu("Modular Avatar/MA Texture Swap")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/texture-swap?lang=auto")]
+    public class ModularAvatarTextureSwap : ReactiveComponent, IModularAvatarMaterialChanger, IHaveObjReferences, IObjectSwap<Texture, TexSwap>
     {
         [SerializeField]
         private AvatarObjectReference m_root = new();
 
         [SerializeField]
-        internal List<MatSwap> m_swaps = new();
+        internal List<TexSwap> m_swaps = new();
 
         public AvatarObjectReference Root
         {
@@ -39,7 +39,7 @@ namespace nadena.dev.modular_avatar.core
             set => m_root = value;
         }
 
-        public List<MatSwap> Swaps
+        public List<TexSwap> Swaps
         {
             get => m_swaps;
             set => m_swaps = value;

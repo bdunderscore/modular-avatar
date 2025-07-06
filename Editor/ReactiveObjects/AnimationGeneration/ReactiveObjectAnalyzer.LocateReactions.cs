@@ -6,22 +6,12 @@ using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, float? value)
-        {
-            var rule = new ReactionRule(key, value);
-
-            BuildConditions(controllingObject, rule);
-            
-            return rule;
-        }
-
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, Object value)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object value)
         {
             var rule = new ReactionRule(key, value);
 
@@ -284,6 +274,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PrepareMaterialSetters(changers.OfType<ModularAvatarMaterialSetter>());
             PrepareMaterialSwaps(changers.OfType<ModularAvatarMaterialSwap>());
+            PrepareTextureSwaps(changers.OfType<ModularAvatarTextureSwap>());
 
             foreach (var changer in changers)
             {
@@ -291,6 +282,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     case ModularAvatarMaterialSetter setter: RegisterMaterialSetter(setter); break;
                     case ModularAvatarMaterialSwap swap: RegisterMaterialSwap(swap); break;
+                    case ModularAvatarTextureSwap swap: RegisterTextureSwap(swap); break;
                 }
             }
 
@@ -300,30 +292,81 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void PrepareMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                var swapRootsByTargetMaterial = swaps
+                var swapRootsBySourceMaterial = swaps
                     .Where(c => c.Swaps != null)
                     .SelectMany(c => c.Swaps, (c, m) => (root: c.Root.Get(c), mat: m.From ? m.From : null))
                     .ToLookup(x => x.mat, x => x.root);
-                var targetMaterials = swapRootsByTargetMaterial
+                var sourceMaterials = swapRootsBySourceMaterial
                     .Select(x => x.Key)
                     .ToArray();
                 foreach (var renderer in renderers)
                 {
                     // Observe whether any of the renderer’s sharedMaterials
-                    // has become a swap target (-1 to index),
-                    // is no longer a swap target (index to -1),
-                    // or has switched to a different material among the swap targets (index to another index).
+                    // has become a swap source (-1 to index),
+                    // is no longer a swap source (index to -1),
+                    // or has switched among the swap sources (index to another index).
                     _computeContext.Observe(renderer, r => r.sharedMaterials
-                            .Select(m =>
-                            {
-                                if (swapRootsByTargetMaterial[m].Any(x => x == null || r.transform.IsChildOf(x.transform)))
-                                {
-                                    return Array.IndexOf(targetMaterials, m);
-                                }
-                                return -1;
-                            }),
+                            .Select(IndexOfSourceMaterial)
+                            .ToImmutableList(),
                         Enumerable.SequenceEqual);
+
+                    int IndexOfSourceMaterial(Material material)
+                    {
+                        if (swapRootsBySourceMaterial[material].Any(x => x == null || renderer.transform.IsChildOf(x.transform)))
+                        {
+                            return Array.IndexOf(sourceMaterials, material);
+                        }
+                        return -1;
+                    }
                     
+                    // Re-evaluate the context if the hierarchy changes. Note that this will force the above Observe
+                    // to be re-evaluated as well.
+                    _computeContext.ObservePath(renderer.transform);
+                }
+            }
+
+            void PrepareTextureSwaps(IEnumerable<ModularAvatarTextureSwap> swaps)
+            {
+                var swapRootsBySourceTexture = swaps
+                    .Where(c => c.Swaps != null)
+                    .SelectMany(c => c.Swaps, (c, t) => (root: c.Root.Get(c), tex: t.From ? t.From : null))
+                    .ToLookup(x => x.tex, x => x.root);
+                var sourceTextures = swapRootsBySourceTexture
+                    .Select(x => x.Key)
+                    .ToArray();
+                foreach (var renderer in renderers)
+                {
+                    // Observe whether any of the textures in renderer’s sharedMaterials
+                    // has become a swap source (-1 to index),
+                    // is no longer a swap source (index to -1),
+                    // or has switched among the swap sources (index to another index).
+                    _computeContext.Observe(renderer, r => r.sharedMaterials
+                            .Where(m => m != null)
+                            .SelectMany(m => m.GetTexturePropertyNames(), (mat, name) => mat.GetTexture(name))
+                            .Select(IndexOfSourceTexture)
+                            .ToImmutableList(),
+                        Enumerable.SequenceEqual);
+                    foreach (var material in renderer.sharedMaterials)
+                    {
+                        if (material != null)
+                        {
+                            _computeContext.Observe(material, m => m.GetTexturePropertyNames()
+                                    .Select(m.GetTexture)
+                                    .Select(IndexOfSourceTexture)
+                                    .ToImmutableList(),
+                                Enumerable.SequenceEqual);
+                        }
+                    }
+
+                    int IndexOfSourceTexture(Texture texture)
+                    {
+                        if (swapRootsBySourceTexture[texture].Any(x => x == null || renderer.transform.IsChildOf(x.transform)))
+                        {
+                            return Array.IndexOf(sourceTextures, texture);
+                        }
+                        return -1;
+                    }
+
                     // Re-evaluate the context if the hierarchy changes. Note that this will force the above Observe
                     // to be re-evaluated as well.
                     _computeContext.ObservePath(renderer.transform);
@@ -366,7 +409,44 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            void RegisterAction(ReactiveComponent component, Renderer renderer, int index, Material material)
+            void RegisterTextureSwap(ModularAvatarTextureSwap swap)
+            {
+                if (swap.Swaps == null) return;
+
+                var materialOverrides = new Dictionary<(Renderer, int), MaterialOverride>();
+
+                var swapRoot = _computeContext.Observe(swap, c => c.Root.Get(swap));
+                foreach (var obj in _computeContext.Observe(swap, c => c.Swaps.Select(o => o.Clone()).ToList(),
+                    Enumerable.SequenceEqual))
+                {
+                    foreach (var (renderer, index, material, name, _) in renderers
+                        .Where(r => swapRoot == null || r.transform.IsChildOf(swapRoot.transform))
+                        .SelectMany(r => r.sharedMaterials.Select((m, i) =>
+                        {
+                            var originalMaterial = ObjectRegistry.GetReference(m)?.Object as Material ?? m;
+                            return (renderer: r, index: i, material: originalMaterial);
+                        }))
+                        .Where(x => x.material != null)
+                        .SelectMany(x => x.material.GetTexturePropertyNames(), (x, y) =>
+                        {
+                            var originalTexture = ObjectRegistry.GetReference(x.material.GetTexture(y))?.Object as Texture;
+                            return (x.renderer, x.index, x.material, name: y, texture: originalTexture);
+                        })
+                        .Where(x => x.texture == (obj.From ? obj.From : null)))
+                    {
+                        materialOverrides[(renderer, index)] = materialOverrides.TryGetValue((renderer, index), out var materialOverride)
+                            ? new(material, materialOverride.TextureOverrides.SetItem(name, obj.To))
+                            : new(material, ImmutableDictionary<string, Texture>.Empty.SetItem(name, obj.To));
+                    }
+                }
+
+                foreach (var ((renderer, index), materialOverride) in materialOverrides)
+                {
+                    RegisterAction(swap, renderer, index, materialOverride);
+                }
+            }
+
+            void RegisterAction(ReactiveComponent component, Renderer renderer, int index, object material)
             {
                 var key = new TargetProp
                 {
@@ -412,11 +492,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!objectGroups.TryGetValue(key, out var group))
                     {
                         var active = _computeContext.Observe(target, t => t.activeSelf);
-                        group = new AnimatedProperty(key, active ? 1 : 0);
+                        group = new AnimatedProperty(key, active ? 1f : 0f);
                         objectGroups[key] = group;
                     }
 
-                    var value = obj.Active ? 1 : 0;
+                    var value = obj.Active ? 1f : 0f;
                     var action = ObjectRule(key, toggle, value);
                     action.Inverted = _computeContext.Observe(toggle, c => c.Inverted);
 

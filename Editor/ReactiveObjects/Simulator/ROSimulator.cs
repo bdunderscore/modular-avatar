@@ -473,6 +473,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     var f_set_inactive = effectGroup.Q<VisualElement>("effect__set-inactive");
                     var f_value = effectGroup.Q<FloatField>("effect__value");
                     var f_material = effectGroup.Q<ObjectField>("effect__material");
+                    var f_textures = effectGroup.Q<VisualElement>("effect__textures");
                     var f_delete = effectGroup.Q<TextField>("effect__deleted");
                     
                     f_target_component.style.display = DisplayStyle.None;
@@ -485,6 +486,9 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     f_value.SetEnabled(false);
                     f_material.style.display = DisplayStyle.None;
                     f_material.SetEnabled(false);
+                    f_textures.style.display = DisplayStyle.None;
+                    f_textures.SetEnabled(false);
+                    f_textures.Clear();
                     f_delete.style.display = DisplayStyle.None;
                     f_delete.SetEnabled(false);
                     
@@ -518,6 +522,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         {
                             f_material.SetValueWithoutNotify(m);
                             f_material.style.display = DisplayStyle.Flex;
+                        } else if (reactionRule.Value is MaterialOverride mo)
+                        {
+                            foreach (var to in mo.TextureOverrides)
+                            {
+                                f_textures.Add(new ObjectField { label = to.Key, value = to.Value });
+                            }
+                            f_textures.style.display = DisplayStyle.Flex;
                         }
                     } 
                 }

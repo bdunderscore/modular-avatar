@@ -14,6 +14,7 @@ sidebar_position: 1
 - [Shape Changer](./shape-changer.md) - レンダラーのブレンドシェープを変更します
 - [Material Setter](./material-setter.md) - レンダラーのマテリアルを変更します
 - [Material Swap](./material-swap.md) - マテリアルを別のマテリアルに置換します
+- [Texture Swap](./texture-swap.md) - テクスチャを別のテクスチャに置換します
 
 ## リアクティブコンポーネントの一般的なルール
 

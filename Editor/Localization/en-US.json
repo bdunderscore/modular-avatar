@@ -269,7 +269,7 @@
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "Inverse Condition",
   "reactive_object.material-setter.set-to": "Set material to: ",
-  "reactive_object.material-swap.root": "Target Root",
+  "reactive_object.object-swap.root": "Target Root",
   "reactive_object.shape_changer.threshold": "Displacement threshold",
   "reactive_object.shape_changer.threshold.tooltip": "Sets the minimum distance vertices must move to be considered part of a blendshape",
   "menuitem.misc.add_toggle": "Add toggle",
