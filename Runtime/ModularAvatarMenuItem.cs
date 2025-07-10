@@ -1,9 +1,15 @@
-﻿#if MA_VRCSDK3_AVATARS
+﻿#nullable enable
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using nadena.dev.modular_avatar.core.menu;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
+using nadena.dev.modular_avatar.core.menu;
 using VRC.SDK3.Avatars.ScriptableObjects;
+#endif
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -13,14 +19,263 @@ namespace nadena.dev.modular_avatar.core
         Children,
     }
 
+    [Serializable]
+    public enum PortableControlType
+    {
+        Toggle = 102,
+        Button = 101,
+        SubMenu = 103,
+        RadialPuppet = 203,
+        TwoAxisPuppet = 201,
+        FourAxisPuppet = 202
+    }
+
+#if MA_VRCSDK3_AVATARS
+    public static class PortableControlConversions
+    {
+        public static PortableControlType ToPortable(this VRCExpressionsMenu.Control.ControlType type)
+        {
+            return type switch
+            {
+                VRCExpressionsMenu.Control.ControlType.Toggle => PortableControlType.Toggle,
+                VRCExpressionsMenu.Control.ControlType.Button => PortableControlType.Button,
+                VRCExpressionsMenu.Control.ControlType.SubMenu => PortableControlType.SubMenu,
+                VRCExpressionsMenu.Control.ControlType.RadialPuppet => PortableControlType.RadialPuppet,
+                VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet => PortableControlType.TwoAxisPuppet,
+                VRCExpressionsMenu.Control.ControlType.FourAxisPuppet => PortableControlType.FourAxisPuppet,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public static VRCExpressionsMenu.Control.ControlType ToVRCSDK(this PortableControlType type)
+        {
+            return type switch
+            {
+                PortableControlType.Toggle => VRCExpressionsMenu.Control.ControlType.Toggle,
+                PortableControlType.Button => VRCExpressionsMenu.Control.ControlType.Button,
+                PortableControlType.SubMenu => VRCExpressionsMenu.Control.ControlType.SubMenu,
+                PortableControlType.RadialPuppet => VRCExpressionsMenu.Control.ControlType.RadialPuppet,
+                PortableControlType.TwoAxisPuppet => VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet,
+                PortableControlType.FourAxisPuppet => VRCExpressionsMenu.Control.ControlType.FourAxisPuppet,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+    }
+#endif
+
+    [Serializable]
+    public struct PortableLabel
+    {
+        [SerializeField] internal string name;
+        [SerializeField] internal Texture2D icon;
+
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
+
+        public Texture2D Icon
+        {
+            get => icon;
+            set => icon = value;
+        }
+    }
+
+    [Serializable]
+    internal struct SerializedParameter
+    {
+        public string name;
+    }
+
+    [Serializable]
+    public class PortableMenuControl
+    {
+        internal ModularAvatarMenuItem BackingMenuItem;
+
+        internal PortableMenuControl()
+        {
+        }
+
+#if MA_VRCSDK3_AVATARS
+
+        public VRCExpressionsMenu.Control CloneToVRCSDK()
+        {
+            return new VRCExpressionsMenu.Control
+            {
+                icon = BackingControl.icon,
+                type = BackingControl.type,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = BackingControl.parameter.name },
+                value = BackingControl.value,
+                subMenu = BackingControl.subMenu,
+                subParameters = BackingControl.subParameters
+                    .Select(p => new VRCExpressionsMenu.Control.Parameter { name = p.name }).ToArray(),
+                labels = BackingControl.labels.Select(l => new VRCExpressionsMenu.Control.Label
+                    { name = l.name, icon = l.icon }).ToArray(),
+                name = string.IsNullOrEmpty(BackingMenuItem.label)
+                    ? BackingMenuItem.gameObject.name
+                    : BackingMenuItem.label
+            };
+        }
+
+        public void SetFrom(VRCExpressionsMenu.Control control)
+        {
+            BackingControl.icon = control.icon;
+            BackingControl.type = control.type;
+            BackingControl.parameter = control.parameter;
+            BackingControl.value = control.value;
+            BackingControl.subMenu = control.subMenu;
+            BackingControl.subParameters = control.subParameters
+                .Select(p => new VRCExpressionsMenu.Control.Parameter { name = p.name }).ToArray();
+            BackingControl.labels = control.labels
+                .Select(l => new VRCExpressionsMenu.Control.Label { name = l.name, icon = l.icon }).ToArray();
+            BackingMenuItem.label = control.name;
+        }
+
+        internal VRCExpressionsMenu.Control BackingControl
+        {
+            get
+            {
+                if (BackingMenuItem.Control == null)
+                {
+                    BackingMenuItem.Control = new VRCExpressionsMenu.Control();
+                }
+
+                return BackingMenuItem.Control;
+            }
+        }
+
+        public Texture2D Icon
+        {
+            get => BackingControl.icon;
+            set => BackingControl.icon = value;
+        }
+
+        public PortableControlType Type
+        {
+            get => BackingControl.type.ToPortable();
+            set => BackingControl.type = value.ToVRCSDK();
+        }
+
+        public string Parameter
+        {
+            get => BackingControl.parameter.name;
+            set => BackingControl.parameter = new VRCExpressionsMenu.Control.Parameter { name = value };
+        }
+
+        public float Value
+        {
+            get => BackingControl.value;
+            set => BackingControl.value = value;
+        }
+
+        // Not represented (unused?): Style
+
+        public Object? VRChatSubMenu
+        {
+            get => BackingControl.subMenu;
+            set
+            {
+                BackingControl.subMenu = (VRCExpressionsMenu?)value;
+            }
+        }
+
+        public ImmutableList<string> SubParameters
+        {
+            get => BackingControl.subParameters.Select(p => p.name).ToImmutableList();
+            set => BackingControl.subParameters =
+                value.Select(name => new VRCExpressionsMenu.Control.Parameter { name = name }).ToArray();
+        }
+
+        public ImmutableList<PortableLabel> Labels
+        {
+            get => BackingControl.labels.Select(l => new PortableLabel { name = l.name, icon = l.icon })
+                .ToImmutableList();
+            set => BackingControl.labels =
+                value.Select(l => new VRCExpressionsMenu.Control.Label { name = l.Name, icon = l.Icon }).ToArray();
+        }
+
+#else
+        [SerializeField]
+        private Texture2D icon;
+        public Texture2D Icon
+        {
+            get => icon;
+            set => icon = value;
+        }
+        [SerializeField]
+        private PortableControlType type;
+        public PortableControlType Type
+        {
+            get => type;
+            set => type = value;
+        }
+
+        [SerializeField]
+        private SerializedParameter parameter;
+        public string Parameter
+        {
+            get => parameter.name;
+            set => parameter.name = value;
+        }
+
+        [SerializeField]
+        private float value = 1f;
+        public float Value
+        {
+            get => value;
+            set => this.value = value;
+        }
+
+        [SerializeField]
+        private UnityEngine.Object? subMenu = null;
+        public UnityEngine.Object? VRChatSubMenu
+        {
+            get => subMenu;
+            set => subMenu = value;
+        }
+
+        [SerializeField]
+        private SerializedParameter[] subParameters = Array.Empty<SerializedParameter>();
+        public ImmutableList<string> SubParameters
+        {
+            get => subParameters.Select(p => p.name).ToImmutableList();
+            set => subParameters = value.Select(name => new SerializedParameter { name = name }).ToArray();
+        }
+
+        [SerializeField] private PortableLabel[] labels = Array.Empty<PortableLabel>();
+        public ImmutableList<PortableLabel> Labels
+        {
+            get => labels.ToImmutableList();
+            set => labels = value.ToArray();
+        }
+#endif
+    }
+
     [AddComponentMenu("Modular Avatar/MA Menu Item")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/menu-item?lang=auto")]
-    public class ModularAvatarMenuItem : AvatarTagComponent, MenuSource
+    public class ModularAvatarMenuItem : AvatarTagComponent
+#if MA_VRCSDK3_AVATARS
+        , MenuSource
+#endif
     {
-        public VRCExpressionsMenu.Control Control;
+#if MA_VRCSDK3_AVATARS
+        public VRCExpressionsMenu.Control? Control;
+#endif
+
+        #if !MA_VRCSDK3_AVATARS
+        [SerializeField]
+        private PortableMenuControl Control = new();
+        public PortableMenuControl PortableControl => Control;
+        
+        #else
+        public PortableMenuControl PortableControl { get; }
+        #endif
+        
         public SubmenuSource MenuSource;
 
-        public GameObject menuSource_otherObjectChildren;
+        public GameObject? menuSource_otherObjectChildren;
 
         /// <summary>
         /// If this MenuItem references a parameter that does not exist, it is created automatically.
@@ -56,6 +311,17 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         [Multiline]
         public string label = "";
+
+        private ModularAvatarMenuItem()
+        {
+            #if MA_VRCSDK3_AVATARS
+            PortableControl = new PortableMenuControl();
+            #else
+            Control = new();
+            #endif
+
+            PortableControl.BackingMenuItem = this;
+        }
         
         private void Reset()
         {
@@ -69,9 +335,18 @@ namespace nadena.dev.modular_avatar.core
 
         internal void InitSettings()
         {
+#if MA_VRCSDK3_AVATARS
             Control = new VRCExpressionsMenu.Control();
-            Control.type = VRCExpressionsMenu.Control.ControlType.Toggle;
-            Control.value = 1;
+#endif
+            PortableControl.Type = PortableControlType.Toggle;
+            PortableControl.Value = 1;
+            PortableControl.Parameter = "";
+            PortableControl.Icon = null;
+            PortableControl.Labels = ImmutableList<PortableLabel>.Empty;
+            PortableControl.SubParameters = ImmutableList<string>.Empty;
+            PortableControl.VRChatSubMenu = null;
+            label = "";
+            
             isSaved = true;
             isSynced = true;
             isDefault = false;
@@ -86,17 +361,19 @@ namespace nadena.dev.modular_avatar.core
 
             RuntimeUtil.InvalidateMenu();
 
+#if MA_VRCSDK3_AVATARS
             if (Control == null)
             {
                 Control = new VRCExpressionsMenu.Control();
             }
+#endif
         }
 
         public override void ResolveReferences()
         {
             // no-op
         }
-
+#if MA_VRCSDK3_AVATARS
         public void Visit(NodeContext context)
         {
             if (Control == null)
@@ -131,7 +408,9 @@ namespace nadena.dev.modular_avatar.core
 
             context.PushControl(cloned);
         }
+#endif
 
+#if MA_VRCSDK3_AVATARS
         private void FilterSubParameters(VirtualControl control)
         {
             var maxSubParams = 0;
@@ -189,7 +468,6 @@ namespace nadena.dev.modular_avatar.core
                 VRCExpressionParameters.ValueType.Float => AnimatorControllerParameterType.Float,
                 _ => 0,
             };
+#endif
     }
 }
-
-#endif
