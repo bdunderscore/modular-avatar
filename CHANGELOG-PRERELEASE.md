@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
 
 ### Fixed
-- [#1634] Fixed compile errors when VRCSDK is not present in the project
+- [#1641] Fixed Material Swap observing
+- [#1641] Fixed that MatSwap target is empty when dragging material into Material Swap
 
 ### Changed
 
@@ -20,6 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-rc.0] - [2025-07-06]
+
+### Added
+- [#1596] Added `MA Rename Collision Tags` component
+  - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
+
+### Fixed
+- [#1634] Fixed compile errors when VRCSDK is not present in the project
+
+### Changed
+- [#1636] In `Match Write Defaults` mode, `Merge Animator` will no longer force layers to be write defaults ON when they
+  contain only blend trees, if none of those blend trees are Direct Blend Trees.
 
 ## [1.13.0-beta.1] - [2025-07-03]
 

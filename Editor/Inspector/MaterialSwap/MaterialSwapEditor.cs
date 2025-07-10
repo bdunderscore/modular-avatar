@@ -193,7 +193,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
                 foreach (var material in materials)
                 {
-                    TargetComponent.Swaps.Add(new() { From = material });
+                    TargetComponent.Swaps.Add(new() { From = material, To = material });
                 }
 
                 EditorUtility.SetDirty(TargetComponent);

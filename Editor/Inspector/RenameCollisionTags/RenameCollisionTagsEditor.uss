@@ -1,0 +1,99 @@
+#ListViewContainer {
+  margin-top: 4px;
+  max-height: 500px;
+}
+
+.horizontal {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1px 0;
+}
+
+.horizontal > * {
+  height: 18px;
+  margin: 0 1px;
+}
+
+.horizontal > Label {
+  height: auto;
+}
+
+.horizontal > PropertyField > * {
+  margin: 0;
+}
+
+#f-name {
+  flex-grow: 1;
+}
+
+#f-rename-to, #f-rename-to-disabled {
+  flex-grow: 1;
+}
+
+#f-rename-to-placeholder {
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+#f-auto-rename {
+  margin-left: 3px;
+}
+
+#rename-to-group {
+  display: flex;
+  flex-grow: 1;
+}
+
+#rename-to-group-disabled {
+  display: none;
+  flex-grow: 1;
+}
+
+.st-auto-rename #rename-to-group {
+  display: none;
+}
+
+.st-auto-rename #rename-to-group-disabled {
+  display: flex;
+}
+
+.horizontal > .horizontal {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+DefaultValueField > * {
+  width: 60px;
+  height: 100%;
+  margin: 0;
+}
+
+.SourceButton {
+  width: 24px;
+  height: 24px;
+  padding: 1px;
+}
+
+.root {
+  padding: 10px;
+  flex-direction: column;
+}
+
+.header {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.list-container {
+  flex-grow: 1;
+  height: 300px;
+  margin-bottom: 10px;
+}
+
+.collision-tags-list {
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+}

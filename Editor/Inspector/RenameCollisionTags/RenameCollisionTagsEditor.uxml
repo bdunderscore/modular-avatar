@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML
+        xmlns:ui="UnityEngine.UIElements"
+        xmlns:ma="nadena.dev.modular_avatar.core.editor"
+>
+  <ui:VisualElement name="ListViewContainer">
+    <ui:ListView
+      name="CollisionTagsList"
+      binding-path="configs"
+
+      virtualization-method="DynamicHeight"
+      reorder-mode="Animated"
+      reorderable="true"
+      show-add-remove-footer="true"
+      show-border="true"
+      show-foldout-header="false"
+      style="flex-grow: 1;"
+    />
+    <ma:LanguageSwitcherElement/>
+  </ui:VisualElement>
+</UXML>

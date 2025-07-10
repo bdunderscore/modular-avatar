@@ -22,6 +22,8 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 - [#1610] Added threshold setting to `Shape Changer`
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
 - [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
+- [#1596] Added `MA Rename Collision Tags` component
+  - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
@@ -33,6 +35,8 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 
 ### Changed
 - [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
+- [#1636] In `Match Write Defaults` mode, `Merge Animator` will no longer force layers to be write defaults ON when they
+  contain only blend trees, if none of those blend trees are Direct Blend Trees.
 
 ### Removed
 

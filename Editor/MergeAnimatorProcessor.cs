@@ -129,7 +129,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var wdStateCounter = controller.Layers
                 .Where(l => l.StateMachine != null)
-                .Where(l => !IsWriteDefaultsSafeLayer(l))
+                .Where(l => !IsWriteDefaultsRequiredLayer(l))
                 .SelectMany(l => l.StateMachine!.AllStates())
                 .Select(s => s.WriteDefaultValues)
                 .GroupBy(b => b)
@@ -168,22 +168,22 @@ namespace nadena.dev.modular_avatar.core.editor
                         l.Name, merge, merge.animator);
                     continue;
                 }
-                
-                if (initialWriteDefaults != null && !IsWriteDefaultsSafeLayer(l))
+
+                var isWriteDefaultsRequiredLayer = IsWriteDefaultsRequiredLayer(l);
+                if (isWriteDefaultsRequiredLayer)
+                {
+                    // Force WD on for single state direct blendtree layers and additive layers
+                    foreach (var state in l.StateMachine?.AllStates() ?? Array.Empty<VirtualState>())
+                    {
+                        state.WriteDefaultValues = true;
+                    }
+                }
+                else if (initialWriteDefaults != null)
                 {
                     foreach (var s in l.StateMachine?.AllStates() ?? Array.Empty<VirtualState>())
                     {
                         s.WriteDefaultValues = initialWriteDefaults.Value;
                     }
-                }
-
-                if (l.StateMachine?.DefaultState?.Motion is VirtualBlendTree
-                    && l.StateMachine.States.Count == 1
-                    && l.StateMachine.StateMachines.Count == 0
-                    && l.StateMachine.AnyStateTransitions.Count == 0)
-                {
-                    // Force WD on for single state blendtree layers
-                    l.StateMachine.DefaultState.WriteDefaultValues = true;
                 }
                 
                 targetController.AddLayer(new LayerPriority(merge.layerPriority), l);
@@ -225,15 +225,21 @@ namespace nadena.dev.modular_avatar.core.editor
             Object.DestroyImmediate(merge);
         }
 
-        private static bool IsWriteDefaultsSafeLayer(VirtualLayer virtualLayer)
+        private static bool IsWriteDefaultsRequiredLayer(VirtualLayer virtualLayer)
         {
             if (virtualLayer.BlendingMode == AnimatorLayerBlendingMode.Additive) return true;
             var sm = virtualLayer.StateMachine;
             if (sm == null) return false;
 
             if (sm.StateMachines.Count != 0) return false;
-            return sm.States.Count == 1 && sm.AnyStateTransitions.Count == 0 &&
-                   sm.DefaultState?.Transitions.Count == 0 && sm.DefaultState.Motion is VirtualBlendTree;
+            if (sm.States.Count != 1) return false;
+            if (sm.AnyStateTransitions.Count != 0) return false;
+            if (sm.DefaultState?.Transitions?.Count != 0) return false; // also checks for nullity
+            if (sm.DefaultState.Motion is not VirtualBlendTree) return false;
+
+            return sm.DefaultState.Motion.AllReachableNodes()
+                .OfType<VirtualBlendTree>()
+                .Any(bt => bt.BlendType == BlendTreeType.Direct);
         }
     }
 }
