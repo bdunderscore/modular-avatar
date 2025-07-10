@@ -19,6 +19,20 @@
                              style="flex-grow: 1;"
                 />
             </ui:VisualElement>
+            
+            <ed:PropertyField
+                binding-path="m_quickSwapMode"
+                label="reactive_object.material-swap.quick_swap_mode"
+                class="ndmf-tr"
+            />
+            <!-- we use this PropertyField to allow us to register a change callback; this doesn't work with
+                 a custom PropertyDrawer otherwise
+              -->
+            <ed:EnumField
+                binding-path="m_quickSwapMode"
+                class="hidden-field"
+                name="quick-swap-mode-field"
+            />
         </ui:VisualElement>
 
         <ma:ROSimulatorButton/>

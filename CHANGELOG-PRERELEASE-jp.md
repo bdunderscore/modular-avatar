@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1642] `MA Material Swap` にクイックスワップモードを追加
 - [#1635] `ModularAvatarMenuItem` にAPIを追加し、VRChat以外のプラットフォームで Menu Item を生成できるようにしました。
 
 ### Fixed

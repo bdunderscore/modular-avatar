@@ -69,3 +69,22 @@ PropertyField .unity-label.path-label {
     margin: 4px -2px 0 2px;
     font-size: 8px;
 }
+
+.quick-swap-root {
+    display: none;
+}
+.quick-swap-enable .quick-swap-root {
+    display: flex;
+}
+
+.hidden-field {
+    display: none;
+}
+
+#qs-left {
+    background-image: var(--unity-icons-scroll_left);
+}
+
+#qs-right {
+    background-image: var(--unity-icons-scroll_right);
+}

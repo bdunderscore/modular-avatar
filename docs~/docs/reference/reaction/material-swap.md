@@ -29,3 +29,23 @@ To limit the scope to a specific hierarchy, you can set "Target Root".
 
 By default, Material Swap will swap materials when the GameObject is enabled (and/or the associated menu item is
 selected). If you want to swap materials when the GameObject is disabled, you can select "Inverse condition".
+
+## Quick Swap
+
+![Quick Swap controls](material-swap.quick-swap.png)
+
+Material Swap also supports a "Quick Swap" mode, which allows you to quickly cycle through different materials, previewing
+how they look on your avatar. Depending on how your materials are placed in your project, there are several different modes
+you can use:
+
+- **None**: Disables Quick Swap mode.
+- **Same Folder**: Looks for materials in the same folder as the current post-swap material.
+- **Adjacent Folders**: Looks for materials with a similar name in adjacent folder. For example, if the current
+  material is `Assets\SomeOutfit\Materials\Blue\Outer.mat`, it might look for things like `Assets\SomeOutfit\Materials\Red\Outer.mat`.
+  This mode is useful if there are multiple materials for different components of the same outfit, organized into
+  adjacent folders for different colors or styles.
+
+If you're not sure which mode to use, you can try both and see which one works best for your outfit.
+
+When Quick Swap is enabled, you'll see two arrows in the Material Swap component's inspector, next to the target material.
+You can click these arrows to quickly swap to the next or previous material in the list.
