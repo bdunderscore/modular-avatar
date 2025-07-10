@@ -8,6 +8,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ## [Unreleased]
 
+**注意**: このリリースには、`ModularAvatarMenuItem` の新しいポータブルAPIが含まれています。
+これにより、将来的にメニューアイテムをVRChat以外のプラットフォームで使用できるようになります。
+プラグインがメニューアイテムを生成する場合は、新しいAPIを使用するように更新することを推奨します。
+なお、古いAPIは将来のリリースで非推奨となり、2.0 で廃止となる予定です。
+
 ### Added
 - (実験的機能) VRC以外のプラットフォームのサポートを有効化
 - [#1594] MA Informationで超過したパラメーター量も表示
@@ -15,6 +20,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1623] `MA Platform Filter` を実装
 - [#1610] `Shape Changer` にしきい値設定を追加
 - [#1629] Merge Animatorで統合されるアニメーターに破綻したレイヤー（ステートマシンが存在しないなど）を持つ場合、エラーを報告してビルドを続行するように変更
+- [#1635] `ModularAvatarMenuItem` にAPIを追加し、VRChat以外のプラットフォームで Menu Item を生成できるようにしました。
 - [#1596] MA Rename Collision Tags コンポーネントを追加
   - Contacts のタグ（Collision Tags）を MA Parameters の「名前を変更」や「自動リネーム」と同様にリネームできるコンポーネントです。
 
