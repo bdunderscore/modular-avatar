@@ -362,7 +362,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             var originalMaterial = ObjectRegistry.GetReference(m)?.Object as Material ?? m;
                             return (renderer: r, index: i, material: originalMaterial);
                         }))
-                        .Where(x => x.material == (obj.From ? obj.From : null)))
+                        .Where(x => x.material == (obj.From ? ObjectRegistry.GetReference(obj.From)?.Object as Material ?? obj.From : null)))
                     {
                         RegisterAction(swap, renderer, index, obj.To);
                     }

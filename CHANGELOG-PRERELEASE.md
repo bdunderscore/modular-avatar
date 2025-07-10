@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1640] `MA Material Swap` would not work in some situations.
 - [#1641] Fixed Material Swap observing
 - [#1641] Fixed that MatSwap target is empty when dragging material into Material Swap
 
