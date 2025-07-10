@@ -300,29 +300,32 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void PrepareMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                var swapRootsByTargetMaterial = swaps
+                var swapRootsBySourceMaterial = swaps
                     .Where(c => c.Swaps != null)
                     .SelectMany(c => c.Swaps, (c, m) => (root: c.Root.Get(c), mat: m.From ? m.From : null))
                     .ToLookup(x => x.mat, x => x.root);
-                var targetMaterials = swapRootsByTargetMaterial
+                var sourceMaterials = swapRootsBySourceMaterial
                     .Select(x => x.Key)
                     .ToArray();
                 foreach (var renderer in renderers)
                 {
                     // Observe whether any of the renderer’s sharedMaterials
-                    // has become a swap target (-1 to index),
-                    // is no longer a swap target (index to -1),
-                    // or has switched to a different material among the swap targets (index to another index).
+                    // has become a swap source (-1 to index),
+                    // is no longer a swap source (index to -1),
+                    // or has switched among the swap sources (index to another index).
                     _computeContext.Observe(renderer, r => r.sharedMaterials
-                            .Select(m =>
-                            {
-                                if (swapRootsByTargetMaterial[m].Any(x => x == null || r.transform.IsChildOf(x.transform)))
-                                {
-                                    return Array.IndexOf(targetMaterials, m);
-                                }
-                                return -1;
-                            }),
+                            .Select(IndexOfSourceMaterial)
+                            .ToImmutableList(),
                         Enumerable.SequenceEqual);
+
+                    int IndexOfSourceMaterial(Material material)
+                    {
+                        if (swapRootsBySourceMaterial[material].Any(x => x == null || renderer.transform.IsChildOf(x.transform)))
+                        {
+                            return Array.IndexOf(sourceMaterials, material);
+                        }
+                        return -1;
+                    }
                     
                     // Re-evaluate the context if the hierarchy changes. Note that this will force the above Observe
                     // to be re-evaluated as well.
