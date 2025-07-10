@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1641] Material Swap の監視を修正
+- [#1641] Material Swap にマテリアルをドラッグした際、マテリアルの置換先が空になるのを修正
 
 ### Changed
 
