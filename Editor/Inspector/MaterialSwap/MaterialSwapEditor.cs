@@ -10,8 +10,14 @@ using UnityEngine.UIElements;
 
 #endregion
 
-namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
+namespace nadena.dev.modular_avatar.core.editor
 {
+    [CustomPropertyDrawer(typeof(QuickSwapMode))]
+    internal class QuickSwapModeDrawer : EnumDrawer<QuickSwapMode>
+    {
+        protected override string localizationPrefix => "reactive_object.material-swap.quick_swap_mode";
+    }
+
     [CustomEditor(typeof(ModularAvatarMaterialSwap))]
     internal class MaterialSwapEditor : MAEditorBase
     {
@@ -24,6 +30,25 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
         private DragAndDropManipulator _dragAndDropManipulator;
 
         private Dictionary<string, Dictionary<UnityEngine.Object, HashSet<Action<string>>>> _matNameToUniquePathCallbacks = new();
+
+        private bool _isSiblingMode;
+        private bool isSiblingMode
+        {
+            get => _isSiblingMode;
+            set
+            {
+                if (_isSiblingMode == value) return;
+                
+                Debug.Log("Sibling mode changed to " + value);
+                
+                _isSiblingMode = value;
+
+                foreach (var pair in _matNameToUniquePathCallbacks)
+                {
+                    CallUniquePathCallback(pair.Value);
+                }
+            }
+        }
 
         internal IDisposable RegisterUniquePathCallback(string name, UnityEngine.Object target, Action<string> callback)
         {
@@ -48,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             var obj_to_folder_path = obj_to_cb_set.ToDictionary(x => x.Key, x => GetFolderPath(x.Key));
             foreach (var (obj, folder_path) in obj_to_folder_path)
             {
-                var unique_path = obj_to_folder_path.Count <= 1 ? null : GetUniquePath(obj_to_folder_path.Values, folder_path);
+                var unique_path = obj_to_folder_path.Count <= 1 && !_isSiblingMode ? null : GetUniquePath(obj_to_folder_path.Values, folder_path);
                 foreach (var cb in obj_to_cb_set[obj])
                 {
                     cb(unique_path);
@@ -148,6 +173,21 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
 
             _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarMaterialSwap);
 
+            var qsMode = root.Q<EnumField>("quick-swap-mode-field");
+            qsMode.RegisterCallback<ChangeEvent<string>>((evt) =>
+            {
+                bool isNone = nameof(QuickSwapMode.None) == evt.newValue;
+                isSiblingMode = nameof(QuickSwapMode.SiblingDirectory) == evt.newValue.Replace(" ", "");
+
+                if (isNone)
+                {
+                    root.RemoveFromClassList("quick-swap-enable");
+                } else 
+                {
+                    root.AddToClassList("quick-swap-enable");
+                }
+            });
+            
             return root;
         }
 

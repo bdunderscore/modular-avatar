@@ -3,8 +3,10 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.modular_avatar.core.editor.ShapeChanger;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -12,7 +14,7 @@ using UnityEngine.UIElements;
 
 #endregion
 
-namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
+namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomPropertyDrawer(typeof(MatSwap))]
     internal class MatSwapEditor : VisualElement
@@ -55,6 +57,12 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             _fromField.RegisterValueChangeCallback(OnAnyValueChanged);
             _toField.RegisterValueChangeCallback(OnAnyValueChanged);
             
+            var btnLeft = uxml.Q<Button>("qs-left");
+            var btnRight = uxml.Q<Button>("qs-right");
+
+            btnLeft.clicked += () => QuickSwap(-1);
+            btnRight.clicked += () => QuickSwap(1);
+            
             var fromSelector = this.Q<Button>("from-selector");
             fromSelector.clicked += () =>
             {
@@ -94,12 +102,55 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
                 menu.DropDown(_fromField.worldBound, _fromField);
             };
         }
+
+        private List<Material>? _materialCache;
+        private QuickSwapMode _priorMode = QuickSwapMode.None;
+        
+        private void QuickSwap(int direction)
+        {
+            if (_property == null) return;
+
+            var mode = (QuickSwapMode)_property.serializedObject
+                .FindProperty(nameof(ModularAvatarMaterialSwap.m_quickSwapMode))
+                .enumValueIndex;
+
+            var toMat = _property.FindPropertyRelative(nameof(MatSwap.To));
+            if (toMat.objectReferenceValue is not Material currentMaterial)
+            {
+                return;
+            }
+
+            if (mode == QuickSwapMode.None) return;
+
+            if (mode != _priorMode || _materialCache == null)
+            {
+                _materialCache =  MaterialFinder.BuildCandidateList(mode, currentMaterial);
+            }
+            
+            var currentIndex = _materialCache.IndexOf(currentMaterial);
+            if (currentIndex < 0)
+            {
+                // Couldn't determine the current material index...? 
+                return;
+            }
+
+            var newIndex = currentIndex + direction;
+            if (newIndex < 0 || newIndex >= _materialCache.Count)
+            {
+                // Out of bounds, so just return
+                return;
+            }
+            
+            toMat.objectReferenceValue = _materialCache[newIndex];
+            toMat.serializedObject.ApplyModifiedProperties();
+        }
         
         // We should probably support IBindable, but the documentation is seemingly nonexistent
         public new void BindProperty(SerializedProperty property)
         {
             _property = property;
             _uxml.BindProperty(property);
+            _materialCache = null;
         }
 
         private void RegisterUniquePathCallbacks()

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1642] Added quick swap mode to Material Swap
 
 ### Fixed
 - [#1640] `MA Material Swap` would not work in some situations.

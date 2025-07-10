@@ -6,5 +6,10 @@
         </ui:Button>
         <ui:Label text="→"/>
         <ed:PropertyField name="to-field" binding-path="To" label=""/>
+        
+        <ui:VisualElement class="horizontal quick-swap-root">
+            <ui:Button name="qs-left" label=""/>
+            <ui:Button name="qs-right" label=""/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </UXML>
