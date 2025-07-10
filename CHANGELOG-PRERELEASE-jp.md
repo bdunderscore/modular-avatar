@@ -8,13 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1642] `MA Material Swap` にクイックスワップモードを追加
-- [#1635] `ModularAvatarMenuItem` にAPIを追加し、VRChat以外のプラットフォームで Menu Item を生成できるようにしました。
 
 ### Fixed
-- [#1640] `MA Material Swap`が一部の状況で動作しない問題を修正
-- [#1641] Material Swap の監視を修正
-- [#1641] Material Swap にマテリアルをドラッグした際、マテリアルの置換先が空になるのを修正
 
 ### Changed
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-rc.1] - [2025-07-10]
+
+### Added
+- [#1642] `MA Material Swap` にクイックスワップモードを追加
+- [#1635] `ModularAvatarMenuItem` にAPIを追加し、VRChat以外のプラットフォームで Menu Item を生成できるようにしました。
+
+### Fixed
+- [#1640] `MA Material Swap`が一部の状況で動作しない問題を修正
+- [#1641] Material Swap の監視を修正
+- [#1641] Material Swap にマテリアルをドラッグした際、マテリアルの置換先が空になるのを修正
 
 ## [1.13.0-rc.0] - [2025-07-06]
 

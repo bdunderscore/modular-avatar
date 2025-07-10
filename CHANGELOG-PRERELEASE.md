@@ -8,13 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1642] Added quick swap mode to Material Swap
-- [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
 
 ### Fixed
-- [#1640] `MA Material Swap` would not work in some situations.
-- [#1641] Fixed Material Swap observing
-- [#1641] Fixed that MatSwap target is empty when dragging material into Material Swap
 
 ### Changed
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.0-rc.1] - [2025-07-10]
+
+### Added
+- [#1642] Added quick swap mode to Material Swap
+- [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
+
+### Fixed
+- [#1640] `MA Material Swap` would not work in some situations.
+- [#1641] Fixed Material Swap observing
+- [#1641] Fixed that MatSwap target is empty when dragging material into Material Swap
 
 ## [1.13.0-rc.0] - [2025-07-06]
 
