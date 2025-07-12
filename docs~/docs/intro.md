@@ -65,14 +65,7 @@ Due to bugs in VCC dependency resolution, please use ALCOM to install prerelease
 
 :::
 
-To make prerelease versions available in ALCOM:
-1. Open "Packages" and select "ADD REPOSITORY".
-2. Enter the following value under "Enter informatino about the repository" and click "ADD REPOSITORY": `https://vpm.nadena.dev/vpm-prerelease.json`
-3. Confirm the following details are displayed, then click "Add VPM Repository":
-    - Repository Name: `bd_ (prereleases)`
-    - URL: The URL you entered.
-
-Then, in your ALCOM Settings window, enable `Show pre-release packages`.
+To make prerelease versions available in ALCOM, in your ALCOM Settings window, enable `Show pre-release packages`.
 
 ![Pre-release settings](prerelease.png)
 
