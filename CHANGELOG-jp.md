@@ -8,6 +8,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0] - [2025-07-12]
+
 **注意**: このリリースには、`ModularAvatarMenuItem` の新しいポータブルAPIが含まれています。
 これにより、将来的にメニューアイテムをVRChat以外のプラットフォームで使用できるようになります。
 プラグインがメニューアイテムを生成する場合は、新しいAPIを使用するように更新することを推奨します。
@@ -36,12 +50,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1608] [#1610] Shape Changerが、アニメーションされても完全に消す仕様になりました
 - [#1636] `Write Defaults設定に合わせる` モードでは、`Merge Animator` がブレンドツリーのみを含むレイヤーに対して、
 　Direct Blend Treesが含まれていない場合はWrite Defaultsを強制的にONにしなくなりました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.5] - [2025-04-14]
 

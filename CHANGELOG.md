@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.13.0] - [2025-07-12]
+
 **Note**: This release contains new, portable APIs in `ModularAvatarMenuItem` to allow (in the future) menu items to be
 used in other platforms than VRChat. Plugins which generate menu items should be updated to use the new APIs; the old
 APIs will be deprecated in a future release, and removed in a future 2.0 release.
@@ -37,12 +51,6 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 - [#1608] [#1610] Shape Changer will now delete shapekeys fully, even if animated
 - [#1636] In `Match Write Defaults` mode, `Merge Animator` will no longer force layers to be write defaults ON when they
   contain only blend trees, if none of those blend trees are Direct Blend Trees.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.12.5] - [2025-04-14]
 
