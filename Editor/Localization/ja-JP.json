@@ -264,6 +264,11 @@
   "reactive_object.inverse": "条件を反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル",
   "reactive_object.material-swap.root": "対象のルート",
+  "reactive_object.material-swap.quick_swap_mode": "クイックスワップモード",
+  "reactive_object.material-swap.quick_swap_mode.tooltip": "Material Swapインスペクター内の < > ボタンの挙動を設定します。\n\n有効にすると、フォルダー構成に応じて素早く切り替えることができます。",
+  "reactive_object.material-swap.quick_swap_mode.None": "なし",
+  "reactive_object.material-swap.quick_swap_mode.SameDirectory": "同じフォルダー",
+  "reactive_object.material-swap.quick_swap_mode.SiblingDirectory": "隣接フォルダー",
   "menuitem.misc.add_toggle": "トグルを追加",
   "ro_sim.open_debugger_button": "Reaction デバッガーを開く",
   "ro_sim.window.title": "MA Reaction デバッガー",
@@ -300,5 +305,8 @@
   "sync-param-sequence.parameters.tooltip": "共用パラメーターがこのアセットに保持されます。アバターデスクリプターに使われるアセットを流用しないでください。",
   "sync-param-sequence.create-asset": "新規作成",
   "sync-param-sequence.create-asset.tooltip": "新しい共用パラメーターアセットを作成します",
-  "platform.vrchat.settings.mmd_world_support": "MMDワールド対応"
+  "platform.vrchat.settings.mmd_world_support": "MMDワールド対応",
+  "rename_collision_tags.label": "タグ",
+  "rename_collision_tags.rename_to": "名前を変更",
+  "rename_collision_tags.auto_rename": "自動リネーム"
 }
