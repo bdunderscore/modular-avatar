@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Implement `MA Mesh Deleter`
 
 ### Fixed
 - [#1653] Scene is always updated by `Blendshape Sync`
