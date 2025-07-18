@@ -11,9 +11,9 @@ using UnityEngine.Rendering;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal static class RemoveBlendShapeFromMesh
+    internal static class RemoveVerticesFromMesh
     {
-        public static Mesh RemoveBlendshapes(Mesh original, IEnumerable<(int, float)> targets)
+        public static Mesh RemoveVertices<T>(Mesh original, IEnumerable<T> targets, IVertexFilter<T> vertexFilter)
         {
             var mesh = new Mesh();
             mesh.indexFormat = original.indexFormat;
@@ -22,7 +22,10 @@ namespace nadena.dev.modular_avatar.core.editor
             bool[] toDeleteVertices = new bool[original.vertexCount];
             bool[] toRetainVertices = new bool[original.vertexCount];
 
-            ProbeBlendshapes(original, toDeleteVertices, targets);
+            foreach (var target in targets)
+            {
+                vertexFilter.Filter(target, toDeleteVertices);
+            }
             ProbeRetainedVertices(original, toDeleteVertices, toRetainVertices);
 
             RemapVerts(toRetainVertices, out var origToNewVertIndex, out var newToOrigVertIndex);
@@ -264,30 +267,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             newToOrigVertIndex = n2o.ToArray();
             origToNewVertIndex = o2n.ToArray();
-        }
-
-        private static void ProbeBlendshapes(Mesh mesh, bool[] toDeleteVertices, IEnumerable<(int, float)> shapes)
-        {
-            var bsPos = new Vector3[mesh.vertexCount];
-
-            foreach ((var index, var threshold) in shapes)
-            {
-                float sqrThreshold = threshold * threshold;
-                int frames = mesh.GetBlendShapeFrameCount(index);
-
-                for (int f = 0; f < frames; f++)
-                {
-                    mesh.GetBlendShapeFrameVertices(index, f, bsPos, null, null);
-
-                    for (int i = 0; i < bsPos.Length; i++)
-                    {
-                        if (bsPos[i].sqrMagnitude > sqrThreshold)
-                        {
-                            toDeleteVertices[i] = true;
-                        }
-                    }
-                }
-            }
         }
 
         private static void ProbeRetainedVertices(Mesh mesh, bool[] toDeleteVertices, bool[] toRetainVertices)

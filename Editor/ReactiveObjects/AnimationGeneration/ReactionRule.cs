@@ -5,19 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.animator;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ReactionRule
     {
-        public ReactionRule(TargetProp key, float? value)
-            : this(key, (object?)value) { }
-
-        public ReactionRule(TargetProp key, Object value)
-            : this(key, (object)value) { }
-            
-        private ReactionRule(TargetProp key, object? value)
+        public ReactionRule(TargetProp key, object? value)
         {
             TargetProp = key;
 

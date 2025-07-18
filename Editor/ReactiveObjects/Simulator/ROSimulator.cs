@@ -509,7 +509,11 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         if (reactionRule.TargetProp.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                         {
                             f_delete.style.display = DisplayStyle.Flex;
-                            f_delete.value = reactionRule.Value is > 0.5f ? "DELETE" : "RETAIN";
+                            f_delete.value = $"Delete (threshold={reactionRule.Value})";
+                        } else if (reactionRule.TargetProp.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedMeshPrefix))
+                        {
+                            f_delete.style.display = DisplayStyle.Flex;
+                            f_delete.value = reactionRule.Value.ToString();
                         } else if (reactionRule.Value is float f)
                         {
                             f_value.SetValueWithoutNotify(f);

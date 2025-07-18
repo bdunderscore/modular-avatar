@@ -30,6 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public const string BlendshapePrefix = "blendShape.";
         public const string DeletedShapePrefix = "deletedShape.";
+        public const string DeletedMeshPrefix = "deletedMesh.";
 
         public bool OptimizeShapes = true;
         
@@ -117,6 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
             LocateBlendshapeSyncs(root); 
             
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
+            FindMeshDeleters(shapes, root);
             FindObjectToggles(shapes, root);
             FindMaterialChangers(shapes, root);
 
@@ -362,8 +364,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 // If we're now constant-on, we can skip animation generation
                 if (info.actionGroups.Count == 0 || info.actionGroups[^1].IsConstant)
                 {
-                    var isDelete = info.TargetProp.PropertyName.StartsWith(DeletedShapePrefix)
-                        && info.TargetProp.TargetObject is SkinnedMeshRenderer;
+                    var isDelete = false;
+                    isDelete |= info.TargetProp.PropertyName.StartsWith(DeletedShapePrefix)
+                                && info.TargetProp.TargetObject is SkinnedMeshRenderer;
+                    isDelete |= info.TargetProp.PropertyName.StartsWith(DeletedMeshPrefix)
+                                && info.TargetProp.TargetObject is SkinnedMeshRenderer;
                     if (!isDelete && OptimizeShapes && info.overrideStaticState == null) shapes.Remove(key);
                 }
             }

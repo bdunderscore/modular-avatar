@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -18,13 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public object? overrideStaticState = null;
 
-        public AnimatedProperty(TargetProp key, float? currentState)
-        {
-            TargetProp = key;
-            this.currentState = currentState;
-        }
-            
-        public AnimatedProperty(TargetProp key, Object currentState)
+        public AnimatedProperty(TargetProp key, object? currentState)
         {
             TargetProp = key;
             this.currentState = currentState;

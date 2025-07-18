@@ -77,8 +77,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     {
                         // TODO - refactor out VRChat-specific bits
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
-                            .PreviewingWith(new ShapeChangerPreview(), new ObjectSwitcherPreview(),
-                                new MaterialSetterPreview());
+                            .PreviewingWith(new ShapeChangerPreview(), new MeshDeleterPreview(),
+                                new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     });
                     seq.Run(GameObjectDelayDisablePass.Instance);
 

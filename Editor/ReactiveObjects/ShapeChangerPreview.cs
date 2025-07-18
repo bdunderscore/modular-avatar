@@ -268,25 +268,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     mesh = Object.Instantiate(mesh);
 
-                    var bsPos = new Vector3[mesh.vertexCount];
+                    var vertexFilter = new VertexFilterByShape(mesh);
                     bool[] targetVertex = new bool[mesh.vertexCount];
                     foreach (var bs in toDelete)
                     {
-                        int index = bs.Key;
-                        float sqr_epsilon = bs.Value * bs.Value;
-                        int frames = mesh.GetBlendShapeFrameCount(index);
-                        for (int f = 0; f < frames; f++)
-                        {
-                            mesh.GetBlendShapeFrameVertices(index, f, bsPos, null, null);
-
-                            for (int i = 0; i < bsPos.Length; i++)
-                            {
-                                if (bsPos[i].sqrMagnitude > sqr_epsilon)
-                                {
-                                    targetVertex[i] = true;
-                                }
-                            }
-                        }
+                        vertexFilter.Filter((mesh.GetBlendShapeName(bs.Key), bs.Value), targetVertex);
                     }
 
                     List<int> tris = new List<int>();
