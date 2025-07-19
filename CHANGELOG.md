@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Implement `MA Mesh Deleter`
+- [#1651] Implement `MA Mesh Deleter`
 
 ### Fixed
 - [#1653] Scene is always updated by `Blendshape Sync`
@@ -33,7 +33,7 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 ### Added
 - (Experimental feature) Enabled support for non-VRC platforms
 - [#1594] Display the exceeded parameter count in the MA Information
-- Implement `MA Material Swap`
+- [#1604] Implement `MA Material Swap`
 - [#1623] Implement `MA Platform Filter`
 - [#1610] Added threshold setting to `Shape Changer`
 - [#1629] Report a nonfatal error when an animator being merged has a broken layer (missing state machine)
