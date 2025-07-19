@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core
         {
             return Equals(Object, other.Object)
                    && MaterialIndex == other.MaterialIndex
-                   && MaskTexture.Equals(other.MaskTexture)
+                   && MaskTexture == other.MaskTexture
                    && DeleteMode == other.DeleteMode;
         }
 
