@@ -234,16 +234,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
                     {
-                        // We encode the deletion threshold in the delete action's value property
-                        value = shape.ChangeType == ShapeChangeType.Delete ? threshold : 0;
-                        RegisterAction(key, null, value, changer);
+                        RegisterAction(key, null, new VertexFilterByShape(shape.ShapeName, threshold), changer);
                     }
                 }
             }
 
             return shapeKeys;
 
-            void RegisterAction(TargetProp key, float? currentValue, float? value, ModularAvatarShapeChanger changer)
+            void RegisterAction(TargetProp key, float? currentValue, object value, ModularAvatarShapeChanger changer)
             {
                 if (!shapeKeys.TryGetValue(key, out var info))
                 {
@@ -287,7 +285,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var key = new TargetProp
                     {
                         TargetObject = renderer,
-                        PropertyName = DeletedMeshPrefix + obj.MaterialIndex + "." + obj.MaskTexture.GetInstanceID(),
+                        PropertyName = $"deletedMesh.{obj.MaterialIndex}_{obj.MaskTexture.GetInstanceID()}",
                     };
 
                     if (!objectGroups.TryGetValue(key, out var group))
@@ -296,7 +294,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         objectGroups[key] = group;
                     }
 
-                    var action = ObjectRule(key, deleter, obj.DeleteMode);
+                    var action = ObjectRule(key, deleter, new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode));
                     action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
 
                     if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))

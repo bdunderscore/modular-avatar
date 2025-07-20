@@ -24,11 +24,10 @@ namespace nadena.dev.modular_avatar.core.editor
             public int newBoneIndex;
         }
 
-        internal static Dictionary<T, List<AddedBone>> ComputeNaNPlan<T>(
+        internal static Dictionary<(TargetProp, IVertexFilter), List<AddedBone>> ComputeNaNPlan(
             ref Mesh mesh,
-            List<T> targets,
-            int initialBoneCount,
-            IVertexFilter<T> vertexFilter
+            List<(TargetProp, IVertexFilter)> targets,
+            int initialBoneCount
         )
         {
             var vertexCount = mesh.vertexCount;
@@ -36,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (vertexCount == 0)
             {
                 // Nothing to do...
-                return new Dictionary<T, List<AddedBone>>();
+                return new();
             }
 
             var originalMesh = mesh;
@@ -102,11 +101,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var nextBoneIndex = initialBoneCount;
 
-                Dictionary<T, List<AddedBone>> result = new();
+                Dictionary<(TargetProp, IVertexFilter), List<AddedBone>> result = new();
                 foreach (var target in targets)
                 {
                     Array.Fill(affectedVertices, false);
-                    vertexFilter.Filter(target, affectedVertices);
+                    target.Item2.MarkFilteredVertices(mesh, affectedVertices);
 
                     if (affectedVertices.All(x => !x)) continue;
 

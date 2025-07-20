@@ -54,8 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             GenerateActiveSelfProxies(shapes);
 
-            ProcessMeshDeletionByShape(initialStates, shapes);
-            ProcessMeshDeletionByMask(initialStates, shapes);
+            ProcessMeshDeletion(initialStates, shapes);
 
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
@@ -241,48 +240,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private bool? GetConstantStateForTargetProp(
-            TargetProp prop,
-            Dictionary<TargetProp, object> initialStates,
-            Dictionary<TargetProp, AnimatedProperty> shapes
-        )
-        {
-            if (!shapes.ContainsKey(prop))
-            {
-                return initialStates.GetValueOrDefault(prop) as bool?;
-            }
-
-            var lastGroup = shapes[prop].actionGroups.LastOrDefault();
-            if (lastGroup?.IsConstantActive != true) return null;
-
-            return lastGroup.Value is float or MeshDeleteMode;
-        }
-        
-        private void ProcessMeshDeletionByShape(Dictionary<TargetProp, object> initialStates,
+        private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var renderers = initialStates.Keys
-                .Where(prop => prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
-                .Where(prop => prop.TargetObject is SkinnedMeshRenderer)
-                .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != false)
-                .GroupBy(prop => prop.TargetObject as SkinnedMeshRenderer)
+            var renderers = shapes.Values
+                .Where(prop => prop.actionGroups.Any(x => x.Value is IVertexFilter))
+                .GroupBy(prop => prop.TargetProp.TargetObject as SkinnedMeshRenderer)
                 .ToList();
             foreach (var grouping in renderers)
             {
                 var renderer = grouping.Key;
                 var toDelete = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) == true)
+                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is true)
                     .Select(prop => (
-                        shapeName: prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
-                        threshold: shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                        prop.TargetProp,
+                        VertexFilter: prop.actionGroups.Select(x => x.Value).OfType<IVertexFilter>().LastOrDefault()
                     ))
                     .ToList();
                 var toNaNimate = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != true)
-                    .Where(shapes.ContainsKey)
-                    .Select(prop => (
-                        shapeName: prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
-                        threshold: shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
+                    .SelectMany(prop => prop.actionGroups.Select(x => x.Value).OfType<IVertexFilter>().Distinct(), (prop, filter) => (
+                        prop.TargetProp,
+                        VertexFilter: filter
                     ))
                     .ToList();
                 
@@ -291,205 +270,87 @@ namespace nadena.dev.modular_avatar.core.editor
                 var mesh = renderer.sharedMesh;
                 if (mesh == null) continue;
 
-                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(mesh, toDelete, new VertexFilterByShape(mesh));
+                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(mesh, toDelete);
 
-                foreach (var (shapeName, _) in toDelete)
+                foreach (var (prop, _) in toDelete)
                 {
                     // Don't need to animate this anymore...!
-                    shapes.Remove(new()
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                    });
+                    shapes.Remove(prop);
 
-                    shapes.Remove(new()
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                     {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + shapeName
-                    });
-
-                    initialStates.Remove(new()
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                    });
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
                 }
 
                 // Handle NaNimated shapes next
-                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate, renderer.bones.Length, new VertexFilterByShape(mesh));
+                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate, renderer.bones.Length);
                 renderer.sharedMesh = mesh;
 
                 if (nanPlan.Count > 0)
                 {
-                    var targetToBones = GenerateNaNimatedBones(renderer, nanPlan, t => t.Item1);
+                    var nanimatedBones = GenerateNaNimatedBones(renderer, nanPlan);
 
-                    foreach (var ((shapeName, _), bones) in targetToBones)
+                    foreach (var (deleteTarget, deletions) in nanimatedBones
+                        .GroupBy(x => x.Key.Item1, (x, y) => (x, y.ToDictionary(z => z.Key.Item2, z => z.Value))))
                     {
-                        var deleteTarget = new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + shapeName
-                        };
                         var animProp = shapes[deleteTarget];
 
-                        var clip_delete = CreateNaNimationClip(renderer, $"{shapeName} (Delete)", bones, new());
-                        var clip_retain = CreateNaNimationClip(renderer, $"{shapeName} (Retain)", new(), bones);
+                        var path = RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject);
+                        var bones = deletions.SelectMany(x => x.Value).ToList();
+                        var clips = deletions.ToDictionary(
+                            x => x.Key,
+                            x => CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName} ({x.Key})", x.Value, bones.Except(x.Value).ToList()));
+                        var clip_retain = CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName} (Retain)", new(), bones);
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            var isDeleted = group.Value is float;
-
-                            group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
+                            if (group.Value is IVertexFilter filter && clips.TryGetValue(filter, out var clip))
+                            {
+                                group.CustomApplyMotion = clip;
+                            }
+                            else
+                            {
+                                group.CustomApplyMotion = clip_retain;
+                            }
                         }
 
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
-                        animProp.actionGroups.Insert(0, new(deleteTarget, 0.0f)
+                        animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
                         {
                             CustomApplyMotion = clip_retain
                         });
                     }
                 }
 
-                foreach (var (shapeName, _) in toNaNimate)
-                {
-                    if (nanPlan.Any(x => x.Key.Item1 == shapeName))
-                    {
-                        continue;
-                    }
+                var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
 
-                    // Don't need to animate this anymore...!
-                    shapes.Remove(new()
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                    });
-
-                    shapes.Remove(new()
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + shapeName
-                    });
-                }
-            }
-        }
-
-        private void ProcessMeshDeletionByMask(Dictionary<TargetProp, object> initialStates,
-            Dictionary<TargetProp, AnimatedProperty> shapes)
-        {
-            var renderers = initialStates.Keys
-                .Where(prop => prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedMeshPrefix))
-                .Where(prop => prop.TargetObject is SkinnedMeshRenderer)
-                .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != false)
-                .GroupBy(prop => prop.TargetObject as SkinnedMeshRenderer)
-                .ToList();
-            foreach (var grouping in renderers)
-            {
-                var renderer = grouping.Key;
-                var toDelete = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) == true)
-                    .Select(prop => (
-                        split: prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedMeshPrefix.Length).Split('.'),
-                        deleteModes: shapes[prop].actionGroups.Select(ag => ag.Value).OfType<MeshDeleteMode>()
-                    ))
-                    .Select(x => (
-                        materialIndex: int.Parse(x.split[0]),
-                        maskTexture: EditorUtility.InstanceIDToObject(int.Parse(x.split[1])) as Texture2D,
-                        deleteMode: x.deleteModes.LastOrDefault()
-                    ))
-                    .ToList();
-                var toNaNimate = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != true)
-                    .Where(shapes.ContainsKey)
-                    .Select(prop => (
-                        split: prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedMeshPrefix.Length).Split('.'),
-                        deleteModes: shapes[prop].actionGroups.Select(ag => ag.Value).OfType<MeshDeleteMode>()
-                    ))
-                    .SelectMany(x => x.deleteModes.Distinct(), (x, deleteMode) => (
-                        materialIndex: int.Parse(x.split[0]),
-                        maskTexture: EditorUtility.InstanceIDToObject(int.Parse(x.split[1])) as Texture2D,
-                        deleteMode
-                    ))
-                    .ToList();
-
-                if (renderer == null) continue;
-
-                var mesh = renderer.sharedMesh;
-                if (mesh == null) continue;
-
-                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(mesh, toDelete, new VertexFilterByMask(mesh));
-
-                foreach (var (materialIndex, maskTexture, _) in toDelete)
+                foreach (var prop in toNaNimate
+                    .Select(x => x.TargetProp)
+                    .Where(x => !nanimatedProps.Contains(x)))
                 {
                     // Don't need to animate this anymore...!
-                    shapes.Remove(new()
+                    shapes.Remove(prop);
+
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                     {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.DeletedMeshPrefix + materialIndex + "." + maskTexture.GetInstanceID()
-                    });
-                }
-
-                // Handle NaNimated shapes next
-                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate, renderer.bones.Length, new VertexFilterByMask(mesh));
-                renderer.sharedMesh = mesh;
-
-                if (nanPlan.Count > 0)
-                {
-                    var targetToBones = GenerateNaNimatedBones(renderer, nanPlan, t => $"{t.Item1}.{t.Item2.GetInstanceID()}.{t.Item3}");
-
-                    foreach (var ((materialIndex, maskTexture), deletions) in targetToBones
-                        .GroupBy(x => (x.Key.Item1, x.Key.Item2), (x, y) => (x, y.ToDictionary(z => z.Key.Item3, z => z.Value))))
-                    {
-                        var deleteTarget = new TargetProp
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
                         {
                             TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.DeletedMeshPrefix + materialIndex + "." + maskTexture.GetInstanceID()
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
                         };
-                        var animProp = shapes[deleteTarget];
-
-                        var bones = deletions.SelectMany(x => x.Value).ToList();
-                        var clips = deletions.ToDictionary(
-                            x => x.Key,
-                            x => CreateNaNimationClip(renderer, $"{materialIndex}.{maskTexture.GetInstanceID()} ({x.Key})", x.Value, bones.Except(x.Value).ToList()));
-                        clips.Add(
-                            MeshDeleteMode.DontDelete,
-                            CreateNaNimationClip(renderer, $"{materialIndex}.{maskTexture.GetInstanceID()} ({MeshDeleteMode.DontDelete})", new(), bones));
-
-                        foreach (var group in animProp.actionGroups)
-                        {
-                            if (group.Value is MeshDeleteMode deleteMode && clips.TryGetValue(deleteMode, out var clip))
-                            {
-                                group.CustomApplyMotion = clip;
-                            }
-                            else
-                            {
-                                group.CustomApplyMotion = clips[MeshDeleteMode.DontDelete];
-                            }
-                        }
-
-                        // Since we won't be inserting this into the default states animation, make sure there's a default
-                        // motion to fall back on for non-WD setups.
-                        animProp.actionGroups.Insert(0, new(deleteTarget, 0.0f)
-                        {
-                            CustomApplyMotion = clips[MeshDeleteMode.DontDelete]
-                        });
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
                     }
-                }
-
-                foreach (var (materialIndex, maskTexture) in toNaNimate
-                    .GroupBy(x => (x.materialIndex, x.maskTexture), (x, _) => (x.materialIndex, x.maskTexture)))
-                {
-                    if (nanPlan.Any(x => x.Key.Item1 == materialIndex && x.Key.Item2 == maskTexture))
-                    {
-                        continue;
-                    }
-
-                    // Don't need to animate this anymore...!
-                    shapes.Remove(new()
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.DeletedMeshPrefix + materialIndex + "." + maskTexture.GetInstanceID()
-                    });
                 }
             }
         }
@@ -552,11 +413,10 @@ namespace nadena.dev.modular_avatar.core.editor
             return clip;
         }
 
-        private Dictionary<T, List<GameObject>> GenerateNaNimatedBones<T>(SkinnedMeshRenderer renderer,
-            Dictionary<T, List<NaNimationFilter.AddedBone>> plan,
-            Func<T, string> toTargetName)
+        private Dictionary<(TargetProp, IVertexFilter), List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
+            Dictionary<(TargetProp, IVertexFilter), List<NaNimationFilter.AddedBone>> plan)
         {
-            List<(NaNimationFilter.AddedBone, T)> createdBones =
+            List<(NaNimationFilter.AddedBone, (TargetProp, IVertexFilter))> createdBones =
                 plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
                     .OrderBy(b => b.bone.newBoneIndex)
                     .ToList();
@@ -575,7 +435,8 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var pair in createdBones)
             {
                 var bone = pair.Item1;
-                var targetName = toTargetName(pair.Item2);
+                var path = RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject);
+                var targetName = $"{path}:{pair.Item2.Item1.PropertyName} ({pair.Item2.Item2})";
 
                 if (bonesArray[bone.originalBoneIndex] == null) continue;
                 var newBone = new GameObject("NaNimated Bone for " + targetName.Replace('/', '_'));

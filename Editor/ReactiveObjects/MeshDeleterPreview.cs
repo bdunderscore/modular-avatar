@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.preview;
-using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -27,37 +26,34 @@ namespace nadena.dev.modular_avatar.core.editor
             return context.Observe(EnableNode.IsEnabled);
         }
 
-        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)>> _cache = new(
-            "GetDeletionsForRenderer", GetDeletionsForRenderer, Enumerable.SequenceEqual);
+        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache = new(
+            "FiltersForRenderer", FiltersForRenderer, Enumerable.SequenceEqual);
 
-        private static ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)> GetDeletionsForRenderer(ComputeContext context, Renderer renderer)
+        private static ImmutableList<IVertexFilter> FiltersForRenderer(ComputeContext context, Renderer renderer)
         {
             if (renderer == null)
             {
-                return ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)>.Empty;
+                return ImmutableList<IVertexFilter>.Empty;
             }
 
             var avatar = context.GetAvatarRoot(renderer.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatar);
-            var deletions = ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)>.Empty;
+            var filters = ImmutableList<IVertexFilter>.Empty;
 
             foreach (var property in analysis.Shapes.Values)
             {
                 var prop = property.TargetProp;
                 if (prop.TargetObject != renderer) continue;
-                if (!prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedMeshPrefix)) continue;
-
-                var split = prop.PropertyName[ReactiveObjectAnalyzer.DeletedMeshPrefix.Length..].Split('.');
-                var materialIndex = int.Parse(split[0]);
-                var maskTexture = EditorUtility.InstanceIDToObject(int.Parse(split[1])) as Texture2D;
+                if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
+                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not MeshDeleteMode deleteMode) continue;
+                if (activeRule == null || activeRule.Value is not IVertexFilter filter) continue;
 
-                deletions = deletions.Add((materialIndex, maskTexture, maskTexture.imageContentsHash, deleteMode));
+                filters = filters.Add(filter);
             }
 
-            return deletions;
+            return filters;
         }
 
         private IEnumerable<RenderGroup> GroupsForAvatar(ComputeContext context, GameObject avatarRoot)
@@ -68,13 +64,13 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var property in analysis.Shapes.Values)
             {
                 var prop = property.TargetProp;
-                if (prop.TargetObject is not SkinnedMeshRenderer renderer) continue;
-                if (!prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedMeshPrefix)) continue;
+                if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
+                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not MeshDeleteMode) continue;
+                if (activeRule == null || activeRule.Value is not IVertexFilter) continue;
 
-                renderers.Add(renderer);
+                renderers.Add(smr);
             }
 
             return renderers.Select(RenderGroup.For);
@@ -95,20 +91,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private class Node : IRenderFilterNode
         {
-            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)>> _cache;
+            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache;
             private readonly SkinnedMeshRenderer _original;
-            private readonly ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)> _deletions;
+            private readonly ImmutableList<IVertexFilter> _filters;
             private Mesh _generatedMesh;
 
             public RenderAspects WhatChanged => RenderAspects.Mesh;
 
-            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)>> cache,
+            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> cache,
                 SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
             {
                 _cache = cache;
                 _original = original;
-                _deletions = _cache.Get(context, _original);
-                _generatedMesh = GenerateMesh(proxy.sharedMesh, _deletions);
+                _filters = _cache.Get(context, _original);
+                _generatedMesh = GenerateMesh(proxy.sharedMesh, _filters);
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
@@ -118,8 +114,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
 
-                var deletions = _cache.Get(context, _original);
-                if (!deletions.SequenceEqual(_deletions))
+                var filters = _cache.Get(context, _original);
+                if (!filters.SequenceEqual(_filters))
                 {
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
@@ -129,29 +125,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public void OnFrame(Renderer original, Renderer proxy)
             {
-                if (original == null || proxy == null) return;
-                if (original is not SkinnedMeshRenderer || proxy is not SkinnedMeshRenderer renderer) return;
+                if (original is not SkinnedMeshRenderer) return;
+                if (proxy is not SkinnedMeshRenderer smr || smr.sharedMesh == null) return;
 
                 if (_generatedMesh != null)
                 {
-                    renderer.sharedMesh = _generatedMesh;
+                    smr.sharedMesh = _generatedMesh;
                 }
             }
 
-            private Mesh GenerateMesh(Mesh mesh, ImmutableList<(int, Texture2D, Hash128, MeshDeleteMode)> deletions)
+            private Mesh GenerateMesh(Mesh mesh, ImmutableList<IVertexFilter> filters)
             {
-                if (deletions.All(x => x.Item4 == MeshDeleteMode.DontDelete))
+                if (mesh == null)
                 {
                     return null;
                 }
 
                 mesh = Object.Instantiate(mesh);
 
-                var vertexFilter = new VertexFilterByMask(mesh);
                 var vertexMask = new bool[mesh.vertexCount];
-                foreach (var deletion in deletions)
+                foreach (var filter in filters)
                 {
-                    vertexFilter.Filter((deletion.Item1, deletion.Item2, deletion.Item4), vertexMask);
+                    filter.MarkFilteredVertices(mesh, vertexMask);
                 }
 
                 var tris = new List<int>();
