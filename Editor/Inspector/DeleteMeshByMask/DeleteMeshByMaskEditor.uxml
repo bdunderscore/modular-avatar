@@ -4,19 +4,7 @@
         <ui:VisualElement name="group-box">
             <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
 
-            <ui:VisualElement name="ListViewContainer">
-                <ui:ListView virtualization-method="DynamicHeight"
-                             reorder-mode="Animated"
-                             reorderable="true"
-                             show-add-remove-footer="true"
-                             show-border="true"
-                             show-foldout-header="false"
-                             name="Shapes"
-                             item-height="100"
-                             binding-path="m_objects"
-                             style="flex-grow: 1;"
-                />
-            </ui:VisualElement>
+            <ed:PropertyField binding-path="m_object"/>
         </ui:VisualElement>
 
         <ma:ROSimulatorButton/>

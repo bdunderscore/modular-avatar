@@ -15,56 +15,20 @@
     -unity-font-style: bold;
 }
 
-#ListViewContainer {
-    margin-top: 4px;
-}
-
-.horizontal {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin: 1px 0;
-}
-
-.horizontal > * {
-    height: 18px;
-    margin: 0 1px;
-}
-
-.horizontal > PropertyField > * {
-    margin: 0;
-}
-
-#f-object {
-    flex-grow: 1;
-}
-
 #f-material-index {
     display: none;
 }
 
 #f-material-index-dropdown {
-    width: 100px;
+    height: 18px;
+}
+
+#f-material-index-dropdown > .unity-base-field__input {
+    flex-grow: 0;
+    min-width: 100px;
 }
 
 #f-material-index-original {
     flex-grow: 1;
-}
-
-#f-delete-mode {
-    width: 100px;
-}
-
-#f-mask-texture {
-    flex-grow: 1;
-}
-
-.drop-area--drag-active {
-    background-color: rgba(0, 127, 255, 0.2);
-}
-
-.drop-area--drag-active .unity-scroll-view,
-.drop-area--drag-active .unity-list-view__footer,
-.drop-area--drag-active .unity-list-view__reorderable-item {
-    background-color: rgba(0, 0, 0, 0.0);
+    margin: 0 0 0 2px;
 }

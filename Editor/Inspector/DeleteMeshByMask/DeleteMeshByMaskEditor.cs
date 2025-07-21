@@ -16,8 +16,6 @@ namespace nadena.dev.modular_avatar.core.editor
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
 
-        private DragAndDropManipulator _dragAndDropManipulator;
-
         protected override void OnInnerInspectorGUI()
         {
             EditorGUILayout.HelpBox("Unable to show override changes", MessageType.Info);
@@ -33,49 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             ROSimulatorButton.BindRefObject(root, target);
 
-            var listView = root.Q<ListView>("Shapes");
-
-            listView.showBoundCollectionSize = false;
-            listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-
-            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarDeleteMeshByMask);
-
             return root;
-        }
-
-        private void OnEnable()
-        {
-            if (_dragAndDropManipulator != null)
-                _dragAndDropManipulator.TargetComponent = target as ModularAvatarDeleteMeshByMask;
-        }
-
-        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarDeleteMeshByMask>
-        {
-            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarDeleteMeshByMask targetComponent)
-                : base(targetElement, targetComponent) { }
-
-            protected override bool FilterGameObject(GameObject obj)
-            {
-                if (obj.TryGetComponent<Renderer>(out var renderer))
-                {
-                    return renderer.sharedMaterials.Length > 0;
-                }
-                return false;
-            }
-
-            protected override void AddObjectReferences(AvatarObjectReference[] references)
-            {
-                Undo.RecordObject(TargetComponent, "Add Mesh Delete Objects");
-
-                foreach (var reference in references)
-                {
-                    var obj = new DeleteMeshByMaskObject { Object = reference, MaterialIndex = 0 };
-                    TargetComponent.Objects.Add(obj);
-                }
-
-                EditorUtility.SetDirty(TargetComponent);
-                PrefabUtility.RecordPrefabInstancePropertyModifications(TargetComponent);
-            }
         }
     }
 }

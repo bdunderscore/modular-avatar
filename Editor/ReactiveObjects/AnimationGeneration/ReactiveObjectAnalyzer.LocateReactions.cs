@@ -271,10 +271,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var deleter in deleters)
             {
-                if (deleter.Objects == null) continue;
+                if (deleter.Object == null) continue;
 
-                foreach (var obj in _computeContext.Observe(deleter, c => c.Objects.Select(o => o.Clone()).ToList(),
-                    Enumerable.SequenceEqual))
+                var obj = _computeContext.Observe(deleter, c => c.Object.Clone());
                 {
                     var renderer = _computeContext.GetComponent<SkinnedMeshRenderer>(obj.Object.Get(deleter));
                     if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;

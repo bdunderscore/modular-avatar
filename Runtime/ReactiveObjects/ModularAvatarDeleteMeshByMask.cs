@@ -55,27 +55,23 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarDeleteMeshByMask : ReactiveComponent, IHaveObjReferences
     {
         [SerializeField]
-        private List<DeleteMeshByMaskObject> m_objects = new();
+        private DeleteMeshByMaskObject m_object = new();
 
-        public List<DeleteMeshByMaskObject> Objects
+        public DeleteMeshByMaskObject Object
         {
-            get => m_objects;
-            set => m_objects = value;
+            get => m_object;
+            set => m_object = value;
         }
 
         public override void ResolveReferences()
         {
-            foreach (var shape in m_objects)
-            {
-                shape.Object?.Get(this);
-            }
+            m_object.Object?.Get(this);
         }
 
         public IEnumerable<AvatarObjectReference> GetObjectReferences()
         {
-            foreach (var obj in m_objects)
-                if (obj.Object != null)
-                    yield return obj.Object;
+            if (m_object.Object != null)
+                yield return m_object.Object;
         }
     }
 }
