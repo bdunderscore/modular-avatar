@@ -53,7 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!_localizers.TryGetValue(ty, out var action))
             {
-                PropertyInfo m_label = ty.GetProperty("text") ?? ty.GetProperty("label");
+                PropertyInfo m_label = ty.GetProperty("label") ?? ty.GetProperty("text");
                
                 if (m_label == null)
                 {
