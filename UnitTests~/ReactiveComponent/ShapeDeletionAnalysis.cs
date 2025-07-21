@@ -51,7 +51,8 @@ public class ShapeDeletionAnalysis : TestBase
         AssertMeshDeletion(root);
         
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
-        Assert.AreEqual(100, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
+        // deletion action is initially on, so we don't use the shape changer above it, which is set to 50.
+        Assert.AreEqual(0, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
 
@@ -124,7 +125,7 @@ public class ShapeDeletionAnalysis : TestBase
         });
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.That(((float)activeGroup?.Value!) - 0.01f, Is.LessThanOrEqualTo(0.005f));
+        Assert.That((activeGroup?.Value as VertexFilterByShape)?.Threshold - 0.01f, Is.LessThanOrEqualTo(0.005f));
         return mesh;
     }
     
@@ -140,7 +141,7 @@ public class ShapeDeletionAnalysis : TestBase
         if (deletedShape != null)
         {
             var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-            Assert.IsFalse(activeGroup?.Value is float f && f > 0);
+            Assert.IsFalse(activeGroup?.Value is VertexFilterByShape f && f.Threshold > 0);
         }
         
     }
