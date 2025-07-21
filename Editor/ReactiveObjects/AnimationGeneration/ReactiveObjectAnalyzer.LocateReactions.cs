@@ -265,9 +265,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private void FindMeshDeleters(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+        private void FindDeleteMeshByMask(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var deleters = _computeContext.GetComponentsInChildren<ModularAvatarMeshDeleter>(root, true);
+            var deleters = _computeContext.GetComponentsInChildren<ModularAvatarDeleteMeshByMask>(root, true);
 
             foreach (var deleter in deleters)
             {
@@ -285,7 +285,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var key = new TargetProp
                     {
                         TargetObject = renderer,
-                        PropertyName = $"deletedMesh.{obj.MaterialIndex}_{obj.MaskTexture.GetInstanceID()}",
+                        PropertyName = $"deletedMeshByMask.{obj.MaterialIndex}_{obj.MaskTexture.GetInstanceID()}",
                     };
 
                     if (!objectGroups.TryGetValue(key, out var group))

@@ -9,7 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
-- [#1651] `MA Mesh Deleter` を実装
+- [#1651] `MA Delete Mesh By Mask` を実装
 
 ### Fixed
 - [#1653] `Blendshape Sync`によりシーンが常に再描画されていた問題を修正

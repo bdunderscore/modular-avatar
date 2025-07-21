@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomEditor(typeof(ModularAvatarMeshDeleter))]
-    public class MeshDeleterEditor : MAEditorBase
+    [CustomEditor(typeof(ModularAvatarDeleteMeshByMask))]
+    public class DeleteMeshByMaskEditor : MAEditorBase
     {
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
@@ -38,7 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor
             listView.showBoundCollectionSize = false;
             listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
 
-            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarMeshDeleter);
+            _dragAndDropManipulator = new DragAndDropManipulator(root.Q("group-box"), target as ModularAvatarDeleteMeshByMask);
 
             return root;
         }
@@ -46,12 +46,12 @@ namespace nadena.dev.modular_avatar.core.editor
         private void OnEnable()
         {
             if (_dragAndDropManipulator != null)
-                _dragAndDropManipulator.TargetComponent = target as ModularAvatarMeshDeleter;
+                _dragAndDropManipulator.TargetComponent = target as ModularAvatarDeleteMeshByMask;
         }
 
-        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarMeshDeleter>
+        private class DragAndDropManipulator : DragAndDropManipulator<ModularAvatarDeleteMeshByMask>
         {
-            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarMeshDeleter targetComponent)
+            public DragAndDropManipulator(VisualElement targetElement, ModularAvatarDeleteMeshByMask targetComponent)
                 : base(targetElement, targetComponent) { }
 
             protected override bool FilterGameObject(GameObject obj)
@@ -69,8 +69,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var reference in references)
                 {
-                    var meshDeleteObject = new MeshDeleteObject { Object = reference, MaterialIndex = 0 };
-                    TargetComponent.Objects.Add(meshDeleteObject);
+                    var obj = new DeleteMeshByMaskObject { Object = reference, MaterialIndex = 0 };
+                    TargetComponent.Objects.Add(obj);
                 }
 
                 EditorUtility.SetDirty(TargetComponent);

@@ -72,13 +72,13 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly int _materialIndex;
         private readonly Texture2D _maskTexture;
         private readonly Hash128 _maskTextureContentHash;
-        private readonly MeshDeleteMode _deleteMode;
+        private readonly DeleteMeshByMaskMode _deleteMode;
 
         public int MaterialIndex => _materialIndex;
         public Texture2D MaskTexture => _maskTexture;
-        public MeshDeleteMode DeleteMode => _deleteMode;
+        public DeleteMeshByMaskMode DeleteMode => _deleteMode;
 
-        public VertexFilterByMask(int materialIndex, Texture2D maskTexture, MeshDeleteMode deleteMode)
+        public VertexFilterByMask(int materialIndex, Texture2D maskTexture, DeleteMeshByMaskMode deleteMode)
         {
             _materialIndex = materialIndex;
             _maskTexture = maskTexture;
@@ -99,8 +99,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 Color? deleteColor = _deleteMode switch
                 {
-                    MeshDeleteMode.DeleteBlack => Color.black,
-                    MeshDeleteMode.DeleteWhite => Color.white,
+                    DeleteMeshByMaskMode.DeleteBlack => Color.black,
+                    DeleteMeshByMaskMode.DeleteWhite => Color.white,
                     _ => null,
                 };
                 if (_maskTexture.GetPixel((int)(_maskTexture.width * uv[v].x), (int)(_maskTexture.height * uv[v].y)) == deleteColor)

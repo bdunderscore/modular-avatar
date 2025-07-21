@@ -8,12 +8,12 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomPropertyDrawer(typeof(MeshDeleteObject))]
-    public class MeshDeleteObjectEditor : PropertyDrawer
+    [CustomPropertyDrawer(typeof(DeleteMeshByMaskObject))]
+    public class DeleteMeshByMaskObjectEditor : PropertyDrawer
     {
-        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/MeshDeleter/";
-        private const string UxmlPath = Root + "MeshDeleteObjectEditor.uxml";
-        private const string UssPath = Root + "MeshDeleterStyles.uss";
+        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/DeleteMeshByMask/";
+        private const string UxmlPath = Root + "DeleteMeshByMaskObjectEditor.uxml";
+        private const string UssPath = Root + "DeleteMeshByMaskStyles.uss";
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [Serializable]
-    public enum MeshDeleteMode
+    public enum DeleteMeshByMaskMode
     {
         DontDelete,
         DeleteBlack,
@@ -13,14 +13,14 @@ namespace nadena.dev.modular_avatar.core
     }
 
     [Serializable]
-    public class MeshDeleteObject
+    public class DeleteMeshByMaskObject
     {
         public AvatarObjectReference Object;
         public int MaterialIndex;
         public Texture2D MaskTexture;
-        public MeshDeleteMode DeleteMode;
+        public DeleteMeshByMaskMode DeleteMode;
 
-        public MeshDeleteObject Clone()
+        public DeleteMeshByMaskObject Clone()
         {
             return new()
             {
@@ -31,7 +31,7 @@ namespace nadena.dev.modular_avatar.core
             };
         }
 
-        public bool Equals(MeshDeleteObject other)
+        public bool Equals(DeleteMeshByMaskObject other)
         {
             return Equals(Object, other.Object)
                    && MaterialIndex == other.MaterialIndex
@@ -41,7 +41,7 @@ namespace nadena.dev.modular_avatar.core
 
         public override bool Equals(object obj)
         {
-            return obj is MeshDeleteObject other && Equals(other);
+            return obj is DeleteMeshByMaskObject other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -50,14 +50,14 @@ namespace nadena.dev.modular_avatar.core
         }
     }
 
-    [AddComponentMenu("Modular Avatar/MA Mesh Deleter")]
-    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-deleter?lang=auto")]
-    public class ModularAvatarMeshDeleter : ReactiveComponent, IHaveObjReferences
+    [AddComponentMenu("Modular Avatar/MA Delete Mesh By Mask")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/delete-mesh-by-mask?lang=auto")]
+    public class ModularAvatarDeleteMeshByMask : ReactiveComponent, IHaveObjReferences
     {
         [SerializeField]
-        private List<MeshDeleteObject> m_objects = new();
+        private List<DeleteMeshByMaskObject> m_objects = new();
 
-        public List<MeshDeleteObject> Objects
+        public List<DeleteMeshByMaskObject> Objects
         {
             get => m_objects;
             set => m_objects = value;

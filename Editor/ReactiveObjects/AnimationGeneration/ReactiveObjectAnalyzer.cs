@@ -117,7 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor
             LocateBlendshapeSyncs(root); 
             
             Dictionary<TargetProp, AnimatedProperty> shapes = FindShapes(root);
-            FindMeshDeleters(shapes, root);
+            FindDeleteMeshByMask(shapes, root);
             FindObjectToggles(shapes, root);
             FindMaterialChangers(shapes, root);
 
