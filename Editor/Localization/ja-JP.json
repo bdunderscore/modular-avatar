@@ -267,6 +267,8 @@
   "reactive_object.delete-mesh-by-mask.object": "対象のレンダラー",
   "reactive_object.delete-mesh-by-mask.material-index": "マテリアルスロット",
   "reactive_object.delete-mesh-by-mask.mask-texture": "マスクテクスチャー",
+  "reactive_object.delete-mesh-by-mask.create-mask-texture": "作成",
+  "reactive_object.delete-mesh-by-mask.edit-mask-texture": "編集",
   "reactive_object.delete-mesh-by-mask.delete-mode": "削除モード",
   "reactive_object.material-setter.set-to": "変更先のマテリアル",
   "reactive_object.material-swap.root": "対象のルート",

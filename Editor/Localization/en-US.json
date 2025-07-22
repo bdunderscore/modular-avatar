@@ -271,6 +271,8 @@
   "reactive_object.delete-mesh-by-mask.object": "Target Renderer",
   "reactive_object.delete-mesh-by-mask.material-index": "Material Slot",
   "reactive_object.delete-mesh-by-mask.mask-texture": "Mask Texture",
+  "reactive_object.delete-mesh-by-mask.create-mask-texture": "Create",
+  "reactive_object.delete-mesh-by-mask.edit-mask-texture": "Edit",
   "reactive_object.delete-mesh-by-mask.delete-mode": "Delete Mode",
   "reactive_object.material-setter.set-to": "Set material to: ",
   "reactive_object.material-swap.root": "Target Root",

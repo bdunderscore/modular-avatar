@@ -1,12 +1,21 @@
 ﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
-    <ed:PropertyField name="f-object" binding-path="Object" label="reactive_object.delete-mesh-by-mask.object" class="ndmf-tr"/>
+    <ui:VisualElement class="horizontal disable-while-editing-mask-texture">
+        <ed:PropertyField name="f-object" binding-path="Object" label="reactive_object.delete-mesh-by-mask.object" class="ndmf-tr"/>
+    </ui:VisualElement>
 
-    <ui:DropdownField name="f-material-index-dropdown" label="reactive_object.delete-mesh-by-mask.material-index" class="unity-base-field__aligned ndmf-tr">
+    <ui:VisualElement class="horizontal disable-while-editing-mask-texture">
         <ed:IntegerField name="f-material-index" binding-path="MaterialIndex"/>
+        <ui:DropdownField name="f-material-index-dropdown" label="reactive_object.delete-mesh-by-mask.material-index" class="ndmf-tr unity-base-field__aligned"/>
         <ed:ObjectField name="f-material-index-original"/>
-    </ui:DropdownField>
+    </ui:VisualElement>
 
-    <ed:PropertyField name="f-mask-texture" binding-path="MaskTexture" label="reactive_object.delete-mesh-by-mask.mask-texture" class="ndmf-tr"/>
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-mask-texture" binding-path="MaskTexture" label="reactive_object.delete-mesh-by-mask.mask-texture" class="ndmf-tr disable-while-editing-mask-texture"/>
+        <ui:Button name="b-create-mask-texture" text="reactive_object.delete-mesh-by-mask.create-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
+        <ui:Toggle name="t-edit-mask-texture" label="reactive_object.delete-mesh-by-mask.edit-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
+    </ui:VisualElement>
 
-    <ed:PropertyField name="f-delete-mode" binding-path="DeleteMode" label="reactive_object.delete-mesh-by-mask.delete-mode" class="ndmf-tr"/>
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-delete-mode" binding-path="DeleteMode" label="reactive_object.delete-mesh-by-mask.delete-mode" class="ndmf-tr"/>
+    </ui:VisualElement>
 </UXML>
