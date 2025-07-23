@@ -302,7 +302,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (_context == null)
                     {
                         editingTexture = MaskTextureEditor.Window.ObserveTextureFor(_computeContext, obj.MaskTexture, renderer, obj.MaterialIndex,
-                            DeleteMeshByMaskObjectEditor.MaskTextureEditorToken);
+                            MaskTextureEditorOpener.MaskTextureEditorToken);
                     }
 #endif
 

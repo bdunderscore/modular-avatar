@@ -11,8 +11,6 @@
 
     <ui:VisualElement class="horizontal">
         <ed:PropertyField name="f-mask-texture" binding-path="MaskTexture" label="reactive_object.delete-mesh-by-mask.mask-texture" class="ndmf-tr disable-while-editing-mask-texture"/>
-        <ui:Button name="b-create-mask-texture" text="reactive_object.delete-mesh-by-mask.create-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
-        <ui:Toggle name="t-edit-mask-texture" label="reactive_object.delete-mesh-by-mask.edit-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
     </ui:VisualElement>
 
     <ui:VisualElement class="horizontal">
