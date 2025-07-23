@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1653] Scene is always updated by `Blendshape Sync`
 
 ### Changed
 
