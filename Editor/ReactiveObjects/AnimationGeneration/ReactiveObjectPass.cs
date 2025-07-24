@@ -254,14 +254,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is true)
                     .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: prop.actionGroups.Select(x => x.Value).OfType<IVertexFilter>().LastOrDefault()
+                        VertexFilter: prop.actionGroups.LastOrDefault()?.Value as IVertexFilter
                     ))
                     .ToList();
                 var toNaNimate = grouping
                     .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
-                    .SelectMany(prop => prop.actionGroups.Select(x => x.Value).OfType<IVertexFilter>().Distinct(), (prop, filter) => (
+                    .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: filter
+                        VertexFilter: prop.actionGroups.LastOrDefault()?.Value as IVertexFilter
                     ))
                     .ToList();
                 
@@ -298,28 +298,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var nanimatedBones = GenerateNaNimatedBones(renderer, nanPlan);
 
-                    foreach (var (deleteTarget, deletions) in nanimatedBones
-                        .GroupBy(x => x.Key.Item1, (x, y) => (x, y.ToDictionary(z => z.Key.Item2, z => z.Value))))
+                    foreach (var ((deleteTarget, vertexFilter), bones) in nanimatedBones)
                     {
                         var animProp = shapes[deleteTarget];
 
                         var path = RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject);
-                        var bones = deletions.SelectMany(x => x.Value).ToList();
-                        var clips = deletions.ToDictionary(
-                            x => x.Key,
-                            x => CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName} ({x.Key})", x.Value, bones.Except(x.Value).ToList()));
-                        var clip_retain = CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName} (Retain)", new(), bones);
+                        var clip_delete = CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName}:{vertexFilter}", bones, true);
+                        var clip_retain = CreateNaNimationClip(renderer, $"{path}:{deleteTarget.PropertyName}:{vertexFilter}", bones, false);
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            if (group.Value is IVertexFilter filter && clips.TryGetValue(filter, out var clip))
-                            {
-                                group.CustomApplyMotion = clip;
-                            }
-                            else
-                            {
-                                group.CustomApplyMotion = clip_retain;
-                            }
+                            group.CustomApplyMotion = clip_delete;
                         }
 
                         // Since we won't be inserting this into the default states animation, make sure there's a default
@@ -355,34 +344,20 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string targetName,
-            List<GameObject> bonesToDelete, List<GameObject> bonesToRetain)
+        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string targetName, List<GameObject> bones,
+            bool shouldDelete)
         {
             var asc = context.Extension<AnimatorServicesContext>();
 
-            var clip = VirtualClip.Create($"NaNimation for {targetName}");
+            var clip = VirtualClip.Create($"NaNimation for {targetName} ({(shouldDelete ? "delete" : "retain")})");
 
-            var deleteCurve = new AnimationCurve();
-            deleteCurve.AddKey(new(0, 0)
+            var curve = new AnimationCurve();
+            curve.AddKey(new Keyframe(0, 0)
             {
-                value = float.NaN
-            });
-            var retainCurve = new AnimationCurve();
-            retainCurve.AddKey(new(0, 0)
-            {
-                value = 1.0f
+                value = shouldDelete ? float.NaN : 1.0f
             });
 
-            foreach (var bone in bonesToDelete)
-            {
-                SetCurve(bone, deleteCurve);
-            }
-            foreach (var bone in bonesToRetain)
-            {
-                SetCurve(bone, retainCurve);
-            }
-
-            void SetCurve(GameObject bone, AnimationCurve curve)
+            foreach (var bone in bones)
             {
                 var boneName = asc.ObjectPathRemapper
                     .GetVirtualPathForObject(bone);
@@ -396,18 +371,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     );
                     clip.SetFloatCurve(binding, curve);
                 }
-            }
 
-            if (bonesToDelete.Any())
-            {
-                // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
-                // when any NaNimation is active.
-                clip.SetFloatCurve(
-                    asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
-                    typeof(SkinnedMeshRenderer),
-                    "m_UpdateWhenOffscreen",
-                    AnimationCurve.Constant(0, 1, 0)
-                );
+                if (shouldDelete)
+                {
+                    // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
+                    // when any NaNimation is active.
+                    clip.SetFloatCurve(
+                        asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
+                        typeof(SkinnedMeshRenderer),
+                        "m_UpdateWhenOffscreen",
+                        AnimationCurve.Constant(0, 1, 0)
+                    );
+                }
             }
 
             return clip;
@@ -436,7 +411,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var bone = pair.Item1;
                 var path = RuntimeUtil.RelativePath(context.AvatarRootObject, renderer.gameObject);
-                var targetName = $"{path}:{pair.Item2.Item1.PropertyName} ({pair.Item2.Item2})";
+                var targetName = $"{path}:{pair.Item2.Item1.PropertyName}:{pair.Item2.Item2}";
 
                 if (bonesArray[bone.originalBoneIndex] == null) continue;
                 var newBone = new GameObject("NaNimated Bone for " + targetName.Replace('/', '_'));

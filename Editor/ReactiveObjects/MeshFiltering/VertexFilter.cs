@@ -68,7 +68,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            return $"{_shapeName}|{_threshold}";
+            return $"{_shapeName}_{_threshold}";
         }
     }
 
@@ -155,7 +155,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            return $"{_materialIndex}_{_maskTexture.GetInstanceID()}|{_deleteMode}";
+            return $"{_materialIndex}_{_maskTexture.GetInstanceID()}_{_deleteMode}";
         }
     }
 }

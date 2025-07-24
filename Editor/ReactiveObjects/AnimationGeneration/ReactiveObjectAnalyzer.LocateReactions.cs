@@ -281,10 +281,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
                     if (_computeContext.Observe(obj.MaskTexture) == null) continue;
 
+                    var vertexFilter = new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode);
+
                     var key = new TargetProp
                     {
                         TargetObject = renderer,
-                        PropertyName = $"deletedMeshByMask.{obj.MaterialIndex}_{obj.MaskTexture.GetInstanceID()}",
+                        PropertyName = "deletedMeshByMask." + vertexFilter,
                     };
 
                     if (!objectGroups.TryGetValue(key, out var group))
@@ -293,7 +295,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         objectGroups[key] = group;
                     }
 
-                    var action = ObjectRule(key, deleter, new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode));
+                    var action = ObjectRule(key, deleter, vertexFilter);
                     action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
 
                     if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))

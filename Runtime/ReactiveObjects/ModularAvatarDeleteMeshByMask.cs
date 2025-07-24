@@ -7,7 +7,6 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public enum DeleteMeshByMaskMode
     {
-        DontDelete,
         DeleteBlack,
         DeleteWhite,
     }

@@ -49,7 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!TargetProp.Equals(other.TargetProp)) return false;
                 
             // Value checks
-            if (Value == other.Value) { /* objects match */ }
+            if (Equals(Value, other.Value)) { /* objects match */ }
             else if (Value is float a && other.Value is float b)
             {
                 if (Mathf.Abs(a - b) > 0.001f) return false;
