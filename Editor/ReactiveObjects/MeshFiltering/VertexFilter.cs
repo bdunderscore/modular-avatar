@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using nadena.dev.ndmf.preview;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
 #if MA_MASK_TEXTURE_EDITOR
 using MaskTextureEditor = net.nekobako.MaskTextureEditor.Editor;
@@ -99,13 +100,19 @@ namespace nadena.dev.modular_avatar.core.editor
             var uv = mesh.uv;
             if (uv == null || uv.Length == 0) return; // uv not found
 
+            var targetTexture = _editingTexture ?? _maskTexture;
+            if (!targetTexture.isReadable)
+            {
+                BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", targetTexture);
+                return;
+            }
+
             var subMeshIndices = Enumerable.Range(0, mesh.subMeshCount)
                 .Select(x => mesh.GetIndices(x).ToHashSet())
                 .ToArray();
 
             foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
             {
-                var targetTexture = _editingTexture ?? _maskTexture;
                 Color? deleteColor = _deleteMode switch
                 {
                     DeleteMeshByMaskMode.DeleteBlack => Color.black,

@@ -159,6 +159,8 @@
   "error.singleton": "[MA-0011] 一个 Avatar 中只允许存在一个 {0} 组件",
   "error.merge_animator.multiple_replacements": "[MA-0012] 多个 Merge Animator 正在尝试替换相同的 Layer",
   "error.merge_animator.multiple_replacements:hint": "由于 Merge Animator 的“替换”模式会将整个 Animator Controller 替换为另一个 Animator Controller，因此无法确定你要保留哪一个。请尝试只保留一个使用“替换”模式的 Merge Animator，或将它们设置为“追加”模式。",
+  "error.vertex_filter_by_mask.non_readable_texture": "无法读取遮罩纹理。",
+  "error.vertex_filter_by_mask.non_readable_texture:hint": "请打开遮罩纹理的 Inspector，勾选 高级 > 读写，然后点击 应用 按钮。",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此部件上找不到 Renderer",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用于所在对象上的 Skinned Mesh Renderer。你是否将它附加到了正确的对象上？",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此部件的 Renderer 上找不到网格（Mesh）",

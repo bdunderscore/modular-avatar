@@ -158,6 +158,8 @@
   "error.merge_animator.layer_no_state_machine": "[MA-0013] このMerge Animatorに指定されているAnimator Controllerが破綻しています。",
   "error.merge_animator.layer_no_state_machine:description": "Animator Controllerのレイヤー「{0}」にState Machineがありません。該当レイヤーが無視されます。",
   "error.merge_animator.layer_no_state_machine:hint": "アニメーターコントローラーのファイルに何か問題があるようです。手動で組んだアニメーターで発生することは非常に稀ですが、ツールで生成されたアニメーターで発生している場合は、該当ツールの作者に問い合わせてみてください。",
+  "error.vertex_filter_by_mask.non_readable_texture": "マスクテクスチャが読み取れません。",
+  "error.vertex_filter_by_mask.non_readable_texture:hint": "マスクテクスチャの Inspector を開き、Advanced > Read/Write にチェックを入れて Apply ボタンを押してください。",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] このオブジェクトにはSkinned Mesh Rendererがありません。",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Syncは同じGameObject上のSkinned Mesh Rendererに作用します。コンポーネントが正しいオブジェクトに追加されているか確認してください。",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] このオブジェクトにはSkinned Mesh Rendererがありますが、メッシュがありません。",

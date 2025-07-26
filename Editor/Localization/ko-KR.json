@@ -159,6 +159,8 @@
   "error.singleton": "[MA-0011] 아바타에는 {0}의 인스턴스가 하나만 허용됩니다",
   "error.merge_animator.multiple_replacements": "[MA-0012] 여러 Merge Animator가 같은 레이어를 교체하려고 합니다",
   "error.merge_animator.multiple_replacements:hint": "Merge Animator의 '교체' 모드는 전체 애니메이터를 다른 것으로 교체하기 때문에, 이 중 어느 것을 우선할지 명확하지 않습니다. 이 Merge Animator들 중 하나를 제외하고 모두 삭제하거나, 추가 모드로 설정해 보세요.",
+  "error.vertex_filter_by_mask.non_readable_texture": "마스크 텍스처를 읽을 수 없습니다.",
+  "error.vertex_filter_by_mask.non_readable_texture:hint": "마스크 텍스처의 인스펙터를 열고 고급 설정 > 읽기/쓰기를 체크한 다음 적용 버튼을 클릭하세요.",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 이 오브젝트에서 렌더러를 찾을 수 없음",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync는 같은 GameObject의 Skinned Mesh Renderer에서 작동합니다. 올바른 오브젝트에 연결했나요?",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 이 오브젝트의 렌더러에서 메시를 찾을 수 없음",
