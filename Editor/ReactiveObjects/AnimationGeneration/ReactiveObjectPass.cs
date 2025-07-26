@@ -356,6 +356,18 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             CustomApplyMotion = clip_retain
                         });
+
+                        if (animProp.actionGroups.Any(ag => ag.IsConstantActive))
+                        {
+                            // NaNimate bones immediately
+                            foreach (var bone in bones)
+                            {
+                                var so = new SerializedObject(bone.transform);
+                                var scaleProp = so.FindProperty("m_LocalScale");
+                                scaleProp.vector3Value = Vector3.one * float.NaN;
+                                so.ApplyModifiedPropertiesWithoutUndo();
+                            }
+                        }
                     }
                 }
             }
