@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1653] `Blendshape Sync`によりシーンが常に再描画されていた問題を修正
 
 ### Changed
 

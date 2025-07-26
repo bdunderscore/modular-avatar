@@ -169,7 +169,11 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (binding.TargetMesh == null) return;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
-                localRenderer.SetBlendShapeWeight(binding.LocalBlendshapeIndex, weight);
+                var currentWeight = localRenderer.GetBlendShapeWeight(binding.LocalBlendshapeIndex);
+                if (!Mathf.Approximately(currentWeight, weight))
+                {
+                    localRenderer.SetBlendShapeWeight(binding.LocalBlendshapeIndex, weight);
+                }
             }
         }
 
