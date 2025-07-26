@@ -6,6 +6,9 @@ using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+#if MA_MASK_TEXTURE_EDITOR
+using MaskTextureEditor = net.nekobako.MaskTextureEditor.Editor;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -281,7 +284,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
                     if (_computeContext.Observe(obj.MaskTexture) == null) continue;
 
-                    var vertexFilter = new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode);
+                    var editingTexture = default(Texture2D);
+#if MA_MASK_TEXTURE_EDITOR
+
+                    // preview only
+                    if (_context == null)
+                    {
+                        editingTexture = MaskTextureEditor.Window.ObserveTextureFor(_computeContext, obj.MaskTexture, renderer, obj.MaterialIndex,
+                            MaskTextureEditorOpener.MaskTextureEditorToken);
+                    }
+#endif
+
+                    var vertexFilter = new VertexFilterByMask(obj.MaterialIndex, editingTexture ?? obj.MaskTexture, obj.DeleteMode);
 
                     var key = new TargetProp
                     {

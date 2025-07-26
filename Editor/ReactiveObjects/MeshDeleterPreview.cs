@@ -105,11 +105,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 _original = original;
                 _filters = _cache.Get(context, _original);
                 _generatedMesh = GenerateMesh(proxy.sharedMesh, _filters);
-
-                foreach (var filter in _filters)
-                {
-                    filter.Observe(context);
-                }
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)

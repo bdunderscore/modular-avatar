@@ -1,18 +1,13 @@
 using System;
 using System.Linq;
-using nadena.dev.ndmf.preview;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using UnityEngine;
-#if MA_MASK_TEXTURE_EDITOR
-using MaskTextureEditor = net.nekobako.MaskTextureEditor.Editor;
-#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal interface IVertexFilter : IEquatable<IVertexFilter>
     {
         void MarkFilteredVertices(Mesh mesh, bool[] filtered);
-        void Observe(ComputeContext context) {}
     }
 
     internal class VertexFilterByShape : IVertexFilter
@@ -84,9 +79,6 @@ namespace nadena.dev.modular_avatar.core.editor
         public Texture2D MaskTexture => _maskTexture;
         public DeleteMeshByMaskMode DeleteMode => _deleteMode;
 
-        private Texture2D _editingTexture;
-        private Hash128 _editingTextureContentHash;
-
         public VertexFilterByMask(int materialIndex, Texture2D maskTexture, DeleteMeshByMaskMode deleteMode)
         {
             _materialIndex = materialIndex;
@@ -100,10 +92,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var uv = mesh.uv;
             if (uv == null || uv.Length == 0) return; // uv not found
 
-            var targetTexture = _editingTexture ?? _maskTexture;
-            if (!targetTexture.isReadable)
+            if (!_maskTexture.isReadable)
             {
-                BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", targetTexture);
+                BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", _maskTexture);
                 return;
             }
 
@@ -119,21 +110,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     DeleteMeshByMaskMode.DeleteWhite => Color.white,
                     _ => null,
                 };
-                if (targetTexture.GetPixel((int)(targetTexture.width * uv[v].x), (int)(targetTexture.height * uv[v].y)) == deleteColor)
+                if (_maskTexture.GetPixel((int)(_maskTexture.width * uv[v].x), (int)(_maskTexture.height * uv[v].y)) == deleteColor)
                 {
                     filtered[v] = true;
                 }
             }
         }
-
-#if MA_MASK_TEXTURE_EDITOR
-        public void Observe(ComputeContext context)
-        {
-            _editingTexture = MaskTextureEditor.Window.ObserveTextureFor(context, _maskTexture, null, null,
-                MaskTextureEditorOpener.MaskTextureEditorToken);
-            _editingTextureContentHash = _editingTexture?.imageContentsHash ?? default;
-        }
-#endif
 
         public bool Equals(IVertexFilter other)
         {
@@ -141,8 +123,6 @@ namespace nadena.dev.modular_avatar.core.editor
                    && filter._materialIndex == _materialIndex
                    && filter._maskTexture == _maskTexture
                    && filter._maskTextureContentHash == _maskTextureContentHash
-                   && filter._editingTexture == _editingTexture
-                   && filter._editingTextureContentHash == _editingTextureContentHash
                    && filter._deleteMode == _deleteMode;
         }
 
@@ -153,11 +133,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(
-                _materialIndex,
-                _maskTexture, _maskTextureContentHash,
-                _editingTexture, _editingTextureContentHash,
-                _deleteMode);
+            return HashCode.Combine(_materialIndex, _maskTexture, _maskTextureContentHash, _deleteMode);
         }
 
         public override string ToString()
