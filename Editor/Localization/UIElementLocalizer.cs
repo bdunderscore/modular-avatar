@@ -53,9 +53,10 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!_localizers.TryGetValue(ty, out var action))
             {
-                PropertyInfo m_label = ty.GetProperty("label") ?? ty.GetProperty("text");
+                var textProp = ty.GetProperty("text");
+                var labelProp = ty.GetProperty("label");
                
-                if (m_label == null)
+                if (textProp == null && labelProp == null)
                 {
                     action = null;
                 }
@@ -63,7 +64,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     action = elem =>
                     {
-                        var key = m_label.GetValue(elem) as string;
+                        var key = default(string);
+                        var prop = default(PropertyInfo);
+
+                        if (textProp != null && textProp.GetMethod != null && textProp.SetMethod != null && string.IsNullOrEmpty(key))
+                        {
+                            key = textProp.GetValue(elem) as string;
+                            prop = textProp;
+                        }
+                        if (labelProp != null && labelProp.GetMethod != null && labelProp.SetMethod != null && string.IsNullOrEmpty(key))
+                        {
+                            key = labelProp.GetValue(elem) as string;
+                            prop = labelProp;
+                        }
                         
                         if (key != null)
                         {
@@ -75,7 +88,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                     tooltip = null;
                                 }
 
-                                m_label.SetValue(elem, new_label);
+                                prop.SetValue(elem, new_label);
                                 elem.tooltip = tooltip;
                             };
                         }
