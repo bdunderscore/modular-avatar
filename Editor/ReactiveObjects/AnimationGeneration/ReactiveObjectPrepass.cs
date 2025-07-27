@@ -16,12 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void Execute(ndmf.BuildContext context)
         {
-            var hasShapeChanger = context.AvatarRootObject.GetComponentInChildren<ModularAvatarShapeChanger>(true) != null;
-            var hasObjectSwitcher =
-                context.AvatarRootObject.GetComponentInChildren<ModularAvatarObjectToggle>(true) != null;
-            var hasMaterialChanger =
-                context.AvatarRootObject.GetComponentInChildren<IModularAvatarMaterialChanger>(true) != null;
-            if (hasShapeChanger || hasObjectSwitcher || hasMaterialChanger)
+            if (context.AvatarRootObject.GetComponentInChildren<ReactiveComponent>(true) != null)
             {
                 var clip = new AnimationClip();
                 clip.name = "MA Shape Changer Defaults";

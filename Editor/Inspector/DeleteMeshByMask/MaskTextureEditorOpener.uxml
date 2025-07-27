@@ -1,0 +1,4 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:Button name="b-create-mask-texture" text="reactive_object.delete-mesh-by-mask.create-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
+    <ui:Toggle name="t-edit-mask-texture" label="reactive_object.delete-mesh-by-mask.edit-mask-texture" class="ndmf-tr unity-button" focusable="false"/>
+</UXML>
