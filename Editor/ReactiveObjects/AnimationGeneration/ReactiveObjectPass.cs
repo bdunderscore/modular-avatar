@@ -240,6 +240,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
+        private IVertexFilter AggregateVertexFilters(IEnumerable<IVertexFilter> filters)
+        {
+            var filter = filters.LastOrDefault();
+            if (filter is VertexFilterByShape filterByShape)
+            {
+                return new VertexFilterByShape(filterByShape.ShapeName, filters
+                    .OfType<VertexFilterByShape>()
+                    .Min(x => x.Threshold));
+            }
+            return filter;
+        }
+        
         private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
@@ -254,14 +266,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is true)
                     .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: prop.actionGroups.LastOrDefault()?.Value as IVertexFilter
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
                     ))
                     .ToList();
                 var toNaNimate = grouping
                     .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
                     .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: prop.actionGroups.LastOrDefault()?.Value as IVertexFilter
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
                     ))
                     .ToList();
                 
