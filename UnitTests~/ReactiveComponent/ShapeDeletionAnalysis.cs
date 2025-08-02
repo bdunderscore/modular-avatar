@@ -49,8 +49,6 @@ public class ShapeDeletionAnalysis : TestBase
 
         AssertPreviewDeletion(root);
         AssertMeshDeletion(root);
-        
-        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
     }
 
 
@@ -121,7 +119,7 @@ public class ShapeDeletionAnalysis : TestBase
         });
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.That(((float)activeGroup?.Value!) - 0.01f, Is.LessThanOrEqualTo(0.005f));
+        Assert.That((activeGroup?.Value as VertexFilterByShape)?.Threshold - 0.01f, Is.LessThanOrEqualTo(0.005f));
         return mesh;
     }
     
@@ -137,7 +135,7 @@ public class ShapeDeletionAnalysis : TestBase
         if (deletedShape != null)
         {
             var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-            Assert.IsFalse(activeGroup?.Value is float f && f > 0);
+            Assert.IsFalse(activeGroup?.Value is VertexFilterByShape f && f.Threshold > 0);
         }
         
     }

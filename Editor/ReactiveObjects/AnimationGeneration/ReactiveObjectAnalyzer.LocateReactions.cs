@@ -6,22 +6,12 @@ using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, float? value)
-        {
-            var rule = new ReactionRule(key, value);
-
-            BuildConditions(controllingObject, rule);
-            
-            return rule;
-        }
-
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, Object value)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object value)
         {
             var rule = new ReactionRule(key, value);
 
@@ -247,16 +237,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
                     {
-                        // We encode the deletion threshold in the delete action's value property
-                        value = shape.ChangeType == ShapeChangeType.Delete ? threshold : 0;
-                        RegisterAction(key, null, value, changer);
+                        RegisterAction(key, null, new VertexFilterByShape(shape.ShapeName, threshold), changer);
                     }
                 }
             }
 
             return shapeKeys;
 
-            void RegisterAction(TargetProp key, float? currentValue, float? value, ModularAvatarShapeChanger changer)
+            void RegisterAction(TargetProp key, float? currentValue, object value, ModularAvatarShapeChanger changer)
             {
                 if (!shapeKeys.TryGetValue(key, out var info))
                 {
@@ -280,6 +268,47 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
+        private void FindDeleteMeshByMask(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+        {
+            var deleters = _computeContext.GetComponentsInChildren<ModularAvatarDeleteMeshByMask>(root, true);
+
+            foreach (var deleter in deleters)
+            {
+                if (deleter.Object == null) continue;
+
+                var obj = _computeContext.Observe(deleter, c => c.Object.Clone());
+                {
+                    var renderer = _computeContext.GetComponent<SkinnedMeshRenderer>(obj.Object.Get(deleter));
+                    if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
+
+                    if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
+                    if (_computeContext.Observe(obj.MaskTexture) == null) continue;
+
+                    var vertexFilter = new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode);
+
+                    var key = new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = "deletedMeshByMask." + vertexFilter,
+                    };
+
+                    if (!objectGroups.TryGetValue(key, out var group))
+                    {
+                        group = new(key, null);
+                        objectGroups[key] = group;
+                    }
+
+                    var action = ObjectRule(key, deleter, vertexFilter);
+                    action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
+
+                    if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
+                    {
+                        group.actionGroups.Add(action);
+                    }
+                }
+            }
+        }
+
         private void FindMaterialChangers(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
             var changers = _computeContext.GetComponentsInChildren<IModularAvatarMaterialChanger>(root, true);
@@ -418,11 +447,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!objectGroups.TryGetValue(key, out var group))
                     {
                         var active = _computeContext.Observe(target, t => t.activeSelf);
-                        group = new AnimatedProperty(key, active ? 1 : 0);
+                        group = new AnimatedProperty(key, active ? 1f : 0f);
                         objectGroups[key] = group;
                     }
 
-                    var value = obj.Active ? 1 : 0;
+                    var value = obj.Active ? 1f : 0f;
                     var action = ObjectRule(key, toggle, value);
                     action.Inverted = _computeContext.Observe(toggle, c => c.Inverted);
 

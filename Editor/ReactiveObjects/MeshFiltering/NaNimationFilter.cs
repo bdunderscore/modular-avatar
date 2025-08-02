@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
+using Unity.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -24,10 +25,9 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal const string BlendShapeNamePrefix = "__modular-avatar_infinimation_";
         
-        internal static Dictionary<string, string> ComputeNaNPlan(
+        internal static Dictionary<(TargetProp, IVertexFilter), string> ComputeNaNPlan(
             ref Mesh mesh,
-            List<(string, float)> targetShapeNames,
-            int initialBoneCount
+            List<(TargetProp, IVertexFilter)> targets
         )
         {
             var vertexCount = mesh.vertexCount;
@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (vertexCount == 0)
             {
                 // Nothing to do...
-                return new Dictionary<string, string>();
+                return new ();
             }
 
             var originalMesh = mesh;
@@ -43,53 +43,35 @@ namespace nadena.dev.modular_avatar.core.editor
             ObjectRegistry.RegisterReplacedObject(originalMesh, mesh);
 
             var deltaPositions = new Vector3[vertexCount];
-            var affectedVertices = new HashSet<int>(vertexCount);
+            var affectedVertices = new bool[vertexCount];
 
             try
             {
                 var nanindex = 0;
 
-                Dictionary<string, string> result = new();
+                Dictionary<(TargetProp, IVertexFilter), string> result = new();
                 var newDeltas = new Vector3[vertexCount];
                 var newNormals = new Vector3[vertexCount];
                 var newTangents = new Vector3[vertexCount];
 
-                foreach (var (shapeName, threshold) in targetShapeNames)
+                foreach (var target in targets)
                 {
                     var newShapeName = BlendShapeNamePrefix + (nanindex++);
-
-                    var sqrThreshold = threshold * threshold;
-                    var shape = mesh.GetBlendShapeIndex(shapeName);
-                    if (shape < 0) continue; // shape not found
-
-                    affectedVertices.Clear();
-
-                    Array.Fill(newDeltas, Vector3.zero);
-                    Array.Fill(newNormals, Vector3.zero);
-                    Array.Fill(newTangents, Vector3.zero);
-
-                    var frameCount = mesh.GetBlendShapeFrameCount(shape);
-                    var anyAffected = false;
-                    for (var i = 0; i < frameCount; i++)
+                    
+                    Array.Fill(affectedVertices, false);
+                    target.Item2.MarkFilteredVertices(mesh, affectedVertices);
+                    
+                    for (var v = 0; v < vertexCount; v++)
                     {
-                        mesh.GetBlendShapeFrameVertices(shape, i, deltaPositions, null, null);
-
-                        for (var v = 0; v < vertexCount; v++)
+                        if (affectedVertices[v])
                         {
-                            if (deltaPositions[v].sqrMagnitude > sqrThreshold)
-                            {
-                                affectedVertices.Add(v);
-                                anyAffected = true;
-                                newDeltas[v] = new Vector3(float.PositiveInfinity, float.PositiveInfinity,
-                                    float.PositiveInfinity);
-                            }
+                            newDeltas[v] = new Vector3(float.PositiveInfinity, float.PositiveInfinity,
+                                float.PositiveInfinity);
                         }
                     }
 
-                    if (!anyAffected) continue;
-
                     var index = mesh.blendShapeCount;
-                    result.Add(shapeName, newShapeName);
+                    result.Add(target, newShapeName);
                     mesh.AddBlendShapeFrame(newShapeName, 1.0f, newDeltas, newNormals, newTangents);
                     mesh.GetBlendShapeFrameVertices(index, 0, newDeltas, newNormals, newTangents);
                 }

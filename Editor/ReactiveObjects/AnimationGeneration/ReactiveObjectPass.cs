@@ -240,49 +240,40 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private bool? GetConstantStateForTargetProp(
-            TargetProp prop,
-            Dictionary<TargetProp, object> initialStates,
-            Dictionary<TargetProp, AnimatedProperty> shapes
-        )
+        private IVertexFilter AggregateVertexFilters(IEnumerable<IVertexFilter> filters)
         {
-            if (!shapes.ContainsKey(prop))
+            var filter = filters.LastOrDefault();
+            if (filter is VertexFilterByShape filterByShape)
             {
-                return initialStates.GetValueOrDefault(prop) as bool?;
+                return new VertexFilterByShape(filterByShape.ShapeName, filters
+                    .OfType<VertexFilterByShape>()
+                    .Min(x => x.Threshold));
             }
-
-            var lastGroup = shapes[prop].actionGroups.LastOrDefault();
-            if (lastGroup?.IsConstantActive != true) return null;
-
-            return lastGroup.Value is float;
+            return filter;
         }
         
         private void ProcessMeshDeletion(Dictionary<TargetProp, object> initialStates,
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
-            var renderers = initialStates.Keys
-                .Where(prop => prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
-                .Where(prop => prop.TargetObject is SkinnedMeshRenderer)
-                .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != false)
-                .GroupBy(prop => prop.TargetObject as SkinnedMeshRenderer)
+            var renderers = shapes.Values
+                .Where(prop => prop.actionGroups.Any(x => x.Value is IVertexFilter))
+                .GroupBy(prop => prop.TargetProp.TargetObject as SkinnedMeshRenderer)
                 .ToList();
             foreach (var grouping in renderers)
             {
                 var renderer = grouping.Key;
-                var shapeNamesToDelete = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) == true)
+                var toDelete = grouping
+                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is true)
                     .Select(prop => (
-                        prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
-                        shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                        prop.TargetProp,
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
                     ))
                     .ToList();
-                
-                var nanimatedShapes = grouping
-                    .Where(prop => GetConstantStateForTargetProp(prop, initialStates, shapes) != true)
-                    .Where(shapes.ContainsKey)
+                var toNaNimate = grouping
+                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
                     .Select(prop => (
-                            prop.PropertyName.Substring(ReactiveObjectAnalyzer.DeletedShapePrefix.Length),
-                            shapes[prop].actionGroups.Select(ag => ag.Value).OfType<float>().Min()
+                        prop.TargetProp,
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
                     ))
                     .ToList();
                 
@@ -291,61 +282,45 @@ namespace nadena.dev.modular_avatar.core.editor
                 var mesh = renderer.sharedMesh;
                 if (mesh == null) continue;
 
-                var shapesToDelete = shapeNamesToDelete
-                    .Select(kv => (mesh.GetBlendShapeIndex(kv.Item1), kv.Item2))
-                    .Where(kv => kv.Item1 >= 0)
-                    .ToList();
+                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(mesh, toDelete);
 
-                renderer.sharedMesh = mesh = RemoveBlendShapeFromMesh.RemoveBlendshapes(mesh, shapesToDelete);
-
-                foreach (var name in shapeNamesToDelete)
+                foreach (var (prop, _) in toDelete)
                 {
                     // Don't need to animate this anymore...!
-                    shapes.Remove(new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
-                    });
+                    shapes.Remove(prop);
 
-                    shapes.Remove(new TargetProp
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                     {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + name
-                    });
-
-                    initialStates.Remove(new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + name
-                    });
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
                 }
 
                 // Handle NaNimated shapes next
-                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, nanimatedShapes, renderer.bones.Length);
+                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate);
                 renderer.sharedMesh = mesh;
 
                 if (nanPlan.Count > 0)
                 {
                     foreach (var kv in nanPlan)
                     {
-                        var shapeName = kv.Key;
+                        (var targetProp, var filter) = kv.Key;
                         var newShape = kv.Value;
 
-                        var deleteTarget = new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.DeletedShapePrefix + shapeName
-                        };
-                        var animProp = shapes[deleteTarget];
+                        var animProp = shapes[targetProp];
 
-                        var clip_delete = CreateNaNimationClip(renderer, shapeName, newShape, true);
-                        var clip_retain = CreateNaNimationClip(renderer, shapeName, newShape, false);
+                        var clip_delete = CreateNaNimationClip(renderer, filter.ToString(), newShape, true);
+                        var clip_retain = CreateNaNimationClip(renderer, filter.ToString(), newShape, false);
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            var isDeleted = group.Value is float;
-
-                            group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
+                            group.CustomApplyMotion = clip_delete;
                         }
 
                         var index = renderer.sharedMesh.GetBlendShapeIndex(newShape);
@@ -355,21 +330,42 @@ namespace nadena.dev.modular_avatar.core.editor
                         
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
-                        animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
+                        animProp.actionGroups.Insert(0, new ReactionRule(targetProp, 0.0f)
                         {
                             CustomApplyMotion = clip_retain
                         });
                     }
                 }
+
+                var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
+
+                foreach (var prop in toNaNimate
+                    .Select(x => x.TargetProp)
+                    .Where(x => !nanimatedProps.Contains(x)))
+                {
+                    // Don't need to animate this anymore...!
+                    shapes.Remove(prop);
+
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                    {
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
+                }
             }
         }
-
-        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string shapeName, string nanShape,
-            bool shouldDelete)
+        
+        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string targetName, string nanShape, bool shouldDelete)
         {
             var asc = context.Extension<AnimatorServicesContext>();
 
-            var clip = VirtualClip.Create($"NaNimation for {shapeName} ({(shouldDelete ? "delete" : "retain")})");
+            var clip = VirtualClip.Create($"NaNimation for {targetName} ({(shouldDelete ? "delete" : "retain")})");
 
             var curve = new AnimationCurve();
             curve.AddKey(new Keyframe(0, 0)

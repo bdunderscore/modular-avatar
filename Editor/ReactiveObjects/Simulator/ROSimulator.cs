@@ -506,10 +506,10 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         f_property.value = targetProp.PropertyName;
                         f_property.style.display = DisplayStyle.Flex;
 
-                        if (reactionRule.TargetProp.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                        if (reactionRule.Value is IVertexFilter)
                         {
                             f_delete.style.display = DisplayStyle.Flex;
-                            f_delete.value = reactionRule.Value is > 0.5f ? "DELETE" : "RETAIN";
+                            f_delete.value = reactionRule.Value.ToString();
                         } else if (reactionRule.Value is float f)
                         {
                             f_value.SetValueWithoutNotify(f);

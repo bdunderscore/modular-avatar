@@ -1,0 +1,91 @@
+﻿#group-box {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 4px;
+    border-width: 3px;
+    border-left-color: rgba(0, 1, 0, 0.2);
+    border-top-color: rgba(0, 1, 0, 0.2);
+    border-right-color: rgba(0, 1, 0, 0.2);
+    border-bottom-color: rgba(0, 1, 0, 0.2);
+    border-radius: 4px;
+    /* background-color: rgba(0, 0, 0, 0.1); */
+}
+
+#group-box > Label {
+    -unity-font-style: bold;
+}
+
+.horizontal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1px -4px 1px 3px;
+}
+
+.horizontal > * {
+    height: 18px;
+    margin: 0 2px 0 0;
+}
+
+.horizontal > PropertyField > * {
+    margin: 0;
+}
+
+#f-object {
+    flex-grow: 1;
+}
+
+#f-material-index {
+    display: none;
+}
+
+#f-material-index-dropdown {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+#f-material-index-original {
+    flex-grow: 3;
+}
+
+#f-mask-texture {
+    flex-grow: 1;
+}
+
+#f-delete-mode {
+    flex-grow: 1;
+}
+
+#b-create-mask-texture, #t-edit-mask-texture {
+    margin: 0;
+    padding: 0;
+    width: 40px;
+}
+
+#b-create-mask-texture:hover, #t-edit-mask-texture:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+#b-create-mask-texture:active, #t-edit-mask-texture:active {
+    background-color: var(--unity-colors-button-background-pressed);
+}
+
+#b-create-mask-texture:hover:active, #t-edit-mask-texture:hover:active {
+    background-color: var(--unity-colors-button-background-hover_pressed);
+}
+
+#b-create-mask-texture:checked, #t-edit-mask-texture:checked {
+    background-color: var(--unity-colors-button-background-pressed);
+}
+
+#t-edit-mask-texture > Label {
+    flex-grow: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    color: var(--unity-colors-button-text);
+}
+
+#t-edit-mask-texture > .unity-base-field__input {
+    display: none;
+}

@@ -9,7 +9,8 @@
         "nadena.dev.ndmf.vrchat",
         "nadena.dev.ndmf.runtime",
         "VRC.SDK3A.Editor",
-        "Unity.Burst"
+        "Unity.Burst",
+        "net.nekobako.MaskTextureEditor.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -55,6 +56,11 @@
             "name": "com.vrchat.avatars",
             "expression": "3.7.0-beta.2",
             "define": "MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER"
+        },
+        {
+            "name": "net.nekobako.mask-texture-editor",
+            "expression": "1.1.0",
+            "define": "MA_MASK_TEXTURE_EDITOR"
         }
     ],
     "noEngineReferences": false

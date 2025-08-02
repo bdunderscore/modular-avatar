@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class ShapeChangerPreview : IRenderFilter
+    public class MeshDeleterPreview : IRenderFilter
     {
         private static TogglablePreviewNode EnableNode = TogglablePreviewNode.Create(
-            () => "Shape Changer",
-            qualifiedName: "nadena.dev.modular-avatar/ShapeChangerPreview",
+            () => "Mesh Deleter",
+            qualifiedName: "nadena.dev.modular-avatar/MeshDeleterPreview",
             true
         );
 
@@ -26,38 +26,34 @@ namespace nadena.dev.modular_avatar.core.editor
             return context.Observe(EnableNode.IsEnabled);
         }
 
-        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<(int, float)>> _cache = new(
-            "ShapesForRenderer", ShapesForRenderer, Enumerable.SequenceEqual);
+        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache = new(
+            "FiltersForRenderer", FiltersForRenderer, Enumerable.SequenceEqual);
 
-        private static ImmutableList<(int, float)> ShapesForRenderer(ComputeContext context, Renderer renderer)
+        private static ImmutableList<IVertexFilter> FiltersForRenderer(ComputeContext context, Renderer renderer)
         {
             if (renderer == null)
             {
-                return ImmutableList<(int, float)>.Empty;
+                return ImmutableList<IVertexFilter>.Empty;
             }
 
             var avatar = context.GetAvatarRoot(renderer.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatar);
-            var shapes = ImmutableList<(int, float)>.Empty;
+            var filters = ImmutableList<IVertexFilter>.Empty;
 
             foreach (var property in analysis.Shapes.Values)
             {
                 var prop = property.TargetProp;
                 if (prop.TargetObject != renderer) continue;
                 if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.BlendshapePrefix)) continue;
-
-                var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.BlendshapePrefix.Length..];
-                var shapeIndex = smr.sharedMesh.GetBlendShapeIndex(shapeName);
-                if (shapeIndex < 0) continue;
+                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not float value) continue;
+                if (activeRule == null || activeRule.Value is not IVertexFilter filter) continue;
 
-                shapes = shapes.Add((shapeIndex, Mathf.Clamp(value, 0, 100)));
+                filters = filters.Add(filter);
             }
 
-            return shapes;
+            return filters;
         }
 
         private IEnumerable<RenderGroup> GroupsForAvatar(ComputeContext context, GameObject avatarRoot)
@@ -69,14 +65,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var prop = property.TargetProp;
                 if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.BlendshapePrefix)) continue;
-
-                var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.BlendshapePrefix.Length..];
-                var shapeIndex = smr.sharedMesh.GetBlendShapeIndex(shapeName);
-                if (shapeIndex < 0) continue;
+                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not float) continue;
+                if (activeRule == null || activeRule.Value is not IVertexFilter) continue;
 
                 renderers.Add(smr);
             }
@@ -99,29 +91,36 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private class Node : IRenderFilterNode
         {
-            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<(int, float)>> _cache;
+            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache;
             private readonly SkinnedMeshRenderer _original;
-            private readonly ImmutableList<(int, float)> _shapes;
+            private readonly ImmutableList<IVertexFilter> _filters;
+            private Mesh _generatedMesh;
 
-            public RenderAspects WhatChanged => RenderAspects.Shapes;
+            public RenderAspects WhatChanged => RenderAspects.Mesh;
 
-            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<(int, float)>> cache,
+            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> cache,
                 SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
             {
                 _cache = cache;
                 _original = original;
-                _shapes = _cache.Get(context, _original);
+                _filters = _cache.Get(context, _original);
+                _generatedMesh = GenerateMesh(proxy.sharedMesh, _filters);
+
+                foreach (var filter in _filters)
+                {
+                    filter.Observe(context);
+                }
             }
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                if ((updatedAspects & RenderAspects.Shapes) != 0)
+                if ((updatedAspects & RenderAspects.Mesh) != 0)
                 {
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
 
-                var shapes = _cache.Get(context, _original);
-                if (!shapes.SequenceEqual(_shapes))
+                var filters = _cache.Get(context, _original);
+                if (!filters.SequenceEqual(_filters))
                 {
                     return Task.FromResult<IRenderFilterNode>(null);
                 }
@@ -134,9 +133,58 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (original is not SkinnedMeshRenderer) return;
                 if (proxy is not SkinnedMeshRenderer smr || smr.sharedMesh == null) return;
 
-                foreach (var shape in _shapes)
+                if (_generatedMesh != null)
                 {
-                    smr.SetBlendShapeWeight(shape.Item1, shape.Item2);
+                    smr.sharedMesh = _generatedMesh;
+                }
+            }
+
+            private Mesh GenerateMesh(Mesh mesh, ImmutableList<IVertexFilter> filters)
+            {
+                if (mesh == null)
+                {
+                    return null;
+                }
+
+                mesh = Object.Instantiate(mesh);
+
+                var vertexMask = new bool[mesh.vertexCount];
+                foreach (var filter in filters)
+                {
+                    filter.MarkFilteredVertices(mesh, vertexMask);
+                }
+
+                var tris = new List<int>();
+                for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
+                {
+                    tris.Clear();
+
+                    var baseVertex = (int)mesh.GetBaseVertex(subMesh);
+                    mesh.GetTriangles(tris, subMesh, false);
+
+                    for (var i = 0; i < tris.Count; i += 3)
+                    {
+                        if (vertexMask[tris[i + 0] + baseVertex] ||
+                            vertexMask[tris[i + 1] + baseVertex] ||
+                            vertexMask[tris[i + 2] + baseVertex])
+                        {
+                            tris.RemoveRange(i, 3);
+                            i -= 3;
+                        }
+                    }
+
+                    mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
+                }
+
+                return mesh;
+            }
+
+            public void Dispose()
+            {
+                if (_generatedMesh != null)
+                {
+                    Object.DestroyImmediate(_generatedMesh);
+                    _generatedMesh = null;
                 }
             }
         }
