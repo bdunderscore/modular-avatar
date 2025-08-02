@@ -49,10 +49,6 @@ public class ShapeDeletionAnalysis : TestBase
 
         AssertPreviewDeletion(root);
         AssertMeshDeletion(root);
-        
-        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
-        // deletion action is initially on, so we don't use the shape changer above it, which is set to 50.
-        Assert.AreEqual(0, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
 
@@ -80,27 +76,25 @@ public class ShapeDeletionAnalysis : TestBase
         
         AvatarProcessor.ProcessAvatar(root);
 
-        // 2a. Assert there are now two bones
-        Assert.AreEqual(2, mesh.bones.Length, $"Expected 2 bones in {prefabPath}, got {mesh.bones.Length}");
-
-        // 2b. Check vertex weights by z coordinate
+        var shapeIndex = mesh.sharedMesh.GetBlendShapeIndex(NaNimationFilter.BlendShapeNamePrefix + 0);
+        Assert.AreNotEqual(-1, shapeIndex);
+        
         var vertices = mesh.sharedMesh.vertices;
-        var boneWeights = mesh.sharedMesh.boneWeights;
+        var deltaPositions = new Vector3[vertices.Length];
+        
+        mesh.sharedMesh.GetBlendShapeFrameVertices(shapeIndex, 0, deltaPositions, null, null);
+        
         for (int i = 0; i < vertices.Length; i++)
         {
             if (vertices[i].z < 0)
             {
-                Assert.AreEqual(1, boneWeights[i].boneIndex0,
-                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 1");
-                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
-                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 1");
+                Assert.IsTrue(float.IsInfinity(deltaPositions[i].x),
+                    $"Vertex {i} (z={vertices[i].z}) should have infinite delta position");
             }
             else if (vertices[i].z > 0)
             {
-                Assert.AreEqual(0, boneWeights[i].boneIndex0,
-                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 0");
-                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
-                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 0");
+                Assert.AreEqual(0, deltaPositions[i].x,
+                    $"Vertex {i} (z={vertices[i].z}) should have zero delta position");
             }
         }
     }

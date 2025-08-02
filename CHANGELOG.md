@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1651] Implement `MA Delete Mesh By Mask`
 
 ### Fixed
-- [#1653] Scene is always updated by `Blendshape Sync`
 
 ### Changed
 
@@ -23,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.1] - [2025-08-02]
+
+### Fixed
+- [#1653] Scene is always updated by `Blendshape Sync`
+- [#1660] Deleted shapes were not applied when animations are blocked by VRChat safety settings.
 
 ## [1.13.0] - [2025-07-12]
 
