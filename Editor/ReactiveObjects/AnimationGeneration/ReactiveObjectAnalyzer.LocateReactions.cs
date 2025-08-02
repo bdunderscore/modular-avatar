@@ -208,34 +208,37 @@ namespace nadena.dev.modular_avatar.core.editor
                     var currentValue = renderer.GetBlendShapeWeight(shapeId);
                     var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
 
-                    RegisterAction(key, currentValue, value, changer);
-
-                    if (_blendshapeSyncMappings.TryGetValue((renderer, shape.ShapeName), out var bindings))
+                    if (shape.ChangeType != ShapeChangeType.Delete)
                     {
-                        // Propagate the new value through any Blendshape Syncs we might have.
-                        // Note that we don't propagate deletes; it's common to e.g. want to delete breasts from the
-                        // base model while retaining outerwear that matches the breast size.
-                        foreach (var binding in bindings)
+                        RegisterAction(key, currentValue, value, changer);
+
+                        if (_blendshapeSyncMappings.TryGetValue((renderer, shape.ShapeName), out var bindings))
                         {
-                            var bindingKey = new TargetProp
+                            // Propagate the new value through any Blendshape Syncs we might have.
+                            // Note that we don't propagate deletes; it's common to e.g. want to delete breasts from the
+                            // base model while retaining outerwear that matches the breast size.
+                            foreach (var binding in bindings)
                             {
-                                TargetObject = binding.Item1,
-                                PropertyName = BlendshapePrefix + binding.Item2
-                            };
-                            var bindingRenderer = binding.Item1;
+                                var bindingKey = new TargetProp
+                                {
+                                    TargetObject = binding.Item1,
+                                    PropertyName = BlendshapePrefix + binding.Item2
+                                };
+                                var bindingRenderer = binding.Item1;
 
-                            var bindingMesh = bindingRenderer.sharedMesh;
-                            if (bindingMesh == null) continue;
+                                var bindingMesh = bindingRenderer.sharedMesh;
+                                if (bindingMesh == null) continue;
 
-                            var bindingShapeIndex = bindingMesh.GetBlendShapeIndex(binding.Item2);
-                            if (bindingShapeIndex < 0) continue;
+                                var bindingShapeIndex = bindingMesh.GetBlendShapeIndex(binding.Item2);
+                                if (bindingShapeIndex < 0) continue;
 
-                            var bindingInitialState = bindingRenderer.GetBlendShapeWeight(bindingShapeIndex);
+                                var bindingInitialState = bindingRenderer.GetBlendShapeWeight(bindingShapeIndex);
 
-                            RegisterAction(bindingKey, bindingInitialState, value, changer);
+                                RegisterAction(bindingKey, bindingInitialState, value, changer);
+                            }
                         }
                     }
-                    
+
                     key = new TargetProp
                     {
                         TargetObject = renderer,

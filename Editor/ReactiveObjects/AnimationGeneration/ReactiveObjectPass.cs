@@ -326,12 +326,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (nanPlan.Count > 0)
                 {
-                    var shapeNameToBones = GenerateNaNimatedBones(renderer, nanPlan);
-
-                    foreach (var kv in shapeNameToBones)
+                    foreach (var kv in nanPlan)
                     {
                         var shapeName = kv.Key;
-                        var bones = kv.Value;
+                        var newShape = kv.Value;
 
                         var deleteTarget = new TargetProp
                         {
@@ -340,8 +338,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         };
                         var animProp = shapes[deleteTarget];
 
-                        var clip_delete = CreateNaNimationClip(renderer, shapeName, bones, true);
-                        var clip_retain = CreateNaNimationClip(renderer, shapeName, bones, false);
+                        var clip_delete = CreateNaNimationClip(renderer, shapeName, newShape, true);
+                        var clip_retain = CreateNaNimationClip(renderer, shapeName, newShape, false);
 
                         foreach (var group in animProp.actionGroups)
                         {
@@ -350,6 +348,11 @@ namespace nadena.dev.modular_avatar.core.editor
                             group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
                         }
 
+                        var index = renderer.sharedMesh.GetBlendShapeIndex(newShape);
+                        var initialWeight = animProp.actionGroups.Any(ag => ag.InitiallyActive) ? 1.0f : 0.0f;
+                        renderer.SetBlendShapeWeight(index, initialWeight);
+                        renderer.updateWhenOffscreen = false;
+                        
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
                         animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
@@ -361,7 +364,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string shapeName, List<GameObject> bones,
+        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string shapeName, string nanShape,
             bool shouldDelete)
         {
             var asc = context.Extension<AnimatorServicesContext>();
@@ -371,80 +374,26 @@ namespace nadena.dev.modular_avatar.core.editor
             var curve = new AnimationCurve();
             curve.AddKey(new Keyframe(0, 0)
             {
-                value = shouldDelete ? float.NaN : 1.0f
+                value = shouldDelete ? 1.0f : 0.0f
             });
 
-            foreach (var bone in bones)
-            {
-                var boneName = asc.ObjectPathRemapper
-                    .GetVirtualPathForObject(bone);
+            var binding = EditorCurveBinding.FloatCurve(
+                RuntimeUtil.AvatarRootPath(renderer.gameObject),
+                typeof(SkinnedMeshRenderer),
+                ReactiveObjectAnalyzer.BlendshapePrefix + nanShape
+            );
+            clip.SetFloatCurve(binding, curve);
 
-                foreach (var dim in new[] { "x", "y", "z" })
-                {
-                    var binding = EditorCurveBinding.FloatCurve(
-                        boneName,
-                        typeof(Transform),
-                        $"m_LocalScale.{dim}"
-                    );
-                    clip.SetFloatCurve(binding, curve);
-                }
-
-                if (shouldDelete)
-                {
-                    // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
-                    // when any NaNimation is active.
-                    clip.SetFloatCurve(
-                        asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
-                        typeof(SkinnedMeshRenderer),
-                        "m_UpdateWhenOffscreen",
-                        AnimationCurve.Constant(0, 1, 0)
-                    );
-                }
-            }
-
+            // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
+            // when any NaNimation is present.
+            clip.SetFloatCurve(
+                asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
+                typeof(SkinnedMeshRenderer),
+                "m_UpdateWhenOffscreen",
+                AnimationCurve.Constant(0, 1, 0)
+            );
+            
             return clip;
-        }
-
-        private Dictionary<string, List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
-            Dictionary<string, List<NaNimationFilter.AddedBone>> plan)
-        {
-            List<(NaNimationFilter.AddedBone, string)> createdBones =
-                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
-                    .OrderBy(b => b.bone.newBoneIndex)
-                    .ToList();
-
-            var maxNewBoneIndex = createdBones[^1].Item1.newBoneIndex;
-            var bonesArray = new Transform[maxNewBoneIndex + 1];
-            var curBonesArray = renderer.bones;
-            Array.Copy(curBonesArray, 0, bonesArray, 0, curBonesArray.Length);
-
-            // Special case for meshes with no bones; we need to create a bone 0 
-            if (curBonesArray.Length == 0)
-            {
-                bonesArray[0] = renderer.transform;
-            }
-
-            foreach (var pair in createdBones)
-            {
-                var bone = pair.Item1;
-                var shape = pair.Item2;
-
-                if (bonesArray[bone.originalBoneIndex] == null) continue;
-                var newBone = new GameObject("NaNimated Bone for " + shape.Replace('/', '_'));
-                var newBoneTransform = newBone.transform;
-                newBoneTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
-                newBoneTransform.localPosition = Vector3.zero;
-                newBoneTransform.localRotation = Quaternion.identity;
-                newBoneTransform.localScale = Vector3.one;
-
-                newBone.AddComponent<ModularAvatarPBBlocker>();
-                bonesArray[bone.newBoneIndex] = newBoneTransform;
-            }
-
-            renderer.bones = bonesArray;
-
-            return plan.ToDictionary(kv => kv.Key,
-                kv => kv.Value.Select(b => bonesArray[b.newBoneIndex].gameObject).ToList());
         }
 
         #endregion
