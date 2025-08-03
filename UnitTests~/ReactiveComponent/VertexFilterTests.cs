@@ -15,7 +15,8 @@ public class VertexFilterTests : TestBase
     public void VertexFilterByMaskClampUVTest()
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
-        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
+        var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        var mesh = renderer.sharedMesh;
         var mask = LoadAsset<Texture2D>("DeletionTest/MaskTexture_Clamp.png");
 
         var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
@@ -27,7 +28,7 @@ public class VertexFilterTests : TestBase
         var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack);
         var filtered = new bool[mesh.vertexCount];
         Array.Fill(filtered, true);
-        filter.MarkFilteredVertices(root.transform, mesh, filtered);
+        filter.MarkFilteredVertices(renderer, mesh, filtered);
 
         Assert.AreEqual(inRangeUvs, filtered.Count(x => x));
         Assert.AreEqual(outRangeUvs, filtered.Count(x => !x));
@@ -37,7 +38,8 @@ public class VertexFilterTests : TestBase
     public void VertexFilterByMaskRepeatUVTest()
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
-        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
+        var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        var mesh = renderer.sharedMesh;
         var mask = LoadAsset<Texture2D>("DeletionTest/MaskTexture_Repeat.png");
 
         var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
@@ -49,7 +51,7 @@ public class VertexFilterTests : TestBase
         var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack);
         var filtered = new bool[mesh.vertexCount];
         Array.Fill(filtered, true);
-        filter.MarkFilteredVertices(root.transform, mesh, filtered);
+        filter.MarkFilteredVertices(renderer, mesh, filtered);
 
         Assert.AreEqual(mesh.vertexCount, filtered.Count(x => x));
         Assert.AreEqual(0, filtered.Count(x => !x));

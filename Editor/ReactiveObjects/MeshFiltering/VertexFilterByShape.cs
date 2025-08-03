@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Threshold = threshold;
         }
 
-        public void MarkFilteredVertices(Transform referenceSpace, Mesh mesh, bool[] filtered)
+        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
             var shapeIndex = mesh.GetBlendShapeIndex(ShapeName);
             if (shapeIndex < 0) return; // shape not found

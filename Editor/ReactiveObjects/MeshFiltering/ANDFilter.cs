@@ -46,11 +46,11 @@ namespace nadena.dev.modular_avatar.core.editor
             return hash;
         }
 
-        public void MarkFilteredVertices(Transform referenceSpace, Mesh mesh, bool[] filtered)
+        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
             foreach (var filter in filters)
             {
-                filter.MarkFilteredVertices(referenceSpace, mesh, filtered);
+                filter.MarkFilteredVertices(renderer, mesh, filtered);
             }
         }
 

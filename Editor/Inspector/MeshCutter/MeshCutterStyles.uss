@@ -26,6 +26,10 @@
     margin: 1px -4px 1px 3px;
 }
 
+.horizontal > PropertyField {
+    flex-grow: 1;
+}
+
 .horizontal > * {
     height: 18px;
     margin: 0 2px 0 0;
@@ -92,4 +96,8 @@
 
 #t-edit-mask-texture > .unity-base-field__input {
     display: none;
+}
+
+.st-active-editing #f-axis-edit {
+    background-color: #006011;
 }
