@@ -15,6 +15,10 @@
     -unity-font-style: bold;
 }
 
+.hidden {
+    display: none;
+}
+
 .horizontal {
     flex-direction: row;
     align-items: center;

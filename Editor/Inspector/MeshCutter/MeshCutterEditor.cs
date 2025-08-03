@@ -1,6 +1,5 @@
 ﻿#region
 
-using System;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -10,15 +9,15 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomEditor(typeof(ModularAvatarDeleteMeshByMask))]
-    public class DeleteMeshByMaskEditor : MAEditorBase
+    [CustomEditor(typeof(ModularAvatarMeshCutter))]
+    public class MeshCutterEditor : MAEditorBase
     {
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;
 
         protected override void OnInnerInspectorGUI()
         {
-            EditorGUILayout.HelpBox("Unable to show override changes", MessageType.Info);
+            DrawDefaultInspector();
         }
 
         protected override VisualElement CreateInnerInspectorGUI()

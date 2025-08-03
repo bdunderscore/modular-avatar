@@ -28,6 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         internal static Dictionary<(TargetProp, IVertexFilter), List<AddedBone>> ComputeNaNPlan(
+            Renderer renderer,
             ref Mesh mesh,
             List<(TargetProp, IVertexFilter)> targets
         )
