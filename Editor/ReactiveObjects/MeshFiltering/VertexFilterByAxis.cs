@@ -1,51 +1,136 @@
 ﻿using System;
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
+using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     [ProvidesVertexFilter(typeof(VertexFilterByAxisComponent))]
     internal sealed class VertexFilterByAxis : IVertexFilter
     {
+        private static readonly List<Vector3> _dbgVisualizePoints = new();
+        private static Vector3? _dbgCenter;
+        private static Vector3 _dbgDirection;
+        private static Mesh _dbgMesh;
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            VertexFilterByAxisComponent.onDrawGizmos = DrawDebugVisualizations;
+        }
+
+        internal static void DrawDebugVisualizations()
+        {
+            if (!_dbgCenter.HasValue) return;
+
+            Gizmos.color = Color.white;
+
+            Gizmos.DrawWireMesh(_dbgMesh, Vector3.zero, Quaternion.identity);
+
+            foreach (var point in _dbgVisualizePoints)
+            {
+                Gizmos.DrawSphere(point, 0.001f);
+            }
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(_dbgCenter.Value, 0.001f);
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawRay(_dbgCenter.Value, _dbgDirection);
+        }
+
+        private readonly Vector3 _center;
         private readonly Vector3 _axis;
 
         public VertexFilterByAxis(VertexFilterByAxisComponent component, ComputeContext context)
         {
-            _axis = context.Observe(component, c => c.Axis).normalized;
+            (_center, _axis) = context.Observe(component, c => (c.Center, c.Axis));
         }
 
         public bool Equals(IVertexFilter other)
         {
             return other is VertexFilterByAxis
-                   && ((VertexFilterByAxis)other)._axis == _axis;
+                   && ((VertexFilterByAxis)other)._axis == _axis
+                   && ((VertexFilterByAxis)other)._center == _center;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(typeof(VertexFilterByAxis), _axis);
+            return HashCode.Combine(typeof(VertexFilterByAxis), _axis, _center);
         }
 
         public override string ToString()
         {
-            return $"VertexFilterByAxis: {_axis}";
+            return $"VertexFilterByAxis: {_axis} @ {_center}";
         }
 
-        public void MarkFilteredVertices(Transform referenceSpace, Mesh mesh, bool[] filtered)
+        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var meshSpaceAxis = referenceSpace.InverseTransformDirection(_axis);
+            var meshSpaceAxis = _axis;
+            var meshSpaceCenter = _center;
 
-            var vertices = mesh.vertices;
-
-            if (vertices.Length != filtered.Length)
-                throw new ArgumentException("Mesh vertex count does not match filtered array length.");
-
-            for (var i = 0; i < vertices.Length; i++)
+            Mesh? temporaryMesh = null;
+            try
             {
-                if (Vector3.Dot(meshSpaceAxis, vertices[i]) <= 0.0f)
+                if (renderer is SkinnedMeshRenderer smr)
                 {
-                    filtered[i] = false;
+                    temporaryMesh = new Mesh();
+                    var originalMesh = smr.sharedMesh;
+                    try
+                    {
+                        smr.sharedMesh = mesh;
+                        smr.BakeMesh(temporaryMesh);
+                    }
+                    finally
+                    {
+                        smr.sharedMesh = originalMesh;
+                    }
+
+                    mesh = temporaryMesh;
+
+                    var referenceTransform = smr.rootBone != null ? smr.rootBone : smr.transform;
+                    meshSpaceCenter =
+                        smr.transform.InverseTransformPoint(referenceTransform.TransformPoint(meshSpaceCenter));
+                    meshSpaceAxis =
+                        smr.transform.InverseTransformDirection(referenceTransform.TransformDirection(meshSpaceAxis));
                 }
+
+                var vertices = mesh.vertices;
+
+                if (vertices.Length != filtered.Length)
+                    throw new ArgumentException("Mesh vertex count does not match filtered array length.");
+
+                _dbgVisualizePoints.Clear();
+                _dbgCenter = meshSpaceCenter;
+                _dbgDirection = meshSpaceAxis.normalized;
+
+                for (var i = 0; i < vertices.Length; i++)
+                {
+                    if (!filtered[i]) continue;
+
+                    _dbgVisualizePoints.Add(vertices[i]);
+
+                    if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) <= 0.0f)
+                    {
+                        filtered[i] = false;
+                    }
+                }
+            }
+            finally
+            {
+                /*if (temporaryMesh != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(temporaryMesh);
+                }*/
+                if (_dbgMesh != null)
+                {
+                    Object.DestroyImmediate(_dbgMesh);
+                }
+
+                _dbgMesh = temporaryMesh;
             }
         }
     }

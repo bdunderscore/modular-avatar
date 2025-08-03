@@ -40,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void MarkFilteredVertices(Transform referenceSpace, Mesh mesh, bool[] filtered)
+        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
             var uv = mesh.uv;
             if (uv == null || uv.Length == 0) return; // uv not found
@@ -56,8 +56,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(x => mesh.GetIndices(x).ToHashSet())
                 .ToArray();
 
+            var includedInSubmesh = new bool[filtered.Length];
+            
             foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
             {
+                includedInSubmesh[v] = true;
                 Color? deleteColor = DeleteMode switch
                 {
                     ByMaskMode.DeleteBlack => Color.black,
@@ -68,6 +71,14 @@ namespace nadena.dev.modular_avatar.core.editor
                         (int)(targetTexture.height * uv[v].y)) != deleteColor)
                 {
                     filtered[v] = false;
+                }
+            }
+
+            for (var i = 0; i < filtered.Length; i++)
+            {
+                if (!includedInSubmesh[i])
+                {
+                    filtered[i] = false;
                 }
             }
         }
