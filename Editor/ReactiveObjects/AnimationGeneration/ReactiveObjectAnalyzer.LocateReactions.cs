@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
@@ -270,41 +271,52 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void FindDeleteMeshByMask(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
-            var deleters = _computeContext.GetComponentsInChildren<ModularAvatarDeleteMeshByMask>(root, true);
+            var deleters = _computeContext.GetComponentsInChildren<ModularAvatarMeshCutter>(root, true);
 
             foreach (var deleter in deleters)
             {
                 if (deleter.Object == null) continue;
 
                 var obj = _computeContext.Observe(deleter, c => c.Object.Clone());
+                var renderer = _computeContext.GetComponent<SkinnedMeshRenderer>(obj.Get(deleter));
+                if (renderer == null) continue;
+
+                if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
+
+                var filterComponents = _computeContext.GetComponents<IVertexFilterBehavior>(deleter.gameObject);
+
+                var filterList = new List<IVertexFilter>();
+                foreach (var component in filterComponents)
                 {
-                    var renderer = _computeContext.GetComponent<SkinnedMeshRenderer>(obj.Object.Get(deleter));
-                    if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
-
-                    if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
-                    if (_computeContext.Observe(obj.MaskTexture) == null) continue;
-
-                    var vertexFilter = new VertexFilterByMask(obj.MaterialIndex, obj.MaskTexture, obj.DeleteMode);
-
-                    var key = new TargetProp
+                    if (VertexFilterRegistry.TryGetVertexFilter(component, _computeContext, out var filter))
                     {
-                        TargetObject = renderer,
-                        PropertyName = "deletedMeshByMask." + vertexFilter,
-                    };
-
-                    if (!objectGroups.TryGetValue(key, out var group))
-                    {
-                        group = new(key, null);
-                        objectGroups[key] = group;
+                        filterList.Add(filter);
                     }
+                }
 
-                    var action = ObjectRule(key, deleter, vertexFilter);
-                    action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
+                if (filterList.Count == 0) continue;
 
-                    if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
-                    {
-                        group.actionGroups.Add(action);
-                    }
+                var vertexFilter = filterList.Count == 1 ? filterList[0] : new ANDFilter(filterList);
+                vertexFilter.Observe(_computeContext);
+
+                var key = new TargetProp
+                {
+                    TargetObject = renderer,
+                    PropertyName = "deletedMeshByMask." + vertexFilter
+                };
+
+                if (!objectGroups.TryGetValue(key, out var group))
+                {
+                    group = new AnimatedProperty(key, null);
+                    objectGroups[key] = group;
+                }
+
+                var action = ObjectRule(key, deleter, vertexFilter);
+                action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
+
+                if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
+                {
+                    group.actionGroups.Add(action);
                 }
             }
         }

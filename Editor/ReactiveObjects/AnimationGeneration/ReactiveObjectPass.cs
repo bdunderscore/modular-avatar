@@ -282,7 +282,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var mesh = renderer.sharedMesh;
                 if (mesh == null) continue;
 
-                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(mesh, toDelete);
+                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(renderer, mesh, toDelete);
 
                 foreach (var (prop, _) in toDelete)
                 {
@@ -303,7 +303,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 // Handle NaNimated shapes next
-                var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate);
+                var nanPlan = NaNimationFilter.ComputeNaNPlan(renderer, ref mesh, toNaNimate);
                 renderer.sharedMesh = mesh;
 
                 if (nanPlan.Count > 0)

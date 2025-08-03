@@ -1,10 +1,12 @@
 ﻿#if MA_VRCSDK3_AVATARS
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -104,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 _cache = cache;
                 _original = original;
                 _filters = _cache.Get(context, _original);
-                _generatedMesh = GenerateMesh(proxy.sharedMesh, _filters);
+                _generatedMesh = GenerateMesh(proxy, proxy.sharedMesh, _filters);
 
                 foreach (var filter in _filters)
                 {
@@ -139,7 +141,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(Mesh mesh, ImmutableList<IVertexFilter> filters)
+            private Mesh GenerateMesh(Renderer renderer, Mesh mesh, ImmutableList<IVertexFilter> filters)
             {
                 if (mesh == null)
                 {
@@ -149,9 +151,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 mesh = Object.Instantiate(mesh);
 
                 var vertexMask = new bool[mesh.vertexCount];
+                Array.Fill(vertexMask, true);
                 foreach (var filter in filters)
                 {
-                    filter.MarkFilteredVertices(mesh, vertexMask);
+                    filter.MarkFilteredVertices(renderer, mesh, vertexMask);
                 }
 
                 var tris = new List<int>();

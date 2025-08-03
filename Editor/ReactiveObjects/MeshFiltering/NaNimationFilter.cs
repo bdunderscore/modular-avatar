@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using nadena.dev.ndmf;
-using Unity.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -26,6 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal const string BlendShapeNamePrefix = "__modular-avatar_infinimation_";
         
         internal static Dictionary<(TargetProp, IVertexFilter), string> ComputeNaNPlan(
+            Renderer renderer,
             ref Mesh mesh,
             List<(TargetProp, IVertexFilter)> targets
         )
@@ -57,9 +56,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var target in targets)
                 {
                     var newShapeName = BlendShapeNamePrefix + (nanindex++);
-                    
-                    Array.Fill(affectedVertices, false);
-                    target.Item2.MarkFilteredVertices(mesh, affectedVertices);
+
+                    Array.Fill(affectedVertices, true);
+                    target.Item2.MarkFilteredVertices(renderer, mesh, affectedVertices);
                     
                     for (var v = 0; v < vertexCount; v++)
                     {

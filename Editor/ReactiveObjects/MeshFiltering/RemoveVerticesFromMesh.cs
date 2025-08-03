@@ -13,7 +13,8 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class RemoveVerticesFromMesh
     {
-        public static Mesh RemoveVertices(Mesh original, IEnumerable<(TargetProp, IVertexFilter)> targets)
+        public static Mesh RemoveVertices(Renderer renderer, Mesh original,
+            IEnumerable<(TargetProp, IVertexFilter)> targets)
         {
             var mesh = new Mesh();
             mesh.indexFormat = original.indexFormat;
@@ -22,9 +23,10 @@ namespace nadena.dev.modular_avatar.core.editor
             bool[] toDeleteVertices = new bool[original.vertexCount];
             bool[] toRetainVertices = new bool[original.vertexCount];
 
+            Array.Fill(toDeleteVertices, true);
             foreach (var target in targets)
             {
-                target.Item2.MarkFilteredVertices(original, toDeleteVertices);
+                target.Item2.MarkFilteredVertices(renderer, original, toDeleteVertices);
             }
             ProbeRetainedVertices(original, toDeleteVertices, toRetainVertices);
 
