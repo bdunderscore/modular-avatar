@@ -26,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             _materialIndex = materialIndex;
             _maskTexture = maskTexture;
-            _maskTextureContentHash = maskTexture?.imageContentsHash ?? default;
+            _maskTextureContentHash = maskTexture == null ? default : maskTexture.imageContentsHash;
             DeleteMode = deleteMode;
         }
 
@@ -43,12 +43,18 @@ namespace nadena.dev.modular_avatar.core.editor
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
             var uv = mesh.uv;
-            if (uv == null || uv.Length == 0) return; // uv not found
+            if (uv == null || uv.Length == 0 || _maskTexture == null)
+            {
+                // TODO: add an appropriate error report here
+                Array.Fill(filtered, false);
+                return;
+            }
 
             var targetTexture = _editingTexture ?? _maskTexture;
             if (!targetTexture.isReadable)
             {
                 BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", targetTexture);
+                Array.Fill(filtered, false);
                 return;
             }
 
@@ -119,7 +125,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            return $"{_materialIndex}_{_maskTexture.GetInstanceID()}_{DeleteMode}";
+            return $"{_materialIndex}_{_maskTexture?.GetInstanceID()}_{DeleteMode}";
         }
     }
 }
