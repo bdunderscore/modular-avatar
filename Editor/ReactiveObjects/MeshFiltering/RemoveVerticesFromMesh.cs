@@ -205,13 +205,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    original.GetTriangles(orig_tris_16, sm, true);
-                    ProcessSubmesh<ushort>(orig_tris_16, new_tris_16, i => i, i => (ushort)i);
+                    original.GetTriangles(orig_tris, sm, true);
+                    ProcessSubmesh(orig_tris, new_tris, i => i, i => (ushort)i);
 
-                    ushort min = new_tris_16.Min();
-                    for (int i = 0; i < new_tris_16.Count; i++)
+                    // Note: It's always safe to use a UInt16 index format here, as the original mesh fits
+                    // in 16 bits, and we are only removing vertices.
+                    var min = new_tris.Min();
+                    new_tris_16.Capacity = new_tris.Count;
+                    for (var i = 0; i < new_tris.Count; i++)
                     {
-                        new_tris_16[i] -= min;
+                        new_tris_16.Add((ushort)(new_tris[i] - min));
                     }
 
                     mesh.SetTriangles(new_tris_16, sm, true, min);
@@ -241,6 +244,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (new_tri.Count == 0)
                 {
+                    // Add a degenerate triangle to avoid creating an empty submesh.
+                    // TODO: Perform necessary animation updates to allow us to delete the submesh entirely.
                     new_tri.Add(default);
                     new_tri.Add(default);
                     new_tri.Add(default);
