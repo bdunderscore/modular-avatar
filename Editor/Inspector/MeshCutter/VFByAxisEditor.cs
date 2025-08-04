@@ -204,7 +204,7 @@ namespace nadena.dev.modular_avatar.core.editor
             center = Handles.PositionHandle(center, quat);
             if (EditorGUI.EndChangeCheck())
             {
-                _center.vector3Value = _lastReferenceTransform.InverseTransformPoint(center);
+                _center.vector3Value = refTransform.InverseTransformPoint(center);
                 serializedObject.ApplyModifiedProperties();
             }
         }

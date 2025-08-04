@@ -39,9 +39,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var meshSpaceAxis = _axis;
-            var meshSpaceCenter = _center;
-
             Transform referenceTransform;
             switch (_referenceFrame)
             {
@@ -53,7 +50,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     referenceTransform = _avatarRoot;
                     break;
             }
-            
+
+            var rootBoneTransform = renderer.transform;
             Mesh? temporaryMesh = null;
             try
             {
@@ -64,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     try
                     {
                         smr.sharedMesh = mesh;
-                        smr.BakeMesh(temporaryMesh);
+                        smr.BakeMesh(temporaryMesh, true);
                     }
                     finally
                     {
@@ -73,21 +71,24 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     mesh = temporaryMesh;
 
+                    rootBoneTransform = smr.rootBone != null ? smr.rootBone : smr.transform;
                     if (_referenceFrame == ByAxisReferenceFrame.RootBone)
                     {
-                        referenceTransform = smr.rootBone != null ? smr.rootBone : smr.transform;
+                        referenceTransform = rootBoneTransform;
                     }
                 }
 
-                meshSpaceCenter =
-                    renderer.transform.InverseTransformPoint(referenceTransform.TransformPoint(meshSpaceCenter));
-                meshSpaceAxis =
-                    renderer.transform.InverseTransformDirection(referenceTransform.TransformDirection(meshSpaceAxis));
+                var meshSpaceCenter =
+                    renderer.transform.InverseTransformPoint(referenceTransform.TransformPoint(_center));
+                var meshSpaceAxis =
+                    renderer.transform.InverseTransformDirection(referenceTransform.TransformDirection(_axis));
                 
                 var vertices = mesh.vertices;
 
                 if (vertices.Length != filtered.Length)
+                {
                     throw new ArgumentException("Mesh vertex count does not match filtered array length.");
+                }
 
                 for (var i = 0; i < vertices.Length; i++)
                 {

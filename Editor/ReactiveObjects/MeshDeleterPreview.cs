@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 _cache = cache;
                 _original = original;
                 _filters = _cache.Get(context, _original);
-                _generatedMesh = GenerateMesh(proxy, proxy.sharedMesh, _filters);
+                _generatedMesh = GenerateMesh(original, proxy, proxy.sharedMesh, _filters);
 
                 foreach (var filter in _filters)
                 {
@@ -141,7 +141,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(Renderer renderer, Mesh mesh, ImmutableList<IVertexFilter> filters)
+            private Mesh GenerateMesh(Renderer original, Renderer proxy, Mesh mesh,
+                ImmutableList<IVertexFilter> filters)
             {
                 if (mesh == null)
                 {
@@ -154,7 +155,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 Array.Fill(vertexMask, true);
                 foreach (var filter in filters)
                 {
-                    filter.MarkFilteredVertices(renderer, mesh, vertexMask);
+                    filter.MarkFilteredVertices(original, mesh, vertexMask);
                 }
 
                 var tris = new List<int>();
