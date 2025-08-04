@@ -270,6 +270,8 @@
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "Inverse Condition",
+  "reactive_object.mesh_cutter.hint_add_vertex_filter": "You need to add a Vertex Filter component to this object to specify which part of the mesh to erase.",
+  "reactive_object.mesh_cutter.add_vertex_filter": "Add Vertex Filter...",
   "reactive_object.delete-mesh-by-mask.object": "Target Renderer",
   "reactive_object.delete-mesh-by-mask.material-index": "Material Slot",
   "reactive_object.delete-mesh-by-mask.mask-texture": "Mask Texture",

@@ -6,6 +6,13 @@
             <ed:PropertyField binding-path="m_object"/>
         </ui:VisualElement>
 
+        <ui:VisualElement name="hint-add-vertex-filter">
+            <ui:HelpBox class="ndmf-tr" message-type="Warning"
+                        text="reactive_object.mesh_cutter.hint_add_vertex_filter"/>
+        </ui:VisualElement>
+
+        <ui:DropdownField name="add-vertex-filter-dropdown"/>
+
         <ma:ROSimulatorButton/>
         <ma:LanguageSwitcherElement/>
     </ui:VisualElement>

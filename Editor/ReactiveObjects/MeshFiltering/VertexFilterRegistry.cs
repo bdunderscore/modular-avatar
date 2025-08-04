@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
@@ -10,6 +12,37 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class VertexFilterRegistry
     {
         private static readonly ImmutableDictionary<Type, IVertexFilterProvider> _providers = FindProviders();
+        private static readonly string[] _componentLabels;
+
+        internal static List<string> ComponentLabels => _componentLabels.ToList();
+        internal static ImmutableDictionary<string, Type> LabelToType { get; }
+
+        static VertexFilterRegistry()
+        {
+            _componentLabels = new string[_providers.Count];
+            var builder = ImmutableDictionary.CreateBuilder<string, Type>();
+
+            var i = 0;
+            foreach (var kvp in _providers.Select(kv => (GetComponentLabel(kv.Key), kv.Key))
+                         .OrderBy(p => p.Item1))
+            {
+                _componentLabels[i] = new string(kvp.Item1);
+                builder.Add(kvp.Item1, kvp.Item2);
+                i++;
+            }
+
+            LabelToType = builder.ToImmutable();
+
+            string GetComponentLabel(Type type)
+            {
+                var acm = (AddComponentMenu)type.GetCustomAttribute(typeof(AddComponentMenu));
+                if (acm == null) return type.Name;
+
+                var lastSlash = acm.componentMenu.LastIndexOf('/');
+                if (lastSlash < 0) return acm.componentMenu;
+                return acm.componentMenu.Substring(lastSlash + 1);
+            }
+        }
 
         public static bool TryGetVertexFilter(IVertexFilterBehavior behavior, ComputeContext context,
             out IVertexFilter filter)
@@ -25,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return true;
         }
-
+        
         private static ImmutableDictionary<Type, IVertexFilterProvider> FindProviders()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, IVertexFilterProvider>();
