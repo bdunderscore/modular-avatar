@@ -1,10 +1,13 @@
 ﻿#nullable enable
 
+using System;
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -21,6 +24,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Transform? _lastReferenceTransform;
         private Quaternion _gizmoQuaternion = Quaternion.identity;
+
+        private static readonly HashSet<Object> _refSpaceChangedInThisFrame = new();
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.update += () => _refSpaceChangedInThisFrame.Clear();
+        }
 
         private Quaternion? GizmoQuaternion
         {
@@ -105,6 +116,40 @@ namespace nadena.dev.modular_avatar.core.editor
                 serializedObject.ApplyModifiedProperties();
             };
 
+            var refFrame = uxml.Q<EnumField>("f-ref-frame");
+            refFrame.RegisterValueChangedCallback<Enum>(evt =>
+            {
+                if (evt.previousValue == null || evt.newValue == null)
+                {
+                    return;
+                }
+
+                if (targets.Length > 1) return;
+
+                var priorFrame = GetReferenceTransform((ByAxisReferenceFrame)evt.previousValue);
+                var currentFrame = GetReferenceTransform((ByAxisReferenceFrame)evt.newValue);
+
+                if (priorFrame != null && currentFrame != null && priorFrame != currentFrame)
+                {
+                    if (!_refSpaceChangedInThisFrame.Add(target))
+                    {
+                        // Another editor has already updated the center and axis properties this frame.
+                        return;
+                    }
+
+                    serializedObject.Update();
+
+                    // Keep the same position and orientation in the new reference frame
+                    _center!.vector3Value =
+                        currentFrame.InverseTransformPoint(priorFrame.TransformPoint(_center.vector3Value));
+                    _axis!.vector3Value =
+                        currentFrame.InverseTransformDirection(priorFrame.TransformDirection(_axis.vector3Value));
+                    _lastReferenceTransform = null;
+
+                    serializedObject.ApplyModifiedProperties();
+                }
+            });
+
             return uxml;
         }
 
@@ -132,14 +177,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected void OnSceneGUI()
         {
+            if (__activeEditing != this) return;
+            
             serializedObject.Update();
 
+            var refTransform = GetReferenceTransform();
+            if (refTransform == null) return;
+            
             var maybeQuat = GizmoQuaternion;
             if (maybeQuat == null) return;
             var quat = maybeQuat.Value;
 
-            var center = _lastReferenceTransform.TransformPoint(_center.vector3Value);
-            Handles.DrawWireDisc(center, _axis!.vector3Value, 0.2f, 4.0f);
+            var center = refTransform.TransformPoint(_center.vector3Value);
+            Handles.DrawWireDisc(center, refTransform.TransformDirection(_axis!.vector3Value), 0.2f, 4.0f);
             Handles.ArrowHandleCap(0, center, quat, 0.2f, EventType.Repaint);
 
             EditorGUI.BeginChangeCheck();
@@ -159,7 +209,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private Transform? GetReferenceTransform()
+        private Transform? GetReferenceTransform(ByAxisReferenceFrame? frame = null)
         {
             var singleTarget = serializedObject.targetObject as VertexFilterByAxisComponent;
             if (singleTarget == null) return null;
@@ -169,8 +219,20 @@ namespace nadena.dev.modular_avatar.core.editor
             if (obj == null) return null;
             if (!obj.TryGetComponent<Renderer>(out var renderer)) return null;
 
-            if (renderer is SkinnedMeshRenderer smr && smr.rootBone != null) return smr.rootBone;
-            return renderer.transform;
+            frame ??= singleTarget.ReferenceFrame;
+
+            switch (frame)
+            {
+                case ByAxisReferenceFrame.RootBone:
+                    if (renderer is SkinnedMeshRenderer smr && smr.rootBone != null) return smr.rootBone;
+                    return renderer.transform;
+                case ByAxisReferenceFrame.Renderer:
+                    return renderer.transform;
+                case ByAxisReferenceFrame.AvatarRoot:
+                    return RuntimeUtil.FindAvatarTransformInParents(renderer.transform);
+                default:
+                    return null;
+            }
         }
     }
 }

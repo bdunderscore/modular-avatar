@@ -44,10 +44,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly Vector3 _center;
         private readonly Vector3 _axis;
-
+        private readonly ByAxisReferenceFrame _referenceFrame;
+        private readonly Transform _avatarRoot;
+        
         public VertexFilterByAxis(VertexFilterByAxisComponent component, ComputeContext context)
         {
-            (_center, _axis) = context.Observe(component, c => (c.Center, c.Axis));
+            (_center, _axis, _referenceFrame) = context.Observe(component, c => (c.Center, c.Axis, c.ReferenceFrame));
+            _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(component.transform);
         }
 
         public bool Equals(IVertexFilter other)
@@ -72,6 +75,18 @@ namespace nadena.dev.modular_avatar.core.editor
             var meshSpaceAxis = _axis;
             var meshSpaceCenter = _center;
 
+            Transform referenceTransform;
+            switch (_referenceFrame)
+            {
+                case ByAxisReferenceFrame.Renderer:
+                case ByAxisReferenceFrame.RootBone: // handled below for SMRs
+                    referenceTransform = renderer.transform;
+                    break;
+                default:
+                    referenceTransform = _avatarRoot;
+                    break;
+            }
+            
             Mesh? temporaryMesh = null;
             try
             {
@@ -91,13 +106,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     mesh = temporaryMesh;
 
-                    var referenceTransform = smr.rootBone != null ? smr.rootBone : smr.transform;
-                    meshSpaceCenter =
-                        smr.transform.InverseTransformPoint(referenceTransform.TransformPoint(meshSpaceCenter));
-                    meshSpaceAxis =
-                        smr.transform.InverseTransformDirection(referenceTransform.TransformDirection(meshSpaceAxis));
+                    if (_referenceFrame == ByAxisReferenceFrame.RootBone)
+                    {
+                        referenceTransform = smr.rootBone != null ? smr.rootBone : smr.transform;
+                    }
                 }
 
+                meshSpaceCenter =
+                    renderer.transform.InverseTransformPoint(referenceTransform.TransformPoint(meshSpaceCenter));
+                meshSpaceAxis =
+                    renderer.transform.InverseTransformDirection(referenceTransform.TransformDirection(meshSpaceAxis));
+                
                 var vertices = mesh.vertices;
 
                 if (vertices.Length != filtered.Length)

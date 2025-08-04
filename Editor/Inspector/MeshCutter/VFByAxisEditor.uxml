@@ -11,4 +11,7 @@
                           class="ndmf-tr"/>
         <ui:Button name="f-axis-flip" class="" text="flip"/>
     </ui:VisualElement>
+    <ui:EnumField name="f-ref-frame" binding-path="m_referenceFrame"
+                  label="reactive_object.delete-mesh-by-axis.reference-frame"
+                  class="ndmf-tr"/>
 </UXML>
