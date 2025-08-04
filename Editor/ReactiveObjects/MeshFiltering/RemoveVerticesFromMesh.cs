@@ -30,6 +30,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             ProbeRetainedVertices(original, toDeleteVertices, toRetainVertices);
 
+            if (toRetainVertices.All(v => !v))
+            {
+                // Retain vertex zero to use as a fallback
+                toRetainVertices[0] = true;
+                toDeleteVertices[0] = false;
+            }
+
             RemapVerts(toRetainVertices, out var origToNewVertIndex, out var newToOrigVertIndex);
 
             TransferVertexData(mesh, original, toRetainVertices);
