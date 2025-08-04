@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -11,37 +9,6 @@ namespace nadena.dev.modular_avatar.core.editor
     [ProvidesVertexFilter(typeof(VertexFilterByAxisComponent))]
     internal sealed class VertexFilterByAxis : IVertexFilter
     {
-        private static readonly List<Vector3> _dbgVisualizePoints = new();
-        private static Vector3? _dbgCenter;
-        private static Vector3 _dbgDirection;
-        private static Mesh _dbgMesh;
-
-        [InitializeOnLoadMethod]
-        private static void Init()
-        {
-            VertexFilterByAxisComponent.onDrawGizmos = DrawDebugVisualizations;
-        }
-
-        internal static void DrawDebugVisualizations()
-        {
-            if (!_dbgCenter.HasValue) return;
-
-            Gizmos.color = Color.white;
-
-            Gizmos.DrawWireMesh(_dbgMesh, Vector3.zero, Quaternion.identity);
-
-            foreach (var point in _dbgVisualizePoints)
-            {
-                Gizmos.DrawSphere(point, 0.001f);
-            }
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(_dbgCenter.Value, 0.001f);
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(_dbgCenter.Value, _dbgDirection);
-        }
-
         private readonly Vector3 _center;
         private readonly Vector3 _axis;
         private readonly ByAxisReferenceFrame _referenceFrame;
@@ -122,16 +89,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (vertices.Length != filtered.Length)
                     throw new ArgumentException("Mesh vertex count does not match filtered array length.");
 
-                _dbgVisualizePoints.Clear();
-                _dbgCenter = meshSpaceCenter;
-                _dbgDirection = meshSpaceAxis.normalized;
-
                 for (var i = 0; i < vertices.Length; i++)
                 {
                     if (!filtered[i]) continue;
-
-                    _dbgVisualizePoints.Add(vertices[i]);
-
+                    
                     if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) <= 0.0f)
                     {
                         filtered[i] = false;
@@ -140,16 +101,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             finally
             {
-                /*if (temporaryMesh != null)
+                if (temporaryMesh != null)
                 {
-                    UnityEngine.Object.DestroyImmediate(temporaryMesh);
-                }*/
-                if (_dbgMesh != null)
-                {
-                    Object.DestroyImmediate(_dbgMesh);
+                    Object.DestroyImmediate(temporaryMesh);
                 }
-
-                _dbgMesh = temporaryMesh;
             }
         }
     }
