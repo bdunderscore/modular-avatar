@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1651] Implement `MA Delete Mesh By Mask`
 
 ### Fixed
+- [#1671] Shape changer could cause VRChat crashes in certain worlds
 
 ### Changed
 
