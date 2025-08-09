@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1651] `MA Delete Mesh By Mask` を実装
 
 ### Fixed
 
@@ -18,11 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
-
-## [1.13.2] - [2025-08-09]
-
-### Added
-- [#1651] `MA Delete Mesh By Mask` を実装
 
 ## [1.13.1] - [2025-08-02]
 

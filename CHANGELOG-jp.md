@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#1651] `MA Delete Mesh By Mask` を実装
 
 ### Fixed
 
@@ -19,11 +20,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Security
 
 ### Deprecated
-
-## [1.13.2] - [2025-08-09]
-
-### Added
-- [#1651] `MA Delete Mesh By Mask` を実装
 
 ## [1.13.1] - [2025-08-02]
 
