@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1671] Shape changer could cause VRChat crashes in certain worlds
 
 ### Changed
 
@@ -22,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.2] - [2025-08-09]
+
+### Fixed
+- [#1671] Shape changer could cause VRChat crashes in certain worlds
 
 ## [1.13.1] - [2025-08-02]
 

@@ -11,7 +11,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
-- [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
 
 ### Changed
 
@@ -20,6 +19,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Security
 
 ### Deprecated
+
+## [1.13.2] - [2025-08-09]
+
+### Fixed
+- [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
 
 ## [1.13.1] - [2025-08-02]
 
