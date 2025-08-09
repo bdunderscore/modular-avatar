@@ -49,6 +49,10 @@ public class ShapeDeletionAnalysis : TestBase
 
         AssertPreviewDeletion(root);
         AssertMeshDeletion(root);
+
+        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        // blendshape is not updated by Deletes
+        Assert.AreEqual(0, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
 
