@@ -46,6 +46,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _writeDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(fxLayer) ?? true;
             }
+
+            var clips = asc.AnimationIndex;
+            _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
             
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
@@ -311,6 +314,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var nanBones = GenerateNaNimatedBones(renderer, nanPlan);
 
+                    HashSet<GameObject> initiallyActive = new HashSet<GameObject>();
+                    
                     foreach (var kv in nanBones)
                     {
                         (var targetProp, var filter) = kv.Key;
@@ -325,7 +330,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             group.CustomApplyMotion = clip_delete;
                         }
-                        
+
+                        var isInitiallyActive = animProp.actionGroups.Any(agk => agk.InitiallyActive);
+                        if (isInitiallyActive)
+                        {
+                            initiallyActive.UnionWith(bones);
+                        }
+
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
                         animProp.actionGroups.Insert(0, new ReactionRule(targetProp, 0.0f)
@@ -333,6 +344,12 @@ namespace nadena.dev.modular_avatar.core.editor
                             CustomApplyMotion = clip_retain
                         });
                     }
+
+                    NaNimationInitialStateMunger.ApplyInitialStates(
+                        context.AvatarRootTransform,
+                        initiallyActive,
+                        _initialStateClip
+                    );
                 }
             }
         }
