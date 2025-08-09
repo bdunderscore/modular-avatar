@@ -51,6 +51,7 @@ public class ShapeDeletionAnalysis : TestBase
         AssertMeshDeletion(root);
         
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        Assert.AreEqual(100, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
 
@@ -78,25 +79,27 @@ public class ShapeDeletionAnalysis : TestBase
         
         AvatarProcessor.ProcessAvatar(root);
 
-        var shapeIndex = mesh.sharedMesh.GetBlendShapeIndex(NaNimationFilter.BlendShapeNamePrefix + 0);
-        Assert.AreNotEqual(-1, shapeIndex);
-        
+        // 2a. Assert there are now two bones
+        Assert.AreEqual(2, mesh.bones.Length, $"Expected 2 bones in {prefabPath}, got {mesh.bones.Length}");
+
+        // 2b. Check vertex weights by z coordinate
         var vertices = mesh.sharedMesh.vertices;
-        var deltaPositions = new Vector3[vertices.Length];
-        
-        mesh.sharedMesh.GetBlendShapeFrameVertices(shapeIndex, 0, deltaPositions, null, null);
-        
+        var boneWeights = mesh.sharedMesh.boneWeights;
         for (int i = 0; i < vertices.Length; i++)
         {
             if (vertices[i].z < 0)
             {
-                Assert.IsTrue(float.IsInfinity(deltaPositions[i].x),
-                    $"Vertex {i} (z={vertices[i].z}) should have infinite delta position");
+                Assert.AreEqual(1, boneWeights[i].boneIndex0,
+                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 1");
+                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
+                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 1");
             }
             else if (vertices[i].z > 0)
             {
-                Assert.AreEqual(0, deltaPositions[i].x,
-                    $"Vertex {i} (z={vertices[i].z}) should have zero delta position");
+                Assert.AreEqual(0, boneWeights[i].boneIndex0,
+                    $"Vertex {i} (z={vertices[i].z}) should be weighted to bone 0");
+                Assert.AreEqual(1f, boneWeights[i].weight0, 1e-4,
+                    $"Vertex {i} (z={vertices[i].z}) should have full weight to bone 0");
             }
         }
     }
