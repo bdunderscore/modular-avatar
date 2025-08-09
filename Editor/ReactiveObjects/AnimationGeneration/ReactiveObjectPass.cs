@@ -320,7 +320,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     });
                 }
 
+                var clips = ConstraintVertexHider.GenerateConstrainthider(context, renderer, ref mesh, nanimatedShapes);
+                renderer.sharedMesh = mesh;
+
                 // Handle NaNimated shapes next
+                /*
                 var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, nanimatedShapes, renderer.bones.Length);
                 renderer.sharedMesh = mesh;
 
@@ -352,7 +356,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         var initialWeight = animProp.actionGroups.Any(ag => ag.InitiallyActive) ? 1.0f : 0.0f;
                         renderer.SetBlendShapeWeight(index, initialWeight);
                         renderer.updateWhenOffscreen = false;
-                        
+
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
                         animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
@@ -360,7 +364,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             CustomApplyMotion = clip_retain
                         });
                     }
-                }
+                }*/
             }
         }
 
