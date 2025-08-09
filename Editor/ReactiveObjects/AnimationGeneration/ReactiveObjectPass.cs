@@ -46,6 +46,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _writeDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(fxLayer) ?? true;
             }
+
+            var clips = asc.AnimationIndex;
+            _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
             
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
@@ -104,9 +107,6 @@ namespace nadena.dev.modular_avatar.core.editor
             // We need to track _two_ initial states: the initial state we'll apply at build time (which applies
             // when animations are disabled) and the animation base state. Confusingly, the animation base state
             // should be the state that is currently applied to the object...
-
-            var clips = asc.AnimationIndex;
-            _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
 
             if (_initialStateClip == null) return;
 
@@ -328,6 +328,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var shapeNameToBones = GenerateNaNimatedBones(renderer, nanPlan);
 
+                    List<string> initiallyActive = new();
+                    
                     foreach (var kv in shapeNameToBones)
                     {
                         var shapeName = kv.Key;
@@ -350,6 +352,12 @@ namespace nadena.dev.modular_avatar.core.editor
                             group.CustomApplyMotion = isDeleted ? clip_delete : clip_retain;
                         }
 
+                        var isInitiallyActive = animProp.actionGroups.Any(agk => agk.InitiallyActive);
+                        if (isInitiallyActive)
+                        {
+                            initiallyActive.Add(shapeName);
+                        }
+
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
                         animProp.actionGroups.Insert(0, new ReactionRule(deleteTarget, 0.0f)
@@ -357,6 +365,13 @@ namespace nadena.dev.modular_avatar.core.editor
                             CustomApplyMotion = clip_retain
                         });
                     }
+
+                    NaNimationInitialStateMunger.ApplyInitialStates(
+                        context.AvatarRootTransform,
+                        shapeNameToBones,
+                        initiallyActive,
+                        _initialStateClip
+                    );
                 }
             }
         }
