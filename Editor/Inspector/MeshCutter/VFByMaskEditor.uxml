@@ -1,0 +1,20 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ed:PropertyField name="f-cutter-object" binding-path="m_object" class="hidden"/>
+
+    <ui:VisualElement class="horizontal disable-while-editing-mask-texture">
+        <ed:IntegerField name="f-material-index" binding-path="m_materialIndex"/>
+        <ui:DropdownField name="f-material-index-dropdown" label="reactive_object.delete-mesh-by-mask.material-index" class="ndmf-tr unity-base-field__aligned"/>
+        <ed:ObjectField name="f-material-index-original"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-mask-texture" binding-path="m_maskTexture"
+                          label="reactive_object.delete-mesh-by-mask.mask-texture"
+                          class="ndmf-tr disable-while-editing-mask-texture"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-delete-mode" binding-path="m_deleteMode"
+                          label="reactive_object.delete-mesh-by-mask.delete-mode" class="ndmf-tr"/>
+    </ui:VisualElement>
+</UXML>

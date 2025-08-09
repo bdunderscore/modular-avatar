@@ -1,9 +1,10 @@
 #if MA_MASK_TEXTURE_EDITOR
 using System;
+using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 using MaskTextureEditor = net.nekobako.MaskTextureEditor.Editor;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -13,11 +14,12 @@ namespace nadena.dev.modular_avatar.core.editor
         internal const string MaskTextureEditorToken = "nadena.dev.modular-avatar.delete-mesh-by-mask-editor";
         private static readonly Vector2Int DefaultTextureSize = new(1024, 1024);
 
-        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/DeleteMeshByMask/";
+        private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/MeshCutter/";
         private const string UxmlPath = Root + "MaskTextureEditorOpener.uxml";
-        private const string UssPath = Root + "DeleteMeshByMaskStyles.uss";
+        private const string UssPath = Root + "MeshCutterStyles.uss";
 
-        public MaskTextureEditorOpener(SerializedProperty property, PropertyField f_object, IntegerField f_material_index, PropertyField f_mask_texture,
+        public MaskTextureEditorOpener(SerializedObject serializedObj, PropertyField f_object,
+            IntegerField f_material_index, PropertyField f_mask_texture,
             Action<bool> onChangeEditing)
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath).CloneTree();
@@ -29,10 +31,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var b_create_mask_texture = uxml.Q<Button>("b-create-mask-texture");
             var t_edit_mask_texture = uxml.Q<Toggle>("t-edit-mask-texture");
 
-            var objectProperty = property.FindPropertyRelative(nameof(DeleteMeshByMaskObject.Object));
-            var materialIndexProperty = property.FindPropertyRelative(nameof(DeleteMeshByMaskObject.MaterialIndex));
-            var maskTextureProperty = property.FindPropertyRelative(nameof(DeleteMeshByMaskObject.MaskTexture));
-            var deleteModeProperty = property.FindPropertyRelative(nameof(DeleteMeshByMaskObject.DeleteMode));
+            var materialIndexProperty = serializedObj.FindProperty(nameof(VertexFilterByMaskComponent.m_materialIndex));
+            var maskTextureProperty = serializedObj.FindProperty(nameof(VertexFilterByMaskComponent.m_maskTexture));
+            var deleteModeProperty = serializedObj.FindProperty(nameof(VertexFilterByMaskComponent.m_deleteMode));
 
             f_object.RegisterValueChangeCallback(_ => UpdateButtonAndToggle());
             f_material_index.RegisterValueChangedCallback(_ => UpdateButtonAndToggle());
@@ -40,18 +41,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             b_create_mask_texture.clicked += () =>
             {
-                property.serializedObject.Update();
+                serializedObj.Update();
 
-                var obj = AvatarObjectReference.Get(objectProperty);
-                if (obj == null || !obj.TryGetComponent<Renderer>(out var renderer)) return;
+                if (!TryGetRenderer(serializedObj, out var renderer)) return;
 
                 var slot = materialIndexProperty.intValue;
                 if (slot >= renderer.sharedMaterials.Length) return;
 
-                var texture = (DeleteMeshByMaskMode)deleteModeProperty.intValue switch
+                var texture = (ByMaskMode)deleteModeProperty.intValue switch
                 {
-                    DeleteMeshByMaskMode.DeleteBlack => MaskTextureEditor.Utility.CreateTexture(DefaultTextureSize, Color.white),
-                    DeleteMeshByMaskMode.DeleteWhite => MaskTextureEditor.Utility.CreateTexture(DefaultTextureSize, Color.black),
+                    ByMaskMode.DeleteBlack => MaskTextureEditor.Utility.CreateTexture(DefaultTextureSize, Color.white),
+                    ByMaskMode.DeleteWhite => MaskTextureEditor.Utility.CreateTexture(DefaultTextureSize, Color.black),
                     _ => MaskTextureEditor.Utility.CreateTexture(DefaultTextureSize, Color.clear),
                 };
                 if (texture == null) return;
@@ -65,10 +65,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             t_edit_mask_texture.RegisterValueChangedCallback(evt =>
             {
-                property.serializedObject.Update();
+                serializedObj.Update();
 
-                var obj = AvatarObjectReference.Get(objectProperty);
-                if (obj == null || !obj.TryGetComponent<Renderer>(out var renderer)) return;
+                if (!TryGetRenderer(serializedObj, out var renderer)) return;
 
                 var slot = materialIndexProperty.intValue;
                 if (slot >= renderer.sharedMaterials.Length) return;
@@ -103,10 +102,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void UpdateButtonAndToggle()
             {
-                property.serializedObject.Update();
+                serializedObj.Update();
 
-                var obj = AvatarObjectReference.Get(objectProperty);
-                var renderer = obj == null ? null : obj.GetComponent<Renderer>();
+                TryGetRenderer(serializedObj, out var renderer);
+                
                 var slot = materialIndexProperty.intValue;
                 var texture = maskTextureProperty.objectReferenceValue as Texture2D;
 
@@ -122,6 +121,25 @@ namespace nadena.dev.modular_avatar.core.editor
                 t_edit_mask_texture.SetValueWithoutNotify(editing);
                 onChangeEditing(editing);
             }
+        }
+
+        private static bool TryGetRenderer(SerializedObject property, out Renderer renderer)
+        {
+            var singleTarget = (Component)property.targetObject;
+            if (singleTarget == null || !singleTarget.TryGetComponent<ModularAvatarMeshCutter>(out var cutter))
+            {
+                renderer = null;
+                return false;
+            }
+
+            var obj = cutter.Object.Get(cutter);
+            if (obj == null || !obj.TryGetComponent(out renderer))
+            {
+                renderer = null;
+                return false;
+            }
+
+            return true;
         }
     }
 }
