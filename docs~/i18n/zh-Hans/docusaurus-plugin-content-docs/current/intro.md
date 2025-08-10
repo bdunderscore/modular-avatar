@@ -47,7 +47,8 @@ Modular Avatar 的功能以单独的组件形式提供，你可以根据需要�
 </TabItem>
 
 <TabItem value="VCC" label="VRChat Creator Companion">
-如果你想使用 VRChat Creator Companion，请**[点击此处安装 VCC](https://vrchat.com/home/download)**。
+
+如果你想使用 VRChat Creator Companion，请 **[点击此处安装 VCC](https://vrchat.com/home/download)**
 
 安装 VCC 后，点击此处：
 * **[将 Modular Avatar 添加到 VCC](vcc://vpm/addRepo?url=https://vpm.nadena.dev/vpm.json)**

@@ -8,7 +8,7 @@ sidebar_position: 7
 
 你可以通过右键点击你的虚拟形象，然后选择 `Modular Avatar -> Manual bake avatar` 来触发手动处理。Modular Avatar 会创建一个已应用所有转换的虚拟形象副本。
 
-
+![Manual Bake Avatar option](manual-bake-avatar.png)
 
 ## 生成的资产
 
@@ -16,7 +16,7 @@ Modular Avatar 会根据你附加到虚拟形象上的组件生成一些资产�
 最初，所有资产都打包在一个文件中；这是为了避免 Unity Bug 并缩短处理时间。
 不过，你可以在项目视图中选择该文件，然后点击检查器面板上的 `Unpack` 来解包。
 
-
+![Unpack button](manual-bake-unpack.png)
 
 然后，Modular Avatar 会将生成的资产解包为单独的文件。
 

@@ -2,6 +2,7 @@
 sidebar_position: 5
 sidebar_label: 关于分发资产
 ---
+import ReactPlayer from 'react-player'
 
 # 分发预制件
 
@@ -21,15 +22,15 @@ Modular Avatar 的设计旨在帮助资产创作者，允许他们分发只需�
 
 如果你不熟悉嵌套预制件，可以按照以下步骤操作：
 
-1.  像平常一样创建你的衣装预制件。
-2.  在预制件模式下打开它（在项目窗口中双击）。
-    
-3.  将预制件的根对象拖放到项目窗口中。当出现确认窗口时，点击 **Create Base**。给新创建的文件起一个易于识别的名称（例如，“衣装_无MA”）。
-    
+1. 像平常一样创建你的衣装预制件。
+2. 在预制件模式下打开它（在项目窗口中双击）。
+   ![Prefab mode](prefab-mode.png)
+3. 将预制件的根对象拖放到项目窗口中。当出现确认窗口时，点击 **Create Base**。给新创建的文件起一个易于识别的名称（例如，“衣装_无MA”）。
+   <ReactPlayer playing muted loop playsinline url='/img/creating-base.mp4' />
 
 完成后，你可以在原始预制件上设置 Modular Avatar 组件，并将其他设置应用到新创建的“基础预制件”上。使用 Prefab Overrides 菜单，可以轻松将你在场景中进行的调整分配到不同的预制件上。
 
-
+![Apply as override](apply-as-override.png)
 
 ## 动画资产请使用内部参数
 

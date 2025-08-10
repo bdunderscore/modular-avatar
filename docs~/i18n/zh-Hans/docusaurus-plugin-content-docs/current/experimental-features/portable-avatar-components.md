@@ -3,9 +3,9 @@
 NDMF 提供了一些组件，可用于创建不依赖于特定平台 SDK（例如 VRCSDK）进行构建的虚拟形象。
 
 一个最小化的通用虚拟形象设置包括以下三个组件：
--   **NDMFAvatarRoot**: 这是所有虚拟形象必需的组件。将其放置在虚拟形象的根部。
--   **NDMF Viewpoint**: 此组件用于设置虚拟形象的视点。在你的视点位置创建一个空的游戏对象，并添加此组件。视点对象可以位于层级结构中的任何位置，但建议将其放置在虚拟形象的根部。
--   **NDMF Blendshape Visemes**: 这是使用 Blendshape 口型同步的虚拟形象必需的组件。用它来配置面部网格和口型同步的 Blendshape。
+- **NDMFAvatarRoot**: 这是所有虚拟形象必需的组件。将其放置在虚拟形象的根部。
+- **NDMF Viewpoint**: 此组件用于设置虚拟形象的视点。在你的视点位置创建一个空的游戏对象，并添加此组件。视点对象可以位于层级结构中的任何位置，但建议将其放置在虚拟形象的根部。
+- **NDMF Blendshape Visemes**: 这是使用 Blendshape 口型同步的虚拟形象必需的组件。用它来配置面部网格和口型同步的 Blendshape。
 
 ## 便携式动态骨骼（Portable Dynamic Bones） {#portable-dynamic-bones}
 

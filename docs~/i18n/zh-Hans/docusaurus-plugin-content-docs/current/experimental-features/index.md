@@ -13,13 +13,13 @@ Modular Avatar（以及 NDMF）包含了一些默认禁用的实验性功能。
 
 ## 启用实验性功能
 
-在启用实验性功能之前，请确保你安装了最新（beta）版本的 Modular Avatar 和 NDMF。详细信息请参阅 **安装说明**。
+在启用实验性功能之前，请确保你安装了最新（beta）版本的 Modular Avatar 和 NDMF。详细信息请参阅 [安装说明](intro#betas)。
 
 要启用实验性功能，请在菜单栏中打开“Tools” -> “NDM Framework” -> “Experimental Features”。这将打开一个窗口，你可以在其中启用或禁用实验性功能。
 
-
+![Experimental Features](activate-experimental_features.png)
 
 ## 实验性功能列表
 
--   [Resonite 支持](./resonite-support.md)
--   [通用型虚拟形象组件](./portable-avatar-components.md)
+- [Resonite 支持](./resonite-support.md)
+- [通用型虚拟形象组件](./portable-avatar-components.md)

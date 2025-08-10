@@ -8,8 +8,8 @@ Modular Avatar 提供了对 Resonite 虚拟形象构建的实验性支持。
 
 构建 Resonite 虚拟形象需要安装 VCC 包 `Modular Avatar - Resonite support`。要安装此包：
 
-1.  请参阅 [安装](intro.md) 指南，添加预发布版本仓库。
-2.  然后，打开项目的“管理”窗口，点击 `Modular Avatar - Resonite support` 旁边的 `+`，然后点击“应用”。
+1. 请参阅 [安装](intro.md) 指南，添加预发布版本仓库。
+2. 然后，打开项目的“管理”窗口，点击 `Modular Avatar - Resonite support` 旁边的 `+`，然后点击“应用”。
 
 安装后，请**启用实验性功能支持**。
 
@@ -17,16 +17,16 @@ Modular Avatar 提供了对 Resonite 虚拟形象构建的实验性支持。
 
 按照以下步骤为 Resonite 构建虚拟形象：
 
-1.  打开 NDMF 控制台（Tools -> NDM Framework -> NDMF Console）。
-2.  在窗口顶部选择你的虚拟形象。
-3.  在窗口底部的“Avatar platform”下选择“Resonite”。
-4.  点击 **Build**。
+1. 打开 NDMF 控制台（Tools -> NDM Framework -> NDMF Console）。
+2. 在窗口顶部选择你的虚拟形象。
+3. 在窗口底部的“Avatar platform”下选择“Resonite”。
+4. 点击 **Build**。
 
-
+![Resonite Build Howto](build-resonite_support.png)
 
 当构建成功完成时，NDMF Console 的底部会显示“Build finished!”的消息。
 
-
+![Resonite Build Success](result-resonite_support.png)
 
 :::tip
 
@@ -36,8 +36,8 @@ Modular Avatar 提供了对 Resonite 虚拟形象构建的实验性支持。
 
 构建完成后，将其安装到 Resonite 中。有两种安装方法：
 
-1.  点击“Copy to Clipboard”，然后从 Resonite 的仪表板菜单中点击“从剪贴板粘贴内容”。
-2.  点击“Save as...”，将虚拟形象文件保存为 Resonite Package，然后将其拖放到 Resonite 中。
+1. 点击“Copy to Clipboard”，然后从 Resonite 的仪表板菜单中点击“从剪贴板粘贴内容”。
+2. 点击“Save as...”，将虚拟形象文件保存为 Resonite Package，然后将其拖放到 Resonite 中。
 
 ## 支持的功能
 
@@ -85,7 +85,7 @@ Resonite 构建过程会在构建时自动复制虚拟形象的某些特定功�
 
 Modular Avatar 会检测使用 **[便携式动态骨骼](portable-avatar-components.md#portable-dynamic-bones)** 或 VRChat 的 **PhysBones** 创建的动态骨骼，并尝试将其转换为 Resonite 的动态骨骼，包括所有碰撞体。
 
-由于 Resonite 有自己的动态骨骼系统，大多数配置选项不会被转换。但排除列表（包括 Physbone Blocker）、碰撞体、碰撞半径和可抓取性会被转换。
+由于 Resonite 有自己的动态骨骼系统，大多数配置选项不会被转换。但排除列表（包括 **Physbone Blocker**）、碰撞体、碰撞半径和可抓取性会被转换。
 
 Modular Avatar 会根据骨骼名称将动态骨骼分组到一些命名好的“模板”中。你可以在便携式动态骨骼组件中指定组名来覆盖模板名称。
 或者，在 Resonite 中，你可以通过克隆 `Avatar Settings` -> `Dynamic Bone Settings` 插槽下的对象，将其名称设置为新的模板名称，然后更改定义动态骨骼的插槽下的 `Template Name` 插槽名称来创建新模板。
