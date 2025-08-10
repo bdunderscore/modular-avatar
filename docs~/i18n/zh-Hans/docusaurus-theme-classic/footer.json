@@ -1,0 +1,14 @@
+{
+  "link.item.label.Documentation": {
+    "message": "説明書",
+    "description": "The label of footer link with label=Documentation linking to /docs/intro"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/bdunderscore/modular-avatar"
+  },
+  "copyright": {
+    "message": "Copyright © 2022 bd_. Built with Docusaurus.",
+    "description": "The footer copyright"
+  }
+}
