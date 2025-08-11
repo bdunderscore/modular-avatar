@@ -43,7 +43,7 @@ async function handleEvent(event) {
     const path = url.pathname;
     const strip_match = STRIP_SUFFIX_RE.exec(path);
     
-if (url.searchParams.get("lang") === 'auto') {
+    if (url.searchParams.get("lang") === 'auto') {
       const languages = parseAcceptLanguage(event.request.headers.get('Accept-Language'));
       
       let resolvedLanguage = 'en';
