@@ -46,6 +46,7 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 - [#1596] Added `MA Rename Collision Tags` component
   - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
 - [#1677] Added Simplified Chinese documentation translation
+
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
 - [#1589] A `KeyNotFoundException` could occur when the target of a Merge Animator or Merge Motion component was null

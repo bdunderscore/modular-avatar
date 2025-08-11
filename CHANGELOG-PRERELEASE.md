@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1596] Added `MA Rename Collision Tags` component
   - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
+- [#1677] Added Simplified Chinese documentation translation
 
 ### Fixed
 - [#1634] Fixed compile errors when VRCSDK is not present in the project
