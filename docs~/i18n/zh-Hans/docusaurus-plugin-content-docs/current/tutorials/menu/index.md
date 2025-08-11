@@ -7,15 +7,15 @@ sidebar_label: 编辑菜单
 
 Modular Avatar 包含一个基于对象的菜单编辑系统，它让你可以在 Unity 检查器中轻松编辑菜单，甚至创建简单的开关。
 
-本教程将向你展示如何使用此系统编辑你虚拟形象的现有菜单，以及如何将其包含在你的资产中。
+本教程将向你展示如何使用此系统编辑你Avatar的现有菜单，以及如何将其包含在你的资产中。
 
-## 转换现有虚拟形象的菜单
+## 转换现有Avatar的菜单
 
-开始使用菜单编辑器最简单的方法是转换你现有虚拟形象上的菜单。右键点击你的虚拟形象，然后选择 `[Modular Avatar] Extract menu`。
+开始使用菜单编辑器最简单的方法是转换你现有Avatar上的菜单。右键点击你的Avatar，然后选择 `[Modular Avatar] Extract menu`。
 
 ![Extracting a menu](extract-menu.png)
 
-当你这样做时，一个新的 `Avatar Menu` 对象将被添加到你的虚拟形象中，其中包含了你虚拟形象菜单的顶层。
+当你这样做时，一个新的 `Avatar Menu` 对象将被添加到你的Avatar中，其中包含了你Avatar菜单的顶层。
 
 ![Top-level menu](menu-toplevel.png)
 
@@ -51,5 +51,5 @@ Modular Avatar 包含一个基于对象的菜单编辑系统，它让你可以�
 
 你也可以在可重用资产上使用新的菜单项控件。例如，可以查看 Fingerpen 或 SimpleToggle 资产。
 
-简单来说，如果你只想添加一个单独的控件或子菜单，请将 **MA Menu Installer** 和 **MA Menu Item** 添加到同一个游戏对象上。菜单安装程序将自动将菜单项安装到目标虚拟形象上。
-如果你想添加多个控件而不想将它们分组到子菜单中，你可以添加 **MA Menu Installer** 和 **MA Menu Group**。菜单组允许菜单安装程序安装多个项目而不将它们添加到子菜单中。这是“提取菜单”系统如何将基础虚拟形象菜单重新创建为 Unity 对象的方式。
+简单来说，如果你只想添加一个单独的控件或子菜单，请将 **MA Menu Installer** 和 **MA Menu Item** 添加到同一个游戏对象上。菜单安装程序将自动将菜单项安装到目标Avatar上。
+如果你想添加多个控件而不想将它们分组到子菜单中，你可以添加 **MA Menu Installer** 和 **MA Menu Group**。菜单组允许菜单安装程序安装多个项目而不将它们添加到子菜单中。这是“提取菜单”系统如何将基础Avatar菜单重新创建为 Unity 对象的方式。

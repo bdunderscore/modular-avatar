@@ -8,11 +8,11 @@ Modular Avatar 的Logo旨在向用户表明产品可以以一致且简便的方�
 
 ## 适用产品
 
-- Logo可用于宣传那些包含 Modular Avatar 预制件的产品，如虚拟形象或衣装。
+- Logo可用于宣传那些包含 Modular Avatar 预制件的产品，如Avatar或衣装。
   - 但前提是，相关预制件必须包含已配置好的 Modular Avatar 组件。
   - 你也可以包含不使用 Modular Avatar 的替代预制件，但 Modular Avatar 必须是安装你的资产的主要支持方式。
 - Logo也可用于宣传使用 [NDM Framework](https://github.com/bdunderscore/ndmf) 并与 Modular Avatar 兼容（或将其作为依赖项）的非破坏性编辑器扩展。
-  - 如果用于编辑器扩展，你的扩展不得对原始虚拟形象进行破坏性更改。这意味着，卸载你的资产必须通过删除虚拟形象中的预制件对象即可完成。
+  - 如果用于编辑器扩展，你的扩展不得对原始Avatar进行破坏性更改。这意味着，卸载你的资产必须通过删除Avatar中的预制件对象即可完成。
   - 你的资产不得要求用户在安装过程中或更改设置后，手动触发任何处理或生成操作。
   - 你的资产不得在任何自己添加的 UI 中使用 Modular Avatar 的Logo（这有助于明确哪些部分属于 Modular Avatar 本身）。
 - Logo的展示方式不应让 Modular Avatar 看起来像是批准或认可了你的产品。

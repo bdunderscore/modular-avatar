@@ -10,11 +10,11 @@ sidebar_position: 3
 
 ![フード付きのあのんちゃん](0-initial.png)
 
-首先，右键点击你的虚拟形象，然后选择 `Modular Avatar -> Create Toggle`。
+首先，右键点击你的Avatar，然后选择 `Modular Avatar -> Create Toggle`。
 
 ![Create Toggle](1-menu.png)
 
-完成后，一个新的游戏对象将作为你的虚拟形象的子对象被创建，其中包含 `Menu Item`、`Menu Installer` 和 `Object Toggle` 组件。
+完成后，一个新的游戏对象将作为你的Avatar的子对象被创建，其中包含 `Menu Item`、`Menu Installer` 和 `Object Toggle` 组件。
 
 ![コンポーネント類の初期状態](2-created.png)
 

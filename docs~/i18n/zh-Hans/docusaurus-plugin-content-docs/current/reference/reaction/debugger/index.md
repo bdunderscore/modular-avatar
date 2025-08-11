@@ -6,7 +6,7 @@ sidebar_position: 900
 
 ![Reaction Debugger](debugger-main-0.png)
 
-**Reaction Debugger** 允许你虚拟地更改场景中菜单项和游戏对象的状态，以便在不手动与虚拟形象互动的情况下测试你的反应式组件的行为。
+**Reaction Debugger** 允许你虚拟地更改场景中菜单项和游戏对象的状态，以便在不手动与Avatar互动的情况下测试你的反应式组件的行为。
 
 要打开Reaction Debugger，请右键点击一个游戏对象，然后选择 `Modular Avatar -> Show Reaction Debugger`。
 或者，你也可以点击一个反应式组件上的 `Open reaction debugger` 按钮来打开它。

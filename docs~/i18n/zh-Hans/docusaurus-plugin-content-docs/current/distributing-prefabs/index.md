@@ -1,6 +1,6 @@
 ﻿---
 sidebar_position: 5
-sidebar_label: 关于分发资产
+sidebar_label: 关于分发预制件
 ---
 import ReactPlayer from 'react-player'
 

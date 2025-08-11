@@ -5,23 +5,23 @@ sidebar_label: 手动创建动画控制器
 
 # 开关对象（使用手动动画）
 
-在本教程中，我们将创建一个简单的预制件，让一个立方体出现和消失。我们还会将它附加到虚拟形象的手上，以便于观察。
+在本教程中，我们将创建一个简单的预制件，让一个立方体出现和消失。我们还会将它附加到Avatar的手上，以便于观察。
 
 ## 第 1 步：创建我们的对象
 
-我们先创建要显示的游戏对象。首先在场景中放入一个测试虚拟形象，并添加一个空的 **Game Object** 作为预制件的根（我们将其命名为 `ToggleDemo`）。在这个游戏对象内部，创建一个 `HandRef` 对象，我们将用它来追踪手，并将要显示的立方体放入该对象内部。
+我们先创建要显示的游戏对象。首先在场景中放入一个测试Avatar，并添加一个空的 **Game Object** 作为预制件的根（我们将其命名为 `ToggleDemo`）。在这个游戏对象内部，创建一个 `HandRef` 对象，我们将用它来追踪手，并将要显示的立方体放入该对象内部。
 
 ![Initial object setup](setup1.png)
 
 ### 将立方体附加到手上
 
-接下来，让 `HandRef` 追踪虚拟形象的右手。选择 `HandRef` 对象，然后在检查器中点击 `Add Component`。
+接下来，让 `HandRef` 追踪Avatar的右手。选择 `HandRef` 对象，然后在检查器中点击 `Add Component`。
 添加一个 **`MA Bone Proxy`**。
 
 ![Adding a bone proxy](setup2.png)
 
-将虚拟形象的右手骨骼拖放到“目标”字段中。将“附件模式”设置为“作为子对象；置于根部”。
-立方体将立即吸附到虚拟形象的手上。调整它的缩放和位置，直到它不那么碍事。别忘了也要移除立方体上的 **Box Collider**！
+将Avatar的右手骨骼拖放到“目标”字段中。将“附件模式”设置为“作为子对象；置于根部”。
+立方体将立即吸附到Avatar的手上。调整它的缩放和位置，直到它不那么碍事。别忘了也要移除立方体上的 **Box Collider**！
 
 ![Adding a bone proxy](setup3_ja.png)
 
@@ -43,7 +43,7 @@ sidebar_label: 手动创建动画控制器
 ## 第 3 步：Merge Animator 和录制我们的动画
 
 回到你的顶层游戏对象，添加一个 **`MA Merge Animator`** 组件。
-将“要合并的动画控制器”设置为你的新动画控制器。勾选“删除附加的动画控制器”和“匹配虚拟形象 Write Defaults”复选框。
+将“要合并的动画控制器”设置为你的新动画控制器。勾选“删除附加的动画控制器”和“匹配Avatar Write Defaults”复选框。
 然后，**也**添加一个 **Animator** 组件，并将其指向你的新动画控制器。
 
 ![Adding merge animator](merge-animator-ja.png)
@@ -81,7 +81,7 @@ sidebar_label: 手动创建动画控制器
 
 :::tip
 
-如果你勾选了“内部”复选框，Modular Avatar 将确保你的 `Cube` 参数不会与虚拟形象上使用相同参数名称的任何其他东西冲突。
+如果你勾选了“内部”复选框，Modular Avatar 将确保你的 `Cube` 参数不会与Avatar上使用相同参数名称的任何其他东西冲突。
 如果你不勾选，最终用户将能够自由更改参数名称，也可以选择让多个预制件使用相同的参数，从而创建联动效果。
 
 :::
@@ -92,7 +92,7 @@ sidebar_label: 手动创建动画控制器
 
 ![Creating an expressions menu asset](exp-menu-create.png)
 
-向其添加一个控件；将名称设置为 `Cube`，类型设置为 `Toggle`，并在参数字段中，在文本框中输入 `Cube`。请注意，因为我们还没有实际构建虚拟形象，所以参数还没有在下拉列表中。没关系！
+向其添加一个控件；将名称设置为 `Cube`，类型设置为 `Toggle`，并在参数字段中，在文本框中输入 `Cube`。请注意，因为我们还没有实际构建Avatar，所以参数还没有在下拉列表中。没关系！
 
 ![Expressions menu setup](exp-menu-setup.png)
 
@@ -100,7 +100,7 @@ sidebar_label: 手动创建动画控制器
 
 ![Menu installer](menu-installer-en.png)
 
-设置结束！如果你构建并上传虚拟形象，你的虚拟形象菜单中应该会有一个开关，可以召唤一个立方体到你的右手上。
+设置结束！如果你构建并上传Avatar，你的Avatar菜单中应该会有一个开关，可以召唤一个立方体到你的右手上。
 
 ## 结尾：预制件转换和组件排序
 
@@ -109,4 +109,4 @@ sidebar_label: 手动创建动画控制器
 
 ![Component ordering](component-ordering-ja.png)
 
-一旦你满意了，将 `ToggleDemo` 拖到你的项目面板中以创建一个预制件。现在，你可以将它放到任何其他虚拟形象上，并拥有一个即时可用的开关立方体！
+一旦你满意了，将 `ToggleDemo` 拖到你的项目面板中以创建一个预制件。现在，你可以将它放到任何其他Avatar上，并拥有一个即时可用的开关立方体！

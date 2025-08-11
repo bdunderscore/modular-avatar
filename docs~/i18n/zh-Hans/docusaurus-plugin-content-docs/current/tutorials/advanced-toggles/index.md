@@ -4,10 +4,10 @@ sidebar_position: 4
 
 # 进阶开关
 
-在开始之前，请确保你已经阅读了**[简单的对象开关教程](/docs/tutorials/object_toggle/)**。
+在开始之前，请确保你已经阅读了 **[简单的对象开关教程](/docs/tutorials/object_toggle/)**。
 本教程将在此基础上，向你展示如何在开关对象时也更新 Blendshape。
 
-首先，了解一些背景知识。许多虚拟形象都带有“缩减形状键”（shrink blendshapes），它们用于隐藏虚拟形象的一部分，以防止其穿透衣服。这些形状键通常与开关功能结合使用，用于隐藏和显示衣物。
+首先，了解一些背景知识。许多Avatar都带有“缩减形状键”（shrink blendshapes），它们用于隐藏Avatar的一部分，以防止其穿透衣服。这些形状键通常与开关功能结合使用，用于隐藏和显示衣物。
 
 使用 Modular Avatar 的 [`Shape Changer`](/docs/reference/reaction/shape-changer/) 组件，你可以轻松地在开关对象时更新这些形状键。让我们以 Anon-chan 的袜子和鞋子为例。
 

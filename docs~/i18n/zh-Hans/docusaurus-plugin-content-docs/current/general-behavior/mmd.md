@@ -6,7 +6,7 @@ Modular Avatar 会自动确保在这种情况下，**原本**位于第 2 和第 
 
 通过 **Merge Animator** 添加的图层（即使在替换模式下）不会受到这种 MMD 世界行为的影响。如有需要，会添加填充图层来保护它们。如果你想让某个图层也受 MMD 世界行为的影响，可以添加 **`MA MMD Layer Control`** 这个**状态机行为**到该图层上。
 
-此外，如果你想完全禁用此功能，可以给你的虚拟形象附加 **[VRChat Settings](../reference/vrchat-settings)** 组件并禁用相关设置。
+此外，如果你想完全禁用此功能，可以给你的Avatar附加 **[VRChat Settings](../reference/vrchat-settings)** 组件并禁用相关设置。
 
 ---
 

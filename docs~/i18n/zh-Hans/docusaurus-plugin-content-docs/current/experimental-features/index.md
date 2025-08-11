@@ -7,7 +7,7 @@ Modular Avatar（以及 NDMF）包含了一些默认禁用的实验性功能。
 :::warning
 
 实验性功能可能会以不向后兼容的方式进行更改。
-这意味着如果你使用实验性功能，将来可能需要更新你的虚拟形象或资产才能使其继续工作。
+这意味着如果你使用实验性功能，将来可能需要更新你的Avatar或资产才能使其继续工作。
 
 :::
 
@@ -22,4 +22,4 @@ Modular Avatar（以及 NDMF）包含了一些默认禁用的实验性功能。
 ## 实验性功能列表
 
 - [Resonite 支持](./resonite-support.md)
-- [通用型虚拟形象组件](./portable-avatar-components.md)
+- [通用型Avatar组件](./portable-avatar-components.md)

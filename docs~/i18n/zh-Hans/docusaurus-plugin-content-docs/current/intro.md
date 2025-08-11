@@ -7,10 +7,10 @@ import TabItem from '@theme/TabItem';
 
 # Modular Avatar
 
-Modular Avatar 是一个用于模块化你的虚拟形象和分发虚拟形象组件的**非破坏性**工具套件。
-使用 Modular Avatar，为你的虚拟形象添加新的服装或小工具就像拖放一样简单！
+Modular Avatar 是一个用于模块化你的Avatar和分发Avatar组件的**非破坏性**工具套件。
+使用 Modular Avatar，为你的Avatar添加新的服装或小工具就像拖放一样简单！
 
-Modular Avatar 的功能以单独的组件形式提供，你可以根据需要添加。你可以选择只使用你想要的功能。它可以自动将衣装合并到你的虚拟形象上，从多个组件构建动画控制器等等。
+Modular Avatar 的功能以单独的组件形式提供，你可以根据需要添加。你可以选择只使用你想要的功能。它可以自动将衣装合并到你的Avatar上，从多个组件构建动画控制器等等。
 
 ## 安装
 

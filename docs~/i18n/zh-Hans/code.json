@@ -279,7 +279,7 @@
     "message": "Modular Avatar"
   },
   "Drag-and-Drop Avatar Assembly": {
-    "message": "拖放式虚拟形象编辑"
+    "message": "拖放式Avatar编辑"
   },
   "Drag and Drop assembly": {
     "message": "拖放式编辑"
@@ -291,10 +291,10 @@
     "message": "非常适合预制件"
   },
   "Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall' when editing your avatar!": {
-    "message": "Modular Avatar 会在构建时自动合并组件。编辑虚拟形象时，再也不用担心忘记点击“安装”或“卸载”了！"
+    "message": "Modular Avatar 会在构建时自动合并组件。编辑Avatar时，再也不用担心忘记点击“安装”或“卸载”了！"
   },
   "Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit dropdown tidy!": {
-    "message": "将虚拟形象的 FX 动画控制器拆分为多个子动画控制器，并在运行时合并。让动画编辑下拉菜单保持整洁！"
+    "message": "将Avatar的 FX 动画控制器拆分为多个子动画控制器，并在运行时合并。让动画编辑下拉菜单保持整洁！"
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
     "message": "将 Modular Avatar 组件嵌入到你的预制件中，让安装变得轻而易举！"

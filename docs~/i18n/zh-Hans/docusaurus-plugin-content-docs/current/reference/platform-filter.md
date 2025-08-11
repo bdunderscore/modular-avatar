@@ -1,6 +1,6 @@
 # Platform Filter
 
-**Platform Filter** 组件允许你根据目标 VRSNS 平台（如 VRChat, Resonite 等）来包含或排除你的虚拟形象中的特定游戏对象。
+**Platform Filter** 组件允许你根据目标 VRSNS 平台（如 VRChat, Resonite 等）来包含或排除你的Avatar中的特定游戏对象。
 
 ## 我应该何时使用它？
 
