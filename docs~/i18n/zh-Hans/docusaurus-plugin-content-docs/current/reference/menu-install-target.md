@@ -3,7 +3,7 @@
 **Menu Install Target** 组件用于支持 [MA Menu Installer](menu-installer.md) 组件上的“选择菜单”按钮。
 它从 **MA Menu Installer** 组件中“拉取”菜单，并根据其所附加的游戏对象的位置进行安装。
 
-
+![Menu Install Target](menu-install-target.png)
 
 ## 我应该何时使用它？
 

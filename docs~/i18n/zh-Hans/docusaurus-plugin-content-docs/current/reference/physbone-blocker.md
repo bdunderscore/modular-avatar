@@ -1,6 +1,6 @@
 # PhysBone Blocker
 
-
+![PhysBone Blocker](physbone-blocker.png)
 
 **PhysBone Blocker** 阻止以父对象为根的物理骨骼影响子对象。
 它通过将此子对象添加到任何影响父对象的 PhysBone 的**忽略列表**中来实现。

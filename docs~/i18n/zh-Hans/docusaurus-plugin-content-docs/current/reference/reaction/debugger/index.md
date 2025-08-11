@@ -4,7 +4,7 @@ sidebar_position: 900
 
 # Reaction Debugger
 
-
+![Reaction Debugger](debugger-main-0.png)
 
 **Reaction Debugger** 允许你虚拟地更改场景中菜单项和游戏对象的状态，以便在不手动与虚拟形象互动的情况下测试你的反应式组件的行为。
 
@@ -15,7 +15,7 @@ sidebar_position: 900
 
 ## 对象状态部分
 
-
+![Top section of the debugger](top-section.png)
 
 上半部分允许你通过更改 `Inspecting object` 字段来选择要检查的对象。默认情况下，它会显示当前选中的对象，但你可以更改该字段以检查其他对象。
 与检查器窗口一样，你可以锁定视图，以避免在你选择场景中的不同对象时它发生变化。
@@ -28,6 +28,6 @@ sidebar_position: 900
 
 ## 反应部分
 
-
+![Bottom section of the debugger](bottom-section.png)
 
 反应部分显示了所有影响此对象的“传入”反应。它还显示了触发反应需要满足的条件，并允许你轻松覆盖这些条件。

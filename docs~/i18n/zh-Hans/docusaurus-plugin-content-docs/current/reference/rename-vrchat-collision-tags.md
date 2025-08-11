@@ -2,7 +2,7 @@
 
 `MA Rename Collision Tags` 组件允许你重命名 VRChat Contact 系统使用的碰撞标签，以避免与其他组件或小工具发生名称冲突。
 
-
+![Rename VRChat Collision Tags UI](rename-vrchat-collision-tags.png)
 
 ## 我应该何时使用它？
 

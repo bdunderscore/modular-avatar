@@ -1,6 +1,6 @@
 ﻿# Shape Changer
 
-
+![Shape Changer](shape-changer.png)
 
 **Shape Changer** 组件在启用时，会修改虚拟形象上另一个渲染器的形状键（Blend Shape）。
 

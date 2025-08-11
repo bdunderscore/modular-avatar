@@ -261,10 +261,10 @@
     "message": "VPM 安装"
   },
   "You should have seen a prompt to add Modular Avatar to VCC. If you didn't, upgrade your copy of the VRChat Creator Companion and try again. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown below.": {
-    "message": "应该会看到一个提示，让您将 Modular Avatar 添加到 VCC。如果没有，请升级您的 VRChat Creator Companion，然后重试。添加仓库后，您可以点击下面的按钮，在项目中安装 Modular Avatar。"
+    "message": "应该会看到一个将 Modular Avatar 添加到 VCC 的提示。如果没有，请升级你的 VRChat Creator Companion 后重试。添加仓库后，点击下方按钮即可在项目中安装 Modular Avatar。"
   },
   "Something went wrong? Click here.": {
-    "message": "出了问题？点击此处。"
+    "message": "遇到问题？请点击这里。"
   },
   "Click the plus button to install": {
     "message": "点击加号按钮进行安装"
@@ -273,16 +273,16 @@
     "message": "关闭"
   },
   "Download (using VCC)": {
-    "message": "下载（通过 VCC）"
+    "message": "下载 (使用 VCC)"
   },
   "Modular Avatar": {
     "message": "Modular Avatar"
   },
   "Drag-and-Drop Avatar Assembly": {
-    "message": "拖放式虚拟形象组装"
+    "message": "拖放式虚拟形象编辑"
   },
   "Drag and Drop assembly": {
-    "message": "拖放式组装"
+    "message": "拖放式编辑"
   },
   "Organize your animators": {
     "message": "整理你的动画控制器"
@@ -291,10 +291,10 @@
     "message": "非常适合预制件"
   },
   "Modular avatar merges components at build time. Never again will you forget to click 'install' or 'uninstall' when editing your avatar!": {
-    "message": "Modular Avatar 在构建时合并组件。编辑你的虚拟形象时，再也不会忘记点击“安装”或“卸载”了！"
+    "message": "Modular Avatar 会在构建时自动合并组件。编辑虚拟形象时，再也不用担心忘记点击“安装”或“卸载”了！"
   },
   "Split your avatar's FX animator into multiple sub-animators, and merge at runtime. Keep the animation edit dropdown tidy!": {
-    "message": "将你虚拟形象的 FX 动画控制器拆分为多个子动画控制器，并在运行时合并。保持动画编辑下拉菜单整洁！"
+    "message": "将虚拟形象的 FX 动画控制器拆分为多个子动画控制器，并在运行时合并。让动画编辑下拉菜单保持整洁！"
   },
   "Embed modular avatar components in your prefabs to make installation a breeze!": {
     "message": "将 Modular Avatar 组件嵌入到你的预制件中，让安装变得轻而易举！"
@@ -303,13 +303,13 @@
     "message": "教程"
   },
   "You should have seen a prompt to add Modular Avatar to ALCOM or VCC. If you didn't, try installing or reinstalling ALCOM or VCC using the links below. Once you've added the repository, you can install Modular Avatar in your project by clicking the button shown below.": {
-    "message": "你应该会看到一个提示，让您将 Modular Avatar 添加到 ALCOM 或 VCC。如果没有，请尝试使用下面的链接安装或重新安装 ALCOM 或 VCC。添加仓库后，您可以点击下面的按钮，在项目中安装 Modular Avatar。"
+    "message": "你应该会看到一个将 Modular Avatar 添加到 ALCOM 或 VCC 的提示。如果没有，请尝试通过下方链接安装或重新安装 ALCOM 或 VCC。添加仓库后，点击下方按钮即可在项目中安装 Modular Avatar。"
   },
   "Download ALCOM here": {
-    "message": "在此处下载 ALCOM"
+    "message": "在此下载 ALCOM"
   },
   "Download VRChat Creator Companion here": {
-    "message": "在此处下载 VRChat Creator Companion"
+    "message": "在此下载 VRChat Creator Companion"
   },
   "Download": {
     "message": "下载"

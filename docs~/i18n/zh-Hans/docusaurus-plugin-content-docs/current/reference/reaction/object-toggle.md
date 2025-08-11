@@ -1,6 +1,6 @@
 ﻿# Object Toggle
 
-
+![Object Toggle](object-toggle.png)
 
 **Object Toggle** 组件允许你根据一个控制对象的活动状态，来更改一个或多个其他游戏对象的活动状态。
 

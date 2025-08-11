@@ -1,6 +1,6 @@
 ﻿# Material Setter
 
-
+![Material Setter](material-setter.png)
 
 **Material Setter** 组件允许你在 **Material Setter** 组件的游戏对象启用时，更改虚拟形象中一个渲染器的材质。
 

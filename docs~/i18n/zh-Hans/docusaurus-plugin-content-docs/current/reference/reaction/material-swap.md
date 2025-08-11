@@ -1,6 +1,6 @@
 ﻿# Material Swap
 
-
+![Material Swap](material-swap.png)
 
 **Material Swap** 组件允许你在 **Material Swap** 组件的游戏对象启用时，批量地将虚拟形象上的材质替换为其他材质。
 
@@ -25,13 +25,13 @@
 
 ## 快速切换（Quick Swap）
 
-
+![Quick Swap controls](material-swap.quick-swap.png)
 
 **Material Swap** 还支持“快速切换”模式，这使你可以快速切换不同的材质，预览它们在虚拟形象上的外观。根据你的材质在项目中的组织方式，有几种不同的模式可供使用：
 
--   **无**：禁用快速切换模式。
--   **同一文件夹**：在当前替换后的材质所在的文件夹中查找材质。
--   **相邻文件夹**：在相邻文件夹中查找名称相似的材质。例如，如果当前材质是 `Assets\SomeOutfit\Materials\Blue\Outer.mat`，它可能会查找类似 `Assets\SomeOutfit\Materials\Red\Outer.mat` 的东西。此模式在同一衣装的不同组件有多个材质，并且按不同的颜色或风格组织在相邻文件夹中时很有用。
+- **无**：禁用快速切换模式。
+- **同一文件夹**：在当前替换后的材质所在的文件夹中查找材质。
+- **相邻文件夹**：在相邻文件夹中查找名称相似的材质。例如，如果当前材质是 `Assets\SomeOutfit\Materials\Blue\Outer.mat`，它可能会查找类似 `Assets\SomeOutfit\Materials\Red\Outer.mat` 的东西。此模式在同一衣装的不同组件有多个材质，并且按不同的颜色或风格组织在相邻文件夹中时很有用。
 
 如果你不确定使用哪种模式，可以尝试两种，看看哪一种最适合你的衣装。
 

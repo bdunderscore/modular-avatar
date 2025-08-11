@@ -2,7 +2,7 @@
 
 Modular Avatar 的 **Menu Installer** 允许你轻松地将菜单项添加到虚拟形象的表情菜单中。
 
-
+![Menu Installer](menu-installer.png)
 
 ## 我应该何时使用它？
 

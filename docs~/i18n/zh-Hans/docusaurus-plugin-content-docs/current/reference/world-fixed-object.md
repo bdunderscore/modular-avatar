@@ -1,6 +1,6 @@
 # World Fixed Object
 
-
+![World Fixed Object component](world-fixed-object.png)
 
 此组件可用于使一个游戏对象相对于世界保持静止，即使虚拟形象移动也是如此。
 

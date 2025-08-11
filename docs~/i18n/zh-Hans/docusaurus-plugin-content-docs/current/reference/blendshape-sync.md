@@ -2,7 +2,7 @@
 
 # Blendshape Sync
 
-
+![Blendshape Sync](blendshape-sync.png)
 
 **Blendshape Sync** 组件允许你确保一个渲染器上的 Blendshape 始终与另一个渲染器上的 Blendshape 匹配。
 
@@ -18,7 +18,7 @@
 
 **Blendshape Sync** 总是从一个渲染器的 Blendshape 复制相同的值到另一个。如果缩放或动画曲线需要不同，它将无法正常工作。
 
-Blendshape Sync 无法链式同步——也就是说，你可以从 A 复制到 B 和 A 复制到 C，但不能从 A 复制到 B，再从 B 复制到 C。
+Blendshape Sync 无法链式同步——也就是说，你可以从 A 复制到 B 和从 A 复制到 C，但不能从 A 复制到 B，再从 B 复制到 C。
 
 在运行时，Blendshape Sync 只支持同步由动画控制器控制的 Blendshape。由 VRChat 内置的 EyeLook 或 Viseme 系统直接控制的 Blendshape 无法被精确同步。
 
@@ -26,7 +26,7 @@ Blendshape Sync 无法链式同步——也就是说，你可以从 A 复制到 
 
 将 **Blendshape Sync** 组件添加到你的预制件中的一个对象上。然后点击 `+` 按钮打开一个选择窗口。
 
-
+![Selection window](blendshape-select-1.png)
 
 双击一个 Blendshape 将其添加到同步列表中。添加完所有需要的 Blendshape 后，点击 `X` 关闭编辑窗口。
 

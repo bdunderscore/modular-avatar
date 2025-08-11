@@ -2,11 +2,11 @@
 
 **Menu Item** 组件允许你在 Unity 的层级结构中定义一个表情菜单项。
 
-
+![Menu Item](menu-item.png)
 
 ## 我应该何时使用它？
 
-这个组件提供了一种比定义传统的 VRC Expressions Menu 资产更方便的方式来编辑和定义菜单项。你可以在层级结构中通过拖放来移动菜单项，它还提供了一个能感知 **[MA Parameters](parameters.md)** 组件中定义的参数名称的编辑器界面。
+这个组件提供了一种比定义传统的 **VRC Expressions Menu** 资产更方便的方式来编辑和定义菜单项。你可以在层级结构中通过拖放来移动菜单项，它还提供了一个能感知 **[MA Parameters](parameters.md)** 组件中定义的参数名称的编辑器界面。
 
 ## 如何使用它？
 
@@ -40,7 +40,7 @@
 
 当你指定的参数名称没有在 **[MA Parameters](parameters.md)** 组件或 VRC Expressions Parameter 资产中声明时，**Menu Item** 会自动为你创建一个参数。发生这种情况时，你会看到一些复选框，用于控制该值是否被保存/同步。
 
-
+![自动生成参数](menu-item-auto-params.png)
 
 如果你点击“设为默认”，此菜单项将为此参数设置默认值。如果多个菜单项被设置为“设为默认”，结果将是未定义的。请不要这样做！
 

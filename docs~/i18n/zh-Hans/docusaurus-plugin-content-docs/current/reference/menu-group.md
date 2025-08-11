@@ -3,10 +3,7 @@
 **Menu Group** 组件允许单个菜单安装程序安装多个菜单项，而无需将它们分组到子菜单中。
 它主要是一个内部组件，用于在转换表情菜单时使用。
 
-
-
-[Image of Menu Group]
-
+![Menu Group](menu-group.png)
 
 ## 我应该何时使用它？
 

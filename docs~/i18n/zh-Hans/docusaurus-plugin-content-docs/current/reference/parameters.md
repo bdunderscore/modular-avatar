@@ -2,7 +2,7 @@
 
 **Modular Avatar Parameters** 组件允许你定义小工具内部使用的动画参数，或用于与其他组件通信。它会重命名参数以避免冲突，并定义同步和非同步的动画参数及其默认值。
 
-
+![Parameters UI](parameters.png)
 
 ## 我应该何时使用它？
 
@@ -54,7 +54,7 @@
 
 ### 嵌套
 
-**MA Parameters** 组件可以嵌套。这使你可以用多个子组件构建一个复杂的系统。每个 **MA Parameters** 组件都可以对其所有子对象应用重命名。这意味着如果你有一个内部 **MA Parameters** 将“foo”重命名为“bar”，而一个外部 **MA Parameters** 将“bar”设置为“自动重命名”，你仍然可以在中间的对象中访问“bar”。
+**MA Parameters** 组件可以嵌套。这使你可以用多个子组件构建一个复杂的系统。每个 **MA Parameters** 组件都可以对其所有子对象应用重命名。这意味着如果你有一个内部 **MA Parameters** 将“hoge”重命名为“piyo”，而一个外部 **MA Parameters** 将“piyo”设置为“自动重命名”，你仍然可以在中间的对象中访问“piyo”。
 
 嵌套组件时有几个需要注意的微妙之处：
 

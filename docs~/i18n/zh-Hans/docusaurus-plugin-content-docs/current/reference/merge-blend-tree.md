@@ -1,6 +1,6 @@
 ﻿# Merge Motion (Blend Tree)
 
-
+![Merge Blend Tree](merge-blend-tree.png)
 
 **Merge Motion** 组件允许你将多个动画或混合树合并到一个 FX 图层。
 这是一个高级组件，通过将多个小工具合并到一个图层中，从而构建开销更低的动画控制器。

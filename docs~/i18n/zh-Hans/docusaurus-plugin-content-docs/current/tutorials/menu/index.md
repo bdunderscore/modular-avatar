@@ -13,19 +13,19 @@ Modular Avatar 包含一个基于对象的菜单编辑系统，它让你可以�
 
 开始使用菜单编辑器最简单的方法是转换你现有虚拟形象上的菜单。右键点击你的虚拟形象，然后选择 `[Modular Avatar] Extract menu`。
 
-
+![Extracting a menu](extract-menu.png)
 
 当你这样做时，一个新的 `Avatar Menu` 对象将被添加到你的虚拟形象中，其中包含了你虚拟形象菜单的顶层。
 
-
+![Top-level menu](menu-toplevel.png)
 
 如你所见，你的菜单项已转换为对象。你也可以单独检查每个菜单项。
 
-
+![Single menu item](menuitem-single.png)
 
 你可以在此处点击“提取到对象”按钮来转换此子菜单。这将让你在层级结构窗口中看到菜单的多个级别。
 
-
+![Extracted second-level menu item](second-level-extract.png)
 
 一旦转换为对象，你就可以通过拖放项目在菜单中移动它们。
 
@@ -33,19 +33,19 @@ Modular Avatar 包含一个基于对象的菜单编辑系统，它让你可以�
 
 当你提取了菜单后，可以通过点击菜单底部列表中的“添加菜单项”按钮来添加新的菜单项。
 
-
+![Add menu item button](add-menu-item-button.png)
 
 这将在列表末尾添加一个新菜单项。然后，你可以编辑其名称、类型、参数等。
 
-要创建子菜单，请将“类型”设置为“子菜单”，然后将“子菜单源”设置为“子对象”。然后，你可以点击“添加菜单项”来为这个新菜单添加子项。
+要创建子菜单，请将“类型”设置为“Sub Menu”，然后将“子菜单源”设置为“子对象”。然后，你可以点击“添加菜单项”来为这个新菜单添加子项。
 
-
+![Creating a submenu](new-submenu-item.png)
 
 ### 参数
 
 设置参数时，你可以点击参数名称框旁边的箭头，通过名称搜索参数。这会考虑到父对象中的任何 **MA Parameters** 组件。
 
-
+![Parameter search](param-search.png)
 
 ## 在可重用资产中的应用
 

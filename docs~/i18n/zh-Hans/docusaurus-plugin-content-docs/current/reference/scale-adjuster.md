@@ -1,6 +1,6 @@
 ﻿# Scale Adjuster
 
-
+![Scale Adjuster](scale-adjuster.png)
 
 **Scale Adjuster** 组件允许你在不引起旋转子骨骼问题的情况下，调整特定骨骼的 X/Y/Z 缩放。
 
@@ -22,7 +22,7 @@
 
 :::warning
 
-
+![こっちのほうを使いましょう](scale-adjuster-warning-trs-tool.png)
 
 **Scale Adjuster** 只控制 Unity 的缩放工具。组合的“移动/旋转/缩放”工具仍然会影响所有子对象。
 

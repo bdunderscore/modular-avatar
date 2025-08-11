@@ -1,6 +1,6 @@
 ﻿# Merge Animator
 
-
+![Merge Animator](merge-animator.png)
 
 **Merge Animator** 组件会将提供的动画控制器添加到所附加的虚拟形象的指定图层。这可以用来制作复杂的 AV3 小工具，只需拖放即可安装到虚拟形象上。
 
@@ -24,7 +24,7 @@
 
 只需将一个 **Animator** 组件附加到你的游戏对象上，你就可以使用“动画”面板来录制动画：
 
-
+![Recording an animation using Merge Animator](merge-animator-record.png)
 
 作为一种开发便利，你可以勾选“删除附加的动画控制器”复选框，以便在构建时移除 **Animator** 组件。
 

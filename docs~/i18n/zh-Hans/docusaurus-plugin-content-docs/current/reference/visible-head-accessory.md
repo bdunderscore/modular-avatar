@@ -1,6 +1,6 @@
 # Visible Head Accessory
 
-
+![Visible Head Accessory component](visible-head-accessory.png)
 
 此组件可用于使放置在头部骨骼下的游戏对象在第一人称视角下可见。
 
@@ -10,7 +10,7 @@
 
 ## 我不应该何时使用它？
 
-此组件不能作为 PhysBone 链的子对象使用（但可以添加到父对象中）。
+此组件不能作为 **PhysBone** 链的子对象使用（但可以添加到父对象中）。
 
 在头部的**所有**子对象上使用此组件可能会分散注意力，因为你的刘海会不断挡住视线。
 

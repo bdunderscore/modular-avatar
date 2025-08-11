@@ -1,6 +1,6 @@
 ﻿# Replace Object
 
-
+![Replace Object](replace-object.png)
 
 **Replace Object** 组件允许你完全替换父虚拟形象上的一个游戏对象的内容。
 

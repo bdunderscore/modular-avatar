@@ -7,7 +7,7 @@ sidebar_label: 示例资产
 
 Modular Avatar 附带了几个示例预制件来演示其功能。这些可以在你项目窗口的 `Packages -> Modular Avatar -> Samples` 下找到。
 
-
+![サンプルの場所](wheretofind.png)
 
 ## 指尖笔（Fingerpen） {#fingerpen}
 
@@ -17,8 +17,8 @@ Modular Avatar 附带了几个示例预制件来演示其功能。这些可以�
 指尖笔预制件演示了以下功能：
 
 * 使用 **[Merge Animator](/docs/reference/merge-animator)** 安装动画控制器。
-* 自动配置**[同步参数](/docs/reference/parameters)**。
-* 设置**[菜单](/docs/reference/menu-installer)**。
+* 自动配置 **[同步参数](/docs/reference/parameters)**。
+* 设置 **[菜单](/docs/reference/menu-installer)**。
 * 使用 **[Bone Proxy](/docs/reference/bone-proxy)** 组件以与虚拟形象无关的方式将对象放置在虚拟形象的骨骼内部。
 
 ## 拍手（Clap） {#clap}

@@ -1,6 +1,6 @@
 ﻿# Sync Parameter Sequence
 
-
+![Sync Parameter Sequence](sync-parameter-sequence.png)
 
 在 VRChat 中，需要在不同平台（如 PC 和 Android）之间共享的参数，必须以相同的顺序出现在表情参数列表的开头。此组件会调整你的表情参数的顺序，并在必要时添加额外参数，以确保你的虚拟形象在 PC 和 Android 之间正确同步。
 

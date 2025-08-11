@@ -1,6 +1,6 @@
 ﻿# Bone Proxy
 
-
+![Bone Proxy](bone-proxy-compare.png)
 
 **Bone Proxy** 允许你将预制件中的对象放置在原始虚拟形象的现有对象中。
 例如，在 [**拍手示例**](/docs/samples/#clap) 中，它被用来将触点放置在虚拟形象的手中。
