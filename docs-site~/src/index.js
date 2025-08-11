@@ -43,7 +43,7 @@ async function handleEvent(event) {
     const path = url.pathname;
     const strip_match = STRIP_SUFFIX_RE.exec(path);
     
-    if (url.searchParams.get("lang") === 'auto') {
+if (url.searchParams.get("lang") === 'auto') {
       const languages = parseAcceptLanguage(event.request.headers.get('Accept-Language'));
       
       let resolvedLanguage = 'en';
@@ -51,6 +51,10 @@ async function handleEvent(event) {
         for (const language of languages) {
           if (language === 'ja' || language === 'ja-JP') {
             resolvedLanguage = 'ja';
+            break;
+          }
+          if (language === 'zh' || language.startsWith('zh-')) {
+            resolvedLanguage = 'zh-Hans';
             break;
           }
           
@@ -68,6 +72,13 @@ async function handleEvent(event) {
             destination = '/ja/dev' + url.pathname.substring(4);
           } else {
             destination = '/ja' + url.pathname;
+          }
+          break;
+        case 'zh-Hans':
+          if (url.pathname.startsWith('/dev')) {
+            destination = '/zh-Hans/dev' + url.pathname.substring(4);
+          } else {
+            destination = '/zh-Hans' + url.pathname;
           }
           break;
         default:
