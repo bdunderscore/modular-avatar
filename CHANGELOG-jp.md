@@ -10,6 +10,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 - [#1651] `MA Delete Mesh By Mask` を実装
+- [#1677] 简体字ドキュメント翻訳の追加
 
 ### Fixed
 
@@ -44,7 +45,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1635] `ModularAvatarMenuItem` にAPIを追加し、VRChat以外のプラットフォームで Menu Item を生成できるようにしました。
 - [#1596] MA Rename Collision Tags コンポーネントを追加
   - Contacts のタグ（Collision Tags）を MA Parameters の「名前を変更」や「自動リネーム」と同様にリネームできるコンポーネントです。
-- [#1677] 简体字ドキュメント翻訳の追加
 
 ### Fixed
 - [#1587] Mesh SettingsのGizmoが `親で指定されている時は継承、それ以外では設定` 設定のときに表示されない問題を修正

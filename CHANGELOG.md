@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1651] Implement `MA Delete Mesh By Mask`
+- [#1677] Added Simplified Chinese documentation translation
 
 ### Fixed
 
@@ -45,7 +46,6 @@ APIs will be deprecated in a future release, and removed in a future 2.0 release
 - [#1635] Added `ModularAvatarMenuItem` APIs to allow menu items components to be created without a dependency on VRCSDK.
 - [#1596] Added `MA Rename Collision Tags` component
   - This allows renaming of collision tags (Contacts) to unique names, similar to the auto-rename feature in MA Parameters
-- [#1677] Added Simplified Chinese documentation translation
 
 ### Fixed
 - [#1587] The Mesh Settings gizmo was not shown when in `SetOrInherit` mode
