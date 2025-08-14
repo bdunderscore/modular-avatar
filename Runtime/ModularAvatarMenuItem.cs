@@ -106,12 +106,13 @@ namespace nadena.dev.modular_avatar.core
             {
                 icon = BackingControl.icon,
                 type = BackingControl.type,
-                parameter = new VRCExpressionsMenu.Control.Parameter { name = BackingControl.parameter.name },
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = BackingControl.parameter?.name ?? string.Empty },
                 value = BackingControl.value,
                 subMenu = BackingControl.subMenu,
-                subParameters = BackingControl.subParameters
+                subParameters = (BackingControl.subParameters ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>())
                     .Select(p => new VRCExpressionsMenu.Control.Parameter { name = p.name }).ToArray(),
-                labels = BackingControl.labels.Select(l => new VRCExpressionsMenu.Control.Label
+                labels = (BackingControl.labels ?? Array.Empty<VRCExpressionsMenu.Control.Label>())
+                    .Select(l => new VRCExpressionsMenu.Control.Label
                     { name = l.name, icon = l.icon }).ToArray(),
                 name = string.IsNullOrEmpty(BackingMenuItem.label)
                     ? BackingMenuItem.gameObject.name
@@ -126,9 +127,9 @@ namespace nadena.dev.modular_avatar.core
             BackingControl.parameter = control.parameter;
             BackingControl.value = control.value;
             BackingControl.subMenu = control.subMenu;
-            BackingControl.subParameters = control.subParameters
+            BackingControl.subParameters = (control.subParameters ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>())
                 .Select(p => new VRCExpressionsMenu.Control.Parameter { name = p.name }).ToArray();
-            BackingControl.labels = control.labels
+            BackingControl.labels = (control.labels ?? Array.Empty<VRCExpressionsMenu.Control.Label>())
                 .Select(l => new VRCExpressionsMenu.Control.Label { name = l.name, icon = l.icon }).ToArray();
             BackingMenuItem.label = control.name;
         }
@@ -160,7 +161,7 @@ namespace nadena.dev.modular_avatar.core
 
         public string Parameter
         {
-            get => BackingControl.parameter.name;
+            get => BackingControl.parameter?.name ?? string.Empty;
             set => BackingControl.parameter = new VRCExpressionsMenu.Control.Parameter { name = value };
         }
 
@@ -183,14 +184,16 @@ namespace nadena.dev.modular_avatar.core
 
         public ImmutableList<string> SubParameters
         {
-            get => BackingControl.subParameters.Select(p => p.name).ToImmutableList();
+            get => (BackingControl.subParameters ?? Array.Empty<VRCExpressionsMenu.Control.Parameter>())
+                .Select(p => p.name).ToImmutableList();
             set => BackingControl.subParameters =
                 value.Select(name => new VRCExpressionsMenu.Control.Parameter { name = name }).ToArray();
         }
 
         public ImmutableList<PortableLabel> Labels
         {
-            get => BackingControl.labels.Select(l => new PortableLabel { name = l.name, icon = l.icon })
+            get => (BackingControl.labels ?? Array.Empty<VRCExpressionsMenu.Control.Label>())
+                .Select(l => new PortableLabel { name = l.name, icon = l.icon })
                 .ToImmutableList();
             set => BackingControl.labels =
                 value.Select(l => new VRCExpressionsMenu.Control.Label { name = l.Name, icon = l.Icon }).ToArray();
