@@ -80,6 +80,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                             .PreviewingWith(new ShapeChangerPreview(), new MeshDeleterPreview(),
                                 new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     });
+                    seq.Run(FixupHeadChopRootBone.Instance);
                     seq.Run(GameObjectDelayDisablePass.Instance);
 
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
