@@ -92,7 +92,7 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public class PortableMenuControl
     {
-        internal ModularAvatarMenuItem BackingMenuItem;
+        internal ModularAvatarMenuItem BackingMenuItem = null!;
 
         internal PortableMenuControl()
         {
@@ -147,7 +147,7 @@ namespace nadena.dev.modular_avatar.core
             }
         }
 
-        public Texture2D Icon
+        public Texture2D? Icon
         {
             get => BackingControl.icon;
             set => BackingControl.icon = value;
@@ -201,8 +201,8 @@ namespace nadena.dev.modular_avatar.core
 
 #else
         [SerializeField]
-        private Texture2D icon;
-        public Texture2D Icon
+        private Texture2D? icon;
+        public Texture2D? Icon
         {
             get => icon;
             set => icon = value;
@@ -444,7 +444,11 @@ namespace nadena.dev.modular_avatar.core
         {
             get
             {
-                // 0, 1
+                if (Control == null)
+                {
+                    Control = new VRCExpressionsMenu.Control();
+                }
+
                 var type = VRCExpressionParameters.ValueType.Bool;
 
                 // 2, 3, ..., (255)
