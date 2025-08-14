@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#1679] Fix issues where meshes with a root bone under the head could be invisible in first person, when affected by
-  a `MA Shape Changer` in delete mode.
-
 ### Changed
 
 ### Removed
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.3] - [2025-08-14]
+
+### Fixed
+
+- [#1679] Fix issues where meshes with a root bone under the head could be invisible in first person, when affected by
+  a `MA Shape Changer` in delete mode.
 
 ## [1.13.2] - [2025-08-09]
 
