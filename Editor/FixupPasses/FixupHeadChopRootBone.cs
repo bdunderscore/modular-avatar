@@ -51,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!substitutes.TryGetValue(rootBone, out var substitute))
                     {
                         substitute = new GameObject("RootBoneSubstitute").transform;
-                        substitute.SetParent(context.AvatarRootTransform, false);
+                        substitute.SetParent(rootBone, false);
                         substitute.localPosition = Vector3.zero;
                         substitute.localRotation = Quaternion.identity;
                         substitute.localScale = Vector3.one;
