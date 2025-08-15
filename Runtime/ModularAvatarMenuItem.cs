@@ -1,14 +1,14 @@
 ﻿#nullable enable
 
+#if MA_VRCSDK3_AVATARS
+using nadena.dev.modular_avatar.core.menu;
+using VRC.SDK3.Avatars.ScriptableObjects;
+#endif
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
-#if MA_VRCSDK3_AVATARS
-using nadena.dev.modular_avatar.core.menu;
-using VRC.SDK3.Avatars.ScriptableObjects;
-#endif
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core
@@ -92,7 +92,10 @@ namespace nadena.dev.modular_avatar.core
     [Serializable]
     public class PortableMenuControl
     {
-        internal ModularAvatarMenuItem BackingMenuItem = null!;
+        internal ModularAvatarMenuItem? _backingMenuItem = null;
+
+        internal ModularAvatarMenuItem BackingMenuItem =>
+            _backingMenuItem ?? throw new NullReferenceException("BackingMenuItem is not set.");
 
         internal PortableMenuControl()
         {
@@ -323,7 +326,7 @@ namespace nadena.dev.modular_avatar.core
             Control = new();
             #endif
 
-            PortableControl.BackingMenuItem = this;
+            PortableControl._backingMenuItem = this;
         }
         
         private void Reset()
