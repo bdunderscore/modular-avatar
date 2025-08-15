@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1682] `ModularAvatarMenuItem`操作時に`NullReferenceException `が発生する可能性がある問題を修正
+  (@Tliks さんによる修正)
 - [#1683] 頭ボーンの配下をルートボーンとして設定したレンダラーで、メッシュのバウンディングボックスがズレる問題を修正
   (@ReinaS-64892 さんによる修正)
 
