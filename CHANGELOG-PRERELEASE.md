@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1682] Fixed a potential `NullReferenceException` when operating `ModularAvatarMenuItem`.
+- [#1683] Fixed an issue where renderers with a root bone under the head might end up with incorrect mesh bounds.
+  (Fix provided by @ReinaS-64892) 
 
 ### Changed
 
