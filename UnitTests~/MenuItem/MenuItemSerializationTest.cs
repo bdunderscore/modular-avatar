@@ -77,7 +77,7 @@ public class MenuItemSerializationTest : TestBase
         Assert.That(radial.SubParameters, Is.EquivalentTo(new [] { "radial" }));
     }
   
-[Test]
+    [Test]
     public void SetPortableControlFields_UpdatesValuesCorrectly()
     {
         var root = CreateRoot("root");
@@ -113,4 +113,103 @@ public class MenuItemSerializationTest : TestBase
         Assert.NotNull(result.Labels[0].icon);
         Assert.AreEqual("label2", result.Labels[1].name);
         Assert.NotNull(result.Labels[1].icon);
-    }}
+    }
+    
+    [Test]
+    public void PortableControl_NullControl_DoesNotThrowExceptions()
+    {
+        var root = CreateRoot("root");
+        var go = new GameObject("MenuItem");
+        go.transform.parent = root.transform;
+        var menuItem = go.AddComponent<ModularAvatarMenuItem>();
+        
+        #if MA_VRCSDK3_AVATARS
+        // Set Control to null to test null-safety
+        menuItem.Control = null;
+        #endif
+        
+        var control = menuItem.PortableControl;
+        
+        // Test all property getters don't throw when Control is null
+        Assert.DoesNotThrow(() => { var _ = control.Icon; });
+        Assert.DoesNotThrow(() => { var _ = control.Type; });
+        Assert.DoesNotThrow(() => { var _ = control.Parameter; });
+        Assert.DoesNotThrow(() => { var _ = control.Value; });
+        Assert.DoesNotThrow(() => { var _ = control.VRChatSubMenu; });
+        Assert.DoesNotThrow(() => { var _ = control.SubParameters; });
+        Assert.DoesNotThrow(() => { var _ = control.Labels; });
+        
+        // Test all property setters don't throw when Control is null
+        Assert.DoesNotThrow(() => control.Icon = null);
+        Assert.DoesNotThrow(() => control.Type = PortableControlType.Button);
+        Assert.DoesNotThrow(() => control.Parameter = "test");
+        Assert.DoesNotThrow(() => control.Value = 1.0f);
+        Assert.DoesNotThrow(() => control.VRChatSubMenu = null);
+        Assert.DoesNotThrow(() => control.SubParameters = ImmutableList<string>.Empty);
+        Assert.DoesNotThrow(() => control.Labels = ImmutableList<PortableLabel>.Empty);
+    }
+
+    [Test]
+    public void PortableControl_NullSubObjects_DoesNotThrowExceptions()
+    {
+        var root = CreateRoot("root");
+        var go = new GameObject("MenuItem");
+        go.transform.parent = root.transform;
+        var menuItem = go.AddComponent<ModularAvatarMenuItem>();
+        
+        #if MA_VRCSDK3_AVATARS
+        // Initialize Control but set internal properties to null
+        menuItem.Control = new VRCExpressionsMenu.Control
+        {
+            parameter = null,
+            subParameters = null,
+            labels = null,
+            subMenu = null
+        };
+        #endif
+        
+        var control = menuItem.PortableControl;
+        
+        // Test getters handle null sub-objects gracefully
+        Assert.DoesNotThrow(() => { var param = control.Parameter; });
+        Assert.DoesNotThrow(() => { var subParams = control.SubParameters; });
+        Assert.DoesNotThrow(() => { var labels = control.Labels; });
+        Assert.DoesNotThrow(() => { var subMenu = control.VRChatSubMenu; });
+        
+        // Verify default values are returned for null objects
+        Assert.AreEqual(string.Empty, control.Parameter);
+        Assert.AreEqual(0, control.SubParameters.Count);
+        Assert.AreEqual(0, control.Labels.Count);
+        Assert.IsNull(control.VRChatSubMenu);
+    }
+
+    [Test] 
+    public void PortableControl_SettersWithNullControl_CreatesControlAndSetsValues()
+    {
+        var root = CreateRoot("root");
+        var go = new GameObject("MenuItem");
+        go.transform.parent = root.transform;
+        var menuItem = go.AddComponent<ModularAvatarMenuItem>();
+        
+        #if MA_VRCSDK3_AVATARS
+        menuItem.Control = null;
+        #endif
+        
+        var control = menuItem.PortableControl;
+        
+        // Setting values should work even when Control starts as null
+        Assert.DoesNotThrow(() => control.Parameter = "new_param");
+        Assert.DoesNotThrow(() => control.Value = 5.0f);
+        Assert.DoesNotThrow(() => control.Type = PortableControlType.Toggle);
+        
+        // Verify values were actually set
+        Assert.AreEqual("new_param", control.Parameter);
+        Assert.AreEqual(5.0f, control.Value);
+        Assert.AreEqual(PortableControlType.Toggle, control.Type);
+        
+        #if MA_VRCSDK3_AVATARS
+        // Verify Control was created
+        Assert.IsNotNull(menuItem.Control);
+        #endif
+    }
+}
