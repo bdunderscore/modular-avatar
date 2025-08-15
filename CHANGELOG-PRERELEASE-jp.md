@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
-
 - [#1679] `MA Shape Changer` の削除モードで、頭ボーン配下をルートボーンとして設定したメッシュが一人視点で表示されない問題を修正
+- [#1682] `ModularAvatarMenuItem`操作時に`NullReferenceException `が発生する可能性がある問題を修正
+  (@Tliks さんによる修正)
+- [#1683] 頭ボーンの配下をルートボーンとして設定したレンダラーで、メッシュのバウンディングボックスがズレる問題を修正
+  (@ReinaS-64892 さんによる修正)
 
 ### Changed
 
