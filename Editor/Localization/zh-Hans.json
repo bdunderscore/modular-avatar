@@ -271,6 +271,7 @@
   "reactive_object.delete-mesh-by-mask.edit-mask-texture": "编辑",
   "reactive_object.delete-mesh-by-mask.delete-mode": "删除模式",
   "reactive_object.material-setter.set-to": "将材质设置为：",
+  "reactive_object.material-swap.quick_swap_mode.None": "无",
   "menuitem.misc.add_toggle": "新增开关",
   "ro_sim.open_debugger_button": "开启 Reaction 调试工具",
   "ro_sim.window.title": "MA 响应调试工具",
@@ -307,5 +308,6 @@
   "sync-param-sequence.parameters.tooltip": "用于存储共用参数的 Assets。请勿使用已经在 Avatar descriptor 中设置的相同参数 。",
   "sync-param-sequence.create-asset": "新增",
   "sync-param-sequence.create-asset.tooltip": "创建一个新的 Expression Parameters",
-  "platform.vrchat.settings.mmd_world_support": "MMD 世界支持"
+  "platform.vrchat.settings.mmd_world_support": "MMD 世界支持",
+  "platform_filter.platform": "平台"
 }
