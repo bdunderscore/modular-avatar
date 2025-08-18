@@ -103,13 +103,13 @@ jobs:
           esac
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Checkout logo assets
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         if: ${{ github.event.inputs.release_kind != 'adhoc' }}
         with:
           repository: bdunderscore/modular-avatar-images
