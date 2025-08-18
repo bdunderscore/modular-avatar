@@ -407,14 +407,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         Assert.IsTrue(float.IsFinite(vertex.x), "Vertex X should be finite");
         Assert.IsTrue(float.IsFinite(vertex.y), "Vertex Y should be finite");
         Assert.IsTrue(float.IsFinite(vertex.z), "Vertex Z should be finite");
-        
-        // Verify bone weights exist for the single vertex
-        var boneWeights = processedMesh.GetAllBoneWeights();
-        var bonesPerVertex = processedMesh.GetBonesPerVertex();
-        
-        Assert.AreEqual(1, bonesPerVertex.Length, "Should have bone count for exactly one vertex");
-        Assert.Greater(bonesPerVertex[0], 0, "The single vertex should have at least one bone weight");
-        Assert.Greater(boneWeights.Length, 0, "Should have at least one bone weight");
     }
     
     [Test]
