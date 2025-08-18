@@ -55,6 +55,11 @@
             "name": "com.vrchat.avatars",
             "expression": "3.7.0-beta.2",
             "define": "MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER"
+        },
+        {
+          "name": "com.vrcfury.vrcfury",
+          "define": "MA_HAS_VRCFURY",
+          "expression": ""
         }
     ],
     "noEngineReferences": false

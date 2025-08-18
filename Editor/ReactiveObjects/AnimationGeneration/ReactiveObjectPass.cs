@@ -329,6 +329,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var shapeNameToBones = GenerateNaNimatedBones(renderer, nanPlan);
 
                     List<string> initiallyActive = new();
+                    Dictionary<string, VirtualClip> activationClips = new Dictionary<string, VirtualClip>();
                     
                     foreach (var kv in shapeNameToBones)
                     {
@@ -344,6 +345,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         var clip_delete = CreateNaNimationClip(renderer, shapeName, bones, true);
                         var clip_retain = CreateNaNimationClip(renderer, shapeName, bones, false);
+                        activationClips[shapeName] = clip_delete;
 
                         foreach (var group in animProp.actionGroups)
                         {
@@ -366,11 +368,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         });
                     }
 
-                    NaNimationInitialStateMunger.ApplyInitialStates(
+                    NaNimationConstraintMunger.ApplyConstraints(
                         context.AvatarRootTransform,
                         shapeNameToBones,
                         initiallyActive,
-                        _initialStateClip
+                        _initialStateClip,
+                        activationClips
                     );
                 }
             }
