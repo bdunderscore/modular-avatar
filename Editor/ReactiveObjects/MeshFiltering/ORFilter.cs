@@ -6,24 +6,24 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal sealed class ANDFilter : IVertexFilter
+    internal sealed class ORFilter : IVertexFilter
     {
         private readonly List<IVertexFilter> filters;
 
-        public ANDFilter(IEnumerable<IVertexFilter> filters)
+        public ORFilter(IEnumerable<IVertexFilter> filters)
         {
             this.filters = (filters ?? throw new ArgumentNullException(nameof(filters))).ToList();
         }
 
         public bool Equals(IVertexFilter other)
         {
-            if (other is ANDFilter andFilter)
+            if (other is ORFilter orFilter)
             {
-                if (filters.Count != andFilter.filters.Count) return false;
+                if (filters.Count != orFilter.filters.Count) return false;
 
                 for (var i = 0; i < filters.Count; i++)
                 {
-                    if (!filters[i].Equals(andFilter.filters[i]))
+                    if (!filters[i].Equals(orFilter.filters[i]))
                     {
                         return false;
                     }
@@ -48,23 +48,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            if (filters.Count == 0) return;
-
-            filters[0].MarkFilteredVertices(renderer, mesh, filtered);
-
-            if (filters.Count == 1) return;
-
-            var temp = new bool[filtered.Length];
-
-            foreach (var filter in filters.Skip(1))
+            foreach (var filter in filters)
             {
-                Array.Fill(temp, false);
-                filter.MarkFilteredVertices(renderer, mesh, temp);
-
-                for (var i = 0; i < temp.Length; i++)
-                {
-                    filtered[i] = filtered[i] && temp[i];
-                }
+                filter.MarkFilteredVertices(renderer, mesh, filtered);
             }
         }
 
@@ -78,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            return $"ANDFilter({string.Join(", ", filters.Select(f => f.ToString()))})";
+            return $"ORFilter({string.Join(", ", filters.Select(f => f.ToString()))})";
         }
     }
 }

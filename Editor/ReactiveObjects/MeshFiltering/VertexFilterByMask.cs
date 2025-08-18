@@ -46,7 +46,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (uv == null || uv.Length == 0 || _maskTexture == null)
             {
                 // TODO: add an appropriate error report here
-                Array.Fill(filtered, false);
                 return;
             }
 
@@ -54,7 +53,6 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!targetTexture.isReadable)
             {
                 BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", targetTexture);
-                Array.Fill(filtered, false);
                 return;
             }
 
@@ -62,11 +60,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(x => mesh.GetIndices(x).ToHashSet())
                 .ToArray();
 
-            var includedInSubmesh = new bool[filtered.Length];
-            
             foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
             {
-                includedInSubmesh[v] = true;
                 Color? deleteColor = DeleteMode switch
                 {
                     ByMaskMode.DeleteBlack => Color.black,
@@ -74,17 +69,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     _ => null,
                 };
                 if (targetTexture.GetPixel((int)(targetTexture.width * uv[v].x),
-                        (int)(targetTexture.height * uv[v].y)) != deleteColor)
+                        (int)(targetTexture.height * uv[v].y)) == deleteColor)
                 {
-                    filtered[v] = false;
-                }
-            }
-
-            for (var i = 0; i < filtered.Length; i++)
-            {
-                if (!includedInSubmesh[i])
-                {
-                    filtered[i] = false;
+                    filtered[v] = true;
                 }
             }
         }

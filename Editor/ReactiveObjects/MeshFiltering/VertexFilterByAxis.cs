@@ -92,11 +92,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 for (var i = 0; i < vertices.Length; i++)
                 {
-                    if (!filtered[i]) continue;
-                    
-                    if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) <= 0.0f)
+                    if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) > 0.0f)
                     {
-                        filtered[i] = false;
+                        filtered[i] = true;
                     }
                 }
             }

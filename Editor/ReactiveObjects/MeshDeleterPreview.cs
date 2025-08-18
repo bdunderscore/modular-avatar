@@ -1,5 +1,4 @@
 ﻿#if MA_VRCSDK3_AVATARS
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -152,16 +151,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 mesh = Object.Instantiate(mesh);
                 
                 var vertexMask = new bool[mesh.vertexCount];
-                var singleFilterMask = new bool[mesh.vertexCount];
-                foreach (var filter in filters)
-                {
-                    Array.Fill(singleFilterMask, true);
-                    filter.MarkFilteredVertices(original, mesh, singleFilterMask);
-                    for (int i = 0; i < singleFilterMask.Length; i++)
-                    {
-                        vertexMask[i] = vertexMask[i] || singleFilterMask[i];
-                    }
-                }
+                new ORFilter(filters).MarkFilteredVertices(original, mesh, vertexMask);
 
                 var tris = new List<int>();
                 for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)

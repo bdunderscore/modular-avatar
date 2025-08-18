@@ -28,9 +28,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 mesh.GetBlendShapeFrameVertices(shapeIndex, f, deltaPositions, null, null);
                 for (var v = 0; v < deltaPositions.Length; v++)
                 {
-                    if (deltaPositions[v].sqrMagnitude <= sqrThreshold)
+                    if (deltaPositions[v].sqrMagnitude > sqrThreshold)
                     {
-                        filtered[v] = false;
+                        filtered[v] = true;
                     }
                 }
             }

@@ -60,7 +60,6 @@ namespace nadena.dev.modular_avatar.core.editor
              * for both shapes. In this case, the NaNimated bones will be nested.
              */
             
-            var deltaPositions = new Vector3[vertexCount];
             var affectedVertices = new bool[vertexCount];
             var firstBoneIndex = new int[vertexCount];
 
@@ -110,7 +109,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var (prop, filter) in targets)
                 {
                     Array.Fill(affectedVertices, false);
-                    filter.MarkFilteredVertices(mesh, affectedVertices);
+                    filter.MarkFilteredVertices(renderer, mesh, affectedVertices);
 
                     if (!affectedVertices.Any(b => b)) continue;
 

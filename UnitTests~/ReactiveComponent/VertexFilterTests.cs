@@ -27,7 +27,6 @@ public class VertexFilterTests : TestBase
 
         var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack);
         var filtered = new bool[mesh.vertexCount];
-        Array.Fill(filtered, true);
         filter.MarkFilteredVertices(renderer, mesh, filtered);
 
         Assert.AreEqual(inRangeUvs, filtered.Count(x => x));
