@@ -13,7 +13,7 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
     }
 
     [PublicAPI]
-    [AddComponentMenu("Modular Avatar/MA Mesh Cutter/MA Vertex Filter - By Mask")]
+    [AddComponentMenu("Modular Avatar/Vertex Filters/MA Vertex Filter - By Mask")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class VertexFilterByMaskComponent : AvatarTagComponent, IVertexFilterBehavior
     {

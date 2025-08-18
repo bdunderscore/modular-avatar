@@ -88,6 +88,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     initialBoneCount++;
+
+                    mesh.bindposes = new[] { Matrix4x4.identity };
+
+                    if (renderer is SkinnedMeshRenderer smr)
+                    {
+                        smr.bones = new[] { smr.transform };
+                    }
                 }
                 else
                 {

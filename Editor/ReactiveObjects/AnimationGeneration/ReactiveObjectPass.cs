@@ -306,6 +306,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                if (toNaNimate.Count == 0)
+                {
+                    continue;
+                }
+
                 // Handle NaNimated shapes next
                 var nanPlan = NaNimationFilter.ComputeNaNPlan(renderer, ref mesh, toNaNimate);
                 renderer.sharedMesh = mesh;
