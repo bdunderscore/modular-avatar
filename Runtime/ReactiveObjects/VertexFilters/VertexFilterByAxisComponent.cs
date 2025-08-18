@@ -14,7 +14,8 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
     }
     
     [PublicAPI]
-    [AddComponentMenu("Modular Avatar/Delete Mesh/MA Vertex Filter - By Axis")]
+    [AddComponentMenu("Modular Avatar/MA Mesh Cutter/MA Vertex Filter - By Axis")]
+    [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class VertexFilterByAxisComponent : AvatarTagComponent, IVertexFilterBehavior
     {
         internal static Action onDrawGizmos = () => { };
