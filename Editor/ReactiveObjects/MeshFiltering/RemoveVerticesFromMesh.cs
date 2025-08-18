@@ -23,10 +23,15 @@ namespace nadena.dev.modular_avatar.core.editor
             bool[] toDeleteVertices = new bool[original.vertexCount];
             bool[] toRetainVertices = new bool[original.vertexCount];
 
-            Array.Fill(toDeleteVertices, true);
+            bool[] currentTargetVertices = new bool[original.vertexCount];
             foreach (var target in targets)
             {
-                target.Item2.MarkFilteredVertices(renderer, original, toDeleteVertices);
+                Array.Fill(currentTargetVertices, true);
+                target.Item2.MarkFilteredVertices(renderer, original, currentTargetVertices);
+                for (int i = 0; i < currentTargetVertices.Length; i++)
+                {
+                    toDeleteVertices[i] = toDeleteVertices[i] || currentTargetVertices[i];
+                }
             }
             ProbeRetainedVertices(original, toDeleteVertices, toRetainVertices);
 

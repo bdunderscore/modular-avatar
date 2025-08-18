@@ -150,12 +150,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 mesh = Object.Instantiate(mesh);
-
+                
                 var vertexMask = new bool[mesh.vertexCount];
-                Array.Fill(vertexMask, true);
+                var singleFilterMask = new bool[mesh.vertexCount];
                 foreach (var filter in filters)
                 {
-                    filter.MarkFilteredVertices(original, mesh, vertexMask);
+                    Array.Fill(singleFilterMask, true);
+                    filter.MarkFilteredVertices(original, mesh, singleFilterMask);
+                    for (int i = 0; i < singleFilterMask.Length; i++)
+                    {
+                        vertexMask[i] = vertexMask[i] || singleFilterMask[i];
+                    }
                 }
 
                 var tris = new List<int>();
