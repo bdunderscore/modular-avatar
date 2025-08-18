@@ -3,8 +3,10 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.preview;
-using net.nekobako.MaskTextureEditor.Editor;
 using UnityEngine;
+#if MA_MASK_TEXTURE_EDITOR
+using net.nekobako.MaskTextureEditor.Editor;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
