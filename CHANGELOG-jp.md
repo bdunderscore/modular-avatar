@@ -10,6 +10,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 - [#1651] `MA Delete Mesh By Mask` を実装
+- [#1677] 简体字ドキュメント翻訳の追加
 
 ### Fixed
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正

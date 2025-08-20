@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1651] `MA Delete Mesh By Mask` を実装
+- [#1677] 简体字ドキュメント翻訳の追加
 
 ### Fixed
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
