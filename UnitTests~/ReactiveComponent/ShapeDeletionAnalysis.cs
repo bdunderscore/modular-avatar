@@ -49,6 +49,10 @@ public class ShapeDeletionAnalysis : TestBase
 
         AssertPreviewDeletion(root);
         AssertMeshDeletion(root);
+
+        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        // blendshape is not updated by Deletes
+        Assert.AreEqual(0, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
 
@@ -76,27 +80,9 @@ public class ShapeDeletionAnalysis : TestBase
         
         AvatarProcessor.ProcessAvatar(root);
 
-        var shapeIndex = mesh.sharedMesh.GetBlendShapeIndex(NaNimationFilter.BlendShapeNamePrefix + 0);
-        Assert.AreNotEqual(-1, shapeIndex);
-        
-        var vertices = mesh.sharedMesh.vertices;
-        var deltaPositions = new Vector3[vertices.Length];
-        
-        mesh.sharedMesh.GetBlendShapeFrameVertices(shapeIndex, 0, deltaPositions, null, null);
-        
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            if (vertices[i].z < 0)
-            {
-                Assert.IsTrue(float.IsInfinity(deltaPositions[i].x),
-                    $"Vertex {i} (z={vertices[i].z}) should have infinite delta position");
-            }
-            else if (vertices[i].z > 0)
-            {
-                Assert.AreEqual(0, deltaPositions[i].x,
-                    $"Vertex {i} (z={vertices[i].z}) should have zero delta position");
-            }
-        }
+        var createdBone = root.GetComponentsInChildren<Transform>()
+            .Any(c => c.gameObject.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix));
+        Assert.IsTrue(createdBone);
     }
     
     private static void AssertBuildDeletion(SkinnedMeshRenderer mesh, GameObject root)
@@ -119,7 +105,7 @@ public class ShapeDeletionAnalysis : TestBase
         });
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.That((activeGroup?.Value as VertexFilterByShape)?.Threshold - 0.01f, Is.LessThanOrEqualTo(0.005f));
+        Assert.That(activeGroup?.Value is IVertexFilter);
         return mesh;
     }
     
@@ -135,7 +121,7 @@ public class ShapeDeletionAnalysis : TestBase
         if (deletedShape != null)
         {
             var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-            Assert.IsFalse(activeGroup?.Value is VertexFilterByShape f && f.Threshold > 0);
+            Assert.IsFalse(activeGroup?.Value is IVertexFilter);
         }
         
     }

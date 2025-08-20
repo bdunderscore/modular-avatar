@@ -22,7 +22,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         # Run on releases only
         if: ${{ github.event.release }}
         with:
@@ -69,18 +69,18 @@ jobs:
         with:
           node-version: 18
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Download artifact (tagged)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: docs
           path: docs/build
 
       - name: Download artifact (latest)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: docs-dev
           path: docs/build/dev

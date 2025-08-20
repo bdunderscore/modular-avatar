@@ -46,6 +46,9 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _writeDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(fxLayer) ?? true;
             }
+
+            var clips = asc.AnimationIndex;
+            _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
             
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
@@ -288,6 +291,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // Don't need to animate this anymore...!
                     shapes.Remove(prop);
+                    initialStates.Remove(prop);
 
                     if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
                     {
@@ -305,29 +309,34 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Handle NaNimated shapes next
                 var nanPlan = NaNimationFilter.ComputeNaNPlan(ref mesh, toNaNimate);
                 renderer.sharedMesh = mesh;
-
+                
                 if (nanPlan.Count > 0)
                 {
-                    foreach (var kv in nanPlan)
+                    var nanBones = GenerateNaNimatedBones(renderer, nanPlan);
+
+                    HashSet<GameObject> initiallyActive = new HashSet<GameObject>();
+                    
+                    foreach (var kv in nanBones)
                     {
                         (var targetProp, var filter) = kv.Key;
-                        var newShape = kv.Value;
-
+                        var bones = kv.Value;
+                        
                         var animProp = shapes[targetProp];
 
-                        var clip_delete = CreateNaNimationClip(renderer, filter.ToString(), newShape, true);
-                        var clip_retain = CreateNaNimationClip(renderer, filter.ToString(), newShape, false);
+                        var clip_delete = CreateNaNimationClip(renderer, filter.ToString(), bones, true);
+                        var clip_retain = CreateNaNimationClip(renderer, filter.ToString(), bones, false);
 
                         foreach (var group in animProp.actionGroups)
                         {
                             group.CustomApplyMotion = clip_delete;
                         }
 
-                        var index = renderer.sharedMesh.GetBlendShapeIndex(newShape);
-                        var initialWeight = animProp.actionGroups.Any(ag => ag.InitiallyActive) ? 1.0f : 0.0f;
-                        renderer.SetBlendShapeWeight(index, initialWeight);
-                        renderer.updateWhenOffscreen = false;
-                        
+                        var isInitiallyActive = animProp.actionGroups.Any(agk => agk.InitiallyActive);
+                        if (isInitiallyActive)
+                        {
+                            initiallyActive.UnionWith(bones);
+                        }
+
                         // Since we won't be inserting this into the default states animation, make sure there's a default
                         // motion to fall back on for non-WD setups.
                         animProp.actionGroups.Insert(0, new ReactionRule(targetProp, 0.0f)
@@ -335,61 +344,100 @@ namespace nadena.dev.modular_avatar.core.editor
                             CustomApplyMotion = clip_retain
                         });
                     }
-                }
 
-                var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
-
-                foreach (var prop in toNaNimate
-                    .Select(x => x.TargetProp)
-                    .Where(x => !nanimatedProps.Contains(x)))
-                {
-                    // Don't need to animate this anymore...!
-                    shapes.Remove(prop);
-
-                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
-                    {
-                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
-                        var shapeProp = new TargetProp
-                        {
-                            TargetObject = renderer,
-                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
-                        };
-                        shapes.Remove(shapeProp);
-                        initialStates.Remove(shapeProp);
-                    }
+                    NaNimationInitialStateMunger.ApplyInitialStates(
+                        context.AvatarRootTransform,
+                        initiallyActive,
+                        _initialStateClip
+                    );
                 }
             }
         }
-        
-        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string targetName, string nanShape, bool shouldDelete)
+
+        private VirtualClip CreateNaNimationClip(SkinnedMeshRenderer renderer, string shapeName, List<GameObject> bones,
+            bool shouldDelete)
         {
             var asc = context.Extension<AnimatorServicesContext>();
 
-            var clip = VirtualClip.Create($"NaNimation for {targetName} ({(shouldDelete ? "delete" : "retain")})");
+            var clip = VirtualClip.Create($"NaNimation for {shapeName} ({(shouldDelete ? "delete" : "retain")})");
 
             var curve = new AnimationCurve();
             curve.AddKey(new Keyframe(0, 0)
             {
-                value = shouldDelete ? 1.0f : 0.0f
+                value = shouldDelete ? float.NaN : 1.0f
             });
 
-            var binding = EditorCurveBinding.FloatCurve(
-                RuntimeUtil.AvatarRootPath(renderer.gameObject),
-                typeof(SkinnedMeshRenderer),
-                ReactiveObjectAnalyzer.BlendshapePrefix + nanShape
-            );
-            clip.SetFloatCurve(binding, curve);
+            foreach (var bone in bones)
+            {
+                var boneName = asc.ObjectPathRemapper
+                    .GetVirtualPathForObject(bone);
 
-            // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
-            // when any NaNimation is present.
-            clip.SetFloatCurve(
-                asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
-                typeof(SkinnedMeshRenderer),
-                "m_UpdateWhenOffscreen",
-                AnimationCurve.Constant(0, 1, 0)
-            );
-            
+                foreach (var dim in new[] { "x", "y", "z" })
+                {
+                    var binding = EditorCurveBinding.FloatCurve(
+                        boneName,
+                        typeof(Transform),
+                        $"m_LocalScale.{dim}"
+                    );
+                    clip.SetFloatCurve(binding, curve);
+                }
+
+                if (shouldDelete)
+                {
+                    // AABB recalculation will cause a ton of warnings due to invalid vertex coordinates, so disable it
+                    // when any NaNimation is active.
+                    clip.SetFloatCurve(
+                        asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
+                        typeof(SkinnedMeshRenderer),
+                        "m_UpdateWhenOffscreen",
+                        AnimationCurve.Constant(0, 1, 0)
+                    );
+                }
+            }
+
             return clip;
+        }
+
+        private Dictionary<(TargetProp, IVertexFilter), List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
+            Dictionary<(TargetProp, IVertexFilter), List<NaNimationFilter.AddedBone>> plan)
+        {
+            List<(NaNimationFilter.AddedBone, (TargetProp, IVertexFilter))> createdBones =
+                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
+                    .OrderBy(b => b.bone.newBoneIndex)
+                    .ToList();
+
+            var maxNewBoneIndex = createdBones[^1].Item1.newBoneIndex;
+            var bonesArray = new Transform[maxNewBoneIndex + 1];
+            var curBonesArray = renderer.bones;
+            Array.Copy(curBonesArray, 0, bonesArray, 0, curBonesArray.Length);
+
+            // Special case for meshes with no bones; we need to create a bone 0 
+            if (curBonesArray.Length == 0)
+            {
+                bonesArray[0] = renderer.transform;
+            }
+
+            foreach (var pair in createdBones)
+            {
+                var bone = pair.Item1;
+                var shape = pair.Item2;
+
+                if (bonesArray[bone.originalBoneIndex] == null) continue;
+                var newBone = new GameObject(NaNimationFilter.NaNimatedBonePrefix + shape.Item1.ToString().Replace('/', '_'));
+                var newBoneTransform = newBone.transform;
+                newBoneTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
+                newBoneTransform.localPosition = Vector3.zero;
+                newBoneTransform.localRotation = Quaternion.identity;
+                newBoneTransform.localScale = Vector3.one;
+
+                newBone.AddComponent<ModularAvatarPBBlocker>();
+                bonesArray[bone.newBoneIndex] = newBoneTransform;
+            }
+
+            renderer.bones = bonesArray;
+
+            return plan.ToDictionary(kv => kv.Key,
+                kv => kv.Value.Select(b => bonesArray[b.newBoneIndex].gameObject).ToList());
         }
 
         #endregion
@@ -639,11 +687,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 });
             }
-            else
+            else if (value is float valueFloat)
             {
                 var curve = new AnimationCurve();
-                curve.AddKey(0, (float) value);
-                curve.AddKey(1, (float) value);
+                curve.AddKey(0, (float) valueFloat);
+                curve.AddKey(1, (float) valueFloat);
 
                 var binding = EditorCurveBinding.FloatCurve(path, componentType, key.PropertyName);
                 AnimationUtility.SetEditorCurve(clip, binding, curve);
