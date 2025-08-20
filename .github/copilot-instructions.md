@@ -60,6 +60,17 @@ public const string DefaultPrefix = "MA_";
 - Use `[HideInInspector]` judiciously to keep inspectors clean
 - Leverage Unity's component lifecycle methods appropriately
 
+#### Component Architecture
+- Most MA components inherit from `AvatarTagComponent`
+- Use `[DefaultExecutionOrder]` attributes to control component initialization order
+- Implement `OnValidate()` for editor-time validation and UI updates
+- Use the `INDMFEditorOnly` interface for editor-only components
+- Follow the established pattern for `OnChangeAction` events for UI updates
+- Use conditional compilation for VRChat-specific features: `#if MA_VRCSDK3_AVATARS`
+- Always check for VRChat SDK availability before using VRC-specific APIs
+- Follow VRChat's component naming conventions and parameter limits
+- Test compatibility with both PC and Android (Quest) build targets
+
 #### Error Handling
 - Use specific exception types when throwing exceptions
 - Log errors using Unity's `Debug.LogError()` with context objects
@@ -159,10 +170,14 @@ sidebar_label: Display Name (if different from title)
 ## Testing and Quality Assurance
 
 ### Unit Testing
-- Write unit tests for all core business logic
-- Use Unity Test Runner for Unity-specific tests
-- Mock Unity objects appropriately in tests
-- Maintain test coverage for critical paths
+- Write unit tests for all core business logic in `UnitTests~/`
+- Inherit from `TestBase` class for common test setup and teardown
+- Use Unity Test Runner with NUnit framework
+- Mock Unity objects appropriately in tests using `CreatePrimitive()` or prefabs
+- Test both editor and runtime behavior where applicable
+- Use conditional compilation (`#if MA_VRCSDK3_AVATARS`) for VRChat-specific tests
+- Clean up created GameObjects in teardown methods to prevent test pollution
+- Use the established pattern for loading test assets via GUID references
 
 ### Documentation Testing
 - Build documentation locally before committing: `cd docs~ && yarn build`
