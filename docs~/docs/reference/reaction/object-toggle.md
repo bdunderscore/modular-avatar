@@ -17,3 +17,32 @@ disable an underwear mesh when it's fully covered by other clothing.
 
 Simply add an Object Toggle component to the controlling object, then click the + and select a target object to be
 controlled. The checkmark controls whether the target object will be enabled or disabled.
+
+### Conflict Resolution
+
+When multiple Object Toggle components are active and attempt to control the same target object, the Object Toggle
+that appears last in hierarchy order will take precedence.
+
+If all Object Toggle components controlling a target object are inactive, the object's original state, or (if other
+animations are manipulating that object) animated state will be used.
+
+### Response Timing
+
+Object Toggle updates affected objects one frame after the controlling object is updated. To avoid unfortunate
+"accidents", when an Object Toggle is disabled, the disabled object (the Object Toggle itself or its parent, etc.)
+is disabled one frame later than usual. This ensures that when disabling outer clothing, the outer mesh continues
+to be displayed until the inner mesh is re-enabled.
+
+When using Object Toggle to control other Object Toggles, this delay applies only to each Object Toggle. That is,
+if A -> B -> C and A is turned off, the timing will be as follows:
+
+* Frame 1: Nothing happens (A's disable is delayed)
+* Frame 2: A is disabled (B's disable is delayed)  
+* Frame 3: B and C are disabled simultaneously.
+
+### Preview System Limitations
+
+The effects of Object Toggle on mesh visibility are immediately reflected in the editor's scene view. However,
+the effects of Object Toggle on other reactive components, such as other Object Toggles or
+[Shape Changers](./shape-changer.md), are not reflected in the preview display. To see the full effects of
+Object Toggle, you need to enter play mode.
