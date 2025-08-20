@@ -39,10 +39,3 @@ if A -> B -> C and A is turned off, the timing will be as follows:
 * Frame 1: Nothing happens (A's disable is delayed)
 * Frame 2: A is disabled (B's disable is delayed)  
 * Frame 3: B and C are disabled simultaneously.
-
-### Preview System Limitations
-
-The effects of Object Toggle on mesh visibility are immediately reflected in the editor's scene view. However,
-the effects of Object Toggle on other reactive components, such as other Object Toggles or
-[Shape Changers](./shape-changer.md), are not reflected in the preview display. To see the full effects of
-Object Toggle, you need to enter play mode.
