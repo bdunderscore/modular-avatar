@@ -9,7 +9,7 @@ Modular Avatar comes with a few sample prefabs to demonstrate its features. Thes
 
 ![Samples](wheretofind.png)
 
-## Fingerpen
+## Fingerpen {#fingerpen}
 
 The fingerpen prefab is a useful pen that can be used anywhere.
 Simply drop it onto your avatar, then click the "Select Menu" button in the menu installer component, and double-click the menu you want to install the fingerpen controls to.
@@ -21,7 +21,7 @@ The fingerpen prefab demonstrates:
 * Setting up [menus](/docs/reference/menu-installer.md).
 * Using the [Bone Proxy](/docs/reference/bone-proxy.md) component to place objects inside of the avatar's bones, in an avatar-agnostic way
 
-## Clap
+## Clap {#clap}
 
 By dragging the Clap prefab onto your avatar, when you bring your hands together, you'll hear a clap sound effect, and some particles will spawn.
 As with fingerpen, click the select menu button to select where to put the on/off switch.
