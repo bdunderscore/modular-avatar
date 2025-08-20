@@ -55,16 +55,13 @@ public const string DefaultPrefix = "MA_";
 
 #### Unity-Specific Guidelines
 - Always null-check Unity objects before use (`if (obj != null)`)
-- Use `[SerializeField]` for private fields that need serialization
-- Implement proper `OnValidate()` methods for editor-time validation
-- Use `[HideInInspector]` judiciously to keep inspectors clean
-- Leverage Unity's component lifecycle methods appropriately
+  - Note: Unity overloads the `==` and `!=` operators for objects extending `UnityEngine.Object`. Checking for nullity when these objects are cast to the C# `object` type can return the wrong result.
+- For new properties and fields, prefer a pattern of using a private or internal `[SerializeField]` field, and exposing via a property
 
 #### Component Architecture
 - Most MA components inherit from `AvatarTagComponent`
-- Use `[DefaultExecutionOrder]` attributes to control component initialization order
-- Implement `OnValidate()` for editor-time validation and UI updates
-- Use the `INDMFEditorOnly` interface for editor-only components
+- Pay attention to the lifecycle methods implemented in `AvatarTagComponent`; don't forget `override` (and calling the base method) when overriding them
+- Most editor-only components should use `AvatarTagComponent`, which itself extends `INDMFEditorOnly`
 - Follow the established pattern for `OnChangeAction` events for UI updates
 - Use conditional compilation for VRChat-specific features: `#if MA_VRCSDK3_AVATARS`
 - Always check for VRChat SDK availability before using VRC-specific APIs
@@ -73,7 +70,7 @@ public const string DefaultPrefix = "MA_";
 
 #### Error Handling
 - Use specific exception types when throwing exceptions
-- Log errors using Unity's `Debug.LogError()` with context objects
+- Generally, errors should be reported using `BuildReport`. When using this, be sure to add localization strings to `Editor/Localization`
 - Validate inputs at public API boundaries
 - Use `try-catch` blocks sparingly and only when you can handle the error meaningfully
 
@@ -87,12 +84,13 @@ public const string DefaultPrefix = "MA_";
 ### Localization Guidelines
 
 #### Code Localization
-- Use `Localization.L.GetLocalizedString(key)` for user-facing strings
+- Use `using static nadena.dev.modular_avatar.core.editor.Localization;` so `L` can be referred to without the `Localization` prefix
+- Use `L.GetLocalizedString(key)` for user-facing strings
 - Register language change callbacks for dynamic UI elements:
 ```csharp
 LanguagePrefs.RegisterLanguageChangeCallback(element, relocalize);
 ```
-- Store localization keys in appropriate `.po` files
+- Store localization keys in JSON files under `Editor/Localization`
 - Always provide English fallbacks for localization keys
 
 ## Documentation Guidelines
@@ -216,15 +214,15 @@ yarn typecheck
 - Test with VRChat SDK3 Avatars
 - Verify NDMF integration works correctly
 - Test both play mode and edit mode functionality
+- Unity lifecycle methods are usually not applicable for this project. Refer to `PluginDefinition.cs` to see the high level entry point for Modular Avatar
 
 ## Common Patterns and Anti-Patterns
 
 ### ✅ Good Practices
 - Always check for null references before accessing Unity objects
-- Use appropriate Unity lifecycle methods (`Awake`, `Start`, `OnEnable`)
-- Implement proper cleanup in `OnDisable` and `OnDestroy`
-- Use `[SerializeField]` for editor-exposed fields instead of public fields
-- Validate component configuration in `OnValidate()`
+- When making changes to components that are saved (i.e., in an inspector or user-facing UI, but _not_ during a build), ensure that the changes are registered with the Undo and Prefab systems. There are two options for this:
+  1. Use SerializedObject and SerializedProperty.
+  2. Explicitly use `Undo.Record*` methods before making the change and invoke [PrefabUtility.RecordPrefabInstancePropertyModifications](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/PrefabUtility.RecordPrefabInstancePropertyModifications.html) after making the change.
 - Use descriptive commit messages following conventional commits
 
 ### ❌ Anti-Patterns
@@ -232,7 +230,6 @@ yarn typecheck
 - Don't assume specific avatar structures without validation
 - Avoid hardcoded strings for user-facing text (use localization)
 - Don't create circular dependencies between components
-- Avoid blocking the main thread with expensive operations
 - Don't ignore compiler warnings
 
 ## Specific Project Considerations
