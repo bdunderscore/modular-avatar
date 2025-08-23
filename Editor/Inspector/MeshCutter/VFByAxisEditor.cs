@@ -70,13 +70,29 @@ namespace nadena.dev.modular_avatar.core.editor
             set
             {
                 if (value == __activeEditing) return;
-                if (__activeEditing != null)
+                __activeEditing?.SetEditingState(false);
+                value?.SetEditingState(true);
+
+                if (value != null)
                 {
-                    __activeEditing.SetEditingState(false);
+                    Tools.hidden = true;
+                    Selection.selectionChanged += OnSelectionChanged;
+                }
+                else
+                {
+                    Tools.hidden = false;
+                    Selection.selectionChanged -= OnSelectionChanged;
                 }
 
                 __activeEditing = value;
+
+                SceneView.RepaintAll();
             }
+        }
+
+        private static void OnSelectionChanged()
+        {
+            _activeEditing = null;
         }
 
         private SerializedProperty? _axis;
@@ -102,7 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _root = uxml;
 
             var btnEdit = uxml.Q<Button>("f-axis-edit");
-            btnEdit.clickable.clicked += () => { SetEditingState(_activeEditing != this); };
+            btnEdit.clickable.clicked += () => { _activeEditing = _activeEditing == this ? null : this; };
 
             var btnFlip = uxml.Q<Button>("f-axis-flip");
             btnFlip.clickable.clicked += () =>
@@ -162,15 +178,11 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (editing)
             {
-                _activeEditing = this;
                 _root?.AddToClassList("st-active-editing");
                 _lastReferenceTransform = null;
             }
             else
             {
-                // Avoid recursion by resetting the underlying static variable
-                if (_activeEditing == this) __activeEditing = null;
-
                 _root?.RemoveFromClassList("st-active-editing");
             }
         }
@@ -189,8 +201,6 @@ namespace nadena.dev.modular_avatar.core.editor
             var quat = maybeQuat.Value;
 
             var center = refTransform.TransformPoint(_center.vector3Value);
-            Handles.DrawWireDisc(center, refTransform.TransformDirection(_axis!.vector3Value), 0.2f, 4.0f);
-            Handles.ArrowHandleCap(0, center, quat, 0.2f, EventType.Repaint);
 
             EditorGUI.BeginChangeCheck();
             quat = Handles.RotationHandle(quat, center);
