@@ -16,7 +16,7 @@ Mesh Cutter has a number of use cases, including:
 ## When shouldn't I use it?
 
 If you are turning off a mesh because it is fully covered by another mesh, consider
-using [Object Toggle](./object-toggle.md) instead.
+using [Object Toggle](../object-toggle.md) instead.
 This is more efficient, as Mesh Cutter still has to process the entire mesh, even if it is entirely hidden.
 
 ## Setting up Mesh Cutter
@@ -32,8 +32,8 @@ button on the Mesh Cutter component, or by adding a Vertex Filter component manu
 
 ### Supported Vertex Filters
 
-- [By Mask](./by-mask) - Allows you to select portions of the mesh by using a mask texture.
-- [By Axis](./by-axis) - Allows you to select portions of the mesh by whether they are on one side of a plane.
+- [By Mask](./by-mask.md) - Allows you to select portions of the mesh by using a mask texture.
+- [By Axis](./by-axis.md) - Allows you to select portions of the mesh by whether they are on one side of a plane.
 
 ## Using multiple Vertex Filters
 
