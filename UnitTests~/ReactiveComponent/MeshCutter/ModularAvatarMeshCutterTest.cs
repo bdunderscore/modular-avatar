@@ -110,34 +110,83 @@ public class ModularAvatarMeshCutterTest : TestBase
     }
     
     [Test]
-    public void TestMeshCutterWithTwoVertexFilters_AndCondition()
+    public void TestMeshCutterWithTwoVertexFilters_AndCondition_NaNimate()
     {
         // Add mesh cutter
         var meshCutter = meshObject.AddComponent<ModularAvatarMeshCutter>();
         meshCutter.Object.Set(meshObject);
+        
+        // Add a Menu Item to ensure that we use the NanImation path
+        meshCutter.gameObject.AddComponent<ModularAvatarMenuItem>();
         
         // Add first vertex filter (Z > 0.5, should select Z=1 and Z=2 planes)
         var vertexFilter1 = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter1.Center = new Vector3(0, 0, 0.5f);
         vertexFilter1.Axis = Vector3.forward;
         
-        // Add second vertex filter (Z > 1.5, should select only Z=2 plane)
+        // Add second vertex filter (Z > 1.5, should select only Z=0 and Z=2 plane)
         var vertexFilter2 = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter2.Center = new Vector3(0, 0, 1.5f);
-        vertexFilter2.Axis = Vector3.forward;
+        vertexFilter2.Axis = -Vector3.forward;
         
-        var originalVertices = testMesh.vertices;
         var originalBindposeCount = testMesh.bindposeCount;
+
+        // Process the avatar
+        AvatarProcessor.ProcessAvatar(avatarRoot);
         
-        // Count vertices that should be deleted (Z > 0.5 AND Z > 1.5, which means Z > 1.5)
-        int verticesToDelete = originalVertices.Count(v => v.z > 0.5f && v.z > 1.5f);
-        Assert.Greater(verticesToDelete, 0, "Some vertices should be selected by both filters");
+        // Get the processed mesh
+        var processedMesh = meshRenderer.sharedMesh;
         
-        // Also verify that the AND condition is more restrictive than either individual filter
-        int verticesFromFilter1 = originalVertices.Count(v => v.z > 0.5f);
-        int verticesFromFilter2 = originalVertices.Count(v => v.z > 1.5f);
-        Assert.Greater(verticesFromFilter1, verticesToDelete, "AND condition should be more restrictive than first filter");
-        Assert.AreEqual(verticesFromFilter2, verticesToDelete, "AND condition should equal the more restrictive filter");
+        // Verify the correct vertices were deleted (AND condition: Z > 1.5)
+        var processedVertices = processedMesh.vertices;
+        var weights = processedMesh.boneWeights;
+        
+        // Verify that two new bones were created (root + NaNimation)
+        Assert.AreEqual(originalBindposeCount + 2, processedMesh.bindposeCount,
+            "An additional root bone should be created for unskinned mesh");
+
+        var tris = processedMesh.triangles;
+
+        for (int i = 0; i < tris.Length; i += 3)
+        {
+            bool shouldHaveBeenDeleted = false;
+            bool wasDeleted = false;
+            for (int v = 3; v < i + 3; v++)
+            {
+                var pos = processedVertices[tris[v]];
+                if (pos.z > 0.5f && pos.z < 1.5f) shouldHaveBeenDeleted = true;
+                switch (weights[tris[v]].boneIndex0)
+                {
+                    case 0: break; // not deleted
+                    case 1: wasDeleted = true; break;
+                    default: Assert.Fail($"Unexpected bone index {weights[v].boneIndex0} on vertex {pos}"); break;
+                }
+            }
+            
+            Assert.AreEqual(shouldHaveBeenDeleted, wasDeleted, 
+                $"Triangle at {i} should have {(shouldHaveBeenDeleted ? "" : " not")} been deleted");
+        }
+    }
+    
+    
+    [Test]
+    public void TestMeshCutterWithTwoVertexFilters_AndCondition_Erase()
+    {
+        // Add mesh cutter
+        var meshCutter = meshObject.AddComponent<ModularAvatarMeshCutter>();
+        meshCutter.Object.Set(meshObject);
+
+        // Add first vertex filter (Z > 0.5, should select Z=1 and Z=2 planes)
+        var vertexFilter1 = meshObject.AddComponent<VertexFilterByAxisComponent>();
+        vertexFilter1.Center = new Vector3(0, 0, 0.5f);
+        vertexFilter1.Axis = Vector3.forward;
+        
+        // Add second vertex filter (Z > 1.5, should select only Z=0 and Z=2 plane)
+        var vertexFilter2 = meshObject.AddComponent<VertexFilterByAxisComponent>();
+        vertexFilter2.Center = new Vector3(0, 0, 1.5f);
+        vertexFilter2.Axis = -Vector3.forward;
+        
+        var originalBindposeCount = testMesh.bindposeCount;
         
         // Process the avatar
         AvatarProcessor.ProcessAvatar(avatarRoot);
@@ -147,41 +196,16 @@ public class ModularAvatarMeshCutterTest : TestBase
         
         // Verify the correct vertices were deleted (AND condition: Z > 1.5)
         var processedVertices = processedMesh.vertices;
-        foreach (var vertex in processedVertices)
+
+        foreach (var pos in processedVertices)
         {
-            bool shouldHaveBeenDeleted = vertex.z > 1.5f;
-            Assert.IsFalse(shouldHaveBeenDeleted, 
-                $"Vertex at {vertex} should have been deleted by AND condition (Z > 1.5)");
-        }
-        
-        // Verify that an additional root bone was created for the unskinned mesh
-        Assert.AreEqual(originalBindposeCount + 1, processedMesh.bindposeCount,
-            "An additional root bone should be created for unskinned mesh");
-        
-        // Verify all remaining vertices are weighted to the root bone (index 0)
-        var boneWeights = processedMesh.GetAllBoneWeights();
-        var bonesPerVertex = processedMesh.GetBonesPerVertex();
-        
-        if (boneWeights.Length > 0)
-        {
-            int boneWeightIndex = 0;
-            for (int v = 0; v < processedMesh.vertexCount; v++)
+            if (pos.z > 0.5f && pos.z < 1.5f)
             {
-                bool foundRootBoneWeight = false;
-                for (int b = 0; b < bonesPerVertex[v]; b++)
-                {
-                    var boneWeight = boneWeights[boneWeightIndex + b];
-                    if (boneWeight.boneIndex == 0 && boneWeight.weight > 0.9f)
-                    {
-                        foundRootBoneWeight = true;
-                        break;
-                    }
-                }
-                Assert.IsTrue(foundRootBoneWeight, $"Vertex {v} should be weighted to root bone");
-                boneWeightIndex += bonesPerVertex[v];
+                Assert.Fail($"Vertex at {pos} should have been deleted");
             }
         }
     }
+    
     
     [Test]
     public void TestMeshCutterWithShapeChanger_OrCondition()

@@ -12,7 +12,7 @@ using static nadena.dev.modular_avatar.core.editor.Localization;
 namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarMeshCutter))]
-    public class MeshCutterEditor : MAEditorBase
+    internal class MeshCutterEditor : MAEditorBase
     {
         [SerializeField] private StyleSheet uss;
         [SerializeField] private VisualTreeAsset uxml;

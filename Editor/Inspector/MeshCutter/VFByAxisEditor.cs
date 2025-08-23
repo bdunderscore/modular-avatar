@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomEditor(typeof(VertexFilterByAxisComponent))]
-    public class VFByAxisEditor : MAEditorBase
+    internal class VFByAxisEditor : MAEditorBase
     {
         private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/MeshCutter/";
         private const string UxmlPath = Root + "VFByAxisEditor.uxml";
