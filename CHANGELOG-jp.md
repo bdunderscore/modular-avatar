@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
 
 ### Fixed
+- [#1670] 一部の場合、生成したメッシュがObjectRegistryに登録されないバグを修正
 
 ### Changed
 

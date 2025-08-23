@@ -1,5 +1,6 @@
 ﻿using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
@@ -57,6 +58,43 @@ namespace modular_avatar_tests
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
             Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)),
                 skinnedMeshRenderer.localBounds);
+        }
+
+        [Test]
+        public void ObjectRegistryRegistrationOnMeshRetargeting()
+        {
+            var root = CreateRoot("root");
+            var a = CreateChild(root, "a");
+            var b = CreateChild(a, "b");
+
+            var originalMesh = new Mesh();
+            originalMesh.name = "OriginalMesh";
+            
+            var skinnedMeshRenderer = root.AddComponent<SkinnedMeshRenderer>();
+            skinnedMeshRenderer.sharedMesh = originalMesh;
+            skinnedMeshRenderer.rootBone = b.transform;
+
+            var reg = new ObjectRegistry(root.transform);
+            using var scope = new ObjectRegistryScope(reg);
+
+            var build_context = new nadena.dev.ndmf.BuildContext(root, null);
+            var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+
+            var bonedb = new BoneDatabase();
+            bonedb.AddMergedBone(b.transform);
+
+            new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
+
+            // Verify that the mesh was replaced
+            Assert.AreNotEqual(originalMesh, skinnedMeshRenderer.sharedMesh);
+            Assert.IsTrue(skinnedMeshRenderer.sharedMesh.name.StartsWith("RETARGETED__"));
+            
+            // Verify that a new mesh was created
+            var replacedMesh = skinnedMeshRenderer.sharedMesh;
+            Assert.IsNotNull(replacedMesh);
+            
+            // Verify that ObjectRegistry.RegisterReplacedObject was called properly
+            Assert.AreEqual(ObjectRegistry.GetReference(replacedMesh), ObjectRegistry.GetReference(originalMesh));
         }
     }
 }
