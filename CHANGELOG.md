@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1651] Implement `MA Delete Mesh By Mask`
+- [#1667] Implement `Mesh Cutter` - a component which can be used to delete or toggle portions of a mesh.
+  - Implement vertex filters `By Axis` and `By Mask` (#1651) 
 
 ### Fixed
 - [#1671] Shape changer could cause VRChat crashes in certain worlds
