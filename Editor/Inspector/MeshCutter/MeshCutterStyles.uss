@@ -26,6 +26,10 @@
     margin: 1px -4px 1px 3px;
 }
 
+.children-grow > * {
+    flex-grow: 1;
+}
+
 .horizontal > PropertyField {
     flex-grow: 1;
 }

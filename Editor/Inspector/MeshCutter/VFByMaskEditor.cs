@@ -11,8 +11,14 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [CustomPropertyDrawer(typeof(ByAxisReferenceFrame))]
+    internal class ByAxisReferenceFrameDrawer : EnumDrawer<ByAxisReferenceFrame>
+    {
+        protected override string localizationPrefix => "reactive_object.delete-mesh-by-axis.reference-frame";
+    }
+    
     [CustomEditor(typeof(VertexFilterByMaskComponent))]
-    public class VFByMaskEditor : MAEditorBase
+    internal class VFByMaskEditor : MAEditorBase
     {
         private const string Root = "Packages/nadena.dev.modular-avatar/Editor/Inspector/MeshCutter/";
         private const string UxmlPath = Root + "VFByMaskEditor.uxml";
