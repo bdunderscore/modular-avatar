@@ -11,12 +11,6 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    [CustomPropertyDrawer(typeof(ByAxisReferenceFrame))]
-    internal class ByAxisReferenceFrameDrawer : EnumDrawer<ByAxisReferenceFrame>
-    {
-        protected override string localizationPrefix => "reactive_object.delete-mesh-by-axis.reference-frame";
-    }
-    
     [CustomEditor(typeof(VertexFilterByMaskComponent))]
     internal class VFByMaskEditor : MAEditorBase
     {

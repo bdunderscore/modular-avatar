@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
@@ -132,40 +131,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 serializedObject.ApplyModifiedProperties();
             };
 
-            var refFrame = uxml.Q<EnumField>("f-ref-frame");
-            refFrame.RegisterValueChangedCallback<Enum>(evt =>
-            {
-                if (evt.previousValue == null || evt.newValue == null)
-                {
-                    return;
-                }
-
-                if (targets.Length > 1) return;
-
-                var priorFrame = GetReferenceTransform((ByAxisReferenceFrame)evt.previousValue);
-                var currentFrame = GetReferenceTransform((ByAxisReferenceFrame)evt.newValue);
-
-                if (priorFrame != null && currentFrame != null && priorFrame != currentFrame)
-                {
-                    if (!_refSpaceChangedInThisFrame.Add(target))
-                    {
-                        // Another editor has already updated the center and axis properties this frame.
-                        return;
-                    }
-
-                    serializedObject.Update();
-
-                    // Keep the same position and orientation in the new reference frame
-                    _center!.vector3Value =
-                        currentFrame.InverseTransformPoint(priorFrame.TransformPoint(_center.vector3Value));
-                    _axis!.vector3Value =
-                        currentFrame.InverseTransformDirection(priorFrame.TransformDirection(_axis.vector3Value));
-                    _lastReferenceTransform = null;
-
-                    serializedObject.ApplyModifiedProperties();
-                }
-            });
-
             return uxml;
         }
 
@@ -219,7 +184,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private Transform? GetReferenceTransform(ByAxisReferenceFrame? frame = null)
+        private Transform? GetReferenceTransform()
         {
             var singleTarget = serializedObject.targetObject as VertexFilterByAxisComponent;
             if (singleTarget == null) return null;
@@ -229,20 +194,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (obj == null) return null;
             if (!obj.TryGetComponent<Renderer>(out var renderer)) return null;
 
-            frame ??= singleTarget.ReferenceFrame;
-
-            switch (frame)
-            {
-                case ByAxisReferenceFrame.RootBone:
-                    if (renderer is SkinnedMeshRenderer smr && smr.rootBone != null) return smr.rootBone;
-                    return renderer.transform;
-                case ByAxisReferenceFrame.Renderer:
-                    return renderer.transform;
-                case ByAxisReferenceFrame.AvatarRoot:
-                    return RuntimeUtil.FindAvatarTransformInParents(renderer.transform);
-                default:
-                    return null;
-            }
+            return renderer.transform;
         }
     }
 }

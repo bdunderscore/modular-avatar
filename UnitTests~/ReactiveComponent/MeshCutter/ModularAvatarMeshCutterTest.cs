@@ -82,7 +82,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter.Center = new Vector3(0, 0, 1.5f);
         vertexFilter.Axis = Vector3.forward;
-        vertexFilter.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         var originalVertexCount = testMesh.vertexCount;
         var originalVertices = testMesh.vertices;
@@ -121,13 +120,11 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter1 = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter1.Center = new Vector3(0, 0, 0.5f);
         vertexFilter1.Axis = Vector3.forward;
-        vertexFilter1.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         // Add second vertex filter (Z > 1.5, should select only Z=2 plane)
         var vertexFilter2 = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter2.Center = new Vector3(0, 0, 1.5f);
         vertexFilter2.Axis = Vector3.forward;
-        vertexFilter2.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         var originalVertices = testMesh.vertices;
         var originalBindposeCount = testMesh.bindposeCount;
@@ -197,7 +194,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter.Center = new Vector3(0, 0, 1.5f);
         vertexFilter.Axis = Vector3.forward;
-        vertexFilter.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         // Add shape changer in delete mode (affects Z=0 plane)
         var shapeChanger = avatarRoot.AddComponent<ModularAvatarShapeChanger>();
@@ -249,7 +245,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter.Center = new Vector3(0, 0, 1.5f);
         vertexFilter.Axis = Vector3.forward;
-        vertexFilter.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         // Add menu item (default configuration enables NaNimation)
         var menuItem = meshObject.AddComponent<ModularAvatarMenuItem>();
@@ -375,7 +370,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter.Center = new Vector3(0, 0, -1);
         vertexFilter.Axis = Vector3.forward;
-        vertexFilter.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         var originalVertices = testMesh.vertices;
         
@@ -426,7 +420,6 @@ public class ModularAvatarMeshCutterTest : TestBase
         var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
         vertexFilter.Center = Vector3.up * -2.5f;
         vertexFilter.Axis = Vector3.up;
-        vertexFilter.ReferenceFrame = ByAxisReferenceFrame.Renderer;
         
         var originalVertices = multiSubmeshMesh.vertices;
         var originalSubmeshCount = multiSubmeshMesh.subMeshCount;

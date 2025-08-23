@@ -1,5 +1,4 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -8,22 +7,12 @@ using UnityEditor;
 namespace nadena.dev.modular_avatar.core.vertex_filters
 {
     [PublicAPI]
-    [Serializable]
-    public enum ByAxisReferenceFrame
-    {
-        RootBone,
-        Renderer,
-        AvatarRoot
-    }
-    
-    [PublicAPI]
     [AddComponentMenu("Modular Avatar/Vertex Filters/MA Vertex Filter - By Axis")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class VertexFilterByAxisComponent : AvatarTagComponent, IVertexFilterBehavior
     {
         [SerializeField] internal Vector3 m_center = Vector3.zero;
         [SerializeField] internal Vector3 m_axis = Vector3.left;
-        [SerializeField] internal ByAxisReferenceFrame m_referenceFrame = ByAxisReferenceFrame.RootBone;
 
         public Vector3 Center
         {
@@ -37,13 +26,6 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
             set => m_axis = value;
         }
 
-        public ByAxisReferenceFrame ReferenceFrame
-        {
-            get => m_referenceFrame;
-            set => m_referenceFrame = value;
-        }
-
-
         internal Transform? GetReferenceTransform()
         {
             if (!TryGetComponent<ModularAvatarMeshCutter>(out var cutter)) return null;
@@ -51,18 +33,7 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
             if (obj == null) return null;
             if (!obj.TryGetComponent<Renderer>(out var renderer)) return null;
 
-            switch (m_referenceFrame)
-            {
-                case ByAxisReferenceFrame.RootBone:
-                    if (renderer is SkinnedMeshRenderer smr && smr.rootBone != null) return smr.rootBone;
-                    return renderer.transform;
-                case ByAxisReferenceFrame.Renderer:
-                    return renderer.transform;
-                case ByAxisReferenceFrame.AvatarRoot:
-                    return RuntimeUtil.FindAvatarTransformInParents(renderer.transform);
-                default:
-                    return null;
-            }
+            return renderer.transform;
         }
 
 #if UNITY_EDITOR
