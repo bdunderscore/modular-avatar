@@ -267,7 +267,6 @@
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
-  "reactive_object.delete-mesh-by-mask.object": "目標渲染器",
   "reactive_object.delete-mesh-by-mask.material-index": "材質槽",
   "reactive_object.delete-mesh-by-mask.mask-texture": "遮罩紋理",
   "reactive_object.delete-mesh-by-mask.create-mask-texture": "建立",
