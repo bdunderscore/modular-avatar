@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - 頂点フィルター `By Axis` と `By Mask` (#1651) を実装
 
 ### Fixed
+- [#1670] 一部の場合、生成したメッシュがObjectRegistryに登録されないバグを修正
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
 - [#1679] `MA Shape Changer` の削除モードで、頭ボーン配下をルートボーンとして設定したメッシュが一人視点で表示されない問題を修正
 - [#1682] `ModularAvatarMenuItem`操作時に`NullReferenceException `が発生する可能性がある問題を修正

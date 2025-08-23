@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implement vertex filters `By Axis` and `By Mask` (#1651) 
 
 ### Fixed
+- [#1670] Fixed an issue where generated meshes might not be registered in ObjectRegistry in some cases
 
 ### Changed
 

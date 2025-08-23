@@ -13,6 +13,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 頂点フィルター `By Axis` と `By Mask` (#1651) を実装
     
 ### Fixed
+- [#1670] 一部の場合、生成したメッシュがObjectRegistryに登録されないバグを修正
 
 ### Changed
 
