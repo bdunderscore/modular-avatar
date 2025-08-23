@@ -1,8 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
-#if UNITY_EDITOR
-using System;
-#endif
 
 namespace nadena.dev.modular_avatar.core.vertex_filters
 {
