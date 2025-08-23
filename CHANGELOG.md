@@ -15,13 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implement vertex filters `By Axis` and `By Mask` (#1651) 
 
 ### Fixed
-- [#1671] Shape changer could cause VRChat crashes in certain worlds
-- [#1679] Fix issues where meshes with a root bone under the head could be invisible in first person, when affected by
-  a `MA Shape Changer` in delete mode.
-- [#1682] Fixed a potential `NullReferenceException` when operating `ModularAvatarMenuItem`.
-  (Fix provided by @Tliks)
-- [#1683] Fixed an issue where renderers with a root bone under the head might end up with incorrect mesh bounds.
-  (Fix provided by @ReinaS-64892)
 
 ### Changed
 
@@ -30,6 +23,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.4] - [2025-08-15]
+
+### Fixed
+- [#1682] Fixed a potential `NullReferenceException` when operating `ModularAvatarMenuItem`.
+  (Fix provided by @Tliks)
+- [#1683] Fixed an issue where renderers with a root bone under the head might end up with incorrect mesh bounds.
+  (Fix provided by @ReinaS-64892)
+
+## [1.13.3] - [2025-08-14]
+
+### Fixed
+
+- [#1679] Fix issues where meshes with a root bone under the head could be invisible in first person, when affected by
+  a `MA Shape Changer` in delete mode.
+
+## [1.13.2] - [2025-08-09]
+
+### Fixed
+- [#1671] Shape changer could cause VRChat crashes in certain worlds
 
 ## [1.13.1] - [2025-08-02]
 
