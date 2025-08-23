@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1651] `MA Delete Mesh By Mask` を実装
+- [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
+    - 頂点フィルター `By Axis` と `By Mask` (#1651) を実装
 
 ### Fixed
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正

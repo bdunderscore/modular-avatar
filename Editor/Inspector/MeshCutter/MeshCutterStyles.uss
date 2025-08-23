@@ -15,11 +15,23 @@
     -unity-font-style: bold;
 }
 
+.hidden {
+    display: none;
+}
+
 .horizontal {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     margin: 1px -4px 1px 3px;
+}
+
+.children-grow > * {
+    flex-grow: 1;
+}
+
+.horizontal > PropertyField {
+    flex-grow: 1;
 }
 
 .horizontal > * {
@@ -88,4 +100,14 @@
 
 #t-edit-mask-texture > .unity-base-field__input {
     display: none;
+}
+
+#add-vertex-filter-dropdown {
+    margin-left: 3;
+    margin-right: 3;
+    margin-bottom: 3;
+}
+
+.st-active-editing #f-axis-edit {
+    background-color: #006011;
 }

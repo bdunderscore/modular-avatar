@@ -28,6 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         internal static Dictionary<(TargetProp, IVertexFilter), List<AddedBone>> ComputeNaNPlan(
+            Renderer renderer,
             ref Mesh mesh,
             List<(TargetProp, IVertexFilter)> targets
         )
@@ -59,7 +60,6 @@ namespace nadena.dev.modular_avatar.core.editor
              * for both shapes. In this case, the NaNimated bones will be nested.
              */
             
-            var deltaPositions = new Vector3[vertexCount];
             var affectedVertices = new bool[vertexCount];
             var firstBoneIndex = new int[vertexCount];
 
@@ -88,6 +88,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     initialBoneCount++;
+
+                    mesh.bindposes = new[] { Matrix4x4.identity };
+
+                    if (renderer is SkinnedMeshRenderer smr)
+                    {
+                        smr.bones = new[] { smr.transform };
+                    }
                 }
                 else
                 {
@@ -109,7 +116,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var (prop, filter) in targets)
                 {
                     Array.Fill(affectedVertices, false);
-                    filter.MarkFilteredVertices(mesh, affectedVertices);
+                    filter.MarkFilteredVertices(renderer, mesh, affectedVertices);
 
                     if (!affectedVertices.Any(b => b)) continue;
 

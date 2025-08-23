@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -7,9 +8,35 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class MaterialSlotSelector
     {
-        internal static void Setup(SerializedProperty objectProperty, PropertyField objectField, IntegerField materialIndexField, DropdownField  materialIndexDropdownField, ObjectField materialIndexOriginalField)
+        internal static void Setup(
+            SerializedProperty objectProperty,
+            PropertyField rendererTargetField,
+            IntegerField materialIndexField,
+            DropdownField materialIndexDropdownField,
+            ObjectField materialIndexOriginalField)
         {
-            objectField.RegisterValueChangeCallback(_ => EditorApplication.delayCall += UpdateMaterialDropdown);
+            Setup(
+                () => AvatarObjectReference.Get(objectProperty)?.GetComponent<Renderer>(),
+                rendererTargetField,
+                materialIndexField,
+                materialIndexDropdownField,
+                materialIndexOriginalField
+            );
+        }
+
+        internal static void Setup(
+            Func<Renderer> getRenderer,
+            PropertyField rendererTargetField,
+            IntegerField materialIndexField,
+            DropdownField materialIndexDropdownField,
+            ObjectField materialIndexOriginalField)
+        {
+            var isRegistered = false;
+            var lastRenderer = getRenderer();
+            EditorApplication.CallbackFunction checkRenderer = CheckRenderer;
+            materialIndexDropdownField.RegisterCallback<AttachToPanelEvent>(_ => OnAttach());
+            materialIndexDropdownField.RegisterCallback<DetachFromPanelEvent>(_ => OnDetach());
+            
             UpdateMaterialDropdown();
 
             // Link dropdown and original field to material index field
@@ -112,7 +139,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             Material[] GetSharedMaterials()
             {
-                var targetObject = AvatarObjectReference.Get(objectProperty);
+                var targetObject = getRenderer();
                 try
                 {
                     return targetObject?.GetComponent<Renderer>()?.sharedMaterials;
@@ -121,6 +148,32 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     return null;
                 }
+            }
+
+            void CheckRenderer()
+            {
+                var renderer = getRenderer();
+                if (renderer != lastRenderer)
+                {
+                    lastRenderer = renderer;
+                    UpdateMaterialDropdown();
+                }
+            }
+
+            void OnAttach()
+            {
+                if (isRegistered) return;
+                isRegistered = true;
+
+                EditorApplication.update += checkRenderer;
+            }
+
+            void OnDetach()
+            {
+                if (!isRegistered) return;
+                isRegistered = false;
+
+                EditorApplication.update -= checkRenderer;
             }
         }
     }

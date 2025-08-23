@@ -3,9 +3,15 @@
     <ui:VisualElement name="root-box">
         <ui:VisualElement name="group-box">
             <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
-
-            <ed:PropertyField binding-path="m_object"/>
+            <ed:PropertyField binding-path="m_object" label="reactive_object.mesh_cutter.object" class="ndmf-tr"/>
         </ui:VisualElement>
+
+        <ui:VisualElement name="hint-add-vertex-filter">
+            <ui:HelpBox class="ndmf-tr" message-type="Warning"
+                        text="reactive_object.mesh_cutter.hint_add_vertex_filter"/>
+        </ui:VisualElement>
+
+        <ui:DropdownField name="add-vertex-filter-dropdown"/>
 
         <ma:ROSimulatorButton/>
         <ma:LanguageSwitcherElement/>

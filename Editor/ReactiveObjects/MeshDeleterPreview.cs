@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -104,7 +105,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 _cache = cache;
                 _original = original;
                 _filters = _cache.Get(context, _original);
-                _generatedMesh = GenerateMesh(proxy.sharedMesh, _filters);
+                _generatedMesh = GenerateMesh(original, proxy, proxy.sharedMesh, _filters);
 
                 foreach (var filter in _filters)
                 {
@@ -139,7 +140,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(Mesh mesh, ImmutableList<IVertexFilter> filters)
+            private Mesh GenerateMesh(Renderer original, Renderer proxy, Mesh mesh,
+                ImmutableList<IVertexFilter> filters)
             {
                 if (mesh == null)
                 {
@@ -147,12 +149,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 mesh = Object.Instantiate(mesh);
-
+                
                 var vertexMask = new bool[mesh.vertexCount];
-                foreach (var filter in filters)
-                {
-                    filter.MarkFilteredVertices(mesh, vertexMask);
-                }
+                new ORFilter(filters).MarkFilteredVertices(original, mesh, vertexMask);
 
                 var tris = new List<int>();
                 for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)

@@ -1,0 +1,12 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ed:PropertyField name="f-center" binding-path="m_center"
+                      label="reactive_object.delete-mesh-by-axis.center"
+                      class="ndmf-tr"/>
+    <ed:PropertyField name="f-axis" binding-path="m_axis"
+                      label="reactive_object.delete-mesh-by-axis.axis"
+                      class="ndmf-tr"/>
+    <ui:VisualElement class="horizontal children-grow">
+        <ui:Button name="f-axis-edit" class="ndmf-tr" text="reactive_object.delete-mesh-by-axis.edit"/>
+        <ui:Button name="f-axis-flip" class="ndmf-tr" text="reactive_object.delete-mesh-by-axis.flip"/>
+    </ui:VisualElement>
+</UXML>
