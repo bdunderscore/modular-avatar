@@ -30,6 +30,42 @@ namespace nadena.dev.modular_avatar.core.editor
         private static void Init()
         {
             EditorApplication.update += () => _refSpaceChangedInThisFrame.Clear();
+            VertexFilterByAxisComponent._OnDrawGizmosSelected = OnDrawGizmosSelectedHandler;
+        }
+
+        private static void OnDrawGizmosSelectedHandler(VertexFilterByAxisComponent obj)
+        {
+            var color = Color.white;
+            float alpha;
+            if (__activeEditing == null)
+            {
+                alpha = 0.5f;
+            }
+            else if (__activeEditing.target == obj)
+            {
+                alpha = 1;
+            }
+            else
+            {
+                alpha = 0.1f;
+            }
+
+            color.a = alpha;
+
+            var refTransform = obj.GetReferenceTransform();
+            if (refTransform == null) return;
+
+            var center = refTransform.TransformPoint(obj.Center);
+            var axis = refTransform.TransformDirection(obj.Axis);
+            var quat = Quaternion.LookRotation(axis, Vector3.up);
+
+            var oldColor = Handles.color;
+
+            Handles.color = color;
+
+            Handles.DrawWireDisc(center, axis, 0.2f, 4.0f);
+            Handles.ArrowHandleCap(0, center, quat, 0.2f, EventType.Repaint);
+            Handles.color = oldColor;
         }
 
         private Quaternion? GizmoQuaternion

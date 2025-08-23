@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using UnityEngine;
 #if UNITY_EDITOR
-using UnityEditor;
+using System;
 #endif
 
 namespace nadena.dev.modular_avatar.core.vertex_filters
@@ -36,19 +36,11 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
             return renderer.transform;
         }
 
-#if UNITY_EDITOR
+        internal static Action<VertexFilterByAxisComponent> _OnDrawGizmosSelected = _ => { };
+
         private void OnDrawGizmosSelected()
         {
-            var refTransform = GetReferenceTransform();
-            if (refTransform == null) return;
-
-            var center = refTransform.TransformPoint(m_center);
-            var axis = refTransform.TransformDirection(m_axis);
-            var quat = Quaternion.LookRotation(axis, Vector3.up);
-
-            Handles.DrawWireDisc(center, axis, 0.2f, 4.0f);
-            Handles.ArrowHandleCap(0, center, quat, 0.2f, EventType.Repaint);
+            _OnDrawGizmosSelected(this);
         }
-#endif
     }
 }
