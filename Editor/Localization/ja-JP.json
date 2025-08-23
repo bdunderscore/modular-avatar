@@ -266,7 +266,6 @@
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 個のビットを使用中)",
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "条件を反転",
-  "reactive_object.delete-mesh-by-mask.object": "対象のレンダラー",
   "reactive_object.delete-mesh-by-mask.material-index": "マテリアルスロット",
   "reactive_object.delete-mesh-by-mask.mask-texture": "マスクテクスチャー",
   "reactive_object.delete-mesh-by-mask.create-mask-texture": "作成",
