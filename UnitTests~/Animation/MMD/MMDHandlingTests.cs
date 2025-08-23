@@ -1,6 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -43,8 +44,8 @@ namespace modular_avatar_tests.MMD
             AssertMMDModeHandling(fxc, 4, 5);
             
             Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[0].name);
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[1].name);
-            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual("L0", fxc.layers[3].name);
             Assert.AreEqual("L1", fxc.layers[4].name);
             Assert.AreEqual("L2", fxc.layers[5].name);
@@ -65,8 +66,8 @@ namespace modular_avatar_tests.MMD
             
             Assert.AreEqual(8, fxc.layers.Length);
             Assert.AreEqual("M0", fxc.layers[0].name);
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[1].name);
-            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual("M1", fxc.layers[3].name);
             Assert.AreEqual("M2", fxc.layers[4].name);
             Assert.AreEqual("L0", fxc.layers[5].name);
@@ -88,15 +89,44 @@ namespace modular_avatar_tests.MMD
             AssertMMDModeHandling(fxc, 4, 6);
         }
         
+        [Test]
+        public void MMDMode_OptInFirstLayer()
+        {
+            var prefab = CreatePrefab("MMDMode_OptInFirstLayer.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+
+            var layerNames = fxc.layers.Select(l => l.name).ToList();
+            Assert.That(layerNames, Is.EquivalentTo(new []
+            {
+                MMDRelayPass.DummyLayerName,
+                MMDRelayPass.ControlLayerName,
+                "OptIn",
+                "L0",
+                "L1",
+                "L2"
+            }));
+            AssertMMDModeLayerDrivers(fxc, 2, 4, 5);
+        }
+        
 
         private void AssertMMDModeHandling(AnimatorController fxc, params int[] layers)
         {
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[1].name);
-            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
 
+            AssertMMDModeLayerDrivers(fxc, layers);
+        }
+
+        private static void AssertMMDModeLayerDrivers(AnimatorController fxc, params int[] layers)
+        {
             var expectedLayers = new HashSet<int>(layers);
 
-            foreach (var state in fxc.layers[1].stateMachine.states)
+            var controlLayer = fxc.layers.First(l => l.name == MMDRelayPass.ControlLayerName);
+            foreach (var state in controlLayer.stateMachine.states)
             {
                 var actualLayers = new HashSet<int>();
                 float expectedWeight = -1f;
@@ -107,7 +137,7 @@ namespace modular_avatar_tests.MMD
                 {
                     case MMDRelayPass.StateNameInitial:
                         Assert.IsEmpty(behaviors);
-                        Assert.AreEqual(fxc.layers[1].stateMachine.defaultState, state.state);
+                        Assert.AreEqual(state.state, controlLayer.stateMachine.defaultState);
                         continue;
                     
                     case MMDRelayPass.StateNameNotMMD:

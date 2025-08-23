@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Fix provided by @Tliks)
 - [#1683] Fixed an issue where renderers with a root bone under the head might end up with incorrect mesh bounds.
   (Fix provided by @ReinaS-64892)
+- [#1675] MMD Layer Control did not work to opt-in a layer when that layer became layer #0
 
 ### Changed
 

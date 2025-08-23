@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implement vertex filters `By Axis` and `By Mask` (#1651) 
 
 ### Fixed
+- [#1675] MMD Layer Control did not work to opt-in a layer when that layer became layer #0
 
 ### Changed
 

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (@Tliks さんによる修正)
 - [#1683] 頭ボーンの配下をルートボーンとして設定したレンダラーで、メッシュのバウンディングボックスがズレる問題を修正
   (@ReinaS-64892 さんによる修正)
+- [#1675] レイヤー０になったレイヤーで、MMD Layer Controlを使ってMMD処理を受けるようにした場合、正しく動作しない問題を修正
 
 ### Changed
 

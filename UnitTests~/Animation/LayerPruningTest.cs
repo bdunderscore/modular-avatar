@@ -22,8 +22,8 @@ namespace modular_avatar_tests
             
             var fxController = (AnimatorController) FindController(prefab, VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
             var l0 = fxController.layers[0];
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxController.layers[1].name);
-            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxController.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxController.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxController.layers[1].name);
             var l1 = fxController.layers[3];
             var l2 = fxController.layers[4];
             var l3 = fxController.layers[5];
