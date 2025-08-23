@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.modular_avatar.core.armature_lock;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -45,6 +46,7 @@ namespace nadena.dev.modular_avatar.core
         BidirectionalExact
     }
 
+    [PublicAPI]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Modular Avatar/MA Merge Armature")]
@@ -129,7 +131,7 @@ namespace nadena.dev.modular_avatar.core
 
             if (_lockController == null)
             {
-                _lockController = ArmatureLockController.ForMerge(this, GetBonesForLock);
+                _lockController = ArmatureLockController.ForMerge(this, GetBonesMapping);
                 _lockController.WhenUnstable += OnUnstableLock;
             }
 
@@ -176,7 +178,15 @@ namespace nadena.dev.modular_avatar.core
             mergeTarget?.Get(this);
         }
 
-        private List<(Transform, Transform)> GetBonesForLock()
+        /// <summary>
+        ///     Returns a list of bone pairs (base, merge) which correspond to each other.
+        ///     "Base" is the bone in the base armature (mergeTarget), and "merge" is the bone in the armature
+        ///     containing this component.
+        ///     No guarantees are made about the order of the returned list.
+        /// </summary>
+        /// <returns></returns>
+        [PublicAPI]
+        public List<(Transform, Transform)> GetBonesMapping()
         {
             if (this == null) return null;
 
@@ -226,8 +236,8 @@ namespace nadena.dev.modular_avatar.core
                 {
                     merger.prefix = prefix;
                     merger.suffix = suffix;
-                    
-                    matches = merger.GetBonesForLock().Count;
+
+                    matches = merger.GetBonesMapping().Count;
                     return this;
                 }
                 finally

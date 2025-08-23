@@ -133,7 +133,70 @@ public class MergeArmatureTests : TestBase
             
         Assert.That(expectedCurves, Is.EquivalentTo(curves));
     }
-#endif
+#endif // MA_VRCSDK3_AVATARS
+
+    [Test]
+    public void GetBonesMappingTest()
+    {
+        // Create base armature
+        var root = CreateRoot("Root");
+        var baseArmature = new GameObject("BaseArmature");
+        baseArmature.transform.SetParent(root.transform);
+        
+        var baseHips = new GameObject("Hips");
+        baseHips.transform.SetParent(baseArmature.transform);
+        
+        var baseSpine = new GameObject("Spine");
+        baseSpine.transform.SetParent(baseHips.transform);
+        
+        var baseLeftArm = new GameObject("LeftArm");
+        baseLeftArm.transform.SetParent(baseSpine.transform);
+        
+        // Create merge armature with prefix/suffix
+        var mergeArmature = new GameObject("MergeArmature");
+        mergeArmature.transform.SetParent(root.transform);
+        
+        var mergeHips = new GameObject("Prefix_Hips_Suffix");
+        mergeHips.transform.SetParent(mergeArmature.transform);
+        
+        var mergeSpine = new GameObject("Prefix_Spine_Suffix");
+        mergeSpine.transform.SetParent(mergeHips.transform);
+        
+        var mergeLeftArm = new GameObject("Prefix_LeftArm_Suffix");
+        mergeLeftArm.transform.SetParent(mergeSpine.transform);
+        
+        // Add a bone that won't match (no prefix/suffix)
+        var nonMatchingBone = new GameObject("NonMatching");
+        nonMatchingBone.transform.SetParent(mergeHips.transform);
+        
+        // Setup ModularAvatarMergeArmature component
+        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+        mergeComponent.mergeTarget.Set(baseArmature);
+        mergeComponent.prefix = "Prefix_";
+        mergeComponent.suffix = "_Suffix";
+        
+        // Test GetBonesMapping
+        var boneMapping = mergeComponent.GetBonesMapping();
+        
+        // Verify results
+        Assert.IsNotNull(boneMapping);
+        Assert.AreEqual(3, boneMapping.Count); // Should find 3 matching bone pairs
+        
+        var mappingDict = boneMapping.ToDictionary(pair => pair.Item2, pair => pair.Item1);
+        
+        // Verify each expected bone mapping
+        Assert.IsTrue(mappingDict.ContainsKey(mergeHips.transform));
+        Assert.AreSame(baseHips.transform, mappingDict[mergeHips.transform]);
+        
+        Assert.IsTrue(mappingDict.ContainsKey(mergeSpine.transform));
+        Assert.AreSame(baseSpine.transform, mappingDict[mergeSpine.transform]);
+        
+        Assert.IsTrue(mappingDict.ContainsKey(mergeLeftArm.transform));
+        Assert.AreSame(baseLeftArm.transform, mappingDict[mergeLeftArm.transform]);
+        
+        // Verify non-matching bone is not included
+        Assert.IsFalse(mappingDict.ContainsKey(nonMatchingBone.transform));
+    }
 
     private static GameObject LoadShapell()
     {

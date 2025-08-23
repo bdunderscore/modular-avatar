@@ -11,7 +11,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 - [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
   - 頂点フィルター `By Axis` と `By Mask` (#1651) を実装
-    
+- [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
+
 ### Fixed
 - [#1671] 一部のワールドにおいて、Shape ChangerがVRChatのクラッシュを引き起こす可能性がある問題を修正
 - [#1679] `MA Shape Changer` の削除モードで、頭ボーン配下をルートボーンとして設定したメッシュが一人視点で表示されない問題を修正
