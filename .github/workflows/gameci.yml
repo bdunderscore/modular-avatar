@@ -155,6 +155,25 @@ jobs:
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames Tests
           checkName: ${{ steps.setup.outputs.check_name }}
+          
+      - name: List compile errors
+        continue-on-error: true
+        if: failure()
+        run: |
+          perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
+
+      - name: List compiler warnings
+        if: true
+        run: |
+          grep ': warning CS' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
+          
+      - name: List test failures
+        continue-on-error: true
+        if: failure()
+        run: |
+          if [ -e ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml ]; then
+            xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
+          fi
 
       # For our main "supported" platforms, we report the conclusion of gameci as-is. However, for standalone, we report
       # neutral if it failed.
