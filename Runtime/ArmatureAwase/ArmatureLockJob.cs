@@ -78,7 +78,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             _update = null;
         }
 
+#pragma warning disable CS0067 // Event is never used (only used in UNITY_EDITOR builds)
         internal event Action OnInvalidation;
+#pragma warning restore CS0067
 
         internal void MarkLoop()
         {
