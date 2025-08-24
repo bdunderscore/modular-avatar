@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -201,6 +202,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 dst = Mesh.Instantiate(src);
                 dst.name = "RETARGETED__" + src.name;
+                ObjectRegistry.RegisterReplacedObject(src, dst);
             }
 
             RetargetBones();

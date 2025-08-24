@@ -70,7 +70,7 @@ public const string DefaultPrefix = "MA_";
 
 #### Error Handling
 - Use specific exception types when throwing exceptions
-- Generally, errors should be reported using `BuildReport`. When using this, be sure to add localization strings to `Editor/Localization`
+- Generally, errors and warnings should be reported using `BuildReport`. When using this, be sure to add localization strings to `Editor/Localization`
 - Validate inputs at public API boundaries
 - Use `try-catch` blocks sparingly and only when you can handle the error meaningfully
 
