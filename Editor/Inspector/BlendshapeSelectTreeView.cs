@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -7,13 +9,15 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class BlendshapeSelectWindow : EditorWindow
+    internal class BlendshapeSelectWindow : EditorWindow
     {
-        internal GameObject AvatarRoot;
-        private BlendshapeTree _tree;
+        internal GameObject? AvatarRoot;
+        internal Mesh? SingleMesh;
+        private BlendshapeTree? _tree;
 
-        internal SearchField _searchField;
-        internal Action<BlendshapeBinding> OfferBinding;
+        internal SearchField? _searchField;
+        internal Action<BlendshapeBinding>? OfferBinding;
+        internal Action<BlendshapeBinding>? OfferSingleClick;
 
         private void Awake()
         {
@@ -32,7 +36,16 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_tree == null)
             {
                 _searchField = new SearchField();
-                _tree = new BlendshapeTree(AvatarRoot, new TreeViewState());
+                if (SingleMesh != null)
+                {
+                    _tree = new BlendshapeTree(SingleMesh, new TreeViewState());
+                } else if (AvatarRoot != null) {
+                    _tree = new BlendshapeTree(AvatarRoot, new TreeViewState());
+                }
+                else
+                {
+                    Close();
+                }
                 _tree.OfferBinding = (binding) => OfferBinding?.Invoke(binding);
                 _tree.Reload();
 
@@ -41,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var sfRect = GUILayoutUtility.GetRect(1, 99999, EditorGUIUtility.singleLineHeight,
                 EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
-            _tree.searchString = _searchField.OnGUI(sfRect, _tree.searchString);
+            _tree.searchString = _searchField!.OnGUI(sfRect, _tree.searchString);
 
             var remaining = GUILayoutUtility.GetRect(1, 99999, EditorGUIUtility.singleLineHeight * 2, 99999999,
                 GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -56,14 +69,21 @@ namespace nadena.dev.modular_avatar.core.editor
             public BlendshapeBinding binding;
         }
 
-        private readonly GameObject _avatarRoot;
+        private readonly Mesh? _singleMesh;
+        private readonly GameObject? _avatarRoot;
         private List<BlendshapeBinding?> _candidateBindings;
 
         internal Action<BlendshapeBinding> OfferBinding;
+        internal Action<BlendshapeBinding>? OfferSingleClick;
 
         public BlendshapeTree(GameObject avatarRoot, TreeViewState state) : base(state)
         {
             this._avatarRoot = avatarRoot;
+        }
+        
+        public BlendshapeTree(Mesh mesh, TreeViewState state) : base(state)
+        {
+            this._singleMesh = mesh;
         }
 
         public BlendshapeTree(GameObject avatarRoot, TreeViewState state, MultiColumnHeader multiColumnHeader) : base(
@@ -79,11 +99,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 var rect = args.rowRect;
 
                 var binding = offer.binding;
-                var objName = binding.ReferenceMesh.referencePath;
-                var index = objName.LastIndexOf('/');
-                if (index >= 0) objName = objName.Substring(index + 1);
+                string objName;
+                if (binding.ReferenceMesh == null)
+                {
+                    objName = "";
+                }
+                else
+                {
+                    objName = binding.ReferenceMesh.referencePath;
+                    var index = objName.LastIndexOf('/');
+                    if (index >= 0) objName = objName.Substring(index + 1);
 
-                objName += " / ";
+                    objName += " / ";
+                }
+
                 var content = new GUIContent(objName);
 
                 var width = EditorStyles.label.CalcSize(content).x;
@@ -111,6 +140,15 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        protected override void SingleClickedItem(int id)
+        {
+            var binding = _candidateBindings[id];
+            if (binding.HasValue)
+            {
+                OfferSingleClick?.Invoke(binding.Value);
+            }
+        }
+
         protected override void DoubleClickedItem(int id)
         {
             var binding = _candidateBindings[id];
@@ -131,7 +169,14 @@ namespace nadena.dev.modular_avatar.core.editor
             int createdDepth = 0;
             List<string> ObjectDisplayNames = new List<string>();
 
-            WalkTree(_avatarRoot, allItems, ObjectDisplayNames, ref createdDepth);
+            if (_avatarRoot != null)
+            {
+                WalkTree(_avatarRoot, allItems, ObjectDisplayNames, ref createdDepth);
+            }
+            else
+            {
+                CreateBlendshapes(allItems, _singleMesh!, null, 0);
+            }
 
             SetupParentsAndChildrenFromDepths(root, allItems);
 
@@ -178,6 +223,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var path = RuntimeUtil.RelativePath(_avatarRoot, smr.gameObject);
             var mesh = smr.sharedMesh;
+            
+            CreateBlendshapes(items, mesh, path, createdDepth);
+
+            createdDepth--;
+        }
+
+        private void CreateBlendshapes(List<TreeViewItem> items, Mesh mesh, string? path, int createdDepth)
+        {
             List<BlendshapeBinding> bindings = Enumerable.Range(0, mesh.blendShapeCount)
                 .Select(n =>
                 {
@@ -185,7 +238,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     return new BlendshapeBinding()
                     {
                         Blendshape = name,
-                        ReferenceMesh = new AvatarObjectReference()
+                        ReferenceMesh = path == null ? null : new AvatarObjectReference()
                         {
                             referencePath = path
                         }
@@ -202,8 +255,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 });
                 _candidateBindings.Add(binding);
             }
-
-            createdDepth--;
         }
     }
 }
