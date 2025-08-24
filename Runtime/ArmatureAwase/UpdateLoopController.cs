@@ -11,8 +11,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 {
     internal static class UpdateLoopController
     {
+#pragma warning disable CS0067 // Event is never used (only used in UNITY_EDITOR builds)
         internal static event Action UpdateCallbacks;
         internal static event Action OnMoveIndependentlyUpdate;
+#pragma warning restore CS0067
 
 #if UNITY_EDITOR
         [InitializeOnLoadMethod]
