@@ -1,0 +1,8 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ed:PropertyField name="f-bone" binding-path="m_bone"
+                      label="reactive_object.delete-mesh-by-bone.bone"
+                      class="ndmf-tr"/>
+    <ed:PropertyField name="f-threshold" binding-path="m_threshold"
+                      label="reactive_object.delete-mesh-by-bone.threshold"
+                      class="ndmf-tr"/>
+</UXML>
