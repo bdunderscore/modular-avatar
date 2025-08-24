@@ -357,6 +357,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     );
                 }
 
+                // Prevent generating unnecessary animator layers when VertexFilter ignores all vertices
                 var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
                 foreach (var (prop, _) in toNaNimate.Where(x => !nanimatedProps.Contains(x.TargetProp)))
                 {
