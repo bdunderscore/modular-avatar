@@ -356,6 +356,26 @@ namespace nadena.dev.modular_avatar.core.editor
                         _initialStateClip
                     );
                 }
+
+                var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
+                foreach (var (prop, _) in toNaNimate.Where(x => !nanimatedProps.Contains(x.TargetProp)))
+                {
+                    // Don't need to animate this anymore...!
+                    shapes.Remove(prop);
+                    initialStates.Remove(prop);
+
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                    {
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
+                }
             }
         }
 
