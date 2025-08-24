@@ -335,5 +335,14 @@
   "platform_filter.include": "Include on this platform",
   "rename_collision_tags.label": "Tag",
   "rename_collision_tags.rename_to": "Change name to",
-  "rename_collision_tags.auto_rename": "Auto rename"
+  "rename_collision_tags.auto_rename": "Auto rename",
+  "error.mmd.multiple_mmd_mode_behaviors": "[MA-0021] Multiple MA MMD Layer Control behaviors found on layer {0}",
+  "error.mmd.multiple_mmd_mode_behaviors:hint": "Only one MA MMD Layer Control behavior should be attached to each layer.",
+  "error.mmd.mmd_mode_in_child_state": "[MA-0022] MA MMD Layer Control behavior found on child state {1} in layer {0}",
+  "error.mmd.mmd_mode_in_child_state:hint": "MA MMD Layer Control behaviors should only be attached directly to the layer, not to individual states.",
+  "error.mmd.mmd_mode_in_child_state_machine": "[MA-0023] MA MMD Layer Control behavior found on child state machine {1} in layer {0}",
+  "error.mmd.mmd_mode_in_child_state_machine:hint": "MA MMD Layer Control behaviors should only be attached directly to the layer, not to child state machines.",
+  "warning.mmd.wd_off": "MMD Layer Control detected, but some layers have WriteDefaults OFF states",
+  "warning.mmd.wd_off:description": "Layer(s) {0} contain states with WriteDefaults OFF, which may prevent MMD world compatibility from working properly.",
+  "warning.mmd.wd_off:hint": "Having layers with WriteDefaults OFF can cause compatibility issues with MMD worlds. Consider enabling WriteDefaults on all states in these layers, or disable MMD world support in VRChat Settings if not needed."
 }
