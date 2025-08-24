@@ -199,10 +199,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 orig_tris_16.Clear();
                 new_tris_16.Clear();
                 
+                var subMeshDescriptor = original.GetSubMesh(sm);
+                int baseVertex = subMeshDescriptor.baseVertex;
+                
                 if (original.indexFormat == IndexFormat.UInt32)
                 {
                     original.GetTriangles(orig_tris, sm, false);
-                    ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
+                    ProcessSubmesh<int>(orig_tris, new_tris, i => i + baseVertex, i => i);
 
                     int min = Math.Max(0, new_tris.Count > 0 ? new_tris.Min() : 0);
                     for (int i = 0; i < new_tris.Count; i++)
@@ -218,7 +221,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     // automatic base vertex correction. Instead, we read triangles without correction
                     // and apply base vertex handling manually using int arithmetic.
                     original.GetTriangles(orig_tris, sm, false);
-                    ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
+                    ProcessSubmesh<int>(orig_tris, new_tris, i => i + baseVertex, i => i);
 
                     int min = Math.Max(0, new_tris.Count > 0 ? new_tris.Min() : 0);
                     new_tris_16.Capacity = new_tris.Count;
