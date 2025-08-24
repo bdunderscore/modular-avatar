@@ -139,7 +139,7 @@ namespace modular_avatar_tests
             var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
                 .layers.Select(l => l.name).ToArray();
             
-            Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, MMDRelayPass.ControlLayerName, MMDRelayPass.DummyLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
+            Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
         }
     
         [Test]

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1697] Exposed `ModularAvatarMergeArmature.GetBonesMapping` API
 
 ### Fixed
+- [#1675] MMD Layer Control did not work to opt-in a layer when that layer became layer #0
 - [#1670] Fixed an issue where generated meshes might not be registered in ObjectRegistry in some cases
 
 ### Changed

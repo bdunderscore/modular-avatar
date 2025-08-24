@@ -1,5 +1,9 @@
 ﻿#nullable enable
 
+#if MA_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+using VRC.SDKBase;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,10 +15,6 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-#if MA_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-using VRC.SDKBase;
-#endif
 using BuildContext = nadena.dev.ndmf.BuildContext;
 using Object = UnityEngine.Object;
 
@@ -146,18 +146,31 @@ namespace nadena.dev.modular_avatar.animation
             var currentLayers = fx.Layers.ToList();
             var newLayers = new List<VirtualLayer>();
 
-            // Layer zero's weight can't be changed anyway, so leave it where it is.
-            newLayers.Add(currentLayers[0]);
-            currentLayers.RemoveAt(0);
-            newLayers.Add(CreateMMDLayer(fx, toDisable));
+            // Layer zero's weight can't be changed anyway, so leave it where it is - unless it explicitly opted in
+            if (!affectedLayers.Contains(currentLayers[0]))
+            {
+                newLayers.Add(currentLayers[0]);
+                currentLayers.RemoveAt(0);
+            }
 
             // Add a dummy layer
+            CreateDummyLayer(fx, newLayers);
+
+            // Add the control/sensor layer. We do this second so it never ends up being the first layer, which isn't
+            // disabled. We don't care if it's layer 1 or 2.
+            newLayers.Add(CreateMMDLayer(fx, toDisable));
+
+            // Note that if we opted in layer zero, above, then it comes in as layer 2, which doesn't need special handling.
+
+            fx.Layers = newLayers.Concat(currentLayers);
+        }
+
+        private static void CreateDummyLayer(VirtualAnimatorController fx, List<VirtualLayer> newLayers)
+        {
             var dummy = fx.AddLayer(new LayerPriority(0), DummyLayerName);
             var s = dummy.StateMachine!.DefaultState = dummy.StateMachine.AddState("Dummy");
             s.Motion = VirtualClip.Create("empty");
             newLayers.Add(dummy);
-
-            fx.Layers = newLayers.Concat(currentLayers);
         }
 
         private static VirtualLayer CreateMMDLayer(VirtualAnimatorController fx, List<int> virtualLayers)

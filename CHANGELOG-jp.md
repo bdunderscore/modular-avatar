@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
 
 ### Fixed
+- [#1675] レイヤー０になったレイヤーで、MMD Layer Controlを使ってMMD処理を受けるようにした場合、正しく動作しない問題を修正
 - [#1670] 一部の場合、生成したメッシュがObjectRegistryに登録されないバグを修正
 
 ### Changed
