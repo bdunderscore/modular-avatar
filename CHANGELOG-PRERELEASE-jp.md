@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1704] インデックス形式が16ビットのメッシュから頂点を削除する際に例外が発生するバグを修正
 
 ### Changed
+- [#1705] VRChat以外のプラットホームでも、リアクティブコンポーネントの初期状態を適用するように変更
 
 ### Removed
 

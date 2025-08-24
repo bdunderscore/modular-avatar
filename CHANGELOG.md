@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1704] An exception could occur when deleting vertices in a mesh with a 16-bit index format
 
 ### Changed
+- [#1705] Reactive Component initial states are now applied on non-VRChat platforms
 
 ### Removed
 

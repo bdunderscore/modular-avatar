@@ -73,13 +73,15 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MergeAnimatorPluginPass.Instance);
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 
+#endif
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
-                        // TODO - refactor out VRChat-specific bits
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
                             .PreviewingWith(new ShapeChangerPreview(), new MeshDeleterPreview(),
                                 new ObjectSwitcherPreview(), new MaterialSetterPreview());
-                    });
+                    })
+;
+#if MA_VRCSDK3_AVATARS
                     seq.Run(FixupHeadChopRootBone.Instance);
                     seq.Run(GameObjectDelayDisablePass.Instance);
 
