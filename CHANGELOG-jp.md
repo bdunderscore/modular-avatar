@@ -12,6 +12,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
   - 頂点フィルター `By Axis` と `By Mask` (#1651) を実装
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
+- [#1601] MA MMD Layer Control を使用時に WriteDefaults OFF のステートを含むレイヤーがある場合の警告を追加
 
 ### Fixed
 - [#1675] レイヤー０になったレイヤーで、MMD Layer Controlを使ってMMD処理を受けるようにした場合、正しく動作しない問題を修正

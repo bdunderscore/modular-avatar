@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1667] Implement `Mesh Cutter` - a component which can be used to delete or toggle portions of a mesh.
     - Implement vertex filters `By Axis` and `By Mask` (#1651)
 - [#1697] Exposed `ModularAvatarMergeArmature.GetBonesMapping` API
+- [#1601] Add warning when using MA MMD Layer Control with layers that have WriteDefaults OFF states
 
 ### Fixed
 - [#1670] Fixed an issue where generated meshes might not be registered in ObjectRegistry in some cases

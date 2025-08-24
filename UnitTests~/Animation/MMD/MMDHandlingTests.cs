@@ -3,12 +3,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor.Animations;
+using UnityEngine;
 using UnityEngine.Assertions.Must;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
+using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
 namespace modular_avatar_tests.MMD
 {
@@ -93,14 +97,14 @@ namespace modular_avatar_tests.MMD
         public void MMDMode_OptInFirstLayer()
         {
             var prefab = CreatePrefab("MMDMode_OptInFirstLayer.prefab");
-            
+
             AvatarProcessor.ProcessAvatar(prefab);
-            
+
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
 
             var layerNames = fxc.layers.Select(l => l.name).ToList();
-            Assert.That(layerNames, Is.EquivalentTo(new []
+            Assert.That(layerNames, Is.EquivalentTo(new[]
             {
                 MMDRelayPass.DummyLayerName,
                 MMDRelayPass.ControlLayerName,
@@ -110,6 +114,84 @@ namespace modular_avatar_tests.MMD
                 "L2"
             }));
             AssertMMDModeLayerDrivers(fxc, 2, 4, 5);
+        }
+        
+        [Test]
+        public void MMDMode_WarnsAboutWriteDefaultsOff()
+        {            
+            var prefab = CreatePrefab("MMDMode_Overrides.prefab");
+            
+            // Before processing, manually create a layer with WD OFF states
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+            
+            AddWdOffLayer(prefab);
+
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                AvatarProcessor.ProcessAvatar(prefab);
+            });
+            
+            // Check if warning was reported - look for the warning about WD OFF
+            var hasWdOffWarning = errors.Any(error => error.TheError is SimpleError se &&
+                                                      se.Severity == ErrorSeverity.NonFatal && 
+                                                      se.TitleKey == "warning.mmd.wd_off");
+            
+            Assert.IsTrue(hasWdOffWarning, "Expected warning about WriteDefaults OFF in non-MMD layers was not reported");
+        }
+
+        private static void AddWdOffLayer(GameObject prefab)
+        {
+            // Add a layer with WD OFF states
+            var ac = new AnimatorController();
+            var testLayer = new AnimatorControllerLayer
+            {
+                name = "TestWDOffLayer",
+                stateMachine = new AnimatorStateMachine()
+            };
+            testLayer.stateMachine.name = "TestWDOffLayer";
+
+            var state = new AnimatorState()
+            {
+                name = "WDOffState",
+                writeDefaultValues = false
+            };
+            testLayer.stateMachine.defaultState = state;
+            testLayer.stateMachine.states = new[] { new ChildAnimatorState() { state = state } };
+
+            ac.layers = new[]
+            {
+                testLayer
+            };
+
+            var mama = prefab.AddComponent<ModularAvatarMergeAnimator>();
+            mama.animator = ac;
+        }
+
+        [Test]
+        public void MMDMode_NoWarningWithoutMMDControl()
+        {
+            // Test that we don't warn about WD OFF states when no MMD Layer Control is present
+            var prefab = CreatePrefab("MMDMode_Noop.prefab"); // This prefab has no MMD components
+            
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+            
+            AddWdOffLayer(prefab);
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                AvatarProcessor.ProcessAvatar(prefab);
+            });
+            
+            // Check that NO warning was reported about WD OFF
+            var hasWdOffWarning = errors.Any(error => error.TheError is SimpleError se &&
+                se.Severity == ErrorSeverity.NonFatal && 
+                se.TitleKey == "warning.mmd.wd_off");
+            
+            Assert.IsFalse(hasWdOffWarning, "Unexpected warning about WriteDefaults OFF was reported when no MMD Layer Control is present");
         }
         
 
