@@ -194,6 +194,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             for (int sm = 0; sm < submeshCount; sm++)
             {
+                orig_tris.Clear();
+                new_tris.Clear();
+                orig_tris_16.Clear();
+                new_tris_16.Clear();
+                
                 if (original.indexFormat == IndexFormat.UInt32)
                 {
                     original.GetTriangles(orig_tris, sm, true);
