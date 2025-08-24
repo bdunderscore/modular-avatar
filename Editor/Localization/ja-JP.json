@@ -274,7 +274,7 @@
   "reactive_object.delete-mesh-by-axis.axis": "軸",
   "reactive_object.delete-mesh-by-axis.axis.tooltip": "削除すべき頂点を分けるための軸",
   "reactive_object.delete-mesh-by-axis.center": "中心",
-  "reactive_object.delete-mesh-by-axis.center.tooltip": "軸の中心位置。この位置を基準に頂点が削除されます。",
+  "reactive_object.delete-mesh-by-axis.center.tooltip": "軸の中心位置。この位置を基準に頂点が削除されます",
   "reactive_object.delete-mesh-by-mask.material-index": "マテリアルスロット",
   "reactive_object.delete-mesh-by-mask.mask-texture": "マスクテクスチャー",
   "reactive_object.delete-mesh-by-mask.create-mask-texture": "作成",
