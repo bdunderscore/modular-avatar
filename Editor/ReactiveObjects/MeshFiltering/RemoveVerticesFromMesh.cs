@@ -199,34 +199,32 @@ namespace nadena.dev.modular_avatar.core.editor
                 orig_tris_16.Clear();
                 new_tris_16.Clear();
                 
-                if (original.indexFormat == IndexFormat.UInt32)
-                {
-                    original.GetTriangles(orig_tris, sm, true);
-                    ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
+                var subMeshDescriptor = original.GetSubMesh(sm);
+                int baseVertex = subMeshDescriptor.baseVertex;
+                
+                // Always compute using u32 triangle list to avoid overflow issues
+                original.GetTriangles(orig_tris, sm, false);
+                ProcessSubmesh<int>(orig_tris, new_tris, i => i + baseVertex, i => i);
 
-                    int min = Math.Max(0, new_tris.Min());
+                int min = Math.Max(0, new_tris.Count > 0 ? new_tris.Min() : 0);
+                for (int i = 0; i < new_tris.Count; i++)
+                {
+                    new_tris[i] -= min;
+                }
+
+                // Convert to u16 if the original mesh used u16 format
+                if (original.indexFormat == IndexFormat.UInt16)
+                {
+                    new_tris_16.Capacity = new_tris.Count;
                     for (int i = 0; i < new_tris.Count; i++)
                     {
-                        new_tris[i] -= min;
+                        new_tris_16.Add((ushort)new_tris[i]);
                     }
-
-                    mesh.SetTriangles(new_tris, sm, true, min);
+                    mesh.SetTriangles(new_tris_16, sm, true, min);
                 }
                 else
                 {
-                    original.GetTriangles(orig_tris, sm, true);
-                    ProcessSubmesh(orig_tris, new_tris, i => i, i => (ushort)i);
-
-                    // Note: It's always safe to use a UInt16 index format here, as the original mesh fits
-                    // in 16 bits, and we are only removing vertices.
-                    var min = new_tris.Min();
-                    new_tris_16.Capacity = new_tris.Count;
-                    for (var i = 0; i < new_tris.Count; i++)
-                    {
-                        new_tris_16.Add((ushort)(new_tris[i] - min));
-                    }
-
-                    mesh.SetTriangles(new_tris_16, sm, true, min);
+                    mesh.SetTriangles(new_tris, sm, true, min);
                 }
             }
 
