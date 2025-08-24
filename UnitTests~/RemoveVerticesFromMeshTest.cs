@@ -138,6 +138,70 @@ public class RemoveVerticesFromMeshTest : TestBase
         }
     }
 
+    [Test]
+    public void TestEmptySubmeshHandling()
+    {
+        // Test that we properly handle submeshes where all triangles are removed
+        var mesh = new Mesh();
+        mesh.indexFormat = IndexFormat.UInt16;
+        
+        // Create few vertices
+        var vertices = new List<Vector3>
+        {
+            new Vector3(0, 0, 0),
+            new Vector3(1, 0, 0),
+            new Vector3(0, 1, 0)
+        };
+        mesh.SetVertices(vertices);
+        
+        // Create one triangle
+        var triangles = new List<int> { 0, 1, 2 };
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateBounds();
+        
+        // Create a renderer
+        var root = CreateRoot("TestMesh");
+        var renderer = root.AddComponent<SkinnedMeshRenderer>();
+        renderer.sharedMesh = mesh;
+        
+        // Create a filter that removes ALL vertices
+        var filter = new AllVerticesFilter();
+        var targets = new List<(TargetProp, IVertexFilter)>
+        {
+            (TargetProp.Create("test"), filter)
+        };
+        
+        // This should create a degenerate triangle rather than fail
+        var result = RemoveVerticesFromMesh.RemoveVertices(renderer, mesh, targets);
+        
+        // Verify the result
+        Assert.IsNotNull(result);
+        Assert.AreEqual(IndexFormat.UInt16, result.indexFormat);
+        Assert.AreEqual(1, result.vertexCount); // Should have kept one vertex
+        
+        // Should have created a degenerate triangle
+        var resultTriangles = result.GetTriangles(0);
+        Assert.AreEqual(3, resultTriangles.Length);
+        Assert.AreEqual(0, resultTriangles[0]);
+        Assert.AreEqual(0, resultTriangles[1]);
+        Assert.AreEqual(0, resultTriangles[2]);
+    }
+
+    /// <summary>
+    /// Test vertex filter that removes all vertices
+    /// </summary>
+    private class AllVerticesFilter : IVertexFilter
+    {
+        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] toDelete)
+        {
+            // Mark all vertices for deletion
+            for (int i = 0; i < toDelete.Length; i++)
+            {
+                toDelete[i] = true;
+            }
+        }
+    }
+
     /// <summary>
     /// Test vertex filter that removes every other vertex (creates gaps in vertex indices)
     /// </summary>
