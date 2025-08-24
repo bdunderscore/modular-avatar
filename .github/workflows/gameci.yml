@@ -166,7 +166,7 @@ jobs:
       - name: List compiler warnings
         if: true
         run: |
-          grep ': warning CS' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
+          grep ': warning CS' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log || true
           
       - name: List test failures
         continue-on-error: true
