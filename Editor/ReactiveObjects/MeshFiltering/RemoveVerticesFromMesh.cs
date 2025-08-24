@@ -201,10 +201,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 if (original.indexFormat == IndexFormat.UInt32)
                 {
-                    original.GetTriangles(orig_tris, sm, true);
+                    original.GetTriangles(orig_tris, sm, false);
                     ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
 
-                    int min = Math.Max(0, new_tris.Min());
+                    int min = Math.Max(0, new_tris.Count > 0 ? new_tris.Min() : 0);
                     for (int i = 0; i < new_tris.Count; i++)
                     {
                         new_tris[i] -= min;
@@ -214,16 +214,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    original.GetTriangles(orig_tris, sm, true);
-                    ProcessSubmesh(orig_tris, new_tris, i => i, i => (ushort)i);
+                    // For u16 index format, we need to avoid u16 overflow when GetTriangles applies
+                    // automatic base vertex correction. Instead, we read triangles without correction
+                    // and apply base vertex handling manually using int arithmetic.
+                    original.GetTriangles(orig_tris, sm, false);
+                    ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
 
-                    // Note: It's always safe to use a UInt16 index format here, as the original mesh fits
-                    // in 16 bits, and we are only removing vertices.
-                    var min = new_tris.Min();
+                    int min = Math.Max(0, new_tris.Count > 0 ? new_tris.Min() : 0);
                     new_tris_16.Capacity = new_tris.Count;
-                    for (var i = 0; i < new_tris.Count; i++)
+                    for (int i = 0; i < new_tris.Count; i++)
                     {
-                        new_tris_16.Add((ushort)(new_tris[i] - min));
+                        new_tris[i] -= min;
+                        new_tris_16.Add((ushort)new_tris[i]);
                     }
 
                     mesh.SetTriangles(new_tris_16, sm, true, min);
