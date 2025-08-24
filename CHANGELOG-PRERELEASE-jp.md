@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
-    - 頂点フィルター `By Bone`、 `By Axis` と `By Mask` (#1651) を実装
+    - 頂点フィルター `By Bone`、`By Blendshape`, `By Axis` と `By Mask` (#1651) を実装
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
 - [#1601] MA MMD Layer Control を使用時に WriteDefaults OFF のステートを含むレイヤーがある場合の警告を追加
 
