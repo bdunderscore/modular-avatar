@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1675] レイヤー０になったレイヤーで、MMD Layer Controlを使ってMMD処理を受けるようにした場合、正しく動作しない問題を修正
 
 ### Changed
+- [#1705] VRChat以外のプラットホームでも、リアクティブコンポーネントの初期状態を適用するように変更
 
 ### Removed
 

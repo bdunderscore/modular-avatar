@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1675] MMD Layer Control did not work to opt-in a layer when that layer became layer #0
 
 ### Changed
+- [#1705] Reactive Component initial states are now applied on non-VRChat platforms
 
 ### Removed
 

@@ -1,16 +1,18 @@
-﻿#if MA_VRCSDK3_AVATARS
-#region
+﻿#region
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 using EditorCurveBinding = UnityEditor.EditorCurveBinding;
 using Object = UnityEngine.Object;
 
@@ -41,11 +43,13 @@ namespace nadena.dev.modular_avatar.core.editor
             // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
             // and if mixed, use WD ON to maximize compatibility.
             var asc = context.Extension<AnimatorServicesContext>();
+#if MA_VRCSDK3_AVATARS
             var fxLayer = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fxLayer != null)
             {
                 _writeDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(fxLayer) ?? true;
             }
+#endif
 
             var clips = asc.AnimationIndex;
             _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
@@ -55,6 +59,26 @@ namespace nadena.dev.modular_avatar.core.editor
             var shapes = analysis.Shapes;
             var initialStates = analysis.InitialStates;
             
+            // XXX: Until we have a proper API for reactive components, on non-VRChat platforms we simply force everything
+            // to be constant-state.
+            var generateAnimations = context.PlatformProvider.QualifiedName == WellKnownPlatforms.VRChatAvatar30;
+            if (!generateAnimations)
+            {
+                foreach (var (target, animProp) in shapes)
+                {
+                    var lastAction = animProp.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
+                    if (lastAction != null)
+                    {
+                        lastAction.ControllingConditions.Clear();
+                        animProp.actionGroups = new List<ReactionRule>() { lastAction };
+                    }
+                    else
+                    {
+                        animProp.actionGroups.Clear();
+                    }
+                }
+            }
+            
             GenerateActiveSelfProxies(shapes);
 
             ProcessMeshDeletion(initialStates, shapes);
@@ -62,10 +86,15 @@ namespace nadena.dev.modular_avatar.core.editor
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
             
-            foreach (var groups in shapes.Values)
+#if MA_VRCSDK3_AVATARS
+            if (generateAnimations)
             {
-                ProcessShapeKey(groups);
+                foreach (var groups in shapes.Values)
+                {
+                    ProcessShapeKey(groups);
+                }
             }
+#endif
         }
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -111,7 +140,9 @@ namespace nadena.dev.modular_avatar.core.editor
             var clips = asc.AnimationIndex;
             _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
 
-            if (_initialStateClip == null) return;
+            // On non-vrc builds, we don't run the prepass, but we still need to apply the initial states,
+            // so just create a clip that we'll throw away later.
+            if (_initialStateClip == null) _initialStateClip = VirtualClip.Create("Dummy clip");
 
             _initialStateClip.Name = "Reactive Component Defaults";
 
@@ -447,6 +478,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #endregion
 
+#if MA_VRCSDK3_AVATARS
         private void ProcessShapeKey(AnimatedProperty info)
         {
             if (info.actionGroups.Count == 0)
@@ -604,6 +636,7 @@ namespace nadena.dev.modular_avatar.core.editor
             asm.EntryTransitions = entryTransitions.ToImmutableList();
             asm.ExitPosition = new Vector3(500, 0);
         }
+#endif
 
         private static AnimatorCondition InvertCondition(AnimatorCondition cond)
         {
@@ -712,40 +745,5 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return clip;
         }
-
-        private void ApplyController(AnimatorStateMachine asm, string layerName)
-        {
-            var asc = context.Extension<AnimatorServicesContext>();
-            var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-
-            if (fx == null)
-            {
-                throw new InvalidOperationException("No FX layer found");
-            }
-
-            foreach (var paramName in initialValues.Keys.Except(fx.Parameters.Keys))
-            {
-                var parameter = new AnimatorControllerParameter
-                {
-                    name = paramName,
-                    type = AnimatorControllerParameterType.Float,
-                    defaultFloat = initialValues[paramName], // TODO
-                };
-                fx.Parameters = fx.Parameters.SetItem(paramName, parameter);
-            }
-
-            fx.AddLayer(LayerPriority.Default, "RC " + layerName).StateMachine =
-                asc.ControllerContext.Clone(asm);
-        }
-
-        private VRCAvatarDescriptor.CustomAnimLayer FindFxController()
-        {
-            var fx = context.AvatarDescriptor.baseAnimationLayers
-                .FirstOrDefault(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
-
-            return fx;
-        }
     }
 }
-
-#endif

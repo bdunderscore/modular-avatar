@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1670] Fixed an issue where generated meshes might not be registered in ObjectRegistry in some cases
 
 ### Changed
+- [#1705] Reactive Component initial states are now applied on non-VRChat platforms
 
 ### Removed
 
