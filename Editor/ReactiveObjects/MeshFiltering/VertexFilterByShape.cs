@@ -1,8 +1,11 @@
 ﻿using System;
+using nadena.dev.modular_avatar.core.vertex_filters;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [ProvidesVertexFilter(typeof(VertexFilterByShapeComponent))]
     internal class VertexFilterByShape : IVertexFilter
     {
         public string ShapeName { get; }
@@ -13,6 +16,11 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             ShapeName = shapeName;
             Threshold = threshold;
+        }
+
+        public VertexFilterByShape(VertexFilterByShapeComponent component, ComputeContext context)
+        {
+            (ShapeName, Threshold) = context.Observe(component, c => (c.ShapeName, c.Threshold));
         }
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)

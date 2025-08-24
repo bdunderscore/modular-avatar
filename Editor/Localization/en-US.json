@@ -348,5 +348,10 @@
   "error.mmd.mmd_mode_in_child_state_machine:hint": "MA MMD Layer Control behaviors should only be attached directly to the layer, not to child state machines.",
   "warning.mmd.wd_off": "MMD Layer Control detected, but some layers have WriteDefaults OFF states",
   "warning.mmd.wd_off:description": "Layer(s) {0} contain states with WriteDefaults OFF, which may prevent MMD world compatibility from working properly.",
-  "warning.mmd.wd_off:hint": "Having layers with WriteDefaults OFF can cause compatibility issues with MMD worlds. Consider enabling WriteDefaults on all states in these layers, or disable MMD world support in VRChat Settings if not needed."
+  "warning.mmd.wd_off:hint": "Having layers with WriteDefaults OFF can cause compatibility issues with MMD worlds. Consider enabling WriteDefaults on all states in these layers, or disable MMD world support in VRChat Settings if not needed.",
+  "reactive_object.delete-mesh-by-shape.shape_name": "Blendshape Name",
+  "reactive_object.delete-mesh-by-shape.shape_name.tooltip": "The name of the blendshape to filter vertices by",
+  "reactive_object.delete-mesh-by-shape.browse": "Select",
+  "reactive_object.delete-mesh-by-shape.threshold": "Threshold",
+  "reactive_object.delete-mesh-by-shape.threshold.tooltip": "Vertices that move more than this distance when the blendshape is active will be filtered"
 }

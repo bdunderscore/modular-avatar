@@ -35,6 +35,7 @@ button on the Mesh Cutter component, or by adding a Vertex Filter component manu
 - [By Mask](./by-mask.md) - Allows you to select portions of the mesh by using a mask texture.
 - [By Axis](./by-axis.md) - Allows you to select portions of the mesh by whether they are on one side of a plane.  
 - [By Bone](./by-bone.md) - Allows you to select portions of the mesh based on their bone weights to a specific bone.
+- [By Blendshape](./by-shape.md) - Allows you to select portions of the mesh based on whether vertices move when a specific blendshape is activated.
 
 ## Using multiple Vertex Filters
 

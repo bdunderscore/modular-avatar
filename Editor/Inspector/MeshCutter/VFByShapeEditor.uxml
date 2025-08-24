@@ -1,0 +1,12 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-shape-name" binding-path="m_shapeName"
+                          label="reactive_object.delete-mesh-by-shape.shape_name"
+                          class="ndmf-tr"/>
+        <ui:Button name="f-browse" class="ndmf-tr" text="reactive_object.delete-mesh-by-shape.browse"/>
+    </ui:VisualElement>
+    
+    <ed:PropertyField name="f-threshold" binding-path="m_threshold"
+                      label="reactive_object.delete-mesh-by-shape.threshold"
+                      class="ndmf-tr"/>
+</UXML>
