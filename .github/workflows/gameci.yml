@@ -90,7 +90,8 @@ jobs:
             check_name="Test result ($unity_version, $sdk)"
           fi
           echo check_name=$check_name >> $GITHUB_OUTPUT
-
+      - run: |
+          sudo apt-get update && sudo apt-get -y install libxml2-utils # xmllint
       - uses: actions/checkout@v5
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
