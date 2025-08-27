@@ -194,39 +194,31 @@ namespace nadena.dev.modular_avatar.core.editor
 
             for (int sm = 0; sm < submeshCount; sm++)
             {
+                var smDesc = original.GetSubMesh(sm);
                 orig_tris.Clear();
                 new_tris.Clear();
                 orig_tris_16.Clear();
                 new_tris_16.Clear();
-                
-                if (original.indexFormat == IndexFormat.UInt32)
-                {
-                    original.GetTriangles(orig_tris, sm, true);
-                    ProcessSubmesh<int>(orig_tris, new_tris, i => i, i => i);
 
-                    int min = Math.Max(0, new_tris.Min());
+                original.GetTriangles(orig_tris, sm, true);
+                ProcessSubmesh(orig_tris, new_tris, i => i, i => i);
+
+                if (mesh.indexFormat == IndexFormat.UInt16)
+                {
+                    var minVertex = Math.Max(0, new_tris.Min());
+
                     for (int i = 0; i < new_tris.Count; i++)
                     {
-                        new_tris[i] -= min;
+                        new_tris_16.Add((ushort)(new_tris[i] - minVertex));
                     }
 
-                    mesh.SetTriangles(new_tris, sm, true, min);
+                    mesh.SetIndices(new_tris_16, 0, new_tris_16.Count, smDesc.topology,
+                        sm, true, minVertex);
                 }
                 else
                 {
-                    original.GetTriangles(orig_tris, sm, true);
-                    ProcessSubmesh(orig_tris, new_tris, i => i, i => (ushort)i);
-
-                    // Note: It's always safe to use a UInt16 index format here, as the original mesh fits
-                    // in 16 bits, and we are only removing vertices.
-                    var min = new_tris.Min();
-                    new_tris_16.Capacity = new_tris.Count;
-                    for (var i = 0; i < new_tris.Count; i++)
-                    {
-                        new_tris_16.Add((ushort)(new_tris[i] - min));
-                    }
-
-                    mesh.SetTriangles(new_tris_16, sm, true, min);
+                    // don't bother computing min vertex for UInt32 indices, as it will always fit anyway
+                    mesh.SetIndices(new_tris, 0, new_tris.Count, smDesc.topology, sm);
                 }
             }
 
