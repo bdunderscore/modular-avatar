@@ -154,7 +154,7 @@ jobs:
           unityVersion: ${{ steps.configure.outputs.unity_version }}
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
-          customParameters: -nographics -assemblyNames Tests
+          customParameters: -assemblyNames Tests
           checkName: ${{ steps.setup.outputs.check_name }}
           
       - name: List compile errors
