@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1675] レイヤー０になったレイヤーで、MMD Layer Controlを使ってMMD処理を受けるようにした場合、正しく動作しない問題を修正
 - [#1704] インデックス形式が16ビットのメッシュから頂点を削除する際に例外が発生するバグを修正
 - [#1713] 一部のメッシュが `Shape Changer` の削除モードで正しく処理されない問題を修正
+- [#1715] `Shape Changer` や `Mesh Cutter` を使うと頂点色データがメッシュから完全に消される問題を修正
 
 ### Changed
 - [#1705] VRChat以外のプラットホームでも、リアクティブコンポーネントの初期状態を適用するように変更
