@@ -12,6 +12,13 @@ the same UV coordinates are used for both sides. For example, if you have a ribb
 coordinates for both left and right sides, you can use a `By Mask` filter to select the ribbon as a whole, then
 use a `By Axis` filter to restrict it to only one side.
 
+## When shouldn't I use it?
+
+When creating assets for distribution, some care is needed when using `Vertex Filter - By Axis`. Because the shape of
+the avatar, and therefore the portion of the mesh selected, might change if the end-user uses a `Scale Adjuster`,
+it's recommended only to use `By Axis` filters for rough selections - such as selecting only the left or right side of
+the model - and to use other filters such as [`By Mask`](by-mask.md) for precise selections.
+
 ## Setting up Vertex Filter - By Axis
 
 `Vertex Filter - By Axis` must be attached to a GameObject with a [Mesh Cutter](./) component. You can add it by
