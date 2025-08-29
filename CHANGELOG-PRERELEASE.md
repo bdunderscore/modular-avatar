@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0-beta.0] - [2025-08-29]
+
+### Added
 - [#1667] Implement `Mesh Cutter` - a component which can be used to delete or toggle portions of a mesh.
     - Implement vertex filters `By Bone`, `By Blendshape`, `By Axis` and (#1651) `By Mask`
 - [#1697] Exposed `ModularAvatarMergeArmature.GetBonesMapping` API
@@ -29,12 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1705] Reactive Component initial states are now applied on non-VRChat platforms
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.1] - [2025-08-02]
 

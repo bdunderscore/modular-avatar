@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0-beta.0] - [2025-08-29]
+
+### Added
 - [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
     - 頂点フィルター `By Bone`、`By Blendshape`, `By Axis` と `By Mask` (#1651) を実装
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
@@ -28,12 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1705] VRChat以外のプラットホームでも、リアクティブコンポーネントの初期状態を適用するように変更
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.1] - [2025-08-02]
 
