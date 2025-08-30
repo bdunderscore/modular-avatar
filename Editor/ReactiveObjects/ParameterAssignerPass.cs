@@ -200,7 +200,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var mamiWithRC = _mamiByParam.Where(kvp => kvp.Value.Any(
-                component => component.TryGetComponent<ReactiveComponent>(out _)
+                component => component.GetComponentInChildren<ReactiveComponent>(true)
             )).ToList();
 
             if (mamiWithRC.Count > 0)
