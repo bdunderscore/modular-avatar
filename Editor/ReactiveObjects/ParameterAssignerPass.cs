@@ -14,6 +14,8 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal class ParameterAssignerPass : Pass<ParameterAssignerPass>
     {
+        internal const string AUTOMATIC_PARAMETER_PREFIX = "__MA/AutoParam/";
+
         internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
         {
             switch (item?.Control?.type)
@@ -74,7 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     mami.Control.parameter = new VRCExpressionsMenu.Control.Parameter
                     {
                         name = mappings.Remap(mami, ParameterNamespace.Animator,
-                            $"__MA/AutoParam/{mami.gameObject.name}")
+                            AUTOMATIC_PARAMETER_PREFIX + mami.gameObject.name)
                     };
                 }
                 
