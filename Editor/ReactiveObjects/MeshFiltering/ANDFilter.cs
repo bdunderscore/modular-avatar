@@ -50,11 +50,16 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (filters.Count == 0) return;
 
-            filters[0].MarkFilteredVertices(renderer, mesh, filtered);
+            if (filters.Count == 1)
+            {
+                filters[0].MarkFilteredVertices(renderer, mesh, filtered);
+                return;
+            }
 
-            if (filters.Count == 1) return;
-
+            var result = new bool[filtered.Length];
             var temp = new bool[filtered.Length];
+
+            filters[0].MarkFilteredVertices(renderer, mesh, result);
 
             foreach (var filter in filters.Skip(1))
             {
@@ -63,8 +68,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 for (var i = 0; i < temp.Length; i++)
                 {
-                    filtered[i] = filtered[i] && temp[i];
+                    result[i] = result[i] && temp[i];
                 }
+            }
+
+            for (var i = 0; i < filtered.Length; i++)
+            {
+                filtered[i] = filtered[i] || result[i];
             }
         }
 

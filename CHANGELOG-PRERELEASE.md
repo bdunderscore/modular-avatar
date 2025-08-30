@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1721] Fixed an issue where multiple Shape Changers or Mesh Cutters affecting the same mesh might result in some
+  vertices not being deleted.
 - [#1719] `Scale Adjuster` did not update positions of child objects when editing directly using the inspector fields
 
 ### Changed
