@@ -18,7 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Selection.selectionChanged += OnSelectionChanged;
         }
 
-        abstract class ScaleHolder
+        internal abstract class ScaleHolder
         {
             public abstract Object Obj { get; }
 
@@ -67,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor
             );
         }
 
-        class AdjusterScaler : ScaleHolder
+        internal class AdjusterScaler : ScaleHolder
         {
             private readonly ModularAvatarScaleAdjuster _obj;
             private string UNDO_STRING;
