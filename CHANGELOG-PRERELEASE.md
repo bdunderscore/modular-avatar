@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1722] Fixed an issue where animator parameter was not added when a menu item has reactive components only on its children
 
 ### Changed
 

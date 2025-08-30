@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1713] Fixed an issue where certain meshes might be incorrectly processed by `Shape Changer`'s delete mode
 - [#1715] Fixed an issue where `Shape Changer` or `Mesh Cutter` could incorrectly delete all vertex color data in a mesh
 - [#1719] `Scale Adjuster` did not update positions of child objects when editing directly using the inspector fields
-- 
+- [#1722] Fixed an issue where animator parameter was not added when a menu item has reactive components only on its children
+
 ### Changed
 - [#1705] Reactive Component initial states are now applied on non-VRChat platforms
 
