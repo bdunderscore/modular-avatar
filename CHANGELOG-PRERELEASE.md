@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1719] `Scale Adjuster` did not update positions of child objects when editing directly using the inspector fields
 
 ### Changed
 
