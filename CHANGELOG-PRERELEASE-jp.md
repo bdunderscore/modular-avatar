@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1721] 複数の `Shape Changer` や `Mesh Cutter` が同じメッシュに適用された場合、一部の頂点が正しく削除されない場合が
+あるバグを修正
 
 ### Changed
 
