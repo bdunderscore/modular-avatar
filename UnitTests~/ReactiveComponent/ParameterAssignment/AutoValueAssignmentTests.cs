@@ -1,5 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,6 +51,75 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             var menu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu
                 .controls.First(c => c.name == "child");
             Assert.AreEqual(1, menu.value);
+        }
+
+        public enum ChildType
+        {
+            Direct,
+            Child,
+            None
+        }
+        
+        [Test]
+        public void ParametersAssignedWhenTogglesControlRC(
+            [Values(
+                VRCExpressionsMenu.Control.ControlType.Button,
+                VRCExpressionsMenu.Control.ControlType.Toggle,
+                VRCExpressionsMenu.Control.ControlType.SubMenu,
+                VRCExpressionsMenu.Control.ControlType.TwoAxisPuppet,
+                VRCExpressionsMenu.Control.ControlType.RadialPuppet,
+                VRCExpressionsMenu.Control.ControlType.FourAxisPuppet
+            )]
+            VRCExpressionsMenu.Control.ControlType controlType,
+            [Values(ChildType.Child, ChildType.Direct, ChildType.None)] ChildType childType
+        )
+        {
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+
+            var target = CreateChild(root, "target");
+            target.AddComponent<SkinnedMeshRenderer>();
+            
+            var mami = child.AddComponent<ModularAvatarMenuItem>();
+            mami.Control = new()
+            {
+                name = "x",
+                type = controlType
+            };
+            mami.automaticValue = true;
+
+            child.AddComponent<ModularAvatarMenuInstaller>();
+
+            ModularAvatarObjectToggle? toggle = null;
+            switch (childType)
+            {
+                case ChildType.Direct:
+                    toggle = mami.gameObject.AddComponent<ModularAvatarObjectToggle>();
+                    break;
+                case ChildType.Child:
+                    toggle = CreateChild(mami.gameObject, "child").AddComponent<ModularAvatarObjectToggle>();
+                    break;
+            }
+
+            if (toggle != null)
+            {
+                var obj = new ToggledObject();
+                obj.Active = false;
+                obj.Object = new();
+                obj.Object.Set(target);
+                toggle.Objects.Add(obj);
+            }
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            bool shouldHaveParam = (childType != ChildType.None) &&
+                                   (controlType == VRCExpressionsMenu.Control.ControlType.Button ||
+                                    controlType == VRCExpressionsMenu.Control.ControlType.Toggle);
+            
+            var vrcExpParams = root.GetComponent<VRCAvatarDescriptor>().expressionParameters;
+            var hasParam =
+                vrcExpParams.parameters.Any(p => p.name.StartsWith(ParameterAssignerPass.AUTOMATIC_PARAMETER_PREFIX));
+            Assert.AreEqual(shouldHaveParam, hasParam);
         }
         
         [Test]
