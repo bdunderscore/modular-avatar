@@ -160,6 +160,54 @@ namespace nadena.dev.modular_avatar.core.editor
             // the first layer in an animator controller always has weight 1.0f (regardless of what is serialized)
             if (firstLayer != null) firstLayer.DefaultWeight = 1.0f;
 
+            // Update parameters before we merge layers - this gives the VRChat platform bindings a chance to correct
+            // any parameter drivers in the original (or destination) controller.
+            var destParams = targetController.Parameters;
+            var clonedParams = clonedController.Parameters;
+            foreach (var (name, parameter) in clonedController.Parameters)
+            {
+                if (targetController.Parameters.TryGetValue(name, out var existingParam))
+                {
+                    if (existingParam.type != parameter.type)
+                    {
+                        // Force to float
+                        switch (parameter.type)
+                        {
+                            case AnimatorControllerParameterType.Bool:
+                                existingParam.defaultFloat = existingParam.defaultBool ? 1.0f : 0.0f;
+                                break;
+                            case AnimatorControllerParameterType.Int:
+                                existingParam.defaultFloat = existingParam.defaultInt;
+                                break;
+                        }
+
+                        existingParam.type = AnimatorControllerParameterType.Float;
+
+                        destParams = destParams.SetItem(name, existingParam);
+                        clonedParams = clonedParams.SetItem(name, existingParam);
+                    }
+
+                    continue;
+                }
+
+                destParams = destParams.SetItem(name, parameter);
+            }
+
+            targetController.Parameters = destParams;
+            clonedController.Parameters = clonedParams;
+
+            // Parameter driver correction may have introduced new temporary parameters, so we need to re-check
+            destParams = targetController.Parameters;
+            foreach (var (name, parameter) in clonedController.Parameters)
+            {
+                if (!destParams.ContainsKey(name))
+                {
+                    destParams = destParams.SetItem(name, parameter);
+                }
+            }
+
+            targetController.Parameters = destParams;
+            
             foreach (var l in clonedController.Layers)
             {
                 if (l.StateMachine == null)
@@ -189,33 +237,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 targetController.AddLayer(new LayerPriority(merge.layerPriority), l);
             }
 
-            foreach (var (name, parameter) in clonedController.Parameters)
-            {
-                if (targetController.Parameters.TryGetValue(name, out var existingParam))
-                {
-                    if (existingParam.type != parameter.type)
-                    {
-                        // Force to float
-                        switch (parameter.type)
-                        {
-                            case AnimatorControllerParameterType.Bool:
-                                existingParam.defaultFloat = existingParam.defaultBool ? 1.0f : 0.0f;
-                                break;
-                            case AnimatorControllerParameterType.Int:
-                                existingParam.defaultFloat = existingParam.defaultInt;
-                                break;
-                        }
-
-                        existingParam.type = AnimatorControllerParameterType.Float;
-
-                        targetController.Parameters = targetController.Parameters.SetItem(name, existingParam);
-                    }
-                    continue;
-                }
-
-                targetController.Parameters = targetController.Parameters.Add(name, parameter);
-            }
-            
             if (merge.deleteAttachedAnimator)
             {
                 var animator = merge.GetComponent<Animator>();
