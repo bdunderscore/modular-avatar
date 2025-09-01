@@ -65,7 +65,7 @@ namespace UnitTests.ReactiveComponent
             
             var component = (Behaviour) child.GetComponent(componentType);
             
-            Assert.AreEqual(staticState, component.enabled);
+            Assert.AreEqual(staticState, component.enabled, "static state for " + name + " should be " + staticState + " but is " + component.enabled);
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
