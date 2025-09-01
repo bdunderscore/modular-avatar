@@ -29,6 +29,8 @@ with a reactive component, would not function properly.
 
 ### Changed
 - [#1705] Reactive Component initial states are now applied on non-VRChat platforms
+- [#1729] `Shape Changer` components in `Set` mode will now override prior `Delete` mode settings. This reverses an
+  accidental breaking change in 1.13.x.
 
 ### Removed
 

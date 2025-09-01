@@ -199,9 +199,16 @@ namespace nadena.dev.modular_avatar.core.editor
                     var currentValue = renderer.GetBlendShapeWeight(shapeId);
                     var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
 
+                    var deleteKey = new TargetProp
+                    {
+                        TargetObject = renderer,
+                        PropertyName = DeletedShapePrefix + shape.ShapeName
+                    };
+
                     if (shape.ChangeType != ShapeChangeType.Delete)
                     {
                         RegisterAction(key, currentValue, value, changer);
+                        RegisterAction(deleteKey, null, null, changer);
 
                         if (_blendshapeSyncMappings.TryGetValue((renderer, shape.ShapeName), out var bindings))
                         {
@@ -230,15 +237,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
 
-                    key = new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = DeletedShapePrefix + shape.ShapeName
-                    };
-
                     if (shape.ChangeType == ShapeChangeType.Delete)
                     {
-                        RegisterAction(key, null, new VertexFilterByShape(shape.ShapeName, threshold), changer);
+                        RegisterAction(deleteKey, null, new VertexFilterByShape(shape.ShapeName, threshold), changer);
                     }
                 }
             }

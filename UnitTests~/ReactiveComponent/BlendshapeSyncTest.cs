@@ -33,8 +33,6 @@ namespace UnitTests.ReactiveComponent
                 PropertyName = "blendShape.top"
             }];
             
-            Assert.AreEqual(3, analysis.Shapes.Count);
-
             foreach (var ag in m1.actionGroups)
             {
                 ag.TargetProp = new TargetProp();

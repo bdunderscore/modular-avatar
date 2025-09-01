@@ -42,20 +42,45 @@ public class ShapeDeletionAnalysis : TestBase
     }
 
     [Test]
-    public void WhenShapeDeletionIsSetOnSubsequentChanger_DoesDelete()
+    public void WhenShapeDeletionIsSetOnSubsequentChanger_DoesNotDelete()
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         root.transform.Find("MenuSet").gameObject.SetActive(true);
 
         AssertPreviewDeletion(root);
-        AssertMeshDeletion(root);
+        AssertNoMeshDeletion(root);
 
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
-        // blendshape is not updated by Deletes
-        Assert.AreEqual(0, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
+        // menu is initially inactive
+        Assert.AreEqual(50.0f, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
     }
 
+    [Test]
+    public void WhenShapeDeletionIsSetOnSubsequentChanger_AndMenuIsDefaultOn_DoesNotPreviewDelete()
+    {
+        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
+        root.transform.Find("MenuSet").gameObject.SetActive(true);
+        root.transform.Find("MenuSet").GetComponent<ModularAvatarMenuItem>().isDefault = true;
 
+        AssertNoPreviewDeletion(root);
+        AssertNoMeshDeletion(root);
+
+        var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
+        // menu is initially active
+        Assert.AreEqual(0.0f, mesh.GetBlendShapeWeight(mesh.sharedMesh.GetBlendShapeIndex("bottom")));
+    }
+
+    [Test]
+    public void WhenShapeChangerOverrides_DoesNotDelete()
+    {
+        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
+        
+        root.transform.Find("NullSet").gameObject.SetActive(true);
+
+        AssertNoPreviewDeletion(root);
+        AssertNoMeshDeletion(root);
+    }
+    
     [Test]
     public void WhenShapeDeletionIsConditionedOnItself_DoesNotDelete()
     {

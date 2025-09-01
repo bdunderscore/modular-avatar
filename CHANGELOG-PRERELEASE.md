@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#1729] `Shape Changer` components in `Set` mode will now override prior `Delete` mode settings. This reverses an
+  accidental breaking change in 1.13.x.
+
 ### Removed
 
 ### Security
