@@ -1,5 +1,8 @@
 ﻿#region
 
+#if MA_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,9 +13,6 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
-#if MA_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-#endif
 using EditorCurveBinding = UnityEditor.EditorCurveBinding;
 using Object = UnityEngine.Object;
 
@@ -89,6 +89,8 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
             if (generateAnimations)
             {
+                GenerateParameters(shapes);
+                
                 foreach (var groups in shapes.Values)
                 {
                     ProcessShapeKey(groups);
@@ -500,6 +502,68 @@ namespace nadena.dev.modular_avatar.core.editor
         #endregion
 
 #if MA_VRCSDK3_AVATARS
+        private void GenerateParameters(Dictionary<TargetProp, AnimatedProperty> shapes)
+        {
+            var usedParams = new HashSet<string>();
+
+            foreach (var prop in shapes.Values)
+            {
+                foreach (var group in prop.actionGroups)
+                {
+                    foreach (var cond in group.ControllingConditions)
+                    {
+                        if (!string.IsNullOrEmpty(cond.Parameter))
+                        {
+                            usedParams.Add(cond.Parameter);
+                        }
+                    }
+                }
+            }
+
+            var asc = context.Extension<AnimatorServicesContext>();
+            if (!asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
+            {
+                return;
+            }
+
+            var parameters = fx.Parameters;
+            foreach (var usedParam in usedParams)
+            {
+                if (parameters.TryGetValue(usedParam, out var p) && p.type == AnimatorControllerParameterType.Float)
+                {
+                    continue;
+                }
+
+                if (p == null)
+                {
+                    p = new AnimatorControllerParameter
+                    {
+                        name = usedParam,
+                        type = AnimatorControllerParameterType.Float,
+                        defaultFloat = 0.0f
+                    };
+                }
+                else
+                {
+                    switch (p.type)
+                    {
+                        case AnimatorControllerParameterType.Int:
+                            p.defaultFloat = p.defaultInt;
+                            break;
+                        case AnimatorControllerParameterType.Bool:
+                            p.defaultFloat = p.defaultBool ? 1.0f : 0.0f;
+                            break;
+                    }
+
+                    p.type = AnimatorControllerParameterType.Float;
+                }
+
+                parameters = parameters.SetItem(usedParam, p);
+            }
+
+            fx.Parameters = parameters;
+        }
+        
         private void ProcessShapeKey(AnimatedProperty info)
         {
             if (info.actionGroups.Count == 0)

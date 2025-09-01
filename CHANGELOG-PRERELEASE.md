@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1726] Parameter drivers did not work properly when parameter types were adjusted after merging animators
+- [#1728] Menu Items that did not have a reactive component attached to their game object, but did have a child object
+  with a reactive component, would not function properly.
 
 ### Changed
 

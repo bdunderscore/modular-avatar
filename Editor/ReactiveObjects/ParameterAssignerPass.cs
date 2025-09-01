@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
-using nadena.dev.ndmf.animator;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -197,28 +195,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
-            }
-
-            var mamiWithRC = _mamiByParam.Where(kvp => kvp.Value.Any(
-                component => component.TryGetComponent<ReactiveComponent>(out _)
-            )).ToList();
-
-            if (mamiWithRC.Count > 0)
-            {
-                var asc = context.Extension<AnimatorServicesContext>();
-                var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-
-                foreach (var (name, _) in mamiWithRC)
-                {
-                    if (!fx.Parameters.ContainsKey(name))
-                    {
-                        fx.Parameters = fx.Parameters.SetItem(name, new()
-                        {
-                            name = name,
-                            type = AnimatorControllerParameterType.Float,
-                        });
-                    }
-                }
             }
         }
 
