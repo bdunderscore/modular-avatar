@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#1729] `Set` 指定の `Shape Changer` が前の `Delete` 指定を上書きするように変更。1.13.xに入ってしまった、意図しない
+  互換性のない仕様変更を元に戻す変更です。
+
 ### Removed
 
 ### Security

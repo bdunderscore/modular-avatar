@@ -278,7 +278,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private IVertexFilter AggregateVertexFilters(IEnumerable<IVertexFilter> filters)
         {
-            var filter = filters.LastOrDefault();
+            filters = filters.ToList();
+            var filter = filters.LastOrDefault(f => f != null);
             if (filter is VertexFilterByShape filterByShape)
             {
                 return new VertexFilterByShape(filterByShape.ShapeName, filters
@@ -299,7 +300,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var renderer = grouping.Key;
                 var toDelete = grouping
-                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is true)
+                    .Where(prop =>
+                    {
+                        var activeGroup = prop.actionGroups.LastOrDefault();
+                        return activeGroup?.IsConstantActive is true && activeGroup?.Value is IVertexFilter;
+                    })
                     .Select(prop => (
                         prop.TargetProp,
                         VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
@@ -366,7 +371,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            group.CustomApplyMotion = clip_delete;
+                            group.CustomApplyMotion = group.Value is IVertexFilter ? clip_delete : clip_retain;
                         }
 
                         var isInitiallyActive = animProp.actionGroups.Any(agk => agk.InitiallyActive);
