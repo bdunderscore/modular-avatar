@@ -81,6 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             GenerateActiveSelfProxies(shapes);
 
+            RemoveRedundantStaticStates(shapes);
             ProcessMeshDeletion(initialStates, shapes);
 
             ProcessInitialStates(initialStates, shapes);
@@ -97,6 +98,43 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 #endif
+        }
+
+        private void RemoveRedundantStaticStates(Dictionary<TargetProp, AnimatedProperty> shapes)
+        {
+            var constantShapes = shapes
+                .Where(kv => kv.Value.actionGroups.LastOrDefault()?.IsConstant is true)
+                .Where(kv => kv.Value.actionGroups.All(x => x.Value is not IVertexFilter))
+                .Where(kv => kv.Value.overrideStaticState == null)
+                .ToList();
+
+            var asc = context.Extension<AnimatorServicesContext>();
+
+            foreach (var (k, v) in constantShapes)
+            {
+                // If there are animations targeting this property already, we need to keep the animation generation
+                // to ensure we override the existing animations correctly.
+
+                GameObject targetGameObject;
+                switch (k.TargetObject)
+                {
+                    case GameObject go: targetGameObject = go; break;
+                    case Behaviour b: targetGameObject = b.gameObject; break;
+                    case Component c: targetGameObject = c.gameObject; break;
+                    default: continue;
+                }
+
+                var ecb = EditorCurveBinding.FloatCurve(
+                    asc.ObjectPathRemapper.GetVirtualPathForObject(targetGameObject),
+                    k.TargetObject.GetType(),
+                    k.PropertyName
+                );
+
+                if (asc.AnimationIndex.GetClipsForBinding(ecb).Any(clip => clip != _initialStateClip)) continue;
+
+                // If there are no animations targeting this property, we can skip animation generation
+                shapes.Remove(k);
+            }
         }
 
         private void GenerateActiveSelfProxies(Dictionary<TargetProp, AnimatedProperty> shapes)

@@ -26,11 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1726] Parameter drivers did not work properly when parameter types were adjusted after merging animators
 - [#1728] Menu Items that did not have a reactive component attached to their game object, but did have a child object 
 with a reactive component, would not function properly.
+- [#1732] Static (always-on) reactive components would have had lower priority than the FX animator
 
 ### Changed
 - [#1705] Reactive Component initial states are now applied on non-VRChat platforms
 - [#1729] `Shape Changer` components in `Set` mode will now override prior `Delete` mode settings. This reverses an
   accidental breaking change in 1.13.x.
+- [#1732] In previous versions of Modular Avatar, static (always-on) reactive components would have had
+  lower priority than the FX animator. This was a bug and has been fixed in this version; however, it's possible that this
+  fix might cause some existing gimmicks to have different behavior.
 
 ### Removed
 

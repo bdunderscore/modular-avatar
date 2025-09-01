@@ -12,11 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#1726] 統合中にパラメーターの型が調整される場合、`Parameter Driver` が正しく動作しなくなる問題を修正
 - [#1728] `Menu Item` そのものに Reactive Component がついてないものの、その子に RC がついている場合に正しく動作しないバグを修正
+- [#1732] 完全に固定状態ののReactive ComponentがFXアニメーターより優先度が低い問題を修正
 
 ### Changed
-
 - [#1729] `Set` 指定の `Shape Changer` が前の `Delete` 指定を上書きするように変更。1.13.xに入ってしまった、意図しない
   互換性のない仕様変更を元に戻す変更です。
+- [#1732] 以前の Modular Avatar のバージョンでは、完全に固定された（常にアクティブ）なReactive Componentが、FXレイヤー
+  より優先されませんでしたが、この仕様はバグです。このバージョンで修正し、常にFXレイヤーより優先されるようになったので、
+  一部のアバターでは挙動が変わる可能性があります。
 
 ### Removed
 
