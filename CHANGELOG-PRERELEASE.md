@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0-beta.2] - [2025-09-02]
+
+### Fixed
 - [#1726] Parameter drivers did not work properly when parameter types were adjusted after merging animators
 - [#1728] Menu Items that did not have a reactive component attached to their game object, but did have a child object
   with a reactive component, would not function properly.
@@ -21,12 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1732] In previous versions of Modular Avatar, static (always-on) reactive components would have had
   lower priority than the FX animator. This was a bug and has been fixed in this version; however, it's possible that this
   fix might cause some existing gimmicks to have different behavior.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.0-beta.1] - [2025-08-30]
 
