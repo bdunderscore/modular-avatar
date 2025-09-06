@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1739] `Mesh Cutter` のプレビュー処理を軽量化
+
 ### Changed
 
 ### Removed
