@@ -11,6 +11,12 @@ using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [CustomPropertyDrawer(typeof(MeshCutterMultiMode))]
+    internal class MeshCutterMultiModeDrawer : EnumDrawer<MeshCutterMultiMode>
+    {
+        protected override string localizationPrefix => "reactive_object.mesh_cutter.multi-mode";
+    }
+    
     [CustomEditor(typeof(ModularAvatarMeshCutter))]
     internal class MeshCutterEditor : MAEditorBase
     {

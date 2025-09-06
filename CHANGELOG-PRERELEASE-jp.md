@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1738] `Mesh Cutter` に複数の頂点フィルターをつけた場合、そのどれか一つでも選択された頂点をすべて消す設定を追加
 
 ### Fixed
-
 - [#1739] `Mesh Cutter` のプレビュー処理を軽量化
 
 ### Changed
