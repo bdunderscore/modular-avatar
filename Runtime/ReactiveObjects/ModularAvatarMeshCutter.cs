@@ -6,7 +6,7 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
     [PublicAPI]
-    [AddComponentMenu("Modular Avatar/Mesh Cutter")]
+    [AddComponentMenu("Modular Avatar/MA Mesh Cutter")]
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class ModularAvatarMeshCutter : ReactiveComponent, IHaveObjReferences
     {
