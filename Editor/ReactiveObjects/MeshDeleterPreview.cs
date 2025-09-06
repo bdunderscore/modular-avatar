@@ -140,8 +140,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(Renderer original, Renderer proxy, Mesh mesh,
-                ImmutableList<IVertexFilter> filters)
+            private Mesh GenerateMesh(
+                Renderer original,
+                Renderer proxy,
+                Mesh mesh,
+                ImmutableList<IVertexFilter> filters
+            )
             {
                 if (mesh == null)
                 {

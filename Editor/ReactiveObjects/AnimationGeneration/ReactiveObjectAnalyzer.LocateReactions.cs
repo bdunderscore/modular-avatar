@@ -297,7 +297,25 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (filterList.Count == 0) continue;
 
-                var vertexFilter = filterList.Count == 1 ? filterList[0] : new ANDFilter(filterList);
+                IVertexFilter vertexFilter;
+                if (filterList.Count == 1)
+                {
+                    vertexFilter = filterList[0];
+                }
+                else
+                {
+                    switch (_computeContext.Observe(deleter, d => d.MultiMode))
+                    {
+                        case MeshCutterMultiMode.VertexUnion:
+                            vertexFilter = new ORFilter(filterList);
+                            break;
+
+                        case MeshCutterMultiMode.VertexIntersection:
+                        default:
+                            vertexFilter = new ANDFilter(filterList);
+                            break;
+                    }
+                }
                 vertexFilter.Observe(_computeContext);
 
                 var key = new TargetProp

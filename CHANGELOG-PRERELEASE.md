@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1738] Mesh Cutter can now be configured to combine the selections from all vertex filters, instead of taking their
+intersection.
 
 ### Fixed
-
 - [#1739] Improved performance of Mesh Cutter preview processing
 
 ### Changed
