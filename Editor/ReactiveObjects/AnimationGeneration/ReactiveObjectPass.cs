@@ -320,7 +320,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var filter = filters.LastOrDefault(f => f != null);
             if (filter is VertexFilterByShape filterByShape)
             {
-                return new VertexFilterByShape(filterByShape.ShapeName, filters
+                return new VertexFilterByShape(filterByShape.Shapes, filters
                     .OfType<VertexFilterByShape>()
                     .Min(x => x.Threshold));
             }

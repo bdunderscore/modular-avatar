@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1740] `VR By Shape` に、一つのコンポーネントで複数のブレンドシェープを選択できるように変更
+  - 注意：以前のベータで作成されたデータとの互換性が損なわれます。 
 
 ### Fixed
 

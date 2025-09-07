@@ -142,4 +142,25 @@ public class VertexFilterByShapeTest : TestBase
         Assert.IsTrue(result.Contains("TestShape"), "ToString should contain the shape name");
         Assert.IsTrue(result.Contains("0.5"), "ToString should contain the threshold value");
     }
+    
+    [Test]
+    public void TestMultipleBlendshapesSelectUnionOfVertices()
+    {
+        // "Positive" moves Z=2 plane, "Negative" moves Z=0 plane
+        var filter = new VertexFilterByShape(new[] { "Positive", "Negative" }, 0.001f);
+
+        var filtered = new bool[testMesh.vertices.Length];
+        filter.MarkFilteredVertices(meshRenderer, testMesh, filtered);
+
+        var vertices = testMesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            bool inPositive = Math.Abs(vertices[i].z - 2.0f) < 0.01f;
+            bool inNegative = Math.Abs(vertices[i].z - 0.0f) < 0.01f;
+            bool shouldBeFiltered = inPositive || inNegative;
+
+            Assert.AreEqual(shouldBeFiltered, filtered[i],
+                $"Vertex {i} at {vertices[i]} should {(shouldBeFiltered ? "" : "not ")}be filtered by shapes 'Positive' or 'Negative'");
+        }
+    }
 }

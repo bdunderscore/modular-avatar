@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
@@ -8,37 +11,51 @@ namespace nadena.dev.modular_avatar.core.editor
     [ProvidesVertexFilter(typeof(VertexFilterByShapeComponent))]
     internal class VertexFilterByShape : IVertexFilter
     {
-        public string ShapeName { get; }
+        public ImmutableHashSet<string> Shapes { get; }
 
         public float Threshold { get; }
 
         public VertexFilterByShape(string shapeName, float threshold)
         {
-            ShapeName = shapeName;
+            Shapes = ImmutableHashSet<string>.Empty.Add(shapeName);
+            Threshold = threshold;
+        }
+
+        public VertexFilterByShape(IEnumerable<string> shapes, float threshold)
+        {
+            Shapes = shapes.ToImmutableHashSet();
             Threshold = threshold;
         }
 
         public VertexFilterByShape(VertexFilterByShapeComponent component, ComputeContext context)
         {
-            (ShapeName, Threshold) = context.Observe(component, c => (c.ShapeName, c.Threshold));
+            (Shapes, Threshold) = context.Observe(
+                component,
+                c => (c.Shapes.ToImmutableHashSet(), c.Threshold),
+                (a, b) => { return a.Item1.SetEquals(b.Item1) && Mathf.Approximately(a.Item2, b.Item2); }
+            );
         }
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var shapeIndex = mesh.GetBlendShapeIndex(ShapeName);
-            if (shapeIndex < 0) return; // shape not found
-
             var deltaPositions = new Vector3[mesh.vertexCount];
-            var sqrThreshold = Threshold * Threshold;
 
-            for (var f = 0; f < mesh.GetBlendShapeFrameCount(shapeIndex); f++)
+            foreach (var shape in Shapes)
             {
-                mesh.GetBlendShapeFrameVertices(shapeIndex, f, deltaPositions, null, null);
-                for (var v = 0; v < deltaPositions.Length; v++)
+                var shapeIndex = mesh.GetBlendShapeIndex(shape);
+                if (shapeIndex < 0) continue; // shape not found
+
+                var sqrThreshold = Threshold * Threshold;
+
+                for (var f = 0; f < mesh.GetBlendShapeFrameCount(shapeIndex); f++)
                 {
-                    if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                    mesh.GetBlendShapeFrameVertices(shapeIndex, f, deltaPositions, null, null);
+                    for (var v = 0; v < deltaPositions.Length; v++)
                     {
-                        filtered[v] = true;
+                        if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                        {
+                            filtered[v] = true;
+                        }
                     }
                 }
             }
@@ -47,8 +64,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public bool Equals(IVertexFilter other)
         {
             return other is VertexFilterByShape filter
-                   && filter.ShapeName == ShapeName
-                   && filter.Threshold == Threshold;
+                   && filter.Shapes.SetEquals(Shapes)
+                   && Mathf.Approximately(filter.Threshold, Threshold);
         }
 
         public override bool Equals(object obj)
@@ -58,12 +75,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ShapeName, Threshold);
+            var hashCode = Threshold.GetHashCode();
+            foreach (var shape in Shapes.OrderBy(x => x))
+            {
+                hashCode = HashCode.Combine(hashCode, shape);
+            }
+
+            return hashCode;
         }
 
         public override string ToString()
         {
-            return $"{ShapeName}_{Threshold}";
+            return $"VertexFilterByShape: {string.Join(", ", Shapes)} @ {Threshold}";
         }
     }
 }
