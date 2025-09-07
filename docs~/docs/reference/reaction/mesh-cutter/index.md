@@ -39,21 +39,20 @@ button on the Mesh Cutter component, or by adding a Vertex Filter component manu
 
 ## Using multiple Vertex Filters
 
-If you add multiple vertex filters, only vertices which match *all* filters will be deleted or hidden. This allows you
+When you use multiple Vertex Filters, you can either use them to _combine_ the selections from multiple filters, or
+_intersect_ the selections from multiple filters (that is, only keep vertices that match all filters). This allows you
 to create complex selections that can't be done with a single filter. For example, if a mesh reuses the same UV
-coordinates
-for its left and right sides, you can use a `By Mask` filter to select a portion of the mesh, then use `By Axis` to
-restrict it to only one side.
+coordinates for its left and right sides, you can use a `By Mask` filter to select a portion of the mesh, then use
+`By Axis` to restrict it to only one side.
 
 Here's an example of using multiple filters to shorten one side of a ribbon mesh:
 
 ![Mesh Cutter with multiple filters](mesh-cutter-multiple-filters.png)
 
 Anon's ribbon uses the same texture coordinates for both left and right sides, so we can't use a single `By Mask` filter
+to select just the left side. Instead, we use a `By Mask` filter to select the ribbon as a whole, one `By Axis` filter
 to
-select just the left side. Instead, we use a `By Mask` filter to select the ribbon as a whole, one `By Axis` filter to
-select
-the left side, and another `By Axis` filter to select how far we want to shorten the ribbon.
+select the left side, and another `By Axis` filter to select how far we want to shorten the ribbon.
 
 ## Efficiency notes
 

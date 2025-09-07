@@ -140,8 +140,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(Renderer original, Renderer proxy, Mesh mesh,
-                ImmutableList<IVertexFilter> filters)
+            private Mesh GenerateMesh(
+                Renderer original,
+                Renderer proxy,
+                Mesh mesh,
+                ImmutableList<IVertexFilter> filters
+            )
             {
                 if (mesh == null)
                 {
@@ -163,12 +167,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     for (var i = 0; i < tris.Count; i += 3)
                     {
-                        if (vertexMask[tris[i + 0] + baseVertex] ||
-                            vertexMask[tris[i + 1] + baseVertex] ||
-                            vertexMask[tris[i + 2] + baseVertex])
+                        var t0 = tris[i + 0];
+                        var t1 = tris[i + 1];
+                        var t2 = tris[i + 2];
+
+                        if (vertexMask[t0 + baseVertex] ||
+                            vertexMask[t1 + baseVertex] ||
+                            vertexMask[t2 + baseVertex])
                         {
-                            tris.RemoveRange(i, 3);
-                            i -= 3;
+                            // Replace with degenerate triangle. We could try to erase the triangle from the
+                            // mesh entirely, but for preview purposes we want to lean towards mesh processing
+                            // speed.
+                            tris[i + 1] = t0;
+                            tris[i + 2] = t0;
                         }
                     }
 
