@@ -12,12 +12,15 @@ using UnityEngine;
 public class VertexFilterTests : TestBase
 {
     [Test]
-    public void VertexFilterByMaskClampUVTest()
+    public void VertexFilterByMaskClampUVTest(
+        [Values("DeletionTest/MaskTexture_Clamp.png", "DeletionTest/MaskTexture_Clamp_NonReadable.png")]
+        string maskPath
+    )
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var mesh = renderer.sharedMesh;
-        var mask = LoadAsset<Texture2D>("DeletionTest/MaskTexture_Clamp.png");
+        var mask = LoadAsset<Texture2D>(maskPath);
 
         var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
         var outRangeUvs = mesh.vertexCount - inRangeUvs;
@@ -34,12 +37,15 @@ public class VertexFilterTests : TestBase
     }
 
     [Test]
-    public void VertexFilterByMaskRepeatUVTest()
+    public void VertexFilterByMaskRepeatUVTest(
+        [Values("DeletionTest/MaskTexture_Repeat.png", "DeletionTest/MaskTexture_Repeat_NonReadable.png")]
+        string maskPath
+    )
     {
         var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
         var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var mesh = renderer.sharedMesh;
-        var mask = LoadAsset<Texture2D>("DeletionTest/MaskTexture_Repeat.png");
+        var mask = LoadAsset<Texture2D>(maskPath);
 
         var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
         var outRangeUvs = mesh.vertexCount - inRangeUvs;
