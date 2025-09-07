@@ -8,12 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1740] `VR By Shape` に、一つのコンポーネントで複数のブレンドシェープを選択できるように変更
-  - 注意：以前のベータで作成されたデータとの互換性が損なわれます。 
-- [#1738] `Mesh Cutter` に複数の頂点フィルターをつけた場合、そのどれか一つでも選択された頂点をすべて消す設定を追加
 
 ### Fixed
-- [#1739] `Mesh Cutter` のプレビュー処理を軽量化
 
 ### Changed
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.0-rc.0] - [2025-09-07]
+
+### Added
+- [#1740] `VR By Shape` に、一つのコンポーネントで複数のブレンドシェープを選択できるように変更
+  - 注意：以前のベータで作成されたデータとの互換性が損なわれます。 
+- [#1738] `Mesh Cutter` に複数の頂点フィルターをつけた場合、そのどれか一つでも選択された頂点をすべて消す設定を追加
+
+### Fixed
+- [#1739] `Mesh Cutter` のプレビュー処理を軽量化
 
 ## [1.14.0-beta.2] - [2025-09-02]
 
