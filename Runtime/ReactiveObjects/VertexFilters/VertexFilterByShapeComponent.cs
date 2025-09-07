@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
-using nadena.dev.modular_avatar.core;
 
 namespace nadena.dev.modular_avatar.core.vertex_filters
 {
@@ -10,13 +11,13 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class VertexFilterByShapeComponent : AvatarTagComponent, IVertexFilterBehavior
     {
-        [SerializeField] internal string m_shapeName = "";
         [SerializeField] internal float m_threshold = 0.001f;
+        [SerializeField] internal string[] m_shapes = Array.Empty<string>();
 
-        public string ShapeName
+        public List<string> Shapes
         {
-            get => m_shapeName;
-            set => m_shapeName = value;
+            get => m_shapes.ToList();
+            set => m_shapes = value.ToArray();
         }
 
         public float Threshold

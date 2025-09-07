@@ -1,11 +1,20 @@
 <UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
-    <ui:VisualElement class="horizontal">
-        <ed:PropertyField name="f-shape-name" binding-path="m_shapeName"
-                          label="reactive_object.delete-mesh-by-shape.shape_name"
-                          class="ndmf-tr"/>
-        <ui:Button name="f-browse" class="ndmf-tr" text="reactive_object.delete-mesh-by-shape.browse"/>
+
+    <ui:VisualElement name="group-box">
+        <ui:Label text="reactive_object.delete-mesh-by-shape.shapes" class="ndmf-tr"/>
+
+        <ui:ListView virtualization-method="DynamicHeight"
+                     reorder-mode="Animated"
+                     reorderable="true"
+                     show-add-remove-footer="true"
+                     show-border="true"
+                     show-foldout-header="false"
+                     name="Shapes"
+                     item-height="100"
+                     binding-path="m_shapes"
+        />
     </ui:VisualElement>
-    
+
     <ed:PropertyField name="f-threshold" binding-path="m_threshold"
                       label="reactive_object.delete-mesh-by-shape.threshold"
                       class="ndmf-tr"/>

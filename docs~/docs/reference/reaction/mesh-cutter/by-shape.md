@@ -20,7 +20,10 @@ clicking the "Add Vertex Filter" button on the Mesh Cutter component, or by addi
 
 Once you've added the component, ensure that the Target Renderer field on the Mesh Cutter component is set to the object you want to modify.
 
-Next, set the `Shape Name` field to the name of the blendshape you want to use for filtering. You can type the name manually, or click the `Browse...` button to select from available blendshapes on the target mesh.
+Next, add the shapes you want to use for filtering. If you click the "+" button, you'll be able to select from the
+blendshapes on the mesh in question.
+If you select more than one blendshape, all vertices that move when any of the blendshapes are activated will be
+selected.
 
 Finally, adjust the `Threshold` value to control sensitivity. Vertices that move more than this distance (in local space) when the blendshape is fully activated will be filtered out. The default value of 0.001 works well for most cases, but you may need to adjust it depending on your specific mesh and blendshape.
 

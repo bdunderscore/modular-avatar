@@ -44,7 +44,7 @@ public class VertexFilterByShapeComponentTest : TestBase
         var component = avatarRoot.AddComponent<VertexFilterByShapeComponent>();
         
         Assert.IsNotNull(component, "Component should be created successfully");
-        Assert.AreEqual("", component.ShapeName, "Default shape name should be empty");
+        Assert.AreEqual(0, component.Shapes.Count, "Default shape name should be empty");
         Assert.AreEqual(0.001f, component.Threshold, 0.0001f, "Default threshold should be 0.001f");
     }
     
@@ -54,10 +54,10 @@ public class VertexFilterByShapeComponentTest : TestBase
         var component = avatarRoot.AddComponent<VertexFilterByShapeComponent>();
         
         // Test property setters and getters
-        component.ShapeName = "TestShape";
+        component.Shapes = new[] { "TestShape" }.ToList();
         component.Threshold = 0.5f;
         
-        Assert.AreEqual("TestShape", component.ShapeName, "ShapeName property should work correctly");
+        Assert.IsTrue(component.Shapes.SequenceEqual(new [] {"TestShape"}), "ShapeName property should work correctly");
         Assert.AreEqual(0.5f, component.Threshold, 0.0001f, "Threshold property should work correctly");
     }
     
@@ -65,7 +65,7 @@ public class VertexFilterByShapeComponentTest : TestBase
     public void TestProviderCanBeCreated()
     {
         var component = avatarRoot.AddComponent<VertexFilterByShapeComponent>();
-        component.ShapeName = "Positive";
+        component.Shapes = new [] { "Positive" }.ToList();
         component.Threshold = 0.001f;
         
         // Create a filter without context (this mimics what happens in tests)
@@ -80,5 +80,29 @@ public class VertexFilterByShapeComponentTest : TestBase
         // Check that some vertices were filtered (the Positive shape affects Z=2 plane)
         var hasFilteredVertices = filtered.Any(f => f);
         Assert.IsTrue(hasFilteredVertices, "Filter should filter some vertices for valid blendshape");
+    }
+    
+    [Test]
+    public void TestComponentMultipleBlendshapesUnion()
+    {
+        var component = avatarRoot.AddComponent<VertexFilterByShapeComponent>();
+        component.Shapes = new[] { "Positive", "Negative" }.ToList();
+        component.Threshold = 0.001f;
+
+        var filter = new VertexFilterByShape(component, ComputeContext.NullContext);
+
+        var filtered = new bool[testMesh.vertices.Length];
+        filter.MarkFilteredVertices(meshRenderer, testMesh, filtered);
+
+        var vertices = testMesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            bool inPositive = Math.Abs(vertices[i].z - 2.0f) < 0.01f;
+            bool inNegative = Math.Abs(vertices[i].z - 0.0f) < 0.01f;
+            bool shouldBeFiltered = inPositive || inNegative;
+
+            Assert.AreEqual(shouldBeFiltered, filtered[i],
+                $"Vertex {i} at {vertices[i]} should {(shouldBeFiltered ? "" : "not ")}be filtered by shapes 'Positive' or 'Negative'");
+        }
     }
 }

@@ -47,6 +47,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     Close();
                 }
                 _tree.OfferBinding = (binding) => OfferBinding?.Invoke(binding);
+                _tree.OfferSingleClick = binding => OfferSingleClick?.Invoke(binding);
                 _tree.Reload();
 
                 _tree.SetExpanded(0, true);

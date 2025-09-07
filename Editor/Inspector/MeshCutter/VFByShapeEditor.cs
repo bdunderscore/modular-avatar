@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string UxmlPath = Root + "VFByShapeEditor.uxml";
         private const string UssPath = Root + "MeshCutterStyles.uss";
 
-        private SerializedProperty? _shapeName;
+        private SerializedProperty? _shapes;
         private SerializedProperty? _threshold;
 
         private bool m_isAttached;
@@ -40,12 +40,12 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private void OnEnable()
         {
-            _shapeName = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_shapeName));
+            _shapes = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_shapes));
             _threshold = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_threshold));
         }
 
         private Button f_browse;
-        
+
         protected override VisualElement CreateInnerInspectorGUI()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath).CloneTree();
@@ -54,30 +54,61 @@ namespace nadena.dev.modular_avatar.core.editor
             Localization.UI.Localize(uxml);
             uxml.styleSheets.Add(uss);
             uxml.Bind(serializedObject);
-            
-            f_browse = uxml.Q<Button>("f-browse");
-            f_browse.clickable.clicked += () =>
+
+            var listView = uxml.Q<ListView>("Shapes");
+            listView.showBoundCollectionSize = false;
+            var b_addItem = listView.Q<Button>(BaseListView.footerAddButtonName);
+
+            // Recreate the add item button to clear the clickable event
+            var b_addItemNew = new Button();
+            b_addItemNew.name = b_addItem.name;
+            b_addItemNew.text = b_addItem.text;
+            b_addItem.parent.Insert(b_addItem.parent.IndexOf(b_addItem), b_addItemNew);
+            b_addItem.RemoveFromHierarchy();
+
+            b_addItemNew.clickable.clicked += () =>
             {
                 var targetMesh = GetTargetMesh();
-                var window = ScriptableObject.CreateInstance<BlendshapeSelectWindow>();
+
+                if (targetMesh == null)
+                {
+                    // Just add an empty entry
+                    _shapes.arraySize++;
+                    return;
+                }
+
+                int? addedIndex = null;
+                var window = CreateInstance<BlendshapeSelectWindow>();
                 window.AvatarRoot = RuntimeUtil.FindAvatarInParents((target as Component)?.transform).gameObject;
                 window.SingleMesh = targetMesh;
                 window.OfferBinding = (binding) =>
                 {
-                    if (_shapeName != null)
+                    if (binding.Blendshape != null)
                     {
-                        _shapeName.stringValue = binding.Blendshape;
-                        _shapeName.serializedObject.ApplyModifiedProperties();
+                        serializedObject.Update();
+                        if (addedIndex == null)
+                        {
+                            addedIndex = _shapes.arraySize++;
+                        }
+
+                        _shapes.GetArrayElementAtIndex(addedIndex.Value).stringValue = binding.Blendshape;
+                        serializedObject.ApplyModifiedProperties();
                     }
 
                     window.Close();
                 };
                 window.OfferSingleClick = (binding) =>
                 {
-                    if (_shapeName != null)
+                    if (binding.Blendshape != null)
                     {
-                        _shapeName.stringValue = binding.Blendshape;
-                        _shapeName.serializedObject.ApplyModifiedProperties();
+                        serializedObject.Update();
+                        if (addedIndex == null)
+                        {
+                            addedIndex = _shapes.arraySize++;
+                        }
+
+                        _shapes.GetArrayElementAtIndex(addedIndex.Value).stringValue = binding.Blendshape;
+                        serializedObject.ApplyModifiedProperties();
                     }
                 };
                 window.Show();

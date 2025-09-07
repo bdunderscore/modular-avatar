@@ -13,6 +13,12 @@
 
 #group-box > Label {
     -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+ListView {
+    margin-bottom: 4px;
+    flex-grow: 1;
 }
 
 .hidden {
