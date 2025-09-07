@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
-using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if MA_MASK_TEXTURE_EDITOR
 using net.nekobako.MaskTextureEditor.Editor;
 #endif
@@ -51,30 +51,58 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            var targetTexture = _editingTexture ?? _maskTexture;
-            if (!targetTexture.isReadable)
+            Texture2D? tempTexture = null;
+            try
             {
-                BuildReport.LogFatal("error.vertex_filter_by_mask.non_readable_texture", targetTexture);
-                return;
-            }
-
-            var subMeshIndices = Enumerable.Range(0, mesh.subMeshCount)
-                .Select(x => mesh.GetIndices(x).ToHashSet())
-                .ToArray();
-
-            foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
-            {
-                Color? deleteColor = DeleteMode switch
+                var targetTexture = _editingTexture ?? _maskTexture;
+                if (!targetTexture.isReadable)
                 {
-                    ByMaskMode.DeleteBlack => Color.black,
-                    ByMaskMode.DeleteWhite => Color.white,
-                    _ => null,
-                };
-                if (targetTexture.GetPixel((int)(targetTexture.width * uv[v].x),
-                        (int)(targetTexture.height * uv[v].y)) == deleteColor)
-                {
-                    filtered[v] = true;
+                    // We need a readable texture to read pixels from it, so copy the non-readable texture to a
+                    // readable temporary texture. This requires taking a trip through a render texture first.
+                    var tempRT = RenderTexture.GetTemporary(targetTexture.width, targetTexture.height, 0,
+                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                    var oldActive = RenderTexture.active;
+                    try
+                    {
+                        tempTexture = new Texture2D(targetTexture.width, targetTexture.height, TextureFormat.ARGB32,
+                            false);
+                        Graphics.Blit(targetTexture, tempRT);
+                        tempTexture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height), 0, 0);
+                        tempTexture.Apply(false);
+                        tempTexture.wrapModeU = targetTexture.wrapModeU;
+                        tempTexture.wrapModeV = targetTexture.wrapModeV;
+                        tempTexture.filterMode = targetTexture.filterMode;
+                        targetTexture = tempTexture;
+                    }
+                    finally
+                    {
+                        RenderTexture.active = oldActive;
+                        RenderTexture.ReleaseTemporary(tempRT);
+                    }
                 }
+
+                var subMeshIndices = Enumerable.Range(0, mesh.subMeshCount)
+                    .Select(x => mesh.GetIndices(x).ToHashSet())
+                    .ToArray();
+
+                foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
+                {
+                    Color? deleteColor = DeleteMode switch
+                    {
+                        ByMaskMode.DeleteBlack => Color.black,
+                        ByMaskMode.DeleteWhite => Color.white,
+                        _ => null
+                    };
+                    if (targetTexture.GetPixel((int)(targetTexture.width * uv[v].x),
+                            (int)(targetTexture.height * uv[v].y)) == deleteColor)
+                    {
+                        filtered[v] = true;
+                    }
+                }
+            }
+            finally
+            {
+                if (tempTexture != null) Object.DestroyImmediate(tempTexture);
             }
         }
 
