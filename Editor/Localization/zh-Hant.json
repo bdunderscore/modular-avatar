@@ -115,7 +115,7 @@
   "boneproxy.err.NotInAvatar": "你必須指定一個在 Avatar 內的物件",
   "boneproxy.attachment": "附加模式",
   "boneproxy.attachment.AsChildAtRoot": "作為子級，放置於 Root",
-  "boneproxy.attachment.AsChildKeepWorldPose": "作為子級，保持原有位置和選轉",
+  "boneproxy.attachment.AsChildKeepWorldPose": "作為子級，保持原有位置和旋轉",
   "boneproxy.attachment.AsChildKeepPosition": "作為子級，保持原有位置",
   "boneproxy.attachment.AsChildKeepRotation": "作為子級，保持原有旋轉",
   "mesh_settings.header_probe_anchor": "錨點覆蓋設定",
@@ -312,5 +312,6 @@
   "platform.vrchat.settings.mmd_world_support": "MMD 世界支援",
   "platform_filter.platform": "平台",
   "platform_filter.exclude": "排除此平台",
-  "platform_filter.include": "包含此平台"
+  "platform_filter.include": "包含此平台",
+  "reactive_object.delete-mesh-by-shape.shape_name": "Blendshape 名稱"
 }
