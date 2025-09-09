@@ -42,6 +42,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var head = animator.GetBoneTransform(HumanBodyBones.Head);
             if (head == null) return;
 
+            List<VRCHeadChop.HeadChopBone> headChopBones = new();
+
             foreach (var renderer in context.AvatarRootTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var rootBone = renderer.rootBone;
@@ -58,22 +60,28 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         substitute.gameObject.AddComponent<ModularAvatarPBBlocker>();
 
-                        var headChop = substitute.gameObject.AddComponent<VRCHeadChop>();
-                        headChop.targetBones = new[]
-                        {
+                        headChopBones.Add(
                             new VRCHeadChop.HeadChopBone
                             {
                                 applyCondition = VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply,
                                 scaleFactor = 1,
                                 transform = substitute
                             }
-                        };
+                        );
 
                         substitutes[rootBone] = substitute;
                     }
 
                     renderer.rootBone = substitute;
                 }
+            }
+
+            if (headChopBones.Count > 0)
+            {
+                var headChopHolder = new GameObject("NaNimation HeadChop Holder");
+                headChopHolder.transform.SetParent(context.AvatarRootTransform, false);
+                var headChop = headChopHolder.AddComponent<VRCHeadChop>();
+                headChop.targetBones = headChopBones.ToArray();
             }
         }
     }
