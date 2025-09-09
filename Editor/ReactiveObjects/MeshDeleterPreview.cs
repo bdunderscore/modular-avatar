@@ -155,7 +155,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 mesh = Object.Instantiate(mesh);
                 
                 var vertexMask = new bool[mesh.vertexCount];
-                new ORFilter(filters).MarkFilteredVertices(original, mesh, vertexMask);
+                new ORFilter(filters).MarkFilteredVertices(proxy, mesh, vertexMask);
 
                 var tris = new List<int>();
                 for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
