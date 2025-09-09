@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1743] `VF By Mask` now supports non-read-write mask textures
 
 ### Fixed
+- [#1750] Modular Avatar would generate too many Head Chop components in some cases, breaking the build
 
 ### Changed
 

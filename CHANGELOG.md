@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1728] Menu Items that did not have a reactive component attached to their game object, but did have a child object 
 with a reactive component, would not function properly.
 - [#1732] Static (always-on) reactive components would have had lower priority than the FX animator
+- [#1750] Modular Avatar would generate too many Head Chop components in some cases, breaking the build
 
 ### Changed
 - [#1705] Reactive Component initial states are now applied on non-VRChat platforms
