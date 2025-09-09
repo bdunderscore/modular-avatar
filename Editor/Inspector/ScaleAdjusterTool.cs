@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -90,18 +91,25 @@ namespace nadena.dev.modular_avatar.core.editor
                     Undo.RecordObject(_obj, UNDO_STRING);
 
                     var targetL2W = _obj.transform.localToWorldMatrix;
-                    var baseToScaleCoord = (targetL2W * Matrix4x4.Scale(_obj.Scale)).inverse * targetL2W;
+
+                    var oldScale = _obj.Scale;
 
                     _obj.Scale = value;
                     LastScale = value;
-
-                    var scaleToBaseCoord = Matrix4x4.Scale(_obj.Scale);
 
                     PrefabUtility.RecordPrefabInstancePropertyModifications(_obj);
 
                     // Update child positions
                     if (AdjustChildPositions)
                     {
+                        // We clamp the effective scale to avoid losing child bone position data when we scale
+                        // to exactly zero
+                        oldScale = ClampScale(oldScale);
+                        var curScale = ClampScale(_obj.Scale);
+
+                        var baseToScaleCoord = (targetL2W * Matrix4x4.Scale(oldScale)).inverse * targetL2W;
+                        var scaleToBaseCoord = Matrix4x4.Scale(curScale);
+                        
                         var updateTransform = scaleToBaseCoord * baseToScaleCoord;
                         foreach (Transform child in _obj.transform)
                         {
@@ -111,6 +119,18 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                     }
                 }
+            }
+
+            private static Vector3 ClampScale(Vector3 objScale)
+            {
+                // We use a negative power of two here to minimize rounding error
+                const float THRESHOLD = 1f / (1 << 14); // 1/16384
+                
+                return new Vector3(
+                    Mathf.Max(THRESHOLD, objScale.x),
+                    Mathf.Max(THRESHOLD, objScale.y),
+                    Mathf.Max(THRESHOLD, objScale.z)
+                );
             }
 
             public override Matrix4x4 ParentLocalToWorld => _obj.transform.parent.localToWorldMatrix;

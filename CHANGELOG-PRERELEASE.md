@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1750] Modular Avatar would generate too many Head Chop components in some cases, breaking the build
+- [#1751] When scaling a bone to zero using `Scale Adjuster`, an exception would be thrown, and the relative position
+  of child bones might not be preserved.
 
 ### Changed
 

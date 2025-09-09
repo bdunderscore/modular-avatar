@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1750] `Head Chop` コンポーネントを作りすぎて、ビルドの失敗につながる場合がある問題を修正
+- [#1751] `Scale Adjuster` でボーンのスケールをゼロにした場合、例外が発生し、子オブジェクトの位置関係が保持できない問題を修正
 
 ### Changed
 
