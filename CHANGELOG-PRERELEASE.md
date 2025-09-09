@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1743] `VF By Mask` now supports non-read-write mask textures
 
 ### Fixed
+
+- [#1753] When using `Vertex Filter By Axis` and `Scale Adjuster` together, the preview and build result might differ
 - [#1750] Modular Avatar would generate too many Head Chop components in some cases, breaking the build
 - [#1751] When scaling a bone to zero using `Scale Adjuster`, an exception would be thrown, and the relative position
   of child bones might not be preserved.

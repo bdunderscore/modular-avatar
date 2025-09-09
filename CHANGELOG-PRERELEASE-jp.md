@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1743] `VF By Mask` が、Read-Writeがついていないマスクテクスチャにも対応しました。
 
 ### Fixed
+
+- [#1753] `Vertex Filter By Axis` と `Scale Adjuster` を併用する場合、プレビューとビルドの結果が異なる問題を修正
 - [#1750] `Head Chop` コンポーネントを作りすぎて、ビルドの失敗につながる場合がある問題を修正
 - [#1751] `Scale Adjuster` でボーンのスケールをゼロにした場合、例外が発生し、子オブジェクトの位置関係が保持できない問題を修正
 
