@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1743] `VF By Mask` が、Read-Writeがついていないマスクテクスチャにも対応しました。
+- [#1755] Mask Texture Editor が導入されていない場合、`VF By Mask`のインスペクターにヒントを表示
 
 ### Fixed
 

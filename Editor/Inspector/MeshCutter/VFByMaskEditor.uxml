@@ -17,4 +17,15 @@
         <ed:PropertyField name="f-delete-mode" binding-path="m_deleteMode"
                           label="reactive_object.delete-mesh-by-mask.delete-mode" class="ndmf-tr"/>
     </ui:VisualElement>
+
+    <ui:HelpBox text="reactive_object.delete-mesh-by-mask.hint-install-mask-editor"
+                message-type="Info"
+                class="ndmf-tr"
+                name="hint-install-mask-editor"
+    >
+        <ui:Button text="reactive_object.delete-mesh-by-mask.install-button"
+                   class="ndmf-tr"
+                   name="b-install-mask-editor"
+        />
+    </ui:HelpBox>
 </UXML>
