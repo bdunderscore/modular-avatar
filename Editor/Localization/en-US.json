@@ -289,6 +289,7 @@
   "reactive_object.delete-mesh-by-mask.delete-mode": "Delete Mode",
   "reactive_object.delete-mesh-by-mask.hint-install-mask-editor": "You can install nekobako's Mask Texture Editor to easily edit the mask texture.",
   "reactive_object.delete-mesh-by-mask.install-button": "Install",
+  "reactive_object.delete-mesh-by-shape.shapes": "Blendshapes",
   "reactive_object.delete-mesh-by-bone.bone": "Target Bone",
   "reactive_object.delete-mesh-by-bone.bone.tooltip": "The bone to filter vertices by. Vertices weighted to this bone will be selected.",
   "reactive_object.delete-mesh-by-bone.threshold": "Weight Threshold",
