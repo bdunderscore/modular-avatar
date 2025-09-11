@@ -60,7 +60,13 @@ namespace nadena.dev.modular_avatar.core.editor
             f_mask_texture.parent.Add(new MaskTextureEditorOpener(
                 serializedObject, f_object, f_material_index, f_mask_texture,
                 editing => uxml.Query<VisualElement>(null, "disable-while-editing-mask-texture").ForEach(x => x.SetEnabled(!editing))));
+            uxml.AddToClassList("has-mask-editor");
 #endif
+
+            uxml.Q<Button>("b-install-mask-editor").clickable.clicked += () =>
+            {
+                Application.OpenURL("https://vpm.nekobako.net/");
+            };
 
             return uxml;
         }

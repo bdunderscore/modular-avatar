@@ -117,3 +117,11 @@ ListView {
 .st-active-editing #f-axis-edit {
     background-color: #006011;
 }
+
+.has-mask-editor #hint-install-mask-editor {
+    display: none;
+}
+
+HelpBox > Label {
+    flex-grow: 1;
+}
