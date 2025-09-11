@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1743] `VF By Mask` now supports non-read-write mask textures
-- [#1755] Added hint box to the `VF By Mask` inspector when Mask Texture Editor is missing
 
 ### Fixed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.0-rc.2] - [2025-09-11]
+
+### Added
+- [#1743] `VF By Mask` now supports non-read-write mask textures
+- [#1755] Added hint box to the `VF By Mask` inspector when Mask Texture Editor is missing
 
 ## [1.14.0-rc.1] - [2025-09-09]
 
