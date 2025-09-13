@@ -1,29 +1,36 @@
 # Resonite対応
 
-Modular Avatarでは、実験的な機能として、Resonite向けのアバターをビルドできます。
+Modular Avatarでは、Resonite向けのアバターをビルドできます。  
 
-## 初期設定と初めてのアバタービルド
+:::tip
+
+このプロジェクトは開発中です。APIやセーブファイルの互換性は保証されません。  
+バグ報告やフィードバックは[GitHubのissueページ](https://github.com/bdunderscore/modular-avatar-resonite/)へお願いします。
+
+:::
+
+## 初期設定とアバタービルド
 
 ### Modular Avatar - Resonite support のインストール
 
 Resoniteアバターのビルドには、`Modular Avatar - Resonite support` が必要です。
-インストールされていない方は、以下の手順でインストールしてください。
+インストールされていない方は、プロジェクトの "管理" より、 `Modular Avatar - Resonite support` の `+` をクリックし、「適用」をクリックしてください。
 
-1. [インストール](../intro.md) を確認し、テスト版のリポジトリを追加します。
-2. プロジェクトの "管理" より、 `Modular Avatar - Resonite support` の `+` をクリックし、「適用」をクリックしてください。
+![Install Modular Avatar - Resonite support](separate-package-resonite.png)
 
-インストール後、[「実験的な機能のサポート」の有効化](../experimental-features)を実施してください。
+### ビルド
 
-## ビルド
+まず、NDMFコンソール (Tools -> NDM Framework -> NDMF Console)を開きます。
 
-以下の手順でResonite向けアバターをビルドします。
+![How to show ndmf console](show-ndmf-console.png)
 
-1. NDMFコンソール (Tools -> NDM Framework -> NDMF Console)を開く
-2. ウィンドウの上部でアバターを選択
-3. ウィンドウの下部「Avatar platform」で「Resonite」を選択
-4. Buildをクリック
+その後、以下の手順でResonite向けアバターをビルドします。
 
-![Resonite Build Howto](build-resonite_support.png)
+1. ウィンドウの上部でアバターを選択
+2. ウィンドウの下部「Avatar platform」で「Resonite」を選択
+3. Buildをクリック
+
+![How to use ndmf console](build-resonite_support.png)
 
 正常にビルドが完了すると、NDMF Console の下部に「Build finished!」というメッセージが表示されます。
 
@@ -72,7 +79,7 @@ VRChat向けにアバターを設定していない場合や、VRCSDKがイン�
 | Mesh Settings | ⌛ | 対応予定 |
 | MMD Layer Control | ✖ | VRChat のみで対応 |
 | Move Independently | ✅ | なし |
-| Parameters | ⌛ | 対応予定（DynVarとして実装する予定）|
+| Parameters | ⌛ | 対応予定（DynamicVariableとして実装する予定）|
 | Physbone Blocker | ✅ | なし |
 | Remove Vertex Color | ✅ | なし |
 | Replace Object | ✅ | なし |
@@ -89,35 +96,75 @@ Modular Avatarは、[Portable Dynamic Bones](./portable-avatar-components#portab
 
 Resoniteには独自のダイナミックボーンシステムがあるため、ほとんどの設定オプションは変換されません。ただし、除外（Physbone Blockersを含む）、コライダー、衝突範囲および掴めるかの設定は変換されます。
 
-Dynamic Bonesは、ボーン名に基づいて、いくつかの名前付き「テンプレート」にグループ化されます。テンプレート名は、ポータブルダイナミックボーンコンポーネントにグループ名を指定することで上書きできます。
+Dynamic Bonesは、ボーン名に基づいて、いくつかの名前付き「テンプレート」にグループ化されます。
+
+[ボーン名に基づいて](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L320-L336)以下の通りグループ化されます:
+
+| テンプレート名 | グループ化する際に検出するボーン名 |
+|---|----|
+| skirt | skirt |
+| breast | breast |
+| hair | hair |
+| long_hair | pony, twin |
+| ear | ear, kemono, mimi |
+| tail | tail |
+| generic | 上の条件に当てはまらないもの |
+
+テンプレート名は、ポータブルダイナミックボーンコンポーネントにグループ名を指定することで上書きできます。
 または、Resoniteで、`Avatar Settings` -> `Dynamic Bone Settings` スロットの下にあるオブジェクトをクローンし、新しいテンプレート名に設定し、ダイナミックボーンを定義したスロットの下にある`Template Name`スロットの名前を変更することで、新しいテンプレートを作成できます。
 
 同じテンプレートの下にあるすべてのダイナミックボーンは、Inertia、InertiaForce、Damping、Elasticity、およびStiffnessの設定を共有します。これらの設定は、対象のダイナミックボーンのいずれかでも変更すればすべてが連動します。
 
-## アバター設定ののコピー機能
+
+## アバター設定のコピー機能
 
 Modular Avatarは、Resoniteアバターの異なるバージョン間でアバター設定をコピーするシステムを自動的に導入します。これにより、Resonite固有の設定（ダイナミックボーンの設定など）を設定し、Unityから再インポートした後に新しいバージョンのアバターにコピーできます。
+
+![MA Settings Copier](resonite-ma-settings-copier.png)
 
 具体的には、`Avatar Settings`スロットの下にあるすべてのスロットをコピーし、同じ名前のスロットがあれば上書きします。自分のスロットを`Avatar Settings`スロットに追加することもでき、これらもコピーされます。
 
 設定をコピーするには、古いアバターをResoniteで着用し、新しいアバターをレーザーで持ちます。コンテキストメニューから`MA Settings Copier` -> `Copy To Avatar`を選択します。これにより、古いアバターの設定が新しいアバターにコピーされます。その後、新しいアバターを着用すると、設定が適用されます。
 
-## 自動設定されるDynVar
+## 自動設定されるDynamic Variable
 
 Modular Avatarは、アバターシステムで使用できるいくつかのDynamic Variableを定義しています。
 
-自動追加されるDynVarの仕様は、現在実験的なものも含まれるため、将来的に変更される可能性があります。
+自動追加されるDynamic Variableの仕様は、現在実験的なものも含まれるため、将来的に変更される可能性があります。
 
 | 名前                                     | 型 | 詳細 |
 |----------------------------------------| ---- | ----------- |
 | `modular_avatar/AvatarRoot`            | `Slot` | アバターのルートスロット（`CenteredRoot`の親） |
 | `modular_avatar/AvatarWorn`            | `bool` | アバターが現在着用されているかどうか（アバターがUserスロットの直下にある場合に検出） |
 | `modular_avatar/AvatarSettingsRoot`    | `Slot` | `Avatar Settings`オブジェクト |
-| `modular_avatar/AvatarPoseNode.[type]` | `Slot` | | `[type]`の`AvatarPoseNode`コンポーネントを含むスロット（例：`Head Proxy`） |
+| `modular_avatar/AvatarPoseNode.[type]` | `Slot` | `[type]`の`AvatarPoseNode`コンポーネントを含むスロット（例：`Head Proxy`） |
 | `modular_avatar/MeshNotLoaded`         | `bool` | アバターのメッシュが読み込まれていないかどうか。なお、この変数は読み込み途中のメッシュがある場合「false」になり、ない場合は「未定義」になるので注意。この仕様は将来的に変更される可能性が高いのでご注意ください |
 | `modular_avatar/HumanBone.[name]`      | `Slot` | ヒューマノイドボーンを名前で参照します。名義は今後変更される可能性があります。 |
 | `modular_avatar/HumanBonePose.[name]`  | `float4x4` | 該当するボーンの初期ポーズです。_名前・内容の調整が入る可能性が高い機能です。|
 
 なお、ほかのギミック用に、アバタールートに「Avatar」のDynamic Variable Spaceも生成されます。
+
+### 揺れもの(Dynamic Bone Settings)
+
+揺れものについては [Dynamics.cs](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L179-L198) で定義しています。
+
+| 名前 | 型 | 詳細
+| ---- | ---- | ---- |
+| modular_avatar/dynamic_bone_template.[name].[chaintype] | それぞれ異なる | `[name]`テンプレート名の`[chaintype]`に関する設定。
+
+![MA Settings DB Settings](resonite-avatar-settings-db-settings.png)
+
+### 目の動き(Eye Swing)
+
+| 名前 | 型 | 詳細
+| ---- | ---- | ---- |
+| modular_avatar/EyeSwing | `float` | アバターの目の動きの大きさを調整します。初期値: 15
+
+### アバターサムネイル(Avatar Thumbnail)
+
+| 名前                                     | 型 | 詳細 |
+|----------------------------------------| ---- | ----------- |
+| `modular_avatar/ThumbnailAssetProvider` | `IAssetProvider<Texture2D>` | アバターをインベントリに保存した際に表示される画像を設定します |
+| `modular_avatar/ThumbnailAssetProvider_Crop` | `Rect?` | `modular_avatar/ThumbnailAssetProvider` で指定した画像について切り取りが必要な場合に使用します |
 
 <!-- TODO: Screenshots -->
