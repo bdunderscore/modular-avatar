@@ -9,6 +9,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0] - [2025-09-13]
+
+### Added
 - [#1667] `Mesh Cutter` を実装 - メッシュの一部を削除または非表示にできるコンポーネントです。
     - 頂点フィルター `By Bone`、`By Blendshape`, `By Axis` と `By Mask` (#1651) を実装
 - [#1697] `ModularAvatarMergeArmature.GetBonesMapping` APIを公開
@@ -33,12 +47,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1732] 以前の Modular Avatar のバージョンでは、完全に固定された（常にアクティブ）なReactive Componentが、FXレイヤー
   より優先されませんでしたが、この仕様はバグです。このバージョンで修正し、常にFXレイヤーより優先されるようになったので、
   一部のアバターでは挙動が変わる可能性があります。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.4] - [2025-08-15]
 

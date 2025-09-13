@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0] - [2025-09-13]
+
+### Added
 - [#1667] Implement `Mesh Cutter` - a component which can be used to delete or toggle portions of a mesh.
     - Implement vertex filters `By Bone`, `By Blendshape`, By Axis` and (#1651) `By Mask`
 - [#1697] Exposed `ModularAvatarMergeArmature.GetBonesMapping` API
@@ -36,12 +50,6 @@ with a reactive component, would not function properly.
 - [#1732] In previous versions of Modular Avatar, static (always-on) reactive components would have had
   lower priority than the FX animator. This was a bug and has been fixed in this version; however, it's possible that this
   fix might cause some existing gimmicks to have different behavior.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.4] - [2025-08-15]
 
