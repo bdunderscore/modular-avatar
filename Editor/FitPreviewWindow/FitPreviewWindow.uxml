@@ -1,0 +1,16 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+>
+
+    <ui:VisualElement name="root-box">
+        <ui:VisualElement class="group-panel">
+            <ed:ObjectField
+                    label="Target Avatar"
+                    name="target-avatar-field"
+                    object-type="UnityEngine.GameObject"
+                    binding-path="m_targetAvatarRoot"
+            />
+            <ui:HelpBox text="Behavior may not precisely match final build. Check in play mode after adjusting things!"
+                        message-type="Warning"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>
