@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -39,9 +40,18 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!context.AvatarRootTransform.TryGetComponent<Animator>(out var animator)) return;
             if (animator.avatar == null) return;
 
-            var head = animator.GetBoneTransform(HumanBodyBones.Head);
-            if (head == null) return;
-
+            Transform head;
+            try
+            {
+                head = animator.GetBoneTransform(HumanBodyBones.Head);
+                if (head == null) return;
+            }
+            catch (InvalidOperationException)
+            {
+                // This exception is thrown when the avatar is not humanoid
+                return;
+            }
+            
             List<VRCHeadChop.HeadChopBone> headChopBones = new();
 
             foreach (var renderer in context.AvatarRootTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
