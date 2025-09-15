@@ -2,6 +2,7 @@
 
 using System;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core.editor.MeshDeform;
 using nadena.dev.modular_avatar.core.editor.plugin;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
@@ -75,6 +76,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 
 #endif
+                    seq.Run(MeshDeformPass.Instance).PreviewingWith(new MeshDeformPreview());
+                    
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
