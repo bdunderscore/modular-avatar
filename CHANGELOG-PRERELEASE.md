@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#1761] Certain generic avatars failed to upload
-
 ### Changed
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.1] - [2025-09-15]
+
+### Fixed
+
+- [#1761] Certain generic avatars failed to upload
 
 ## [1.14.0] - [2025-09-13]
 
