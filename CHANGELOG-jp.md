@@ -11,7 +11,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
-- [#1765] アニメーターパラメーターを Float に補正する際に、一部のParameter Driverが正しい動作をしない問題を修正
 
 ### Changed
 
@@ -20,6 +19,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Security
 
 ### Deprecated
+
+## [1.14.2] - [2025-09-17]
+
+### Fixed
+- [#1765] アニメーターパラメーターを Float に補正する際に、一部のParameter Driverが正しい動作をしない問題を修正
 
 ## [1.14.1] - [2025-09-15]
 

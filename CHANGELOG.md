@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1765] Fixed an issue where, when adjusting parameter types to Float, some parameter drivers might not behave as expected.
 
 ### Changed
 
@@ -22,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.2] - [2025-09-17]
+
+### Fixed
+- [#1765] Fixed an issue where, when adjusting parameter types to Float, some parameter drivers might not behave as expected.
 
 ## [1.14.1] - [2025-09-15]
 

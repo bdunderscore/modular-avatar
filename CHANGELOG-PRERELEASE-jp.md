@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1765] アニメーターパラメーターを Float に補正する際に、一部のParameter Driverが正しい動作をしない問題を修正
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.2] - [2025-09-17]
+
+### Fixed
+- [#1765] アニメーターパラメーターを Float に補正する際に、一部のParameter Driverが正しい動作をしない問題を修正
 
 ## [1.14.1] - [2025-09-15]
 
