@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1765] Fixed an issue where, when adjusting parameter types to Float, some parameter drivers might not behave as expected.
 
 ### Changed
 

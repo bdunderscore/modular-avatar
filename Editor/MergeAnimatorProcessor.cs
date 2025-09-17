@@ -171,17 +171,17 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (existingParam.type != parameter.type)
                     {
                         // Force to float
-                        switch (parameter.type)
+                        existingParam = new AnimatorControllerParameter
                         {
-                            case AnimatorControllerParameterType.Bool:
-                                existingParam.defaultFloat = existingParam.defaultBool ? 1.0f : 0.0f;
-                                break;
-                            case AnimatorControllerParameterType.Int:
-                                existingParam.defaultFloat = existingParam.defaultInt;
-                                break;
-                        }
-
-                        existingParam.type = AnimatorControllerParameterType.Float;
+                            type = AnimatorControllerParameterType.Float,
+                            name = name,
+                            defaultFloat = existingParam.type switch
+                            {
+                                AnimatorControllerParameterType.Bool => existingParam.defaultBool ? 1 : 0,
+                                AnimatorControllerParameterType.Int => existingParam.defaultInt,
+                                _ => 0
+                            }
+                        };
 
                         destParams = destParams.SetItem(name, existingParam);
                         clonedParams = clonedParams.SetItem(name, existingParam);

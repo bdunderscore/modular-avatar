@@ -588,17 +588,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    switch (p.type)
+                    p = new AnimatorControllerParameter
                     {
-                        case AnimatorControllerParameterType.Int:
-                            p.defaultFloat = p.defaultInt;
-                            break;
-                        case AnimatorControllerParameterType.Bool:
-                            p.defaultFloat = p.defaultBool ? 1.0f : 0.0f;
-                            break;
-                    }
-
-                    p.type = AnimatorControllerParameterType.Float;
+                        type = AnimatorControllerParameterType.Float,
+                        name = p.name,
+                        defaultFloat = p.type switch
+                        {
+                            AnimatorControllerParameterType.Bool => p.defaultBool ? 1 : 0,
+                            AnimatorControllerParameterType.Int => p.defaultInt,
+                            _ => 0
+                        }
+                    };
                 }
 
                 parameters = parameters.SetItem(usedParam, p);
