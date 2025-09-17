@@ -67,17 +67,20 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (fx.Parameters.TryGetValue(name, out var existingParameter))
                 {
-                    switch (existingParameter.type)
+                    if (existingParameter.type != AnimatorControllerParameterType.Float)
                     {
-                        case AnimatorControllerParameterType.Bool:
-                            existingParameter.defaultFloat = existingParameter.defaultBool ? 1 : 0;
-                            break;
-                        case AnimatorControllerParameterType.Int:
-                            existingParameter.defaultFloat = existingParameter.defaultInt;
-                            break;
+                        existingParameter = new AnimatorControllerParameter
+                        {
+                            type = AnimatorControllerParameterType.Float,
+                            name = name,
+                            defaultFloat = existingParameter.type switch
+                            {
+                                AnimatorControllerParameterType.Bool => existingParameter.defaultBool ? 1 : 0,
+                                AnimatorControllerParameterType.Int => existingParameter.defaultInt,
+                                _ => 0
+                            }
+                        };
                     }
-
-                    existingParameter.type = AnimatorControllerParameterType.Float;
                 }
                 else
                 {
