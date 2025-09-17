@@ -16,6 +16,6 @@
   },
   "vpmDependencies": {
     "com.vrchat.avatars": ">=3.7.4",
-    "nadena.dev.ndmf": ">=1.9.0 <2.0.0-a"
+    "nadena.dev.ndmf": ">=1.9.1 <2.0.0-a"
   }
 }
