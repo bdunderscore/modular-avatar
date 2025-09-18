@@ -65,6 +65,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var meshSpaceCenter = _center;
                 var meshSpaceAxis = _axis;
+
+                var originalRenderer = NDMFPreview.GetOriginalObjectForProxy(renderer.gameObject);
+                if (originalRenderer != null)
+                {
+                    // Translate the meshSpaceCenter coordinates from the original renderer to the new
+                    // renderer's coordinate space; in preview, these don't match in general.
+                    meshSpaceCenter = renderer.transform.InverseTransformPoint(
+                        originalRenderer.transform.TransformPoint(meshSpaceCenter)
+                    );
+                    meshSpaceAxis = renderer.transform.InverseTransformDirection(
+                        originalRenderer.transform.TransformDirection(meshSpaceAxis)
+                    );
+                }
                 
                 var vertices = mesh.vertices;
 
