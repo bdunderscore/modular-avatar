@@ -13,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1767] Fixed an issue where, when closing the `Vertex Filter by Axis` inspector in edit mode, the normal tool handle
-would remain invisible.
-- [#1766] `Vertex Filter By Axis` would show incorrect results in preview, when the avatar or renderer had a non-default scale or
-otherwise modified transform.
 
 ### Changed
 
@@ -25,6 +21,14 @@ otherwise modified transform.
 ### Security
 
 ### Deprecated
+
+## [1.14.3] - [2025-09-18]
+
+### Fixed
+- [#1767] Fixed an issue where, when closing the `Vertex Filter by Axis` inspector in edit mode, the normal tool handle
+would remain invisible.
+- [#1766] `Vertex Filter By Axis` would show incorrect results in preview, when the avatar or renderer had a non-default scale or
+otherwise modified transform.
 
 ## [1.14.2] - [2025-09-17]
 
