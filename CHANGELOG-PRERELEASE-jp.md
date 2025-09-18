@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#1767] `Vertex Filter By Axis` のインスペクターが編集モードの状態で閉じられたら、
 通常のギズモが消える問題を修正
+- [#1766] アバターのレンダラーのスケール、回転、位置などが初期値からズレた場合、`Vertex Filter By Axis` のプレビューが正しく
+  表示されない問題を修正
 
 ### Changed
 
