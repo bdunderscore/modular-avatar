@@ -11,6 +11,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1767] `Vertex Filter By Axis` のインスペクターが編集モードの状態で閉じられたら、
+  通常のギズモが消える問題を修正
 
 ### Changed
 

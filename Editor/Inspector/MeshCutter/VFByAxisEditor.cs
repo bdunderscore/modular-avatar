@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
@@ -128,6 +129,14 @@ namespace nadena.dev.modular_avatar.core.editor
         private static void OnSelectionChanged()
         {
             _activeEditing = null;
+        }
+
+        private void OnDisable()
+        {
+            if (__activeEditing == this)
+            {
+                __activeEditing = null;
+            }
         }
 
         private SerializedProperty? _axis;

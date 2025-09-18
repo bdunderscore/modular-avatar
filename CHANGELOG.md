@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1767] Fixed an issue where, when closing the `Vertex Filter by Axis` inspector in edit mode, the normal tool handle
+would remain invisible.
 
 ### Changed
 
