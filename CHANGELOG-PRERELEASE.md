@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1766] `VF By Axis` would show incorrect results in preview, when the avatar or renderer had a non-default scale or
+  otherwise modified transform.
 
 ### Changed
 

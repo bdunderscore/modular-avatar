@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1766] アバターのレンダラーのスケール、回転、位置などが初期値からズレた場合、`VF By Axis` のプレビューが正しく
+  表示されない問題を修正
 
 ### Changed
 
