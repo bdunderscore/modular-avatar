@@ -97,5 +97,51 @@ namespace modular_avatar_tests
             var errors = ErrorReport.GetErrors();
             Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
         }
+        
+        [Test]
+        public void TestNoVRCFuryWarningWithEmptyShapeChanger()
+        {
+            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var child = new GameObject("TestObject");
+            child.transform.SetParent(avatarRoot.transform);
+            
+            // Add a ShapeChanger component with null shapes (should not trigger warning)
+            var shapeChanger = child.AddComponent<ModularAvatarShapeChanger>();
+            shapeChanger.Shapes = null;
+            
+            ErrorReport.Clear();
+            ComponentValidation.ValidateAll(avatarRoot);
+            
+            // Should not have the VRCFury warning
+            var errors = ErrorReport.GetErrors();
+            Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+        }
+        
+        [Test]
+        public void TestVRCFuryWarningOnlyWhenBothConditionsMet()
+        {
+            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var child1 = new GameObject("TestObject1");
+            child1.transform.SetParent(avatarRoot.transform);
+            var child2 = new GameObject("TestObject2");
+            child2.transform.SetParent(avatarRoot.transform);
+            
+            // Test case: only MeshCutter, no ShapeChanger
+            var meshCutter = child1.AddComponent<ModularAvatarMeshCutter>();
+            meshCutter.Object = new AvatarObjectReference();
+            
+            ErrorReport.Clear();
+            ComponentValidation.ValidateAll(avatarRoot);
+            
+#if LEGACY_VRCFURY
+            // Should trigger warning when LEGACY_VRCFURY is defined and MeshCutter is present
+            var errors = ErrorReport.GetErrors();
+            Assert.IsTrue(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+#else
+            // Should not trigger warning when LEGACY_VRCFURY is not defined
+            var errors = ErrorReport.GetErrors();
+            Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+#endif
+        }
     }
 }

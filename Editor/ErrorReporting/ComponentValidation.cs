@@ -74,12 +74,15 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 var shapeChangers = root.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
                 foreach (var shapeChanger in shapeChangers)
                 {
-                    foreach (var shape in shapeChanger.Shapes)
+                    if (shapeChanger.Shapes != null)
                     {
-                        if (shape.ChangeType == ShapeChangeType.Delete)
+                        foreach (var shape in shapeChanger.Shapes)
                         {
-                            hasMeshCutterOrShapeChangerWithDelete = true;
-                            break;
+                            if (shape.ChangeType == ShapeChangeType.Delete)
+                            {
+                                hasMeshCutterOrShapeChangerWithDelete = true;
+                                break;
+                            }
                         }
                     }
                     if (hasMeshCutterOrShapeChangerWithDelete) break;
