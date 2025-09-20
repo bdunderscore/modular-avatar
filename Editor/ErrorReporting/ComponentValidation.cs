@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 
@@ -12,6 +13,9 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 {
     internal static class ComponentValidation
     {
+        // For testing: allows simulation of legacy VRCFury presence
+        internal static bool ForceEnableLegacyVRCFuryWarning = false;
+        
         /// <summary>
         /// Validates the provided tag component.
         /// </summary>
@@ -59,6 +63,13 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
         private static void CheckVRCFuryCompatibility(GameObject root)
         {
 #if LEGACY_VRCFURY
+            bool hasLegacyVRCFury = true;
+#else
+            bool hasLegacyVRCFury = ForceEnableLegacyVRCFuryWarning;
+#endif
+            
+            if (!hasLegacyVRCFury) return;
+            
             bool hasMeshCutterOrShapeChangerWithDelete = false;
 
             // Check for Mesh Cutter components
@@ -72,28 +83,14 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             if (!hasMeshCutterOrShapeChangerWithDelete)
             {
                 var shapeChangers = root.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
-                foreach (var shapeChanger in shapeChangers)
-                {
-                    if (shapeChanger.Shapes != null)
-                    {
-                        foreach (var shape in shapeChanger.Shapes)
-                        {
-                            if (shape.ChangeType == ShapeChangeType.Delete)
-                            {
-                                hasMeshCutterOrShapeChangerWithDelete = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (hasMeshCutterOrShapeChangerWithDelete) break;
-                }
+                hasMeshCutterOrShapeChangerWithDelete = shapeChangers.Any(shapeChanger => 
+                    shapeChanger.Shapes?.Any(shape => shape.ChangeType == ShapeChangeType.Delete) == true);
             }
 
             if (hasMeshCutterOrShapeChangerWithDelete)
             {
                 BuildReport.Log(ErrorSeverity.Warning, "validation.legacy_vrcfury_warning");
             }
-#endif
         }
 
         private static void CheckInternal(ModularAvatarBlendshapeSync bs)
