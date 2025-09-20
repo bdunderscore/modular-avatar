@@ -52,6 +52,45 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             {
                 component.CheckComponent();
             }
+            
+            CheckVRCFuryCompatibility(root);
+        }
+
+        private static void CheckVRCFuryCompatibility(GameObject root)
+        {
+#if LEGACY_VRCFURY
+            bool hasMeshCutterOrShapeChangerWithDelete = false;
+
+            // Check for Mesh Cutter components
+            var meshCutters = root.GetComponentsInChildren<ModularAvatarMeshCutter>(true);
+            if (meshCutters.Length > 0)
+            {
+                hasMeshCutterOrShapeChangerWithDelete = true;
+            }
+
+            // Check for Shape Changer components with Delete mode
+            if (!hasMeshCutterOrShapeChangerWithDelete)
+            {
+                var shapeChangers = root.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
+                foreach (var shapeChanger in shapeChangers)
+                {
+                    foreach (var shape in shapeChanger.Shapes)
+                    {
+                        if (shape.ChangeType == ShapeChangeType.Delete)
+                        {
+                            hasMeshCutterOrShapeChangerWithDelete = true;
+                            break;
+                        }
+                    }
+                    if (hasMeshCutterOrShapeChangerWithDelete) break;
+                }
+            }
+
+            if (hasMeshCutterOrShapeChangerWithDelete)
+            {
+                BuildReport.Log(ErrorSeverity.Warning, "validation.legacy_vrcfury_warning");
+            }
+#endif
         }
 
         private static void CheckInternal(ModularAvatarBlendshapeSync bs)
