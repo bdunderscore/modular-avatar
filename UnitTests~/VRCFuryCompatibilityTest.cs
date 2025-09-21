@@ -17,7 +17,6 @@ namespace modular_avatar_tests
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = false;
         }
         
-        [TearDown]
         public override void Teardown()
         {
             // Reset the test flag to avoid breaking subsequent tests

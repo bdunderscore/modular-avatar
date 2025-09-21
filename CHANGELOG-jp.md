@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#1769] VRCFury バージョン < 1.1250.0 がMesh CutterやShape Changer削除モードコンポーネントと一緒に存在する場合の警告を追加。これらの組み合わせは互換性がありません。
 
 ### Fixed
 
