@@ -61,6 +61,11 @@
             "name": "net.nekobako.mask-texture-editor",
             "expression": "1.1.0",
             "define": "MA_MASK_TEXTURE_EDITOR"
+        },
+        {
+            "name": "com.vrcfury.vrcfury",
+            "expression": "(,1.1250.0)",
+            "define": "LEGACY_VRCFURY"
         }
     ],
     "noEngineReferences": false
