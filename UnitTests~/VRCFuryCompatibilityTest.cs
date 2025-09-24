@@ -30,7 +30,7 @@ namespace modular_avatar_tests
             // Simulate legacy VRCFury presence
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child = new GameObject("TestObject");
             child.transform.SetParent(avatarRoot.transform);
             
@@ -53,7 +53,7 @@ namespace modular_avatar_tests
             // Simulate legacy VRCFury presence
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child = new GameObject("TestObject");
             child.transform.SetParent(avatarRoot.transform);
             
@@ -85,7 +85,7 @@ namespace modular_avatar_tests
             // Simulate legacy VRCFury presence
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child = new GameObject("TestObject");
             child.transform.SetParent(avatarRoot.transform);
             
@@ -116,7 +116,7 @@ namespace modular_avatar_tests
             // Simulate legacy VRCFury presence
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child = new GameObject("TestObject");
             child.transform.SetParent(avatarRoot.transform);
             
@@ -138,7 +138,7 @@ namespace modular_avatar_tests
             // Don't simulate legacy VRCFury (modern VRCFury or no VRCFury)
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = false;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child = new GameObject("TestObject");
             child.transform.SetParent(avatarRoot.transform);
             
@@ -160,7 +160,7 @@ namespace modular_avatar_tests
             // Simulate legacy VRCFury presence
             ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
             
-            var avatarRoot = CreateCommonAvatar("Test.prefab");
+            var avatarRoot = CreateRoot("root");
             var child1 = new GameObject("TestObject1");
             child1.transform.SetParent(avatarRoot.transform);
             
