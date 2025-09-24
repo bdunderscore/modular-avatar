@@ -1,0 +1,29 @@
+{
+    "name": "nadena.dev.modular-avatar.fit-preview",
+    "rootNamespace": "",
+    "references": [
+        "nadena.dev.modular-avatar.core",
+        "nadena.dev.modular-avatar.core.editor",
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "MA_VRCSDK_AVATARS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "(3.8.1,)",
+            "define": "MA_VRCSDK_AVATARS"
+        }
+    ],
+    "noEngineReferences": false
+}
