@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.editor.fit_preview;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -39,6 +40,7 @@ namespace modular_avatar_tests
             if (type == typeof(Activator)) return;
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
+            if (type == typeof(EditModePBManager)) return;
 
             // get icon
             var component = (MonoBehaviour) _gameObject.AddComponent(type);
@@ -63,6 +65,7 @@ namespace modular_avatar_tests
             if (type == typeof(Activator)) return;
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
+            if (type == typeof(EditModePBManager)) return;
 
             // get icon
             var helpUrl = type.GetCustomAttribute<HelpURLAttribute>();
