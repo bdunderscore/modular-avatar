@@ -1,6 +1,6 @@
 # Resonite support
 
-Modular Avatar enables for building avatars for Resonite.
+Modular Avatar has experimental support for building avatars for Resonite.
 
 :::tip
 
@@ -98,7 +98,7 @@ However, exclusions (including Physbone Blockers), colliders, collision radius, 
 
 Modular Avatar will group Dynamic Bones into a number of named "templates" based on their bone names.
 
-It groups as [bone names](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L320-L336):
+[By default](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L320-L336), the following bone templates are mapped:
 
 | Template names | Bone name to detect when grouping |
 |---|----|
@@ -146,11 +146,30 @@ Additionally, an `Avatar` Dynamic Variable Space is created on the avatar root f
 
 ### Dynamic Bone Settings
 
-Dynamic bone settings are defined in [Dynamics.cs](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L179-L198).
+These Dynamic Bone Settings are mapped with Dynamic Variable.
 
-| Name | Type | Details |
-| ---- | ---- | ---- |
-| modular_avatar/dynamic_bone_template.[name].[chaintype] | each different | `[name] `Settings for the template name` [chaintype] `.
+| Name | Type |
+| ---- | ---- |
+| modular_avatar/dynamic_bone_template.[name].Inertia | `float` |
+| modular_avatar/dynamic_bone_template.[name].InertiaForce | `float` |
+| modular_avatar/dynamic_bone_template.[name].Damping | `float` |
+| modular_avatar/dynamic_bone_template.[name].Elasticity | `float` |
+| modular_avatar/dynamic_bone_template.[name].Stiffness | `float` |
+| modular_avatar/dynamic_bone_template.[name].SimulateTerminalBones | `bool` |
+| modular_avatar/dynamic_bone_template.[name].DynamicPlayerCollision | `bool` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithOwnBody | `bool` |
+| modular_avatar/dynamic_bone_template.[name].HandCollisionVibration | `VibratePreset` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithHead | `bool` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithBody | `bool` |
+| modular_avatar/dynamic_bone_template.[name].Gravity | `float3` |
+| modular_avatar/dynamic_bone_template.[name].GravitySpace.UseParentSpace | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GravitySpace.Default | `DefaultSpace` |
+| modular_avatar/dynamic_bone_template.[name].UseUserGravityDirection | `bool` |
+| modular_avatar/dynamic_bone_template.[name].LocalForce | `float3` |
+| modular_avatar/dynamic_bone_template.[name].GrabSlipping | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GrabRadiusTolerance | `float` |
+| modular_avatar/dynamic_bone_template.[name].GrabTerminalBones | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GrabVibration | `VibratePreset` |
 
 ![MA Settings DB Settings](resonite-avatar-settings-db-settings.png)
 

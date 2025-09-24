@@ -1,6 +1,6 @@
 # Resonite対応
 
-Modular Avatarでは、Resonite向けのアバターをビルドできます。  
+Modular Avatarでは、実験的な機能として、Resonite向けのアバターをビルドできます。
 
 :::tip
 
@@ -79,7 +79,7 @@ VRChat向けにアバターを設定していない場合や、VRCSDKがイン�
 | Mesh Settings | ⌛ | 対応予定 |
 | MMD Layer Control | ✖ | VRChat のみで対応 |
 | Move Independently | ✅ | なし |
-| Parameters | ⌛ | 対応予定（DynamicVariableとして実装する予定）|
+| Parameters | ⌛ | 対応予定（Dynamic Variableとして実装する予定）|
 | Physbone Blocker | ✅ | なし |
 | Remove Vertex Color | ✅ | なし |
 | Replace Object | ✅ | なし |
@@ -98,10 +98,10 @@ Resoniteには独自のダイナミックボーンシステムがあるため、
 
 Dynamic Bonesは、ボーン名に基づいて、いくつかの名前付き「テンプレート」にグループ化されます。
 
-[ボーン名に基づいて](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L320-L336)以下の通りグループ化されます:
+[標準では](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L320-L336)、これらのボーンテンプレートがマッピングされます:
 
 | テンプレート名 | グループ化する際に検出するボーン名 |
-|---|----|
+| --- | --- |
 | skirt | skirt |
 | breast | breast |
 | hair | hair |
@@ -114,7 +114,6 @@ Dynamic Bonesは、ボーン名に基づいて、いくつかの名前付き「�
 または、Resoniteで、`Avatar Settings` -> `Dynamic Bone Settings` スロットの下にあるオブジェクトをクローンし、新しいテンプレート名に設定し、ダイナミックボーンを定義したスロットの下にある`Template Name`スロットの名前を変更することで、新しいテンプレートを作成できます。
 
 同じテンプレートの下にあるすべてのダイナミックボーンは、Inertia、InertiaForce、Damping、Elasticity、およびStiffnessの設定を共有します。これらの設定は、対象のダイナミックボーンのいずれかでも変更すればすべてが連動します。
-
 
 ## アバター設定のコピー機能
 
@@ -144,13 +143,33 @@ Modular Avatarは、アバターシステムで使用できるいくつかのDyn
 
 なお、ほかのギミック用に、アバタールートに「Avatar」のDynamic Variable Spaceも生成されます。
 
-### 揺れもの(Dynamic Bone Settings)
+### 揺れもの設定(Dynamic Bone Settings)
 
-揺れものについては [Dynamics.cs](https://github.com/bdunderscore/modular-avatar-resonite/blob/3bd4505ab3583336d1aac08941fae5bb51c922d0/Resonite~/ResoniteHook/Puppeteer/conversion/Dynamics.cs#L179-L198) で定義しています。
+これらの揺れもの設定については、以下の通り Dynamic Variable 経由で割当てられます:
 
-| 名前 | 型 | 詳細
-| ---- | ---- | ---- |
-| modular_avatar/dynamic_bone_template.[name].[chaintype] | それぞれ異なる | `[name]`テンプレート名の`[chaintype]`に関する設定。
+| 名前 | 型 |
+| ---- | ---- |
+| modular_avatar/dynamic_bone_template.[name].Inertia | `float` |
+| modular_avatar/dynamic_bone_template.[name].InertiaForce | `float` |
+| modular_avatar/dynamic_bone_template.[name].Damping | `float` |
+| modular_avatar/dynamic_bone_template.[name].Elasticity | `float` |
+| modular_avatar/dynamic_bone_template.[name].Stiffness | `float` |
+| modular_avatar/dynamic_bone_template.[name].SimulateTerminalBones | `bool` |
+| modular_avatar/dynamic_bone_template.[name].DynamicPlayerCollision | `bool` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithOwnBody | `bool` |
+| modular_avatar/dynamic_bone_template.[name].HandCollisionVibration | `VibratePreset` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithHead | `bool` |
+| modular_avatar/dynamic_bone_template.[name].CollideWithBody | `bool` |
+| modular_avatar/dynamic_bone_template.[name].Gravity | `float3` |
+| modular_avatar/dynamic_bone_template.[name].GravitySpace.UseParentSpace | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GravitySpace.Default | `DefaultSpace` |
+| modular_avatar/dynamic_bone_template.[name].UseUserGravityDirection | `bool` |
+| modular_avatar/dynamic_bone_template.[name].LocalForce | `float3` |
+| modular_avatar/dynamic_bone_template.[name].GrabSlipping | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GrabRadiusTolerance | `float` |
+| modular_avatar/dynamic_bone_template.[name].GrabTerminalBones | `bool` |
+| modular_avatar/dynamic_bone_template.[name].GrabVibration | `VibratePreset` |
+
 
 ![MA Settings DB Settings](resonite-avatar-settings-db-settings.png)
 
