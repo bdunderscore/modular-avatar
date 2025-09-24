@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `MA Fit Preview` を追加！この機能で、アバターのコピーにポーズを撮らせたり、揺れものの動きをエディットモードで確認したりできます。
-    - コンストレイントやPhysBoneの設定を変えて、リアルタイムでプレビューに反映できます
 
 ### Fixed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.4-beta.1] - [2025-09-24]
+
+### Added
+- `MA Fit Preview` を追加！この機能で、アバターのコピーにポーズを撮らせたり、揺れものの動きをエディットモードで確認したりできます。
+    - コンストレイントやPhysBoneの設定を変えて、リアルタイムでプレビューに反映できます
 
 ## [1.14.3] - [2025-09-18]
 
