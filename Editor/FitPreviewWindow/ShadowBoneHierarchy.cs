@@ -54,6 +54,9 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private readonly MethodInfo? _pbOnStart = AccessTools.Method(typeof(VRCPhysBoneBase), "Start");
         private readonly MethodInfo? _pbOnEnable = AccessTools.Method(typeof(VRCPhysBoneBase), "OnEnable");
         private readonly MethodInfo? _pbOnDisable = AccessTools.Method(typeof(VRCPhysBoneBase), "OnDisable");
+        
+        private readonly MethodInfo? _colliderOnEnable = AccessTools.Method(typeof(VRCPhysBoneColliderBase), "OnEnable");
+        private readonly MethodInfo? _colliderOnDisable = AccessTools.Method(typeof(VRCPhysBoneColliderBase), "OnDisable");
 
         private void ScheduleDelayedUpdate()
         {
@@ -130,6 +133,19 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             _shadowObjMap[info.FinalRender.transform] = info;
             info.OnDestroy += () =>
             {
+                if (t != null)
+                {
+                    foreach (var pb in t.GetComponentsInChildren<VRCPhysBoneBase>())
+                    {
+                        _pbOnDisable?.Invoke(pb, new object[] { });
+                    }
+
+                    foreach (var coll in t.GetComponentsInChildren<VRCPhysBoneColliderBase>())
+                    {
+                        _colliderOnDisable?.Invoke(coll, new object[] { });
+                    }
+                }
+
                 _sourceToShadowMap.Remove(refBone);
                 _shadowObjMap.Remove(info.FinalRender.transform);
                 _updateOrder = null;
@@ -354,7 +370,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             {
                 if (c == null) continue;
                 if (!c.isActiveAndEnabled) continue;
-                if (_pbOriginalToProxyColliders.TryGetValue(c, out var collider))
+                if (_pbOriginalToProxyColliders.TryGetValue(c, out var collider) && collider != null)
                 {
                     colliders.Add(collider);
                     continue;
@@ -369,7 +385,9 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 collider.rootTransform = colliderInfo.Control;
                 colliders.Add(collider);
 
-                PhysBoneManager.Inst.AddCollider(collider);
+                _colliderOnEnable?.Invoke(collider, new object[] { });
+                
+                _pbOriginalToProxyColliders[c] = collider;
             }
             proxyPB.colliders = colliders;
 
@@ -383,6 +401,12 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private void UpdatePBConfigs() {
             foreach ((var proxy, var original) in _pbProxyToOriginal)
             {
+                if (proxy == null)
+                {
+                    ScheduleDelayedUpdate();
+                    return;
+                }
+                
                 if (!original.configHasUpdated) continue;
                 original.configHasUpdated = false;
                 
@@ -422,6 +446,24 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 proxy.stretchMotionCurve = original.stretchMotionCurve;
                 proxy.isAnimated = true;
                 proxy.configHasUpdated = true;
+            }
+
+            foreach ((var original, var proxy) in _pbOriginalToProxyColliders)
+            {
+                if (proxy == null)
+                {
+                    ScheduleDelayedUpdate();
+                    return;
+                }
+                
+                proxy.position = original.position;
+                proxy.radius = original.radius;
+                proxy.rotation = original.rotation;
+                proxy.height = original.height;
+                proxy.insideBounds = original.insideBounds;
+                proxy.shapeType = original.shapeType;
+                // TODO - handle changes to root bone
+                proxy.UpdateShape();
             }
         }
 
@@ -506,13 +548,21 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
 
         public void Dispose()
         {
-            foreach (var obj in _shadowObjMap.Keys)
+            ResetPB();
+            ResetConstraints();
+            
+            foreach ((var obj, var info) in _shadowObjMap.ToList())
             {
                 if (obj != null)
                 {
-                    Object.DestroyImmediate(obj.gameObject);
+                    info.Destroy();
                 }
             }
+            
+            _shadowObjMap.Clear();
+            _sourceToShadowMap.Clear();
+            _updateOrder = null;
+            _delayedUpdatePending = false;
         }
     }
 }

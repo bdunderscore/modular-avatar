@@ -125,7 +125,10 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         public void Destroy()
         {
             OnDestroy?.Invoke();
-            Object.DestroyImmediate(Control.gameObject);
+            if (Control != null)
+            {
+                Object.DestroyImmediate(Control.gameObject);
+            }
         }
     }
 }
