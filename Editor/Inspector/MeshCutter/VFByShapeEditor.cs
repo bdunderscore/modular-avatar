@@ -79,7 +79,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 int? addedIndex = null;
                 var window = CreateInstance<BlendshapeSelectWindow>();
-                window.AvatarRoot = RuntimeUtil.FindAvatarInParents((target as Component)?.transform).gameObject;
+                window.AvatarRoot = nadena.dev.ndmf.runtime.RuntimeUtil.FindAvatarInParents((target as Component)?.transform).gameObject;
                 window.SingleMesh = targetMesh;
                 window.OfferBinding = (binding) =>
                 {
