@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if MA_VRCSDK3_AVATARS
+using UnityEngine;
 using VRC.Dynamics;
 
 namespace nadena.dev.modular_avatar.editor.fit_preview
@@ -9,3 +10,4 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
     {
     }
 }
+#endif

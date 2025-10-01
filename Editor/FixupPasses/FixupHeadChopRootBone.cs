@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using nadena.dev.ndmf;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 #if !MA_VRCSDK3_AVATARS
 #region Fallback stub implementation
