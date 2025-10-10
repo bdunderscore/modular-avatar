@@ -9,30 +9,33 @@ using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-	[CustomPropertyDrawer(typeof(VRChatCollider))]
-	internal class RemapColliderColliderDrawer : EnumDrawer<VRChatCollider>
+	[CustomPropertyDrawer(typeof(GlobalCollider))]
+	internal class GlobalColliderColliderDrawer : EnumDrawer<GlobalCollider>
 	{
-		protected override string localizationPrefix => "remap_vrchat_collider.vrc_collider";
+		protected override string localizationPrefix => "global_collider.bone";
 
 		protected override Array enumValues => new object[]
 		{
-			VRChatCollider.FingerRingLeft,
-			VRChatCollider.FingerMiddleLeft,
-			VRChatCollider.FingerLittleLeft,
-			VRChatCollider.FingerIndexLeft,
-			VRChatCollider.FingerRingRight,
-			VRChatCollider.FingerMiddleRight,
-			VRChatCollider.FingerLittleRight,
-			VRChatCollider.FingerIndexRight,
-			VRChatCollider.HandLeft,
-			VRChatCollider.HandRight,
-			VRChatCollider.Head,
-			VRChatCollider.Torso,
-			VRChatCollider.FootLeft,
-			VRChatCollider.FootRight,
+			//VRChat
+			GlobalCollider.FingerRingLeft,
+			GlobalCollider.FingerMiddleLeft,
+			GlobalCollider.FingerLittleLeft,
+			GlobalCollider.FingerIndexLeft,
+			GlobalCollider.FingerRingRight,
+			GlobalCollider.FingerMiddleRight,
+			GlobalCollider.FingerLittleRight,
+			GlobalCollider.FingerIndexRight,
+			GlobalCollider.HandLeft,
+			GlobalCollider.HandRight,
+			GlobalCollider.Head,
+			GlobalCollider.Torso,
+			GlobalCollider.FootLeft,
+			GlobalCollider.FootRight,
+
+			//Resonite
 		};
 	}
-	[CustomEditor(typeof(ModularAvatarRemapVRChatCollider))]
+	[CustomEditor(typeof(ModularAvatarGlobalCollider))]
 	[CanEditMultipleObjects]
 	class RemapVRChatColliderEditor : MAEditorBase
 	{
@@ -51,55 +54,56 @@ namespace nadena.dev.modular_avatar.core.editor
 
 		private void OnEnable()
 		{
-			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.manualRemap));
-			prop_colliderToRemap = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.colliderToRemap));
-			remapTarget = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.remapTarget));
-			prop_customShape = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.customShape));
-			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.radius));
-			prop_height = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.height));
-			prop_position = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.position));
-			prop_rotation = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.rotation));
-			prop_visualizeGizmo = serializedObject.FindProperty(nameof(ModularAvatarRemapVRChatCollider.visualizeGizmo));
+			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.manualRemap));
+			prop_colliderToRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.colliderToRemap));
+			remapTarget = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.remapTarget));
+			prop_customShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.customShape));
+			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.radius));
+			prop_height = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.height));
+			prop_position = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.position));
+			prop_rotation = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.rotation));
+			prop_visualizeGizmo = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.visualizeGizmo));
 		}
 
 		protected override void OnInnerInspectorGUI()
 		{
 			serializedObject.Update();
 
-			EditorGUILayout.PropertyField(prop_manualRemap, G("remap_vrchat_collider.manual_remap"));
-			//using (new EditorGUI.DisabledScope(!prop_manualRemap.boolValue))
+			EditorGUILayout.PropertyField(prop_manualRemap, G("global_collider.manual_remap"));
 			if (prop_manualRemap.boolValue)
 			{
-				EditorGUILayout.PropertyField(prop_colliderToRemap, (G("remap_vrchat_collider.collider_to_remap")));
+				EditorGUILayout.PropertyField(prop_colliderToRemap, (G("global_collider.collider_to_remap")));
+
+				//(VRC Specific) if using a collider that's purely a contact.
+				if (prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Head ||
+					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Torso ||
+					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootLeft ||
+					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootRight)
+					{
+						EditorGUILayout.HelpBox(S("global_collider.contact_only"), MessageType.Info);
+					}
 			}
 			else
 			{
-				EditorGUILayout.HelpBox(S("hint.remap_vrchat_collider_manual"), MessageType.Info);
+				EditorGUILayout.HelpBox(S("hint.global_collider_manual"), MessageType.Info);
 			}
-			EditorGUILayout.PropertyField(remapTarget, G("remap_vrchat_collider.remap_target"));
-
-			/*foldout = EditorGUILayout.Foldout(foldout, G("boneproxy.foldout.advanced"));
-			if (foldout)
-			{
-				EditorGUI.indentLevel++;
-				EditorGUI.indentLevel--;
-			}*/
+			EditorGUILayout.PropertyField(remapTarget, G("global_collider.remap_target"));
 
 			EditorGUILayout.Space();
-			EditorGUILayout.PropertyField(prop_customShape, G("remap_vrchat_collider.custom_shape"));
+			EditorGUILayout.PropertyField(prop_customShape, G("global_collider.custom_shape"));
 			if (prop_customShape.boolValue)
 			{
 				EditorGUI.indentLevel++;
 
-				EditorGUILayout.PropertyField(prop_radius, G("remap_vrchat_collider.radius"));
-				EditorGUILayout.PropertyField(prop_height, G("remap_vrchat_collider.height"));
-				EditorGUILayout.PropertyField(prop_position, G("remap_vrchat_collider.position"));
-				EditorGUILayout.PropertyField(prop_rotation, G("remap_vrchat_collider.rotation"));
+				EditorGUILayout.PropertyField(prop_radius, G("global_collider.radius"));
+				EditorGUILayout.PropertyField(prop_height, G("global_collider.height"));
+				EditorGUILayout.PropertyField(prop_position, G("global_collider.position"));
+				EditorGUILayout.PropertyField(prop_rotation, G("global_collider.rotation"));
 
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.Space();
-			EditorGUILayout.PropertyField(prop_visualizeGizmo, G("remap_vrchat_collider.visualize_gizmo"));
+			EditorGUILayout.PropertyField(prop_visualizeGizmo, G("global_collider.visualize_gizmo"));
 
 			serializedObject.ApplyModifiedProperties();
 			ShowLanguageUI();
@@ -111,9 +115,10 @@ namespace nadena.dev.modular_avatar.core.editor
 		}
 
 
+		//TODO/Wishlist: It'd be great to have an editor for the collider.
 		void DrawCollider()
 		{
-			var my = (ModularAvatarRemapVRChatCollider)target;
+			var my = (ModularAvatarGlobalCollider)target;
 			if (!(my.visualizeGizmo)) return;
 
 			//If none, use gameobject component is on.
@@ -132,51 +137,51 @@ namespace nadena.dev.modular_avatar.core.editor
 				rotation = my.rotation
 			};
 
-			//If it's not a a custom shape we pull from the original config.
+			//If it's not a a custom shape we'll pull from the original config.
 			if (!my.customShape)
 			{
 				switch (my.colliderToRemap)
 				{
-					case VRChatCollider.Head:
+					case GlobalCollider.Head:
 						colliderConfig = descriptor.collider_head;
 						break;
-					case VRChatCollider.Torso:
+					case GlobalCollider.Torso:
 						colliderConfig = descriptor.collider_torso;
 						break;
-					case VRChatCollider.HandLeft:
+					case GlobalCollider.HandLeft:
 						colliderConfig = descriptor.collider_handL;
 						break;
-					case VRChatCollider.HandRight:
+					case GlobalCollider.HandRight:
 						colliderConfig = descriptor.collider_handR;
 						break;
-					case VRChatCollider.FingerIndexLeft:
+					case GlobalCollider.FingerIndexLeft:
 						colliderConfig = descriptor.collider_fingerIndexL;
 						break;
-					case VRChatCollider.FingerIndexRight:
+					case GlobalCollider.FingerIndexRight:
 						colliderConfig = descriptor.collider_fingerIndexR;
 						break;
-					case VRChatCollider.FingerMiddleLeft:
+					case GlobalCollider.FingerMiddleLeft:
 						colliderConfig = descriptor.collider_fingerMiddleL;
 						break;
-					case VRChatCollider.FingerMiddleRight:
+					case GlobalCollider.FingerMiddleRight:
 						colliderConfig = descriptor.collider_fingerMiddleR;
 						break;
-					case VRChatCollider.FingerRingLeft:
+					case GlobalCollider.FingerRingLeft:
 						colliderConfig = descriptor.collider_fingerRingL;
 						break;
-					case VRChatCollider.FingerRingRight:
+					case GlobalCollider.FingerRingRight:
 						colliderConfig = descriptor.collider_fingerRingR;
 						break;
-					case VRChatCollider.FingerLittleLeft:
+					case GlobalCollider.FingerLittleLeft:
 						colliderConfig = descriptor.collider_fingerRingL;
 						break;
-					case VRChatCollider.FingerLittleRight:
+					case GlobalCollider.FingerLittleRight:
 						colliderConfig = descriptor.collider_fingerRingR;
 						break;
-					case VRChatCollider.FootLeft:
+					case GlobalCollider.FootLeft:
 						colliderConfig = descriptor.collider_footL;
 						break;
-					case VRChatCollider.FootRight:
+					case GlobalCollider.FootRight:
 						colliderConfig = descriptor.collider_footR;
 						break;
 					default:
