@@ -1,13 +1,19 @@
-﻿#if MA_VRCSDK3_AVATARS
+﻿#region
 
 using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
+
+#if MA_VRCSDK3_AVATARS
 using nadena.dev.ndmf.vrchat;
-using UnityEngine;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
+#endif
+
+using UnityEngine;
 using Object = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -19,9 +25,6 @@ namespace nadena.dev.modular_avatar.core.editor
 			var remapColliders = ctx.AvatarRootTransform.GetComponentsInChildren<ModularAvatarGlobalCollider>(true);
 			if (remapColliders.Length == 0) return;
 
-			//Platform specific branch may want to happen here.
-
-			//Reording so manual remaps run before automatic.
 			Array.Sort(remapColliders, (a, b) =>
 			{
 				if (a.manualRemap && !b.manualRemap) return -1;
@@ -29,6 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				return 0;
 			});
 
+#if MA_VRCSDK3_AVATARS
 			var usedColliders = new List<GlobalCollider>();
 
 			var indexFingerWarns = new List<GameObject>();
@@ -59,7 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor
 					{
 						//Collider was already used, so it will be overriten by this remap.
 						//BuildReport.Log(ErrorSeverity.Information, "validation.global_collider.manual_collider_overwrite", my.gameObject);
-						//This ended up being instrusive since it's used in some of my workflows. Is it nessasary? 
+						//This ended up being instrusive since it's purposefully used in some of my workflows. I don't think it's needed.
 					}
 					targetCollider = my.colliderToRemap;
 				}
@@ -109,7 +113,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				}
 				usedColliders.Add(targetCollider);
 
-				if (my.customShape)
+				if (my.copyOriginalShape)
 				{
 					//It's a finger if it's not any of the other colliders.
 					bool isFinger =
@@ -295,8 +299,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			{
 				BuildReport.Log(ErrorSeverity.NonFatal, "error.global_collider.no_global_colliders_available_vrc", skippedRemaps);
 			}
+#endif
 		}
 	}
 }
-
-#endif

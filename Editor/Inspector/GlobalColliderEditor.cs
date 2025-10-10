@@ -1,11 +1,18 @@
-﻿#if MA_VRCSDK3_AVATARS
+﻿#region
 
 using System;
 using UnityEditor;
 using UnityEngine;
+
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
-using static nadena.dev.modular_avatar.core.editor.Localization;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
+#endif
+
+using static nadena.dev.modular_avatar.core.editor.Localization;
+
+#endregion
+
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -14,6 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
 	{
 		protected override string localizationPrefix => "global_collider.bone";
 
+#if MA_VRCSDK3_AVATARS
 		protected override Array enumValues => new object[]
 		{
 			//VRChat
@@ -31,9 +39,8 @@ namespace nadena.dev.modular_avatar.core.editor
 			GlobalCollider.Torso,
 			GlobalCollider.FootLeft,
 			GlobalCollider.FootRight,
-
-			//Resonite
 		};
+#endif
 	}
 	[CustomEditor(typeof(ModularAvatarGlobalCollider))]
 	[CanEditMultipleObjects]
@@ -45,7 +52,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			prop_manualRemap,
 			prop_colliderToRemap,
 			remapTarget,
-			prop_customShape,
+			prop_copyOriginalShape,
 			prop_radius,
 			prop_height,
 			prop_position,
@@ -57,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.manualRemap));
 			prop_colliderToRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.colliderToRemap));
 			remapTarget = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.remapTarget));
-			prop_customShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.customShape));
+			prop_copyOriginalShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.copyOriginalShape));
 			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.radius));
 			prop_height = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.height));
 			prop_position = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.position));
@@ -69,39 +76,49 @@ namespace nadena.dev.modular_avatar.core.editor
 		{
 			serializedObject.Update();
 
+#if MA_VRCSDK3_AVATARS
 			EditorGUILayout.PropertyField(prop_manualRemap, G("global_collider.manual_remap"));
+			//if manual remap is enabled, copy original needs to be set to false
 			if (prop_manualRemap.boolValue)
 			{
 				EditorGUILayout.PropertyField(prop_colliderToRemap, (G("global_collider.collider_to_remap")));
-
-				//(VRC Specific) if using a collider that's purely a contact.
 				if (prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Head ||
 					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Torso ||
 					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootLeft ||
 					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootRight)
 					{
-						EditorGUILayout.HelpBox(S("global_collider.contact_only"), MessageType.Info);
+						EditorGUILayout.HelpBox(S("global_collider.contact_only_vrc"), MessageType.Info);
 					}
 			}
 			else
 			{
-				EditorGUILayout.HelpBox(S("hint.global_collider_manual"), MessageType.Info);
+				//Disable copy original if manual remap is off
+				prop_copyOriginalShape.boolValue = false;
+				EditorGUILayout.HelpBox(S("hint.global_collider_manual_vrc"), MessageType.Info);
 			}
+#endif
 			EditorGUILayout.PropertyField(remapTarget, G("global_collider.remap_target"));
 
 			EditorGUILayout.Space();
-			EditorGUILayout.PropertyField(prop_customShape, G("global_collider.custom_shape"));
-			if (prop_customShape.boolValue)
+			EditorGUILayout.LabelField(G("global_collider.header_shape"), EditorStyles.boldLabel);
+			EditorGUI.indentLevel++;
+#if MA_VRCSDK3_AVATARS
+			using (new EditorGUI.DisabledScope(prop_copyOriginalShape.boolValue && prop_manualRemap.boolValue))
 			{
-				EditorGUI.indentLevel++;
-
+#endif
 				EditorGUILayout.PropertyField(prop_radius, G("global_collider.radius"));
 				EditorGUILayout.PropertyField(prop_height, G("global_collider.height"));
 				EditorGUILayout.PropertyField(prop_position, G("global_collider.position"));
 				EditorGUILayout.PropertyField(prop_rotation, G("global_collider.rotation"));
-
-				EditorGUI.indentLevel--;
+#if MA_VRCSDK3_AVATARS
 			}
+			if (prop_manualRemap.boolValue)
+			{
+				EditorGUILayout.PropertyField(prop_copyOriginalShape, G("global_collider.copy_original_shape"));
+			}
+#endif
+			EditorGUI.indentLevel--;
+
 			EditorGUILayout.Space();
 			EditorGUILayout.PropertyField(prop_visualizeGizmo, G("global_collider.visualize_gizmo"));
 
@@ -114,7 +131,6 @@ namespace nadena.dev.modular_avatar.core.editor
 			DrawCollider();
 		}
 
-
 		//TODO/Wishlist: It'd be great to have an editor for the collider.
 		void DrawCollider()
 		{
@@ -124,22 +140,21 @@ namespace nadena.dev.modular_avatar.core.editor
 			//If none, use gameobject component is on.
 			var remapTargetObj = my.remapTargetObject ?? my.gameObject;
 
+#if MA_VRCSDK3_AVATARS
+			//If it's not a a custom shape we'll pull from the original config.
 			var descriptor = remapTargetObj.GetComponentInParent<VRCAvatarDescriptor>();
 			if (descriptor == null) return;
-
-			ColliderConfig colliderConfig = new ColliderConfig {
-				state = ColliderConfig.State.Custom,
-				isMirrored = false,
-				transform = remapTargetObj.transform,
-				radius = my.radius,
-				height = my.height,
-				position = my.position,
-				rotation = my.rotation
-			};
-
-			//If it's not a a custom shape we'll pull from the original config.
-			if (!my.customShape)
+			if (my.copyOriginalShape)
 			{
+				ColliderConfig colliderConfig = new ColliderConfig {
+					state = ColliderConfig.State.Custom,
+					isMirrored = false,
+					transform = remapTargetObj.transform,
+					radius = my.radius,
+					height = my.height,
+					position = my.position,
+					rotation = my.rotation
+				};
 				switch (my.colliderToRemap)
 				{
 					case GlobalCollider.Head:
@@ -187,25 +202,21 @@ namespace nadena.dev.modular_avatar.core.editor
 					default:
 						break;
 				}
-				colliderConfig.transform = remapTargetObj.transform;
+				my.radius = colliderConfig.radius;
+				my.height = colliderConfig.height;
+				my.position = colliderConfig.position;
+				my.rotation = colliderConfig.rotation;
 			}
+#endif
 
-			var transform = colliderConfig.transform;
-			var radius = colliderConfig.radius;
-			var height = colliderConfig.height;
-			var position = colliderConfig.position;
-			var rotation = colliderConfig.rotation;
+			var scale = Mathf.Max(my.transform.lossyScale.x, my.transform.lossyScale.y, my.transform.lossyScale.z);
+			var clampedRadius = Mathf.Min(my.radius * scale, 2.5f * 0.5f) / scale;
+			var clampedHeight = Mathf.Min(my.height * scale, 2.5f) / scale;
 
-			var scale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
-			var clampedRadius = Mathf.Min(radius * scale, 2.5f * 0.5f) / scale;
-			var clampedHeight = Mathf.Min(height * scale, 2.5f) / scale;
-
-			var globalPos = transform.TransformPoint(position);
-			var globalRot = transform.rotation * rotation;
+			var globalPos = my.transform.TransformPoint(my.position);
+			var globalRot = my.transform.rotation * my.rotation;
 			HandlesUtil.DrawWireCapsule(globalPos, globalRot, clampedHeight * scale, clampedRadius * scale);
 		}
 
 	}
 }
-
-#endif

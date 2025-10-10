@@ -1,6 +1,8 @@
-﻿#if MA_VRCSDK3_AVATARS
+﻿#region
 
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -27,12 +29,11 @@ namespace nadena.dev.modular_avatar.core
 		//descriptor collider to replace (Only used in manual mode)
 		public GlobalCollider colliderToRemap;
 
-		//May be better to do this with the method bone proxy uses, that way we can provide an advanced dropdown?
+		//May be better to do this with the method bone proxy uses
 		public AvatarObjectReference remapTarget = new AvatarObjectReference();
 		public GameObject remapTargetObject => remapTarget.Get(this);
 
-		// Custom Collider Shape
-		public bool customShape = false;
+		public bool copyOriginalShape = false;
 		public bool visualizeGizmo = true;
 		public float radius = 0.05f;
 		public float height = 0.2f;
@@ -40,5 +41,3 @@ namespace nadena.dev.modular_avatar.core
 		public Quaternion rotation = Quaternion.identity;
 	}
 }
-
-#endif
