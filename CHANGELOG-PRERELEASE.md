@@ -14,11 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
-- [#1774] Removed the "Tools -> Activate PBs" menu item. This was an early test script which was not intended to be included.
 
 ### Security
 
 ### Deprecated
+
+## [1.14.4-beta.2] - [2025-10-10]
+
+### Removed
+- [#1774] Removed the "Tools -> Activate PBs" menu item. This was an early test script which was not intended to be included.
 
 ## [1.14.4-beta.1] - [2025-09-24]
 
