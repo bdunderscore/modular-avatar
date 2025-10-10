@@ -5,27 +5,27 @@ using UnityEngine;
 namespace nadena.dev.modular_avatar.core
 {
 	//All available VRChat Colliders
-	public enum VRChatCollider
+	public enum GlobalCollider
 	{
+		FingerRingLeft, FingerRingRight,
+		FingerMiddleLeft, FingerMiddleRight,
+		FingerLittleLeft, FingerLittleRight,
+		FingerIndexLeft, FingerIndexRight,
+		HandLeft, HandRight,
 		Head,
 		Torso,
-		HandLeft, HandRight,
-		FingerIndexLeft, FingerIndexRight,
-		FingerMiddleLeft, FingerMiddleRight,
-		FingerRingLeft, FingerRingRight,
-		FingerLittleLeft, FingerLittleRight,
 		FootLeft, FootRight,
 	}
 
-	[AddComponentMenu("Modular Avatar/MA Remap VRChat Collider")]
-	[HelpURL("https://modular-avatar.nadena.dev/docs/reference/remap-vrchat-collider?lang=auto")]
-	public class ModularAvatarRemapVRChatCollider : AvatarTagComponent
+	[AddComponentMenu("Modular Avatar/MA Global Collider")]
+	[HelpURL("https://modular-avatar.nadena.dev/docs/reference/global-collider?lang=auto")]
+	public class ModularAvatarGlobalCollider : AvatarTagComponent
 	{
 		//Toggle for manual remapping, if false auto remapping.
 		public bool manualRemap = false;
 
-		//VRChat descriptor Collider to replace (Only used in manual mode)
-		public VRChatCollider colliderToRemap;
+		//descriptor collider to replace (Only used in manual mode)
+		public GlobalCollider colliderToRemap;
 
 		//May be better to do this with the method bone proxy uses, that way we can provide an advanced dropdown?
 		public AvatarObjectReference remapTarget = new AvatarObjectReference();
