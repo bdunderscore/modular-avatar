@@ -21,10 +21,9 @@ namespace nadena.dev.modular_avatar.core.editor
 	{
 		protected override string localizationPrefix => "global_collider.bone";
 
-#if MA_VRCSDK3_AVATARS
 		protected override Array enumValues => new object[]
 		{
-			//VRChat
+#if MA_VRCSDK3_AVATARS
 			GlobalCollider.FingerRingLeft,
 			GlobalCollider.FingerMiddleLeft,
 			GlobalCollider.FingerLittleLeft,
@@ -39,8 +38,8 @@ namespace nadena.dev.modular_avatar.core.editor
 			GlobalCollider.Torso,
 			GlobalCollider.FootLeft,
 			GlobalCollider.FootRight,
-		};
 #endif
+		};
 	}
 	[CustomEditor(typeof(ModularAvatarGlobalCollider))]
 	[CanEditMultipleObjects]
@@ -50,8 +49,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
 		private SerializedProperty
 			prop_manualRemap,
-			prop_colliderToRemap,
-			remapTarget,
+			prop_sourceCollider,
+			prop_rootTransform,
 			prop_copyOriginalShape,
 			prop_radius,
 			prop_height,
@@ -62,8 +61,8 @@ namespace nadena.dev.modular_avatar.core.editor
 		private void OnEnable()
 		{
 			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.manualRemap));
-			prop_colliderToRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.colliderToRemap));
-			remapTarget = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.remapTarget));
+			prop_sourceCollider = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.sourceCollider));
+			prop_rootTransform = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.rootTransform));
 			prop_copyOriginalShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.copyOriginalShape));
 			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.radius));
 			prop_height = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.height));
@@ -81,14 +80,14 @@ namespace nadena.dev.modular_avatar.core.editor
 			//if manual remap is enabled, copy original needs to be set to false
 			if (prop_manualRemap.boolValue)
 			{
-				EditorGUILayout.PropertyField(prop_colliderToRemap, (G("global_collider.collider_to_remap")));
-				if (prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Head ||
-					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.Torso ||
-					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootLeft ||
-					prop_colliderToRemap.enumValueIndex == (int)GlobalCollider.FootRight)
-					{
-						EditorGUILayout.HelpBox(S("global_collider.contact_only_vrc"), MessageType.Info);
-					}
+				EditorGUILayout.PropertyField(prop_sourceCollider, (G("global_collider.source_collider")));
+				if (prop_sourceCollider.enumValueIndex == (int)GlobalCollider.Head ||
+					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.Torso ||
+					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.FootLeft ||
+					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.FootRight)
+				{
+					EditorGUILayout.HelpBox(S("global_collider.contact_only_vrc"), MessageType.Info);
+				}
 			}
 			else
 			{
@@ -97,7 +96,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				EditorGUILayout.HelpBox(S("hint.global_collider_manual_vrc"), MessageType.Info);
 			}
 #endif
-			EditorGUILayout.PropertyField(remapTarget, G("global_collider.remap_target"));
+			EditorGUILayout.PropertyField(prop_rootTransform, G("global_collider.root_transform"));
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField(G("global_collider.header_shape"), EditorStyles.boldLabel);
@@ -138,85 +137,86 @@ namespace nadena.dev.modular_avatar.core.editor
 			if (!(my.visualizeGizmo)) return;
 
 			//If none, use gameobject component is on.
-			var remapTargetObj = my.remapTargetObject ?? my.gameObject;
+			var targetGO = my.remapTargetObject ?? my.gameObject;
+			var targetTransform = targetGO.transform;
 
 #if MA_VRCSDK3_AVATARS
-			//If it's not a a custom shape we'll pull from the original config.
-			var descriptor = remapTargetObj.GetComponentInParent<VRCAvatarDescriptor>();
-			if (descriptor == null) return;
-			if (my.copyOriginalShape)
+			if (my.copyOriginalShape && my.manualRemap)
 			{
-				ColliderConfig colliderConfig = new ColliderConfig {
-					state = ColliderConfig.State.Custom,
-					isMirrored = false,
-					transform = remapTargetObj.transform,
-					radius = my.radius,
-					height = my.height,
-					position = my.position,
-					rotation = my.rotation
-				};
-				switch (my.colliderToRemap)
-				{
-					case GlobalCollider.Head:
-						colliderConfig = descriptor.collider_head;
-						break;
-					case GlobalCollider.Torso:
-						colliderConfig = descriptor.collider_torso;
-						break;
-					case GlobalCollider.HandLeft:
-						colliderConfig = descriptor.collider_handL;
-						break;
-					case GlobalCollider.HandRight:
-						colliderConfig = descriptor.collider_handR;
-						break;
-					case GlobalCollider.FingerIndexLeft:
-						colliderConfig = descriptor.collider_fingerIndexL;
-						break;
-					case GlobalCollider.FingerIndexRight:
-						colliderConfig = descriptor.collider_fingerIndexR;
-						break;
-					case GlobalCollider.FingerMiddleLeft:
-						colliderConfig = descriptor.collider_fingerMiddleL;
-						break;
-					case GlobalCollider.FingerMiddleRight:
-						colliderConfig = descriptor.collider_fingerMiddleR;
-						break;
-					case GlobalCollider.FingerRingLeft:
-						colliderConfig = descriptor.collider_fingerRingL;
-						break;
-					case GlobalCollider.FingerRingRight:
-						colliderConfig = descriptor.collider_fingerRingR;
-						break;
-					case GlobalCollider.FingerLittleLeft:
-						colliderConfig = descriptor.collider_fingerRingL;
-						break;
-					case GlobalCollider.FingerLittleRight:
-						colliderConfig = descriptor.collider_fingerRingR;
-						break;
-					case GlobalCollider.FootLeft:
-						colliderConfig = descriptor.collider_footL;
-						break;
-					case GlobalCollider.FootRight:
-						colliderConfig = descriptor.collider_footR;
-						break;
-					default:
-						break;
-				}
-				my.radius = colliderConfig.radius;
-				my.height = colliderConfig.height;
-				my.position = colliderConfig.position;
-				my.rotation = colliderConfig.rotation;
+				CopyOriginalCollider(my);
 			}
 #endif
 
-			var scale = Mathf.Max(my.transform.lossyScale.x, my.transform.lossyScale.y, my.transform.lossyScale.z);
+			var scale = Mathf.Max(targetTransform.lossyScale.x, targetTransform.lossyScale.y, targetTransform.lossyScale.z);
 			var clampedRadius = Mathf.Min(my.radius * scale, 2.5f * 0.5f) / scale;
 			var clampedHeight = Mathf.Min(my.height * scale, 2.5f) / scale;
 
-			var globalPos = my.transform.TransformPoint(my.position);
-			var globalRot = my.transform.rotation * my.rotation;
+			var globalPos = targetTransform.TransformPoint(my.position);
+			var globalRot = targetTransform.rotation * my.rotation;
 			HandlesUtil.DrawWireCapsule(globalPos, globalRot, clampedHeight * scale, clampedRadius * scale);
 		}
+
+#if MA_VRCSDK3_AVATARS
+		private void CopyOriginalCollider(ModularAvatarGlobalCollider my)
+		{
+			var descriptor = my.gameObject.GetComponentInParent<VRCAvatarDescriptor>();
+			if (descriptor == null) return;
+
+			ColliderConfig colliderConfig = new ColliderConfig();
+
+			switch (my.sourceCollider)
+			{
+				case GlobalCollider.Head:
+					colliderConfig = descriptor.collider_head;
+					break;
+				case GlobalCollider.Torso:
+					colliderConfig = descriptor.collider_torso;
+					break;
+				case GlobalCollider.HandLeft:
+					colliderConfig = descriptor.collider_handL;
+					break;
+				case GlobalCollider.HandRight:
+					colliderConfig = descriptor.collider_handR;
+					break;
+				case GlobalCollider.FingerIndexLeft:
+					colliderConfig = descriptor.collider_fingerIndexL;
+					break;
+				case GlobalCollider.FingerIndexRight:
+					colliderConfig = descriptor.collider_fingerIndexR;
+					break;
+				case GlobalCollider.FingerMiddleLeft:
+					colliderConfig = descriptor.collider_fingerMiddleL;
+					break;
+				case GlobalCollider.FingerMiddleRight:
+					colliderConfig = descriptor.collider_fingerMiddleR;
+					break;
+				case GlobalCollider.FingerRingLeft:
+					colliderConfig = descriptor.collider_fingerRingL;
+					break;
+				case GlobalCollider.FingerRingRight:
+					colliderConfig = descriptor.collider_fingerRingR;
+					break;
+				case GlobalCollider.FingerLittleLeft:
+					colliderConfig = descriptor.collider_fingerRingL;
+					break;
+				case GlobalCollider.FingerLittleRight:
+					colliderConfig = descriptor.collider_fingerRingR;
+					break;
+				case GlobalCollider.FootLeft:
+					colliderConfig = descriptor.collider_footL;
+					break;
+				case GlobalCollider.FootRight:
+					colliderConfig = descriptor.collider_footR;
+					break;
+				default:
+					break;
+			}
+			my.radius = colliderConfig.radius;
+			my.height = colliderConfig.height;
+			my.position = colliderConfig.position;
+			my.rotation = colliderConfig.rotation;
+		}
+#endif
 
 	}
 }
