@@ -119,8 +119,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
 					var ColliderTarget = new GameObject($"MA_ColliderTarget_{targetCollider}_{ColliderIndex}");
 					ColliderTarget.transform.SetParent(ColliderRoot.transform, false);
-					//Always setting y to 0.1 so the collider is in the correct orientation.
-					ColliderTarget.transform.localPosition = new Vector3(0, 0.1f, 0);
+					//Always setting y to 0.001 so the collider is in the correct orientation.
+					//VRC Does not allow the height of a finger collider to be shorter than the distance from the finger tip to base.
+					ColliderTarget.transform.localPosition = new Vector3(0, 0.001f, 0);
 					newColliderConfig.transform = ColliderTarget.transform;
 					newColliderConfig.position = Vector3.zero;
 					newColliderConfig.rotation = Quaternion.identity;
