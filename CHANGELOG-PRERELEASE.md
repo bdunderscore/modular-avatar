@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1784] Implement `MA Global Collider`
+- [#1786] Implement `MA Global Collider`
 
 ### Fixed
 
