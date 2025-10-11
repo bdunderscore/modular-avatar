@@ -17,7 +17,6 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-	[RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
 	internal class GlobalColliderPass : Pass<GlobalColliderPass>
 	{
 		protected override void Execute(ndmf.BuildContext ctx)
@@ -33,10 +32,21 @@ namespace nadena.dev.modular_avatar.core.editor
 			});
 
 #if MA_VRCSDK3_AVATARS
-			var usedColliders = new List<GlobalCollider>();
-
 			var indexFingerWarns = new List<GameObject>();
-			var skippedRemaps = new List<GameObject>();
+			var skippedColliders = new List<GameObject>();
+
+			var usedColliders = new List<GlobalCollider>();
+			var colliderPriority = new[]
+			{
+				GlobalCollider.FingerRingLeft,
+				GlobalCollider.FingerRingRight,
+				GlobalCollider.FingerMiddleLeft,
+				GlobalCollider.FingerMiddleRight,
+				GlobalCollider.FingerLittleLeft,
+				GlobalCollider.FingerLittleRight,
+				GlobalCollider.FingerIndexLeft,
+				GlobalCollider.FingerIndexRight
+			};
 
 			var ColliderIndex = 0;
 			foreach (var my in remapColliders)
@@ -59,233 +69,177 @@ namespace nadena.dev.modular_avatar.core.editor
 
 				if (my.manualRemap)
 				{
-					if (usedColliders.Contains(my.colliderToRemap))
+					//This ended up being overly instrusive since it's purposefully used in some of my workflows. I don't think it's needed.
+					/*if (usedColliders.Contains(my.sourceCollider))
 					{
 						//Collider was already used, so it will be overriten by this remap.
 						//BuildReport.Log(ErrorSeverity.Information, "validation.global_collider.manual_collider_overwrite", my.gameObject);
-						//This ended up being instrusive since it's purposefully used in some of my workflows. I don't think it's needed.
-					}
-					targetCollider = my.colliderToRemap;
+					}*/
+					targetCollider = my.sourceCollider;
 				}
 				else
 				{
-					//Collider yoink priority -> Left Right -> Ring Middle Little Index
-					//Maintains the "shape" of the hand if ring and middle are taken first.
-					if (!usedColliders.Contains(GlobalCollider.FingerRingLeft))
+					targetCollider = GlobalCollider.None;
+					foreach (var collider in colliderPriority)
 					{
-						targetCollider = GlobalCollider.FingerRingLeft;
+						if (usedColliders.Contains(collider))
+							continue;
+
+						if (collider == GlobalCollider.FingerIndexLeft || collider == GlobalCollider.FingerIndexRight)
+							indexFingerWarns.Add(my.gameObject);
+
+						targetCollider = collider;
+						break;
 					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerRingRight))
+					if (targetCollider == GlobalCollider.None)
 					{
-						targetCollider = GlobalCollider.FingerRingRight;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerMiddleLeft))
-					{
-						targetCollider = GlobalCollider.FingerMiddleLeft;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerMiddleRight))
-					{
-						targetCollider = GlobalCollider.FingerMiddleRight;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerLittleLeft))
-					{
-						targetCollider = GlobalCollider.FingerLittleLeft;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerLittleRight))
-					{
-						targetCollider = GlobalCollider.FingerLittleRight;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerIndexLeft))
-					{
-						indexFingerWarns.Add(my.gameObject);
-						targetCollider = GlobalCollider.FingerIndexLeft;
-					}
-					else if (!usedColliders.Contains(GlobalCollider.FingerIndexRight))
-					{
-						indexFingerWarns.Add(my.gameObject);
-						targetCollider = GlobalCollider.FingerIndexRight;
-					}
-					else
-					{
-						skippedRemaps.Add(my.gameObject);
+						skippedColliders.Add(my.gameObject);
 						continue;
 					}
 				}
 				usedColliders.Add(targetCollider);
 
+				var desc = ctx.VRChatAvatarDescriptor();
+
+				//It's a finger if it's not any of the other colliders.
+				bool isFinger =
+					!(targetCollider == GlobalCollider.Head || targetCollider == GlobalCollider.Torso ||
+					  targetCollider == GlobalCollider.HandLeft || targetCollider == GlobalCollider.HandRight ||
+					  targetCollider == GlobalCollider.FootLeft || targetCollider == GlobalCollider.FootRight);
+
+				if (isFinger)
+				{
+					//VRC Finger bones are special, they automatically calculate their position and rotation based on their parent bone.
+					//Create an empty inside the target bone which will contain offsets
+					var ColliderRoot = new GameObject($"MA_ColliderRoot_{targetCollider}_{ColliderIndex}");
+					ColliderRoot.transform.SetParent(remapTargetObj.transform, false);
+					//Offset for collider height and apply offsets
+					ColliderRoot.transform.localPosition = new Vector3(my.position.x, (my.height * -0.5f) + my.position.y, my.position.z);
+					ColliderRoot.transform.localRotation = my.rotation;
+
+					var ColliderTarget = new GameObject($"MA_ColliderTarget_{targetCollider}_{ColliderIndex}");
+					ColliderTarget.transform.SetParent(ColliderRoot.transform, false);
+					//Always setting y to 0.1 so the collider is in the correct orientation.
+					ColliderTarget.transform.localPosition = new Vector3(0, 0.1f, 0);
+					newColliderConfig.transform = ColliderTarget.transform;
+					newColliderConfig.position = Vector3.zero;
+					newColliderConfig.rotation = Quaternion.identity;
+				}
+
+				//Copy original collider shape if toggled on. The editor view updates the component values but only when it's selected.
+				//If a prefab is dropped onto the avatar without ever being selected or viewed, the values might be wrong.
 				if (my.copyOriginalShape)
 				{
-					//It's a finger if it's not any of the other colliders.
-					bool isFinger =
-						!(targetCollider == GlobalCollider.Head || targetCollider == GlobalCollider.Torso ||
-						  targetCollider == GlobalCollider.HandLeft || targetCollider == GlobalCollider.HandRight ||
-						  targetCollider == GlobalCollider.FootLeft || targetCollider == GlobalCollider.FootRight);
-
-					if (isFinger)
-					{
-						//Finger bones are special, they automatically calculate their position and rotation based on their parent bone.
-						//Create an empty inside the target bone which will contain offsets
-						var ColliderRoot = new GameObject($"MA_ColliderRoot_{targetCollider}_{ColliderIndex}");
-						ColliderRoot.transform.SetParent(remapTargetObj.transform, false);
-						//Offset for collider height and apply offsets
-						ColliderRoot.transform.localPosition = new Vector3(my.position.x, (my.height * -0.5f) + my.position.y, my.position.z);
-						ColliderRoot.transform.localRotation = my.rotation;
-
-						var ColliderTarget = new GameObject($"MA_ColliderTarget_{targetCollider}_{ColliderIndex}");
-						ColliderTarget.transform.SetParent(ColliderRoot.transform, false);
-						//Always setting y to 0.1 so the collider is in the correct orientation.
-						ColliderTarget.transform.localPosition = new Vector3(0, 0.1f, 0);
-						newColliderConfig.transform = ColliderTarget.transform;
-						newColliderConfig.position = Vector3.zero;
-						newColliderConfig.rotation = Quaternion.identity;
-					}
+					var sourceColliderConfig = new ColliderConfig();
 
 					switch (targetCollider)
 					{
 						case GlobalCollider.Head:
-							ctx.VRChatAvatarDescriptor().collider_head = newColliderConfig;
+							sourceColliderConfig = desc.collider_head;
 							break;
 						case GlobalCollider.Torso:
-							ctx.VRChatAvatarDescriptor().collider_torso = newColliderConfig;
+							sourceColliderConfig = desc.collider_torso;
 							break;
 						case GlobalCollider.HandLeft:
-							ctx.VRChatAvatarDescriptor().collider_handL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_handR.isMirrored = false;
+							sourceColliderConfig = desc.collider_handL;
 							break;
 						case GlobalCollider.HandRight:
-							ctx.VRChatAvatarDescriptor().collider_handR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_handL.isMirrored = false;
+							sourceColliderConfig = desc.collider_handR;
 							break;
 						case GlobalCollider.FingerIndexLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerIndexL;
 							break;
 						case GlobalCollider.FingerIndexRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerIndexR;
 							break;
 						case GlobalCollider.FingerMiddleLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerMiddleL;
 							break;
 						case GlobalCollider.FingerMiddleRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerMiddleR;
 							break;
 						case GlobalCollider.FingerRingLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerRingL;
 							break;
 						case GlobalCollider.FingerRingRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerRingR;
 							break;
 						case GlobalCollider.FingerLittleLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerLittleL;
 							break;
 						case GlobalCollider.FingerLittleRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL.isMirrored = false;
+							sourceColliderConfig = desc.collider_fingerLittleR;
 							break;
 						case GlobalCollider.FootLeft:
-							ctx.VRChatAvatarDescriptor().collider_footL = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_footR.isMirrored = false;
+							sourceColliderConfig = desc.collider_footL;
 							break;
 						case GlobalCollider.FootRight:
-							ctx.VRChatAvatarDescriptor().collider_footR = newColliderConfig;
-							ctx.VRChatAvatarDescriptor().collider_footL.isMirrored = false;
+							sourceColliderConfig = desc.collider_footR;
 							break;
 					}
+					newColliderConfig.radius = sourceColliderConfig.radius;
+					newColliderConfig.height = sourceColliderConfig.height;
+					newColliderConfig.position = sourceColliderConfig.position;
+					newColliderConfig.rotation = sourceColliderConfig.rotation;
 				}
-				else
-				{
-					var newState = ColliderConfig.State.Custom;
-					var newTransform = remapTargetObj.transform;
 
-					switch (targetCollider)
-					{
-						case GlobalCollider.Head:
-							ctx.VRChatAvatarDescriptor().collider_head.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_head.state = newState;
-							break;
-						case GlobalCollider.Torso:
-							ctx.VRChatAvatarDescriptor().collider_torso.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_torso.state = newState;
-							break;
-						case GlobalCollider.HandLeft:
-							ctx.VRChatAvatarDescriptor().collider_handL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_handL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_handL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_handR.isMirrored = false;
-							break;
-						case GlobalCollider.HandRight:
-							ctx.VRChatAvatarDescriptor().collider_handR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_handR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_handR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_handL.isMirrored = false;
-							break;
-						case GlobalCollider.FingerIndexLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR.isMirrored = false;
-							break;
-						case GlobalCollider.FingerIndexRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerIndexL.isMirrored = false;
-							break;
-						case GlobalCollider.FingerMiddleLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR.isMirrored = false;
-							break;
-						case GlobalCollider.FingerMiddleRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerMiddleL.isMirrored = false;
-							break;
-						case GlobalCollider.FingerRingLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR.isMirrored = false;
-							break;
-						case GlobalCollider.FingerRingRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerRingL.isMirrored = false;
-							break;
-						case GlobalCollider.FingerLittleLeft:
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR.isMirrored = false;
-							break;
-						case GlobalCollider.FingerLittleRight:
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_fingerLittleL.isMirrored = false;
-							break;
-						case GlobalCollider.FootLeft:
-							ctx.VRChatAvatarDescriptor().collider_footL.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_footL.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_footL.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_footR.isMirrored = false;
-							break;
-						case GlobalCollider.FootRight:
-							ctx.VRChatAvatarDescriptor().collider_footR.transform = newTransform;
-							ctx.VRChatAvatarDescriptor().collider_footR.state = newState;
-							ctx.VRChatAvatarDescriptor().collider_footR.isMirrored = false;
-							ctx.VRChatAvatarDescriptor().collider_footL.isMirrored = false;
-							break;
-					}
+				//Apply new collider config to descriptor
+				switch (targetCollider)
+				{
+					case GlobalCollider.Head:
+						desc.collider_head = newColliderConfig;
+						break;
+					case GlobalCollider.Torso:
+						desc.collider_torso = newColliderConfig;
+						break;
+					case GlobalCollider.HandLeft:
+						desc.collider_handL = newColliderConfig;
+						desc.collider_handR.isMirrored = false;
+						break;
+					case GlobalCollider.HandRight:
+						desc.collider_handR = newColliderConfig;
+						desc.collider_handL.isMirrored = false;
+						break;
+					case GlobalCollider.FingerIndexLeft:
+						desc.collider_fingerIndexL = newColliderConfig;
+						desc.collider_fingerIndexR.isMirrored = false;
+						break;
+					case GlobalCollider.FingerIndexRight:
+						desc.collider_fingerIndexR = newColliderConfig;
+						desc.collider_fingerIndexL.isMirrored = false;
+						break;
+					case GlobalCollider.FingerMiddleLeft:
+						desc.collider_fingerMiddleL = newColliderConfig;
+						desc.collider_fingerMiddleR.isMirrored = false;
+						break;
+					case GlobalCollider.FingerMiddleRight:
+						desc.collider_fingerMiddleR = newColliderConfig;
+						desc.collider_fingerMiddleL.isMirrored = false;
+						break;
+					case GlobalCollider.FingerRingLeft:
+						desc.collider_fingerRingL = newColliderConfig;
+						desc.collider_fingerRingR.isMirrored = false;
+						break;
+					case GlobalCollider.FingerRingRight:
+						desc.collider_fingerRingR = newColliderConfig;
+						desc.collider_fingerRingL.isMirrored = false;
+						break;
+					case GlobalCollider.FingerLittleLeft:
+						desc.collider_fingerLittleL = newColliderConfig;
+						desc.collider_fingerLittleR.isMirrored = false;
+						break;
+					case GlobalCollider.FingerLittleRight:
+						desc.collider_fingerLittleR = newColliderConfig;
+						desc.collider_fingerLittleL.isMirrored = false;
+						break;
+					case GlobalCollider.FootLeft:
+						desc.collider_footL = newColliderConfig;
+						desc.collider_footR.isMirrored = false;
+						break;
+					case GlobalCollider.FootRight:
+						desc.collider_footR = newColliderConfig;
+						desc.collider_footL.isMirrored = false;
+						break;
 				}
 
 				Object.DestroyImmediate(my);
@@ -295,9 +249,9 @@ namespace nadena.dev.modular_avatar.core.editor
 			{
 				BuildReport.Log(ErrorSeverity.Information, "validation.global_collider.using_index_fingers_vrc", indexFingerWarns);
 			}
-			if (skippedRemaps.Count > 0)
+			if (skippedColliders.Count > 0)
 			{
-				BuildReport.Log(ErrorSeverity.NonFatal, "error.global_collider.no_global_colliders_available_vrc", skippedRemaps);
+				BuildReport.Log(ErrorSeverity.NonFatal, "error.global_collider.no_global_colliders_available_vrc", skippedColliders);
 			}
 #endif
 		}

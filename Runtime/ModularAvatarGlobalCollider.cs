@@ -9,14 +9,15 @@ namespace nadena.dev.modular_avatar.core
 	//All available VRChat Colliders
 	public enum GlobalCollider
 	{
-		FingerRingLeft, FingerRingRight,
-		FingerMiddleLeft, FingerMiddleRight,
-		FingerLittleLeft, FingerLittleRight,
-		FingerIndexLeft, FingerIndexRight,
-		HandLeft, HandRight,
 		Head,
 		Torso,
+		HandLeft, HandRight,
+		FingerIndexLeft, FingerIndexRight,
+		FingerMiddleLeft, FingerMiddleRight,
+		FingerRingLeft, FingerRingRight,
+		FingerLittleLeft, FingerLittleRight,
 		FootLeft, FootRight,
+		None,
 	}
 
 	[AddComponentMenu("Modular Avatar/MA Global Collider")]
@@ -27,11 +28,11 @@ namespace nadena.dev.modular_avatar.core
 		public bool manualRemap = false;
 
 		//descriptor collider to replace (Only used in manual mode)
-		public GlobalCollider colliderToRemap;
+		public GlobalCollider sourceCollider;
 
 		//May be better to do this with the method bone proxy uses
-		public AvatarObjectReference remapTarget = new AvatarObjectReference();
-		public GameObject remapTargetObject => remapTarget.Get(this);
+		public AvatarObjectReference rootTransform = new AvatarObjectReference();
+		public GameObject remapTargetObject => rootTransform.Get(this);
 
 		public bool copyOriginalShape = false;
 		public bool visualizeGizmo = true;
@@ -39,5 +40,19 @@ namespace nadena.dev.modular_avatar.core
 		public float height = 0.2f;
 		public Vector3 position = Vector3.zero;
 		public Quaternion rotation = Quaternion.identity;
+
+		private void Reset()
+		{
+			if (RuntimeUtil.IsResetFromInspector())
+			{
+				InitSettings();
+			}
+		}
+
+		internal void InitSettings()
+		{
+			sourceCollider = GlobalCollider.FingerRingLeft;
+		}
 	}
+
 }
