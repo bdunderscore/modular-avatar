@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1769] Added warning when VRCFury version < 1.1250.0 is present with Mesh Cutter or Shape Changer delete mode components, as these combinations are incompatible.
+- [#1784] Implement `MA Global Collider`
 
 ### Fixed
 - [#1799] `Convert Constraints` would fail to fix animations if a constraint was replaced by `Replace Object`
