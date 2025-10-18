@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time. 
 
 ### Fixed
+- [#1791] `World Fixed Object` would double the scale of objects it's attached to
 
 ### Changed
 
