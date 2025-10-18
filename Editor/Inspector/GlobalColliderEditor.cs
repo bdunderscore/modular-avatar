@@ -3,6 +3,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
@@ -23,7 +24,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
 		protected override Array enumValues => new object[]
 		{
-#if MA_VRCSDK3_AVATARS
 			GlobalCollider.FingerRingLeft,
 			GlobalCollider.FingerMiddleLeft,
 			GlobalCollider.FingerLittleLeft,
@@ -38,71 +38,83 @@ namespace nadena.dev.modular_avatar.core.editor
 			GlobalCollider.Torso,
 			GlobalCollider.FootLeft,
 			GlobalCollider.FootRight,
-#endif
 		};
 	}
 	[CustomEditor(typeof(ModularAvatarGlobalCollider))]
 	[CanEditMultipleObjects]
-	class RemapVRChatColliderEditor : MAEditorBase
+	class GlobalColliderEditor : MAEditorBase
 	{
 		//private bool foldout = false;
 
 		private SerializedProperty
 			prop_manualRemap,
-			prop_sourceCollider,
+			prop_colliderToHijack,
 			prop_rootTransform,
-			prop_copyOriginalShape,
+			prop_copyHijackedShape,
 			prop_radius,
 			prop_height,
 			prop_position,
 			prop_rotation,
-			prop_visualizeGizmo;
+			prop_visualizeGizmo,
+			prop_ignoreOverwriteWarn;
 
 		private void OnEnable()
 		{
-			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.manualRemap));
-			prop_sourceCollider = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.sourceCollider));
-			prop_rootTransform = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.rootTransform));
-			prop_copyOriginalShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.copyOriginalShape));
-			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.radius));
-			prop_height = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.height));
-			prop_position = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.position));
-			prop_rotation = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.rotation));
-			prop_visualizeGizmo = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.visualizeGizmo));
+			prop_manualRemap = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_manualRemap));
+			prop_colliderToHijack = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_colliderToHijack));
+			prop_rootTransform = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_rootTransform));
+			prop_copyHijackedShape = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_copyHijackedShape));
+			prop_radius = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_radius));
+			prop_height = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_height));
+			prop_position = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_position));
+			prop_rotation = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_rotation));
+			prop_visualizeGizmo = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_visualizeGizmo));
+			prop_ignoreOverwriteWarn = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_ignoreOverwriteWarn));
 		}
 
 		protected override void OnInnerInspectorGUI()
 		{
 			serializedObject.Update();
 
-#if MA_VRCSDK3_AVATARS
 			EditorGUILayout.PropertyField(prop_manualRemap, G("global_collider.manual_remap"));
-			//if manual remap is enabled, copy original needs to be set to false
+			//if manual remap is enabled, copy original is just set to false
 			if (prop_manualRemap.boolValue)
 			{
-				EditorGUILayout.PropertyField(prop_sourceCollider, (G("global_collider.source_collider")));
-				if (prop_sourceCollider.enumValueIndex == (int)GlobalCollider.Head ||
-					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.Torso ||
-					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.FootLeft ||
-					prop_sourceCollider.enumValueIndex == (int)GlobalCollider.FootRight)
+				EditorGUILayout.PropertyField(prop_colliderToHijack, G("global_collider.hijack_collider"));
+				if (prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.Head ||
+					prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.Torso ||
+					prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.FootLeft ||
+					prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.FootRight)
 				{
 					EditorGUILayout.HelpBox(S("global_collider.contact_only_vrc"), MessageType.Info);
+				}
+				if (prop_ignoreOverwriteWarn.boolValue)
+				{
+					EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+					EditorGUILayout.HelpBox(S("hint.global_collider.nowarn_manual_overwrite"), MessageType.Warning);
+					if (GUILayout.Button(G("global_collider.enable_overwrite_warnings"),
+						GUILayout.ExpandHeight(true)))
+					{
+						prop_ignoreOverwriteWarn.boolValue = false;
+					}
+					EditorGUILayout.EndHorizontal();
 				}
 			}
 			else
 			{
 				//Disable copy original if manual remap is off
-				prop_copyOriginalShape.boolValue = false;
+				prop_copyHijackedShape.boolValue = false;
 				EditorGUILayout.HelpBox(S("hint.global_collider_manual_vrc"), MessageType.Info);
 			}
-#endif
+
 			EditorGUILayout.PropertyField(prop_rootTransform, G("global_collider.root_transform"));
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField(G("global_collider.header_shape"), EditorStyles.boldLabel);
 			EditorGUI.indentLevel++;
 #if MA_VRCSDK3_AVATARS
-			using (new EditorGUI.DisabledScope(prop_copyOriginalShape.boolValue && prop_manualRemap.boolValue))
+			//Disables the shape fields if copying original shape is enabled. (Field always editable outside VRCSDK)
+			using (new EditorGUI.DisabledScope(prop_copyHijackedShape.boolValue && prop_manualRemap.boolValue))
 			{
 #endif
 				EditorGUILayout.PropertyField(prop_radius, G("global_collider.radius"));
@@ -111,11 +123,11 @@ namespace nadena.dev.modular_avatar.core.editor
 				EditorGUILayout.PropertyField(prop_rotation, G("global_collider.rotation"));
 #if MA_VRCSDK3_AVATARS
 			}
+#endif
 			if (prop_manualRemap.boolValue)
 			{
-				EditorGUILayout.PropertyField(prop_copyOriginalShape, G("global_collider.copy_original_shape"));
+				EditorGUILayout.PropertyField(prop_copyHijackedShape, G("global_collider.copy_original_shape"));
 			}
-#endif
 			EditorGUI.indentLevel--;
 
 			EditorGUILayout.Space();
@@ -134,87 +146,38 @@ namespace nadena.dev.modular_avatar.core.editor
 		void DrawCollider()
 		{
 			var my = (ModularAvatarGlobalCollider)target;
-			if (!(my.visualizeGizmo)) return;
-
-			//If none, use gameobject component is on.
-			var targetGO = my.remapTargetObject ?? my.gameObject;
-			var targetTransform = targetGO.transform;
+			if (!(my.VisualizeGizmo)) return;
 
 #if MA_VRCSDK3_AVATARS
-			if (my.copyOriginalShape && my.manualRemap)
+			if (my.CopyHijackedShape && my.ManualRemap)
 			{
 				CopyOriginalCollider(my);
 			}
 #endif
 
-			var scale = Mathf.Max(targetTransform.lossyScale.x, targetTransform.lossyScale.y, targetTransform.lossyScale.z);
-			var clampedRadius = Mathf.Min(my.radius * scale, 2.5f * 0.5f) / scale;
-			var clampedHeight = Mathf.Min(my.height * scale, 2.5f) / scale;
+			var scale = Mathf.Max(my.RootTransform.lossyScale.x, my.RootTransform.lossyScale.y, my.RootTransform.lossyScale.z);
+			var clampedRadius = Mathf.Min(my.Radius * scale, 2.5f * 0.5f) / scale;
+			var clampedHeight = Mathf.Min(my.Height * scale, 2.5f) / scale;
 
-			var globalPos = targetTransform.TransformPoint(my.position);
-			var globalRot = targetTransform.rotation * my.rotation;
+			var globalPos = my.RootTransform.TransformPoint(my.Position);
+			var globalRot = my.RootTransform.rotation * my.Rotation;
 			HandlesUtil.DrawWireCapsule(globalPos, globalRot, clampedHeight * scale, clampedRadius * scale);
 		}
 
 #if MA_VRCSDK3_AVATARS
 		private void CopyOriginalCollider(ModularAvatarGlobalCollider my)
 		{
-			var descriptor = my.gameObject.GetComponentInParent<VRCAvatarDescriptor>();
-			if (descriptor == null) return;
+			var desc = my.gameObject.GetComponentInParent<VRCAvatarDescriptor>();
+			if (desc == null) return;
 
-			ColliderConfig colliderConfig = new ColliderConfig();
+			//if not a valid VRChat collider, do nothing
+			if (!ModularAvatarGlobalCollider.validVRChatColliders.Contains(my.ColliderToHijack)) return;
+			ColliderConfig colConfig = ModularAvatarGlobalCollider.GetVRChatDescriptorCollider(desc, my.ColliderToHijack, false);
 
-			switch (my.sourceCollider)
-			{
-				case GlobalCollider.Head:
-					colliderConfig = descriptor.collider_head;
-					break;
-				case GlobalCollider.Torso:
-					colliderConfig = descriptor.collider_torso;
-					break;
-				case GlobalCollider.HandLeft:
-					colliderConfig = descriptor.collider_handL;
-					break;
-				case GlobalCollider.HandRight:
-					colliderConfig = descriptor.collider_handR;
-					break;
-				case GlobalCollider.FingerIndexLeft:
-					colliderConfig = descriptor.collider_fingerIndexL;
-					break;
-				case GlobalCollider.FingerIndexRight:
-					colliderConfig = descriptor.collider_fingerIndexR;
-					break;
-				case GlobalCollider.FingerMiddleLeft:
-					colliderConfig = descriptor.collider_fingerMiddleL;
-					break;
-				case GlobalCollider.FingerMiddleRight:
-					colliderConfig = descriptor.collider_fingerMiddleR;
-					break;
-				case GlobalCollider.FingerRingLeft:
-					colliderConfig = descriptor.collider_fingerRingL;
-					break;
-				case GlobalCollider.FingerRingRight:
-					colliderConfig = descriptor.collider_fingerRingR;
-					break;
-				case GlobalCollider.FingerLittleLeft:
-					colliderConfig = descriptor.collider_fingerRingL;
-					break;
-				case GlobalCollider.FingerLittleRight:
-					colliderConfig = descriptor.collider_fingerRingR;
-					break;
-				case GlobalCollider.FootLeft:
-					colliderConfig = descriptor.collider_footL;
-					break;
-				case GlobalCollider.FootRight:
-					colliderConfig = descriptor.collider_footR;
-					break;
-				default:
-					break;
-			}
-			my.radius = colliderConfig.radius;
-			my.height = colliderConfig.height;
-			my.position = colliderConfig.position;
-			my.rotation = colliderConfig.rotation;
+			my.m_radius = colConfig.radius;
+			my.m_height = colConfig.height;
+			my.m_position = colConfig.position;
+			my.m_rotation = colConfig.rotation;
 		}
 #endif
 
