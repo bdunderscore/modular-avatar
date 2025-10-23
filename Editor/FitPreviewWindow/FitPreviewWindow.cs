@@ -31,19 +31,28 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             BindingFlags.NonPublic | BindingFlags.Static);
 
         private static FitPreviewWindow? _activeWindow;
-        private static int initFrameNumber;
+        private static int initCountdown = 3;
 
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            initFrameNumber = Time.frameCount;
-            EditorApplication.update += () =>
+            EditorApplication.update += CountdownToInit;
+
+            duringSceneGui += sv =>
             {
-                if (_activeWindow != null)
+                if (sv is FitPreviewWindow window)
                 {
-                    ClearSceneDirtiness?.Invoke(null, new object[] { _activeWindow._scene });
+                    window.DuringSceneGUI();
                 }
             };
+        }
+
+        private static void CountdownToInit()
+        {
+            if (--initCountdown == 0)
+            {
+                EditorApplication.update -= CountdownToInit;
+            }
         }
 
         [MenuItem(UnityMenuItems.GameObject_OpenFitPreview, false, priority = UnityMenuItems.GameObject_OpenFitPreviewOrder)]
@@ -68,17 +77,12 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         
         private new void OnDestroy()
         {
-            duringSceneGui -= DuringSceneGUI;
             _shadowHierarchyFilter?.Dispose();
             _previewSession?.Dispose();
             _previewSession = null!;
             _activeWindow = null;
             DestroyImmediate(_pbManager);
-            if (_scene.IsValid())
-            {
-                ClearSceneDirtiness?.Invoke(null, new object[] { _scene });
-                SceneManager.UnloadSceneAsync(_scene);
-            }
+            FitPreviewSceneManager.UnloadPreviewScene();
         }
 
         [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot;
@@ -145,38 +149,18 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         {
             if (this == null) return;
 
-            if (Time.frameCount - initFrameNumber < 3)
+            // Delay doing anything for a few frames after a domain reload to avoid weird issues if a fit
+            // preview window was open across a domain reload.
+            if (initCountdown > 0)
             {
                 EditorApplication.delayCall += PostCreate;
+                RepaintAll(); // force an editor update loop by forcing a repaint
                 return;
             }
 
             try
             {
-                var scenes = EditorSceneManager.sceneCount;
-                for (var i = 0; i < scenes; i++)
-                {
-                    var scene = EditorSceneManager.GetSceneAt(i);
-                    if (scene.name == "MA Fit Preview")
-                    {
-                        _scene = scene;
-                        foreach (var root in _scene.GetRootGameObjects())
-                        {
-                            DestroyImmediate(root);
-                        }
-
-                        break;
-                    }
-                }
-
-                if (!_scene.IsValid())
-                {
-                    // TODO - use a persistent scene (same reasons as the NDMF preview scene - can only have one
-                    // untitled scene, and need to unload it after domain reloads)
-                    // Maybe create an API for aux scenes?
-                    _scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-                    _scene.name = "MA Fit Preview";
-                }
+                _scene = FitPreviewSceneManager.LoadPreviewScene();
             }
             catch (InvalidOperationException)
             {
@@ -186,10 +170,10 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             }
 
             titleContent = new GUIContent("MA Fit Preview");
-
-
+            
             // Initialze PB systems
             _pbManager = new GameObject("PB Manager");
+            _pbManager.hideFlags = HideFlags.DontSave;
             SceneManager.MoveGameObjectToScene(_pbManager, _scene);
             var mgr = _pbManager.AddComponent<EditModePBManager>();
             mgr.IsSDK = true;
@@ -213,8 +197,6 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             });
             targetFilter.targetAvatar.Value = m_targetAvatarRoot;
             _shadowHierarchyFilter.targetAvatarRoot.Value = m_targetAvatarRoot;
-
-            duringSceneGui += DuringSceneGUI;
         }
 
         private FitPreviewWindow()
@@ -225,10 +207,57 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private Transform? activeTarget;
         private GameObject _pbManager;
 
-        private void DuringSceneGUI(SceneView sv)
-        {
-            if (sv != this) return;
+        private Transform? _surrogateHandleTarget;
 
+        protected override void OnSceneGUI()
+        {
+            var oldHandleHiddenState = Tools.hidden;
+            var oldDrawGizmosState = drawGizmos;
+            SetToolState();
+            try
+            {
+                base.OnSceneGUI();
+            }
+            finally
+            {
+                Tools.hidden = oldHandleHiddenState;
+                drawGizmos = oldDrawGizmosState;
+            }
+        }
+
+        private void SetToolState()
+        {
+            _surrogateHandleTarget = null;
+
+            if (Tools.hidden)
+            {
+                return;
+            }
+
+            if (activeTarget != null)
+            {
+                Tools.hidden = true;
+            }
+
+            if (Selection.gameObjects.All(go => go.scene == _scene))
+            {
+                // All selected objects are in the preview scene; show the real handles
+                return;
+            }
+
+            // Showing the base gizmos will just be confusing and visually noisy
+            drawGizmos = false;
+
+            Tools.hidden = true;
+            if (Selection.count == 1 && Selection.activeTransform != null)
+            {
+                _surrogateHandleTarget =
+                    _shadowHierarchyFilter?._shadowBoneHierarchy?.GetTransformIfExists(Selection.activeTransform);
+            }
+        }
+
+        private void DuringSceneGUI()
+        {
             if (activeTarget != null)
             {
                 var rot = activeTarget.rotation;
@@ -237,6 +266,76 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 {
                     Undo.RecordObject(activeTarget, "Rotation");
                     activeTarget.rotation = rot;
+                }
+            }
+            else if (_surrogateHandleTarget != null)
+            {
+                switch (Tools.current)
+                {
+                    case Tool.Move:
+                    {
+                        var pos = Handles.PositionHandle(_surrogateHandleTarget.position,
+                            _surrogateHandleTarget.rotation);
+                        if (pos != _surrogateHandleTarget.position)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Position");
+                            _surrogateHandleTarget.position = pos;
+                        }
+
+                        break;
+                    }
+                    case Tool.Rotate:
+                    {
+                        var rot = Handles.RotationHandle(_surrogateHandleTarget.rotation,
+                            _surrogateHandleTarget.position);
+                        if (rot != _surrogateHandleTarget.rotation)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Rotation");
+                            _surrogateHandleTarget.rotation = rot;
+                        }
+
+                        break;
+                    }
+                    case Tool.Scale:
+                    {
+                        var localScale = Handles.ScaleHandle(_surrogateHandleTarget.localScale,
+                            _surrogateHandleTarget.position, _surrogateHandleTarget.rotation);
+                        if (localScale != _surrogateHandleTarget.localScale)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Scale");
+                            _surrogateHandleTarget.localScale = localScale;
+                        }
+
+                        break;
+                    }
+                    case Tool.Transform:
+                    {
+                        var pos = _surrogateHandleTarget.position;
+                        var rot = _surrogateHandleTarget.rotation;
+                        var localScale = _surrogateHandleTarget.localScale;
+
+                        Handles.TransformHandle(ref pos, ref rot, ref localScale);
+
+                        if (pos != _surrogateHandleTarget.position)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Position");
+                            _surrogateHandleTarget.position = pos;
+                        }
+
+                        if (rot != _surrogateHandleTarget.rotation)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Rotation");
+                            _surrogateHandleTarget.rotation = rot;
+                        }
+
+                        if (localScale != _surrogateHandleTarget.localScale)
+                        {
+                            Undo.RecordObject(_surrogateHandleTarget, "Scale");
+                            _surrogateHandleTarget.localScale = localScale;
+                        }
+
+                        break;
+                    }
                 }
             }
 

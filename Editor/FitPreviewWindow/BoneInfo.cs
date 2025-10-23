@@ -51,6 +51,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             }
 
             var control = new GameObject(original.name);
+            control.hideFlags = HideFlags.DontSave;
             SceneManager.MoveGameObjectToScene(control, controlScene);
             if (parent != null)
             {
