@@ -39,13 +39,13 @@ namespace modular_avatar_tests
             var meshCutter = child.AddComponent<ModularAvatarMeshCutter>();
             meshCutter.Object = new AvatarObjectReference();
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should have the VRCFury warning
-            Assert.IsTrue(ErrorReport.HasErrorsOrWarnings());
-            var errors = ErrorReport.GetErrors();
-            Assert.IsTrue(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
         
         [Test]
@@ -71,13 +71,13 @@ namespace modular_avatar_tests
                 }
             };
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should have the VRCFury warning
-            Assert.IsTrue(ErrorReport.HasErrorsOrWarnings());
-            var errors = ErrorReport.GetErrors();
-            Assert.IsTrue(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
         
         [Test]
@@ -103,12 +103,13 @@ namespace modular_avatar_tests
                 }
             };
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should not have the VRCFury warning even when legacy VRCFury is simulated
-            var errors = ErrorReport.GetErrors();
-            Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
         
         [Test]
@@ -125,12 +126,13 @@ namespace modular_avatar_tests
             var shapeChanger = child.AddComponent<ModularAvatarShapeChanger>();
             shapeChanger.Shapes = null;
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should not have the VRCFury warning
-            var errors = ErrorReport.GetErrors();
-            Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
         
         [Test]
@@ -147,12 +149,13 @@ namespace modular_avatar_tests
             var meshCutter = child.AddComponent<ModularAvatarMeshCutter>();
             meshCutter.Object = new AvatarObjectReference();
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should not have the VRCFury warning when legacy VRCFury is not present
-            var errors = ErrorReport.GetErrors();
-            Assert.IsFalse(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
         
         [Test]
@@ -169,12 +172,13 @@ namespace modular_avatar_tests
             var meshCutter = child1.AddComponent<ModularAvatarMeshCutter>();
             meshCutter.Object = new AvatarObjectReference();
             
-            ErrorReport.Clear();
-            ComponentValidation.ValidateAll(avatarRoot);
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                ComponentValidation.ValidateAll(avatarRoot);
+            });
             
             // Should trigger warning when legacy VRCFury is simulated and MeshCutter is present
-            var errors = ErrorReport.GetErrors();
-            Assert.IsTrue(errors.Any(e => e.Code == "validation.legacy_vrcfury_warning"));
+            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
     }
 }
