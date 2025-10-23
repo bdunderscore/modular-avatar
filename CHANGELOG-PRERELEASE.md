@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1794] When selecting one of the avatar's original bones, the `Fit Preview` window's manipulation handles will now
 control the simulated avatar's corresponding bones.
+- [#1794] The `Fit Preview` window will hide gizmos when the parent avatar is selected
 
 ### Removed
 

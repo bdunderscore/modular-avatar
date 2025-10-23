@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1794] 元アバターのボーンが選択されている状態で、 `Fit Preview` の操作ハンドルがクローンされたアバターの該当
 ボーンを操作するようになった。
+- [#1794] 元のアバターが選択されている場合、 `Fit Preview` のウィンドウにギズモが非表示になるように変更
 
 ### Removed
 

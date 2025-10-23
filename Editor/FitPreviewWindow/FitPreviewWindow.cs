@@ -212,6 +212,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         protected override void OnSceneGUI()
         {
             var oldHandleHiddenState = Tools.hidden;
+            var oldDrawGizmosState = drawGizmos;
             SetToolState();
             try
             {
@@ -220,6 +221,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             finally
             {
                 Tools.hidden = oldHandleHiddenState;
+                drawGizmos = oldDrawGizmosState;
             }
         }
 
@@ -242,6 +244,9 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 // All selected objects are in the preview scene; show the real handles
                 return;
             }
+
+            // Showing the base gizmos will just be confusing and visually noisy
+            drawGizmos = false;
 
             Tools.hidden = true;
             if (Selection.count == 1 && Selection.activeTransform != null)
