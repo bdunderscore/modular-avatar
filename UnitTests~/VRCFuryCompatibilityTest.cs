@@ -2,6 +2,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 
