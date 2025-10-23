@@ -1,0 +1,10 @@
+﻿.group-panel {
+    margin: 4px;
+    padding: 4px;
+    border-width: 2px;
+    border-color: var(--unity-colors-separator-background);
+}
+
+#root-box {
+    background-color: var(--unity-colors-window-background);
+}

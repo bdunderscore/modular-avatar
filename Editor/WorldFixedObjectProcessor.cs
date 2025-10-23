@@ -46,12 +46,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var parent = retargeter.CreateIntermediateObjects(proxy.gameObject);
 
-            var xform = target.transform;
-
-            var pscale = proxy.lossyScale;
-            var oscale = xform.lossyScale;
-            xform.localScale = new Vector3(oscale.x / pscale.x, oscale.y / pscale.y, oscale.z / pscale.z);
-
             if (parent.transform.Find(target.gameObject.name) != null)
             {
                 target.gameObject.name = target.gameObject.name + "$" + GUID.Generate();

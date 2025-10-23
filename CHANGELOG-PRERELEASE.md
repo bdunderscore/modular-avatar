@@ -11,14 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1769] Added warning when VRCFury version < 1.1250.0 is present with Mesh Cutter or Shape Changer delete mode components, as these combinations are incompatible.
 
 ### Fixed
+- [#1791] `World Fixed Object` would double the scale of objects it's attached to
+- [#1794] `Fit Preview` would break if an unsaved scene was opened
 
 ### Changed
+- [#1794] When selecting one of the avatar's original bones, the `Fit Preview` window's manipulation handles will now
+control the simulated avatar's corresponding bones.
+- [#1794] The `Fit Preview` window will hide gizmos when the parent avatar is selected
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.14.4-beta.2] - [2025-10-10]
+
+### Removed
+- [#1774] Removed the "Tools -> Activate PBs" menu item. This was an early test script which was not intended to be included.
+
+## [1.14.4-beta.1] - [2025-09-24]
+
+### Added
+- Added `MA Fit Preview`, a new feature which allows you to pose a copy of your avatar, with physbones moving in edit mode.
+    - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time.
 
 ## [1.14.3] - [2025-09-18]
 

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.modular_avatar.core.armature_lock;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using Unity.Burst;
 using Unity.Collections;
@@ -263,6 +264,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (srcToDst.TryGetValue(srcBone, out var dstBone)) return dstBone;
 
                 var newBone = new GameObject(srcBone.name);
+                ObjectRegistry.RegisterReplacedObject(srcBone.gameObject, newBone.gameObject);
                 newBone.transform.SetParent(GetShadowBone(srcBone.parent) ?? VirtualAvatarRoot.transform);
                 newBone.transform.localPosition = srcBone.localPosition;
                 newBone.transform.localRotation = srcBone.localRotation;

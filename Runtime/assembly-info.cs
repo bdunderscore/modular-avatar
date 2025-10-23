@@ -10,3 +10,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Tests")]
 [assembly: InternalsVisibleTo("nadena.dev.modular-avatar.harmony-patches")]
 [assembly: InternalsVisibleTo("nadena.dev.modular-avatar.param-introspection")]
+[assembly: InternalsVisibleTo("nadena.dev.modular-avatar.fit-preview")]
