@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1786] `MA Global Collider` を実装
 
 ### Fixed
 - [#1791] `World Fixed Object` がついているオブジェクトのスケールを２倍にするバグを修正
