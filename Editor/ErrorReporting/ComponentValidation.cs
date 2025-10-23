@@ -89,7 +89,7 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 
             if (hasMeshCutterOrShapeChangerWithDelete)
             {
-                BuildReport.Log(ErrorSeverity.Warning, "validation.legacy_vrcfury_warning");
+                BuildReport.Log(ErrorSeverity.NonFatal, "validation.legacy_vrcfury_warning");
             }
         }
 
