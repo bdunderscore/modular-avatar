@@ -110,6 +110,13 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             _scene = scene;
         }
 
+        public Transform? GetTransformIfExists(Transform activeTransform)
+        {
+            var refBone = ResolveOriginalBone(activeTransform);
+            if (refBone == null) return null;
+            return _sourceToShadowMap.GetValueOrDefault(refBone)?.Control;
+        }
+        
         private BoneInfo? GetOrCreateBoneInfo(Transform? t)
         {
             var refBone = ResolveOriginalBone(t);
