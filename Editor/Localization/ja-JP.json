@@ -190,6 +190,8 @@
   "validation.merge_armature.target_is_child:hint": "Merge Armatureで自身の子に統合することはできません。「統合先」を別のオブジェクトに設定してみてください。",
   "validation.platform_filter.mixed_include_exclude": "[MA-0013] 同じゲームオブジェクトに、「含める」と「除外」設定のPlatform Filterコンポーネントを両方使用することができません。",
   "validation.platform_filter.mixed_include_exclude:description": "「含める」モードを使用している以上、含めたいプラットフームだけ設定してみてください。",
+  "validation.legacy_vrcfury_warning": "[MA-1600] VRCFuryのバージョンが古すぎて、Mesh CutterとShape Changerの削除モードが使用できません",
+  "validation.legacy_vrcfury_warning:hint": "Mesh CutterやShape Changerの削除モードを使用する場合、VRCFury 1.1250.0以降が必要です。VRCFuryを最新バージョンにアップデートしてください。",
   "submenu_source.Children": "子オブジェクトから生成",
   "submenu_source.MenuAsset": "Expressions Menu アセットを指定",
   "menuitem.showcontents": "メニュー内容を表示",
