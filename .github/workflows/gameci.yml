@@ -215,7 +215,7 @@ jobs:
           echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
           echo matrix_output=$output >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' }}
         continue-on-error: true
         with:
