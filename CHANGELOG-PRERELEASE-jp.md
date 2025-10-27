@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.4-beta.3] - [2025-10-27]
+
+### Fixed
 - [#1791] `World Fixed Object` がついているオブジェクトのスケールを２倍にするバグを修正
 - [#1794] 一度も保存されていないシーンが開いていると `Fit Preview` が動作しない問題を修正
 
@@ -17,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1794] 元アバターのボーンが選択されている状態で、 `Fit Preview` の操作ハンドルがクローンされたアバターの該当
 ボーンを操作するようになった。
 - [#1794] 元のアバターが選択されている場合、 `Fit Preview` のウィンドウにギズモが非表示になるように変更
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.4-beta.2] - [2025-10-10]
 

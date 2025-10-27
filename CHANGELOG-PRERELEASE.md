@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.4-beta.3] - [2025-10-27]
+
+### Fixed
 - [#1791] `World Fixed Object` would double the scale of objects it's attached to
 - [#1794] `Fit Preview` would break if an unsaved scene was opened
 
@@ -17,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1794] When selecting one of the avatar's original bones, the `Fit Preview` window's manipulation handles will now
 control the simulated avatar's corresponding bones.
 - [#1794] The `Fit Preview` window will hide gizmos when the parent avatar is selected
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.4-beta.2] - [2025-10-10]
 
