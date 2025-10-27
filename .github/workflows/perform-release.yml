@@ -171,18 +171,18 @@ jobs:
           
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CHANGELOG
           path: CHANGELOG.md
       - name: Upload CHANGELOG-PRERELEASE.md
         if: ${{ github.event.inputs.release_kind == 'prerelease' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
       - name: Upload release note
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: changelog
           path: release-note.md
@@ -208,7 +208,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: package-zip
           path: ${{ env.zipFile }}
