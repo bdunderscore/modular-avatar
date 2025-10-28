@@ -39,7 +39,7 @@ namespace nadena.dev.modular_avatar.core
 
 		//descriptor collider to modify (Only in manual mode)
 		[SerializeField]
-		internal GlobalCollider m_colliderToHijack = GlobalCollider.FingerRingLeft;
+		internal GlobalCollider m_colliderToHijack = GlobalCollider.None;
 		public GlobalCollider ColliderToHijack {
 			get => m_colliderToHijack;
 			set => m_colliderToHijack = value;
@@ -131,10 +131,10 @@ namespace nadena.dev.modular_avatar.core
 				case GlobalCollider.Head: return ref desc.collider_head;
 				case GlobalCollider.Torso: return ref desc.collider_torso;
 				case GlobalCollider.HandLeft:
-					if (disableMirroring) desc.collider_handL.isMirrored = false;
+					if (disableMirroring) desc.collider_handR.isMirrored = false;
 					return ref desc.collider_handL;
 				case GlobalCollider.HandRight:
-					if (disableMirroring) desc.collider_handR.isMirrored = false;
+					if (disableMirroring) desc.collider_handL.isMirrored = false;
 					return ref desc.collider_handR;
 				case GlobalCollider.FingerIndexLeft:
 					if (disableMirroring) desc.collider_fingerIndexR.isMirrored = false;
