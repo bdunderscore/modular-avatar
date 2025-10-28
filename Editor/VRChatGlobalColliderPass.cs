@@ -1,19 +1,16 @@
-﻿#region
+﻿#if MA_VRCSDK3_AVATARS
+#region
 using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 
-#if MA_VRCSDK3_AVATARS
 using nadena.dev.ndmf.vrchat;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
-#endif
 
 using UnityEngine;
 using Object = UnityEngine.Object;
 using System.Linq;
-using VRC.SDK3.Avatars.Components;
-
 #endregion
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -64,6 +61,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
 				if (my.ManualRemap)
 				{
+					if (my.ColliderToHijack == GlobalCollider.None)
+					{
+						BuildReport.Log(ErrorSeverity.Information,
+							"validation.global_collider.manual_collider_none",
+							my.gameObject);
+						continue;
+					}
 					if (!ModularAvatarGlobalCollider.validVRChatColliders.Contains(my.ColliderToHijack))
 					{
 						//using a collider that's not something on the VRC Descriptor.
@@ -72,7 +76,6 @@ namespace nadena.dev.modular_avatar.core.editor
 							"error.global_collider.invalid_manual_collider_vrc",
 							my.gameObject, my.ColliderToHijack.ToString());
 					}
-
 					targetCollider = my.ColliderToHijack;
 					if (!my.IgnoreOverwriteCheck && usedColliders.TryGetValue(targetCollider, out var overwrittenCollider))
 					{
@@ -169,3 +172,4 @@ namespace nadena.dev.modular_avatar.core.editor
 		}
 	}
 }
+#endif
