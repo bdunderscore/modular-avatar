@@ -81,6 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			if (prop_manualRemap.boolValue)
 			{
 				EditorGUILayout.PropertyField(prop_colliderToHijack, G("global_collider.hijack_collider"));
+#if MA_VRCSDK3_AVATARS
 				if (prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.Head ||
 					prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.Torso ||
 					prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.FootLeft ||
@@ -88,6 +89,13 @@ namespace nadena.dev.modular_avatar.core.editor
 				{
 					EditorGUILayout.HelpBox(S("global_collider.contact_only_vrc"), MessageType.Info);
 				}
+#endif
+				if (prop_colliderToHijack.enumValueIndex == (int)GlobalCollider.None)
+				{
+					EditorGUILayout.HelpBox(S("global_collider.hijack_none"), MessageType.Info);
+				}
+				//This is a debug only option to disable the overwrite warning.
+				//this warning makes it VERY obvious and makes disabling it easy. Prefab authors shouldn't use this.
 				if (prop_ignoreOverwriteWarn.boolValue)
 				{
 					EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
@@ -167,7 +175,7 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
 		private void CopyOriginalCollider(ModularAvatarGlobalCollider my)
 		{
-			var desc = my.gameObject.GetComponentInParent<VRCAvatarDescriptor>();
+			var desc = RuntimeUtil.FindAvatarInParents(my.transform);
 			if (desc == null) return;
 
 			//if not a valid VRChat collider, do nothing
