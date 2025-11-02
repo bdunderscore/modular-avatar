@@ -74,13 +74,13 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Download artifact (tagged)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: docs
           path: docs/build
 
       - name: Download artifact (latest)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: docs-dev
           path: docs/build/dev
