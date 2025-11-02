@@ -91,7 +91,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private AssemblyReloadEvents.AssemblyReloadCallback _onReload;
         private VisualElement _parentVisualElement;
         private PreviewSession _previewSession;
-        private HideOtherAvatarsFilter _hideOtherAvatarsFilter;
+        private HideOtherAvatarsTracker _hideOtherAvatarsTracker;
         private ObjectField _targetAvatar;
 
         private EventCallback<AttachToPanelEvent> _onAttachToPanel;
@@ -186,16 +186,16 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             _targetAvatar = _parentVisualElement.Q<ObjectField>("target-avatar-field");
             _targetAvatar.Bind(new SerializedObject(this));
 
-            var targetFilter = new HideOtherAvatarsFilter();
+            _hideOtherAvatarsTracker = new HideOtherAvatarsTracker();
             _shadowHierarchyFilter = new ShadowHierarchyFilter(_scene);
-            _previewSession.AddMutator(new SequencePoint(), targetFilter);
+            _previewSession.HiddenRenderers = _hideOtherAvatarsTracker.GetHiddenRenderers;
             _previewSession.AddMutator(new SequencePoint(), _shadowHierarchyFilter);
             _targetAvatar.RegisterCallback<ChangeEvent<Object>>(ev =>
             {
-                targetFilter.targetAvatar.Value = ev.newValue;
+                _hideOtherAvatarsTracker.targetAvatar.Value = ev.newValue;
                 _shadowHierarchyFilter.targetAvatarRoot.Value = ev.newValue as GameObject;
             });
-            targetFilter.targetAvatar.Value = m_targetAvatarRoot;
+            _hideOtherAvatarsTracker.targetAvatar.Value = m_targetAvatarRoot;
             _shadowHierarchyFilter.targetAvatarRoot.Value = m_targetAvatarRoot;
         }
 
