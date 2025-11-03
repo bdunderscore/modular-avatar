@@ -15,6 +15,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Fixed
 - [#1791] `World Fixed Object` がついているオブジェクトのスケールを２倍にするバグを修正
+- [#1799] `Convert Constraints` をつけて、コンストレイントを `Replace Object` で置き換えた場合、アニメーションが
+修正されない問題を修正
 
 ### Changed
 
