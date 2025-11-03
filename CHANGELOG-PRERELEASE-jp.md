@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1769] VRCFury バージョン < 1.1250.0 がMesh CutterやShape Changer削除モードコンポーネントと一緒に存在する場合の警告を追加。これらの組み合わせは互換性がありません。
 
 ### Fixed
+- [#1799] `Convert Constraints` をつけて、コンストレイントを `Replace Object` で置き換えた場合、アニメーションが
+  修正されない問題を修正
 
 - [#1778] `Vertex Filer - By Axis`をエディットモードのまま選択を変えた場合、操作ハンドルが消えたままになるバグを修正
 
 ### Changed
+- `MA Fit Preview` のパフォーマンス向上
 
 ### Removed
 
