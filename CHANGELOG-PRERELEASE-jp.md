@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1784] `com.vrchat.avatars` の前提を外しました
 
-### Removed
+#￥## Removed
 
 ### Security
 

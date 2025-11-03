@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1784] Removed dependency on `com.vrchat.avatars`
 
 ### Removed
 

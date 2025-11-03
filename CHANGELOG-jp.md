@@ -17,6 +17,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1791] `World Fixed Object` がついているオブジェクトのスケールを２倍にするバグを修正
 
 ### Changed
+- [#1784] `com.vrchat.avatars` の前提を外しました
 
 ### Removed
 
