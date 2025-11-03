@@ -15,9 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   修正されない問題を修正
 
 ### Changed
+- [#1784] `com.vrchat.avatars` の前提を外しました
 - `MA Fit Preview` のパフォーマンス向上
 
-### Removed
+#￥## Removed
 
 ### Security
 

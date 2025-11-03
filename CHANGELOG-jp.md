@@ -19,6 +19,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 修正されない問題を修正
 
 ### Changed
+- [#1784] `com.vrchat.avatars` の前提を外しました
 
 ### Removed
 
