@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1778] `Vertex Filer - By Axis`をエディットモードのまま選択を変えた場合、操作ハンドルが消えたままになるバグを修正
+
 ### Changed
 
 ### Removed

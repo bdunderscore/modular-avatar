@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
@@ -100,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private static VFByAxisEditor? _activeEditing
+        private static VFByAxisEditor? ActiveEditing
         {
             get => __activeEditing;
             set
@@ -128,14 +127,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static void OnSelectionChanged()
         {
-            _activeEditing = null;
+            ActiveEditing = null;
         }
 
         private void OnDisable()
         {
-            if (__activeEditing == this)
+            if (ActiveEditing == this)
             {
-                __activeEditing = null;
+                ActiveEditing = null;
             }
         }
 
@@ -162,7 +161,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _root = uxml;
 
             var btnEdit = uxml.Q<Button>("f-axis-edit");
-            btnEdit.clickable.clicked += () => { _activeEditing = _activeEditing == this ? null : this; };
+            btnEdit.clickable.clicked += () => { ActiveEditing = ActiveEditing == this ? null : this; };
 
             var btnFlip = uxml.Q<Button>("f-axis-flip");
             btnFlip.clickable.clicked += () =>

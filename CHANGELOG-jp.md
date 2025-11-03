@@ -15,6 +15,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Fixed
 - [#1791] `World Fixed Object` がついているオブジェクトのスケールを２倍にするバグを修正
+- [#1778] `Vertex Filer - By Axis`をエディットモードのまま選択を変えた場合、操作ハンドルが消えたままになるバグを修正
 
 ### Changed
 

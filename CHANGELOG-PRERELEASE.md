@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1778] `Vertex Filter - By Axis` would leave the transform handle disabled when switching away from the object while
+  in edit mode.
+
 ### Changed
 
 ### Removed
