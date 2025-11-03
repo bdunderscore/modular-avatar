@@ -72,17 +72,26 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(c => c.gameObject)
                 .Distinct();
 
-            var targetPaths = constraintGameObjects
+            var virtualToRealPathMap = asc.ObjectPathRemapper.GetVirtualToRealPathMap();
+
+            var targetRealPaths = constraintGameObjects
                 .Union(existingVRCConstraints)
                 .Select(c => asc.ObjectPathRemapper.GetVirtualPathForObject(c!))
+                .Select(p => virtualToRealPathMap.GetValueOrDefault(p) ?? p)
                 .ToHashSet();
 
+            var targetVirtualPaths = virtualToRealPathMap
+                .Where(kv => targetRealPaths.Contains(kv.Value))
+                .Select(kv => kv.Key)
+                .ToHashSet();
+            
             // Update animation clips
 
-            var clips = targetPaths.SelectMany(tp => asc.AnimationIndex.GetClipsForObjectPath(tp))
+            var clips = targetVirtualPaths
+                .SelectMany(virtualPath => asc.AnimationIndex.GetClipsForObjectPath(virtualPath))
                 .ToHashSet();
 
-            foreach (var clip in clips) RemapSingleClip(clip, targetPaths);
+            foreach (var clip in clips) RemapSingleClip(clip, targetVirtualPaths);
         }
 
         private void RemapSingleClip(VirtualClip clip, HashSet<string> targetPaths)
