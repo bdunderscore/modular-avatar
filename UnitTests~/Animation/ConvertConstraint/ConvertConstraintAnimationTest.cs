@@ -23,7 +23,7 @@ namespace modular_avatar_tests.ConvertConstraint
             var motion = (AnimationClip) findFxMotion(prefab, "test");
             var ecb = AnimationUtility.GetCurveBindings(motion)[0];
             
-            Assert.AreEqual(ecb.type, typeof(VRCAimConstraint));
+            Assert.AreEqual(typeof(VRCAimConstraint), ecb.type);
         }
     }
 }

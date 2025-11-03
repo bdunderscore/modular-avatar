@@ -76,7 +76,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var targetRealPaths = constraintGameObjects
                 .Union(existingVRCConstraints)
-                .Select(c => virtualToRealPathMap[asc.ObjectPathRemapper.GetVirtualPathForObject(c!)])
+                .Select(c => asc.ObjectPathRemapper.GetVirtualPathForObject(c!))
+                .Select(p => virtualToRealPathMap.GetValueOrDefault(p) ?? p)
                 .ToHashSet();
 
             var targetVirtualPaths = virtualToRealPathMap
