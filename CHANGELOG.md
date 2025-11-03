@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1791] `World Fixed Object` would double the scale of objects it's attached to
+- [#1799] `Convert Constraints` would fail to fix animations if a constraint was replaced by `Replace Object` 
 
 ### Changed
 - [#1784] Removed dependency on `com.vrchat.avatars`
