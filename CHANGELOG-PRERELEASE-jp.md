@@ -19,8 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1784] `com.vrchat.avatars` の前提を外しました
 - `MA Fit Preview` のパフォーマンス向上
+- [#1776] 自分が操作しているメッシュの子として配置された `Mesh Cutter` が、動的に操作されているかの判定でその親
+  メッシュのアニメーション操作を無視するように変更
+    - この変更はパフォーマンス向上、およびVRChat以外のプラットホームでの利便性向上のためのものです。
 
-#￥## Removed
+### Removed
 
 ### Security
 

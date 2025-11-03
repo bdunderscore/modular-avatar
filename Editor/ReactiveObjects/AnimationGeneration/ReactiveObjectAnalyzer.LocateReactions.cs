@@ -12,11 +12,11 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object value)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object value, GameObject affectedObject = null)
         {
             var rule = new ReactionRule(key, value);
 
-            BuildConditions(controllingObject, rule);
+            BuildConditions(controllingObject, rule, affectedObject);
             
             return rule;
         }
@@ -106,8 +106,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private void BuildConditions(Component controllingComponent, ReactionRule rule)
+        private void BuildConditions(Component controllingComponent, ReactionRule rule, GameObject affectedObject)
         {
+            var affectedTransform = affectedObject?.transform;
+            
             rule.ControllingObject = controllingComponent;
 
             var conditions = new List<ControlCondition>();
@@ -143,18 +145,25 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     if (mami_condition != null) conditions.Add(mami_condition);
                 }
-                
-                conditions.Add(new ControlCondition
+
+                // We don't need to disable or enable this rule based on parents of the affected object, since
+                // the rule is irrelevant when the affected object itself is disabled.
+                var cursorTransform = cursor.transform;
+                if (affectedObject == null ||
+                    (affectedTransform != cursorTransform && !affectedTransform.IsChildOf(cursorTransform)))
                 {
-                    Parameter = GetActiveSelfProxy(cursor.gameObject),
-                    DebugName = cursor.gameObject.name,
-                    IsConstant = false,
-                    InitialValue = _computeContext.Observe(cursor.gameObject, go => go.activeSelf) ? 1.0f : 0.0f,
-                    ParameterValueLo = 0.5f,
-                    ParameterValueHi = float.PositiveInfinity,
-                    ReferenceObject = cursor.gameObject,
-                    DebugReference = cursor.gameObject,
-                });
+                    conditions.Add(new ControlCondition
+                    {
+                        Parameter = GetActiveSelfProxy(cursor.gameObject),
+                        DebugName = cursor.gameObject.name,
+                        IsConstant = false,
+                        InitialValue = _computeContext.Observe(cursor.gameObject, go => go.activeSelf) ? 1.0f : 0.0f,
+                        ParameterValueLo = 0.5f,
+                        ParameterValueHi = float.PositiveInfinity,
+                        ReferenceObject = cursor.gameObject,
+                        DebugReference = cursor.gameObject,
+                    });
+                }
 
                 cursor = cursor.parent;
             }
@@ -270,7 +279,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
         
-        private void FindDeleteMeshByMask(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+        private void FindMeshCutter(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
         {
             var deleters = _computeContext.GetComponentsInChildren<ModularAvatarMeshCutter>(root, true);
 
@@ -330,7 +339,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     objectGroups[key] = group;
                 }
 
-                var action = ObjectRule(key, deleter, vertexFilter);
+                var action = ObjectRule(key, deleter, vertexFilter, renderer.gameObject);
                 action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
 
                 if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
