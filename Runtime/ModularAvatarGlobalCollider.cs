@@ -46,10 +46,10 @@ namespace nadena.dev.modular_avatar.core
 		}
 
 		[SerializeField]
-		internal bool m_ignoreOverwriteWarn = false;
-		public bool IgnoreOverwriteCheck {
-			get => m_ignoreOverwriteWarn;
-			set => m_ignoreOverwriteWarn = value;
+		internal bool m_lowPriority = false;
+		public bool LowPriority {
+			get => m_lowPriority;
+			set => m_lowPriority = value;
 		}
 
 		[SerializeField]

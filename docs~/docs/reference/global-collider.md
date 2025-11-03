@@ -12,9 +12,17 @@ You can place this component on any game object and define its shape like a stan
 
 The functionality of this component varies by platform. Only VRChat is supported Currently.
 
-On VRChat, we hijack and adjust the built in avatar finger bones, so you can run out of global colliders. If a collider is not manually chosen, this component will automatically choose an available finger collider. When using the component manually, it should be noted that not all colliders listed provide collision in VRChat. The Head, Torso, and Feet are only contact senders.
+On VRChat, we hijack and adjust the built in avatar finger bones, so you can run out of global colliders. If a collider is not manually chosen, this component will automatically choose an available finger collider. 
 
 On other platforms, we may implement this in a different way.
+
+## Manual Remap
+
+On VRChat, this toggle enables manually defining which collider MA Global Collider will hijack from the avatar. It should be noted that not all colliders listed provide collision in VRChat. The Head, Torso, and Feet are only contact senders.
+
+## Low Priority Collider
+
+Only available when Manual Remap is enabled. Any Global Collider with this will be treated as replacable. If another Global Collider remaps the same Collider, the low priority one will be overwritten without warning.
 
 ## When should I not use it?
 
@@ -25,4 +33,4 @@ When building for VRChat, there's limit of 8 possible global colliders (8 finger
 - Adding a collider to a gimmick or prop so it can interact with PhysBones on other avatars.
 - Moving the a VRChat Hand collider to change where you grab things from. (Such as to the mouth to mimic biting)
 - Adding shockwave/recoil effects to weaponry by animating the GameObject bject with a collider.
-- Modularizing a base's collider config with a prefab.
+- Modularizing a base's collider config with a prefab. These Global Colliders should be Low Priority.

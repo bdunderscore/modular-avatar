@@ -45,18 +45,17 @@ namespace nadena.dev.modular_avatar.core.editor
 	class GlobalColliderEditor : MAEditorBase
 	{
 		//private bool foldout = false;
-
 		private SerializedProperty
 			prop_manualRemap,
 			prop_colliderToHijack,
 			prop_rootTransform,
+			prop_lowpriority,
 			prop_copyHijackedShape,
 			prop_radius,
 			prop_height,
 			prop_position,
 			prop_rotation,
-			prop_visualizeGizmo,
-			prop_ignoreOverwriteWarn;
+			prop_visualizeGizmo;
 
 		private void OnEnable()
 		{
@@ -69,7 +68,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			prop_position = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_position));
 			prop_rotation = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_rotation));
 			prop_visualizeGizmo = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_visualizeGizmo));
-			prop_ignoreOverwriteWarn = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_ignoreOverwriteWarn));
+			prop_lowpriority = serializedObject.FindProperty(nameof(ModularAvatarGlobalCollider.m_lowPriority));
 		}
 
 		protected override void OnInnerInspectorGUI()
@@ -94,28 +93,25 @@ namespace nadena.dev.modular_avatar.core.editor
 				{
 					EditorGUILayout.HelpBox(S("global_collider.hijack_none"), MessageType.Info);
 				}
-				//This is a debug only option to disable the overwrite warning.
-				//this warning makes it VERY obvious and makes disabling it easy. Prefab authors shouldn't use this.
-				if (prop_ignoreOverwriteWarn.boolValue)
-				{
-					EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
-					EditorGUILayout.HelpBox(S("hint.global_collider.nowarn_manual_overwrite"), MessageType.Warning);
-					if (GUILayout.Button(G("global_collider.enable_overwrite_warnings"),
-						GUILayout.ExpandHeight(true)))
-					{
-						prop_ignoreOverwriteWarn.boolValue = false;
-					}
-					EditorGUILayout.EndHorizontal();
-				}
 			}
 			else
 			{
-				//Disable copy original if manual remap is off
 				prop_copyHijackedShape.boolValue = false;
+				prop_lowpriority.boolValue = false;
 				EditorGUILayout.HelpBox(S("hint.global_collider_manual_vrc"), MessageType.Info);
 			}
 
 			EditorGUILayout.PropertyField(prop_rootTransform, G("global_collider.root_transform"));
+
+			//Low Prio Toggle
+			if (prop_manualRemap.boolValue)
+			{
+				EditorGUILayout.PropertyField(prop_lowpriority, G("global_collider.low_priority"));
+				if (prop_lowpriority.boolValue)
+				{
+					EditorGUILayout.HelpBox(S("hint.global_collider.low_priority"), MessageType.Info);
+				}
+			}
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField(G("global_collider.header_shape"), EditorStyles.boldLabel);

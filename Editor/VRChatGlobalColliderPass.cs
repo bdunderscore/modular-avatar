@@ -23,12 +23,15 @@ namespace nadena.dev.modular_avatar.core.editor
 			var remapColliders = ctx.AvatarRootTransform.GetComponentsInChildren<ModularAvatarGlobalCollider>(true);
 			if (remapColliders.Length == 0) return;
 
-			remapColliders = remapColliders.OrderByDescending(c => c.ManualRemap).ToArray();
+			remapColliders = remapColliders.OrderByDescending(c => c.LowPriority).ThenByDescending(c => c.ManualRemap).ToArray();
+			//Low Priority remaps run first in their group (Though auto remaps should never be low prio)
+			//Manual remaps run first 
 
 			var LogRemapUsingFinger = new HashSet<GameObject>();
 			var logAutoRemapsIndexFinger = new HashSet<GameObject>();
 			var logAutoRemapsFailed = new HashSet<GameObject>();
 			
+			var usedLowPrioColliders = new Dictionary<GlobalCollider, GameObject>();
 			var usedColliders = new Dictionary<GlobalCollider, GameObject>();
 
 			var colliderPriority = new[]
@@ -77,12 +80,23 @@ namespace nadena.dev.modular_avatar.core.editor
 							my.gameObject, my.ColliderToHijack.ToString());
 					}
 					targetCollider = my.ColliderToHijack;
-					if (!my.IgnoreOverwriteCheck && usedColliders.TryGetValue(targetCollider, out var overwrittenCollider))
+
+					if (!my.LowPriority)
 					{
-						//Collider was already used, so it will be overriten by this remap.
-						BuildReport.Log(ErrorSeverity.NonFatal,
-							"validation.global_collider.manual_collider_overwrite", 
-							overwrittenCollider.gameObject, my.gameObject);
+						if (usedColliders.TryGetValue(targetCollider, out var overwrittenCollider))
+						{
+							//Collider was already used, so it will be overriten by this remap.
+							BuildReport.Log(ErrorSeverity.NonFatal,
+								"validation.global_collider.manual_collider_overwrite",
+								overwrittenCollider.gameObject, my.gameObject);
+						}
+						usedColliders[targetCollider] = my.gameObject;
+					}
+					else
+					{
+						//We don't NEED to log a warning for low prio colliders. 
+						//There's scenarios where users might want to do this intentionally (Hierarchy order reliant)
+						usedLowPrioColliders[targetCollider] = my.gameObject;
 					}
 				}
 				else
@@ -105,8 +119,6 @@ namespace nadena.dev.modular_avatar.core.editor
 						continue;
 					}
 				}
-
-				usedColliders[targetCollider] = my.gameObject;
 
 				var desc = ctx.VRChatAvatarDescriptor();
 
