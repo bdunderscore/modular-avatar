@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1791] `World Fixed Object` would double the scale of objects it's attached to
+- [#1799] Animation clips were not properly updated when Unity constraints were converted to VRChat constraints on objects that underwent path remapping (e.g., via Replace Object)
 
 ### Changed
 

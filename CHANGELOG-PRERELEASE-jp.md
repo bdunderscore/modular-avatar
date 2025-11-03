@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1769] VRCFury バージョン < 1.1250.0 がMesh CutterやShape Changer削除モードコンポーネントと一緒に存在する場合の警告を追加。これらの組み合わせは互換性がありません。
 
 ### Fixed
+- [#1799] パスの再マッピング（例：Replace Object）を経たオブジェクトでUnityコンストレイントがVRChatコンストレイントに変換された際、アニメーションクリップが正しく更新されない問題を修正
 
 ### Changed
 
