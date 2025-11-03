@@ -108,6 +108,43 @@ public class ModularAvatarMeshCutterTest : TestBase
                 $"Remaining vertex at {vertex} should not be from the deleted Z=2 plane");
         }
     }
+
+    [Test]
+    public void WhenMeshCutterIsOnMeshObject_AndMeshObjectIsConditional_MeshDeletionIsUnconditional()
+    {
+        // Add mesh cutter
+        var meshCutter = meshObject.AddComponent<ModularAvatarMeshCutter>();
+        meshCutter.Object.Set(meshObject);
+        
+        // Add vertex filter to select vertices with Z > 1.5 (Z=2 plane)
+        var vertexFilter = meshObject.AddComponent<VertexFilterByAxisComponent>();
+        vertexFilter.Center = new Vector3(0, 0, 1.5f);
+        vertexFilter.Axis = Vector3.forward;
+        
+        // Add a menu item to control the mesh object
+        var menu = CreateChild(avatarRoot, "Menu");
+        menu.AddComponent<ModularAvatarMenuInstaller>();
+        menu.AddComponent<ModularAvatarMenuItem>();
+        var ot = menu.AddComponent<ModularAvatarObjectToggle>();
+        ot.Objects = new()
+        {
+            new ToggledObject()
+            {
+                Object = new AvatarObjectReference()
+            }
+        };
+        ot.Objects[0].Object.Set(meshObject);
+
+        var originalVertexCount = testMesh.vertexCount;
+        
+        AvatarProcessor.ProcessAvatar(avatarRoot);
+        
+        var processedMesh = meshRenderer.sharedMesh;
+        
+        // Verify vertices were deleted
+        Assert.Less(processedMesh.vertexCount, originalVertexCount, 
+            "Vertex count should decrease after deletion");
+    }
     
     [Test]
     public void TestMeshCutterWithTwoVertexFilters_AndCondition_NaNimate()

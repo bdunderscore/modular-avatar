@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1784] Removed dependency on `com.vrchat.avatars`
 - Performance improvements for `MA Fit Preview`
+- [#1776] Mesh Cutter components parented underneath a mesh, will ignore that mesh and its parents when considering
+  whether they are constant-on.
+    - This improves performance, and improves compatibility with non-VRChat platforms.
 
 ### Removed
 
