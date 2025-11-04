@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.4-beta.4] - [2025-11-04]
+
+### Added
 - [#1769] Added warning when VRCFury version < 1.1250.0 is present with Mesh Cutter or Shape Changer delete mode components, as these combinations are incompatible.
 
 ### Fixed
@@ -22,12 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1776] Mesh Cutter components parented underneath a mesh, will ignore that mesh and its parents when considering
   whether they are constant-on.
     - This improves performance, and improves compatibility with non-VRChat platforms.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.4-beta.3] - [2025-10-27]
 
