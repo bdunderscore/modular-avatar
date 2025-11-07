@@ -65,6 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
             "ScaleFactorInverse",
             "EyeHeightAsMeters",
             "EyeHeightAsPercent",
+            "IsAnimatorEnabled",
         }.ToImmutableHashSet();
 
         public static ImmutableList<string> PhysBoneSuffixes = new string[]
