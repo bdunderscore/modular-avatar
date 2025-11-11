@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1804] `IsAnimatorEnabled` という、VRChatの内部パラメーターに対応
 
 ### Fixed
 
