@@ -1,16 +1,15 @@
 ﻿#if MA_VRCSDK3_AVATARS
 #region
-using System;
+
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
-
 using nadena.dev.ndmf.vrchat;
-using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
-
 using UnityEngine;
+using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
 using Object = UnityEngine.Object;
-using System.Linq;
+
 #endregion
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -18,16 +17,24 @@ namespace nadena.dev.modular_avatar.core.editor
 	[RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
 	internal class VRChatGlobalColliderPass : Pass<VRChatGlobalColliderPass>
 	{
+		internal void TestExecute(ndmf.BuildContext context)
+		{
+			Execute(context);
+		}
+		
 		protected override void Execute(ndmf.BuildContext ctx)
 		{
 			var remapColliders = ctx.AvatarRootTransform.GetComponentsInChildren<ModularAvatarGlobalCollider>(true);
 			if (remapColliders.Length == 0) return;
 
-			remapColliders = remapColliders.OrderByDescending(c => c.LowPriority).ThenByDescending(c => c.ManualRemap).ToArray();
-			//Low Priority remaps run first in their group (Though auto remaps should never be low prio)
+			remapColliders = remapColliders
+				.OrderByDescending(c => (c.ManualRemap, c.LowPriority && c.ManualRemap))
+				.ToArray();
+			//Low Priority remaps run first in their group. Since auto remaps are never low priority, we
+			//suppress this option in their case. 
 			//Manual remaps run first 
 
-			var LogRemapUsingFinger = new HashSet<GameObject>();
+			var logRemapUsingFinger = new HashSet<GameObject>();
 			var logAutoRemapsIndexFinger = new HashSet<GameObject>();
 			var logAutoRemapsFailed = new HashSet<GameObject>();
 			
@@ -107,6 +114,9 @@ namespace nadena.dev.modular_avatar.core.editor
 						if (usedColliders.ContainsKey(collider))
 							continue;
 
+						if (usedLowPrioColliders.ContainsKey(collider))
+							continue; // respect low-priority reservations
+
 						if (collider == GlobalCollider.FingerIndexLeft || collider == GlobalCollider.FingerIndexRight)
 							logAutoRemapsIndexFinger.Add(my.gameObject);
 
@@ -118,6 +128,8 @@ namespace nadena.dev.modular_avatar.core.editor
 						logAutoRemapsFailed.Add(my.gameObject);
 						continue;
 					}
+
+					usedColliders[targetCollider] = my.gameObject;
 				}
 
 				var desc = ctx.VRChatAvatarDescriptor();
@@ -130,7 +142,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
 				if (isFinger)
 				{
-					LogRemapUsingFinger.Add(my.gameObject);
+					logRemapUsingFinger.Add(my.gameObject);
 
 					//VRC Finger bones are special, they automatically calculate their position and rotation based on their parent bone.
 					//Create an empty inside the target bone which will contain offsets
@@ -173,13 +185,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
 			if (logAutoRemapsIndexFinger.Count > 0)
 			{
-				BuildReport.Log(ErrorSeverity.Information, 
-					"validation.global_collider.using_index_fingers_vrc", LogRemapUsingFinger.Count + logAutoRemapsFailed.Count, LogRemapUsingFinger, logAutoRemapsFailed);
+				BuildReport.Log(ErrorSeverity.Information,
+					"validation.global_collider.using_index_fingers_vrc",
+					logRemapUsingFinger.Count + logAutoRemapsFailed.Count, logRemapUsingFinger, logAutoRemapsFailed);
 			}
 			if (logAutoRemapsFailed.Count > 0)
 			{
-				BuildReport.Log(ErrorSeverity.NonFatal, 
-					"validation.global_collider.no_global_colliders_available_vrc", LogRemapUsingFinger.Count+logAutoRemapsFailed.Count, LogRemapUsingFinger, logAutoRemapsFailed);
+				BuildReport.Log(ErrorSeverity.NonFatal,
+					"validation.global_collider.no_global_colliders_available_vrc",
+					logRemapUsingFinger.Count + logAutoRemapsFailed.Count, logRemapUsingFinger, logAutoRemapsFailed);
 			}
 		}
 	}

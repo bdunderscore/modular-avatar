@@ -1,7 +1,6 @@
 ﻿#region
 
 using UnityEngine;
-
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
@@ -55,7 +54,12 @@ namespace nadena.dev.modular_avatar.core
 		[SerializeField]
 		internal AvatarObjectReference m_rootTransform = new();
 		public Transform RootTransform {
-			get => m_rootTransform?.Get(this)?.transform ?? transform;
+			get
+			{
+				var rootObj = m_rootTransform?.Get(this);
+
+				return rootObj?.transform != null ? rootObj.transform : transform;
+			}
 			set {
 				if (m_rootTransform == null) m_rootTransform = new();
 				m_rootTransform.Set(value?.gameObject);
