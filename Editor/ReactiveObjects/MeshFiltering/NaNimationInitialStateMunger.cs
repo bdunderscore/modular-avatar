@@ -3,10 +3,9 @@ using System.Linq;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.Constraint.Components;
-
-#if MA_VRCSDK3_AVATARS
 
 namespace nadena.dev.modular_avatar.core.editor
 {
