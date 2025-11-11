@@ -368,7 +368,6 @@
   "global_collider.low_priority": "Low Priority Collider",
   "global_collider.low_priority.tooltip": "If enabled, this Global Collider may be overwritten by other Global Colliders.",
   "hint.global_collider.low_priority": "A low priority collider may be overwritten by automatic or manual Global Colliders.",
-  "global_collider.enable_overwrite_warnings": "Allow Warnings",
   "global_collider.hijack_collider": "Collider to Remap",
   "global_collider.hijack_collider.tooltip": "Which collider from the descriptor to modify.",
   "global_collider.hijack_none": "If a collider is not assigned, this component will be skipped.",
@@ -406,5 +405,5 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "For VRC, you can't use more than 8 Global Colliders. You currently have {0}.",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "Reduce the number of MA Global Collider components.",
   "validation.global_collider.manual_collider_overwrite": "Global Collider components are manually using the same collider.",
-  "validation.global_collider.manual_collider_overwrite:description": "The 2nd will overwrite the 1st component."
+  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components."
 }
