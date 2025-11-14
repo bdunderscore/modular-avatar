@@ -194,6 +194,8 @@
   "validation.merge_armature.target_is_child:hint": "Merge Armature는 아마추어를 자기 자신에게 병합할 수 없습니다. '병합 대상' 필드를 다른 오브젝트로 설정해 보세요.",
   "validation.platform_filter.mixed_include_exclude": "[MA-0013] 하나의 게임 오브젝트는 Platform Filter 컴포넌트에서 플랫폼 포함과 제외를 동시에 가질 수 없습니다.",
   "validation.platform_filter.mixed_include_exclude:description": "포함 모드를 사용 중이니, 포함할 플랫폼만 지정해보세요.",
+  "validation.legacy_vrcfury_warning": "[MA-1600] VRCFury 버전이 너무 오래되어 Mesh Cutter과 Shape Changer의 삭제(Delete) 모드를 사용할 수 없습니다.",
+  "validation.legacy_vrcfury_warning:hint": "Mesh Cutter 또는 Shape Changer를 삭제(Delete) 모드로 사용하려면 VRCFury 1.1250.0 이상이 필요합니다. 최신 버전으로 업데이트해주세요.",
   "submenu_source.Children": "자식",
   "submenu_source.MenuAsset": "표현식 메뉴 에셋 (Expressions Menu)",
   "menuitem.showcontents": "메뉴 내용 표시",
