@@ -34,6 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			//suppress this option in their case. 
 			//Manual remaps run first 
 
+			var logFingerRemapCount = new int();
 			var logRemapUsingFinger = new HashSet<GameObject>();
 			var logAutoRemapsIndexFinger = new HashSet<GameObject>();
 			var logAutoRemapsFailed = new HashSet<GameObject>();
@@ -123,6 +124,21 @@ namespace nadena.dev.modular_avatar.core.editor
 						targetCollider = collider;
 						break;
 					}
+					//No colliders, take from low prio if available
+					if (targetCollider == GlobalCollider.None && usedLowPrioColliders.Count > 0)
+					{
+						foreach (var collider in colliderPriority)
+						{
+							if (usedLowPrioColliders.ContainsKey(collider))
+							{
+								targetCollider = collider;
+								usedLowPrioColliders.Remove(collider);
+								// Removed from low prio, will be added to usedColliders below
+								break;
+							}
+						}
+					}
+					//Still none means no colliders available
 					if (targetCollider == GlobalCollider.None)
 					{
 						logAutoRemapsFailed.Add(my.gameObject);
@@ -143,6 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				if (isFinger)
 				{
 					logRemapUsingFinger.Add(my.gameObject);
+					logFingerRemapCount++; //Hashset is only unique GOs
 
 					//VRC Finger bones are special, they automatically calculate their position and rotation based on their parent bone.
 					//Create an empty inside the target bone which will contain offsets
@@ -187,13 +204,13 @@ namespace nadena.dev.modular_avatar.core.editor
 			{
 				BuildReport.Log(ErrorSeverity.Information,
 					"validation.global_collider.using_index_fingers_vrc",
-					logRemapUsingFinger.Count + logAutoRemapsFailed.Count, logRemapUsingFinger, logAutoRemapsFailed);
+					logFingerRemapCount, logRemapUsingFinger, logAutoRemapsFailed);
 			}
 			if (logAutoRemapsFailed.Count > 0)
 			{
 				BuildReport.Log(ErrorSeverity.NonFatal,
 					"validation.global_collider.no_global_colliders_available_vrc",
-					logRemapUsingFinger.Count + logAutoRemapsFailed.Count, logRemapUsingFinger, logAutoRemapsFailed);
+					logFingerRemapCount, logRemapUsingFinger, logAutoRemapsFailed);
 			}
 		}
 	}

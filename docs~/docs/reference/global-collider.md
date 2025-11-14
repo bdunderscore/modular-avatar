@@ -15,7 +15,7 @@ of other avatars.
 
 - Adding a collider to a gimmick or prop so it can interact with PhysBones on other avatars.
 - Moving a VRChat Hand collider to change where you grab things from. (Such as to the mouth to mimic biting)
-- Adding shockwave/recoil effects to weaponry by animating the GameObject bject with a collider.
+- Adding shockwave/recoil effects to weaponry by animating the GameObject object with a collider.
 
 ## When should I not use it?
 
@@ -35,7 +35,7 @@ colliders such as the fingers.
 You can place this component on any game object and define its shape like a standard capsule or VRChat Physbone collider.
 
 The implementation strategy may differ by platform. On VRChat, the number of global colliders is limited, so this
-component will take over one of the base colliders (fingers and hands) in order to implement the global collider.
+component will take over one of the base colliders (fingers) in order to implement the global collider.
 
 On other platforms, we may implement this in a different way.
 
