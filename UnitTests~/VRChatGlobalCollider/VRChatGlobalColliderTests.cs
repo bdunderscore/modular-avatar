@@ -498,6 +498,139 @@ namespace modular_avatar_tests.VRChatGlobalCollider
             // component should be removed
             Assert.AreEqual(0, root.GetComponentsInChildren<ModularAvatarGlobalCollider>(true).Length);
         }
+
+        [Test]
+        public void AutoDoesNotOverwriteLowPriorityWhenSlotsAvailable()
+        {
+            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            Assert.NotNull(root);
+
+            // Create 7 low-priority manual finger colliders occupying all but one finger slot
+            // We'll occupy: RingLeft, RingRight, MiddleLeft, MiddleRight, LittleLeft, LittleRight, IndexLeft
+            var lowSlots = new (GlobalCollider slot, float radius, string name)[]
+            {
+                (GlobalCollider.FingerRingLeft, 0.10f, "Low_RingL"),
+                (GlobalCollider.FingerRingRight, 0.11f, "Low_RingR"),
+                (GlobalCollider.FingerMiddleLeft, 0.12f, "Low_MiddleL"),
+                (GlobalCollider.FingerMiddleRight, 0.13f, "Low_MiddleR"),
+                (GlobalCollider.FingerLittleLeft, 0.14f, "Low_LittleL"),
+                (GlobalCollider.FingerLittleRight, 0.15f, "Low_LittleR"),
+                (GlobalCollider.FingerIndexLeft, 0.16f, "Low_IndexL")
+            };
+
+            foreach (var entry in lowSlots)
+            {
+                var obj = CreateChild(root, entry.name);
+                var comp = obj.AddComponent<ModularAvatarGlobalCollider>();
+                comp.ManualRemap = true;
+                comp.LowPriority = true;
+                comp.ColliderToHijack = entry.slot;
+                comp.Radius = entry.radius;
+                comp.RootTransform = obj.transform;
+            }
+
+            // Add single auto collider which should find the one free finger slot (IndexRight)
+            var autoObj = CreateChild(root, "Auto_Only");
+            var auto = autoObj.AddComponent<ModularAvatarGlobalCollider>();
+            auto.ManualRemap = false;
+            auto.Radius = 0.99f;
+            auto.RootTransform = autoObj.transform;
+
+            var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
+            new VRChatGlobalColliderPass().TestExecute(buildContext);
+
+            var desc = root.GetComponent<VRCAvatarDescriptor>();
+
+            // All low-priority manual slots should remain applied (not overwritten)
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerRingL.state);
+            Assert.AreEqual(0.10f, desc.collider_fingerRingL.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerRingR.state);
+            Assert.AreEqual(0.11f, desc.collider_fingerRingR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerMiddleL.state);
+            Assert.AreEqual(0.12f, desc.collider_fingerMiddleL.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerMiddleR.state);
+            Assert.AreEqual(0.13f, desc.collider_fingerMiddleR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerLittleL.state);
+            Assert.AreEqual(0.14f, desc.collider_fingerLittleL.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerLittleR.state);
+            Assert.AreEqual(0.15f, desc.collider_fingerLittleR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerIndexL.state);
+            Assert.AreEqual(0.16f, desc.collider_fingerIndexL.radius, 1e-6f);
+
+            // The auto should have taken the remaining free slot: FingerIndexRight
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerIndexR.state);
+            Assert.AreEqual(0.99f, desc.collider_fingerIndexR.radius, 1e-6f);
+        }
+
+        [Test]
+        public void AutoOverwritesLowPriorityWhenMultipleAutosExist()
+        {
+            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            Assert.NotNull(root);
+
+            // Create the same 7 low-priority manual finger colliders
+            var lowSlots = new (GlobalCollider slot, float radius, string name)[]
+            {
+                (GlobalCollider.FingerRingLeft, 0.20f, "Low2_RingL"),
+                (GlobalCollider.FingerRingRight, 0.21f, "Low2_RingR"),
+                (GlobalCollider.FingerMiddleLeft, 0.22f, "Low2_MiddleL"),
+                (GlobalCollider.FingerMiddleRight, 0.23f, "Low2_MiddleR"),
+                (GlobalCollider.FingerLittleLeft, 0.24f, "Low2_LittleL"),
+                (GlobalCollider.FingerLittleRight, 0.25f, "Low2_LittleR"),
+                (GlobalCollider.FingerIndexLeft, 0.26f, "Low2_IndexL")
+            };
+
+            foreach (var entry in lowSlots)
+            {
+                var obj = CreateChild(root, entry.name);
+                var comp = obj.AddComponent<ModularAvatarGlobalCollider>();
+                comp.ManualRemap = true;
+                comp.LowPriority = true;
+                comp.ColliderToHijack = entry.slot;
+                comp.Radius = entry.radius;
+                comp.RootTransform = obj.transform;
+            }
+
+            // Add two autos; first should take the remaining free slot, second should overwrite a low-priority (expected: FingerRingLeft)
+            var autoObj1 = CreateChild(root, "AutoA");
+            var auto1 = autoObj1.AddComponent<ModularAvatarGlobalCollider>();
+            auto1.ManualRemap = false;
+            auto1.Radius = 0.91f;
+            auto1.RootTransform = autoObj1.transform;
+
+            var autoObj2 = CreateChild(root, "AutoB");
+            var auto2 = autoObj2.AddComponent<ModularAvatarGlobalCollider>();
+            auto2.ManualRemap = false;
+            auto2.Radius = 0.92f;
+            auto2.RootTransform = autoObj2.transform;
+
+            var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
+            new VRChatGlobalColliderPass().TestExecute(buildContext);
+
+            var desc = root.GetComponent<VRCAvatarDescriptor>();
+
+            // Non-overwritten low-priority slots should remain
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerRingR.state);
+            Assert.AreEqual(0.21f, desc.collider_fingerRingR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerMiddleL.state);
+            Assert.AreEqual(0.22f, desc.collider_fingerMiddleL.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerMiddleR.state);
+            Assert.AreEqual(0.23f, desc.collider_fingerMiddleR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerLittleL.state);
+            Assert.AreEqual(0.24f, desc.collider_fingerLittleL.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerLittleR.state);
+            Assert.AreEqual(0.25f, desc.collider_fingerLittleR.radius, 1e-6f);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerIndexL.state);
+            Assert.AreEqual(0.26f, desc.collider_fingerIndexL.radius, 1e-6f);
+
+            // One auto should have filled the free slot (IndexRight) with first auto's radius
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerIndexR.state);
+            Assert.AreEqual(0.91f, desc.collider_fingerIndexR.radius, 1e-6f);
+
+            // The other auto should have overwritten the low-priority FingerRingLeft
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerRingL.state);
+            Assert.AreEqual(0.92f, desc.collider_fingerRingL.radius, 1e-6f);
+        }
     }
 }
 #endif
