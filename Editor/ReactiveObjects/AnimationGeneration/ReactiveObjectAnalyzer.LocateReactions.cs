@@ -1,5 +1,4 @@
 ﻿#if MA_VRCSDK3_AVATARS
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -353,9 +352,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var changers = _computeContext.GetComponentsInChildren<IModularAvatarMaterialChanger>(root, true);
             var renderers = _computeContext.GetComponentsInChildren<Renderer>(root, true);
-
-            PrepareMaterialSetters(changers.OfType<ModularAvatarMaterialSetter>());
-            PrepareMaterialSwaps(changers.OfType<ModularAvatarMaterialSwap>());
+            var interestingRenderers = new HashSet<Renderer>();
 
             foreach (var changer in changers)
             {
@@ -366,37 +363,43 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            void PrepareMaterialSetters(IEnumerable<ModularAvatarMaterialSetter> setters)
+            ObserveMaterialSetters(changers.OfType<ModularAvatarMaterialSetter>());
+            ObserveMaterialSwaps(changers.OfType<ModularAvatarMaterialSwap>());
+
+            void ObserveMaterialSetters(IEnumerable<ModularAvatarMaterialSetter> setters)
             {
             }
 
-            void PrepareMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
+            void ObserveMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                var swapRootsBySourceMaterial = swaps
-                    .Where(c => c.Swaps != null)
-                    .SelectMany(c => c.Swaps, (c, m) => (root: c.Root.Get(c), mat: m.From ? m.From : null))
-                    .ToLookup(x => x.mat, x => x.root);
-                var sourceMaterials = swapRootsBySourceMaterial
-                    .Select(x => x.Key)
-                    .ToArray();
-                foreach (var renderer in renderers)
+                foreach (var renderer in interestingRenderers)
                 {
-                    // Observe whether any of the renderer’s sharedMaterials
-                    // has become a swap source (-1 to index),
-                    // is no longer a swap source (index to -1),
-                    // or has switched among the swap sources (index to another index).
-                    _computeContext.Observe(renderer, r => r.sharedMaterials
-                            .Select(IndexOfSourceMaterial)
-                            .ToImmutableList(),
-                        Enumerable.SequenceEqual);
+                    // Observe whether any of the renderer’s sharedMaterials have changed
+                    var currentRegistry = ObjectRegistry.ActiveRegistry;
 
-                    int IndexOfSourceMaterial(Material material)
+                    _computeContext.Observe(renderer, r => r.sharedMaterials, SequenceEqualByOriginalMaterial);
+
+                    bool SequenceEqualByOriginalMaterial(Material[] ax, Material[] bx)
                     {
-                        if (swapRootsBySourceMaterial[material].Any(x => x == null || renderer.transform.IsChildOf(x.transform)))
+                        if (ax.Length != bx.Length) return false;
+
+                        var activeRegistry = ObjectRegistry.ActiveRegistry;
+
+                        for (var i = 0; i < ax.Length; i++)
                         {
-                            return Array.IndexOf(sourceMaterials, material);
+                            Object a = ax[i];
+                            Object b = bx[i];
+
+                            a = currentRegistry?.GetReference(a, false)?.Object
+                                ?? activeRegistry?.GetReference(a, false)?.Object
+                                ?? a;
+                            b = currentRegistry?.GetReference(b, false)?.Object
+                                ?? activeRegistry?.GetReference(b, false)?.Object
+                                ?? b;
+                            if (a != b) return false;
                         }
-                        return -1;
+
+                        return true;
                     }
                     
                     // Re-evaluate the context if the hierarchy changes. Note that this will force the above Observe
@@ -416,6 +419,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (renderer == null || renderer.sharedMaterials.Length <= obj.MaterialIndex) continue;
 
                     RegisterAction(setter, renderer, obj.MaterialIndex, obj.Material);
+
+                    interestingRenderers.Add(renderer);
                 }
             }
 
@@ -427,16 +432,25 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var obj in _computeContext.Observe(swap, c => c.Swaps.Select(o => o.Clone()).ToList(),
                     Enumerable.SequenceEqual))
                 {
-                    foreach (var (renderer, index, _) in renderers
-                        .Where(r => swapRoot == null || r.transform.IsChildOf(swapRoot.transform))
-                        .SelectMany(r => r.sharedMaterials.Select((m, i) =>
-                        {
-                            var originalMaterial = ObjectRegistry.GetReference(m)?.Object as Material ?? m;
-                            return (renderer: r, index: i, material: originalMaterial);
-                        }))
-                        .Where(x => x.material == (obj.From ? ObjectRegistry.GetReference(obj.From)?.Object as Material ?? obj.From : null)))
+                    var objFrom =
+                        obj.From ? ObjectRegistry.GetReference(obj.From)?.Object as Material ?? obj.From : null;
+
+                    foreach (var renderer in renderers)
                     {
-                        RegisterAction(swap, renderer, index, obj.To);
+                        if (swapRoot != null && !renderer.transform.IsChildOf(swapRoot.transform)) continue;
+
+                        interestingRenderers.Add(renderer);
+
+                        var mats = renderer.sharedMaterials;
+                        for (var i = 0; i < mats.Length; i++)
+                        {
+                            var m = mats[i];
+                            var originalMaterial = ObjectRegistry.GetReference(m)?.Object as Material ?? m;
+                            if (originalMaterial == objFrom)
+                            {
+                                RegisterAction(swap, renderer, i, obj.To);
+                            }
+                        }
                     }
                 }
             }

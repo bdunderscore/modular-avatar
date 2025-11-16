@@ -37,7 +37,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public ImmutableDictionary<string, ModularAvatarMenuItem> ForceMenuItems { get; set; } =
             ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
-        
+
+        public static AnalysisResult NullAnalysis =>
+            new()
+            {
+                Shapes = new Dictionary<TargetProp, AnimatedProperty>(),
+                InitialStates = new Dictionary<TargetProp, object>()
+            };
+
         public ReactiveObjectAnalyzer(ndmf.BuildContext context)
         {
             _computeContext = ComputeContext.NullContext;
@@ -83,6 +90,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 _analysisCache = new PropCache<GameObject, AnalysisResult>("ROAnalyzer", (ctx, root) =>
                 {
+                    if (!ctx.Observe(root, obj => obj.activeInHierarchy))
+                    {
+                        return NullAnalysis;
+                    }
+
                     var analysis = new ReactiveObjectAnalyzer(ctx);
                     analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)
                         ?? ImmutableDictionary<string, float>.Empty;

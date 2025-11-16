@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1804] `IsAnimatorEnabled` という、VRChatの内部パラメーターに対応
 
 ### Fixed
+- [#1808] プレビュー処理を高速化（特に、無効状態のアバターが多い場合）
 
 ### Changed
 
