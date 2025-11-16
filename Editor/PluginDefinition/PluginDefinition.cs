@@ -58,7 +58,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 
 #if MA_VRCSDK3_AVATARS
-                seq.Run(RenameCollisionTagsPass.Instance);
+				seq.Run(VRChatGlobalColliderPass.Instance);
+				seq.Run(RenameCollisionTagsPass.Instance);
                 seq.Run(ReactiveObjectPrepass.Instance);
 #endif
 
