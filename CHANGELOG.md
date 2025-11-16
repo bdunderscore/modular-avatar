@@ -15,15 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `MA Fit Preview`, a new feature which allows you to pose a copy of your avatar, with physbones moving in edit mode.
   - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time. 
 - [#1786] Implement `MA Global Collider`
+- [#1804] Added support for the `IsAnimatorEnabled` VRChat built-in parameter
 
 ### Fixed
 - [#1791] `World Fixed Object` would double the scale of objects it's attached to
 - [#1778] `Vertex Filter - By Axis` would leave the transform handle disabled when switching away from the object while
   in edit mode.
 - [#1799] `Convert Constraints` would fail to fix animations if a constraint was replaced by `Replace Object` 
+- [#1808] Improved performance of preview logic, particularly when there are a very large number of disabled avatars
 
 ### Changed
 - [#1784] Removed dependency on `com.vrchat.avatars`
+- [#1776] Mesh Cutter components parented underneath their target mesh, will ignore that mesh and its parents when
+  considering
+  whether they are constant-on.
+    - This improves performance, and improves compatibility with non-VRChat platforms.
 
 ### Removed
 

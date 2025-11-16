@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1804] `IsAnimatorEnabled` という、VRChatの内部パラメーターに対応
+
+### Fixed
+- [#1808] プレビュー処理を高速化（特に、無効状態のアバターが多い場合）
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.4-beta.4] - [2025-11-04]
+
+### Added
 - [#1769] VRCFury バージョン < 1.1250.0 がMesh CutterやShape Changer削除モードコンポーネントと一緒に存在する場合の警告を追加。これらの組み合わせは互換性がありません。
 - [#1784] `MA Global Collider` を実装
 
@@ -20,12 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#1784] `com.vrchat.avatars` の前提を外しました
 - `MA Fit Preview` のパフォーマンス向上
-
-#￥## Removed
-
-### Security
-
-### Deprecated
+- [#1776] 自分が操作しているメッシュの子として配置された `Mesh Cutter` が、動的に操作されているかの判定でその親
+  メッシュのアニメーション操作を無視するように変更
+    - この変更はパフォーマンス向上、およびVRChat以外のプラットホームでの利便性向上のためのものです。
 
 ## [1.14.4-beta.3] - [2025-10-27]
 

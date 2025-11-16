@@ -1,7 +1,7 @@
 {
   "name": "nadena.dev.modular-avatar",
   "displayName": "Modular Avatar",
-  "version": "1.14.4-beta.3",
+  "version": "1.14.4-beta.4",
   "unity": "2022.3",
   "description": "A suite of tools for assembling your avatar out of reusable components",
   "author": {
@@ -15,6 +15,6 @@
     "com.unity.nuget.newtonsoft-json": "2.0.0"
   },
   "vpmDependencies": {
-    "nadena.dev.ndmf": ">=1.10.0-beta.2 <2.0.0-a"
+    "nadena.dev.ndmf": ">=1.10.0-beta.4 <2.0.0-a"
   }
 }
