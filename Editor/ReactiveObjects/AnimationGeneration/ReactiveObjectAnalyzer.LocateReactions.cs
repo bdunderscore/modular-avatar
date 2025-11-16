@@ -372,7 +372,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void ObserveMaterialSwaps(IEnumerable<ModularAvatarMaterialSwap> swaps)
             {
-                foreach (var renderer in interestingRenderers) // TODO: use interestingRenderers
+                foreach (var renderer in interestingRenderers)
                 {
                     // Observe whether any of the renderer’s sharedMaterials have changed
                     var currentRegistry = ObjectRegistry.ActiveRegistry;

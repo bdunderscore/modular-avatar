@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1804] Added support for the `IsAnimatorEnabled` VRChat built-in parameter
 
 ### Fixed
+- [#1808] Improved performance of preview logic, particularly when there are a very large number of disabled avatars
 
 ### Changed
 
