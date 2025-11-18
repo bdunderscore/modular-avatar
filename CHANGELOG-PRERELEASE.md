@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1804] Added support for the `IsAnimatorEnabled` VRChat built-in parameter
-- [#1784] Implement `MA Global Collider`
+- [#1786] Implement `MA Global Collider`
 
 ### Fixed
 - [#1808] Improved performance of preview logic, particularly when there are a very large number of disabled avatars

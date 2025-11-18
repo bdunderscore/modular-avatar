@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1769] VRCFury バージョン < 1.1250.0 がMesh CutterやShape Changer削除モードコンポーネントと一緒に存在する場合の警告を追加。これらの組み合わせは互換性がありません。
-- [#1784] `MA Global Collider` を実装
+- [#1786] `MA Global Collider` を実装
 
 ### Fixed
 - [#1799] `Convert Constraints` をつけて、コンストレイントを `Replace Object` で置き換えた場合、アニメーションが
