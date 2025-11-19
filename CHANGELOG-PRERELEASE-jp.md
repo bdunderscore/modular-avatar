@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#1812] `Scale Adjuster` でヒューマノイドリグのボーンの長さを変更できるようになりました
 - [#1813] `Fit Preview`で自分以外のトランスフォームを指定するPhysBoneを再生しない場合がある問題を修正
+- [#1814] 選択アバターを変えた後に `Fit Preview` が動作しなくなるバグを修正
+- [#1814] 間違ってオブジェクトを削除してしまう事故を防止するため、`Fit Preview` ウィンドウで DEL キーを無効化
 
 ### Changed
 

@@ -60,6 +60,8 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private readonly MethodInfo? _colliderOnEnable = AccessTools.Method(typeof(VRCPhysBoneColliderBase), "OnEnable");
         private readonly MethodInfo? _colliderOnDisable = AccessTools.Method(typeof(VRCPhysBoneColliderBase), "OnDisable");
 
+        public bool IsValid => !_disposed && Root;
+        
         private void ScheduleDelayedUpdate()
         {
             if (_delayedUpdatePending) return;
@@ -188,6 +190,8 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
 
         public void Update()
         {
+            if (!IsValid) return;
+            
             if (DynamicsEnabled)
             {
                 UpdatePBConfigs();
