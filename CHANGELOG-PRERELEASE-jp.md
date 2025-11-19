@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1812] `Scale Adjuster` でヒューマノイドリグのボーンの長さを変更できるようになりました
-- [#1813] `Fit Preview`で自分以外のトランスフォームを指定するPhysBoneを再生しない場合がある問題を修正
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0-rc.0] - [2025-11-19]
+
+### Fixed
+- [#1812] `Scale Adjuster` でヒューマノイドリグのボーンの長さを変更できるようになりました
+- [#1813] `Fit Preview`で自分以外のトランスフォームを指定するPhysBoneを再生しない場合がある問題を修正
 
 ## [1.14.4-beta.5] - [2025-11-16]
 
