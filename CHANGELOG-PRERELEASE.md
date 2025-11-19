@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1812] `Scale Adjuster` can now adjust the length of humanoid bones
+- [#1813] `Fit Preview` would fail to render physbones when they point to a transform other than themselves in some cases
 
 ### Changed
 
@@ -18,12 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
-
-## [1.15.0-rc.0] - [2025-11-19]
-
-### Fixed
-- [#1812] `Scale Adjuster` can now adjust the length of humanoid bones
-- [#1813] `Fit Preview` would fail to render physbones when they point to a transform other than themselves in some cases
 
 ## [1.14.4-beta.5] - [2025-11-16]
 
