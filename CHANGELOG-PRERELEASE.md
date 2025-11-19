@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.15.0-rc.1] - [2025-11-19]
+
+### Fixed
 - [#1812] `Scale Adjuster` can now adjust the length of humanoid bones
 - [#1813] `Fit Preview` would fail to render physbones when they point to a transform other than themselves in some cases
 - [#1814] Fixed an issue where `Fit Preview` would break after changing target avatar
@@ -17,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1815] Modular Avatar will no longer garbage collect unused objects when they are referenced by an animation
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.4-beta.5] - [2025-11-16]
 
