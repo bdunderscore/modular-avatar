@@ -37,7 +37,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         
         private ShadowBoneHierarchy GetHierarchy(GameObject root)
         {
-            if (_shadowBoneHierarchy?.Root == root) return _shadowBoneHierarchy;
+            if (_shadowBoneHierarchy?.IsValid == true && _shadowBoneHierarchy?.Root == root) return _shadowBoneHierarchy;
 
             _shadowBoneHierarchy?.Dispose();
             _shadowBoneHierarchy = new ShadowBoneHierarchy(root, _scene);
@@ -163,13 +163,15 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             {
                 foreach (var bone in _boneRefs.Values)
                 {
-                    _shadowBoneHierarchy.ReleaseTransform(bone);
+                    _shadowBoneHierarchy?.ReleaseTransform(bone);
                 }
 
                 foreach (var bone in _meshRendererHosts.Values)
                 {
-                    _shadowBoneHierarchy.ReleaseTransform(bone);
+                    _shadowBoneHierarchy?.ReleaseTransform(bone);
                 }
+                
+                _shadowBoneHierarchy?.Dispose();
             }
         }
     }
