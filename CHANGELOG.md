@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   considering
   whether they are constant-on.
     - This improves performance, and improves compatibility with non-VRChat platforms.
+- [#1815] Modular Avatar will no longer garbage collect unused objects when they are referenced by an animation
 
 ### Removed
 

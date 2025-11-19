@@ -4,6 +4,8 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 using System;
 using System.Collections.Generic;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.platform;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -49,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
 #endif
 
         public BuildContext(GameObject avatarGameObject)
-            : this(new ndmf.BuildContext(avatarGameObject, null))
+            : this(new ndmf.BuildContext(avatarGameObject, null, PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30]))
         {
         }
 

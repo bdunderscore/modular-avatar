@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -128,6 +131,15 @@ namespace nadena.dev.modular_avatar.core.editor
                     // No animator? weird. Move on.
                 }
             }
+            
+            // https://github.com/bdunderscore/modular-avatar/issues/1775
+            // Also retain any object referenced by animation layers
+            var asc = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            asc.AnimationIndex.RewritePaths(path => {
+                var obj = asc.ObjectPathRemapper.GetObjectForPath(path);
+                if (obj != null) MarkObject(obj);
+                return path;
+            });
         }
 
 #if MA_VRCSDK3_AVATARS

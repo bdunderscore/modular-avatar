@@ -310,6 +310,8 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+    [DependsOnContext(typeof(ModularAvatarContext))]
+    [DependsOnContext(typeof(AnimatorServicesContext))]
     class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
