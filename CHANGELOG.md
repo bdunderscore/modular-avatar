@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1769] Added warning when VRCFury version < 1.1250.0 is present with Mesh Cutter or Shape Changer delete mode components, as these combinations are incompatible.
 - Added `MA Fit Preview`, a new feature which allows you to pose a copy of your avatar, with physbones moving in edit mode.
-  - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time. 
+  - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time.
 - [#1786] Implement `MA Global Collider`
+  - This feature was contributed by @ZenithVal!
+- [#1769] Added warning when VRCFury version < 1.1250.0 is present with Mesh Cutter or Shape Changer delete mode components, as these combinations are incompatible.
 - [#1804] Added support for the `IsAnimatorEnabled` VRChat built-in parameter
 
 ### Fixed
