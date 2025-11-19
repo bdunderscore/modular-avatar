@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1814] Blocked the DEL key in `Fit Preview` windows to avoid accidental object deletion
 
 ### Changed
+- [#1815] Modular Avatar will no longer garbage collect unused objects when they are referenced by an animation
 
 ### Removed
 

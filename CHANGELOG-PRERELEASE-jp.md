@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1814] 間違ってオブジェクトを削除してしまう事故を防止するため、`Fit Preview` ウィンドウで DEL キーを無効化
 
 ### Changed
+- [#1815] 不要な場合でも、アニメーションで操作されるオブジェクトを削除しないように変更
 
 ### Removed
 
