@@ -44,6 +44,8 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         public bool DynamicsEnabled { get; set; } = true;
         private readonly Scene _scene;
 
+        private bool _disposed;
+
         // (parent, child) => child boneInfo
         private readonly Dictionary<Transform, BoneInfo> _sourceToShadowMap = new();
         private readonly Dictionary<Transform, BoneInfo> _shadowObjMap = new();
@@ -206,12 +208,14 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         private readonly HashSet<BoneInfo> pbControlledBones = new();
         private readonly Dictionary<VRCPhysBone, VRCPhysBone> _pbProxyToOriginal = new();
         private readonly Dictionary<VRCPhysBoneColliderBase, VRCPhysBoneColliderBase> _pbOriginalToProxyColliders = new();
-        private readonly List<Transform> _pbExcludedControlBones = new();
+        private readonly List<BoneInfo> _pbExcludedBones = new();
         
         private void DelayedUpdate()
         {
+            if (_disposed) return;
+            
             var gc = InitialMark();
-
+            
             ConfigurePhysBones(gc);
             ConfigureConstraints(gc);
             SweepGC(gc);
@@ -325,10 +329,9 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             ResetPB();
             if (!DynamicsEnabled) return;
             
-            _pbExcludedControlBones.Clear();
-            _pbExcludedControlBones.AddRange(_shadowObjMap.Values
-                .Where(b => b.PBExcluded)
-                .Select(b => b.Control)
+            _pbExcludedBones.Clear();
+            _pbExcludedBones.AddRange(_shadowObjMap.Values
+                .Where(b => b.PBExcluded != null)
             );
             foreach (var pb in Root.GetComponentsInChildren<VRCPhysBone>())
             {
@@ -347,8 +350,8 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             
             var root = pb.rootTransform != null ? pb.rootTransform : pb.transform;
             var excluded = pb.ignoreTransforms.ToHashSet();
-            var rootInfo = GetOrCreateBoneInfo(root);
-            var pbHolderInfo = GetOrCreateBoneInfo(pb.transform);
+            var rootInfo = GetOrCreateBoneInfo(root)!;
+            var pbHolderInfo = GetOrCreateBoneInfo(pb.transform)!;
             gc.MarkBone(rootInfo);
             gc.MarkBone(pbHolderInfo);
 
@@ -369,7 +372,12 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             proxyPB.ignoreTransforms = pb.ignoreTransforms
                 .Select(t => GetOrCreateBoneInfo(t)?.Control)
                 .Where(t => t != null)
-                .Union(_pbExcludedControlBones.Where(b => b != root))
+                .Union(_pbExcludedBones.Where(b => b.Original != root 
+                                                   && root != b.PBExcluded
+                                                   && !root.IsChildOf(b.PBExcluded)
+                    )
+                    .Select(b => b.Control)
+                )
                 .ToList();
 
             List<VRCPhysBoneColliderBase> colliders = new();
@@ -384,14 +392,16 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 }
 
                 var colliderHolder = GetOrCreateBoneInfo(c.transform);
+                gc.MarkBone(colliderHolder);
                 var colliderRoot = c.rootTransform != null ? c.rootTransform : c.transform;
+
                 var colliderInfo = GetOrCreateBoneInfo(colliderRoot);
                 gc.MarkBone(colliderInfo);
                 collider = colliderHolder.Control.gameObject.AddComponent<VRCPhysBoneCollider>();
                 EditorUtility.CopySerialized(c, collider);
                 collider.rootTransform = colliderInfo.Control;
                 colliders.Add(collider);
-
+                
                 _colliderOnEnable?.Invoke(collider, new object[] { });
                 
                 _pbOriginalToProxyColliders[c] = collider;
@@ -509,7 +519,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 return _liveBones.Contains(bone);
             }
 
-            public void MarkBone(BoneInfo bone)
+            public void MarkBone(BoneInfo? bone)
             {
                 var cursor = bone;
                 while (cursor != null)
@@ -570,6 +580,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             _sourceToShadowMap.Clear();
             _updateOrder = null;
             _delayedUpdatePending = false;
+            _disposed = true;
         }
     }
 }

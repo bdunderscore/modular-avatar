@@ -19,7 +19,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         public Pose ProxyPose, DeltaPose;
 
         public readonly int Depth;
-        public readonly bool PBExcluded;
+        public readonly Transform? PBExcluded;
         
         public event Action OnDestroy;
 
@@ -40,14 +40,15 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
                 throw new Exception("Scene is not valid");
             }
 
-            if (parent?.Proxy != proxy.parent || original == proxy)
+            if (parent?.Proxy != proxy.parent)
             {
-                PBExcluded = true;
+                // Moved by Merge Armature
+                PBExcluded = original;
             }
 
             if (original.TryGetComponent<ModularAvatarPBBlocker>(out _))
             {
-                PBExcluded = true;
+                PBExcluded = original;
             }
 
             var control = new GameObject(original.name);
