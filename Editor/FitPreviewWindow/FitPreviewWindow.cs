@@ -216,6 +216,20 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             SetToolState();
             try
             {
+                // Suppress the DELETE key from deleting objects (to avoid accidents when manipulating UI in this 
+                // scene view window)
+                switch (Event.current.type)
+                {
+                    case EventType.KeyDown:
+                    case EventType.KeyUp:
+                        if (Event.current.keyCode == KeyCode.Delete)
+                        {
+                            Event.current.Use();
+                        }
+
+                        break;
+                }
+                
                 base.OnSceneGUI();
             }
             finally
