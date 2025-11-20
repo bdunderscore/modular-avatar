@@ -25,14 +25,12 @@
 #region
 
 using System;
-using System.Runtime.CompilerServices;
 using nadena.dev.modular_avatar.ui;
 using UnityEditor;
 using UnityEngine;
 
 #endregion
 
-[assembly: InternalsVisibleTo("Tests")]
 
 namespace nadena.dev.modular_avatar.core.editor
 {

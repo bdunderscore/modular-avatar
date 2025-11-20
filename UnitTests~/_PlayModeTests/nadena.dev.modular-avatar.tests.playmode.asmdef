@@ -1,0 +1,23 @@
+{
+  "name": "nadena.dev.modular-avatar.tests.playmode",
+  "rootNamespace": "",
+  "references": [
+    "nadena.dev.modular-avatar.test.shared",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "nadena.dev.modular-avatar.core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
