@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using nadena.dev.modular_avatar.core.editor;
-using nadena.dev.modular_avatar.editor.ErrorReporting;
-using nadena.dev.ndmf;
-using nadena.dev.ndmf.ui;
 using NUnit.Framework;
+using UnitTests.SharedInterfaces;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -22,27 +18,12 @@ namespace modular_avatar_tests
         private static Dictionary<System.Type, string> _scriptToDirectory = null;
 
         private List<GameObject> objects;
-        private const string MinimalAvatarGuid = "60d3416d1f6af4a47bf9056aefc38333";
 
         [SetUp]
         public virtual void Setup()
         {
-            if (_scriptToDirectory == null)
-            {
-                _scriptToDirectory = new Dictionary<System.Type, string>();
-                foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new string[] {"Packages/nadena.dev.modular-avatar/UnitTests"}))
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(guid);
-                    var obj = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
-                    if (obj != null && obj.GetClass() != null)
-                    {
-                        _scriptToDirectory.Add(obj.GetClass(), Path.GetDirectoryName(path));
-                    }
-                }
-            }
+            ITestSupport.Instance.Setup();
 
-            ErrorReport.Clear();
-            ErrorReportWindow.DISABLE_WINDOW = true;
             objects = new List<GameObject>();
         }
 
@@ -56,7 +37,8 @@ namespace modular_avatar_tests
 
             AssetDatabase.DeleteAsset(TEMP_ASSET_PATH);
             FileUtil.DeleteFileOrDirectory(TEMP_ASSET_PATH);
-            ErrorReportWindow.DISABLE_WINDOW = false;
+            
+            ITestSupport.Instance.Teardown();
         }
 
         protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root)
@@ -66,11 +48,9 @@ namespace modular_avatar_tests
 
         protected GameObject CreateRoot(string name)
         {
-            var path = AssetDatabase.GUIDToAssetPath(MinimalAvatarGuid);
-            var go = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
-
-            objects.Add(go);
-            return go;
+            var obj = ITestSupport.Instance.CreateTestAvatar(name);
+            objects.Add(obj);
+            return obj;
         }
 
         protected GameObject CreateChild(GameObject parent, string name)
@@ -102,13 +82,7 @@ namespace modular_avatar_tests
 
         protected T LoadAsset<T>(string relPath) where T : UnityEngine.Object
         {
-            var root = _scriptToDirectory[GetType()] + "/";
-            var path = root + relPath;
-
-            var obj = AssetDatabase.LoadAssetAtPath<T>(path);
-            Assert.NotNull(obj, "Missing test asset {0}", path);
-
-            return obj;
+            return ITestSupport.Instance.LoadAsset<T>(GetType(), relPath);
         }
 
 #if MA_VRCSDK3_AVATARS

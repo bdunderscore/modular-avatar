@@ -47,6 +47,7 @@ jobs:
       matrix:
         unity_major_version: [ 2022 ]
         sdk: [ vrcsdk ]
+        testmode: [ All ]
     runs-on: ubuntu-latest
     permissions:
       checks: write
@@ -150,13 +151,29 @@ jobs:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
-          testMode: EditMode
+          testMode: ${{ matrix.testmode }}
           unityVersion: ${{ steps.configure.outputs.unity_version }}
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
-          customParameters: -assemblyNames Tests
+          customParameters: -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.playmode"
           checkName: ${{ steps.setup.outputs.check_name }}
-          
+
+      - uses: dorny/test-reporter@v2
+        if: ${{ matrix.testmode != 'EditMode' }}
+        with:
+          reporter: dotnet-nunit
+          name: PlayMode Tests
+          fail-on-empty: true
+          path: ${{ steps.gameci.outputs.artifactsPath }}/playmode-results.xml
+
+      - uses: dorny/test-reporter@v2
+        if: ${{ matrix.testmode != 'PlayMode' }}
+        with:
+          reporter: dotnet-nunit
+          name: EditMode Tests
+          fail-on-empty: true
+          path: ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
+
       - name: List compile errors
         continue-on-error: true
         if: failure()
@@ -178,42 +195,42 @@ jobs:
 
       # For our main "supported" platforms, we report the conclusion of gameci as-is. However, for standalone, we report
       # neutral if it failed.
-      - id: determine_conclusion
-        name: Determine conclusion
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
-        env:
-          unity_version: ${{ steps.configure.outputs.unity_version }}
-          sdk_platform: ${{ matrix.sdk }}
-          gameci_outcome: ${{ steps.gameci.outcome }}
-          can_fail: ${{ steps.setup.outputs.can_fail }}
-        run: |
-          set -x
-          outcome=$gameci_outcome          
-          
-          # Check whether any tests actually ran
-          test_count=$(
-              if ! cat ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml | \
-                    xmlstarlet sel -t -v "/test-run/@total"; then
-                echo 0
-              fi
-          )
-          
-          if [ $test_count -eq 0 ] || [ x$test_count == x ]; then
-            outcome=failure
-            output="{ \"summary\": \"No tests ran\" }"
-          
-            if ! $can_fail; then
-              exit 1
-            fi
-          else
-            output="{ \"summary\": \"Result: $outcome ($test_count tests)\" }"
-          fi
-          
-          if [ "$outcome" == "failure" ] && $can_fail; then
-            outcome=neutral
-          fi
-          echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
-          echo matrix_output=$output >> $GITHUB_OUTPUT
+#      - id: determine_conclusion
+#        name: Determine conclusion
+#        if: ${{ steps.setup.outputs.should_test == 'true' }}
+#        env:
+#          unity_version: ${{ steps.configure.outputs.unity_version }}
+#          sdk_platform: ${{ matrix.sdk }}
+#          gameci_outcome: ${{ steps.gameci.outcome }}
+#          can_fail: ${{ steps.setup.outputs.can_fail }}
+#        run: |
+#          set -x
+#          outcome=$gameci_outcome          
+#          
+#          # Check whether any tests actually ran
+#          test_count=$(
+#              if ! cat ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml | \
+#                    xmlstarlet sel -t -v "/test-run/@total"; then
+#                echo 0
+#              fi
+#          )
+#          
+#          if [ $test_count -eq 0 ] || [ x$test_count == x ]; then
+#            outcome=failure
+#            output="{ \"summary\": \"No tests ran\" }"
+#          
+#            if ! $can_fail; then
+#              exit 1
+#            fi
+#          else
+#            output="{ \"summary\": \"Result: $outcome ($test_count tests)\" }"
+#          fi
+#          
+#          if [ "$outcome" == "failure" ] && $can_fail; then
+#            outcome=neutral
+#          fi
+#          echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
+#          echo matrix_output=$output >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v5
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' }}

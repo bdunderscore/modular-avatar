@@ -30,6 +30,15 @@ namespace nadena.dev.modular_avatar.core
         }
 #endif
 
+        public AvatarObjectReference()
+        {
+        }
+
+        public AvatarObjectReference(GameObject obj)
+        {
+            Set(obj);
+        }
+
         internal static void InvalidateAll()
         {
             HIERARCHY_CHANGED_SEQ++;

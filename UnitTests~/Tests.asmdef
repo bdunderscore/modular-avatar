@@ -1,5 +1,6 @@
 {
-    "name": "Tests",
+  "name": "nadena.dev.modular-avatar.tests",
+  "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
@@ -10,7 +11,8 @@
         "VRC.SDKBase",
         "UnityEngine.UI.Tests",
         "nadena.dev.ndmf",
-        "nadena.dev.ndmf.runtime"
+      "nadena.dev.ndmf.runtime",
+      "nadena.dev.modular-avatar.test.shared"
     ],
     "includePlatforms": [
         "Editor"
