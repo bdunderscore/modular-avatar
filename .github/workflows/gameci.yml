@@ -46,7 +46,7 @@ jobs:
     strategy:
       matrix:
         unity_major_version: [ 2022 ]
-        sdk: [ vrcsdk ]
+        sdk: [ vrcsdk, standalone ]
         testmode: [ All ]
     runs-on: ubuntu-latest
     permissions:
@@ -74,40 +74,24 @@ jobs:
         run: |
           set -x
           
-          sudo apt-get install xmlstarlet -y
-          
-          should_test=true
-          echo should_test=$should_test >> $GITHUB_OUTPUT
-          
-          can_fail=false
-          if [ $sdk == standalone ]; then
-            can_fail=$should_test
-          fi
-          echo can_fail=$can_fail >> $GITHUB_OUTPUT
-          
-          if $can_fail; then
-            check_name="Unsupported test result ($unity_version, $sdk)"
-          else
-            check_name="Test result ($unity_version, $sdk)"
-          fi
-          echo check_name=$check_name >> $GITHUB_OUTPUT
-      - run: |
-          sudo apt-get update && sudo apt-get -y install libxml2-utils # xmllint
+          sudo apt-get update && sudo apt-get -y install libxml2-utils xmlstarlet # xmllint
+
       - uses: actions/checkout@v5
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - id: prepare-project
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: Prepare project
         run: |
           mkdir .github/ProjectRoot/Packages/nadena.dev.modular-avatar -p
           mv * .github/ProjectRoot/Packages/nadena.dev.modular-avatar
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.modular-avatar/UnitTests~' 'Packages/nadena.dev.modular-avatar/UnitTests'
+          ls -l
           for i in packages-lock manifest vpm-manifest; do
-            if [ -e "$i-${{ matrix.unity_major_version }}.json" ]; then
+            if [ -e "$i-${{ matrix.unity_major_version }}-${{ matrix.sdk }}.json" ]; then
+              mv "$i-${{ matrix.unity_major_version }}-${{ matrix.sdk }}.json" Packages/$i.json -v
+            elif [ -e "$i-${{ matrix.unity_major_version }}.json" ]; then
               mv "$i-${{ matrix.unity_major_version }}.json" Packages/$i.json -v
             fi
           done
@@ -115,21 +99,25 @@ jobs:
       - uses: anatawa12/sh-actions/setup-vrc-get@master
 
       - name: Resolve packages
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
         run: |
           vrc-get repo add -- "https://vpm.nadena.dev/vpm-prerelease.json" || true
           vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download" || true
           vrc-get resolve --project .
           vrc-get info project --project .
 
-      - if: ${{ steps.setup.outputs.should_test == 'true' }}
-        name: "Debug: List project contents"
+      - name: "Debug: List project contents"
         run: |
           ls -lR
           ls -lR Packages/nadena*
           
-      - if: ${{ steps.setup.outputs.should_test == 'true' }}
-        name: "Debug: List package versions"
+      - id: prepare-standalone
+        if: ${{ matrix.sdk == 'standalone' }}
+        name: Prepare standalone environment
+        run: |
+          mv Packages/nadena.dev.ndmf/Dependencies~ Packages/nadena.dev.ndmf/Dependencies
+          rm -rf Packages/nadena.dev.modular-avatar/UnitTests # tests are not supported in standalone yet
+
+      - name: "Debug: List package versions"
         run: |
           for i in Packages/*/package.json; do
             echo $i
@@ -137,16 +125,15 @@ jobs:
           done
 
       - uses: actions/cache@v4
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           path: Library
           key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
-          restore-keys: Library-
+          restore-keys: |
+            Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+            Library-${{ steps.configure.outputs.unity_version }}
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
-        continue-on-error: ${{ steps.setup.outputs.can_fail == 'true' }}
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
         env:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -163,7 +150,7 @@ jobs:
         with:
           reporter: dotnet-nunit
           name: PlayMode Tests
-          fail-on-empty: true
+          fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
           path: ${{ steps.gameci.outputs.artifactsPath }}/playmode-results.xml
 
       - uses: dorny/test-reporter@v2
@@ -171,7 +158,7 @@ jobs:
         with:
           reporter: dotnet-nunit
           name: EditMode Tests
-          fail-on-empty: true
+          fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
           path: ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
 
       - name: List compile errors
@@ -193,47 +180,7 @@ jobs:
             xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
           fi
 
-      # For our main "supported" platforms, we report the conclusion of gameci as-is. However, for standalone, we report
-      # neutral if it failed.
-#      - id: determine_conclusion
-#        name: Determine conclusion
-#        if: ${{ steps.setup.outputs.should_test == 'true' }}
-#        env:
-#          unity_version: ${{ steps.configure.outputs.unity_version }}
-#          sdk_platform: ${{ matrix.sdk }}
-#          gameci_outcome: ${{ steps.gameci.outcome }}
-#          can_fail: ${{ steps.setup.outputs.can_fail }}
-#        run: |
-#          set -x
-#          outcome=$gameci_outcome          
-#          
-#          # Check whether any tests actually ran
-#          test_count=$(
-#              if ! cat ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml | \
-#                    xmlstarlet sel -t -v "/test-run/@total"; then
-#                echo 0
-#              fi
-#          )
-#          
-#          if [ $test_count -eq 0 ] || [ x$test_count == x ]; then
-#            outcome=failure
-#            output="{ \"summary\": \"No tests ran\" }"
-#          
-#            if ! $can_fail; then
-#              exit 1
-#            fi
-#          else
-#            output="{ \"summary\": \"Result: $outcome ($test_count tests)\" }"
-#          fi
-#          
-#          if [ "$outcome" == "failure" ] && $can_fail; then
-#            outcome=neutral
-#          fi
-#          echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
-#          echo matrix_output=$output >> $GITHUB_OUTPUT
-
       - uses: actions/upload-artifact@v5
-        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' }}
         continue-on-error: true
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
