@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1818] VRCSDK がプロジェクトにないときに発生するコンパイルエラーを修正
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0-rc.2] - [2025-11-21]
+
+### Fixed
+- [#1818] VRCSDK がプロジェクトにないときに発生するコンパイルエラーを修正
 
 ## [1.15.0-rc.1] - [2025-11-19]
 
