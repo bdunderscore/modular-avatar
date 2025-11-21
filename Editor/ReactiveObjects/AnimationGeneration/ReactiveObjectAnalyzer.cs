@@ -1,5 +1,4 @@
-﻿#if MA_VRCSDK3_AVATARS
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -69,11 +68,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public string GetMenuItemProperty(GameObject obj)
         {
+#if MA_VRCSDK3_AVATARS
             var mami = obj?.GetComponent<ModularAvatarMenuItem>();
             if (mami == null) return null;
 
             return ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates, ForceMenuItems)
                 ?.Parameter;
+#else
+            return null;
+#endif
         }
 
         public struct AnalysisResult
@@ -386,4 +389,3 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
-#endif

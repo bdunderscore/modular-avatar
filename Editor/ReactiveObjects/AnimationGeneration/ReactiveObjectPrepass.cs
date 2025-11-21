@@ -1,7 +1,9 @@
-﻿#if MA_VRCSDK3_AVATARS
-using nadena.dev.ndmf;
+﻿using nadena.dev.ndmf;
+
+#if MA_VRCSDK3_AVATARS
 using UnityEditor.Animations;
 using UnityEngine;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -16,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         protected override void Execute(ndmf.BuildContext context)
         {
+#if MA_VRCSDK3_AVATARS
             if (context.AvatarRootObject.GetComponentInChildren<ReactiveComponent>(true) != null)
             {
                 var clip = new AnimationClip();
@@ -48,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 mambt.Motion = bt;
                 mambt.PathMode = MergeAnimatorPathMode.Absolute;
             }
+#endif
         }
     }
 }
-#endif

@@ -149,15 +149,14 @@ namespace nadena.dev.modular_avatar.core.editor
 		//TODO/Wishlist: It'd be great to have an editor for the collider.
 		void DrawCollider()
 		{
+#if MA_VRCSDK3_AVATARS
 			var my = (ModularAvatarGlobalCollider)target;
 			if (!(my.VisualizeGizmo)) return;
-
-#if MA_VRCSDK3_AVATARS
+			
 			if (my.CopyHijackedShape && my.ManualRemap)
 			{
 				CopyOriginalCollider(my);
 			}
-#endif
 
 			var scale = Mathf.Max(my.RootTransform.lossyScale.x, my.RootTransform.lossyScale.y, my.RootTransform.lossyScale.z);
 			var clampedRadius = Mathf.Min(my.Radius * scale, 2.5f * 0.5f) / scale;
@@ -166,6 +165,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			var globalPos = my.RootTransform.TransformPoint(my.Position);
 			var globalRot = my.RootTransform.rotation * my.Rotation;
 			HandlesUtil.DrawWireCapsule(globalPos, globalRot, clampedHeight * scale, clampedRadius * scale);
+#endif
 		}
 
 #if MA_VRCSDK3_AVATARS

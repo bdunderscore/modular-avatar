@@ -1,5 +1,4 @@
-﻿#if MA_VRCSDK3_AVATARS
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
@@ -128,7 +127,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     did_mami = true;
 
-                    _computeContext.Observe(mami, c => (c.Control?.parameter, c.Control?.type, c.Control?.value, c.isDefault));
+                    _computeContext.Observe(mami, c => (c.PortableControl?.Parameter, c.PortableControl?.Type, c.PortableControl?.Value, c.isDefault));
                     
                     var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
 
@@ -517,4 +516,3 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
-#endif
