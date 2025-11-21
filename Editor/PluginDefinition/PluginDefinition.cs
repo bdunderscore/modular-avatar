@@ -74,7 +74,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MergeAnimatorPluginPass.Instance);
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 
-#endif
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
@@ -82,7 +81,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                                 new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     })
 ;
-#if MA_VRCSDK3_AVATARS
                     seq.Run(FixupHeadChopRootBone.Instance);
                     seq.Run(GameObjectDelayDisablePass.Instance);
 
