@@ -1,5 +1,4 @@
-﻿#if MA_VRCSDK3_AVATARS
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -249,7 +248,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         {
             _refreshPending = false;
             
-            var avatar = RuntimeUtil.FindAvatarInParents(currentSelection?.transform);
+            var avatar = RuntimeUtil.FindAvatarTransformInParents(currentSelection?.transform);
             
             if (avatar == null)
             {
@@ -639,4 +638,3 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         }
     }
 }
-#endif

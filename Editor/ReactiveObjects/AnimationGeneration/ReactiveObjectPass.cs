@@ -38,22 +38,22 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
-            if (!context.AvatarDescriptor) return;
-
             // Having a WD OFF layer after WD ON layers can break WD. We match the behavior of the existing states,
             // and if mixed, use WD ON to maximize compatibility.
             var asc = context.Extension<AnimatorServicesContext>();
 #if MA_VRCSDK3_AVATARS
+            if (!context.AvatarDescriptor) return;
+
             var fxLayer = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fxLayer != null)
             {
                 _writeDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(fxLayer) ?? true;
             }
-#endif
-
+            
             var clips = asc.AnimationIndex;
             _initialStateClip = clips.GetClipsForObjectPath(ReactiveObjectPrepass.TAG_PATH).FirstOrDefault();
-            
+#endif
+
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             var shapes = analysis.Shapes;
@@ -426,11 +426,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         });
                     }
 
+#if MA_VRCSDK3_AVATARS
                     NaNimationInitialStateMunger.ApplyInitialStates(
                         context.AvatarRootTransform,
                         initiallyActive,
                         _initialStateClip
                     );
+#endif
                 }
 
                 // Prevent generating unnecessary animator layers when VertexFilter ignores all vertices

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using nadena.dev.ndmf;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 #if !MA_VRCSDK3_AVATARS
 #region Fallback stub implementation
@@ -19,6 +18,8 @@ namespace nadena.dev.modular_avatar.core.editor
 }
 #endregion
 #else
+
+using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {

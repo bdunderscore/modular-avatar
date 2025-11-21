@@ -1,7 +1,8 @@
-﻿#if MA_VRCSDK3_AVATARS
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using nadena.dev.ndmf;
+
+#if MA_VRCSDK3_AVATARS
+using System.Linq;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -249,4 +250,43 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 }
+#else
+
+
+namespace nadena.dev.modular_avatar.core.editor
+{
+    /// <summary>
+    ///     Creates/allocates parameters to any Menu Items that need them.
+    ///
+    ///     (non-VRChat SDK stub)
+    /// </summary>
+    internal class ParameterAssignerPass : Pass<ParameterAssignerPass>
+    {
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            
+        }
+        
+        internal void TestExecute(ndmf.BuildContext context)
+        {
+            Execute(context);
+        }
+        
+        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
+        {
+            return false;
+        }
+
+        internal static ControlCondition AssignMenuItemParameter(
+            ModularAvatarMenuItem mami,
+            Dictionary<string, float> simulationInitialStates = null,
+            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null,
+            bool? forceSimulation = null
+        )
+        {
+            return null;
+        }
+    }
+}
+
 #endif
