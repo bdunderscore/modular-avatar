@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1808] Improved performance of preview logic, particularly when there are a very large number of disabled avatars
 - [#1812] `Scale Adjuster` can now adjust the length of humanoid bones
 - [#1818] Fixed compile errors when VRCSDK is not present in the project
+- [#1823] Reaction Debugger may throw `MissingReferenceException`
 
 ### Changed
 - [#1784] Removed dependency on `com.vrchat.avatars`
