@@ -136,15 +136,11 @@ namespace nadena.dev.modular_avatar.core.editor
         [PublicAPI]
         public static void SetupOutfitUI(GameObject outfitRoot)
         {
-            if (!ValidateSetupOutfit(outfitRoot))
+            if (!ValidateSetupOutfit(outfitRoot, out var avatarRoot, out var avatarHips, out var outfitHips))
             {
                 ESOErrorWindow.Show(errorHeader, errorMessageGroups);
                 return;
             }
-
-            if (!FindBones(outfitRoot,
-                    out var avatarRoot, out var avatarHips, out var outfitHips)
-               ) return;
 
             Undo.SetCurrentGroupName("Setup Outfit");
 
@@ -465,14 +461,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 errorHeader = S_f("setup_outfit.err.header", obj.name);
                 if (!(obj is GameObject gameObj)) return false;
 
-                if (!ValidateSetupOutfit(gameObj)) return false;
+                if (!ValidateSetupOutfit(gameObj, out _, out _, out _)) return false;
             }
 
             return true;
         }
 
-        private static bool ValidateSetupOutfit(GameObject gameObj)
+        internal static bool ValidateSetupOutfit(GameObject gameObj, out GameObject avatarRoot, out GameObject avatarHips, out GameObject outfitHips)
         {
+            avatarRoot = avatarHips = outfitHips = null;
+
             if (gameObj == null)
             {
                 errorHeader = S("setup_outfit.err.header.notarget");
@@ -483,7 +481,7 @@ namespace nadena.dev.modular_avatar.core.editor
             errorHeader = S_f("setup_outfit.err.header", gameObj.name);
             var xform = gameObj.transform;
 
-            if (!FindBones(gameObj, out var _, out var _, out var outfitHips)) return false;
+            if (!FindBones(gameObj, out avatarRoot, out avatarHips, out outfitHips)) return false;
 
             // Some users have been accidentally running Setup Outfit on the avatar itself, and/or nesting avatar
             // descriptors when transplanting outfits. Block this (and require that there be only one avdesc) by
