@@ -238,6 +238,8 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
         private void UpdateSelection()
         {
+            if (f_inspecting == null) return;
+            
             currentSelection = locked ? f_inspecting.value as GameObject : Selection.activeGameObject;
             f_inspecting.SetValueWithoutNotify(currentSelection);
 
