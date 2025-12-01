@@ -405,5 +405,11 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "For VRC, you can't use more than 8 Global Colliders. You currently have {0}.",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "Reduce the number of MA Global Collider components.",
   "validation.global_collider.manual_collider_overwrite": "Global Collider components are manually using the same collider.",
-  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components."
+  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components.",
+  "check_outfit_drop.preset_cloth": "An already set up outfit has been placed. Processing will be skipped.",
+  "check_outfit_drop_window.title": "Check Outfit Drop",
+  "check_outfit_drop_window.description": "Setup Outfit?",
+  "check_outfit_drop_window.setup_button": "Setup Outfit",
+  "check_outfit_drop_window.dismiss_button": "Dismiss",
+  "check_outfit_drop_window.disable_description": "You can disable this in Tools/Modular Avatar/Check Outfit Drop."
 }

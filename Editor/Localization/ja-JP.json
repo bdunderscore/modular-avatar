@@ -401,5 +401,11 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "VRCでは、Global Collider は8個までしか使用できません。現在は {0} 個使用しています。",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "MA Global Collider コンポーネントの数を減らしてください。",
   "validation.global_collider.manual_collider_overwrite": "複数の Global Collider コンポーネントが同じコライダーを手動で使用しています。",
-  "validation.global_collider.manual_collider_overwrite:description": "最後コンポーネントが一番目を優先されます。"
+  "validation.global_collider.manual_collider_overwrite:description": "最後コンポーネントが一番目を優先されます。",
+  "check_outfit_drop.preset_cloth": "既にセットアップされている衣装が配置されました。処理をスキップします。",
+  "check_outfit_drop_window.title": "Check Outfit Drop",
+  "check_outfit_drop_window.description": "衣装をセットアップしますか？",
+  "check_outfit_drop_window.setup_button": "衣装をセットアップ",
+  "check_outfit_drop_window.dismiss_button": "却下",
+  "check_outfit_drop_window.disable_description": "この機能はTools/Modular Avatar/Check Outfit Dropから無効にできます。"
 }

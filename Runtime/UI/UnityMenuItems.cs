@@ -37,6 +37,9 @@
         internal const string TopMenu_EnableInfo = "Tools/Modular Avatar/Show Modular Avatar Information";
         internal const int TopMenu_EnableInfoOrder = 101;
 
+        internal const string TopMenu_CheckOutfitDrop = "Tools/Modular Avatar/Check Outfit Drop";
+        internal const int TopMenu_CheckOutfitDropOrder = 102;
+
         // <separator>
         
         internal const string TopMenu_ManualBakeAvatar = "Tools/Modular Avatar/Manual Bake Avatar";
