@@ -276,7 +276,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 PrefabUtility.RecordPrefabInstancePropertyModifications(meshSettings);
             }
 
-            SceneView.lastActiveSceneView.ShowNotification(new GUIContent(S("setup_outfit.success")), 2.0f);
+            var seneview = SceneView.lastActiveSceneView;
+            if (seneview != null)
+            {
+                seneview.ShowNotification(new GUIContent(S("setup_outfit.success")), 2.0f);
+            }
         }
 
         internal static Dictionary<Transform, HumanBodyBones> GetOutfitHumanoidBones(Transform outfitRoot, Animator outfitAnimator)

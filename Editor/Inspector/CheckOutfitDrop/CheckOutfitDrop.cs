@@ -30,7 +30,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (IsAlreadyProcessed(outfitHips))
                 {
-                    SceneView.lastActiveSceneView.ShowNotification(new GUIContent(Localization.S("check_outfit_drop.preset_cloth")), 2.0f);
+                    var seneview = SceneView.lastActiveSceneView;
+                    if (seneview != null)
+                    {
+                        seneview.ShowNotification(new GUIContent(Localization.S("check_outfit_drop.preset_cloth")), 2.0f);
+                    }
                     continue;
                 }
 
