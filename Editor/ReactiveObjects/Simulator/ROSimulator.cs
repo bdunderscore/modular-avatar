@@ -248,7 +248,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         {
             _refreshPending = false;
             
-            var avatar = RuntimeUtil.FindAvatarTransformInParents(currentSelection?.transform);
+            if (currentSelection == null)
+            {
+                e_debugInfo.style.display = DisplayStyle.None;
+                return;
+            }
+
+            var avatar = RuntimeUtil.FindAvatarTransformInParents(currentSelection.transform);
             
             if (avatar == null)
             {
