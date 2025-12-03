@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.15.0] - [2025-12-03]
+
+### Added
 - Added `MA Fit Preview`, a new feature which allows you to pose a copy of your avatar, with physbones moving in edit mode.
   - You can adjust constraint and physbone settings, and have them reflected in the preview copy in real time.
 - [#1786] Implement `MA Global Collider`
@@ -35,12 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whether they are constant-on.
     - This improves performance, and improves compatibility with non-VRChat platforms.
 - [#1815] Modular Avatar will no longer garbage collect unused objects when they are referenced by an animation
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.3] - [2025-09-18]
 

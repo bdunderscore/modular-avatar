@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1823] Reaction Debugger may throw `MissingReferenceException`
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0] - [2025-12-03]
+
+### Fixed
+- [#1823] Reaction Debugger may throw `MissingReferenceException`
 
 ## [1.15.0-rc.2] - [2025-11-21]
 
