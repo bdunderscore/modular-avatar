@@ -15,11 +15,15 @@ namespace nadena.dev.modular_avatar.core.editor
         static void Init()
         {
             HierarchyPrefabDropHook.OnPrefabAssetDropped += OnPrefabDropped;
+            // Also target prefab instances in scenes. 
+            // This is intended for a prefab instance that was mistakenly placed at the scene root by a previous D&D to be targeted when it is re-dropped.
             HierarchyPrefabDropHook.OnPrefabInstanceDropped += OnPrefabDropped;
         }
 
         private static void OnPrefabDropped(List<GameObject> droppedObjects)
         {
+            if (!CheckOutfitDropPrefs.EnableCheckOutfitDrop) return;
+
             var targets = new List<GameObject>();
             foreach (var droppedObject in droppedObjects)
             {
@@ -28,7 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     continue;
                 }
 
-                if (IsAlreadyProcessed(outfitHips))
+                if (IsSetuppedOutfit(outfitHips))
                 {
                     var seneview = SceneView.lastActiveSceneView;
                     if (seneview != null)
@@ -38,12 +42,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     continue;
                 }
 
-                if (_processedTargets.Contains(avatarHips))
+                if (_processedTargets.Contains(avatarRoot))
                 {
                     continue;
                 }
 
-                targets.Add(droppedObject);
+                targets.Add(avatarRoot);
             }
 
             if (targets.Count > 0)
@@ -57,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         // Do not target "Preset" or prefabs that have already executed setup outfit as much as possible.
-        private static bool IsAlreadyProcessed(GameObject outfitHips)
+        private static bool IsSetuppedOutfit(GameObject outfitHips)
         {
             var outfitArmature = outfitHips.transform.parent;
 

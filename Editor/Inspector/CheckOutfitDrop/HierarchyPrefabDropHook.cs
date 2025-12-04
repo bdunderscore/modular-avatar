@@ -21,13 +21,21 @@ namespace nadena.dev.modular_avatar.core.editor
     
         private static DragAndDropVisualMode OnHierarchyDrop(int dropTargetInstanceID, HierarchyDropFlags dropMode, Transform parentForDraggedObjects, bool perform)
         {
-            if (CheckOutfitDropPrefs.EnableCheckOutfitDrop && perform)
+            if (perform && (OnPrefabAssetDropped != null || OnPrefabInstanceDropped != null))
             {
                 var droppedObjects = DragAndDrop.objectReferences.OfType<GameObject>();
                 if (droppedObjects.Count() > 0) 
                 {
                     var dropDestinationParent = GetDropDestinationParent(dropTargetInstanceID, dropMode, parentForDraggedObjects);
-                    ProcessDroppedObjects(droppedObjects, dropDestinationParent);
+
+                    if (OnPrefabAssetDropped != null)
+                    {
+                        ProcessPrefabAssets(droppedObjects, dropDestinationParent, OnPrefabAssetDropped);
+                    }
+                    if (OnPrefabInstanceDropped != null)
+                    {
+                        ProcessPrefabInstancesInScene(droppedObjects, OnPrefabInstanceDropped);
+                    }
                 }
             }
             return DragAndDropVisualMode.None; // handler is used for hook only.
@@ -56,20 +64,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return dropDestinationParent;
-        }
-
-        private static void ProcessDroppedObjects(IEnumerable<GameObject> droppedObjects, Transform? dropDestinationParent)
-        {
-            if (OnPrefabAssetDropped != null)
-            {
-                ProcessPrefabAssets(droppedObjects, dropDestinationParent, OnPrefabAssetDropped);
-            }
-            // Also target prefab instances in scenes. 
-            // This is intended for a prefab instance that was mistakenly placed at the scene root by a previous D&D to be targeted when it is re-dropped.
-            if (OnPrefabInstanceDropped != null)
-            {
-                ProcessPrefabInstancesInScene(droppedObjects, OnPrefabInstanceDropped);
-            }
         }
 
         private static void ProcessPrefabAssets(IEnumerable<GameObject> droppedObjects, Transform? dropDestinationParent, Action<List<GameObject>> onDropped)
