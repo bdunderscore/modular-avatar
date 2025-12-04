@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 // Assign automatic values first
                 int? defaultValue = null;
-                if (declaredParams.TryGetValue(paramName, out var p))
+                if (declaredParams.TryGetValue(paramName, out var p) && !Mathf.Approximately(0, p.defaultValue))
                 {
                     defaultValue = (int) p.defaultValue;
                 }
