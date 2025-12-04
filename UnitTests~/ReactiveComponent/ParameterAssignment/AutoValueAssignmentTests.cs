@@ -121,6 +121,44 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 vrcExpParams.parameters.Any(p => p.name.StartsWith(ParameterAssignerPass.AUTOMATIC_PARAMETER_PREFIX));
             Assert.AreEqual(shouldHaveParam, hasParam);
         }
+
+        [Test]
+        public void DefaultValueOnParametersControlledParameter(
+            [Values(true, false)] bool isDefault
+        )
+        {
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            var target = CreateChild(child, "menu");
+
+            var p = child.AddComponent<ModularAvatarParameters>();
+            p.parameters.Add(new()
+            {
+                defaultValue = 0,
+                internalParameter = true,
+                nameOrPrefix = "test",
+                syncType = ParameterSyncType.Float
+            });
+
+            target.AddComponent<ModularAvatarMenuInstaller>();
+            var mi = target.AddComponent<ModularAvatarMenuItem>();
+            mi.label = "test";
+            mi.PortableControl.Parameter = "test";
+            // Previously, we had an issue when isDefault was true, where the MA Parameters default value
+            // would be used even if the value was zero, which is inappropriate for a singleton toggle.
+            //
+            // Note that we're okay with a zero-value toggle being created if there are _multiple_ toggles,
+            // as that might be intended behavior for the user and is consistent with how multiple toggles
+            // with an auto param might work.
+            mi.isDefault = isDefault;
+            mi.automaticValue = true;
+            
+            AvatarProcessor.ProcessAvatar(root);
+            
+            var vrcMenu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu;
+            var resultItem = vrcMenu.controls.First(c => c.name == "test");
+            Assert.AreEqual(1, resultItem.value);
+        }
         
         [Test]
         public void ManuallyAssignedParametersAreNotReplaced()

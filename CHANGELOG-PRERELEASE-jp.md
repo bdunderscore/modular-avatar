@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1826] `MA Menu Item` のパラメーターが `MA Parameters` で制御される場合、値がゼロになるケースがある問題を修正
 
 ### Changed
 

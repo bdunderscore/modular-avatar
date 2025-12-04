@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1826] `MA Menu Item` のパラメーターが `MA Parameters` で制御される場合、値がゼロになるケースがある問題を修正
 
 ### Changed
 
