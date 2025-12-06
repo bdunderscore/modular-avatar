@@ -142,7 +142,7 @@ jobs:
           unityVersion: ${{ steps.configure.outputs.unity_version }}
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
-          customParameters: -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.playmode"
+          customParameters: -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
           checkName: ${{ steps.setup.outputs.check_name }}
 
       - uses: dorny/test-reporter@v2
