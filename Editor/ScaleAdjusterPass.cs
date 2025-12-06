@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using nadena.dev.ndmf;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -70,9 +69,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var humanDescription = avatar.humanDescription;
             
             var humanProxy = BuildHumanProxy(context.AvatarRootTransform, mappings);
-            if (humanProxy == null)
+            if (humanProxy == null || humanDescription.skeleton.Length == 0)
             {
-                throw new Exception("[ScaleAdjusterPass] No humanoid bones were recognized");
+                Debug.Log("[ScaleAdjusterPass] No humanoid bones were recognized");
+                return;
             }
 
             try
@@ -100,7 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(humanProxy);
+                Object.DestroyImmediate(humanProxy);
             }
         }
 
