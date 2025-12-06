@@ -13,9 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1826] Fixed an issue where `MA Menu Item`s whose parameter is defined in a `MA Parameters` component could end up
-  with a value of zero.
-- [#1828] Fixed an issue where using `MA Scale Adjuster` on a non-humanoid avatar would result in a build error.
 
 ### Changed
 
@@ -24,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.1] - [2025-12-06]
+
+### Fixed
+- [#1826] Fixed an issue where `MA Menu Item`s whose parameter is defined in a `MA Parameters` component could end up
+  with a value of zero.
+- [#1828] Fixed an issue where using `MA Scale Adjuster` on a non-humanoid avatar would result in a build error.
 
 ## [1.15.0] - [2025-12-03]
 
