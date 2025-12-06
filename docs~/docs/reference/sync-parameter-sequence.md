@@ -18,21 +18,17 @@ This component may have compatibility issues with certain VRCFury components, su
 
 ## How should I use it?
 
-First, attach the Sync Parameter Sequence component to any object on your avatar. Then, click the New button to create
-an asset to save the parameter sequence. On other platform variants of your avatar, attach the component, and select the
-asset you just created. Upload on Android (or whichever　platform you want to be the primary platform), then upload for
-other platforms as well.
+Simply attach the Sync Parameter Sequence component to any object on your avatar, then select which platform will be
+your avatar's "primary platform". This is the platform that has _all_ of the parameters you want to sync defined.
+If you're not using the VRCSDK's platform substitution feature, you'll also need to attach this component to the
+platform-specific variants of your avatar.
 
-Whenever you upload your avatar on the platform listed as "Primary Platform", Modular Avatar will record its expression
-parameters in this asset. Then, later, when you upload on some other platform, Modular Avatar will adjust the order of
-the parameters to match the primary platform.
+Build on your primary platform first, then build on other platforms. When you build another avatar with the same
+blueprint ID, Modular Avatar will automatically sync parameters to the other platforms.
 
-## Parameter limits
+:::warning
 
-The Sync Parameter Sequence component will add additional parameters to your avatar if necessary to ensure that the
-order of parameters matches between platforms. This may cause your avatar to exceed the maximum number of parameters,
-in which case the build will fail.
+Your primary platform avatar must contain _all_ of the parameters that are synced on any variant of your avatar.
+If any are missing, the build will fail.
 
-To address this, you can clear the contents of the parameters asset to clear out obsolete parameters; otherwise, make
-sure you don't have a lot of both android-only and PC-only parameters, because you'll end up using the combination of
-both.
+:::
