@@ -15,7 +15,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         public void AutoRemapUpdatesDescriptor()
         {
             // Load preconfigured humanoid avatar prefab
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Add a single auto-mode global collider to the avatar root
@@ -90,7 +90,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         public void ManualNonFingerRemapDoesNotCreateColliderRoot()
         {
             // Load preconfigured humanoid avatar prefab
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Add a single manual remap to a non-finger collider (Torso)
@@ -129,7 +129,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ManualOnlyMappingAppliesCorrectly()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             var manual = root.AddComponent<ModularAvatarGlobalCollider>();
@@ -154,7 +154,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ManualPlusAutoNonInterfering()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Create separate GameObjects for each collider and attach the component to them
@@ -190,7 +190,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ManualPlusAutoInterfering()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Manual claims FingerRingLeft
@@ -227,7 +227,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void MultipleManualAndAutoMappings()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Manual mappings
@@ -286,7 +286,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ManualOverwrittenByManual(bool lowPriority)
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Low-priority manual targeting FingerRingLeft
@@ -323,7 +323,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void LowPriorityManualDoesNotInterfereWithOtherManuals()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Low-priority manual on FingerRingLeft
@@ -354,7 +354,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void FillAllColliderSlotsWithMixOfAutoAndManual_ValidateExactAssignments()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Manual non-finger colliders
@@ -411,7 +411,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ErrorCase_ManualNone_EmitsInformation()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             var noneObj = CreateChild(root, "ManualNoneObjOnly");
@@ -433,7 +433,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void ErrorCase_AutoNoSlots_EmitsNonFatal()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             // Add many autos to exhaust finger slots (9 autos -> 1 will fail)
@@ -458,7 +458,7 @@ namespace modular_avatar_tests.VRChatGlobalCollider
         [Test]
         public void CopyHijackedShape_CopiesDescriptorShapeIntoTarget()
         {
-            var root = CreateCommonPrefab("ShapellAvatar.prefab");
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
 
             var desc = root.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();

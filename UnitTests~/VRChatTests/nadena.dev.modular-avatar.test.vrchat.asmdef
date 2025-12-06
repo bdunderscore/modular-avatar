@@ -1,20 +1,31 @@
 {
-  "name": "nadena.dev.modular-avatar.tests.playmode",
+  "name": "nadena.dev.modular-avatar.tests.vrchat",
   "rootNamespace": "",
   "references": [
-    "nadena.dev.modular-avatar.test.shared",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
-    "nadena.dev.modular-avatar.core"
+    "nadena.dev.modular-avatar.tests",
+    "nadena.dev.modular-avatar.core",
+    "nadena.dev.modular-avatar.core.editor",
+    "nadena.dev.modular-avatar.test.shared",
+    "nadena.dev.modular-avatar.param-introspection",
+    "VRC.SDK3A",
+    "VRC.SDK3A.Editor",
+    "VRC.SDKBase",
+    "UnityEngine.UI.Tests",
+    "nadena.dev.ndmf",
+    "nadena.dev.ndmf.runtime"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": true,
+  "overrideReferences": false,
   "precompiledReferences": [
     "nunit.framework.dll"
   ],
-  "autoReferenced": false,
+  "autoReferenced": true,
   "defineConstraints": [
     "UNITY_INCLUDE_TESTS",
     "MA_VRCSDK3_AVATARS"

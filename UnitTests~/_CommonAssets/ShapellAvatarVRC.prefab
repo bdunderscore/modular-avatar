@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100220, guid: 1418fcab2d94f9d4982cd714b598900f, type: 3}
       propertyPath: m_Name
-      value: ShapellAvatar
+      value: ShapellAvatarVRC
       objectReference: {fileID: 0}
     - target: {fileID: 400220, guid: 1418fcab2d94f9d4982cd714b598900f, type: 3}
       propertyPath: m_RootOrder

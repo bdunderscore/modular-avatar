@@ -10,9 +10,8 @@ public class SetupOutfitRenameTest : TestBase
     public void TestSetupHumanoidOutfit()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_chest = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Chest);
 
         var outfit = CreateCommonPrefab("shapell.fbx");
@@ -29,9 +28,8 @@ public class SetupOutfitRenameTest : TestBase
     public void TestSetupUpperChestOutfit()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_armature = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent.gameObject;
         var root_chest = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Chest).gameObject;
 
@@ -52,9 +50,8 @@ public class SetupOutfitRenameTest : TestBase
     public void TestSetupSetupedOutfit()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
         var root_armature = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent.gameObject;
 

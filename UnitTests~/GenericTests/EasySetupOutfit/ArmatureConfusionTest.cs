@@ -28,9 +28,7 @@ public class ArmatureConfusionTest : TestBase
         var inner = CreateCommonPrefab("shapell.fbx");
 
         var outerAnimator = outer.GetComponent<Animator>();
-#if MA_VRCSDK3_AVATARS
-        outer.AddComponent<VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(outer);
 
         inner.gameObject.name = "inner";
         inner.transform.parent = outer.transform;
