@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.ui;
@@ -11,14 +10,22 @@ using NUnit.Framework;
 using UnitTests.SharedInterfaces;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
+
+#if MA_VRCSDK3_AVATARS
+using System.Linq;
+using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace UnitTests.SharedInterfacesImpl
 {
     public class TestSupport : ITestSupport
     {
+        #if MA_VRCSDK3_AVATARS
         private const string MinimalAvatarGuid = "60d3416d1f6af4a47bf9056aefc38333";
+        #else
+        private const string MinimalAvatarGuid = "1f16ff0330cb5d84b96216a6ca6c5eed";
+        #endif
         private static Dictionary<System.Type, string>? _scriptToDirectory = null;
 
         private Dictionary<Type, string> ScriptToDirectory
@@ -95,6 +102,7 @@ namespace UnitTests.SharedInterfacesImpl
             return go;
         }
 
+        #if MA_VRCSDK3_AVATARS
         public void ActivateFX(GameObject avatar)
         {
             var avDesc = avatar.GetComponent<VRCAvatarDescriptor>();
@@ -104,5 +112,8 @@ namespace UnitTests.SharedInterfacesImpl
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;
         }
+        #else
+        public void ActivateFX(GameObject avatar) => Assert.Ignore( "FX layer animation not supported without the VRChat SDK");
+        #endif
     }
 }
