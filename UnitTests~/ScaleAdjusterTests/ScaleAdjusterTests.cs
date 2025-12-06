@@ -9,6 +9,15 @@ namespace UnitTests.ScaleAdjusterTests
     public class ScaleAdjusterTests : TestBase
     {
         [Test]
+        public void ScaleAdjuster_WorksOnNonHumanoidRig(
+            [Values("Generic.prefab", "GenericShapell.prefab")] string prefabName
+        )
+        {
+            var prefab = CreatePrefab(prefabName);
+            AvatarProcessor.ProcessAvatar(prefab);
+        }
+        
+        [Test]
         public void ScaleAdjuster_FixesHumanAvatarDescription()
         {
             var prefab = CreatePrefab("ScaleAdjuster_FixesHumanAvatarDescription.prefab");

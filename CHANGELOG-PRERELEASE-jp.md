@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#1826] `MA Menu Item` のパラメーターが `MA Parameters` で制御される場合、値がゼロになるケースがある問題を修正
+- [#1828] 非ヒューマノイドアバターに `MA Scale Adjuster` を使用した場合、ビルドが失敗するバグを修正。
 
 ### Changed
 
