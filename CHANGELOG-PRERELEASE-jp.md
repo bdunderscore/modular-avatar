@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1829] `Sync Parameter Sequence` が自動的に Library の中にパラメーターを保存するように変わったため、パラメーター
+  アセットの指定が不要になった。
+  - 別々のプラットフォームのパラメーター内容が異なるような結果になる場合はエラーになる。また、主要プラットホーム
+    から他のプラットフォームへの一方通行の同期だけするようになった。
+- [#1829] TextMeshPro のアセットポストプロセッサを無効化する。これによりビルド・プラットフォーム切り替え時間を短縮できる。
 
 ### Removed
 

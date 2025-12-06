@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#1829] `Sync Parameter Sequence` will now automatically store parameters under the Unity Library; an expressions
+  parameter asset is no longer required.
+  - Sync Parameter Sequence now also enforces that all platforms have the same parameter contents, and syncs only from
+    primary to secondary platforms.
+- [#1829] Suppress the TextMeshPro asset postprocessor. This improves build and platform change times in large projects.
+
 ### Removed
 
 ### Security

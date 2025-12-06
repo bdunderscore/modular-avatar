@@ -16,13 +16,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [
-        "VRCSDK_HAS_HARMONY"
     ],
     "versionDefines": [
         {
             "name": "com.vrchat.base",
             "expression": "(3.3.99999,)",
-            "define": "VRCSDK_HAS_HARMONY"
+            "define": "MA_VRCSDK3_AVATARS"
         }
     ],
     "noEngineReferences": false
