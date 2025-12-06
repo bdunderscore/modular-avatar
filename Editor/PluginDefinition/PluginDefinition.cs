@@ -11,6 +11,10 @@ using nadena.dev.ndmf.util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+#if MA_VRCSDK3_AVATARS
+using nadena.dev.modular_avatar.core.editor.SyncParameterSequence;
+#endif
+
 #endregion
 
 [assembly: ExportsPlugin(

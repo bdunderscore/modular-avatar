@@ -16,6 +16,10 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         private static readonly Action<Harmony>[] patches = new Action<Harmony>[]
         {
             //HierarchyViewPatches.Patch,
+#if MA_VRCSDK3_AVATARS
+            VRCSDKBuildInitiationHook.Patch,
+#endif
+            TMProPostProcessorDisabler.Patch
         };
 
         [InitializeOnLoadMethod]
