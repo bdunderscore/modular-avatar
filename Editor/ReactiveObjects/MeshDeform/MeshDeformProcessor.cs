@@ -53,7 +53,11 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
             var boneIndex = 0;
             var vertexCount = mesh.vertexCount;
             var vertices = mesh.vertices;
+            var normals = mesh.normals;
             var deltaPositions = new Vector3[vertexCount];
+
+            using var deformation = new ToroidalDeformation(deform);
+            
             for (var i = 0; i < vertexCount; i++)
             {
                 // Compute the weighted transformation matrices for this vertex.
@@ -89,31 +93,29 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
 
                 var worldToVert = math.inverse(vertToWorld);
 
+                var vertToWorldDirection = vertToWorld;
+                vertToWorldDirection.c3 = new float4(0, 0, 0, 1);
+                var worldtoVertDirection = worldToVert;
+                worldtoVertDirection.c3 = new float4(0, 0, 0, 1);
+
                 var v = vertices[i];
                 var v4 = new float4(v.x, v.y, v.z, 1);
 
+                var norm = normals[i];
+                var norm4 = new float4(norm.x, norm.y, norm.z, 1);
+                var worldNorm4 = math.mul(vertToWorldDirection, norm4);
+                var worldNorm = new Vector3(worldNorm4.x, worldNorm4.y, worldNorm4.z);
+
                 var worldPos = math.mul(vertToWorld, v4);
                 var worldPos3 = new Vector3(worldPos.x, worldPos.y, worldPos.z);
+                
                 var deformLocal = deform.transform.InverseTransformPoint(worldPos3);
-                var deformRawDot = Vector3.Dot(deform.Direction, deformLocal);
-                var deformDot = Mathf.Abs(Vector3.Dot(deform.Direction, deformLocal));
+                // todo norm,tangent
+                var deformNormal = deform.transform.InverseTransformDirection(worldNorm);
+                var deformTangent = Vector3.zero;
 
-                if (deformDot >= 1)
-                {
-                    continue;
-                }
-
-                float falloff = 0;
-                if (deform.Falloff?.keys?.Length > 0)
-                {
-                    falloff = deform.Falloff.Evaluate(1 - deformDot);
-                }
-
-                var normDirection = Vector3.Normalize(deform.Direction);
-                var deformNormal =
-                    Vector3.Normalize(deformLocal - normDirection * Vector3.Dot(normDirection, deformLocal));
-                deformLocal += deformNormal * falloff * deform.Strength;
-
+                deformation.ProcessPoint(ref deformLocal, ref deformNormal, ref deformTangent);
+                
                 // Transform back to world space
                 var postTransformWorld = deform.transform.TransformPoint(deformLocal);
                 // Transform back to local space
@@ -122,7 +124,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
                 deltaPositions[i] = new Vector3(postTransformLocal.x, postTransformLocal.y, postTransformLocal.z) - v;
             }
 
-            mesh.AddBlendShapeFrame(shapeName, 1, deltaPositions, null, null);
+            mesh.AddBlendShapeFrame(shapeName, 100, deltaPositions, null, null);
         }
 
         private static Matrix4x4 ScalarMulMatrix(float scalar)

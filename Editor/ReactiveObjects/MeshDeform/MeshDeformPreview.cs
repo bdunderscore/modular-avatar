@@ -61,7 +61,8 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
                 for (var i = 0; i < _filters.Count; i++)
                 {
                     var filter = _filters[i];
-                    context.Observe(filter, f => (f.Falloff, f.Strength, f.Direction));
+                    context.Observe(filter,
+                        f => (f.radius, f.aspectRatio, f.falloffStartAngle, f.falloffEndAngle, f.disableBackHalf));
                     context.ObserveTransformPosition(filter.transform);
 
                     var shapeName = ShapeName + "_" + i;
