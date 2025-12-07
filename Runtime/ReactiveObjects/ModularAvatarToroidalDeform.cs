@@ -4,11 +4,24 @@ using System;
 
 namespace nadena.dev.modular_avatar.core
 {
-    public class ModularAvatarMeshDeform : AvatarTagComponent
+    // Tag interface
+    public interface IMeshDeformComponent
     {
-        internal static Action<ModularAvatarMeshDeform>? OnGizmosCallback;
-        
-        public AvatarObjectReference Target = new();
+        public AvatarObjectReference Target { get; set; }
+    }
+
+    public class ModularAvatarToroidalDeform : AvatarTagComponent, IMeshDeformComponent
+    {
+        internal static Action<ModularAvatarToroidalDeform>? OnGizmosCallback;
+
+        private AvatarObjectReference _target = new();
+
+        public AvatarObjectReference Target
+        {
+            get => _target;
+            set => _target = value;
+        }
+
         public float radius;
         public float aspectRatio;
         public float falloffStartAngle = 30;

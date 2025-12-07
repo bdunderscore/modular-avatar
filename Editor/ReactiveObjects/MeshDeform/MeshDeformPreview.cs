@@ -12,8 +12,8 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
             return context.GetAvatarRoots()
-                .SelectMany(r => r.GetComponentsInChildren<ModularAvatarMeshDeform>(false))
-                .GroupBy(r => context.Observe(r, _ => r.Target.Get(r)))
+                .SelectMany(r => r.GetComponentsInChildren<IMeshDeformComponent>(false))
+                .GroupBy(r => context.Observe((Component)r, _ => r.Target.Get((Component)r)))
                 .Where(r => r.Key != null && context.GetComponent<SkinnedMeshRenderer>(r.Key) != null)
                 .Select(r => RenderGroup.For(r.Key.GetComponent<Renderer>()).WithData(r.ToImmutableList()))
                 .ToImmutableList();
@@ -24,7 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         {
             var firstProxy = proxyPairs.First();
             return Task.FromResult<IRenderFilterNode>(new Node(
-                group.GetData<ImmutableList<ModularAvatarMeshDeform>>(),
+                group.GetData<ImmutableList<IMeshDeformComponent>>(),
                 firstProxy.Item1,
                 firstProxy.Item2,
                 context
@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         private class Node : IRenderFilterNode
         {
             private const string ShapeName = "____ModularAvatarMeshDeform";
-            private readonly ImmutableList<ModularAvatarMeshDeform> _filters;
+            private readonly ImmutableList<IMeshDeformComponent> _filters;
             private readonly Renderer _original;
             private readonly Renderer _proxy;
             private readonly ComputeContext _context;
@@ -45,7 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
 
             public RenderAspects WhatChanged => RenderAspects.Mesh;
 
-            public Node(ImmutableList<ModularAvatarMeshDeform> filters, Renderer original, Renderer proxy,
+            public Node(ImmutableList<IMeshDeformComponent> filters, Renderer original, Renderer proxy,
                 ComputeContext context)
             {
                 _filters = filters;
@@ -61,12 +61,11 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
                 for (var i = 0; i < _filters.Count; i++)
                 {
                     var filter = _filters[i];
-                    context.Observe(filter,
-                        f => (f.radius, f.aspectRatio, f.falloffStartAngle, f.falloffEndAngle, f.disableBackHalf));
-                    context.ObserveTransformPosition(filter.transform);
+                    context.ObserveTransformPosition(((Component)filter).transform);
 
                     var shapeName = ShapeName + "_" + i;
-                    MeshDeformProcessor.AddMeshDeform(ref mesh, proxy, shapeName, filter);
+                    var deformer = MeshDeformDatabase.GetDeformer(context, filter);
+                    MeshDeformProcessor.AddMeshDeform(ref mesh, proxy, shapeName, filter, deformer);
                     blendshapeIndexes.Add(mesh.GetBlendShapeIndex(shapeName));
                 }
             }

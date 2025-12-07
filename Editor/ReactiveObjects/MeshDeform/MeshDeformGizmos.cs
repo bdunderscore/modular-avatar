@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using nadena.dev.ndmf.preview;
+using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.editor.MeshDeform
 {
@@ -7,17 +8,17 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            ModularAvatarMeshDeform.OnGizmosCallback = OnDrawGizmosSelected;
+            ModularAvatarToroidalDeform.OnGizmosCallback = OnDrawGizmosSelected;
         }
 
-        private static void OnDrawGizmosSelected(ModularAvatarMeshDeform meshDeform)
+        private static void OnDrawGizmosSelected(ModularAvatarToroidalDeform toroidalDeform)
         {
-            if (meshDeform.CachedGizmoHandle == null)
+            if (toroidalDeform.CachedGizmoHandle == null)
             {
-                meshDeform.CachedGizmoHandle = new ToroidalDeformation(meshDeform);
+                toroidalDeform.CachedGizmoHandle = new ToroidalDeformation(ComputeContext.NullContext, toroidalDeform);
             }
 
-            ((IMeshDeformation)meshDeform.CachedGizmoHandle).RenderGizmo();
+            ((IMeshDeformation)toroidalDeform.CachedGizmoHandle).RenderGizmo();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.MeshDeform
@@ -9,6 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
     ///     be pushed out to the surface of the torus along the shortest path (ie - the normal from the torus
     ///     surface).
     /// </summary>
+    [MeshDeformationProvider(typeof(ModularAvatarToroidalDeform))]
     internal sealed class ToroidalDeformation : IMeshDeformation, IDisposable
     {
         private readonly Vector3 _axis = Vector3.up; // normalized (in reference-local if _reference != null)
@@ -18,9 +20,6 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         // Precomputed orthonormal basis perpendicular to _axis for rendering (in same frame as _axis/_center)
         private readonly Vector3 _u = Vector3.right;
         private readonly Vector3 _v = Vector3.forward;
-
-        // small epsilon
-        private const float EPS = 1e-6f;
 
         // Cached gizmo mesh for RenderGizmo (null when not created)
         private Mesh? _gizmoMesh;
@@ -38,10 +37,20 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         private readonly bool _disableBackHalf;
 
         // Changed ctor: optional reference transform
-        public ToroidalDeformation(ModularAvatarMeshDeform deform)
+        public ToroidalDeformation(ComputeContext context, ModularAvatarToroidalDeform deform)
         {
             _reference = deform.transform;
 
+            context.Observe(deform,
+                d => (
+                    deform.radius,
+                    deform.aspectRatio,
+                    deform.falloffStartAngle,
+                    deform.falloffEndAngle,
+                    deform.disableBackHalf
+                )
+            );
+            
             // Inner radius is deform.radius
             // Rinner = Rmajor - Rminor
             // Rminor = Rmajor * aspectRatio
@@ -270,7 +279,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
                     from = _reference.TransformPoint(from);
                     to = _reference.TransformPoint(to);
                     Gizmos.color = minorColor;
-                    Gizmos.DrawLine(from, to);
+                    if (tick != 0) Gizmos.DrawLine(from, to);
                 }
 
                 Gizmos.DrawLine(priorPoint, _reference.TransformPoint(refPoint));

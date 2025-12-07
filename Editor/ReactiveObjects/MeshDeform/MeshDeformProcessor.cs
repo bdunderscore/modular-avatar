@@ -12,14 +12,32 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
             ref Mesh mesh,
             Renderer renderer,
             string shapeName,
-            ModularAvatarMeshDeform deform
+            IMeshDeformComponent deformComponent,
+            IMeshDeformation? deformation
         )
         {
+            var componentTransform = ((Component)deformComponent).transform;
+            
             if (ObjectRegistry.GetReference(mesh).Object == mesh)
             {
                 // Clone mesh
                 mesh = RemoveVerticesFromMesh.RemoveVertices(renderer, mesh, new (TargetProp, IVertexFilter)[] { });
             }
+
+            if (deformation == null)
+            {
+                // Add a null blendshape
+                var zero = new Vector3[mesh.vertexCount];
+                mesh.AddBlendShapeFrame(
+                    shapeName,
+                    100,
+                    zero,
+                    zero,
+                    zero
+                );
+                return;
+            }
+
 
             Transform[]? bones = (renderer as SkinnedMeshRenderer)?.bones;
             float4x4[]? boneToWorld = null;
@@ -56,8 +74,6 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
             var normals = mesh.normals;
             var deltaPositions = new Vector3[vertexCount];
 
-            using var deformation = new ToroidalDeformation(deform);
-            
             for (var i = 0; i < vertexCount; i++)
             {
                 // Compute the weighted transformation matrices for this vertex.
@@ -108,16 +124,16 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
 
                 var worldPos = math.mul(vertToWorld, v4);
                 var worldPos3 = new Vector3(worldPos.x, worldPos.y, worldPos.z);
-                
-                var deformLocal = deform.transform.InverseTransformPoint(worldPos3);
+
+                var deformLocal = componentTransform.InverseTransformPoint(worldPos3);
                 // todo norm,tangent
-                var deformNormal = deform.transform.InverseTransformDirection(worldNorm);
+                var deformNormal = componentTransform.InverseTransformDirection(worldNorm);
                 var deformTangent = Vector3.zero;
 
                 deformation.ProcessPoint(ref deformLocal, ref deformNormal, ref deformTangent);
                 
                 // Transform back to world space
-                var postTransformWorld = deform.transform.TransformPoint(deformLocal);
+                var postTransformWorld = componentTransform.TransformPoint(deformLocal);
                 // Transform back to local space
                 var postTransformLocal = math.mul(worldToVert,
                     new float4(postTransformWorld.x, postTransformWorld.y, postTransformWorld.z, 1));
