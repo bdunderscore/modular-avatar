@@ -115,7 +115,9 @@ jobs:
         name: Prepare standalone environment
         run: |
           mv Packages/nadena.dev.ndmf/Dependencies~ Packages/nadena.dev.ndmf/Dependencies
-          rm -rf Packages/nadena.dev.modular-avatar/UnitTests # tests are not supported in standalone yet
+          if ! [ -e Packages/nadena.dev.modular-avatar/UnitTests/GenericTests ]; then
+            rm -rf Packages/nadena.dev.modular-avatar/UnitTests # tests are not supported in standalone yet
+          fi
 
       - name: "Debug: List package versions"
         run: |
