@@ -9,9 +9,8 @@ public class InferPrefixSuffixTest : TestBase
     public void TestNoPrefixSuffix()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
         root_hips.name = "hip";
 
@@ -34,9 +33,8 @@ public class InferPrefixSuffixTest : TestBase
     public void TestDifferentHipsName()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
         root_hips.name = "hip";
 
@@ -71,9 +69,8 @@ public class InferPrefixSuffixTest : TestBase
     public void TestSameHipsName_Multiple()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
         root_hips.name = "TEST_HI";
 
@@ -98,9 +95,8 @@ public class InferPrefixSuffixTest : TestBase
     public void TestSameHipsName_Single()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips);
         root_hips.name = "TE_HIPS_ST";
 
@@ -123,9 +119,8 @@ public class InferPrefixSuffixTest : TestBase
     public void TestSpuriousMatch()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var animator = root.GetComponent<Animator>();
         var root_hips = animator.GetBoneTransform(HumanBodyBones.Hips);
         var root_armature = root_hips.parent;

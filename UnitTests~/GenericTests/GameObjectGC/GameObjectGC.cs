@@ -7,10 +7,19 @@ using UnityEngine;
 
 public class GameObjectGC : TestBase
 {
+    
+    private GameObject CreateTestHumanoid()
+    {
+        var obj = CreateCommonPrefab("shapell.fbx");
+        AddMinimalAvatarComponents(obj);
+
+        return obj;
+    }
+    
     [Test]
     public void FakeHumanoidHandling()
     {
-        var fake_humanoid = CreatePrefab("FakeHumanoid.prefab");
+        var fake_humanoid = CreateTestHumanoid();
         var context = new BuildContext(fake_humanoid);
 
         new GameObject("test").transform.parent = fake_humanoid.transform;
@@ -27,7 +36,7 @@ public class GameObjectGC : TestBase
     [Test]
     public void RetainEndBones()
     {
-        var fake_humanoid = CreatePrefab("FakeHumanoid.prefab");
+        var fake_humanoid = CreateTestHumanoid();
         var context = new BuildContext(fake_humanoid);
 
         var bone1 = CreateChild(fake_humanoid, "bone1");
@@ -45,7 +54,7 @@ public class GameObjectGC : TestBase
     [Test]
     public void RetainArmatureHack()
     {
-        var fake_humanoid = CreatePrefab("FakeHumanoid.prefab");
+        var fake_humanoid = CreateTestHumanoid();
 
         var armature = new GameObject();
         armature.name = "Armature";
@@ -63,6 +72,9 @@ public class GameObjectGC : TestBase
     [Test]
     public void AnimatedObjectsAreRetained()
     {
+        #if !MA_VRCSDK3_AVATARS
+        Assert.Ignore("VRC-specific test");
+        #endif
         var prefab = CreatePrefab("WithAnimatedObject.prefab");
 
         var context = new BuildContext(prefab);

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf.runtime.components;
 using NUnit.Framework;
 using UnitTests.SharedInterfaces;
 using UnityEditor;
@@ -85,7 +87,18 @@ namespace modular_avatar_tests
             return ITestSupport.Instance.LoadAsset<T>(GetType(), relPath);
         }
 
+        public void AddMinimalAvatarComponents(GameObject obj)
+        {
+            obj.GetOrAddComponent<Animator>();
 #if MA_VRCSDK3_AVATARS
+            obj.GetOrAddComponent<VRCAvatarDescriptor>();
+#else
+            obj.GetOrAddComponent<NDMFAvatarRoot>();
+#endif
+        }
+        
+#if MA_VRCSDK3_AVATARS
+        
         protected static AnimationClip findFxClip(GameObject prefab, string layerName)
         {
             var motion = findFxMotion(prefab, layerName) as AnimationClip;

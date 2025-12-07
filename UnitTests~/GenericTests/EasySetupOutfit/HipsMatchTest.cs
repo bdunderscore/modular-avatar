@@ -10,9 +10,7 @@ public class HipsMatchTest : TestBase
     public void SetupHeuristicPrefersFirstHipsMatch()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).gameObject;
         var root_armature = root_hips.transform.parent.gameObject;
         var root_secondary = CreateChild(root, "PBC");
@@ -32,9 +30,8 @@ public class HipsMatchTest : TestBase
     public void TestOutfitDeepHipsMatch()
     {
         var root = CreateCommonPrefab("shapell.fbx");
-#if MA_VRCSDK3_AVATARS
-        root.AddComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
-#endif
+        AddMinimalAvatarComponents(root);
+        
         var root_hips = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).gameObject;
         root_hips.name = "hip";
 

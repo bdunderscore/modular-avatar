@@ -50,8 +50,16 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 #endif
 
+#if MA_VRCSDK3_AVATARS
+        private static INDMFPlatformProvider DefaultPlatformProvider { get; } =
+            PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30];
+#else
+        private static INDMFPlatformProvider DefaultPlatformProvider { get; } =
+            PlatformRegistry.PlatformProviders[WellKnownPlatforms.Generic];
+#endif
+
         public BuildContext(GameObject avatarGameObject)
-            : this(new ndmf.BuildContext(avatarGameObject, null, PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30]))
+            : this(new ndmf.BuildContext(avatarGameObject, null, DefaultPlatformProvider))
         {
         }
 
