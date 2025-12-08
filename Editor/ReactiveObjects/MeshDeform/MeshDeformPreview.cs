@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context)
         {
             return context.GetAvatarRoots()
-                .SelectMany(r => r.GetComponentsInChildren<IMeshDeformComponent>(false))
+                .SelectMany(r => r.GetComponentsInChildren<AbstractMeshDeformComponent>(false))
                 .GroupBy(r => context.Observe((Component)r, _ => r.Target.Get((Component)r)))
                 .Where(r => r.Key != null && context.GetComponent<SkinnedMeshRenderer>(r.Key) != null)
                 .Select(r => RenderGroup.For(r.Key.GetComponent<Renderer>()).WithData(r.ToImmutableList()))
@@ -24,7 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         {
             var firstProxy = proxyPairs.First();
             return Task.FromResult<IRenderFilterNode>(new Node(
-                group.GetData<ImmutableList<IMeshDeformComponent>>(),
+                group.GetData<ImmutableList<AbstractMeshDeformComponent>>(),
                 firstProxy.Item1,
                 firstProxy.Item2,
                 context
@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         private class Node : IRenderFilterNode
         {
             private const string ShapeName = "____ModularAvatarMeshDeform";
-            private readonly ImmutableList<IMeshDeformComponent> _filters;
+            private readonly ImmutableList<AbstractMeshDeformComponent> _filters;
             private readonly Renderer _original;
             private readonly Renderer _proxy;
             private readonly ComputeContext _context;
@@ -45,7 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
 
             public RenderAspects WhatChanged => RenderAspects.Mesh;
 
-            public Node(ImmutableList<IMeshDeformComponent> filters, Renderer original, Renderer proxy,
+            public Node(ImmutableList<AbstractMeshDeformComponent> filters, Renderer original, Renderer proxy,
                 ComputeContext context)
             {
                 _filters = filters;

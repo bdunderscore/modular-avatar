@@ -32,7 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
                             var attr = type.GetCustomAttributes<MeshDeformationProvider>().FirstOrDefault();
                             if (attr == null) continue;
 
-                            if (!typeof(IMeshDeformComponent).IsAssignableFrom(attr.ComponentType))
+                            if (!typeof(AbstractMeshDeformComponent).IsAssignableFrom(attr.ComponentType))
                             {
                                 Debug.LogError("ComponentType on " + type +
                                                " is not assignable from IMeshDeformComponent");
@@ -71,7 +71,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
             }
         }
 
-        public static IMeshDeformation? GetDeformer(ComputeContext context, IMeshDeformComponent component)
+        public static IMeshDeformation? GetDeformer(ComputeContext context, AbstractMeshDeformComponent component)
         {
             if (!Builders.TryGetValue(component.GetType(), out var ctor))
             {

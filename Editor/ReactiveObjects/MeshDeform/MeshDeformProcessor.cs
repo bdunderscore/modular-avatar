@@ -12,11 +12,11 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
             ref Mesh mesh,
             Renderer renderer,
             string shapeName,
-            IMeshDeformComponent deformComponent,
+            AbstractMeshDeformComponent deformComponent,
             IMeshDeformation? deformation
         )
         {
-            var componentTransform = ((Component)deformComponent).transform;
+            var componentTransform = deformComponent.transform;
             
             if (ObjectRegistry.GetReference(mesh).Object == mesh)
             {

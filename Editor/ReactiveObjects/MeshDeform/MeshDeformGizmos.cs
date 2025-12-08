@@ -8,17 +8,18 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            ModularAvatarToroidalDeform.OnGizmosCallback = OnDrawGizmosSelected;
+            AbstractMeshDeformComponent.OnGizmosCallback = OnDrawGizmosSelected;
         }
 
-        private static void OnDrawGizmosSelected(ModularAvatarToroidalDeform toroidalDeform)
+        private static void OnDrawGizmosSelected(AbstractMeshDeformComponent deform)
         {
-            if (toroidalDeform.CachedGizmoHandle == null)
+            if (deform.CachedGizmoHandle == null)
             {
-                toroidalDeform.CachedGizmoHandle = new ToroidalDeformation(ComputeContext.NullContext, toroidalDeform);
+                deform.CachedGizmoHandle =
+                    MeshDeformDatabase.GetDeformer(ComputeContext.NullContext, deform);
             }
 
-            ((IMeshDeformation)toroidalDeform.CachedGizmoHandle).RenderGizmo();
+            ((IMeshDeformation)deform.CachedGizmoHandle)?.RenderGizmo();
         }
     }
 }

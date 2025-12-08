@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using System;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 
@@ -11,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor.MeshDeform
     ///     surface).
     /// </summary>
     [MeshDeformationProvider(typeof(ModularAvatarToroidalDeform))]
-    internal sealed class ToroidalDeformation : IMeshDeformation, IDisposable
+    internal sealed class ToroidalDeformation : IMeshDeformation
     {
         private readonly Vector3 _axis = Vector3.up; // normalized (in reference-local if _reference != null)
         private readonly float _majorRadius; // R
