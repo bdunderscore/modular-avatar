@@ -99,7 +99,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         fromProperty.serializedObject.ApplyModifiedProperties();
                     });
                 }
+#if UNITY_6000_3_OR_NEWER
+                menu.DropDown(_fromField.worldBound, _fromField,DropdownMenuSizeMode.Auto);
+#else
                 menu.DropDown(_fromField.worldBound, _fromField);
+#endif
             };
         }
 
