@@ -171,7 +171,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected override void Execute(ndmf.BuildContext context)
         {
-            foreach (var obj in context.AvatarRootObject.GetComponentsInChildren<AvatarTagComponent>())
+            foreach (var obj in context.AvatarRootObject.GetComponentsInChildren<AvatarTagComponent>(true))
             {
                 obj.ResolveReferences();
             }
