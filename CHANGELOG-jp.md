@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1845] `MA Bone Proxy` が無効化された GameObject 上で正しく動作しない場合がある問題を修正
 
 ### Changed
 - [#1829] `Sync Parameter Sequence` が自動的に Library の中にパラメーターを保存するように変わったため、パラメーター
