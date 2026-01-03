@@ -17,5 +17,3 @@ to its child. You can control the position of GameObjects within a World Fixed O
 
 Only one constraint will be generated, even if multiple World Fixed Object components are used.
 As such, the performance impact of this component is the same whether you use one or dozens.
-
-Due to technical limitations on the Quest, this component can't be used when building for Quest standalone.
