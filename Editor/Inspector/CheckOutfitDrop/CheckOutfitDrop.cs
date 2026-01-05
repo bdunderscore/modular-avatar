@@ -42,12 +42,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     continue;
                 }
 
-                if (_processedTargets.Contains(avatarRoot))
+                if (_processedTargets.Contains(droppedObject))
                 {
                     continue;
                 }
 
-                targets.Add(avatarRoot);
+                targets.Add(droppedObject);
             }
 
             if (targets.Count > 0)
