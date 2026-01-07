@@ -16,5 +16,3 @@ GameObjectをワールド固定したいとき。
 World Fixed ObjectのついたGameObjectはParent Constraint等を使用してワールド内の位置を調整できます。
 
 複数のWorld Fixed Objectコンポーネントを使っても、Constraintは一つだけです。なので、複数のGameObjectを指定しても、その分重くなることはありません。
-
-技術的な制約により、Quest単体では動作できず、Quest向けのビルドでは使用できません。
