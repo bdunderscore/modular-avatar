@@ -11,6 +11,10 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#1851] MMDワールドに関する幾つかのバグを修正
+  - [#1850] MMDワールドでは、Reactive Componentが正しく動作しないバグを修正
+  - `Merge Blend Tree` や `Merge Motion` で統合されるモーションがMMDワールドでは正しく動作しないバグを修正
+  - 最初のレイヤーを`MA MMD Layer Control`でオプトインした場合、正しく処理されない場合があるバグを修正
 
 ### Changed
 - [#1829] `Sync Parameter Sequence` が自動的に Library の中にパラメーターを保存するように変わったため、パラメーター

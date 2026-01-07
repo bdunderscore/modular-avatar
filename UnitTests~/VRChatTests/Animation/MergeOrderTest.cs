@@ -25,7 +25,7 @@ namespace modular_avatar_tests
             
             Assert.AreEqual(new []
             {
-                "1", MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "2", "3", "4", "5"
+                MMDRelayPass.DummyLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "1", "2", "3", "4", "5"
             }, layerNames);
         }
     }

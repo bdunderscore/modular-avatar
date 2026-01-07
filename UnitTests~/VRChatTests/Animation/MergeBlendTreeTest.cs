@@ -45,6 +45,9 @@ namespace modular_avatar_tests
             mergeComponent2.PathMode = MergeAnimatorPathMode.Absolute;
             CreateChild(c2, "b");
             
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
             AvatarProcessor.ProcessAvatar(root);
 
             var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController;
@@ -139,7 +142,7 @@ namespace modular_avatar_tests
             var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
                 .layers.Select(l => l.name).ToArray();
             
-            Assert.AreEqual(new[] {MergeBlendTreePass.BlendTreeLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
+            Assert.AreEqual(new[] {MMDRelayPass.DummyLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, MergeBlendTreePass.BlendTreeLayerName, "m2", "Eyes", "FaceMood", "m1", "m3"}, layerNames);
         }
     
         [Test]

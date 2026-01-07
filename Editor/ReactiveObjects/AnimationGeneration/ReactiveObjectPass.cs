@@ -627,6 +627,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var asm = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!
                 .AddLayer(LayerPriority.Default, $"MA Responsive: {info.TargetProp.TargetObject.name}").StateMachine!;
 
+            var layerControl = ScriptableObject.CreateInstance<ModularAvatarMMDLayerControl>();
+            layerControl.DisableInMMDMode = false;
+            asm.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(layerControl);
+
             var x = 200;
             var y = 0;
             var yInc = 60;

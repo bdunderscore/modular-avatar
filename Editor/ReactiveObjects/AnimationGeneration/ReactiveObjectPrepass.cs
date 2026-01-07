@@ -1,5 +1,4 @@
 ﻿using nadena.dev.ndmf;
-
 #if MA_VRCSDK3_AVATARS
 using UnityEditor.Animations;
 using UnityEngine;
@@ -15,6 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class ReactiveObjectPrepass : Pass<ReactiveObjectPrepass>
     {
         internal const string TAG_PATH = "__MA/ShapeChanger/PrepassPlaceholder";
+        internal const string LAYER_NAME = "MA Shape Changer Defaults";
 
         protected override void Execute(ndmf.BuildContext context)
         {
@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (context.AvatarRootObject.GetComponentInChildren<ReactiveComponent>(true) != null)
             {
                 var clip = new AnimationClip();
-                clip.name = "MA Shape Changer Defaults";
+                clip.name = LAYER_NAME;
 
                 var curve = new AnimationCurve();
                 curve.AddKey(0, 0);
@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // Merge using a null blend tree. This also ensures that we initialize the Merge Blend Tree system.
                 var bt = new BlendTree();
-                bt.name = "MA Shape Changer Defaults";
+                bt.name = LAYER_NAME;
                 bt.blendType = BlendTreeType.Direct;
                 bt.children = new[]
                 {
