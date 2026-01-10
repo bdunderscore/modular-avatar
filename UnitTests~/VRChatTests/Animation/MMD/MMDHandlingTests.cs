@@ -45,14 +45,15 @@ namespace modular_avatar_tests.MMD
             var fxc = (AnimatorController)fx.animatorController;
 
             // RC, MMD, dummy, L0, L1, L2
-            AssertMMDModeHandling(fxc, 4, 5);
+            AssertMMDModeHandling(fxc, 4, 5, 6);
             
-            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[0].name);
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
-            Assert.AreEqual("L0", fxc.layers[3].name);
-            Assert.AreEqual("L1", fxc.layers[4].name);
-            Assert.AreEqual("L2", fxc.layers[5].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[3].name);
+            Assert.AreEqual("L0", fxc.layers[4].name);
+            Assert.AreEqual("L1", fxc.layers[5].name);
+            Assert.AreEqual("L2", fxc.layers[6].name);
         }
 
         [Test]
@@ -66,17 +67,18 @@ namespace modular_avatar_tests.MMD
             var fxc = (AnimatorController)fx.animatorController;
             
             // M0, MMD, dummy, M1, M2, L0, L1, L2
-            AssertMMDModeHandling(fxc, 6, 7);
+            AssertMMDModeHandling(fxc, 6, 7, 8);
             
-            Assert.AreEqual(8, fxc.layers.Length);
-            Assert.AreEqual("M0", fxc.layers[0].name);
-            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual(9, fxc.layers.Length);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
-            Assert.AreEqual("M1", fxc.layers[3].name);
-            Assert.AreEqual("M2", fxc.layers[4].name);
-            Assert.AreEqual("L0", fxc.layers[5].name);
-            Assert.AreEqual("L1", fxc.layers[6].name);
-            Assert.AreEqual("L2", fxc.layers[7].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual("M0", fxc.layers[3].name);
+            Assert.AreEqual("M1", fxc.layers[4].name);
+            Assert.AreEqual("M2", fxc.layers[5].name);
+            Assert.AreEqual("L0", fxc.layers[6].name);
+            Assert.AreEqual("L1", fxc.layers[7].name);
+            Assert.AreEqual("L2", fxc.layers[8].name);
         }
 
         [Test]
@@ -107,13 +109,14 @@ namespace modular_avatar_tests.MMD
             Assert.That(layerNames, Is.EquivalentTo(new[]
             {
                 MMDRelayPass.DummyLayerName,
+                MMDRelayPass.DummyLayerName,
                 MMDRelayPass.ControlLayerName,
                 "OptIn",
                 "L0",
                 "L1",
                 "L2"
             }));
-            AssertMMDModeLayerDrivers(fxc, 2, 4, 5);
+            AssertMMDModeLayerDrivers(fxc, 3, 4, 5, 6);
         }
         
         [Test]
@@ -245,7 +248,7 @@ namespace modular_avatar_tests.MMD
                     }
                 }
                 
-                Assert.That(expectedLayers, Is.EquivalentTo(actualLayers));
+                Assert.That(actualLayers, Is.EquivalentTo(expectedLayers));
             }
         }
     }

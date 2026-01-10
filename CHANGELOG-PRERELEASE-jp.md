@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1851] MMDワールドに関する幾つかのバグを修正
+  - [#1850] MMDワールドでは、Reactive Componentが正しく動作しないバグを修正
+  - `Merge Blend Tree` や `Merge Motion` で統合されるモーションがMMDワールドでは正しく動作しないバグを修正
+  - 最初のレイヤーを`MA MMD Layer Control`でオプトインした場合、正しく処理されない場合があるバグを修正
 - [#1845] `MA Bone Proxy` が無効化された GameObject 上で正しく動作しない場合がある問題を修正
 
 ### Changed

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
@@ -166,6 +167,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var state = stateMachine.AddState("State", _rootBlendTree);
             stateMachine.DefaultState = state;
             state.WriteDefaultValues = true;
+
+            var layerControl = ScriptableObject.CreateInstance<ModularAvatarMMDLayerControl>();
+            layerControl.DisableInMMDMode = false;
+            stateMachine.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(layerControl);
             
             _rootBlendTree.BlendType = BlendTreeType.Direct;
             _rootBlendTree.BlendParameter = ALWAYS_ONE;

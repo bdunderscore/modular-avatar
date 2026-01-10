@@ -37,7 +37,7 @@ namespace nadena.dev.modular_avatar.animation
             if (asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
             {
                 context.GetState<MMDRelayState>().mmdAffectedOriginalLayers = new HashSet<VirtualLayer>(
-                    fx.Layers.Skip(1).Take(2)
+                    fx.Layers.Take(3)
                 );
             }
         }
@@ -138,12 +138,8 @@ namespace nadena.dev.modular_avatar.animation
             CheckForWriteDefaultsOn(fx, layersWithMmdControl, hasAnyOptInMmdLayerControl);
 
             var needsAdjustment = fx.Layers.Select((layer, index) => (layer, index))
-                .Any(pair => affectedLayers.Contains(pair.layer) != (pair.index < 3 && pair.index != 0));
+                .Any(pair => affectedLayers.Contains(pair.layer) != pair.index < 3);
             if (!needsAdjustment) return;
-
-            var toDisable = fx.Layers.Where(l => affectedLayers.Contains(l))
-                .Select(l => l.VirtualLayerIndex)
-                .ToList();
 
             fx.Parameters = fx.Parameters.Add(MMDRelayParam, new AnimatorControllerParameter
             {
@@ -155,18 +151,30 @@ namespace nadena.dev.modular_avatar.animation
             var currentLayers = fx.Layers.ToList();
             var newLayers = new List<VirtualLayer>();
 
-            // Layer zero's weight can't be changed anyway, so leave it where it is - unless it explicitly opted in
-            if (!affectedLayers.Contains(currentLayers[0]))
+            if (affectedLayers.Contains(currentLayers[0]) && !layersWithMmdControl.Contains(currentLayers[0]))
             {
+                // Keep the original layer 0 as layer 0 since it should be affected by MMD shenanigans.
+                // Note that we don't do this with an explicit opt-in, as it appears that layer 0 still behaves a bit
+                // special compared to others, so if you opt-in you should get totally normal behavior.
                 newLayers.Add(currentLayers[0]);
+                affectedLayers.Remove(currentLayers[0]);
                 currentLayers.RemoveAt(0);
             }
+            else
+            {
+                // You might think that layer zero's weight can't be changed, but it seems that this is not the case, at
+                // least when it contains a blend tree. So we need to insert a dummy layer zero in that case.
+                CreateDummyLayer(fx, newLayers);
+            }
 
-            // Add a dummy layer
+            // Add a dummy layer at layer 1 as well
             CreateDummyLayer(fx, newLayers);
 
-            // Add the control/sensor layer. We do this second so it never ends up being the first layer, which isn't
-            // disabled. We don't care if it's layer 1 or 2.
+            var toDisable = fx.Layers.Where(l => affectedLayers.Contains(l))
+                .Select(l => l.VirtualLayerIndex)
+                .ToList();
+
+            // Add the control/sensor layer at layer 2.
             newLayers.Add(CreateMMDLayer(fx, toDisable));
 
             // Note that if we opted in layer zero, above, then it comes in as layer 2, which doesn't need special handling.

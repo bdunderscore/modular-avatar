@@ -1,6 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System;
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace UnitTests.ReactiveComponent
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-            var baseBlend = (BlendTree) fxc.layers[0].stateMachine.defaultState.motion;
+            var baseBlend = (BlendTree) BaseLayer(fxc).stateMachine.defaultState.motion;
             var subBlend = (BlendTree) baseBlend.children[0].motion;
             var animStateMotion = (AnimationClip) subBlend.children[0].motion;
 
@@ -69,7 +70,7 @@ namespace UnitTests.ReactiveComponent
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-            var baseBlend = (BlendTree) fxc.layers[0].stateMachine.defaultState.motion;
+            var baseBlend = (BlendTree) BaseLayer(fxc).stateMachine.defaultState.motion;
             var subBlend = (BlendTree) baseBlend.children[0].motion;
             var animStateMotion = (AnimationClip) subBlend.children[0].motion;
 
@@ -82,6 +83,11 @@ namespace UnitTests.ReactiveComponent
             var value = curve.keys[0].value;
             
             Assert.AreEqual(animState, value > 0.5f);
+        }
+
+        private AnimatorControllerLayer BaseLayer(AnimatorController ac)
+        {
+            return ac.layers.First(l => l.name == MergeBlendTreePass.BlendTreeLayerName);
         }
     }
 }

@@ -51,7 +51,9 @@ MonoBehaviour:
   matchAvatarWriteDefaults: 0
   relativePathRoot:
     referencePath: 
+    targetObject: {fileID: 0}
   layerPriority: -100
+  mergeAnimatorMode: 0
 --- !u!1 &2283261212784644683
 GameObject:
   m_ObjectHideFlags: 0
@@ -103,7 +105,9 @@ MonoBehaviour:
   matchAvatarWriteDefaults: 0
   relativePathRoot:
     referencePath: 
+    targetObject: {fileID: 0}
   layerPriority: 1
+  mergeAnimatorMode: 0
 --- !u!1 &4823348639853131423
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,7 +159,9 @@ MonoBehaviour:
   matchAvatarWriteDefaults: 0
   relativePathRoot:
     referencePath: 
+    targetObject: {fileID: 0}
   layerPriority: -100
+  mergeAnimatorMode: 0
 --- !u!1 &5888860052520729914
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,4 +540,6 @@ MonoBehaviour:
   matchAvatarWriteDefaults: 0
   relativePathRoot:
     referencePath: 
+    targetObject: {fileID: 0}
   layerPriority: 0
+  mergeAnimatorMode: 0
