@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1853] Fixed multiple bugs in the new implementation of `Sync Parameter Sequence` 
 
 ### Changed
 
@@ -22,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.16.0-alpha.0] - [2025-12-07]
 
 ### Changed
-
 - [#1829] `Sync Parameter Sequence` will now automatically store parameters under the Unity Library; an expressions
   parameter asset is no longer required.
   - Sync Parameter Sequence now also enforces that all platforms have the same parameter contents, and syncs only from

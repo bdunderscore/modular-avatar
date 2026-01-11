@@ -102,16 +102,18 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
                                     toVRC.valueType, current.PrimaryPlatformRecord.Target
                                 );
                             }
-
-                            continue;
+                            knownParameters.Remove(parameter.Name);
                         }
-
-                        knownParameters.Remove(parameter.Name);
-                        parameters.Add(toVRC);
+                        else
+                        {
+                            parameters.Add(toVRC);
+                        }
                     }
 
                     foreach (var parameter in knownParameters.Keys)
                     {
+                        if (!knownParameters[parameter].networkSynced) continue;
+
                         BuildReport.LogFatal("error.syncparamsequence.unregistered_parameter", parameter,
                             current.PrimaryPlatformRecord.Target);
                     }

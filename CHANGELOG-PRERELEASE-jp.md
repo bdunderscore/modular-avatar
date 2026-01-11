@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1853] `Sync Parameter Sequence` の新しい実装における、複数のバグを修正
 
 ### Changed
 
