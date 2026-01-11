@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1169826671884431870}
   - component: {fileID: 4500738523828848987}
   - component: {fileID: 1948104033237066197}
+  - component: {fileID: 602785781402723216}
   m_Layer: 0
   m_Name: RenamesParameterCurves
   m_TagString: Untagged
@@ -323,6 +324,19 @@ MonoBehaviour:
   contentType: 0
   assetBundleUnityVersion: 
   fallbackStatus: 0
+--- !u!114 &602785781402723216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1286613399393800329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89c938d7d8a741df99f2eda501b3a6fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mmdWorldSupport: 0
 --- !u!1 &7373036613593428732
 GameObject:
   m_ObjectHideFlags: 0

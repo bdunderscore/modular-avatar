@@ -1,7 +1,9 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
+using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
@@ -26,7 +28,7 @@ namespace ShapeChangerTests
             AvatarProcessor.ProcessAvatar(root);
 
             var fx = (AnimatorController) FindFxController(root).animatorController;
-            var baseLayer = fx.layers[0];
+            var baseLayer = fx.layers.First(l => l.name == MergeBlendTreePass.BlendTreeLayerName);
             
             var bt = baseLayer.stateMachine.states[0].state.motion as BlendTree;
             Assert.NotNull(bt);
@@ -79,7 +81,7 @@ namespace ShapeChangerTests
             AvatarProcessor.ProcessAvatar(root);
 
             var fx = (AnimatorController) FindFxController(root).animatorController;
-            var baseLayer = fx.layers[0];
+            var baseLayer = fx.layers.First(l => l.name == MergeBlendTreePass.BlendTreeLayerName);
             
             var bt = baseLayer.stateMachine.states[0].state.motion as BlendTree;
             Assert.NotNull(bt);

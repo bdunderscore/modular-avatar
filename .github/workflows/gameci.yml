@@ -126,7 +126,7 @@ jobs:
             cat $i | jq .version
           done
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
@@ -182,7 +182,7 @@ jobs:
             xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
           fi
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         continue-on-error: true
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}

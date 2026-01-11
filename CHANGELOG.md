@@ -13,9 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1851] Fixed various issues in MMD worlds
+  - [#1850] Reactive components did not work properly in MMD worlds
+  - Motions merged via "Merge Blend Tree" or "Merge Motion" would not work properly in MMD worlds
+  - `MA MMD Layer Control` would not have correct behavior for the first layer when explicitly opting in to MMD world behavior
+- [#1845] Bone Proxy on inactive GameObjects may not work as expected.
 
 ### Changed
-
 - [#1829] `Sync Parameter Sequence` will now automatically store parameters under the Unity Library; an expressions
   parameter asset is no longer required.
   - Sync Parameter Sequence now also enforces that all platforms have the same parameter contents, and syncs only from
