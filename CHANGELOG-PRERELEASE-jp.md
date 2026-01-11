@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1853] `Sync Parameter Sequence` の新しい実装における、複数のバグを修正
 - [#1851] MMDワールドに関する幾つかのバグを修正
   - [#1850] MMDワールドでは、Reactive Componentが正しく動作しないバグを修正
   - `Merge Blend Tree` や `Merge Motion` で統合されるモーションがMMDワールドでは正しく動作しないバグを修正

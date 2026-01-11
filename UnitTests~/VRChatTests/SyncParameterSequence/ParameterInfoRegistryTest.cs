@@ -2,6 +2,7 @@
 using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor.SyncParameterSequence;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -75,13 +76,116 @@ namespace UnitTests.SyncParameterSequence
                 new P { name = "c", valueType = Float },
                 new P { name = "b", valueType = Float },
             });
+
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.StandaloneWindows64, false);
+            });
             
-            _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.StandaloneWindows64, false);
-            
+            Assert.IsEmpty(errors);
             Assert.AreEqual(0, _inconsistentCallbackCounter);
             Assert.AreEqual(0, _registry.InconsistentBlueprints.Count);
         }
+
+        [Test]
+        public void WhenExcessNonSyncedParams_DoesNotReportError()
+        {
+            var root = CreateRoot("root");
+            SetRandomBlueprintId(root);
+
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Float },
+            });
+            
+            _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.Android, true);
+
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Float },
+                new P { name = "d", valueType = Float, networkSynced = false},
+            });
+
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.StandaloneWindows64, false);
+            });
+            
+            Assert.IsEmpty(errors);
+        }
         
+        
+        [Test]
+        public void WhenExcessSyncedParams_DoesReportError()
+        {
+            var root = CreateRoot("root");
+            SetRandomBlueprintId(root);
+
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Float },
+            });
+            
+            _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.Android, true);
+            
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Float },
+                new P { name = "d", valueType = Float },
+            });
+
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.StandaloneWindows64, false);
+            });
+            
+            Assert.AreEqual(1, errors.Count);
+            Assert.AreEqual("error.syncparamsequence.unregistered_parameter", ((SimpleError)errors[0].TheError).TitleKey);
+        }
+        
+        
+        
+        [Test]
+        public void WhenTypeMismatch_DoesReportError()
+        {
+            var root = CreateRoot("root");
+            SetRandomBlueprintId(root);
+
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Float },
+            });
+            
+            _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.Android, true);
+            
+            descriptor.expressionParameters = CreateParams(new[]
+            {
+                new P { name = "a", valueType = Float },
+                new P { name = "c", valueType = Float },
+                new P { name = "b", valueType = Int },
+            });
+
+            var errors = ErrorReport.CaptureErrors(() =>
+            {
+                _registry.NormalizeParameters(CreateContext(root), descriptor, BuildTarget.StandaloneWindows64, false);
+            });
+            
+            Assert.AreEqual(1, errors.Count);
+            Assert.AreEqual("error.syncparamsequence.type_mismatch", ((SimpleError)errors[0].TheError).TitleKey);
+        }
         
         [Test]
         public void WhenBuildingSecondaryPlatformFirst_TemporarilyMarkedInconsistent()
