@@ -256,6 +256,7 @@
   "setup_outfit.err.no_animator": "アバターにAnimatorコンポーネントがありません。",
   "setup_outfit.err.no_hips": "アバターにHipsボーンがありません。なお、Setup OutfitはHumanoidアバター以外には対応していません。",
   "setup_outfit.err.no_outfit_hips": "衣装のHipsボーンを発見できませんでした。アクセサリー等に対してSetup Outfitを試みた場合は、代わりにBone Proxyコンポーネントを使って配置してみてください。\n以下の名前を含むボーンを（大文字・小文字を区別つけずに）探しました：",
+  "setup_outfit.success": "衣装のセットアップが正常に完了しました",
   "move_independently.group-header": "同時に動かすオブジェクト",
   "scale_adjuster.scale": "Scale調整値",
   "scale_adjuster.adjust_children": "子オブジェクトの位置を調整",
@@ -401,5 +402,11 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "VRCでは、Global Collider は8個までしか使用できません。現在は {0} 個使用しています。",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "MA Global Collider コンポーネントの数を減らしてください。",
   "validation.global_collider.manual_collider_overwrite": "複数の Global Collider コンポーネントが同じコライダーを手動で使用しています。",
-  "validation.global_collider.manual_collider_overwrite:description": "最後コンポーネントが一番目を優先されます。"
+  "validation.global_collider.manual_collider_overwrite:description": "最後コンポーネントが一番目を優先されます。",
+  "check_outfit_drop.preset_cloth": "既にセットアップされている衣装が配置されました。処理をスキップします。",
+  "check_outfit_drop_window.title": "Check Outfit Drop",
+  "check_outfit_drop_window.description": "衣装をセットアップしますか？",
+  "check_outfit_drop_window.setup_button": "衣装をセットアップ",
+  "check_outfit_drop_window.dismiss_button": "却下",
+  "check_outfit_drop_window.disable_description": "この機能はTools/Modular Avatar/Check Outfit Dropから無効にできます。"
 }
