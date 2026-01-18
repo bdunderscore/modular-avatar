@@ -160,6 +160,15 @@
   "error.merge_animator.layer_no_state_machine:hint": "アニメーターコントローラーのファイルに何か問題があるようです。手動で組んだアニメーターで発生することは非常に稀ですが、ツールで生成されたアニメーターで発生している場合は、該当ツールの作者に問い合わせてみてください。",
   "error.vertex_filter_by_mask.non_readable_texture": "マスクテクスチャが読み取れません。",
   "error.vertex_filter_by_mask.non_readable_texture:hint": "マスクテクスチャの Inspector を開き、Advanced > Read/Write にチェックを入れて Apply ボタンを押してください。",
+  "error.syncparamsequence.cost_exceeded": "[MA-0014] プラットフォーム間でパラメータを同期した結果、パラメータの最大コストを超えました",
+  "error.syncparamsequence.cost_exceeded:description": "前回の {0} ビルドからの追加パラメータを同期した後、総パラメータコストが {1} ビットで、 {2} の制限を超えました。",
+  "error.syncparamsequence.cost_exceeded:hint": "サブプラットフォーム用のアバターに、主要プラットフォームに入っていないパラメータが含まれていないことを確認してください",
+  "error.syncparamsequence.unregistered_parameter": "[MA-0015] サブプラットフォームに未登録のパラメータが含まれています",
+  "error.syncparamsequence.unregistered_parameter:description": "パラメータ 「{0}」 はプライマリプラットフォーム {1}の最後のビルドでは登録されていません。",
+  "error.syncparamsequence.unregistered_parameter:hint": "主要プラットフォームは、アバターのバリエーションに使用されるすべてのパラメータを登録する必要があります。 主要プラットフォームにパラメータ {0} を追加するか、 {1} から削除してください。",
+  "error.syncparamsequence.type_mismatch": "[MA-0016] プラットフォーム間でパラメータ型が一致していません",
+  "error.syncparamsequence.type_mismatch:description": "パラメータ {0} には複数の型があります: {2}での{1} != {4}での{3} (主要プラットフォーム)",
+  "error.syncparamsequence.type_mismatch:hint": "パラメータの種類がすべてのプラットフォームで同じであることを確認してください。パラメータの変更が有効になるように、 {4} で再ビルドしてみてください。",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] このオブジェクトにはSkinned Mesh Rendererがありません。",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Syncは同じGameObject上のSkinned Mesh Rendererに作用します。コンポーネントが正しいオブジェクトに追加されているか確認してください。",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] このオブジェクトにはSkinned Mesh Rendererがありますが、メッシュがありません。",
@@ -401,5 +410,5 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "VRCでは、Global Collider は8個までしか使用できません。現在は {0} 個使用しています。",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "MA Global Collider コンポーネントの数を減らしてください。",
   "validation.global_collider.manual_collider_overwrite": "複数の Global Collider コンポーネントが同じコライダーを手動で使用しています。",
-  "validation.global_collider.manual_collider_overwrite:description": "最後コンポーネントが一番目を優先されます。"
+  "validation.global_collider.manual_collider_overwrite:description": "最後のコンポーネントが前のコンポーネントより優先されます。"
 }
