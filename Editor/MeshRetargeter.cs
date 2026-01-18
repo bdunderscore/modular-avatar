@@ -228,18 +228,18 @@ namespace nadena.dev.modular_avatar.core.editor
             var newBones = (Transform[]) originalBones.Clone();
             var newBindPoses = (Matrix4x4[]) originalBindPoses?.Clone();
 
-            for (int i = 0; i < originalBones.Length; i++)
+            if (originalBindPoses != null)
             {
-                Transform newBindTarget = _boneDatabase.GetRetargetedBone(originalBones[i]);
-                if (newBindTarget == null) continue;
-                newBones[i] = newBindTarget;
-
-                if (originalBindPoses != null)
+                for (var i = 0; i < Math.Min(originalBones.Length, originalBindPoses.Length); i++)
                 {
-                    Matrix4x4 Bp = newBindTarget.worldToLocalMatrix * originalBones[i].localToWorldMatrix *
-                                   originalBindPoses[i];
+                    var newBindTarget = _boneDatabase.GetRetargetedBone(originalBones[i]);
+                    if (newBindTarget == null) continue;
+                    newBones[i] = newBindTarget;
 
-                    newBindPoses[i] = Bp;
+                    var bp = newBindTarget.worldToLocalMatrix * originalBones[i].localToWorldMatrix *
+                             originalBindPoses[i];
+
+                    newBindPoses[i] = bp;
                 }
             }
 
