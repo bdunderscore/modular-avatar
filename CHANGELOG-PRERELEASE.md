@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Motions merged via "Merge Blend Tree" or "Merge Motion" would not work properly in MMD worlds
   - `MA MMD Layer Control` would not have correct behavior for the first layer when explicitly opting in to MMD world behavior
 - [#1845] Bone Proxy on inactive GameObjects may not work as expected.
+- [#1856] Blendshape Sync wouldn't work when the source object was underneath a Bone Proxy or Merge Armature.
 
 ### Changed
 
