@@ -31,30 +31,33 @@ namespace nadena.dev.modular_avatar.core.editor
         private struct SummaryBinding : IEquatable<SummaryBinding>
         {
             private const string PREFIX = "blendShape.";
-            public string path;
-            public string propertyName => PREFIX + blendshapeName;
-            public readonly string blendshapeName;
+            public readonly SkinnedMeshRenderer Renderer;
+            public string propertyName => PREFIX + BlendshapeName;
+            public readonly string BlendshapeName;
 
-            public SummaryBinding(string path, string blendShape)
+            public SummaryBinding(SkinnedMeshRenderer renderer, string blendShape)
             {
-                this.path = path;
-                blendshapeName = blendShape;
+                Renderer = renderer;
+                BlendshapeName = blendShape;
             }
 
-            public static SummaryBinding? FromEditorBinding(EditorCurveBinding binding)
+            public static SummaryBinding? FromEditorBinding(AnimatorServicesContext asc, EditorCurveBinding binding)
             {
                 if (binding.type != typeof(SkinnedMeshRenderer) || !binding.propertyName.StartsWith(PREFIX))
                 {
                     return null;
                 }
 
-                return new SummaryBinding(binding.path, binding.propertyName.Substring(PREFIX.Length));
+                var obj = asc.ObjectPathRemapper.GetObjectForPath(binding.path);
+                if (obj == null || !obj.TryGetComponent<SkinnedMeshRenderer>(out var smr)) return null;
+
+                return new SummaryBinding(smr, binding.propertyName.Substring(PREFIX.Length));
             }
 
-            public EditorCurveBinding ToEditorCurveBinding()
+            public EditorCurveBinding ToEditorCurveBinding(AnimatorServicesContext asc)
             {
                 return EditorCurveBinding.FloatCurve(
-                    path,
+                    asc.ObjectPathRemapper.GetVirtualPathForObject(Renderer.gameObject),
                     typeof(SkinnedMeshRenderer),
                     propertyName
                 );
@@ -62,7 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public bool Equals(SummaryBinding other)
             {
-                return path == other.path && propertyName == other.propertyName;
+                return Renderer == other.Renderer && propertyName == other.propertyName;
             }
 
             public override bool Equals(object? obj)
@@ -72,14 +75,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(path, propertyName);
+                return HashCode.Combine(Renderer, propertyName);
             }
         }
 
         public void OnPreprocessAvatar()
         {
             var avatarGameObject = _context.AvatarRootObject;
-            var animDb = _context.Extension<AnimatorServicesContext>().AnimationIndex;
+            var asc = _context.Extension<AnimatorServicesContext>();
+            var animDb = asc.AnimationIndex;
             
             _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
 
@@ -94,20 +98,20 @@ namespace nadena.dev.modular_avatar.core.editor
             // Apply the initial state of each binding to its targets
             foreach (var (source, targets) in _bindingMappings)
             {
-                var smr = avatarGameObject.transform.Find(source.path)?.GetComponent<SkinnedMeshRenderer>();
+                var smr = source.Renderer;
                 if (smr == null) continue;
 
-                var srcIndex = smr.sharedMesh.GetBlendShapeIndex(source.blendshapeName);
+                var srcIndex = smr.sharedMesh.GetBlendShapeIndex(source.BlendshapeName);
                 if (srcIndex < 0) continue;
 
                 var srcWeight = smr.GetBlendShapeWeight(srcIndex);
 
                 foreach (var target in targets)
                 {
-                    var targetSmr = avatarGameObject.transform.Find(target.path)?.GetComponent<SkinnedMeshRenderer>();
+                    var targetSmr = target.Renderer;
                     if (targetSmr == null) continue;
 
-                    var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.blendshapeName);
+                    var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.BlendshapeName);
                     if (targetIndex < 0) continue;
 
                     targetSmr.SetBlendShapeWeight(targetIndex, srcWeight);
@@ -117,22 +121,21 @@ namespace nadena.dev.modular_avatar.core.editor
             var clips = new HashSet<VirtualClip>();
             foreach (var key in _bindingMappings.Keys)
             {
-                var ecb = key.ToEditorCurveBinding();
+                var ecb = key.ToEditorCurveBinding(asc);
                 clips.UnionWith(animDb.GetClipsForBinding(ecb));
             }
 
             // Walk and transform all clips
             foreach (var clip in clips)
             {
-                ProcessClip(clip);
+                ProcessClip(asc, clip);
             }
         }
 
         private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component)
         {
-            var targetObj = RuntimeUtil.RelativePath(avatarGameObject, component.gameObject);
-
-            if (targetObj == null) return;
+            var targetSmr = component.gameObject.GetComponent<SkinnedMeshRenderer>();
+            if (targetSmr == null) return;
 
             foreach (var binding in component.Bindings)
             {
@@ -141,10 +144,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
                 if (refSmr == null) continue;
 
-                var refPath = RuntimeUtil.RelativePath(avatarGameObject, refObj);
-                if (refPath == null) continue;
-
-                var srcBinding = new SummaryBinding(refPath, binding.Blendshape);
+                var srcBinding = new SummaryBinding(refSmr, binding.Blendshape);
 
                 if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
                 {
@@ -156,15 +156,15 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add(new SummaryBinding(targetObj, targetBlendshapeName));
+                dstBindings.Add(new SummaryBinding(targetSmr, targetBlendshapeName));
             }
         }
 
-        private void ProcessClip(VirtualClip clip)
+        private void ProcessClip(AnimatorServicesContext asc, VirtualClip clip)
         {
             foreach (var binding in clip.GetFloatCurveBindings().ToList())
             {
-                var srcBinding = SummaryBinding.FromEditorBinding(binding);
+                var srcBinding = SummaryBinding.FromEditorBinding(asc, binding);
                 if (srcBinding == null || !_bindingMappings.TryGetValue(srcBinding.Value, out var dstBindings))
                 {
                     continue;
@@ -173,7 +173,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var curve = clip.GetFloatCurve(binding);
                 foreach (var dst in dstBindings)
                 {
-                    clip.SetFloatCurve(dst.ToEditorCurveBinding(), curve);
+                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
                 }
             }
         }

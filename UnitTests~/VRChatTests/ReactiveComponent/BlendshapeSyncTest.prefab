@@ -63,6 +63,7 @@ MonoBehaviour:
   isSaved: 1
   isDefault: 1
   automaticValue: 1
+  label: 
 --- !u!114 &866105862211182099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -97,6 +98,7 @@ MonoBehaviour:
     ShapeName: bottom
     ChangeType: 1
     Value: 100
+  m_threshold: 0.01
 --- !u!1 &7303978391080220300
 GameObject:
   m_ObjectHideFlags: 0
