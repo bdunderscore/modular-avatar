@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.ndmf;
-using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -21,40 +20,6 @@ namespace nadena.dev.modular_avatar.core.editor
     class SubmenuSourceDrawer : EnumDrawer<SubmenuSource>
     {
         protected override string localizationPrefix => "submenu_source";
-    }
-
-    internal static class ParameterIntrospectionCache
-    {
-        internal static PropCache<GameObject, ImmutableList<ProvidedParameter>> ProvidedParameterCache =
-            new("GetParametersForObject", GetParametersForObject_miss);
-
-        internal static PropCache<GameObject, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>>
-            ParameterRemappingCache = new("GetParameterRemappingsAt", GetParameterRemappingsAt_miss);
-
-        private static ImmutableList<ProvidedParameter> GetParametersForObject_miss(ComputeContext ctx, GameObject obj)
-        {
-            if (obj == null) return ImmutableList<ProvidedParameter>.Empty;
-
-            return ParameterInfo.ForPreview(ctx).GetParametersForObject(obj).ToImmutableList();
-        }
-
-        private static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>
-            GetParameterRemappingsAt_miss(ComputeContext ctx, GameObject obj)
-        {
-            if (obj == null) return ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>.Empty;
-
-            return ParameterInfo.ForPreview(ctx).GetParameterRemappingsAt(obj);
-        }
-        
-        internal static ImmutableList<ProvidedParameter> GetParametersForObject(GameObject avatar)
-        {
-            return ProvidedParameterCache.Get(ComputeContext.NullContext, avatar);
-        }
-        
-        internal static ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> GetParameterRemappingsAt(GameObject avatar)
-        {
-            return ParameterRemappingCache.Get(ComputeContext.NullContext, avatar);
-        }
     }
 
     internal class MenuItemCoreGUI
@@ -713,7 +678,7 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUI.EndProperty();
         }
 
-        private List<ModularAvatarMenuItem> FindSiblingMenuItems(SerializedObject serializedObject)
+        private ImmutableHashSet<ModularAvatarMenuItem> FindSiblingMenuItems(SerializedObject serializedObject)
         {
             if (serializedObject == null || serializedObject.isEditingMultipleObjects) return null;
 
@@ -724,35 +689,18 @@ namespace nadena.dev.modular_avatar.core.editor
             if (avatarRoot == null) return null;
 
             var myParameterName = myMenuItem.Control.parameter.name;
-            if (string.IsNullOrEmpty(myParameterName)) return new List<ModularAvatarMenuItem>();
+            if (string.IsNullOrEmpty(myParameterName)) return null;
 
             var myMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(myMenuItem.gameObject);
             if (myMappings.TryGetValue((ParameterNamespace.Animator, myParameterName), out var myReplacement))
                 myParameterName = myReplacement.ParameterName;
 
-            var siblings = new List<ModularAvatarMenuItem>();
+            var siblings = SiblingCache.Get(avatarRoot.gameObject).ParameterToItems.GetValueOrDefault(myParameterName);
 
-            foreach (var otherMenuItem in avatarRoot.GetComponentsInChildren<ModularAvatarMenuItem>(true))
-            {
-                if (otherMenuItem == myMenuItem) continue;
-
-                var otherParameterName = otherMenuItem.Control.parameter.name;
-                if (string.IsNullOrEmpty(otherParameterName)) continue;
-
-                var otherMappings = ParameterIntrospectionCache.GetParameterRemappingsAt(otherMenuItem.gameObject);
-                if (otherMappings.TryGetValue((ParameterNamespace.Animator, otherParameterName),
-                        out var otherReplacement))
-                    otherParameterName = otherReplacement.ParameterName;
-
-                if (otherParameterName != myParameterName) continue;
-
-                siblings.Add(otherMenuItem);
-            }
-
-            return siblings;
+            return siblings?.Remove(myMenuItem);
         }
 
-        private void ClearConflictingDefaults(List<ModularAvatarMenuItem> siblingItems)
+        private void ClearConflictingDefaults(IEnumerable<ModularAvatarMenuItem> siblingItems)
         {
             var siblings = siblingItems;
             if (siblings == null) return;
@@ -933,3 +881,7 @@ namespace nadena.dev.modular_avatar.core.editor
 }
 
 #endif
+
+
+
+
