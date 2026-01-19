@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.16.0-alpha.0] - [2026-01-19]
+
+### Added
 - [#1860] `MA Bone Proxy` now supports selecting another bone proxy or `MA Merge Armature` (or their children) as a
   target
 
@@ -21,14 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1856] Blendshape Sync wouldn't work when the source object was underneath a Bone Proxy or Merge Armature.
 - [#1859] Fixed an exception that could occur with certain unusual mesh configurations.
 - [#1862] Improved performance of the `MA Menu Item` inspector UI
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.0-alpha.0] - [2025-12-07]
 
