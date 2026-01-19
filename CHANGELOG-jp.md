@@ -19,6 +19,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 最初のレイヤーを`MA MMD Layer Control`でオプトインした場合、正しく処理されない場合があるバグを修正
 - [#1845] `MA Bone Proxy` が無効化された GameObject 上で正しく動作しない場合がある問題を修正
 - [#1856] `MA Bone Proxy` または `MA Merge Armature` の配下を元に設定した場合、`MA Blendshape Sync` が正しく動作しない問題を修正。
+- [#1859] 特定のメッシュ構成で発生する例外を修正。
 
 ### Changed
 - [#1829] `Sync Parameter Sequence` が自動的に Library の中にパラメーターを保存するように変わったため、パラメーター
