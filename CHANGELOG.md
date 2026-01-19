@@ -11,8 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
-- [#1860] `MA Bone Proxy` now supports selecing another bone proxy or `MA Merge Armature` (or their children) as a
+- [#1860] `MA Bone Proxy` now supports selecting another bone proxy or `MA Merge Armature` (or their children) as a
   target
 
 ### Fixed

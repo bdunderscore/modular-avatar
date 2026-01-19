@@ -9,7 +9,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
-
 - [#1860] `MA Bone Proxy` で、他のBone ProxyやMerge Armature（あるいはその子）をターゲットとして指定できるようになりました。
 
 ### Fixed
