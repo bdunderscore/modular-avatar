@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.menu;
-using static nadena.dev.modular_avatar.core.editor.Localization;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using static nadena.dev.modular_avatar.core.editor.Localization;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -15,10 +16,10 @@ namespace nadena.dev.modular_avatar.core.editor
         private const float INDENT_PER_LEVEL = 2;
         private static float _indentLevel = 0;
 
-        private UnityEngine.Object _headerObj;
+        private readonly Object _headerObj;
         private SerializedProperty _disableProp;
 
-        public MenuObjectHeader(UnityEngine.Object headerObj, SerializedProperty disableProp = null)
+        public MenuObjectHeader(Object headerObj, SerializedProperty disableProp = null)
         {
             _headerObj = headerObj;
             _disableProp = disableProp;
@@ -197,7 +198,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    using (new MenuObjectHeader(originalSource as UnityEngine.Object).Scope())
+                    using (new MenuObjectHeader(originalSource as Object).Scope())
                     {
                         if (_visited.Contains(originalSource)) return;
                         _visited.Add(originalSource);
