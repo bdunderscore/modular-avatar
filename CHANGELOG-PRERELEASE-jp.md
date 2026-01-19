@@ -9,20 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-### Fixed
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
-
-## [1.16.0-alpha.0] - [2026-01-19]
-
-### Added
-
 - [#1860] `MA Bone Proxy` で、他のBone ProxyやMerge Armature（あるいはその子）をターゲットとして指定できるようになりました。
 
 ### Fixed
@@ -35,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1856] `MA Bone Proxy` または `MA Merge Armature` の配下を元に設定した場合、`MA Blendshape Sync` が正しく動作しない問題を修正。
 - [#1859] 特定のメッシュ構成で発生する例外を修正。
 - [#1862] `MA Menu Item` のインスペクター表示を高速化
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
 
 ## [1.16.0-alpha.0] - [2025-12-07]
 
