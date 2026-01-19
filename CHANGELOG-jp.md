@@ -10,6 +10,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 
+- [#1860] `MA Bone Proxy` で、他のBone ProxyやMerge Armature（あるいはその子）をターゲットとして指定できるようになりました。
+
 ### Fixed
 - [#1851] MMDワールドに関する幾つかのバグを修正
   - [#1850] MMDワールドでは、Reactive Componentが正しく動作しないバグを修正

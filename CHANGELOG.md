@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#1860] `MA Bone Proxy` now supports selecing another bone proxy or `MA Merge Armature` (or their children) as a
+  target
+
 ### Fixed
 - [#1851] Fixed various issues in MMD worlds
   - [#1850] Reactive components did not work properly in MMD worlds

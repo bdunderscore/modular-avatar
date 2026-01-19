@@ -1,4 +1,6 @@
-﻿/*
+﻿#nullable enable
+
+/*
  * MIT License
  *
  * Copyright (c) 2022 bd_
@@ -22,8 +24,8 @@
  * SOFTWARE.
  */
 
+using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -37,34 +39,25 @@ namespace nadena.dev.modular_avatar.core.editor
             NotInAvatar
         }
 
-        internal void OnPreprocessAvatar(GameObject avatarGameObject)
+        private class ProxyInfo
         {
-            var boneProxies = avatarGameObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true);
+            public readonly ModularAvatarBoneProxy Proxy;
+            public readonly Transform Target;
+            public readonly Vector3 WorldPos;
+            public readonly Quaternion WorldRot;
 
-            foreach (var proxy in boneProxies)
+            public ProxyInfo(ModularAvatarBoneProxy proxy)
             {
-                BuildReport.ReportingObject(proxy, () => ProcessProxy(avatarGameObject, proxy));
+                Proxy = proxy;
+                Target = proxy.target;
+                WorldPos = proxy.transform.position;
+                WorldRot = proxy.transform.rotation;
             }
-        }
 
-        private void ProcessProxy(GameObject avatarGameObject, ModularAvatarBoneProxy proxy)
-        {
-            if (proxy.target != null && ValidateTarget(avatarGameObject, proxy.target) == ValidationResult.OK)
+            internal void AdjustTransform()
             {
-                string suffix = "";
-                int i = 1;
-                while (proxy.target.Find(proxy.gameObject.name + suffix) != null)
-                {
-                    suffix = $" ({i++})";
-                }
-
-                proxy.gameObject.name += suffix;
-
-                Transform transform = proxy.transform;
-                transform.SetParent(proxy.target, true);
-
                 bool keepPos, keepRot;
-                switch (proxy.attachmentMode)
+                switch (Proxy.attachmentMode)
                 {
                     default:
                     case BoneProxyAttachmentMode.Unset:
@@ -84,11 +77,67 @@ namespace nadena.dev.modular_avatar.core.editor
                         break;
                 }
 
-                if (!keepPos) transform.localPosition = Vector3.zero;
-                if (!keepRot) transform.localRotation = Quaternion.identity;
+                var transform = Proxy.transform;
+                if (keepPos)
+                {
+                    transform.position = WorldPos;
+                }
+                else
+                {
+                    transform.localPosition = Vector3.zero;
+                }
+
+                if (keepRot)
+                {
+                    transform.rotation = WorldRot;
+                }
+                else
+                {
+                    transform.localRotation = Quaternion.identity;
+                }
+            }
+        }
+        
+        internal void OnPreprocessAvatar(GameObject avatarGameObject)
+        {
+            var boneProxies = avatarGameObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true)
+                .Select(bp => new ProxyInfo(bp))
+                .ToList();
+
+            foreach (var proxy in boneProxies)
+            {
+                BuildReport.ReportingObject(proxy.Proxy, () => ProcessProxy(avatarGameObject, proxy));
             }
 
-            Object.DestroyImmediate(proxy);
+            // Process parent to child to ensure keep-world-position is handled properly
+            foreach (var proxy in boneProxies.OrderBy(p => RuntimeUtil.AvatarRootPath(p.Proxy.gameObject)))
+            {
+                BuildReport.ReportingObject(proxy.Proxy, () => proxy.AdjustTransform());
+            }
+
+            // Clean up the bone proxies now that we're done making corrections
+            foreach (var proxy in boneProxies)
+            {
+                Object.DestroyImmediate(proxy.Proxy);
+            }
+        }
+
+        private void ProcessProxy(GameObject avatarGameObject, ProxyInfo proxy)
+        {
+            if (proxy.Target != null && ValidateTarget(avatarGameObject, proxy.Target) == ValidationResult.OK)
+            {
+                string suffix = "";
+                int i = 1;
+                while (proxy.Target.Find(proxy.Proxy.gameObject.name + suffix) != null)
+                {
+                    suffix = $" ({i++})";
+                }
+
+                proxy.Proxy.gameObject.name += suffix;
+
+                var transform = proxy.Proxy.transform;
+                transform.SetParent(proxy.Target, true);
+            }
         }
 
         internal static ValidationResult ValidateTarget(GameObject avatarGameObject, Transform proxyTarget)
@@ -98,12 +147,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             while (node != null && node != avatar)
             {
-                if (node.GetComponent<ModularAvatarMergeArmature>() != null ||
-                    node.GetComponent<ModularAvatarBoneProxy>() != null)
-                {
-                    return ValidationResult.MovingTarget;
-                }
-
                 node = node.parent;
             }
 

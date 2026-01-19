@@ -1,5 +1,7 @@
-﻿using nadena.dev.modular_avatar.core;
+﻿using System.Linq;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -65,6 +67,178 @@ namespace modular_avatar_tests
             Assert.AreNotEqual(src_child1.name, src_child2.name);
         }
 
+        // New tests for cycle checking
+        [Test]
+        public void CycleDetection_BoneProxiesMutualFail()
+        {
+            var root = CreateRoot("root");
+            var a = CreateChild(root, "A");
+            var b = CreateChild(root, "B");
+
+            var aBone = CreateChild(a, "bone");
+            var bBone = CreateChild(b, "bone");
+
+            var bpA = aBone.AddComponent<ModularAvatarBoneProxy>();
+            var bpB = bBone.AddComponent<ModularAvatarBoneProxy>();
+
+            bpA.target = bBone.transform;
+            bpB.target = aBone.transform;
+
+            var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
+
+            Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
+        }
+
+        [Test]
+        public void CycleDetection_BoneProxyMergeArmatureFail()
+        {
+            var root = CreateRoot("root");
+            var baseRoot = CreateChild(root, "Base");
+            var mergeRoot = CreateChild(root, "Merge");
+
+            var baseBone = CreateChild(baseRoot, "bone");
+            var mergeBone = CreateChild(mergeRoot, "bone");
+
+            var mama = mergeRoot.AddComponent<ModularAvatarMergeArmature>();
+            mama.mergeTarget.Set(baseRoot);
+
+            var bp = mergeBone.AddComponent<ModularAvatarBoneProxy>();
+            bp.target = baseBone.transform;
+
+            var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
+
+            Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
+        }
+
+        [Test]
+        public void BoneProxy_NoCycle_Succeeds()
+        {
+            var root = CreateRoot("root");
+
+            var t1 = CreateChild(root, "t1");
+            var t2 = CreateChild(root, "t2");
+            var t3 = CreateChild(root, "t3");
+
+            var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
+            var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
+
+            bp1.target = t2.transform; // t1 -> t2
+            bp2.target = t3.transform; // t2 -> t3 (no cycle)
+
+            var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
+            Assert.IsTrue(errors.Count == 0, "Expected no errors for a non-cyclical bone proxy chain");
+        }
+
+        [Test]
+        public void BoneProxy_NoCycle_OrderIndependent()
+        {
+            var root = CreateRoot("root");
+
+            // Create targets first, then reorder siblings before attaching proxies to ensure order doesn't matter
+            var t1 = CreateChild(root, "t1");
+            var t2 = CreateChild(root, "t2");
+            var t3 = CreateChild(root, "t3");
+
+            // Reorder siblings so proxies will appear in a different order in the hierarchy
+            t1.transform.SetSiblingIndex(root.transform.childCount - 1);
+            t2.transform.SetSiblingIndex(0);
+
+            var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
+            var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
+
+            bp1.target = t2.transform; // t1 -> t2
+            bp2.target = t3.transform; // t2 -> t3 (no cycle)
+
+            var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
+            Assert.IsTrue(errors.Count == 0, "Expected no errors after creating bone proxies in a different sibling order");
+        }
+
+        [Test]
+        public void CycleDetection_BoneProxy_WithIntermediateChildFail()
+        {
+            var root = CreateRoot("root");
+
+            var A = CreateChild(root, "A");
+            var AChild = CreateChild(A, "child");
+            var B = CreateChild(root, "B");
+
+            // BP on A targets B
+            var bpA = A.AddComponent<ModularAvatarBoneProxy>();
+            bpA.target = B.transform;
+
+            // BP on B targets a child of A (A/child) -> this creates a cycle via parent edges
+            var bpB = B.AddComponent<ModularAvatarBoneProxy>();
+            bpB.target = AChild.transform;
+
+            var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
+            Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
+        }
+
+        [Test]
+        public void BoneProxy_AdjustTransform_Order_MixedSettings()
+        {
+            var root = CreateRoot("root");
+
+            // Create a longer chain: t1 -> t2 -> t3 -> t4 -> t5
+            var t1 = CreateChild(root, "t1");
+            var t2 = CreateChild(root, "t2");
+            var t3 = CreateChild(root, "t3");
+            var t4 = CreateChild(root, "t4");
+            var t5 = CreateChild(root, "t5");
+
+            // Set distinct world transforms so we can verify preservation/reset later
+            t1.transform.position = new Vector3(1.1f, 2.2f, 3.3f);
+            t1.transform.rotation = Quaternion.Euler(10f, 20f, 30f);
+            t2.transform.position = new Vector3(4.4f, 5.5f, 6.6f);
+            t2.transform.rotation = Quaternion.Euler(40f, 50f, 60f);
+            t3.transform.position = new Vector3(7.7f, 8.8f, 9.9f);
+            t3.transform.rotation = Quaternion.Euler(70f, 80f, 90f);
+            t4.transform.position = new Vector3(11.11f, 12.12f, 13.13f);
+            t4.transform.rotation = Quaternion.Euler(100f, 110f, 120f);
+            t5.transform.position = new Vector3(14.14f, 15.15f, 16.16f);
+            t5.transform.rotation = Quaternion.Euler(130f, 140f, 150f);
+
+            // Create proxies on t1..t4, each targeting the next transform
+            var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
+            var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
+            var bp3 = t3.AddComponent<ModularAvatarBoneProxy>();
+            var bp4 = t4.AddComponent<ModularAvatarBoneProxy>();
+
+            bp1.target = t2.transform; // t1 -> t2
+            bp2.target = t3.transform; // t2 -> t3
+            bp3.target = t4.transform; // t3 -> t4
+            bp4.target = t5.transform; // t4 -> t5
+
+            // Alternating attachment modes: KeepWorldPose, AtRoot, KeepWorldPose, AtRoot
+            bp1.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
+            bp2.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+            bp3.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
+            bp4.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+
+            // Record original world transforms for keep-world entries
+            var orig1Pos = t1.transform.position;
+            var orig1Rot = t1.transform.rotation;
+            var orig3Pos = t3.transform.position;
+            var orig3Rot = t3.transform.rotation;
+
+            // Run the proxy preprocessing (which re-parents and then AdjustTransform parent->child)
+            new BoneProxyProcessor().OnPreprocessAvatar(root);
+
+            // After processing: bp2 (on t2) and bp4 (on t4) are AsChildAtRoot and must have local pos/rot zero
+            Assert.LessOrEqual(Vector3.Distance(t2.transform.localPosition, Vector3.zero), 0.0001f, "bp2 (AtRoot) should have local position zero");
+            Assert.LessOrEqual(Quaternion.Angle(t2.transform.localRotation, Quaternion.identity), 0.0001f, "bp2 (AtRoot) should have local rotation identity");
+
+            Assert.LessOrEqual(Vector3.Distance(t4.transform.localPosition, Vector3.zero), 0.0001f, "bp4 (AtRoot) should have local position zero");
+            Assert.LessOrEqual(Quaternion.Angle(t4.transform.localRotation, Quaternion.identity), 0.0001f, "bp4 (AtRoot) should have local rotation identity");
+
+            // bp1 (on t1) and bp3 (on t3) are KeepWorldPose and must preserve world transform
+            Assert.LessOrEqual(Vector3.Distance(t1.transform.position, orig1Pos), 0.0001f, "bp1 (KeepWorldPose) should preserve world position");
+            Assert.LessOrEqual(Quaternion.Angle(t1.transform.rotation, orig1Rot), 0.01f, "bp1 (KeepWorldPose) should preserve world rotation");
+
+            Assert.LessOrEqual(Vector3.Distance(t3.transform.position, orig3Pos), 0.0001f, "bp3 (KeepWorldPose) should preserve world position");
+            Assert.LessOrEqual(Quaternion.Angle(t3.transform.rotation, orig3Rot), 0.01f, "bp3 (KeepWorldPose) should preserve world rotation");
+        }
+
         private void AssertAttachmentMode(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
@@ -128,7 +302,7 @@ namespace modular_avatar_tests
             bone.transform.localPosition = Vector3.one;
             bone.transform.localRotation = Quaternion.Euler(123, 45, 6);
 
-            AvatarProcessor.ProcessAvatar(root);
+            nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root);
 
             Assert.AreEqual(proxyTransform.parent, bone.transform);
 
@@ -152,3 +326,4 @@ namespace modular_avatar_tests
         }
     }
 }
+
