@@ -95,8 +95,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     // to retain those objects? maybe?
                     seq.Run(MenuInstallPluginPass.Instance);
 #endif
-                    seq.Run(MergeArmaturePluginPass.Instance);
+                    seq.Run(CycleCheckPass.Instance);
+                    // Run bone proxy first, since it doesn't use AvatarObjectReference and we'd need special logic
+                    // to lock its path resolutions before running merge armature otherwise
                     seq.Run(BoneProxyPluginPass.Instance);
+                    seq.Run(MergeArmaturePluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
