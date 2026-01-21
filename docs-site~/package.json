@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "devDependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.0",
-    "wrangler": "^3.22.3"
+    "wrangler": "^3.114.17"
   },
   "private": true,
   "scripts": {
