@@ -50,6 +50,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
         ///     This pass will add parameter curves to preexisting animations which manipulate game object active states,
         ///     and rewrite expressions to use these parameters. After completing this pass, all ObjectActiveState expressions
         ///     only need to consider effects from within the RC framework.
+        ///
+        ///     This pass also replaces undriven object state nodes with constant nodes.
         /// </summary>
         /// <param name="context"></param>
         public void ProcessExternalObjectStateInputs(BakeContext context)
@@ -138,30 +140,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
             return param;
         }
 
-        public void RemoveUndrivenObjectStateNodes()
-        {
-            var activeTargets = Nodes.SelectMany(n => n.Effects.Select(e => e.TargetKey))
-                .ToHashSet();
-
-            WalkAllExpressions(Walk);
-
-            void Walk(ref IExpression expr)
-            {
-                if (expr is not ObjectActiveState oas)
-                {
-                    expr.Walk(Walk);
-                    return;
-                }
-
-                var target = new ObjectActiveTarget(oas.TargetObject);
-                if (!activeTargets.Contains(target))
-                {
-                    var constantState = oas.StateMode == ObjectActiveState.State.NotDriven;
-                    expr = new Constant(constantState);
-                }
-            }
-        }
-
         private void WalkAllExpressions(ExpressionVisitor walk)
         {
             foreach (var node in Nodes)
@@ -172,6 +150,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
             }
         }
 
+        /// <summary>
+        ///     Simplifies boolean expressions by:
+        ///     1. Removing constants inside AND and OR nodes
+        ///     2. Collapsing AND-inside-AND and OR-inside-OR
+        ///     3. Collapsing single-element AND and OR nodes
+        ///     4. Collapsing nested NOT nodes, and constant-in-NOT nodes
+        /// </summary>
         public void BooleanSimplify()
         {
             WalkAllExpressions(Walk);
@@ -184,60 +169,74 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
                 {
                     case AndNode and:
                     {
-                        if (and.Children.Count == 0 || and.Children.Any(c => c is Constant constant && !constant.Value))
+                        // Check for short-circuit (any false constant means the whole AND is false)
+                        if (and.Children.Any(c => c is Constant constant && !constant.Value))
                         {
                             expression = new Constant(false);
+                            break;
+                        }
+
+                        // Flatten nested ANDs and remove true constants
+                        and.Children = and.Children.SelectMany(c =>
+                        {
+                            if (c is AndNode and2)
+                            {
+                                return (IEnumerable<IExpression>)and2.Children;
+                            }
+
+                            if (c is Constant c2 && c2.Value)
+                            {
+                                return Array.Empty<IExpression>();
+                            }
+
+                            return new[] { c };
+                        }).ToList();
+
+                        // After flattening/filtering, check if we can simplify further
+                        if (and.Children.Count == 0)
+                        {
+                            expression = new Constant(true);
                         }
                         else if (and.Children.Count == 1)
                         {
                             expression = and.Children[0];
-                        }
-                        else
-                        {
-                            and.Children = and.Children.SelectMany(c =>
-                            {
-                                if (c is AndNode and2)
-                                {
-                                    return (IEnumerable<IExpression>)and2.Children;
-                                }
-
-                                if (c is Constant)
-                                {
-                                    return Array.Empty<IExpression>();
-                                }
-
-                                return new[] { c };
-                            }).ToList();
                         }
 
                         break;
                     }
                     case OrNode or:
                     {
-                        if (or.Children.Count == 0 || or.Children.Any(c => c is Constant constant && constant.Value))
+                        // Check for short-circuit (any true constant means the whole OR is true)
+                        if (or.Children.Any(c => c is Constant constant && constant.Value))
+                        {
+                            expression = new Constant(true);
+                            break;
+                        }
+
+                        // Flatten nested ORs and remove false constants
+                        or.Children = or.Children.SelectMany(c =>
+                        {
+                            if (c is OrNode or2)
+                            {
+                                return (IEnumerable<IExpression>)or2.Children;
+                            }
+
+                            if (c is Constant c2 && !c2.Value)
+                            {
+                                return Array.Empty<IExpression>();
+                            }
+
+                            return new[] { c };
+                        }).ToList();
+
+                        // After flattening/filtering, check if we can simplify further
+                        if (or.Children.Count == 0)
                         {
                             expression = new Constant(true);
                         }
                         else if (or.Children.Count == 1)
                         {
                             expression = or.Children[0];
-                        }
-                        else
-                        {
-                            or.Children = or.Children.SelectMany(c =>
-                            {
-                                if (c is OrNode or2)
-                                {
-                                    return (IEnumerable<IExpression>)or2.Children;
-                                }
-
-                                if (c is Constant)
-                                {
-                                    return Array.Empty<IExpression>();
-                                }
-
-                                return new[] { c };
-                            }).ToList();
                         }
 
                         break;
@@ -247,6 +246,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
                         if (n.Inner is Constant c)
                         {
                             expression = new Constant(!c.Value);
+                        }
+                        else if (n.Inner is NotNode n2)
+                        {
+                            expression = n2.Inner;
                         }
 
                         break;
