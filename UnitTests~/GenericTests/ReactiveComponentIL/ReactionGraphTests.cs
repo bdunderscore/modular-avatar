@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Remoting;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor.rc;
@@ -124,6 +125,66 @@ namespace UnitTestsReactiveComponentIL
             {
                 Assert.AreEqual(new Constant(false), orNode.Children[1], "initial expression should be missing: " + targetRule);
             }
+        }
+
+        [Test]
+        public void SplitIntoSubgraphs_GroupsByObjectTarget()
+        {
+            var obj = CreateChild(_root, "obj1");
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new ObjectActiveState(obj), new NullAction()));
+            graph.AddNode(new ReactionNode(new ObjectActiveState(obj), new NullAction()));
+            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+
+            var subgraphs = graph.SplitIntoSubgraphs();
+
+            Assert.AreEqual(2, subgraphs.Count);
+            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
+            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+        }
+
+        [Test]
+        public void SplitIntoSubgraphs_GroupsByParameterName()
+        {
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new ParameterExpression("p"), new NullAction()));
+            graph.AddNode(new ReactionNode(new InternalParameterCondition("p"), new NullAction()));
+            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+
+            var subgraphs = graph.SplitIntoSubgraphs();
+
+            Assert.AreEqual(2, subgraphs.Count);
+            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
+            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+        }
+
+        [Test]
+        public void SplitIntoSubgraphs_GroupsByActionTarget()
+        {
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p", 1f)));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
+            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+
+            var subgraphs = graph.SplitIntoSubgraphs();
+
+            Assert.AreEqual(2, subgraphs.Count);
+            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
+            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+        }
+
+        [Test]
+        public void SplitIntoSubgraphs_IndependentNodes()
+        {
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new ObjectActiveState(CreateChild(_root, "a")), new NullAction()));
+            graph.AddNode(new ReactionNode(new ParameterExpression("p1"), new DriveParameter("p2", 0.5f)));
+            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+
+            var subgraphs = graph.SplitIntoSubgraphs();
+
+            Assert.AreEqual(3, subgraphs.Count);
+            Assert.That(subgraphs.All(g => g.Nodes.Count == 1));
         }
     }
 }
