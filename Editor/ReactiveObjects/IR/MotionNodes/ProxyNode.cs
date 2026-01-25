@@ -4,16 +4,16 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public class ProxyNode : IConditionNode
+    public class ProxyNode : IMotionNode
     {
-        public ProxyNode(IConditionNode? target)
+        public ProxyNode(IMotionNode? target)
         {
             Target = target;
         }
 
-        private IConditionNode? _target;
+        private IMotionNode? _target;
 
-        public IConditionNode? Target
+        public IMotionNode? Target
         {
             get => _target;
             set => _target = value;
@@ -24,7 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             visitor(ref _target);
         }
 
-        public int MaxLatency => Target?.MaxLatency ?? 0;
+        public int Latency => Target?.Latency ?? 0;
 
         public VirtualMotion Bake(BakeContext context)
         {

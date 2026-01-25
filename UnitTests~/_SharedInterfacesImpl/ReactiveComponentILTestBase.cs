@@ -99,17 +99,20 @@ namespace UnitTests.SharedInterfacesImpl
         /// Bakes a root node into a new layer and deactivates the extension context.
         /// </summary>
         /// <param name="rootNode">The node to bake</param>
-        protected void BakeConditions(IConditionNode rootNode)
+        protected void BakeConditions(IMotionNode rootNode)
         {
-            var bakeContext = new BakeContext(cc, vac);
-            var motion = rootNode.Bake(bakeContext);
+            var bakeContext = new BakeContext(asc, vac);
+            MaxLatency = rootNode.Latency;
+            bakeContext.Bake(rootNode);
 
             var layer = vac.AddLayer(LayerPriority.Default, "test");
             layer.DefaultWeight = 1;
             var sm = layer.StateMachine;
-            sm.DefaultState = sm.AddState("test", motion: motion);
+            sm.DefaultState = sm.AddState("test", motion: bakeContext.RootTree);
             
             buildContext.DeactivateAllExtensionContexts();
         }
+
+        public int MaxLatency { get; set; }
     }
 }

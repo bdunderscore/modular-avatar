@@ -11,13 +11,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// <summary>
     ///     The priority node selects the first of several conditions that are true.
     /// </summary>
-    public class PriorityNode : IConditionNode
+    public class PriorityNode : IMotionNode
     {
-        public IConditionNode DefaultCondition = EmptyNode.Instance;
-        public List<(ProxyCondition, IConditionNode)> Conditions { get; set; } = new();
+        public IMotionNode DefaultMotion = EmptyNode.Instance;
+        public List<(ProxyCondition, IMotionNode)> Conditions { get; set; } = new();
 
         // 1 frame for the summation
-        public int MaxLatency => 1;
+        public int Latency => 1;
 
         public VirtualMotion Bake(BakeContext context)
         {
@@ -32,7 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 // Extract the remaining conditions to a sub-node. To keep the execution latency down, we'll evaluate
                 // its conditions at the same time as we do our own.
                 var subNode = new PriorityNode();
-                subNode.DefaultCondition = DefaultCondition;
+                subNode.DefaultMotion = DefaultMotion;
                 foreach (var cond in Conditions.Skip(19))
                 {
                     subNode.Conditions.Add(cond);
@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                 (subExecution, subSum) = subNode.ConstructTrees(context);
 
-                DefaultCondition = new MotionNode(subExecution);
+                DefaultMotion = new MotionNode(subExecution);
             }
 
             var (executionTree, sumTree) = ConstructTrees(context);
@@ -145,7 +145,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             executionTree.UseAutomaticThresholds = false;
 
             // If nothing is selected, we pull in the default condition
-            var defaultMotion = DefaultCondition.Bake(context);
+            var defaultMotion = DefaultMotion.Bake(context);
             executionTree.Children = executionTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
                 Threshold = 0,

@@ -9,15 +9,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// <summary>
     ///     Implements a simple true/false branch
     /// </summary>
-    public sealed class BranchNode : IConditionNode
+    public sealed class BranchNode : IMotionNode
     {
         public string Parameter { get; set; }
         public float Threshold = 0.99f;
 
-        public IConditionNode OnGreaterEquals;
-        public IConditionNode OnLessThan;
+        public IMotionNode OnGreaterEquals;
+        public IMotionNode OnLessThan;
 
-        public BranchNode(string parameterName, IConditionNode? onLess = null, IConditionNode? onGreaterEquals = null)
+        public BranchNode(string parameterName, IMotionNode? onLess = null, IMotionNode? onGreaterEquals = null)
         {
             Parameter = parameterName;
             OnLessThan = onLess ?? EmptyNode.Instance;

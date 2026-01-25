@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         // Private backing fields used for ref-passing
         private ProxyNode _onFalseProxy;
         private ProxyNode _onTrueProxy;
-        private IConditionNode _node;
+        private IMotionNode _node;
 
         public bool InitialState { get; set; }
 
@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             set => _onFalseProxy = value;
         }
 
-        public IConditionNode OnFalse
+        public IMotionNode OnFalse
         {
             get => OnFalseProxy.Target;
             set => OnFalseProxy.Target = value;
@@ -34,19 +34,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             set => _onTrueProxy = value;
         }
 
-        public IConditionNode OnTrue
+        public IMotionNode OnTrue
         {
             get => OnTrueProxy.Target;
             set => OnTrueProxy.Target = value;
         }
 
-        public IConditionNode Node
+        public IMotionNode Node
         {
             get => _node;
             set => _node = value;
         }
 
-        public ProxyCondition(bool initialState, IConditionNode node, ProxyNode onFalse, ProxyNode onTrue)
+        public ProxyCondition(bool initialState, IMotionNode node, ProxyNode onFalse, ProxyNode onTrue)
         {
             InitialState = initialState;
             _node = node;
@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             _onTrueProxy = onTrue;
         }
 
-        public static ProxyCondition FromInner(bool initialState, Func<ProxyNode, ProxyNode, IConditionNode> buildInner)
+        public static ProxyCondition FromInner(bool initialState, Func<ProxyNode, ProxyNode, IMotionNode> buildInner)
         {
             var onFalse = new ProxyNode(null);
             var onTrue = new ProxyNode(null);
@@ -67,27 +67,25 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return new ProxyCondition(true, proxyNode, proxyNode, proxyNode);
         }
 
-        public IConditionNode Flatten(IConditionNode onFalse, IConditionNode onTrue)
+        public IMotionNode Flatten(IMotionNode onFalse, IMotionNode onTrue)
         {
             _onFalseProxy.Target = onFalse;
             _onTrueProxy.Target = onTrue;
 
-            _node.WalkTree(Visitor);
+            _node.WalkTree(FlattenVisitor);
 
             return _node;
+
+            void FlattenVisitor(ref IMotionNode? node)
+            {
+                if (node == _onFalseProxy) node = _onFalseProxy.Target;
+                else if (node == _onTrueProxy) node = _onTrueProxy.Target;
+            }
         }
 
         public void WalkTree(ConditionNodeVisitor visitor)
         {
             visitor(ref _node);
-        }
-
-        private bool Visitor(ref IConditionNode? node)
-        {
-            if (node == _onFalseProxy) node = _onFalseProxy.Target;
-            else if (node == _onTrueProxy) node = _onTrueProxy.Target;
-
-            return true;
         }
     }
 }

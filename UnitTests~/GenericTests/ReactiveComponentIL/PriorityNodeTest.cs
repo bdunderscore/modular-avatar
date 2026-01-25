@@ -24,7 +24,7 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("cond0", 0);
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             priority.Conditions.Add((
                 CreateBranchCondition(false, "cond0"),
                 motion0
@@ -71,7 +71,7 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("cond1", 0);
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             priority.Conditions.Add((
                 CreateBranchCondition(false, "cond0"),
                 motion0
@@ -123,7 +123,7 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("cond1", 0);
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             priority.Conditions.Add((
                 CreateBranchCondition(false, "cond0"),
                 motion0
@@ -176,7 +176,7 @@ namespace UnitTestsReactiveComponentIL
             }
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             for (int i = 0; i < numConditions; i++)
             {
                 int condIndex = i; // Capture for closure
@@ -267,7 +267,7 @@ namespace UnitTestsReactiveComponentIL
             }
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             for (int i = 0; i < numConditions; i++)
             {
                 int condIndex = i; // Capture for closure
@@ -367,7 +367,7 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("cond1", 0);
             
             var priority = new PriorityNode();
-            priority.DefaultCondition = defaultMotion;
+            priority.DefaultMotion = defaultMotion;
             // Condition 0 has initialState=true
             priority.Conditions.Add((
                 CreateBranchCondition(true, "cond0"),

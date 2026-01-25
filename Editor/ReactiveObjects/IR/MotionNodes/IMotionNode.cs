@@ -4,14 +4,14 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public delegate bool ConditionNodeVisitor(ref IConditionNode node);
+    public delegate void ConditionNodeVisitor(ref IMotionNode node);
 
-    public interface IConditionNode
+    public interface IMotionNode
     {
         /// <summary>
         ///     Returns the maximum amount of latency introduced between this node and any downstream nodes.
         /// </summary>
-        public virtual int MaxLatency => 0;
+        public virtual int Latency => 0;
 
         public VirtualMotion Bake(BakeContext context);
 

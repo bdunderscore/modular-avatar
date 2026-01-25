@@ -2,18 +2,13 @@
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public class MotionNode : IConditionNode
+    public sealed class EmptyNode : IMotionNode
     {
-        private readonly VirtualMotion _motion;
-
-        public MotionNode(VirtualMotion motion)
-        {
-            _motion = motion;
-        }
+        public static EmptyNode Instance = new();
 
         public VirtualMotion Bake(BakeContext context)
         {
-            return _motion;
+            return context.EmptyMotion;
         }
 
         public void WalkTree(ConditionNodeVisitor visitor)
