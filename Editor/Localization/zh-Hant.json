@@ -277,6 +277,7 @@
   "reactive_object.delete-mesh-by-mask.create-mask-texture": "建立",
   "reactive_object.delete-mesh-by-mask.edit-mask-texture": "編輯",
   "reactive_object.delete-mesh-by-mask.delete-mode": "刪除模式",
+  "reactive_object.delete-mesh-by-mask.install-button": "安裝",
   "reactive_object.delete-mesh-by-bone.bone": "目標骨骼",
   "reactive_object.material-setter.set-to": "將材質設定為：",
   "reactive_object.material-swap.root": "根物件",
@@ -325,5 +326,10 @@
   "rename_collision_tags.label": "標籤",
   "rename_collision_tags.rename_to": "將名稱更改為",
   "rename_collision_tags.auto_rename": "自動重命名",
-  "reactive_object.delete-mesh-by-shape.shape_name": "Blendshape 名稱"
+  "reactive_object.delete-mesh-by-shape.shape_name": "Blendshape 名稱",
+  "global_collider.header_shape": "形狀",
+  "global_collider.radius": "半徑",
+  "global_collider.height": "高度",
+  "global_collider.position": "位置",
+  "global_collider.rotation": "旋轉"
 }
