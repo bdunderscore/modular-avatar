@@ -66,5 +66,24 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
         {
             ForwardObjectActiveDriversTransform.Apply(this);
         }
+
+        /// <summary>
+        ///     Converts all ObjectActiveState expressions into InternalParameterConditions, and all
+        ///     ObjectActiveDriver nodes (DriveActiveState actions) into InternalParameterDrivers
+        ///     (DriveInternalParameter actions). This is step 7 in the transformation pipeline.
+        /// </summary>
+        public void ConvertToInternalParameters(BakeContext context)
+        {
+            ConvertToInternalParametersTransform.Apply(this, context);
+        }
+
+        /// <summary>
+        ///     Detects and breaks cycles in the reaction graph by replacing InternalParameterDrivers with
+        ///     normal ParameterDrivers on nodes that are part of cycles. This is step 8 in the transformation pipeline.
+        /// </summary>
+        public void BreakLoops()
+        {
+            BreakLoopsTransform.Apply(this);
+        }
     }
 }

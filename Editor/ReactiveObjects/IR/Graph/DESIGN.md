@@ -29,10 +29,10 @@ for each target. We then take these through a series of transformations to gener
 6. Optimization pass: We perform another round of expression simplification.
 7. We convert all ObjectActiveState expressions into InternalParameterConditions, and all ObjectActiveDriver nodes into
    InternalParameterDrivers.
-8. We construct PriorityGroups for each target, then group together targets with the same PriorityGroups. However,
-   we do not group InternalParameterDrivers.
-9. We check for loops in this graph; if we find one, we break the loop (by replacing the InternalParameterDrivers with
+8. We check for loops in this graph; if we find one, we break the loop (by replacing the InternalParameterDrivers with
    normal ParameterDrivers/ParameterConditions).
+9. We construct PriorityGroups for each target, then group together targets with the same PriorityGroups. However,
+   we do not group InternalParameterDrivers (we keep each as an independent PriorityGroup)
 10. We now assign a depth to each PriorityGroup, with all PriorityGroups that contain non-InternalParameterDrivers at
    depth 0. The depth of the node depends on its type; a priority group with multiple conditions requires a delay of
    2, while others have 1.
