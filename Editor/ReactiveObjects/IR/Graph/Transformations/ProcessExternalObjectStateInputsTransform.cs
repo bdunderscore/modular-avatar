@@ -35,12 +35,38 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 }
             }
 
+            // Track which objects are referenced by ObjectActiveState so we can seed base layer
+            var referencedObjects = new HashSet<GameObject>();
+
             WalkAllExpressions(graph, WalkExpression);
+
+            // After processing, add base-layer defaults for any object that had external clips and OAS usage
+            foreach (var kvp in objectToParameter)
+            {
+                var obj = kvp.Key;
+                var param = kvp.Value;
+                if (param == null) continue; // only add defaults when we substituted a parameter
+                if (!referencedObjects.Contains(obj)) continue; // only for objects referenced by OAS
+
+                var path = context.ObjectPathRemapper.GetVirtualPathForObject(obj);
+
+                context.BaseLayerClip.SetFloatCurve(
+                    EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"),
+                    AnimationCurve.Constant(0, 1, obj.activeSelf ? 1 : 0)
+                );
+
+                context.BaseLayerClip.SetFloatCurve(
+                    EditorCurveBinding.FloatCurve("", typeof(Animator), param),
+                    AnimationCurve.Constant(0, 1, obj.activeSelf ? 1 : 0)
+                );
+            }
 
             void WalkExpression(ref IExpression expr)
             {
                 if (expr is ObjectActiveState oas && oas.StateMode != ObjectActiveState.State.NotDriven)
                 {
+                    referencedObjects.Add(oas.TargetObject);
+
                     if (!objectToParameter.TryGetValue(oas.TargetObject, out var param))
                     {
                         param = MaybeSubstituteObject(context, oas.TargetObject);

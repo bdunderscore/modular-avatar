@@ -14,8 +14,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public VirtualMotion EmptyMotion { get; private set; }
         public VirtualClip BaseClip { get; }
         public VirtualBlendTree RootTree { get; }
-        private readonly VirtualAnimatorController vac;
-        private int counter;
+        public VirtualLayer BaseLayer { get; }
+        public VirtualClip BaseLayerClip { get; }
+        private readonly VirtualAnimatorController _vac;
+        private int _counter;
 
         public int Latency { get; private set; }
         public int LatencyHorizon { get; private set; }
@@ -27,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             CloneContext = asc.ControllerContext.CloneContext;
             
             EmptyMotion = VirtualClip.Create("Empty");
-            this.vac = vac;
+            _vac = vac;
 
             BaseClip = VirtualClip.Create("Base");
 
@@ -48,16 +50,32 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 Motion = BaseClip,
                 DirectBlendParameter = ALWAYS_ONE
             });
+
+            // Base layer at lowest priority to hold initial active-state defaults
+            BaseLayerClip = VirtualClip.Create("BaseLayer");
+            var baseBlendTree = VirtualBlendTree.Create("BaseLayerTree");
+            baseBlendTree.BlendType = BlendTreeType.Direct;
+            baseBlendTree.NormalizedBlendValues = false;
+            baseBlendTree.UseAutomaticThresholds = false;
+            baseBlendTree.Children = baseBlendTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = BaseLayerClip,
+                DirectBlendParameter = ALWAYS_ONE
+            });
+
+            BaseLayer = vac.AddLayer(new LayerPriority(int.MinValue), "MA/RC Base");
+            BaseLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
+            BaseLayer.DefaultWeight = 1;
+            var sm = BaseLayer.StateMachine!;
+            var state = sm.AddState("Base");
+            sm.DefaultState = state;
+            state.Motion = baseBlendTree;
         }
 
         private void SetLatencyHorizon(IMotionNode root)
         {
             var highWaterMark = 0;
             var latency = 0;
-
-            Walk(ref root);
-
-            LatencyHorizon = highWaterMark;
 
             void Walk(ref IMotionNode node)
             {
@@ -66,6 +84,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 node.WalkTree(Walk);
                 latency -= node.Latency;
             }
+
+            Walk(ref root);
+            LatencyHorizon = highWaterMark;
         }
 
         public void Bake(IMotionNode root)
@@ -84,12 +105,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             var template = new AnimatorControllerParameter
             {
-                name = "$$MA/RC/" + prefix + "$" + counter++,
+                name = "$$MA/RC/" + prefix + "$" + _counter++,
                 type = AnimatorControllerParameterType.Float,
                 defaultFloat = value
             };
 
-            vac.Parameters = vac.Parameters.Add(template.name, template);
+            _vac.Parameters = _vac.Parameters.Add(template.name, template);
 
             return template.name;
         }
@@ -103,18 +124,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private class LatencyDisposable : IDisposable
         {
-            private readonly BakeContext context;
-            private readonly int OriginalLatency;
+            private readonly BakeContext _context;
+            private readonly int _originalLatency;
 
             public LatencyDisposable(BakeContext context)
             {
-                this.context = context;
-                OriginalLatency = context.Latency;
+                _context = context;
+                _originalLatency = context.Latency;
             }
 
             public void Dispose()
             {
-                context.Latency = OriginalLatency;
+                _context.Latency = _originalLatency;
             }
         }
     }

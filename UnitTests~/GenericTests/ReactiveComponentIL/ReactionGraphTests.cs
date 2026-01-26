@@ -109,6 +109,18 @@ namespace UnitTestsReactiveComponentIL
                         )
                     )
                 );
+
+                // Base layer should seed initial active state and parameter defaults
+                var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
+                var baseActiveCurve = _bakeContext.BaseLayerClip.GetFloatCurve(
+                    EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
+                Assert.IsNotNull(baseActiveCurve, "Base layer missing active-state default curve");
+                Assert.AreEqual(obj.activeSelf ? 1 : 0, baseActiveCurve.keys[0].value);
+
+                var baseParamCurve = _bakeContext.BaseLayerClip.GetFloatCurve(
+                    EditorCurveBinding.FloatCurve("", typeof(Animator), pe.ParameterName));
+                Assert.IsNotNull(baseParamCurve, "Base layer missing parameter default curve");
+                Assert.AreEqual(obj.activeSelf ? 1 : 0, baseParamCurve.keys[0].value);
             }
             else
             {
