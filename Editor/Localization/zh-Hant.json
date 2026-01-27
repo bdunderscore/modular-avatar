@@ -346,6 +346,7 @@
   "reactive_object.delete-mesh-by-shape.browse": "選擇",
   "reactive_object.delete-mesh-by-shape.threshold": "閾值",
   "global_collider.manual_remap": "手動重對應",
+  "global_collider.low_priority": "低優先級碰撞器",
   "global_collider.hijack_collider": "要重對應的 碰撞器",
   "global_collider.bone.HandLeft": "左手",
   "global_collider.bone.HandRight": "右手",
