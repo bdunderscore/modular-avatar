@@ -168,6 +168,7 @@
   "error.syncparamsequence.cost_exceeded:hint": "請確保你次要平台的 Avatar 不包含主平台中沒有的參數",
   "error.syncparamsequence.unregistered_parameter": "[MA-0015] 次要平台含有未註冊的參數",
   "error.syncparamsequence.unregistered_parameter:description": "參數 {0} 未在主平台 {1} 最近一次的建置中註冊。",
+  "error.object_cycle": "[MA-0017] 偵測到物件循環",
   "validation.blendshape_sync.no_local_renderer": "[MA-1000] 在此物件上找不到 Renderer",
   "validation.blendshape_sync.no_local_renderer:hint": "Blendshape Sync 作用於所在物件上的 Skinned Mesh Renderer。你是否將它附加到正確的物件上？",
   "validation.blendshape_sync.no_local_mesh": "[MA-1001] 在此物件的 Renderer 上找不到網格（Mesh）",
@@ -371,7 +372,11 @@
   "global_collider.position": "位置",
   "global_collider.rotation": "旋轉",
   "global_collider.visualize_gizmo": "顯示外觀",
+  "validation.global_collider.using_index_fingers_vrc:description": "在 VRC 中，為了維持 Index 手指的正常運作，建議不要使用超過6個 Global Collider。你目前已使用 {0} 個。",
+  "validation.global_collider.using_index_fingers_vrc:hint": "請減少 MA Global Collider 元件的數量。",
   "validation.global_collider.no_global_colliders_available_vrc": "使用了過多 Global Collider。",
   "validation.global_collider.no_global_colliders_available_vrc:description": "在 VRC 中，你不可以使用超過 8個 Global Collider。你目前已使用了 {0} 個。",
+  "validation.global_collider.no_global_colliders_available_vrc:hint": "請減少 MA Global Collider 元件的數量。",
+  "validation.global_collider.manual_collider_overwrite": "多個 Global Collider 元件被手動設定為使用同個碰撞體。",
   "validation.global_collider.manual_collider_overwrite:description": "最後一個此類元件將會覆蓋先前元件。"
 }
