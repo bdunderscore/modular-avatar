@@ -96,10 +96,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MenuInstallPluginPass.Instance);
 #endif
                     seq.Run(CycleCheckPass.Instance);
-                    // Run bone proxy first, since it doesn't use AvatarObjectReference and we'd need special logic
-                    // to lock its path resolutions before running merge armature otherwise
-                    seq.Run(BoneProxyPluginPass.Instance);
+                    // This resolves targets before Merge Armature moves them around
+                    seq.Run(BoneProxyPluginPrepass.Instance);
                     seq.Run(MergeArmaturePluginPass.Instance);
+                    seq.Run(BoneProxyPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
@@ -260,14 +260,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         protected override void Execute(ndmf.BuildContext context)
         {
             new MergeArmatureHook().OnPreprocessAvatar(context, context.AvatarRootObject);
-        }
-    }
-
-    class BoneProxyPluginPass : MAPass<BoneProxyPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new BoneProxyProcessor().OnPreprocessAvatar(context.AvatarRootObject);
         }
     }
 

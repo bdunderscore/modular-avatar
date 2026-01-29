@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1870] Fixed a regression where attaching Bone Proxies to a Merge Armature target would result in the merge not
+  following the bone proxy reparenting (this broke AvatarPoseSystem)
+
 ### Changed
 
 ### Removed

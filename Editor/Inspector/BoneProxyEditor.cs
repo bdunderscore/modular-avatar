@@ -77,8 +77,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (virtProp.objectReferenceValue is Transform targetTransform)
                 {
-                    var validationResult = BoneProxyProcessor.ValidateTarget(parentAvatar, targetTransform);
-                    if (validationResult != BoneProxyProcessor.ValidationResult.OK)
+                    var validationResult = BoneProxyPluginPass.ValidateTarget(parentAvatar, targetTransform);
+                    if (validationResult != BoneProxyPluginPass.ValidationResult.OK)
                     {
                         EditorGUILayout.HelpBox(S("boneproxy.err." + validationResult), MessageType.Error);
                     }

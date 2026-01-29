@@ -62,7 +62,9 @@ namespace modular_avatar_tests
             bp1.ClearCache(true);
             bp2.ClearCache(true);
             
-            new BoneProxyProcessor().OnPreprocessAvatar(root);
+            var context = CreateContext(root);
+            new BoneProxyPluginPrepass().ExecuteForTesting(context);
+            new BoneProxyPluginPass().ExecuteForTesting(context);
             
             Assert.AreNotEqual(src_child1.name, src_child2.name);
         }
@@ -222,7 +224,9 @@ namespace modular_avatar_tests
             var orig3Rot = t3.transform.rotation;
 
             // Run the proxy preprocessing (which re-parents and then AdjustTransform parent->child)
-            new BoneProxyProcessor().OnPreprocessAvatar(root);
+            var context = CreateContext(root);
+            new BoneProxyPluginPrepass().ExecuteForTesting(context);
+            new BoneProxyPluginPass().ExecuteForTesting(context);
 
             // After processing: bp2 (on t2) and bp4 (on t4) are AsChildAtRoot and must have local pos/rot zero
             Assert.LessOrEqual(Vector3.Distance(t2.transform.localPosition, Vector3.zero), 0.0001f, "bp2 (AtRoot) should have local position zero");
@@ -237,6 +241,50 @@ namespace modular_avatar_tests
 
             Assert.LessOrEqual(Vector3.Distance(t3.transform.position, orig3Pos), 0.0001f, "bp3 (KeepWorldPose) should preserve world position");
             Assert.LessOrEqual(Quaternion.Angle(t3.transform.rotation, orig3Rot), 0.01f, "bp3 (KeepWorldPose) should preserve world rotation");
+        }
+
+        [Test]
+        public void MergeArmature_BoneProxy_Interaction()
+        {
+            // Create hierarchy:
+            // Root
+            //   - MergeTarget
+            //     - X (bone proxy, target: Z)
+            //   - MergeSource (Merge Armature, target: MergeTarget)
+            //     - X
+            //       - Y (with MeshRenderer to avoid empty object optimizations)
+            //   - Z
+            
+            var root = CreateRoot("root");
+            
+            var mergeTarget = CreateChild(root, "MergeTarget");
+            var targetX = CreateChild(mergeTarget, "X");
+            
+            // Add bone proxy to MergeTarget/X that targets Z
+            var boneProxy = targetX.AddComponent<ModularAvatarBoneProxy>();
+            
+            var mergeSource = CreateChild(root, "MergeSource");
+            var sourceX = CreateChild(mergeSource, "X");
+            var sourceY = CreateChild(sourceX, "Y");
+            
+            // Add MeshRenderer to Y to prevent it from being optimized away
+            sourceY.AddComponent<MeshRenderer>();
+            
+            var z = CreateChild(root, "Z");
+            
+            // Set up the bone proxy to target Z
+            boneProxy.target = z.transform;
+            
+            // Set up merge armature to merge MergeSource into MergeTarget
+            var mergeArmature = mergeSource.AddComponent<ModularAvatarMergeArmature>();
+            mergeArmature.mergeTarget.Set(mergeTarget);
+            
+            // Process the avatar
+            nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root);
+            
+            // After processing, Y should be a child of target X, which is a child of Z (the bone proxy target)
+            // Expected path: Z/X/Y (since X in MergeTarget becomes a child of Z)
+            Assert.AreEqual(z, sourceY.transform.parent.parent.gameObject, "Y should be a child of Z after processing");
         }
 
         private void AssertAttachmentMode(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
