@@ -24,13 +24,37 @@
  * SOFTWARE.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class BoneProxyProcessor
+    internal class BoneProxyState
+    {
+        public readonly Dictionary<ModularAvatarBoneProxy, GameObject?> TargetMapping = new();
+    }
+
+    internal class BoneProxyPluginPrepass : Pass<BoneProxyPluginPrepass>
+    {
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            var state = context.GetState<BoneProxyState>();
+            foreach (var bp in context.AvatarRootObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true))
+            {
+                state.TargetMapping[bp] = bp.target?.gameObject;
+            }
+        }
+
+        internal void ExecuteForTesting(ndmf.BuildContext context)
+        {
+            Execute(context);
+        }
+    }
+
+    internal class BoneProxyPluginPass : Pass<BoneProxyPluginPass>
     {
         internal enum ValidationResult
         {
@@ -46,10 +70,10 @@ namespace nadena.dev.modular_avatar.core.editor
             public readonly Vector3 WorldPos;
             public readonly Quaternion WorldRot;
 
-            public ProxyInfo(ModularAvatarBoneProxy proxy)
+            public ProxyInfo(ModularAvatarBoneProxy proxy, BoneProxyState state)
             {
                 Proxy = proxy;
-                Target = proxy.target;
+                Target = state.TargetMapping.GetValueOrDefault(proxy)?.transform ?? proxy.target; 
                 WorldPos = proxy.transform.position;
                 WorldRot = proxy.transform.rotation;
             }
@@ -97,11 +121,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
         }
-        
-        internal void OnPreprocessAvatar(GameObject avatarGameObject)
+
+        protected override void Execute(ndmf.BuildContext context)
         {
+            var avatarGameObject = context.AvatarRootObject;
+            var state = context.GetState<BoneProxyState>();
+            
             var boneProxies = avatarGameObject.GetComponentsInChildren<ModularAvatarBoneProxy>(true)
-                .Select(bp => new ProxyInfo(bp))
+                .Select(bp => new ProxyInfo(bp, state))
                 .ToList();
 
             foreach (var proxy in boneProxies)
@@ -138,6 +165,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 var transform = proxy.Proxy.transform;
                 transform.SetParent(proxy.Target, true);
             }
+        }
+
+        internal void ExecuteForTesting(ndmf.BuildContext context)
+        {
+            Execute(context);
         }
 
         internal static ValidationResult ValidateTarget(GameObject avatarGameObject, Transform proxyTarget)
