@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#1870] Fixed a regression where attaching Bone Proxies to a Merge Armature target would result in the merge not
-  following the bone proxy reparenting (this broke AvatarPoseSystem)
-
 ### Changed
 
 ### Removed
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.0-rc.1] - [2026-01-29]
+
+### Fixed
+
+- [#1870] Fixed a regression where attaching Bone Proxies to a Merge Armature target would result in the merge not
+  following the bone proxy reparenting (this broke AvatarPoseSystem)
 
 ## [1.16.0-rc.0] - [2026-01-19]
 

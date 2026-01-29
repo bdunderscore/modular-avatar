@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#1870] `MA Bone Proxy` が Merge Armatureのマージ先ボーンに追加された場合、Merge Armatureで統合されたオブジェクトが
-  Bone Proxyの移動先に移動しない問題を修正  (AvatarPoseSystem が壊れたバグの修正です)
-
 ### Changed
 
 ### Removed
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.0-rc.1] - [2026-01-29]
+
+### Fixed
+
+- [#1870] `MA Bone Proxy` が Merge Armatureのマージ先ボーンに追加された場合、Merge Armatureで統合されたオブジェクトが
+  Bone Proxyの移動先に移動しない問題を修正  (AvatarPoseSystem が壊れたバグの修正です)
 
 ## [1.16.0-rc.0] - [2026-01-19]
 
