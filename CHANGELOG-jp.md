@@ -10,6 +10,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 - [#1860] `MA Bone Proxy` で、他のBone ProxyやMerge Armature（あるいはその子）をターゲットとして指定できるようになりました。
+- ヒューリスティックボーンマッパーで、小指ボーンのエイリアスとして「Pinky1.L」「Pinky2.L」「Pinky3.L」と「Pinky1.R」「Pinky2.R」「Pinky3.R」を追加しました
 
 ### Fixed
 - [#1851] MMDワールドに関する幾つかのバグを修正

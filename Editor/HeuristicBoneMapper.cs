@@ -140,17 +140,17 @@ namespace nadena.dev.modular_avatar.core.editor
             new[]
             {
                 "LeftLittleProximal", "ProximalLittle_Left", "ProximalLittle_L", "Little1_L", "LittleFinger1_L",
-                "LeftHandPinky1", "Little Proximal.L", "finger05_01_L", "f_pinky.01.L"
+                "LeftHandPinky1", "Little Proximal.L", "finger05_01_L", "f_pinky.01.L", "Pinky1.L"
             },
             new[]
             {
                 "LeftLittleIntermediate", "IntermediateLittle_Left", "IntermediateLittle_L", "Little2_L",
-                "LittleFinger2_L", "LeftHandPinky2", "Little Intermediate.L", "finger05_02_L", "f_pinky.02.L"
+                "LittleFinger2_L", "LeftHandPinky2", "Little Intermediate.L", "finger05_02_L", "f_pinky.02.L", "Pinky2.L"
             },
             new[]
             {
                 "LeftLittleDistal", "DistalLittle_Left", "DistalLittle_L", "Little3_L", "LittleFinger3_L",
-                "LeftHandPinky3", "Little Distal.L", "finger05_03_L", "f_pinky.03.L"
+                "LeftHandPinky3", "Little Distal.L", "finger05_03_L", "f_pinky.03.L", "Pinky3.L"
             },
             new[]
             {
@@ -215,17 +215,17 @@ namespace nadena.dev.modular_avatar.core.editor
             new[]
             {
                 "RightLittleProximal", "ProximalLittle_Right", "ProximalLittle_R", "Little1_R", "LittleFinger1_R",
-                "RightHandPinky1", "Little Proximal.R", "finger05_01_R", "f_pinky.01.R"
+                "RightHandPinky1", "Little Proximal.R", "finger05_01_R", "f_pinky.01.R", "Pinky1.R"
             },
             new[]
             {
                 "RightLittleIntermediate", "IntermediateLittle_Right", "IntermediateLittle_R", "Little2_R",
-                "LittleFinger2_R", "RightHandPinky2", "Little Intermediate.R", "finger05_02_R", "f_pinky.02.R"
+                "LittleFinger2_R", "RightHandPinky2", "Little Intermediate.R", "finger05_02_R", "f_pinky.02.R", "Pinky2.R"
             },
             new[]
             {
                 "RightLittleDistal", "DistalLittle_Right", "DistalLittle_R", "Little3_R", "LittleFinger3_R",
-                "RightHandPinky3", "Little Distal.R", "finger05_03_R", "f_pinky.03.R"
+                "RightHandPinky3", "Little Distal.R", "finger05_03_R", "f_pinky.03.R", "Pinky3.R"
             },
             new[] {"UpperChest", "UChest"},
         };
