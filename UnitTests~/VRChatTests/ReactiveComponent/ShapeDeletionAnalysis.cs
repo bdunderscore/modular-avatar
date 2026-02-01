@@ -106,8 +106,10 @@ public class ShapeDeletionAnalysis : TestBase
         AvatarProcessor.ProcessAvatar(root);
 
         var createdBone = root.GetComponentsInChildren<Transform>()
-            .Any(c => c.gameObject.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix));
-        Assert.IsTrue(createdBone);
+            .FirstOrDefault(c => c.gameObject.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix));
+        Assert.IsNotNull(createdBone);
+        // #1869
+        Assert.AreEqual(NaNimationFilter.NaNimatedBufferPrefix, createdBone.transform.parent.gameObject.name);
     }
     
     private static void AssertBuildDeletion(SkinnedMeshRenderer mesh, GameObject root)

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1874] Mesh Cutter did not work properly when used on armatures with a scale other than 1.
+
 ### Changed
 
 ### Removed

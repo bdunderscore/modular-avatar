@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1874] Scale が 1 以外のアーマチュアを使ったメッシュでは、`Mesh Cutter` が正しく動作しない問題を修正
+
 ### Changed
 
 ### Removed
