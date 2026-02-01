@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1860] `MA Bone Proxy` now supports selecting another bone proxy or `MA Merge Armature` (or their children) as a
   target
+- Added "Pinky1.L", "Pinky2.L", "Pinky3.L" and "Pinky1.R", "Pinky2.R", "Pinky3.R" as aliases for little finger bones
+  in the heuristic bone mapper
 
 ### Fixed
 - [#1851] Fixed various issues in MMD worlds
