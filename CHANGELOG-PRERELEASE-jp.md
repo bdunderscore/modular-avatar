@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- ヒューリスティックボーンマッパーで、小指ボーンのエイリアスとして「Pinky1.L」「Pinky2.L」「Pinky3.L」と「Pinky1.R」「Pinky2.R」「Pinky3.R」を追加しました
 
 ### Fixed
 - [#1872] メッシュが設定されていないSkinned Mesh Rendererがある場合、`Visible Head Accessory`の処理が失敗するバグを修正

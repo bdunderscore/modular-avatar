@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added "Pinky1.L", "Pinky2.L", "Pinky3.L" and "Pinky1.R", "Pinky2.R", "Pinky3.R" as aliases for little finger bones
+  in the heuristic bone mapper
 
 ### Fixed
 - [#1872] `Visible Head Accessory` would break when there are skinned mesh renderers with a null mesh
