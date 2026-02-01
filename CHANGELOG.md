@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1859] Fixed an exception that could occur with certain unusual mesh configurations.
 - [#1862] Improved performance of the `MA Menu Item` inspector UI
 - [#1874] Mesh Cutter did not work properly when used on armatures with a scale other than 1.
+- [#1872] `Visible Head Accessory` would break when there are skinned mesh renderers with a null mesh
 
 ### Changed
 - [#1829] `Sync Parameter Sequence` will now automatically store parameters under the Unity Library; an expressions

@@ -129,6 +129,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Process meshes
                 foreach (var smr in _avatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
+                    if (smr.sharedMesh == null) continue;
+
                     BuildReport.ReportingObject(smr,
                         () => new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(_context));
                 }

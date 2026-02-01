@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1872] メッシュが設定されていないSkinned Mesh Rendererがある場合、`Visible Head Accessory`の処理が失敗するバグを修正
 
 - [#1874] Scale が 1 以外のアーマチュアを使ったメッシュでは、`Mesh Cutter` が正しく動作しない問題を修正
 

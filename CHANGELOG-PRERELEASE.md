@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1872] `Visible Head Accessory` would break when there are skinned mesh renderers with a null mesh
 
 - [#1874] Mesh Cutter did not work properly when used on armatures with a scale other than 1.
 
