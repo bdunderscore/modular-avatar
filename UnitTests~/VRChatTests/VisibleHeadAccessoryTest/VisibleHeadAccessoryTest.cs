@@ -58,6 +58,30 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.AreEqual(headchop.targetBones[0].applyCondition, VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply);
             Assert.AreEqual(headchop.globalScaleFactor, 1);
         }
+
+        [Test]
+        public void TestNullMesh()
+        {
+            // Use the existing prefab and add a SkinnedMeshRenderer with null mesh to test the fix
+            var prefab = CreatePrefab("VHA_shapell.prefab");
+            
+            // Add a SkinnedMeshRenderer with null mesh to the avatar
+            var head = prefab.transform.Find("Armature/Hips/Spine/Chest/Neck/Head");
+            Assert.NotNull(head, "Head bone should exist in prefab");
+            
+            var nullMeshObject = new GameObject("NullMeshObject");
+            nullMeshObject.transform.SetParent(head);
+            var smr = nullMeshObject.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = null; // Explicitly set to null to test the fix
+            smr.bones = new Transform[] { head };
+            
+            // This should not throw an exception (the fix is the null check in VisibleHeadAccessoryProcessor.cs)
+            Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(prefab));
+            
+            // Verify the accessory was still processed correctly despite the null mesh
+            var headChop = head.GetComponentInChildren<VRCHeadChop>();
+            Assert.NotNull(headChop, "HeadChop component should be created even with null mesh present");
+        }
     }
 }
 
