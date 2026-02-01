@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal static class NaNimationFilter
     {
+        public const string NaNimatedBufferPrefix = "NaNimation buffer";
         // TODO: Move the bone creation logic into here?
         public const string NaNimatedBonePrefix = "NaNimatedBone for ";
         

@@ -505,6 +505,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private Dictionary<(TargetProp, IVertexFilter), List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
             Dictionary<(TargetProp, IVertexFilter), List<NaNimationFilter.AddedBone>> plan)
         {
+            Dictionary<Transform, Transform> parentToBuffer = new();
+            
             List<(NaNimationFilter.AddedBone, (TargetProp, IVertexFilter))> createdBones =
                 plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
                     .OrderBy(b => b.bone.newBoneIndex)
@@ -527,14 +529,35 @@ namespace nadena.dev.modular_avatar.core.editor
                 var shape = pair.Item2;
 
                 if (bonesArray[bone.originalBoneIndex] == null) continue;
+
+                // When we merge armature after generating NaNimated bones, we can end up changing the localScale of
+                // the nanimated bones, which is a problem, since we've baked that scale into our animation curves.
+                //
+                // To help avoid this, we add a buffer object - the buffer object will take the base scale change,
+                // while NaNimated object goes between scale (1,1,1) and (NaN, NaN, Nan)
+                //
+                // See github bug: https://github.com/bdunderscore/modular-avatar/issues/1869
+
+                if (!parentToBuffer.TryGetValue(bonesArray[bone.originalBoneIndex], out var bufferTransform))
+                {
+                    var bufferObj = new GameObject(NaNimationFilter.NaNimatedBufferPrefix);
+                    bufferTransform = bufferObj.transform;
+                    bufferTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
+                    bufferTransform.localPosition = Vector3.zero;
+                    bufferTransform.localRotation = Quaternion.identity;
+                    bufferTransform.localScale = Vector3.one;
+                    bufferObj.AddComponent<ModularAvatarPBBlocker>();
+
+                    parentToBuffer.Add(bonesArray[bone.originalBoneIndex], bufferTransform);
+                }
+                
                 var newBone = new GameObject(NaNimationFilter.NaNimatedBonePrefix + shape.Item1.ToString().Replace('/', '_'));
                 var newBoneTransform = newBone.transform;
-                newBoneTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
+                newBoneTransform.SetParent(bufferTransform, false);
                 newBoneTransform.localPosition = Vector3.zero;
                 newBoneTransform.localRotation = Quaternion.identity;
                 newBoneTransform.localScale = Vector3.one;
 
-                newBone.AddComponent<ModularAvatarPBBlocker>();
                 bonesArray[bone.newBoneIndex] = newBoneTransform;
             }
 
