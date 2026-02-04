@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added "Pinky1.L", "Pinky2.L", "Pinky3.L" and "Pinky1.R", "Pinky2.R", "Pinky3.R" as aliases for little finger bones
-  in the heuristic bone mapper
 
 ### Fixed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.0] - [2026-02-04]
+
+### Added
+- Added "Pinky1.L", "Pinky2.L", "Pinky3.L" and "Pinky1.R", "Pinky2.R", "Pinky3.R" as aliases for little finger bones
+  in the heuristic bone mapper
 
 ## [1.16.0-rc.2] - [2026-02-01]
 

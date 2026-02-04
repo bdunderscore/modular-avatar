@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.16.0] - [2026-02-04]
+
+### Added
 - [#1860] `MA Bone Proxy` now supports selecting another bone proxy or `MA Merge Armature` (or their children) as a
   target
 - Added "Pinky1.L", "Pinky2.L", "Pinky3.L" and "Pinky1.R", "Pinky2.R", "Pinky3.R" as aliases for little finger bones
@@ -34,12 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sync Parameter Sequence now also enforces that all platforms have the same parameter contents, and syncs only from
     primary to secondary platforms.
 - [#1829] Suppress the TextMeshPro asset postprocessor. This improves build and platform change times in large projects.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.15.1] - [2025-12-06]
 

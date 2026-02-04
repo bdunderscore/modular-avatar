@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- ヒューリスティックボーンマッパーで、小指ボーンのエイリアスとして「Pinky1.L」「Pinky2.L」「Pinky3.L」と「Pinky1.R」「Pinky2.R」「Pinky3.R」を追加しました
 
 ### Fixed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.0] - [2026-02-04]
+
+### Added
+- ヒューリスティックボーンマッパーで、小指ボーンのエイリアスとして「Pinky1.L」「Pinky2.L」「Pinky3.L」と「Pinky1.R」「Pinky2.R」「Pinky3.R」を追加しました
 
 ## [1.16.0-rc.2] - [2026-02-01]
 

@@ -9,6 +9,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.16.0] - [2026-02-04]
+
+### Added
 - [#1860] `MA Bone Proxy` で、他のBone ProxyやMerge Armature（あるいはその子）をターゲットとして指定できるようになりました。
 - ヒューリスティックボーンマッパーで、小指ボーンのエイリアスとして「Pinky1.L」「Pinky2.L」「Pinky3.L」と「Pinky1.R」「Pinky2.R」「Pinky3.R」を追加しました
 
@@ -30,12 +44,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 別々のプラットフォームのパラメーター内容が異なるような結果になる場合はエラーになる。また、主要プラットホーム
     から他のプラットフォームへの一方通行の同期だけするようになった。
 - [#1829] TextMeshPro のアセットポストプロセッサを無効化する。これによりビルド・プラットフォーム切り替え時間を短縮できる。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.15.1] - [2025-12-06]
 
