@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1880] Set the `Match Avatar Write Defaults` setting to ON by default in `MA Merge Animator`
 
 ### Removed
 

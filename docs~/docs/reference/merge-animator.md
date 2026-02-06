@@ -63,8 +63,10 @@ Having multiple Merge Animators set to the same Layer Type and Replace mode will
 
 ### Write Defaults
 
-By default, the write defaults state of your animator will not be changed. If you want to ensure that the WD settings of your animator states always matches the avatar's animator, click "Match Avatar Write Defaults".
+When the "Match Avatar Write Defaults" checkbox is checked, Merge Animator will ensure that the write defaults state of your animator states matches the avatar's animator.
 This will detect whether the avatar is using write defaults ON or OFF states consistently, and if so your animator will be adjusted to match. If the avatar is inconsistent in its use of write defaults, your animator will be unchanged.
+
+Note that certain uses of blend trees are excluded from this conversion, as some types of blend trees do not support a write defaults "off" setting.
 
 ## Limitations
 
