@@ -63,6 +63,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 );
             }
 
+            public IEnumerable<EditorCurveBinding> ToSourceEditorCurveBindings(AnimatorServicesContext asc)
+            {
+                foreach (var path in asc.ObjectPathRemapper.GetAllPathsForObject(Renderer.gameObject))
+                {
+                    yield return EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), propertyName);
+                }
+            }
+
             public bool Equals(SummaryBinding other)
             {
                 return Renderer == other.Renderer && propertyName == other.propertyName;
@@ -121,8 +129,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var clips = new HashSet<VirtualClip>();
             foreach (var key in _bindingMappings.Keys)
             {
-                var ecb = key.ToEditorCurveBinding(asc);
-                clips.UnionWith(animDb.GetClipsForBinding(ecb));
+                foreach (var ecb in key.ToSourceEditorCurveBindings(asc))
+                {
+                    clips.UnionWith(animDb.GetClipsForBinding(ecb));
+                }
             }
 
             // Walk and transform all clips

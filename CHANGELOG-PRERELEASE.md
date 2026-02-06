@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1879] `Blendshape Sync` would not work properly when the source object was replaced by a `MA Replace Object` component.
 
 ### Changed
 
