@@ -13,6 +13,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Fixed
 
 ### Changed
+- [#1880] `MA Merge Animator` の `アバターのWrite Defaults設定に合わせる` 設定をデフォルトでONにしました。
 
 ### Removed
 

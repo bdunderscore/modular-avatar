@@ -79,6 +79,7 @@ namespace nadena.dev.modular_avatar.core
         internal void InitSettings()
         {
             deleteAttachedAnimator = true;
+            matchAvatarWriteDefaults = true;
         }
 
         RuntimeAnimatorController IVirtualizeAnimatorController.AnimatorController

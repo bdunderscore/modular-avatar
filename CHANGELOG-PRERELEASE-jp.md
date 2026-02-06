@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1880] `MA Merge Animator` の `アバターのWrite Defaults設定に合わせる` 設定をデフォルトでONにしました。
 
 ### Removed
 
