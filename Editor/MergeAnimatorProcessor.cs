@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
@@ -38,6 +39,29 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    [DependsOnContext(typeof(AnimatorServicesContext))]
+    internal class RemoveLayerPass : Pass<RemoveLayerPass>
+    {
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            var removers = context.AvatarRootTransform.GetComponentsInChildren<ModularAvatarMergeAnimator>(true)
+                .Where(mama => mama.mergeAnimatorMode == MergeAnimatorMode.Replace)
+                .GroupBy(mama => mama.layerType);
+
+            var asc = context.Extension<AnimatorServicesContext>();
+
+            foreach (var group in removers)
+            {
+                // Since we have a Merge Animator in replace mode, clear the controller before Merge Blend Tree runs
+                // (we'll check for duplicates in a layer step)
+                var controller = asc.ControllerContext.Controllers[group.Key];
+
+                controller.RemoveLayers(_ => true);
+                controller.Parameters = ImmutableDictionary.Create<string, AnimatorControllerParameter>();
+            }
+        }
+    }
+
     internal class MergeAnimatorProcessor
     {
         private AnimatorServicesContext _asc;
@@ -104,9 +128,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else if (replacements == 1)
             {
-                // Delete all pre-existing layers.
-                // Retain the blend tree layer, since that will generally be placed as the first layer in the animator
-                controller.RemoveLayers(l => l.Name != MergeBlendTreePass.BlendTreeLayerName);
+                // The controller was cleared in the RemoveLayerPass, so we just have to merge the replacement first.
 
                 // Merge just the first controller (the one that replaces)
                 MergeSingle(context, controller, sorted.First(), null);

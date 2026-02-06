@@ -12,6 +12,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Fixed
 - [#1879] 同期元のオブジェクトが `MA Replace Object` で置き換えられる場合、`Blendshape Sync` が正しく動作しない問題を修正
+- [#1882] アバターのアニメーターを置き換える際、元のアニメーターのパラメータのデフォルト値が使用されていた問題を修正
 
 ### Changed
 - [#1880] `MA Merge Animator` の `アバターのWrite Defaults設定に合わせる` 設定をデフォルトでONにしました。

@@ -74,6 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(MMDRelayEarlyPass.Instance);
                     seq.Run(RenameParametersPluginPass.Instance);
                     seq.Run(ParameterAssignerPass.Instance);
+                    seq.Run(RemoveLayerPass.Instance);
                     seq.Run(MergeBlendTreePass.Instance);
                     seq.Run(MergeAnimatorPluginPass.Instance);
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);

@@ -156,6 +156,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (_rootBlendTree != null) return _rootBlendTree;
 
             var fx = _asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+
             var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
             var stateMachine = controller.StateMachine;
             if (fx == null)
