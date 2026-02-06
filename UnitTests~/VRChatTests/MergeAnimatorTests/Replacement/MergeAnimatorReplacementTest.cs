@@ -74,6 +74,23 @@ namespace UnitTests.MergeAnimatorTests.Replacement
             var fxc = (AnimatorController)fx.animatorController;
             
             Assert.IsTrue(fxc.layers.Any(l => l.name == MergeBlendTreePass.BlendTreeLayerName));
+            Assert.IsTrue(fxc.parameters.Any(p => p.name == MergeBlendTreePass.ALWAYS_ONE));
+        }
+
+        [Test]
+        public void ReplacementReplacesParameters()
+        {
+            var prefab = CreatePrefab("ReplaceParameters.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+            
+            var testParam = fxc.parameters.First(p => p.name == "test");
+            Assert.AreEqual(1, testParam.defaultFloat);
+            
+            Assert.IsFalse(fxc.parameters.Any(p => p.name == "deleteme"));
         }
     }
 }
