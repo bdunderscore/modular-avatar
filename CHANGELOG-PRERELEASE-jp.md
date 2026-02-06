@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1879] 同期元のオブジェクトが `MA Replace Object` で置き換えられる場合、`Blendshape Sync` が正しく動作しない問題を修正
 
 ### Changed
 - [#1880] `MA Merge Animator` の `アバターのWrite Defaults設定に合わせる` 設定をデフォルトでONにしました。

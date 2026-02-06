@@ -14,9 +14,12 @@ namespace modular_avatar_tests
     public class BlendshapeSyncIntegrationTest : TestBase
     {
         [Test]
-        public void IntegrationTest_BlendshapeSync()
+        public void IntegrationTest_BlendshapeSync(
+            [Values("BlendshapeSyncIntegrationTest.prefab", "BlendshapeSyncReplaceObjectTest.prefab")]
+            string prefabName
+        )
         {
-            var root = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
+            var root = CreatePrefab(prefabName);
 
             AvatarProcessor.ProcessAvatar(root);
 
