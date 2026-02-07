@@ -25,7 +25,7 @@ namespace nadena.dev.modular_avatar.core
             set
             {
                 m_groupedBones = value.Clone() as GameObject[];
-                MaMoveIndependentlyManager.Instance.Activate(this);
+                OnValidate();
             }
         }
 
