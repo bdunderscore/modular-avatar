@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -186,6 +187,55 @@ namespace modular_avatar_tests
             var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController;
             Assert.IsTrue(fxController!.parameters.Any(p =>
                 p.name == "testBool" && p.type == AnimatorControllerParameterType.Float));
+        }
+
+        [Test]
+        public void NonConstantCurveWarning_WithVariableCurve()
+        {
+            // Create an animation clip with a non-constant curve (varying values)
+            var clip = new AnimationClip();
+            var curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+            clip.SetCurve("transform", typeof(Transform), "localPosition.x", curve);
+            
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            var mergeComponent = child.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent.Motion = clip;
+            mergeComponent.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            // Verify that a non_constant_curve error was reported
+            Assert.IsTrue(errors.Any(e => 
+                (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve"));
+        }
+
+        [Test]
+        public void NonConstantCurveWarning_WithConstantCurve()
+        {
+            // Create an animation clip with a constant curve (all values the same)
+            var clip = new AnimationClip();
+            clip.SetCurve("transform", typeof(Transform), "localPosition.x", AnimationCurve.Constant(0, 1, 0.5f));
+            
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            var mergeComponent = child.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent.Motion = clip;
+            mergeComponent.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            // Verify that NO non_constant_curve error was reported
+            Assert.IsFalse(errors.Any(e => 
+                (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve"));
         }
 
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)

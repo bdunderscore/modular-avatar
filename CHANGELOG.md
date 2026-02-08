@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1888] Adjusted the Move Independently UI to make it easier to select entire hierarchies of objects to move together.
 
+- [#1903] Added a warning when `MA Merge Motion` is used to merge an animation clip with non-constant curves
+
 ### Fixed
 - [#1879] `Blendshape Sync` would not work properly when the source object was replaced by a `MA Replace Object` component.
 - [#1882] When replacing entire animators, the default values of the parameters of the original animator would be used, instead of the replacement animator. 

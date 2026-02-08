@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1888] Move Independently のUIを調整して、オブジェクトの階層全体を簡単に選択できるようにしました。
 
+- [#1903] `MA Merge Motion` で統合されるクリップの中に、時間で変動する値が含まれる場合の注意を追加
+
 ### Fixed
 - [#1879] 同期元のオブジェクトが `MA Replace Object` で置き換えられる場合、`Blendshape Sync` が正しく動作しない問題を修正
 - [#1882] アバターのアニメーターを置き換える際、元のアニメーターのパラメータのデフォルト値が使用されていた問題を修正
