@@ -25,9 +25,6 @@ namespace nadena.dev.modular_avatar.core.editor
             _threshold = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_threshold));
         }
 
-        // TODO: This field is referenced but never initialized - potential bug?
-        private Button f_browse = null!;
-
         protected override VisualElement CreateInnerInspectorGUI()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath).CloneTree();
