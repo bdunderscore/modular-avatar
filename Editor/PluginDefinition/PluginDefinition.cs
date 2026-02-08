@@ -132,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 });
 #if MA_VRCSDK3_AVATARS
-                seq.Run(PhysbonesBlockerPluginPass.Instance);
+                seq.Run(PhysboneBlockerPass.Instance);
                 seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
                 {
                     seq.Run("Fixup Expressions Menu", ctx =>
@@ -182,15 +182,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    abstract class MAPass<T> : Pass<T> where T : Pass<T>, new()
-    {
-        protected BuildContext MAContext(ndmf.BuildContext context)
-        {
-            return context.Extension<BuildContext>();
-        }
-    }
-
-    class ClearEditorOnlyTags : MAPass<ClearEditorOnlyTags>
+    class ClearEditorOnlyTags : Pass<ClearEditorOnlyTags>
     {
         protected override void Execute(ndmf.BuildContext context)
         {
@@ -221,12 +213,4 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     }
 
 #if MA_VRCSDK3_AVATARS
-    class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            PhysboneBlockerPass.Process(context.AvatarRootObject);
-        }
-    }
-#endif
 }
