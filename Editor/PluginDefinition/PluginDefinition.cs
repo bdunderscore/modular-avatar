@@ -99,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(CycleCheckPass.Instance);
                     // This resolves targets before Merge Armature moves them around
                     seq.Run(BoneProxyPluginPrepass.Instance);
-                    seq.Run(MergeArmaturePluginPass.Instance);
+                    seq.Run(MergeArmatureHook.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
@@ -115,7 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(WorldScaleObjectPass.Instance);
 
 
-                    seq.Run(ReplaceObjectPluginPass.Instance);
+                    seq.Run(ReplaceObjectPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
                     seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
@@ -144,7 +144,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 seq.Run(SyncParameterSequencePass.Instance);
 #endif
                 seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
-                seq.Run(RebindHumanoidAvatarPass.Instance);
+                seq.Run(RebindHumanoidAvatar.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
                 {
                     foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
@@ -231,14 +231,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     }
 #endif
 
-    class ReplaceObjectPluginPass : MAPass<ReplaceObjectPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new ReplaceObjectPass(context).Process();
-        }
-    }
-
 #if MA_VRCSDK3_AVATARS
     [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)] // TODO - support other platforms
     class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
@@ -257,14 +249,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 #endif
-
-    class RebindHumanoidAvatarPass : MAPass<RebindHumanoidAvatarPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new RebindHumanoidAvatar(context).Process();
-        }
-    }
 
     [DependsOnContext(typeof(BuildContext))]
     [DependsOnContext(typeof(AnimatorServicesContext))]

@@ -43,7 +43,7 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class
-        MergeArmatureHook
+        MergeArmatureHook : Pass<MergeArmatureHook>
     {
         private const float DuplicatedBoneMaxSqrDistance = 0.001f * 0.001f;
 
@@ -62,7 +62,12 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private HashSet<Transform> transformLookthrough = new HashSet<Transform>();
 
-        internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            OnPreprocessAvatar(context, context.AvatarRootObject);
+        }
+
+        private void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
             this.frameworkContext = context;
             this.context = context.Extension<BuildContext>();

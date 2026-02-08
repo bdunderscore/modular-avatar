@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
@@ -13,22 +14,24 @@ namespace nadena.dev.modular_avatar.core.editor
     // ReSharper disable once RedundantUsingDirective
     using Object = System.Object;
 
-    internal class ReplaceObjectPass
+    internal class ReplaceObjectPass : Pass<ReplaceObjectPass>
     {
-        private readonly ndmf.BuildContext _buildContext;
-
-        public ReplaceObjectPass(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
-            _buildContext = context;
+            var state = context.GetState<ReplaceObjectPassState>();
+            state.Process(context);
         }
+    }
 
+    internal class ReplaceObjectPassState
+    {
         struct Reference
         {
             public UnityObject Source;
             public string PropPath;
         }
 
-        public void Process()
+        internal void Process(ndmf.BuildContext _buildContext)
         {
             var avatarRootTransform = _buildContext.AvatarRootTransform;
             var replacementComponents =
@@ -37,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (replacementComponents.Length == 0) return;
 
             // Build an index of object references within the avatar that we might need to fix
-            Dictionary<UnityObject, List<Reference>> refIndex = BuildReferenceIndex();
+            Dictionary<UnityObject, List<Reference>> refIndex = BuildReferenceIndex(_buildContext);
 
             Dictionary<GameObject, (ModularAvatarReplaceObject, GameObject)> replacements
                 = new Dictionary<GameObject, (ModularAvatarReplaceObject, GameObject)>();
@@ -156,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private Dictionary<UnityObject, List<Reference>> BuildReferenceIndex()
+        private static Dictionary<UnityObject, List<Reference>> BuildReferenceIndex(ndmf.BuildContext _buildContext)
         {
             Dictionary<UnityObject, List<Reference>> refIndex = new Dictionary<UnityObject, List<Reference>>();
 
