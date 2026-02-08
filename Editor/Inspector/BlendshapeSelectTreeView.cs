@@ -67,14 +67,14 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal class OfferItem : TreeViewItem
         {
-            public BlendshapeBinding binding;
+            public BlendshapeBinding binding = default!;
         }
 
         private readonly Mesh? _singleMesh;
         private readonly GameObject? _avatarRoot;
-        private List<BlendshapeBinding?> _candidateBindings;
+        private List<BlendshapeBinding?> _candidateBindings = null!;
 
-        internal Action<BlendshapeBinding> OfferBinding;
+        internal Action<BlendshapeBinding> OfferBinding = null!;
         internal Action<BlendshapeBinding>? OfferSingleClick;
 
         public BlendshapeTree(GameObject avatarRoot, TreeViewState state) : base(state)

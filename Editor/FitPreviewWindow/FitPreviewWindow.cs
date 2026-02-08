@@ -85,16 +85,16 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             FitPreviewSceneManager.UnloadPreviewScene();
         }
 
-        [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot;
+        [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot = null!;
         
         private Scene _scene;
-        private AssemblyReloadEvents.AssemblyReloadCallback _onReload;
-        private VisualElement _parentVisualElement;
-        private PreviewSession _previewSession;
-        private HideOtherAvatarsTracker _hideOtherAvatarsTracker;
-        private ObjectField _targetAvatar;
+        private AssemblyReloadEvents.AssemblyReloadCallback _onReload = null!;
+        private VisualElement _parentVisualElement = null!;
+        private PreviewSession _previewSession = null!;
+        private HideOtherAvatarsTracker _hideOtherAvatarsTracker = null!;
+        private ObjectField _targetAvatar = null!;
 
-        private EventCallback<AttachToPanelEvent> _onAttachToPanel;
+        private EventCallback<AttachToPanelEvent> _onAttachToPanel = null!;
         private ShadowHierarchyFilter? _shadowHierarchyFilter;
 
         public override void OnEnable()
@@ -205,7 +205,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
 
         private Vector3? lastClosestApproach;
         private Transform? activeTarget;
-        private GameObject _pbManager;
+        private GameObject _pbManager = null!;
 
         private Transform? _surrogateHandleTarget;
 

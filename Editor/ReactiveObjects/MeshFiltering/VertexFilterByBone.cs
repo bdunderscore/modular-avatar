@@ -12,9 +12,9 @@ namespace nadena.dev.modular_avatar.core.editor
     [ProvidesVertexFilter(typeof(VertexFilterByBoneComponent))]
     internal sealed class VertexFilterByBone : IVertexFilter
     {
-        private readonly Transform _bone;
+        private readonly Transform? _bone;
         private readonly float _threshold;
-        private readonly Transform _avatarRoot;
+        private readonly Transform? _avatarRoot;
 
         public VertexFilterByBone(Transform bone, float threshold)
         {
