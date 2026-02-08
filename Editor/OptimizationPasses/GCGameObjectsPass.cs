@@ -37,6 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor
             OnPreprocessAvatar(state);
         }
 
+        // Internal for testing purposes - tests can set up state and call this directly
         internal void OnPreprocessAvatar(GCGameObjectsPassState state)
         {
             MarkAll(state);
