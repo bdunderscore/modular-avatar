@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
