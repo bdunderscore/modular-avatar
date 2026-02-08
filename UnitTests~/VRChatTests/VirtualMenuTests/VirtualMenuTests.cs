@@ -646,7 +646,7 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             var buildContext = new BuildContext(av_root.GetComponent<VRCAvatarDescriptor>());
             buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            new RenameParametersHook().OnPreprocessAvatar(av_root, buildContext);
+            RenameParametersHook.ProcessAvatar(av_root, buildContext);
 
             var virtualMenu = VirtualMenu.ForAvatar(av_root.GetComponent<VRCAvatarDescriptor>(), buildContext);
             virtualMenu.FreezeMenu();
@@ -666,7 +666,7 @@ namespace modular_avatar_tests.VirtualMenuTests
 
             BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
             buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
+            RenameParametersHook.ProcessAvatar(root, buildContext);
             var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
 
             Assert.AreNotEqual("x", virtualMenu.RootMenuNode.Controls[0]
@@ -680,7 +680,7 @@ namespace modular_avatar_tests.VirtualMenuTests
             
             BuildContext buildContext = new BuildContext(root.GetComponent<VRCAvatarDescriptor>());
             buildContext.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            new RenameParametersHook().OnPreprocessAvatar(root, buildContext);
+            RenameParametersHook.ProcessAvatar(root, buildContext);
             var virtualMenu = VirtualMenu.ForAvatar(root.GetComponent<VRCAvatarDescriptor>(), buildContext);
             
             // Button

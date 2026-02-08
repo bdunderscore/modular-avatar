@@ -72,11 +72,11 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
                     seq.Run(FixupAbsolutePlayAudioPass.Instance);
                     seq.Run(MMDRelayEarlyPass.Instance);
-                    seq.Run(RenameParametersPluginPass.Instance);
+                    seq.Run(RenameParametersHook.Instance);
                     seq.Run(ParameterAssignerPass.Instance);
                     seq.Run(RemoveLayerPass.Instance);
                     seq.Run(MergeBlendTreePass.Instance);
-                    seq.Run(MergeAnimatorPluginPass.Instance);
+                    seq.Run(MergeAnimatorProcessor.Instance);
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 
 #endif
@@ -94,7 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
                     // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
                     // to retain those objects? maybe?
-                    seq.Run(MenuInstallPluginPass.Instance);
+                    seq.Run(MenuInstallHook.Instance);
 #endif
                     seq.Run(CycleCheckPass.Instance);
                     // This resolves targets before Merge Armature moves them around
@@ -217,42 +217,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     Traverse(transform);
                 }
             }
-        }
-    }
-
-#if MA_VRCSDK3_AVATARS
-    class RenameParametersPluginPass : MAPass<RenameParametersPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new RenameParametersHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class MergeAnimatorPluginPass : MAPass<MergeAnimatorPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MergeAnimatorProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class MenuInstallPluginPass : MAPass<MenuInstallPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MenuInstallHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-#endif
-
-    class MergeArmaturePluginPass : MAPass<MergeArmaturePluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MergeArmatureHook().OnPreprocessAvatar(context, context.AvatarRootObject);
         }
     }
 

@@ -75,11 +75,22 @@ namespace nadena.dev.modular_avatar.core.editor
         public ImmutableDictionary<string, float> InitialValueOverrides;
     }
 
-    internal class RenameParametersHook
+    internal class RenameParametersHook : Pass<RenameParametersHook>
     {
         private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
 
         private BuildContext _context;
+
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            var maContext = context.Extension<BuildContext>();
+            ProcessAvatar(context.AvatarRootObject, maContext);
+        }
+
+        public static void ProcessAvatar(GameObject avatar, BuildContext context)
+        {
+            new RenameParametersHook().OnPreprocessAvatar(avatar, context);
+        }
 
         // TODO: Move into NDMF
         private ImmutableList<string> PhysBoneSuffixes = ImmutableList<string>.Empty
@@ -177,7 +188,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public void OnPreprocessAvatar(GameObject avatar, BuildContext context)
+        private void OnPreprocessAvatar(GameObject avatar, BuildContext context)
         {
             if (!context.AvatarDescriptor) return;
 

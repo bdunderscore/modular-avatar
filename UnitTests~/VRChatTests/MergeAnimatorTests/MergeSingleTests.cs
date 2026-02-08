@@ -34,7 +34,7 @@ namespace UnitTests.MergeAnimatorTests
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             
@@ -55,7 +55,7 @@ namespace UnitTests.MergeAnimatorTests
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             
@@ -94,7 +94,7 @@ namespace UnitTests.MergeAnimatorTests
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             

@@ -100,7 +100,7 @@ namespace modular_avatar_tests.RenameParametersTests
                 {
                     using (new ObjectRegistryScope(new ObjectRegistry(prefab.transform)))
                     {
-                        new RenameParametersHook().OnPreprocessAvatar(prefab, maContext);
+                        RenameParametersHook.ProcessAvatar(prefab, maContext);
                     }
                 });
 
@@ -226,7 +226,7 @@ namespace modular_avatar_tests.RenameParametersTests
             var maContext = context.ActivateExtensionContext<core.editor.BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
-            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            var errors = ErrorReport.CaptureErrors(() => RenameParametersHook.ProcessAvatar(av, maContext));
             
             Assert.IsEmpty(errors);
             
@@ -261,7 +261,7 @@ namespace modular_avatar_tests.RenameParametersTests
             var maContext = context.ActivateExtensionContext<core.editor.BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
-            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            var errors = ErrorReport.CaptureErrors(() => RenameParametersHook.ProcessAvatar(av, maContext));
             
             Assert.IsNotEmpty(errors);
         }

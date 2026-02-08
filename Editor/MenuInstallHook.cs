@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.menu;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -12,7 +13,8 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class MenuInstallHook
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+    internal class MenuInstallHook : Pass<MenuInstallHook>
     {
         private static Texture2D _moreIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(
             "Packages/nadena.dev.modular-avatar/Runtime/Icons/Icon_More_A.png"
@@ -24,7 +26,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Stack<ModularAvatarMenuInstaller> _visitedInstallerStack;
 
-        public void OnPreprocessAvatar(GameObject avatarRoot, BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            var maContext = context.Extension<BuildContext>();
+            ProcessAvatar(context.AvatarRootObject, maContext);
+        }
+
+        public static void ProcessAvatar(GameObject avatarRoot, BuildContext context)
+        {
+            new MenuInstallHook().OnPreprocessAvatar(avatarRoot, context);
+        }
+
+        private void OnPreprocessAvatar(GameObject avatarRoot, BuildContext context)
         {
             _context = context;
 
