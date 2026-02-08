@@ -24,7 +24,17 @@ n the avatar.
 
 ## When shouldn't I use it?
 
-You should not use Merge Motion if you need to disable/enable the Motion, or have control over motion time.
+You should not use Merge Motion if you need to disable/enable the Motion, or if you want to add an animation which
+changes over time.
+
+:::info
+
+Merge Motion merges animations into a single direct blend tree. In Unity, this means all animations in the blend tree
+will be adjusted to have the same effective duration. This can result in unpredictable playback speed; as such, this
+component is not recommended for animations that change values over time. For these cases,
+use [Merge Animator](merge-animator.md).
+
+:::
 
 ## Merging a Blend Tree
 
