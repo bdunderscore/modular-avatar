@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1888] Move Independently のUIを調整して、オブジェクトの階層全体を簡単に選択できるようにしました。
 
 ### Fixed
 - [#1879] 同期元のオブジェクトが `MA Replace Object` で置き換えられる場合、`Blendshape Sync` が正しく動作しない問題を修正

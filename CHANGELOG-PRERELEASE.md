@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1888] Adjusted the Move Independently UI to make it easier to select entire hierarchies of objects to move together.
 
 ### Fixed
 - [#1879] `Blendshape Sync` would not work properly when the source object was replaced by a `MA Replace Object` component.
