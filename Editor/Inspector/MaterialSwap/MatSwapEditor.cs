@@ -23,7 +23,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string UxmlPath = Root + "MatSwapEditor.uxml";
         private const string UssPath = Root + "MaterialSwapStyles.uss";
 
-        private bool _isAttached;
         private IDisposable? _deregisterFrom, _deregisterTo;
         private MaterialSwapEditor _parentEditor;
 
@@ -150,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
         
         // We should probably support IBindable, but the documentation is seemingly nonexistent
-        public new void BindProperty(SerializedProperty property)
+        public void BindProperty(SerializedProperty property)
         {
             _property = property;
             _uxml.BindProperty(property);
@@ -213,8 +212,6 @@ namespace nadena.dev.modular_avatar.core.editor
             _deregisterTo?.Dispose();
             _deregisterFrom = null;
             _deregisterTo = null;
-            
-            _isAttached = false;
         }
 
         private void OnAttach(AttachToPanelEvent evt)

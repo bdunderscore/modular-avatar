@@ -17,7 +17,6 @@ namespace modular_avatar_tests
     public class TestBase
     {
         private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
-        private static Dictionary<System.Type, string> _scriptToDirectory = null;
 
         private List<GameObject> objects;
 

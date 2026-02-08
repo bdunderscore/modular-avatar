@@ -15,6 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string UxmlPath = Root + "VFByShapeEditor.uxml";
         private const string UssPath = Root + "MeshCutterStyles.uss";
 
+        // Initialized in OnEnable() before CreateInnerInspectorGUI() is called
         private SerializedProperty _shapes = null!;
         private SerializedProperty _threshold = null!;
 
@@ -44,6 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _threshold = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_threshold));
         }
 
+        // TODO: This field is referenced but never initialized - potential bug?
         private Button f_browse = null!;
 
         protected override VisualElement CreateInnerInspectorGUI()

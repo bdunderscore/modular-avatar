@@ -88,8 +88,10 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot = null!;
         
         private Scene _scene;
+        // Initialized in OnEnable() before usage
         private AssemblyReloadEvents.AssemblyReloadCallback _onReload = null!;
         private VisualElement _parentVisualElement = null!;
+        // Initialized in PostCreate() which is called from OnEnable()
         private PreviewSession _previewSession = null!;
         private HideOtherAvatarsTracker _hideOtherAvatarsTracker = null!;
         private ObjectField _targetAvatar = null!;
@@ -205,6 +207,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
 
         private Vector3? lastClosestApproach;
         private Transform? activeTarget;
+        // Initialized in PostCreate()
         private GameObject _pbManager = null!;
 
         private Transform? _surrogateHandleTarget;
