@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public Texture2D MaskTexture => _maskTexture;
         public ByMaskMode DeleteMode { get; }
 
-        private Texture2D _editingTexture;
+        private Texture2D? _editingTexture;
         private Hash128 _editingTextureContentHash;
 
         public VertexFilterByMask(int materialIndex, Texture2D maskTexture, ByMaskMode deleteMode)

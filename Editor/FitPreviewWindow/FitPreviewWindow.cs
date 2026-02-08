@@ -85,18 +85,18 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             FitPreviewSceneManager.UnloadPreviewScene();
         }
 
-        [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot = null!;
+        [UsedImplicitly] [SerializeField] private readonly GameObject m_targetAvatarRoot = null!;
         
         private Scene _scene;
         // Initialized in OnEnable() before usage
-        private AssemblyReloadEvents.AssemblyReloadCallback _onReload = null!;
         private VisualElement _parentVisualElement = null!;
         // Initialized in PostCreate() which is called from OnEnable()
         private PreviewSession _previewSession = null!;
         private HideOtherAvatarsTracker _hideOtherAvatarsTracker = null!;
         private ObjectField _targetAvatar = null!;
 
-        private EventCallback<AttachToPanelEvent> _onAttachToPanel = null!;
+        // Only assigned when registering callback, nullable to handle direct InjectUI call
+        private EventCallback<AttachToPanelEvent>? _onAttachToPanel;
         private ShadowHierarchyFilter? _shadowHierarchyFilter;
 
         public override void OnEnable()
@@ -127,7 +127,10 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
 
         private void InjectUI(AttachToPanelEvent? evt)
         {
-            rootVisualElement.UnregisterCallback<AttachToPanelEvent>(_onAttachToPanel);
+            if (_onAttachToPanel != null)
+            {
+                rootVisualElement.UnregisterCallback<AttachToPanelEvent>(_onAttachToPanel);
+            }
 
             EditorApplication.delayCall += () =>
             {
