@@ -85,7 +85,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
             FitPreviewSceneManager.UnloadPreviewScene();
         }
 
-        [UsedImplicitly] [SerializeField] private readonly GameObject m_targetAvatarRoot = null!;
+        [UsedImplicitly] [SerializeField] private GameObject m_targetAvatarRoot = null!;
         
         private Scene _scene;
         // Initialized in OnEnable() before usage
