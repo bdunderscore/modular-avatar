@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void MarkAll(GCGameObjectsPassState state)
         {
-            foreach (var obj in GameObjects(state.Root,
+            foreach (var obj in GameObjects(state, state.Root,
                          node =>
                          {
                              if (node.CompareTag("EditorOnly"))
@@ -213,7 +213,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void Sweep(GCGameObjectsPassState state)
         {
-            foreach (var go in GameObjects(state.Root))
+            foreach (var go in GameObjects(state, state.Root))
             {
                 if (!state.ReferencedGameObjects.Contains(go))
                 {
@@ -222,10 +222,10 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private IEnumerable<GameObject> GameObjects(GameObject node = null,
+        private static IEnumerable<GameObject> GameObjects(GCGameObjectsPassState state, GameObject node = null,
             Func<GameObject, bool> shouldTraverse = null)
         {
-            if (node == null) node = _root;
+            if (node == null) node = state.Root;
             if (shouldTraverse == null) shouldTraverse = obj => !obj.CompareTag("EditorOnly");
 
             if (!shouldTraverse(node)) yield break;
@@ -242,7 +242,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var child in children)
             {
-                foreach (var grandchild in GameObjects(child.gameObject, shouldTraverse))
+                foreach (var grandchild in GameObjects(state, child.gameObject, shouldTraverse))
                 {
                     yield return grandchild;
                 }

@@ -31,16 +31,16 @@ namespace nadena.dev.modular_avatar.core.editor
             public string PropPath;
         }
 
-        internal void Process(ndmf.BuildContext _buildContext)
+        internal void Process(ndmf.BuildContext buildContext)
         {
-            var avatarRootTransform = _buildContext.AvatarRootTransform;
+            var avatarRootTransform = buildContext.AvatarRootTransform;
             var replacementComponents =
                 avatarRootTransform.GetComponentsInChildren<ModularAvatarReplaceObject>(true);
 
             if (replacementComponents.Length == 0) return;
 
             // Build an index of object references within the avatar that we might need to fix
-            Dictionary<UnityObject, List<Reference>> refIndex = BuildReferenceIndex(_buildContext);
+            Dictionary<UnityObject, List<Reference>> refIndex = BuildReferenceIndex(buildContext);
 
             Dictionary<GameObject, (ModularAvatarReplaceObject, GameObject)> replacements
                 = new Dictionary<GameObject, (ModularAvatarReplaceObject, GameObject)>();
@@ -132,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
-                _buildContext.Extension<AnimatorServicesContext>().ObjectPathRemapper
+                buildContext.Extension<AnimatorServicesContext>().ObjectPathRemapper
                     .ReplaceObject(original, replacement);
 
                 // Destroy original
@@ -159,11 +159,11 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private static Dictionary<UnityObject, List<Reference>> BuildReferenceIndex(ndmf.BuildContext _buildContext)
+        private static Dictionary<UnityObject, List<Reference>> BuildReferenceIndex(ndmf.BuildContext buildContext)
         {
             Dictionary<UnityObject, List<Reference>> refIndex = new Dictionary<UnityObject, List<Reference>>();
 
-            IndexObject(_buildContext.AvatarRootObject);
+            IndexObject(buildContext.AvatarRootObject);
 
             return refIndex;
 

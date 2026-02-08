@@ -13,12 +13,12 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             Process(context);
         }
 
-        private static void Process(ndmf.BuildContext _buildContext)
+        private static void Process(ndmf.BuildContext buildContext)
         {
-            var avatarAnimator = _buildContext.AvatarRootObject.GetComponent<Animator>();
+            var avatarAnimator = buildContext.AvatarRootObject.GetComponent<Animator>();
             if (avatarAnimator == null || avatarAnimator.avatar == null) return;
 
-            var localTransformValues = _buildContext.AvatarRootObject
+            var localTransformValues = buildContext.AvatarRootObject
                 .GetComponentsInChildren<Transform>(true)
                 .ToDictionary((t) => t, LocalTransformValue.FromTransform);
 
