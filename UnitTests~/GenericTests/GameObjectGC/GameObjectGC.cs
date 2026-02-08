@@ -25,7 +25,11 @@ public class GameObjectGC : TestBase
         new GameObject("test").transform.parent = fake_humanoid.transform;
 
         context.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-        new GCGameObjectsPass(context, fake_humanoid).OnPreprocessAvatar();
+        
+        var state = context.PluginBuildContext.GetState<GCGameObjectsPassState>();
+        state.Context = context;
+        state.Root = fake_humanoid;
+        new GCGameObjectsPass().OnPreprocessAvatar(state);
         
         var animator = fake_humanoid.GetComponent<Animator>();
         Assert.NotNull(animator);
@@ -44,7 +48,11 @@ public class GameObjectGC : TestBase
         var bone3 = CreateChild(fake_humanoid, "bone2");
 
         context.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-        new GCGameObjectsPass(context, fake_humanoid).OnPreprocessAvatar();
+        
+        var state = context.PluginBuildContext.GetState<GCGameObjectsPassState>();
+        state.Context = context;
+        state.Root = fake_humanoid;
+        new GCGameObjectsPass().OnPreprocessAvatar(state);
 
         Assert.True(bone1 != null);
         Assert.True(bone2 != null);
@@ -63,7 +71,11 @@ public class GameObjectGC : TestBase
         
         var context = new BuildContext(fake_humanoid);
         context.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-        new GCGameObjectsPass(context, fake_humanoid).OnPreprocessAvatar();
+        
+        var state = context.PluginBuildContext.GetState<GCGameObjectsPassState>();
+        state.Context = context;
+        state.Root = fake_humanoid;
+        new GCGameObjectsPass().OnPreprocessAvatar(state);
 
         Assert.AreEqual(2,
             fake_humanoid.GetComponentsInChildren<Transform>().Count(t => t.gameObject.name == "Armature"));
@@ -79,7 +91,11 @@ public class GameObjectGC : TestBase
 
         var context = new BuildContext(prefab);
         context.PluginBuildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-        new GCGameObjectsPass(context, prefab).OnPreprocessAvatar();
+        
+        var state = context.PluginBuildContext.GetState<GCGameObjectsPassState>();
+        state.Context = context;
+        state.Root = prefab;
+        new GCGameObjectsPass().OnPreprocessAvatar(state);
         
         Assert.IsTrue(prefab.transform.Find("x") != null);
     }

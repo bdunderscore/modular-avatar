@@ -12,30 +12,40 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    internal class GCGameObjectsPassState
+    {
+        public BuildContext Context;
+        public GameObject Root;
+        public HashSet<GameObject> ReferencedGameObjects = new HashSet<GameObject>();
+    }
+
     /// <summary>
     /// Remove all GameObjects which have no influence on the avatar.
     /// </summary>
-    internal class GCGameObjectsPass
+    [DependsOnContext(typeof(BuildContext))]
+    [DependsOnContext(typeof(AnimatorServicesContext))]
+    internal class GCGameObjectsPass : Pass<GCGameObjectsPass>
     {
-        private readonly BuildContext _context;
-        private readonly GameObject _root;
-        private readonly HashSet<GameObject> referencedGameObjects = new HashSet<GameObject>();
-
-        internal GCGameObjectsPass(BuildContext context, GameObject root)
+        protected override void Execute(ndmf.BuildContext context)
         {
-            _context = context;
-            _root = root;
+            var buildContext = context.Extension<BuildContext>();
+            var state = context.GetState<GCGameObjectsPassState>();
+            
+            state.Context = buildContext;
+            state.Root = context.AvatarRootObject;
+            
+            OnPreprocessAvatar(state);
         }
 
-        internal void OnPreprocessAvatar()
+        internal void OnPreprocessAvatar(GCGameObjectsPassState state)
         {
-            MarkAll();
-            Sweep();
+            MarkAll(state);
+            Sweep(state);
         }
 
-        private void MarkAll()
+        private void MarkAll(GCGameObjectsPassState state)
         {
-            foreach (var obj in GameObjects(_root,
+            foreach (var obj in GameObjects(state.Root,
                          node =>
                          {
                              if (node.CompareTag("EditorOnly"))
@@ -44,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                  {
                                      // Retain EditorOnly objects (in case they contain camera fixtures or something),
                                      // but ignore references _from_ them. (TODO: should we mark from them as well?)
-                                     MarkObject(node);
+                                     MarkObject(node, state);
                                  }
 
                                  return false;
@@ -64,8 +74,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
 #if MA_VRCSDK3_AVATARS
                         case VRCPhysBone pb:
-                            MarkObject(obj);
-                            MarkPhysBone(pb);
+                            MarkObject(obj, state);
+                            MarkPhysBone(pb, state);
                             break;
 #endif
 
@@ -74,15 +84,15 @@ namespace nadena.dev.modular_avatar.core.editor
                             break;
 
                         default:
-                            MarkObject(obj);
-                            MarkAllReferencedObjects(component);
+                            MarkObject(obj, state);
+                            MarkAllReferencedObjects(component, state);
                             break;
                     }
                 }
             }
 
             // Also retain humanoid bones
-            var animator = _root.GetComponent<Animator>();
+            var animator = state.Root.GetComponent<Animator>();
             if (animator != null && animator.isHuman)
             {
                 foreach (HumanBodyBones bone in Enum.GetValues(typeof(HumanBodyBones)))
@@ -92,18 +102,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     var transform = animator.GetBoneTransform(bone);
                     if (transform != null)
                     {
-                        MarkObject(transform.gameObject);
+                        MarkObject(transform.gameObject, state);
                     }
                 }
             }
 
             // https://github.com/bdunderscore/modular-avatar/issues/332
             // Retain transforms with names ending in "end" as these might be used for VRM spring bones
-            foreach (Transform t in _root.GetComponentsInChildren<Transform>())
+            foreach (Transform t in state.Root.GetComponentsInChildren<Transform>())
             {
                 if (t.name.ToLower().EndsWith("end"))
                 {
-                    MarkObject(t.gameObject);
+                    MarkObject(t.gameObject, state);
                 }
             }
             
@@ -117,11 +127,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     var trueArmature = animator?.GetBoneTransform(HumanBodyBones.Hips)?.parent;
                     if (trueArmature != null)
                     {
-                        foreach (Transform t in _root.transform)
+                        foreach (Transform t in state.Root.transform)
                         {
                             if (t.name == trueArmature.name)
                             {
-                                MarkObject(t.gameObject);
+                                MarkObject(t.gameObject, state);
                             }
                         }
                     }
@@ -134,16 +144,16 @@ namespace nadena.dev.modular_avatar.core.editor
             
             // https://github.com/bdunderscore/modular-avatar/issues/1775
             // Also retain any object referenced by animation layers
-            var asc = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            var asc = state.Context.PluginBuildContext.Extension<AnimatorServicesContext>();
             asc.AnimationIndex.RewritePaths(path => {
                 var obj = asc.ObjectPathRemapper.GetObjectForPath(path);
-                if (obj != null) MarkObject(obj);
+                if (obj != null) MarkObject(obj, state);
                 return path;
             });
         }
 
 #if MA_VRCSDK3_AVATARS
-        private void MarkPhysBone(VRCPhysBone pb)
+        private void MarkPhysBone(VRCPhysBone pb, GCGameObjectsPassState state)
         {
             var rootTransform = pb.GetRootTransform();
             var ignoreTransforms = pb.ignoreTransforms ?? new List<Transform>();
@@ -151,15 +161,15 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var obj in GameObjects(rootTransform.gameObject,
                          obj => !obj.CompareTag("EditorOnly") && !ignoreTransforms.Contains(obj.transform)))
             {
-                MarkObject(obj);
+                MarkObject(obj, state);
             }
 
             // Mark colliders, etc
-            MarkAllReferencedObjects(pb);
+            MarkAllReferencedObjects(pb, state);
         }
 #endif
 
-        private void MarkAllReferencedObjects(Component component)
+        private void MarkAllReferencedObjects(Component component, GCGameObjectsPassState state)
         {
             var so = new SerializedObject(component);
             var sp = so.GetIterator();
@@ -179,11 +189,11 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (sp.objectReferenceValue is GameObject refObj)
                             {
-                                MarkObject(refObj);
+                                MarkObject(refObj, state);
                             }
                             else if (sp.objectReferenceValue is Component comp)
                             {
-                                MarkObject(comp.gameObject);
+                                MarkObject(comp.gameObject, state);
                             }
                         }
 
@@ -192,19 +202,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void MarkObject(GameObject go)
+        private void MarkObject(GameObject go, GCGameObjectsPassState state)
         {
-            while (go != null && referencedGameObjects.Add(go) && go != _root)
+            while (go != null && state.ReferencedGameObjects.Add(go) && go != state.Root)
             {
                 go = go.transform.parent?.gameObject;
             }
         }
 
-        private void Sweep()
+        private void Sweep(GCGameObjectsPassState state)
         {
-            foreach (var go in GameObjects())
+            foreach (var go in GameObjects(state.Root))
             {
-                if (!referencedGameObjects.Contains(go))
+                if (!state.ReferencedGameObjects.Contains(go))
                 {
                     Object.DestroyImmediate(go);
                 }

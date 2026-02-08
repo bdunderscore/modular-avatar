@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(BoneProxyPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                    seq.Run(VisibleHeadAccessoryProcessor.Instance);
 #endif
 
                     seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
@@ -118,7 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                    seq.Run(BlendshapeSyncAnimationProcessor.Instance);
                     seq.Run(ConstraintConverterPass.Instance);
 #endif
 
@@ -163,7 +163,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 
             InPhase(BuildPhase.Optimizing)
                 .WithRequiredExtension(typeof(BuildContext),
-                    s => s.Run(GCGameObjectsPluginPass.Instance));
+                    s => s.Run(GCGameObjectsPass.Instance));
         }
     }
 
@@ -221,26 +221,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     }
 
 #if MA_VRCSDK3_AVATARS
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class VisibleHeadAccessoryPluginPass : MAPass<VisibleHeadAccessoryPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new VisibleHeadAccessoryProcessor(MAContext(context)).Process();
-        }
-    }
-#endif
-
-#if MA_VRCSDK3_AVATARS
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)] // TODO - support other platforms
-    class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
-        }
-    }
-
     class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
     {
         protected override void Execute(ndmf.BuildContext context)
@@ -249,14 +229,4 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 #endif
-
-    [DependsOnContext(typeof(BuildContext))]
-    [DependsOnContext(typeof(AnimatorServicesContext))]
-    class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new GCGameObjectsPass(MAContext(context), context.AvatarRootObject).OnPreprocessAvatar();
-        }
-    }
 }
