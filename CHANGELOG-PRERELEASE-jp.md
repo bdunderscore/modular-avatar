@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+- [#1909] `MA Merge Armature` の配下に配置された `Bone Proxy` があるとビルドが失敗する問題を修正 (1.16.0 からのバグ)
 - [#1879] 同期元のオブジェクトが `MA Replace Object` で置き換えられる場合、`Blendshape Sync` が正しく動作しない問題を修正
 - [#1882] アバターのアニメーターを置き換える際、元のアニメーターのパラメータのデフォルト値が使用されていた問題を修正
 

@@ -16,8 +16,8 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<Transform, (Transform, Component?)> edges = new();
 
             AddParentEdges(context, edges);
-            AddBoneProxyEdges(context, edges);
             AddMergeArmatureEdges(context, edges);
+            AddBoneProxyEdges(context, edges);
 
             CheckForCycles(edges);
         }
@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (src != null && dst != null)
                     {
-                        edges[src] = (dst, mama);
+                        edges[dst] = (src, mama);
                     }
                 }
             }
