@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class BuildContext
+    internal class BuildContext : IExtensionContext
     {
         internal readonly ndmf.BuildContext PluginBuildContext;
 
@@ -35,8 +35,6 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
-        public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
-            ctx.Extension<ModularAvatarContext>().BuildContext;
 
         public BuildContext(ndmf.BuildContext PluginBuildContext)
         {
@@ -91,5 +89,23 @@ namespace nadena.dev.modular_avatar.core.editor
             return newMenu;
         }
 #endif
+
+        public void OnActivate(ndmf.BuildContext context)
+        {
+            // Nothing to do - initialization is done in the constructor
+        }
+
+        public void OnDeactivate(ndmf.BuildContext context)
+        {
+            // Nothing to clean up
+        }
+    }
+
+    internal static class BuildContextExtensions
+    {
+        public static BuildContext GetBuildContext(this ndmf.BuildContext ctx)
+        {
+            return ctx.Extension<BuildContext>();
+        }
     }
 }
