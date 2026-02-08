@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -15,20 +16,19 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal class MeshSettingsPass
+    internal class MeshSettingsPass : Pass<MeshSettingsPass>
     {
-        private readonly BuildContext context;
-
-        public MeshSettingsPass(BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
-            this.context = context;
+            var maContext = context.Extension<BuildContext>();
+            OnPreprocessAvatar(maContext);
         }
 
-        public void OnPreprocessAvatar()
+        internal static void OnPreprocessAvatar(BuildContext context)
         {
             foreach (var mesh in context.AvatarRootObject.GetComponentsInChildren<Renderer>(true))
             {
-                ProcessMesh(mesh);
+                ProcessMesh(context, mesh);
             }
         }
 
@@ -126,7 +126,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return merged;
         }
 
-        private void ProcessMesh(Renderer mesh)
+        private static void ProcessMesh(BuildContext context, Renderer mesh)
         {
             MergedSettings settings = MergeSettings(context.AvatarRootTransform, mesh.transform);
 
@@ -156,7 +156,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (IsInverted(smrRootBone) != IsInverted(settingsRootBone))
                 {
-                    smr.rootBone = GetInvertedRootBone(settingsRootBone);
+                    smr.rootBone = GetInvertedRootBone(context, settingsRootBone);
 
                     var bounds = settings.Bounds;
                     var center = bounds.center;
@@ -172,7 +172,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private bool IsInverted(Transform bone)
+        private static bool IsInverted(Transform bone)
         {
             var inverseCount = 0;
 
@@ -183,10 +183,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return (inverseCount % 2) != 0;
         }
-        private Dictionary<Transform, Transform> invertedRootBoneCache = new();
-        private Transform GetInvertedRootBone(Transform rootBone)
+        
+        private static Transform GetInvertedRootBone(BuildContext context, Transform rootBone)
         {
-            if (invertedRootBoneCache.TryGetValue(rootBone, out var cache)) { return cache; }
+            var cache = context.PluginBuildContext.GetState<InvertedRootBoneCache>();
+            
+            if (cache.Cache.TryGetValue(rootBone, out var cachedTransform)) { return cachedTransform; }
 
             var invertedRootBone = new GameObject($"{rootBone.gameObject.name}-InvertedRootBone");
             EditorUtility.CopySerialized(rootBone, invertedRootBone.transform);
@@ -197,8 +199,13 @@ namespace nadena.dev.modular_avatar.core.editor
             scale.x *= -1;
             transform.localScale = scale;
 
-            invertedRootBoneCache[rootBone] = transform;
+            cache.Cache[rootBone] = transform;
             return transform;
         }
+    }
+    
+    internal class InvertedRootBoneCache
+    {
+        public Dictionary<Transform, Transform> Cache { get; } = new Dictionary<Transform, Transform>();
     }
 }

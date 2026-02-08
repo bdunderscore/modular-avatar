@@ -58,7 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
                 seq.Run(VRChatSettingsPass.Instance);
-                seq.Run(MeshSettingsPluginPass.Instance);
+                seq.Run(MeshSettingsPass.Instance);
                 seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 
 #if MA_VRCSDK3_AVATARS
@@ -217,14 +217,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     Traverse(transform);
                 }
             }
-        }
-    }
-
-    class MeshSettingsPluginPass : MAPass<MeshSettingsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MeshSettingsPass(MAContext(context)).OnPreprocessAvatar();
         }
     }
 
