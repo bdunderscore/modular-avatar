@@ -12,9 +12,9 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class BuildContext
+    internal class BuildContext : IExtensionContext
     {
-        internal readonly ndmf.BuildContext PluginBuildContext;
+        internal ndmf.BuildContext PluginBuildContext { get; private set; }
 
 #if MA_VRCSDK3_AVATARS
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
@@ -35,10 +35,18 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
-        public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
-            ctx.Extension<ModularAvatarContext>().BuildContext;
 
-        public BuildContext(ndmf.BuildContext PluginBuildContext)
+        public void OnActivate(ndmf.BuildContext context)
+        {
+            PluginBuildContext = context;
+        }
+
+        public void OnDeactivate(ndmf.BuildContext context)
+        {
+            // No cleanup needed
+        }
+
+        private BuildContext(ndmf.BuildContext PluginBuildContext)
         {
             this.PluginBuildContext = PluginBuildContext;
         }

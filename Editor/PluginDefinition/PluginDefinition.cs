@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq = InPhase(BuildPhase.Transforming);
             seq.Run("Validate configuration",
                 context => ComponentValidation.ValidateAll(context.AvatarRootObject));
-            seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
+            seq.WithRequiredExtension(typeof(BuildContext), _s1 =>
             {
                 seq.Run(ClearEditorOnlyTags.Instance);
                 seq.Run(VRChatSettingsPass.Instance);
@@ -137,7 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 {
                     seq.Run("Fixup Expressions Menu", ctx =>
                     {
-                        var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
+                        var maContext = ctx.Extension<BuildContext>();
                         FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                     });
                 });
@@ -162,7 +162,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             });
 
             InPhase(BuildPhase.Optimizing)
-                .WithRequiredExtension(typeof(ModularAvatarContext),
+                .WithRequiredExtension(typeof(BuildContext),
                     s => s.Run(GCGameObjectsPluginPass.Instance));
         }
     }
@@ -186,7 +186,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     {
         protected BuildContext MAContext(ndmf.BuildContext context)
         {
-            return context.Extension<ModularAvatarContext>().BuildContext;
+            return context.Extension<BuildContext>();
         }
     }
 
@@ -310,7 +310,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    [DependsOnContext(typeof(ModularAvatarContext))]
+    [DependsOnContext(typeof(BuildContext))]
     [DependsOnContext(typeof(AnimatorServicesContext))]
     class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
     {

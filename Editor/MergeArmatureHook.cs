@@ -65,7 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
             this.frameworkContext = context;
-            this.context = context.Extension<ModularAvatarContext>().BuildContext;
+            this.context = context.Extension<BuildContext>();
 #if MA_VRCSDK3_AVATARS
             physBoneByRootBone = new Dictionary<Transform, VRCPhysBoneBase>();
             foreach (var physbone in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneBase>(true))
