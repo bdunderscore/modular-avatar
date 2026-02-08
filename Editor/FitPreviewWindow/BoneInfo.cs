@@ -21,8 +21,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         public readonly int Depth;
         public readonly Transform? PBExcluded;
         
-        // Event subscribers are responsible for ensuring the event has handlers before destruction
-        public event Action OnDestroy = null!;
+        public event Action? OnDestroy;
 
         public BoneInfo(
             Scene controlScene,

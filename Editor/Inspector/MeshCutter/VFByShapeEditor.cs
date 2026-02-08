@@ -18,26 +18,6 @@ namespace nadena.dev.modular_avatar.core.editor
         // Initialized in OnEnable() before CreateInnerInspectorGUI() is called
         private SerializedProperty _shapes = null!;
         private SerializedProperty _threshold = null!;
-
-        private bool m_isAttached;
-
-        private bool _isAttached
-        {
-            get => m_isAttached;
-            set
-            {
-                if (value == m_isAttached) return;
-                m_isAttached = value;
-                if (value)
-                {
-                    EditorApplication.update += EditorUpdate;
-                }
-                else
-                {
-                    EditorApplication.update -= EditorUpdate;
-                }
-            }
-        }
         
         private void OnEnable()
         {
@@ -117,16 +97,6 @@ namespace nadena.dev.modular_avatar.core.editor
             };
 
             return uxml;
-        }
-
-        private void EditorUpdate()
-        {
-            f_browse.SetEnabled(EnableBrowse());
-        }
-        
-        private bool EnableBrowse() 
-        {
-            return GetTargetMesh() != null;
         }
 
         private Mesh? GetTargetMesh()
