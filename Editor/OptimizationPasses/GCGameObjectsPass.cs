@@ -37,7 +37,14 @@ namespace nadena.dev.modular_avatar.core.editor
             OnPreprocessAvatar(state);
         }
 
-        // Internal for testing purposes - tests can set up state and call this directly
+        /// <summary>
+        /// Internal for testing purposes. Tests should set up GCGameObjectsPassState with Root and AnimatorServices,
+        /// then call this method directly. Example:
+        /// var state = context.GetState&lt;GCGameObjectsPassState&gt;();
+        /// state.Root = avatarRoot;
+        /// state.AnimatorServices = context.Extension&lt;AnimatorServicesContext&gt;();
+        /// new GCGameObjectsPass().OnPreprocessAvatar(state);
+        /// </summary>
         internal void OnPreprocessAvatar(GCGameObjectsPassState state)
         {
             MarkAll(state);

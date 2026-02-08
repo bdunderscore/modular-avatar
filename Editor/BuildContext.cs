@@ -46,12 +46,16 @@ namespace nadena.dev.modular_avatar.core.editor
             // No cleanup needed
         }
 
+        // Private constructor used by public test constructors below
         private BuildContext(ndmf.BuildContext PluginBuildContext)
         {
             this.PluginBuildContext = PluginBuildContext;
         }
 
 #if MA_VRCSDK3_AVATARS
+        /// <summary>
+        /// Constructor for testing purposes. Creates a BuildContext from a VRCAvatarDescriptor.
+        /// </summary>
         public BuildContext(VRCAvatarDescriptor avatarDescriptor)
             : this(new ndmf.BuildContext(avatarDescriptor, null))
         {
@@ -66,6 +70,9 @@ namespace nadena.dev.modular_avatar.core.editor
             PlatformRegistry.PlatformProviders[WellKnownPlatforms.Generic];
 #endif
 
+        /// <summary>
+        /// Constructor for testing purposes. Creates a BuildContext from a GameObject.
+        /// </summary>
         public BuildContext(GameObject avatarGameObject)
             : this(new ndmf.BuildContext(avatarGameObject, null, DefaultPlatformProvider))
         {
