@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +20,15 @@ namespace nadena.dev.modular_avatar.core.editor
      */
     internal class BlendshapeSyncAnimationProcessor
     {
+        [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+        internal class PluginPass : Pass<PluginPass>
+        {
+            protected override void Execute(ndmf.BuildContext context)
+            {
+                new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
+            }
+        }
+
         private readonly ndmf.BuildContext _context;
         private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
 

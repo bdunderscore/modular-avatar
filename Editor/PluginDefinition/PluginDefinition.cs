@@ -54,21 +54,20 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq = InPhase(BuildPhase.Transforming);
             seq.Run("Validate configuration",
                 context => ComponentValidation.ValidateAll(context.AvatarRootObject));
-            seq.WithRequiredExtension(typeof(BuildContext), _s1 =>
-            {
-                seq.Run(ClearEditorOnlyTags.Instance);
-                seq.Run(VRChatSettingsPass.Instance);
-                seq.Run(MeshSettingsPluginPass.Instance);
-                seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
+            
+            seq.Run(ClearEditorOnlyTags.Instance);
+            seq.Run(VRChatSettingsPass.Instance);
+            seq.Run(MeshSettingsPass.PluginPass.Instance);
+            seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 
 #if MA_VRCSDK3_AVATARS
-				seq.Run(VRChatGlobalColliderPass.Instance);
-				seq.Run(RenameCollisionTagsPass.Instance);
-                seq.Run(ReactiveObjectPrepass.Instance);
+            seq.Run(VRChatGlobalColliderPass.Instance);
+            seq.Run(RenameCollisionTagsPass.Instance);
+            seq.Run(ReactiveObjectPrepass.Instance);
 #endif
 
-                seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
-                {
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
+            {
 #if MA_VRCSDK3_AVATARS
                     seq.Run(FixupAbsolutePlayAudioPass.Instance);
                     seq.Run(MMDRelayEarlyPass.Instance);
@@ -103,7 +102,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(BoneProxyPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                    seq.Run(VisibleHeadAccessoryProcessor.PluginPass.Instance);
 #endif
 
                     seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
@@ -118,7 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(ReplaceObjectPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                    seq.Run(BlendshapeSyncAnimationProcessor.PluginPass.Instance);
                     seq.Run(ConstraintConverterPass.Instance);
 #endif
 
@@ -132,38 +131,36 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 });
 #if MA_VRCSDK3_AVATARS
-                seq.Run(PhysboneBlockerPass.Instance);
-                seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
+            seq.Run(PhysboneBlockerPass.Instance);
+            seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
+            {
+                seq.Run("Fixup Expressions Menu", ctx =>
                 {
-                    seq.Run("Fixup Expressions Menu", ctx =>
-                    {
-                        var maContext = ctx.Extension<BuildContext>();
-                        FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
-                    });
+                    var maContext = ctx.Extension<BuildContext>();
+                    FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
-                seq.Run(SyncParameterSequencePass.Instance);
-#endif
-                seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
-                seq.Run(RebindHumanoidAvatar.Instance);
-                seq.Run("Purge ModularAvatar components", ctx =>
-                {
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                });
-#if MA_VRCSDK3_AVATARS
-                seq.Run(PruneParametersPass.Instance);
-#endif
             });
+            seq.Run(SyncParameterSequencePass.Instance);
+#endif
+            seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
+            seq.Run(RebindHumanoidAvatar.Instance);
+            seq.Run("Purge ModularAvatar components", ctx =>
+            {
+                foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
+                {
+                    Object.DestroyImmediate(component);
+                }
+                foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
+                {
+                    Object.DestroyImmediate(component);
+                }
+            });
+#if MA_VRCSDK3_AVATARS
+            seq.Run(PruneParametersPass.Instance);
+#endif
 
             InPhase(BuildPhase.Optimizing)
-                .WithRequiredExtension(typeof(BuildContext),
-                    s => s.Run(GCGameObjectsPluginPass.Instance));
+                .Run(GCGameObjectsPass.PluginPass.Instance);
         }
     }
 
@@ -211,41 +208,4 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             }
         }
     }
-
-    class MeshSettingsPluginPass : Pass<MeshSettingsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MeshSettingsPass(context.Extension<BuildContext>()).OnPreprocessAvatar();
-        }
-    }
-
-#if MA_VRCSDK3_AVATARS
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class VisibleHeadAccessoryPluginPass : Pass<VisibleHeadAccessoryPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new VisibleHeadAccessoryProcessor(context.Extension<BuildContext>()).Process();
-        }
-    }
-
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class BlendshapeSyncAnimationPluginPass : Pass<BlendshapeSyncAnimationPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
-        }
-    }
-
-    [CompatibleWithContext(typeof(AnimatorServicesContext))]
-    class GCGameObjectsPluginPass : Pass<GCGameObjectsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new GCGameObjectsPass(context.Extension<BuildContext>(), context.AvatarRootObject).OnPreprocessAvatar();
-        }
-    }
-#endif
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
@@ -92,9 +93,18 @@ namespace nadena.dev.modular_avatar.core.editor
     
     internal class VisibleHeadAccessoryProcessor
     {
+        [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+        internal class PluginPass : Pass<PluginPass>
+        {
+            protected override void Execute(ndmf.BuildContext context)
+            {
+                new VisibleHeadAccessoryProcessor(context).Process();
+            }
+        }
+
         private const double EPSILON = 0.01;
 
-        private BuildContext _context;
+        private ndmf.BuildContext _context;
         private VisibleHeadAccessoryValidation _validator;
         
         private Transform _avatarTransform;
@@ -106,7 +116,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private Dictionary<Transform, Transform> _boneShims = new Dictionary<Transform, Transform>();
 
-        public VisibleHeadAccessoryProcessor(BuildContext context)
+        public VisibleHeadAccessoryProcessor(ndmf.BuildContext context)
         {
             _context = context;
             _avatarTransform = context.AvatarRootTransform;
