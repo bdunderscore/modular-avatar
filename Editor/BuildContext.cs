@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class BuildContext : IExtensionContext
     {
-        internal readonly ndmf.BuildContext PluginBuildContext;
+        internal ndmf.BuildContext PluginBuildContext { get; private set; }
 
 #if MA_VRCSDK3_AVATARS
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
@@ -36,9 +36,16 @@ namespace nadena.dev.modular_avatar.core.editor
         internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
 
-        public BuildContext(ndmf.BuildContext PluginBuildContext)
+        // Parameterless constructor for use as an IExtensionContext
+        public BuildContext()
         {
-            this.PluginBuildContext = PluginBuildContext;
+        }
+
+        // Legacy constructor for tests and direct instantiation
+        // When using this constructor, OnActivate will not override the PluginBuildContext
+        public BuildContext(ndmf.BuildContext pluginBuildContext)
+        {
+            this.PluginBuildContext = pluginBuildContext;
         }
 
 #if MA_VRCSDK3_AVATARS
@@ -92,7 +99,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void OnActivate(ndmf.BuildContext context)
         {
-            // Nothing to do - initialization is done in the constructor
+            // Initialize from the framework-provided context when used as an extension
+            if (PluginBuildContext == null)
+            {
+                PluginBuildContext = context;
+            }
         }
 
         public void OnDeactivate(ndmf.BuildContext context)
