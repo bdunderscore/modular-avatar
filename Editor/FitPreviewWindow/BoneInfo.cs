@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.editor.fit_preview
         public readonly int Depth;
         public readonly Transform? PBExcluded;
         
-        public event Action OnDestroy;
+        public event Action? OnDestroy;
 
         public BoneInfo(
             Scene controlScene,

@@ -12,21 +12,18 @@ namespace nadena.dev.modular_avatar.core.editor
     [ProvidesVertexFilter(typeof(VertexFilterByBoneComponent))]
     internal sealed class VertexFilterByBone : IVertexFilter
     {
-        private readonly Transform _bone;
+        private readonly Transform? _bone;
         private readonly float _threshold;
-        private readonly Transform _avatarRoot;
 
         public VertexFilterByBone(Transform bone, float threshold)
         {
             _bone = bone;
             _threshold = threshold;
-            _avatarRoot = null;
         }
         
         public VertexFilterByBone(VertexFilterByBoneComponent component, ComputeContext context)
         {
             (_bone, _threshold) = context.Observe(component, c => (c.Bone.Get(c)?.transform, c.Threshold));
-            _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(component.transform);
         }
 
         public bool Equals(IVertexFilter other)

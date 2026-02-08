@@ -67,14 +67,17 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal class OfferItem : TreeViewItem
         {
-            public BlendshapeBinding binding;
+            // Initialized when the item is created in CreateBlendshapes()
+            public BlendshapeBinding binding = default!;
         }
 
         private readonly Mesh? _singleMesh;
         private readonly GameObject? _avatarRoot;
-        private List<BlendshapeBinding?> _candidateBindings;
+        // Initialized in BuildRoot() which is called by Unity TreeView before any access
+        private List<BlendshapeBinding?> _candidateBindings = null!;
 
-        internal Action<BlendshapeBinding> OfferBinding;
+        // Set by caller after construction (see BlendshapeSelectWindow.OnGUI)
+        internal Action<BlendshapeBinding> OfferBinding = null!;
         internal Action<BlendshapeBinding>? OfferSingleClick;
 
         public BlendshapeTree(GameObject avatarRoot, TreeViewState state) : base(state)

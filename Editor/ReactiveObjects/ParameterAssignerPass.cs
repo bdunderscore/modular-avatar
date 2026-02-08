@@ -54,7 +54,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!context.AvatarDescriptor) return;
             
-            var paramIndex = 0;
             var mappings = ParameterRenameMappings.Get(context);
 
             var declaredParams = context.AvatarDescriptor.expressionParameters.parameters

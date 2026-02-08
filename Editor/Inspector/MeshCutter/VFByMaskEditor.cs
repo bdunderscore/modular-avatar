@@ -1,4 +1,6 @@
-﻿#region
+#nullable enable
+
+#region
 
 using System;
 using nadena.dev.modular_avatar.core.vertex_filters;

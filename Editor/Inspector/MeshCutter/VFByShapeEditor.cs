@@ -15,36 +15,15 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string UxmlPath = Root + "VFByShapeEditor.uxml";
         private const string UssPath = Root + "MeshCutterStyles.uss";
 
-        private SerializedProperty? _shapes;
-        private SerializedProperty? _threshold;
-
-        private bool m_isAttached;
-
-        private bool _isAttached
-        {
-            get => m_isAttached;
-            set
-            {
-                if (value == m_isAttached) return;
-                m_isAttached = value;
-                if (value)
-                {
-                    EditorApplication.update += EditorUpdate;
-                }
-                else
-                {
-                    EditorApplication.update -= EditorUpdate;
-                }
-            }
-        }
+        // Initialized in OnEnable() before CreateInnerInspectorGUI() is called
+        private SerializedProperty _shapes = null!;
+        private SerializedProperty _threshold = null!;
         
         private void OnEnable()
         {
             _shapes = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_shapes));
             _threshold = serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_threshold));
         }
-
-        private Button f_browse;
 
         protected override VisualElement CreateInnerInspectorGUI()
         {
@@ -115,16 +94,6 @@ namespace nadena.dev.modular_avatar.core.editor
             };
 
             return uxml;
-        }
-
-        private void EditorUpdate()
-        {
-            f_browse.SetEnabled(EnableBrowse());
-        }
-        
-        private bool EnableBrowse() 
-        {
-            return GetTargetMesh() != null;
         }
 
         private Mesh? GetTargetMesh()
