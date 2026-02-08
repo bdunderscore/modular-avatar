@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using nadena.dev.modular_avatar.core.armature_lock;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using Unity.Burst;
@@ -110,7 +109,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private TransformAccessArray _dstBones;
 
         private NativeArray<bool> _boneIsValid;
-        private NativeArray<TransformState> _boneStates;
+        private NativeArray<BoneState> _boneStates;
 
         // Map from bones found in initial proxy state to shadow bones
         private readonly Dictionary<Transform, Transform> _shadowBoneMap;
@@ -165,7 +164,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _dstBones = new TransformAccessArray(destinationBones);
 
             _boneIsValid = new NativeArray<bool>(sourceBones.Length, Allocator.Persistent);
-            _boneStates = new NativeArray<TransformState>(sourceBones.Length, Allocator.Persistent);
+            _boneStates = new NativeArray<BoneState>(sourceBones.Length, Allocator.Persistent);
 
             FindScaleAdjusters(context);
             TransferBoneStates();
@@ -293,10 +292,17 @@ namespace nadena.dev.modular_avatar.core.editor
             writeTransforms.Complete();
         }
 
+        private struct BoneState
+        {
+            public Vector3 position;
+            public Quaternion rotation;
+            public Vector3 localScale;
+        }
+        
         [BurstCompile]
         private struct ReadTransformsJob : IJobParallelForTransform
         {
-            [WriteOnly] public NativeArray<TransformState> BoneStates;
+            [WriteOnly] public NativeArray<BoneState> BoneStates;
             [WriteOnly] public NativeArray<bool> BoneIsValid;
 
             public void Execute(int index, TransformAccess transform)
@@ -305,10 +311,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (transform.isValid)
                 {
-                    BoneStates[index] = new TransformState
+                    BoneStates[index] = new BoneState
                     {
-                        localPosition = transform.position,
-                        localRotation = transform.rotation,
+                        position = transform.position,
+                        rotation = transform.rotation,
                         localScale = transform.localScale
                     };
                 }
@@ -318,7 +324,10 @@ namespace nadena.dev.modular_avatar.core.editor
         [BurstCompile]
         private struct WriteBoneStatesJob : IJobParallelForTransform
         {
-            [ReadOnly] public NativeArray<TransformState> BoneStates;
+            private const float EPSILON = 0.001f;
+            private const float SQR_EPSILON = EPSILON * EPSILON;
+            
+            [ReadOnly] public NativeArray<BoneState> BoneStates;
             [ReadOnly] public NativeArray<bool> BoneIsValid;
 
             public void Execute(int index, TransformAccess transform)
@@ -326,9 +335,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (BoneIsValid[index])
                 {
                     var state = BoneStates[index];
-                    transform.position = state.localPosition;
-                    transform.rotation = state.localRotation;
-                    transform.localScale = state.localScale;
+                    
+                    if (Vector3.SqrMagnitude(transform.position - state.position) > SQR_EPSILON
+                        || Mathf.Abs(Quaternion.Dot(transform.rotation, state.rotation)) < (1 - SQR_EPSILON)
+                        || Vector3.SqrMagnitude(transform.localScale - state.localScale) > SQR_EPSILON)
+                    {
+                        transform.position = state.position;
+                        transform.rotation = state.rotation;
+                        transform.localScale = state.localScale;
+                    }
                 }
             }
         }
