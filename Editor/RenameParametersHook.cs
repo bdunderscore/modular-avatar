@@ -84,7 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor
         protected override void Execute(ndmf.BuildContext context)
         {
             var maContext = context.Extension<BuildContext>();
-            ProcessAvatar(context.AvatarRootObject, maContext);
+            OnPreprocessAvatar(context.AvatarRootObject, maContext);
         }
 
         public static void ProcessAvatar(GameObject avatar, BuildContext context)

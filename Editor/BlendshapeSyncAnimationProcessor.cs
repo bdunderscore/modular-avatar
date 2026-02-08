@@ -6,109 +6,105 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal struct BlendshapeSyncSummaryBinding : IEquatable<BlendshapeSyncSummaryBinding>
-    {
-        private const string PREFIX = "blendShape.";
-        public readonly SkinnedMeshRenderer Renderer;
-        public string propertyName => PREFIX + BlendshapeName;
-        public readonly string BlendshapeName;
-
-        public BlendshapeSyncSummaryBinding(SkinnedMeshRenderer renderer, string blendShape)
-        {
-            Renderer = renderer;
-            BlendshapeName = blendShape;
-        }
-
-        public static BlendshapeSyncSummaryBinding? FromEditorBinding(AnimatorServicesContext asc, EditorCurveBinding binding)
-        {
-            if (binding.type != typeof(SkinnedMeshRenderer) || !binding.propertyName.StartsWith(PREFIX))
-            {
-                return null;
-            }
-
-            var obj = asc.ObjectPathRemapper.GetObjectForPath(binding.path);
-            if (obj == null || !obj.TryGetComponent<SkinnedMeshRenderer>(out var smr)) return null;
-
-            return new BlendshapeSyncSummaryBinding(smr, binding.propertyName.Substring(PREFIX.Length));
-        }
-
-        public EditorCurveBinding ToEditorCurveBinding(AnimatorServicesContext asc)
-        {
-            return EditorCurveBinding.FloatCurve(
-                asc.ObjectPathRemapper.GetVirtualPathForObject(Renderer.gameObject),
-                typeof(SkinnedMeshRenderer),
-                propertyName
-            );
-        }
-
-        public IEnumerable<EditorCurveBinding> ToSourceEditorCurveBindings(AnimatorServicesContext asc)
-        {
-            foreach (var path in asc.ObjectPathRemapper.GetAllPathsForObject(Renderer.gameObject))
-            {
-                yield return EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), propertyName);
-            }
-        }
-
-        public bool Equals(BlendshapeSyncSummaryBinding other)
-        {
-            return Renderer == other.Renderer && propertyName == other.propertyName;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is BlendshapeSyncSummaryBinding other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Renderer, propertyName);
-        }
-    }
-
-    internal class BlendshapeSyncAnimationProcessorState
-    {
-        public Dictionary<BlendshapeSyncSummaryBinding, List<BlendshapeSyncSummaryBinding>> BindingMappings = new Dictionary<BlendshapeSyncSummaryBinding, List<BlendshapeSyncSummaryBinding>>();
-    }
-
     /**
      * Ensures that any blendshapes marked for syncing by BlendshapeSync propagate values in all animation clips.
      *
      * Note that we only look at the FX layer, as any other layer won't work properly with mirror reflections anyway.
      */
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    internal class BlendshapeSyncAnimationProcessor : Pass<BlendshapeSyncAnimationProcessor>
+    internal class BlendshapeSyncAnimationProcessor
     {
-        protected override void Execute(ndmf.BuildContext context)
+        private readonly ndmf.BuildContext _context;
+        private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
+
+        internal BlendshapeSyncAnimationProcessor(ndmf.BuildContext context)
         {
-            var state = context.GetState<BlendshapeSyncAnimationProcessorState>();
-            OnPreprocessAvatar(context, state);
+            _context = context;
+            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
         }
 
-        private void OnPreprocessAvatar(ndmf.BuildContext context, BlendshapeSyncAnimationProcessorState state)
+        private struct SummaryBinding : IEquatable<SummaryBinding>
         {
-            var avatarGameObject = context.AvatarRootObject;
-            var asc = context.Extension<AnimatorServicesContext>();
+            private const string PREFIX = "blendShape.";
+            public readonly SkinnedMeshRenderer Renderer;
+            public string propertyName => PREFIX + BlendshapeName;
+            public readonly string BlendshapeName;
+
+            public SummaryBinding(SkinnedMeshRenderer renderer, string blendShape)
+            {
+                Renderer = renderer;
+                BlendshapeName = blendShape;
+            }
+
+            public static SummaryBinding? FromEditorBinding(AnimatorServicesContext asc, EditorCurveBinding binding)
+            {
+                if (binding.type != typeof(SkinnedMeshRenderer) || !binding.propertyName.StartsWith(PREFIX))
+                {
+                    return null;
+                }
+
+                var obj = asc.ObjectPathRemapper.GetObjectForPath(binding.path);
+                if (obj == null || !obj.TryGetComponent<SkinnedMeshRenderer>(out var smr)) return null;
+
+                return new SummaryBinding(smr, binding.propertyName.Substring(PREFIX.Length));
+            }
+
+            public EditorCurveBinding ToEditorCurveBinding(AnimatorServicesContext asc)
+            {
+                return EditorCurveBinding.FloatCurve(
+                    asc.ObjectPathRemapper.GetVirtualPathForObject(Renderer.gameObject),
+                    typeof(SkinnedMeshRenderer),
+                    propertyName
+                );
+            }
+
+            public IEnumerable<EditorCurveBinding> ToSourceEditorCurveBindings(AnimatorServicesContext asc)
+            {
+                foreach (var path in asc.ObjectPathRemapper.GetAllPathsForObject(Renderer.gameObject))
+                {
+                    yield return EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), propertyName);
+                }
+            }
+
+            public bool Equals(SummaryBinding other)
+            {
+                return Renderer == other.Renderer && propertyName == other.propertyName;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SummaryBinding other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Renderer, propertyName);
+            }
+        }
+
+        public void OnPreprocessAvatar()
+        {
+            var avatarGameObject = _context.AvatarRootObject;
+            var asc = _context.Extension<AnimatorServicesContext>();
             var animDb = asc.AnimationIndex;
             
-            state.BindingMappings = new Dictionary<BlendshapeSyncSummaryBinding, List<BlendshapeSyncSummaryBinding>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
 
             var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
 
             foreach (var component in components)
             {
-                BuildReport.ReportingObject(component, () => ProcessComponent(avatarGameObject, component, state));
+                BuildReport.ReportingObject(component, () => ProcessComponent(avatarGameObject, component));
             }
 
             // Apply the initial state of each binding to its targets
-            foreach (var (source, targets) in state.BindingMappings)
+            foreach (var (source, targets) in _bindingMappings)
             {
                 var smr = source.Renderer;
                 if (smr == null) continue;
@@ -131,7 +127,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             var clips = new HashSet<VirtualClip>();
-            foreach (var key in state.BindingMappings.Keys)
+            foreach (var key in _bindingMappings.Keys)
             {
                 foreach (var ecb in key.ToSourceEditorCurveBindings(asc))
                 {
@@ -142,11 +138,11 @@ namespace nadena.dev.modular_avatar.core.editor
             // Walk and transform all clips
             foreach (var clip in clips)
             {
-                ProcessClip(asc, clip, state);
+                ProcessClip(asc, clip);
             }
         }
 
-        private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component, BlendshapeSyncAnimationProcessorState state)
+        private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component)
         {
             var targetSmr = component.gameObject.GetComponent<SkinnedMeshRenderer>();
             if (targetSmr == null) return;
@@ -158,28 +154,28 @@ namespace nadena.dev.modular_avatar.core.editor
                 var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
                 if (refSmr == null) continue;
 
-                var srcBinding = new BlendshapeSyncSummaryBinding(refSmr, binding.Blendshape);
+                var srcBinding = new SummaryBinding(refSmr, binding.Blendshape);
 
-                if (!state.BindingMappings.TryGetValue(srcBinding, out var dstBindings))
+                if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
                 {
-                    dstBindings = new List<BlendshapeSyncSummaryBinding>();
-                    state.BindingMappings[srcBinding] = dstBindings;
+                    dstBindings = new List<SummaryBinding>();
+                    _bindingMappings[srcBinding] = dstBindings;
                 }
 
                 var targetBlendshapeName = string.IsNullOrWhiteSpace(binding.LocalBlendshape)
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add(new BlendshapeSyncSummaryBinding(targetSmr, targetBlendshapeName));
+                dstBindings.Add(new SummaryBinding(targetSmr, targetBlendshapeName));
             }
         }
 
-        private void ProcessClip(AnimatorServicesContext asc, VirtualClip clip, BlendshapeSyncAnimationProcessorState state)
+        private void ProcessClip(AnimatorServicesContext asc, VirtualClip clip)
         {
             foreach (var binding in clip.GetFloatCurveBindings().ToList())
             {
-                var srcBinding = BlendshapeSyncSummaryBinding.FromEditorBinding(asc, binding);
-                if (srcBinding == null || !state.BindingMappings.TryGetValue(srcBinding.Value, out var dstBindings))
+                var srcBinding = SummaryBinding.FromEditorBinding(asc, binding);
+                if (srcBinding == null || !_bindingMappings.TryGetValue(srcBinding.Value, out var dstBindings))
                 {
                     continue;
                 }

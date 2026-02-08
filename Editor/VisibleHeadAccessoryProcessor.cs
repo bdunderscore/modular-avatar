@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
@@ -90,64 +89,61 @@ namespace nadena.dev.modular_avatar.core.editor
             return status;
         }
     }
-
-    internal class VisibleHeadAccessoryProcessorState
-    {
-        public BuildContext Context;
-        public VisibleHeadAccessoryValidation Validator;
-        public Transform AvatarTransform;
-        public HashSet<Transform> VisibleBones = new HashSet<Transform>();
-        public Transform ProxyHead;
-        public Dictionary<Transform, Transform> BoneShims = new Dictionary<Transform, Transform>();
-    }
     
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    internal class VisibleHeadAccessoryProcessor : Pass<VisibleHeadAccessoryProcessor>
+    internal class VisibleHeadAccessoryProcessor
     {
         private const double EPSILON = 0.01;
 
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            var buildContext = context.Extension<BuildContext>();
-            var state = context.GetState<VisibleHeadAccessoryProcessorState>();
-            
-            state.Context = buildContext;
-            state.AvatarTransform = buildContext.AvatarRootTransform;
-            state.Validator = new VisibleHeadAccessoryValidation(buildContext.AvatarRootObject);
+        private BuildContext _context;
+        private VisibleHeadAccessoryValidation _validator;
+        
+        private Transform _avatarTransform;
+        private ImmutableHashSet<Transform> _activeBones => _validator.ActiveBones;
+        private Transform _headBone => _validator.HeadBone;
 
-            Process(state);
+        private HashSet<Transform> _visibleBones = new HashSet<Transform>();
+        private Transform _proxyHead;
+
+        private Dictionary<Transform, Transform> _boneShims = new Dictionary<Transform, Transform>();
+
+        public VisibleHeadAccessoryProcessor(BuildContext context)
+        {
+            _context = context;
+            _avatarTransform = context.AvatarRootTransform;
+            
+            _validator = new VisibleHeadAccessoryValidation(context.AvatarRootObject);
         }
 
-        private void Process(VisibleHeadAccessoryProcessorState state)
+        public void Process()
         {
             bool didWork = false;
 
-            foreach (var target in state.AvatarTransform.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
+            foreach (var target in _avatarTransform.GetComponentsInChildren<ModularAvatarVisibleHeadAccessory>(true))
             {
-                var w = BuildReport.ReportingObject(target, () => ProcessComponent(target, state));
+                var w = BuildReport.ReportingObject(target, () => Process(target));
                 didWork = didWork || w;
             }
 
             if (didWork)
             {
                 // Process meshes
-                foreach (var smr in state.AvatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                foreach (var smr in _avatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     if (smr.sharedMesh == null) continue;
 
                     BuildReport.ReportingObject(smr,
-                        () => new VisibleHeadAccessoryMeshProcessor(smr, state.VisibleBones, state.ProxyHead).Retarget(state.Context));
+                        () => new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(_context));
                 }
             }
         }
 
-        bool ProcessComponent(ModularAvatarVisibleHeadAccessory target, VisibleHeadAccessoryProcessorState state)
+        bool Process(ModularAvatarVisibleHeadAccessory target)
         {
             bool didWork = false;
             
-            if (state.Validator.Validate(target) == VisibleHeadAccessoryValidation.ReadyStatus.Ready)
+            if (_validator.Validate(target) == VisibleHeadAccessoryValidation.ReadyStatus.Ready)
             {
-                var shim = CreateShim(target.transform.parent, state);
+                var shim = CreateShim(target.transform.parent);
 
                 target.transform.SetParent(shim, true);
 
@@ -158,10 +154,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 foreach (var xform in target.GetComponentsInChildren<Transform>(true))
                 {
-                    state.VisibleBones.Add(xform);
+                    _visibleBones.Add(xform);
                 }
 
-                ProcessAnimations(state);
+                ProcessAnimations();
             }
 
             Object.DestroyImmediate(target);
@@ -169,14 +165,14 @@ namespace nadena.dev.modular_avatar.core.editor
             return didWork;
         }
 
-        private void ProcessAnimations(VisibleHeadAccessoryProcessorState state)
+        private void ProcessAnimations()
         {
-            var animdb = state.Context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            var animdb = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
             var paths = animdb.ObjectPathRemapper;
             Dictionary<string, string> pathMappings = new Dictionary<string, string>();
             HashSet<VirtualClip> clips = new();
 
-            foreach (var kvp in state.BoneShims)
+            foreach (var kvp in _boneShims)
             {
                 var orig = paths.GetVirtualPathForObject(kvp.Key.gameObject);
                 var shim = paths.GetVirtualPathForObject(kvp.Value.gameObject);
@@ -201,18 +197,18 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private Transform CreateShim(Transform target, VisibleHeadAccessoryProcessorState state)
+        private Transform CreateShim(Transform target)
         {
-            if (state.BoneShims.TryGetValue(target.transform, out var shim)) return shim;
+            if (_boneShims.TryGetValue(target.transform, out var shim)) return shim;
 
-            if (target == state.Validator.HeadBone) return CreateProxy(state);
+            if (target == _headBone) return CreateProxy();
             if (target.parent == null)
             {
                 // parent is not the head bone...?
                 throw new ArgumentException("Failed to find head bone");
             }
 
-            var parentShim = CreateShim(target.parent, state);
+            var parentShim = CreateShim(target.parent);
 
             GameObject obj = new GameObject(target.gameObject.name);
             obj.transform.SetParent(parentShim, false);
@@ -220,19 +216,19 @@ namespace nadena.dev.modular_avatar.core.editor
             obj.transform.localRotation = target.localRotation;
             obj.transform.localScale = target.localScale;
 
-            state.BoneShims[target] = obj.transform;
+            _boneShims[target] = obj.transform;
 
             return obj.transform;
         }
 
-        private Transform CreateProxy(VisibleHeadAccessoryProcessorState state)
+        private Transform CreateProxy()
         {
-            if (state.ProxyHead != null) return state.ProxyHead;
+            if (_proxyHead != null) return _proxyHead;
 
-            var src = state.Validator.HeadBone;
+            var src = _headBone;
             var obj = new GameObject(src.name + " (HeadChop)");
 
-            var parent = state.Validator.HeadBone;
+            var parent = _headBone;
 
             obj.transform.SetParent(parent, false);
             obj.transform.localPosition = src.localPosition;
@@ -252,7 +248,7 @@ namespace nadena.dev.modular_avatar.core.editor
             };
             headChop.globalScaleFactor = 1;
 
-            state.ProxyHead = obj.transform;
+            _proxyHead = obj.transform;
 
             // TODO - lock proxy scale to head scale in animation?
 
