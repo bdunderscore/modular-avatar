@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#1879] `Blendshape Sync` would not work properly when the source object was replaced by a `MA Replace Object` component.
 - [#1882] When replacing entire animators, the default values of the parameters of the original animator would be used, instead of the replacement animator.
+- [#1904] Fixed performance issues with `MA Scale Adjuster` previews
 
 ### Changed
 - [#1880] Set the `Match Avatar Write Defaults` setting to ON by default in `MA Merge Animator`
