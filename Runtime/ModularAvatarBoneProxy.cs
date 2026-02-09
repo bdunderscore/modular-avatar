@@ -95,6 +95,7 @@ namespace nadena.dev.modular_avatar.core
         public HumanBodyBones boneReference = HumanBodyBones.LastBone;
         public string subPath;
         public BoneProxyAttachmentMode attachmentMode = BoneProxyAttachmentMode.Unset;
+        public bool matchScale;
 
         public override void ResolveReferences()
         {
@@ -144,6 +145,20 @@ namespace nadena.dev.modular_avatar.core
                     case BoneProxyAttachmentMode.AsChildKeepRotation:
                         myTransform.position = targetTransform.position;
                         break;
+                }
+
+                if (matchScale)
+                {
+                    var targetTransformMat = targetTransform.localToWorldMatrix;
+                    var parentTransformMat = myTransform.parent?.worldToLocalMatrix ?? Matrix4x4.identity;
+                    var transRotMat = Matrix4x4.TRS(
+                        myTransform.localPosition,
+                        myTransform.localRotation,
+                        Vector3.one
+                    );
+                    // Transform points from the target local space to our local space (with a virtual scale of 1,1,1)
+                    var finalMat = transRotMat * parentTransformMat * targetTransformMat;
+                    myTransform.localScale = finalMat.lossyScale;
                 }
             }
         }

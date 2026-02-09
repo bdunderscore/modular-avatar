@@ -10,6 +10,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 
+- [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
+
 ### Fixed
 
 ### Changed
