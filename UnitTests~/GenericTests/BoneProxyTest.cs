@@ -4,6 +4,7 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
+using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 
 namespace modular_avatar_tests
 {
@@ -104,8 +105,8 @@ namespace modular_avatar_tests
             var mama = mergeRoot.AddComponent<ModularAvatarMergeArmature>();
             mama.mergeTarget.Set(baseRoot);
 
-            var bp = mergeBone.AddComponent<ModularAvatarBoneProxy>();
-            bp.target = baseBone.transform;
+            var bp = baseBone.AddComponent<ModularAvatarBoneProxy>();
+            bp.target = mergeBone.transform;
 
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
 
@@ -371,6 +372,151 @@ namespace modular_avatar_tests
             {
                 Assert.LessOrEqual(Quaternion.Angle(proxy.transform.rotation, Quaternion.identity), 0.0001f);
             }
+        }
+
+        [Test]
+        public void TestCycleOrder()
+        {
+            // This test checks for a regression in which bone proxies contained inside merge armatures would break
+            // the build.
+            var avatar = CreatePrefab("BoneProxyCycleOrderTest.prefab");
+
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(avatar));
+            
+            Assert.IsEmpty(errors);
+        }
+
+        [Test]
+        [TestCase(true, true)] // BoneProxy on merge source, target within merge source
+        [TestCase(true, false)] // BoneProxy on merge source, target outside merge source
+        [TestCase(false, true)] // BoneProxy not on merge source, target within merge source
+        public void BoneProxy_WithMergeArmature_NoError_MovesToTarget(bool boneProxyOnMergeSource, bool targetWithinMergeSource)
+        {
+            // Create hierarchy:
+            // Root
+            //   - MergeSource (Merge Armature)
+            //     - ProxyHolder (bone proxy, moves to its target)
+            //     - TargetWithin (target if targetWithinMergeSource is true, stays in merge source)
+            //     - OtherChild (regular merge source child, relocates to merge target)
+            //   - TargetOutside (target if targetWithinMergeSource is false)
+            //   - MergeTarget (receives children from merge source)
+            //   - ProxyHolder (may be here if boneProxyOnMergeSource is false)
+
+            var root = CreateRoot("root");
+
+            var mergeTarget = CreateChild(root, "MergeTarget");
+            var mergeSource = CreateChild(root, "MergeSource");
+
+            // Create the bone proxy holder - will move to its target
+            GameObject proxyHolder;
+            GameObject targetObject;
+            
+            if (boneProxyOnMergeSource)
+            {
+                proxyHolder = CreateChild(mergeSource, "ProxyHolder");
+            }
+            else
+            {
+                proxyHolder = CreateChild(root, "ProxyHolder");
+            }
+
+            // Add bone proxy
+            var boneProxy = proxyHolder.AddComponent<ModularAvatarBoneProxy>();
+            proxyHolder.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Create and set up the target
+            if (targetWithinMergeSource)
+            {
+                targetObject = CreateChild(mergeSource, "TargetWithin");
+            }
+            else
+            {
+                targetObject = CreateChild(root, "TargetOutside");
+            }
+            targetObject.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            boneProxy.target = targetObject.transform;
+
+            // Add additional child to merge source to verify merge behavior
+            // This should relocate to merge target since it's not a bone proxy target
+            var otherChild = CreateChild(mergeSource, "OtherChild");
+            otherChild.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Set up merge armature
+            var mergeArmature = mergeSource.AddComponent<ModularAvatarMergeArmature>();
+            mergeArmature.mergeTarget.Set(mergeTarget);
+            CreateChild(mergeTarget, "TargetWithin");
+            CreateChild(mergeTarget, "OtherChild");
+            CreateChild(mergeTarget, "ProxyHolder");
+
+            // Process the avatar
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+
+            // Verify no errors
+            Assert.IsEmpty(errors, "Expected no errors when bone proxy interacts with merge armature");
+
+            // Verify proxy moved to target
+            Assert.AreEqual(targetObject, proxyHolder.transform.parent.gameObject, 
+                "BoneProxy holder should be parented to its target after processing");
+
+            // Verify that OtherChild (which is not the proxy target) is relocated to merge target
+            Assert.IsTrue(otherChild.transform.IsChildOf(mergeTarget.transform),
+                "OtherChild from merge source should be relocated to merge target");
+        }
+
+        [Test]
+        public void MergeArmature_TargetsChildOfBoneProxy_Relocates()
+        {
+            // Create hierarchy:
+            // Root
+            //   - BoneProxyTarget
+            //     - BoneProxyChild (merge target; will receive children from merge source)
+            //       - Content (MeshRenderer to prevent optimization)
+            //   - BoneProxyHolder (bone proxy targeting BoneProxyTarget)
+            //   - MergeSource (Merge Armature targeting BoneProxyTarget/BoneProxyChild)
+            //     - Data (MeshRenderer to prevent optimization)
+            //     - OtherData (additional content to verify merge)
+            //
+            // After processing:
+            // - BoneProxyHolder becomes child of BoneProxyTarget
+            // - Data and OtherData become children of BoneProxyChild
+
+            var root = CreateRoot("root");
+
+            var boneProxyTarget = CreateChild(root, "BoneProxyTarget");
+            var boneProxyChild = CreateChild(boneProxyTarget, "BoneProxyChild");
+            var content = CreateChild(boneProxyChild, "Content");
+            content.AddComponent<MeshRenderer>();
+
+            var boneProxyHolder = CreateChild(root, "BoneProxyHolder");
+            var boneProxy = boneProxyHolder.AddComponent<ModularAvatarBoneProxy>();
+            boneProxyHolder.AddComponent<MeshRenderer>(); // Prevent optimization
+            boneProxy.target = boneProxyTarget.transform;
+
+            var mergeSource = CreateChild(root, "MergeSource");
+            var data = CreateChild(mergeSource, "Data");
+            data.AddComponent<MeshRenderer>();
+            var otherData = CreateChild(mergeSource, "OtherData");
+            otherData.AddComponent<MeshRenderer>();
+            CreateChild(boneProxyChild, "Data");
+            CreateChild(boneProxyChild, "OtherData");
+
+            var mergeArmature = mergeSource.AddComponent<ModularAvatarMergeArmature>();
+            mergeArmature.mergeTarget.Set(boneProxyChild);
+
+            // Process the avatar
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+
+            // Verify no errors
+            Assert.IsEmpty(errors, "Expected no errors when merge armature targets a child of a bone proxy");
+
+            // Verify BoneProxyHolder was moved to BoneProxyTarget
+            Assert.AreEqual(boneProxyTarget, boneProxyHolder.transform.parent.gameObject,
+                "BoneProxy holder should be moved to its target (BoneProxyTarget)");
+            
+            // Verify that the merge armature moved with it
+            Assert.IsTrue(data.transform.IsChildOf(boneProxyTarget.transform),
+                "Bone proxy should be parent of merged objects");
         }
     }
 }
