@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.16.1] - [2026-02-09]
+
+### Added
 - [#1888] Adjusted the Move Independently UI to make it easier to select entire hierarchies of objects to move together.
 
 - [#1903] Added a warning when `MA Merge Motion` is used to merge an animation clip with non-constant curves
@@ -25,12 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1880] Set the `Match Avatar Write Defaults` setting to ON by default in `MA Merge Animator`
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.0] - [2026-02-04]
 

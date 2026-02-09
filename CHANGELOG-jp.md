@@ -9,6 +9,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.16.1] - [2026-02-09]
+
+### Added
 - [#1888] Move Independently のUIを調整して、オブジェクトの階層全体を簡単に選択できるようにしました。
 
 - [#1903] `MA Merge Motion` で統合されるクリップの中に、時間で変動する値が含まれる場合の注意を追加
@@ -22,12 +36,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Changed
 - [#1880] `MA Merge Animator` の `アバターのWrite Defaults設定に合わせる` 設定をデフォルトでONにしました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.0] - [2026-02-04]
 
