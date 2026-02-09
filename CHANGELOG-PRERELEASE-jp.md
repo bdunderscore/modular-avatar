@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1916] `Mesh Settings` の配下にボーン未設定の `Skinned Mesh Renderer` があると位置がズレる問題を修正
+
 ### Changed
 
 ### Removed

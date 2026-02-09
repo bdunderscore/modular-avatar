@@ -141,10 +141,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     Mesh newMesh = Object.Instantiate(smr.sharedMesh);
                     smr.sharedMesh = newMesh;
-                    smr.bones = new Transform[] { smr.transform };
+                    var originalTransform = smr.rootBone == null ? smr.transform : smr.rootBone;
+                    smr.bones = new[] { originalTransform };
                     smr.rootBone = smr.transform;
                     smr.sharedMesh.boneWeights = Enumerable.Repeat(new BoneWeight() { boneIndex0 = 0, weight0 = 1 }, newMesh.vertexCount).ToArray();
-                    smr.sharedMesh.bindposes = new Matrix4x4[] { smr.transform.worldToLocalMatrix * smr.transform.localToWorldMatrix };
+                    smr.sharedMesh.bindposes = new[] { Matrix4x4.identity };
 
                     if (newMesh) context.SaveAsset(newMesh);
                 }

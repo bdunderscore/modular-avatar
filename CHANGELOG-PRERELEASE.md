@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#1916] Fixed an issue where a `Skinned Mesh Renderer` under a `Mesh Settings` with no bone weights would potentially
+  end up in the wrong position.
+
 ### Changed
 
 ### Removed
