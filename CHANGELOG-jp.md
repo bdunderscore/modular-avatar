@@ -10,6 +10,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 
+- [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
+
 ### Fixed
 
 - [#1916] `Mesh Settings` の配下にボーン未設定の `Skinned Mesh Renderer` があると位置がズレる問題を修正
