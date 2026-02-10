@@ -110,6 +110,7 @@
   "blendshape.mesh": "網格",
   "blendshape.source": "源 blendshape",
   "blendshape.target": "當前網格的 blendshape",
+  "blendshape.add_selected": "添加 {0} 個已選",
   "hint.not_in_avatar": "此元件須要放置於你的 Avatar 內才能工作。",
   "boneproxy.err.MovingTarget": "你不能指定將由其他 Modular Avatar 元件移動的物件",
   "boneproxy.err.NotInAvatar": "你必須指定一個在 Avatar 內的物件",

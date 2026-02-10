@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal SearchField? _searchField;
         internal Action<BlendshapeBinding>? OfferBinding;
         internal Action<BlendshapeBinding>? OfferSingleClick;
+        internal Action<IList<BlendshapeBinding>>? OfferMultipleBindings;
 
         private void Awake()
         {
@@ -48,6 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 _tree.OfferBinding = (binding) => OfferBinding?.Invoke(binding);
                 _tree.OfferSingleClick = binding => OfferSingleClick?.Invoke(binding);
+                _tree.OfferMultipleBindings = bindings => OfferMultipleBindings?.Invoke(bindings);
                 _tree.Reload();
 
                 _tree.SetExpanded(0, true);
@@ -60,6 +62,19 @@ namespace nadena.dev.modular_avatar.core.editor
             var remaining = GUILayoutUtility.GetRect(1, 99999, EditorGUIUtility.singleLineHeight * 2, 99999999,
                 GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             _tree.OnGUI(remaining);
+
+            var selectedCount = _tree.GetSelectedBindings().Count;
+            using (new EditorGUI.DisabledScope(selectedCount < 2))
+            {
+                if (GUILayout.Button(Localization.S_f("blendshape.add_selected", selectedCount.ToString())))
+                {
+                    var bindings = _tree.GetSelectedBindings();
+                    if (bindings.Count > 0)
+                    {
+                        OfferMultipleBindings?.Invoke(bindings);
+                    }
+                }
+            }
         }
     }
 
@@ -79,6 +94,7 @@ namespace nadena.dev.modular_avatar.core.editor
         // Set by caller after construction (see BlendshapeSelectWindow.OnGUI)
         internal Action<BlendshapeBinding> OfferBinding = null!;
         internal Action<BlendshapeBinding>? OfferSingleClick;
+        internal Action<IList<BlendshapeBinding>>? OfferMultipleBindings;
 
         public BlendshapeTree(GameObject avatarRoot, TreeViewState state) : base(state)
         {
@@ -141,6 +157,37 @@ namespace nadena.dev.modular_avatar.core.editor
             else
             {
                 base.RowGUI(args);
+            }
+        }
+
+        protected override bool CanMultiSelect(TreeViewItem item)
+        {
+            return item is OfferItem;
+        }
+
+        internal IList<BlendshapeBinding> GetSelectedBindings()
+        {
+            var bindings = new List<BlendshapeBinding>();
+            foreach (var id in GetSelection())
+            {
+                if (id >= 0 && id < _candidateBindings.Count && _candidateBindings[id].HasValue)
+                {
+                    bindings.Add(_candidateBindings[id]!.Value);
+                }
+            }
+            return bindings;
+        }
+
+        protected override void KeyEvent()
+        {
+            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
+            {
+                var bindings = GetSelectedBindings();
+                if (bindings.Count > 0)
+                {
+                    OfferMultipleBindings?.Invoke(bindings);
+                    Event.current.Use();
+                }
             }
         }
 

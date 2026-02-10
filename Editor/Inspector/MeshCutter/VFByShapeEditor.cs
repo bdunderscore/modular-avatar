@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -89,6 +90,27 @@ namespace nadena.dev.modular_avatar.core.editor
                         _shapes.GetArrayElementAtIndex(addedIndex.Value).stringValue = binding.Blendshape;
                         serializedObject.ApplyModifiedProperties();
                     }
+                };
+                window.OfferMultipleBindings = (bindings) =>
+                {
+                    serializedObject.Update();
+                    foreach (var binding in bindings)
+                    {
+                        if (binding.Blendshape == null) continue;
+
+                        if (addedIndex == null)
+                        {
+                            addedIndex = _shapes.arraySize++;
+                        }
+                        else
+                        {
+                            _shapes.arraySize++;
+                        }
+
+                        _shapes.GetArrayElementAtIndex(_shapes.arraySize - 1).stringValue = binding.Blendshape;
+                    }
+                    serializedObject.ApplyModifiedProperties();
+                    window.Close();
                 };
                 window.Show();
             };
