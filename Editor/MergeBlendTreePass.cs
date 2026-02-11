@@ -111,7 +111,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if (motion is VirtualClip clip)
                 {
-                    CheckClip(clip, component);
+                    if (CheckClip(clip, component)) break;
                 }
             }
 
@@ -159,12 +159,12 @@ namespace nadena.dev.modular_avatar.core.editor
             Object.DestroyImmediate(component);
         }
 
-        private void CheckClip(VirtualClip clip, ModularAvatarMergeBlendTree component)
+        private bool CheckClip(VirtualClip clip, ModularAvatarMergeBlendTree component)
         {
             foreach (var ecb in clip.GetFloatCurveBindings())
             {
                 var keys = clip.GetFloatCurve(ecb);
-                if (keys == null || keys.length == 0) continue;
+                if (keys == null || keys.length < 2) continue;
 
                 var firstKey = keys[0];
                 foreach (var key in keys.keys)
@@ -176,10 +176,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     {
                         ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal,
                             "error.merge_blend_tree.non_constant_curve", component, clip);
-                        return;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
 
         private VirtualBlendTree GetRootBlendTree()
