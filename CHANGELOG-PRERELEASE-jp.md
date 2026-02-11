@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-
 - [#1916] `Mesh Settings` の配下にボーン未設定の `Skinned Mesh Renderer` があると位置がズレる問題を修正
+- [#1920] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
 
 ### Changed
 

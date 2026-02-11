@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-
 - [#1916] Fixed an issue where a `Skinned Mesh Renderer` under a `Mesh Settings` with no bone weights would potentially
   end up in the wrong position.
+- [#1920] Fixed false positives in the non-constant curve check
 
 ### Changed
 

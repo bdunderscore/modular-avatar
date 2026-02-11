@@ -238,6 +238,102 @@ namespace modular_avatar_tests
                 (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve"));
         }
 
+        [Test]
+        public void NonConstantCurveWarning_SingleKeyWithNonzeroTangents()
+        {
+            // Create an animation clip with a single-key curve that has nonzero tangents
+            var clip = new AnimationClip();
+            var keyframe = new Keyframe(0, 0.5f, 1.0f, 1.0f); // time=0, value=0.5, inTangent=1.0, outTangent=1.0
+            var curve = new AnimationCurve(keyframe);
+            clip.SetCurve("transform", typeof(Transform), "localPosition.x", curve);
+            
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            var mergeComponent = child.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent.Motion = clip;
+            mergeComponent.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            // Verify that NO non_constant_curve error was reported (single-key curves are allowed)
+            Assert.IsFalse(errors.Any(e => 
+                (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve"));
+        }
+
+        [Test]
+        public void NonConstantCurveWarning_MultipleErrorsSingleComponent()
+        {
+            // Create two animation clips with non-constant curves
+            var clip1 = new AnimationClip();
+            clip1.SetCurve("transform", typeof(Transform), "localPosition.x", AnimationCurve.EaseInOut(0, 0, 1, 1));
+            
+            var clip2 = new AnimationClip();
+            clip2.SetCurve("transform", typeof(Transform), "localPosition.y", AnimationCurve.EaseInOut(0, 0, 1, 1));
+            
+            var root = CreateRoot("root");
+            var child = CreateChild(root, "child");
+            var mergeComponent = child.AddComponent<ModularAvatarMergeBlendTree>();
+            
+            // Create a blend tree with both clips
+            var blendTree = new BlendTree();
+            blendTree.blendType = BlendTreeType.Direct;
+            blendTree.AddChild(clip1, 1);
+            blendTree.AddChild(clip2, 2);
+            mergeComponent.BlendTree = blendTree;
+            mergeComponent.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            // Verify that only ONE non_constant_curve error was reported (even though multiple clips have issues)
+            var nonConstantCurveErrors = errors.Where(e => 
+                (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve").ToList();
+            Assert.AreEqual(1, nonConstantCurveErrors.Count);
+        }
+
+        [Test]
+        public void NonConstantCurveWarning_MultipleErrorsMultipleComponents()
+        {
+            // Create animation clips with non-constant curves
+            var clip1 = new AnimationClip();
+            clip1.SetCurve("transform", typeof(Transform), "localPosition.x", AnimationCurve.EaseInOut(0, 0, 1, 1));
+            
+            var clip2 = new AnimationClip();
+            clip2.SetCurve("transform", typeof(Transform), "localPosition.y", AnimationCurve.EaseInOut(0, 0, 1, 1));
+            
+            var root = CreateRoot("root");
+            
+            // Add first merge component with non-constant curve
+            var child1 = CreateChild(root, "child1");
+            var mergeComponent1 = child1.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent1.Motion = clip1;
+            mergeComponent1.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            // Add second merge component with different non-constant curve
+            var child2 = CreateChild(root, "child2");
+            var mergeComponent2 = child2.AddComponent<ModularAvatarMergeBlendTree>();
+            mergeComponent2.Motion = clip2;
+            mergeComponent2.PathMode = MergeAnimatorPathMode.Absolute;
+            
+            var vrcConfig = root.AddComponent<ModularAvatarVRChatSettings>();
+            vrcConfig.MMDWorldSupport = false;
+            
+            // Capture errors during processing
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            // Verify that TWO non_constant_curve errors were reported (one per component)
+            var nonConstantCurveErrors = errors.Where(e => 
+                (e.TheError is SimpleError se) && se.TitleKey == "error.merge_blend_tree.non_constant_curve").ToList();
+            Assert.AreEqual(2, nonConstantCurveErrors.Count);
+        }
+
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)
         {
             var obj = CreateChild(root, mergeName);
