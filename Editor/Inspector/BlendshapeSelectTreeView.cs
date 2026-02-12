@@ -64,7 +64,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _tree.OnGUI(remaining);
 
             var selectedCount = _tree.GetSelectedBindings().Count;
-            using (new EditorGUI.DisabledScope(selectedCount < 2))
+            using (new EditorGUI.DisabledScope(selectedCount < 1))
             {
                 if (GUILayout.Button(Localization.S_f("blendshape.add_selected", selectedCount.ToString())))
                 {
