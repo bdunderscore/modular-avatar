@@ -167,17 +167,24 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (keys == null || keys.length < 2) continue;
 
                 var firstKey = keys[0];
-                foreach (var key in keys.keys)
+                for (var i = 0; i < keys.length; i++)
                 {
-                    if (!Mathf.Approximately(key.value, firstKey.value)
-                        || !Mathf.Approximately(0, key.inTangent)
-                        || !Mathf.Approximately(0, key.outTangent)
-                       )
+                    var t0 = i == 0 ? -0.5f : keys[i - 1].time;
+                    var t1 = keys[i].time;
+                    var t2 = keys[i].time + (t1 - t0);
+
+                    var v0 = keys.Evaluate((t0 + t1) / 2);
+                    var v1 = keys.Evaluate(t1);
+                    var v2 = keys.Evaluate((t1 + t2) / 2);
+
+                    if (Mathf.Approximately(v0, v1) && Mathf.Approximately(v1, v2))
                     {
-                        ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal,
-                            "error.merge_blend_tree.non_constant_curve", component, clip);
-                        return true;
+                        continue;
                     }
+
+                    ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal,
+                        "error.merge_blend_tree.non_constant_curve", component, clip);
+                    return true;
                 }
             }
 

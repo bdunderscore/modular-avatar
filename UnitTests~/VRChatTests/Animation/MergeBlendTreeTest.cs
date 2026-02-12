@@ -334,6 +334,19 @@ namespace modular_avatar_tests
             Assert.AreEqual(2, nonConstantCurveErrors.Count);
         }
 
+        [Test]
+        public void NonConstantCurveWarning_WithConstantTangents()
+        {
+            var clip = LoadAsset<AnimationClip>("ConstantTangents.anim");
+            
+            var root = CreateRoot("root");
+            root.AddComponent<ModularAvatarMergeBlendTree>().Motion = clip;
+            
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
+            
+            Assert.IsEmpty(errors);
+        }
+
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)
         {
             var obj = CreateChild(root, mergeName);
