@@ -187,8 +187,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     OfferMultipleBindings?.Invoke(bindings);
                     Event.current.Use();
+                    return;
                 }
             }
+
+            base.KeyEvent();
         }
 
         protected override void SingleClickedItem(int id)

@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using UnityEditor;
 using UnityEditor.UIElements;
