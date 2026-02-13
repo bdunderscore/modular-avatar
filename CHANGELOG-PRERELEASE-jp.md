@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
+
 ### Fixed
 
 ### Changed

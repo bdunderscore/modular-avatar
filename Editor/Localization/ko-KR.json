@@ -110,6 +110,7 @@
   "blendshape.mesh": "메쉬",
   "blendshape.source": "소스 블렌드 셰이프",
   "blendshape.target": "대상 블렌드 셰이프",
+  "blendshape.add_selected": "선택한 {0}개 추가",
   "hint.not_in_avatar": "이 컴포넌트가 제대로 작동하려면 아바타 내부에 배치되어야 합니다.",
   "boneproxy.err.MovingTarget": "다른 Modular Avatar 컴포넌트에 의해 이동될 대상 오브젝트를 지정할 수 없습니다",
   "boneproxy.err.NotInAvatar": "아바타 내에 있는 오브젝트를 지정해야 합니다",

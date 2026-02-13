@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -105,7 +106,31 @@ namespace nadena.dev.modular_avatar.core.editor.ShapeChanger
             _window = CreateInstance<BlendshapeSelectWindow>();
             _window.AvatarRoot = RuntimeUtil.FindAvatarTransformInParents((target as ModularAvatarShapeChanger).transform).gameObject;
             _window.OfferBinding += OfferBinding;
+            _window.OfferMultipleBindings += OfferMultipleBindings;
             _window.Show();
+        }
+
+        private void OfferMultipleBindings(IList<BlendshapeBinding> bindings)
+        {
+            var changer = target as ModularAvatarShapeChanger;
+            Undo.RecordObject(changer, "Add Shapes");
+
+            foreach (var binding in bindings)
+            {
+                if (changer.Shapes.Any(x => x.Object.Equals(binding.ReferenceMesh) && x.ShapeName == binding.Blendshape))
+                    continue;
+
+                changer.Shapes.Add(new ChangedShape()
+                {
+                    Object = binding.ReferenceMesh,
+                    ShapeName = binding.Blendshape,
+                    ChangeType = ShapeChangeType.Delete,
+                    Value = 100
+                });
+            }
+
+            PrefabUtility.RecordPrefabInstancePropertyModifications(changer);
+            if (_window != null) _window.Close();
         }
 
         private void OfferBinding(BlendshapeBinding binding)
