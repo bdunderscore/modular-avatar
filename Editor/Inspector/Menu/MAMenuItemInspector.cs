@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             serializedObject.Update();
 
-            _coreGUI.DoGUI();
+            _coreGUI?.DoGUI();
 
             serializedObject.ApplyModifiedProperties();
 
