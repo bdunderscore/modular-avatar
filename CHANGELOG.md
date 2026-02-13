@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
 
+- [#1915] Added `Match scale` option to `MA Bone Proxy`
+
 ### Fixed
 - [#1921] Fixed additional false positives in the non-constant curve check
 

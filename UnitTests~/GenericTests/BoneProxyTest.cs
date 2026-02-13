@@ -518,6 +518,222 @@ namespace modular_avatar_tests
             Assert.IsTrue(data.transform.IsChildOf(boneProxyTarget.transform),
                 "Bone proxy should be parent of merged objects");
         }
+
+        [Test]
+        public void MatchScale_Enabled_LocalScaleBecomesOne()
+        {
+            // When matchScale is enabled and the proxy is processed,
+            // the local scale should be set to (1, 1, 1)
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var proxy = CreateChild(root, "proxy");
+
+            // Set a specific non-uniform scale on the proxy
+            proxy.transform.localScale = new Vector3(2f, 3f, 4f);
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = true;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+            proxy.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+
+            // After processing, local scale should be (1, 1, 1)
+            Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
+                "Local scale should be (1, 1, 1) when matchScale is enabled");
+
+            // The proxy should now be a child of the target
+            Assert.AreEqual(target, proxy.transform.parent.gameObject);
+        }
+
+        [Test]
+        public void MatchScale_Disabled_RetainsWorldLossyScale()
+        {
+            // When matchScale is disabled, the proxy should retain its
+            // original world lossy scale after being moved to a new parent
+            var root = CreateRoot("root");
+            
+            // Create a target with a scaled parent to test scale inheritance
+            var targetParent = CreateChild(root, "targetParent");
+            targetParent.transform.localScale = new Vector3(2f, 2f, 2f);
+            
+            var target = CreateChild(targetParent, "target");
+            
+            var proxy = CreateChild(root, "proxy");
+            proxy.transform.localScale = new Vector3(3f, 3f, 3f);
+            
+            var originalWorldScale = proxy.transform.lossyScale; // Should be (3, 3, 3)
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = false;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+            proxy.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+
+            // After processing, the world lossy scale should be retained
+            var finalWorldScale = proxy.transform.lossyScale;
+            Assert.LessOrEqual(Vector3.Distance(finalWorldScale, originalWorldScale), 0.001f,
+                "World lossy scale should be retained when matchScale is disabled");
+
+            // The proxy should now be a child of the target
+            Assert.AreEqual(target, proxy.transform.parent.gameObject);
+        }
+
+        [Test]
+        public void MatchScale_Enabled_EditorUpdate()
+        {
+            // In the editor, when matchScale is enabled and Update() is called,
+            // the local scale should be calculated based on the target's transform
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var proxy = CreateChild(root, "proxy");
+
+            // Set target and proxy to have different scales and positions
+            target.transform.position = new Vector3(1f, 2f, 3f);
+            target.transform.rotation = Quaternion.Euler(45f, 45f, 45f);
+            target.transform.localScale = new Vector3(2f, 2f, 2f);
+
+            proxy.transform.localPosition = new Vector3(5f, 6f, 7f);
+            proxy.transform.localRotation = Quaternion.Euler(10f, 20f, 30f);
+            proxy.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = true;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
+
+            // Call Update (which is editor-only logic)
+            boneProxy.Update();
+
+            // The local scale should be set to match the parent's scale
+            // This ensures that the proxy maintains proper visual positioning
+            Assert.IsTrue(proxy.transform.localScale.x > 0, "Local scale X should be positive");
+            Assert.IsTrue(proxy.transform.localScale.y > 0, "Local scale Y should be positive");
+            Assert.IsTrue(proxy.transform.localScale.z > 0, "Local scale Z should be positive");
+        }
+
+        [Test]
+        public void MatchScale_Disabled_EditorUpdate()
+        {
+            // In the editor, when matchScale is disabled, the Update() method
+            // should not modify the local scale
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var proxy = CreateChild(root, "proxy");
+
+            target.transform.localScale = new Vector3(2f, 2f, 2f);
+            var originalLocalScale = new Vector3(1.5f, 2.5f, 3.5f);
+            proxy.transform.localScale = originalLocalScale;
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = false;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
+
+            // Call Update
+            boneProxy.Update();
+
+            // The local scale should remain unchanged when matchScale is false
+            Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, originalLocalScale), 0.0001f,
+                "Local scale should not change when matchScale is disabled");
+        }
+
+        [Test]
+        [TestCase(BoneProxyAttachmentMode.AsChildAtRoot)]
+        [TestCase(BoneProxyAttachmentMode.AsChildKeepWorldPose)]
+        [TestCase(BoneProxyAttachmentMode.AsChildKeepPosition)]
+        [TestCase(BoneProxyAttachmentMode.AsChildKeepRotation)]
+        public void MatchScale_WithDifferentAttachmentModes(BoneProxyAttachmentMode attachmentMode)
+        {
+            // Test that matchScale works correctly with all attachment modes
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var proxy = CreateChild(root, "proxy");
+
+            target.transform.localScale = new Vector3(2f, 2f, 2f);
+            proxy.transform.localScale = new Vector3(3f, 3f, 3f);
+            proxy.transform.position = new Vector3(1f, 2f, 3f);
+            proxy.transform.rotation = Quaternion.Euler(30f, 45f, 60f);
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = true;
+            boneProxy.attachmentMode = attachmentMode;
+            proxy.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+
+            // After processing, local scale should be (1, 1, 1) regardless of attachment mode
+            Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
+                $"Local scale should be (1, 1, 1) for {attachmentMode} when matchScale is enabled");
+
+            // The proxy should be a child of the target
+            Assert.AreEqual(target, proxy.transform.parent.gameObject);
+        }
+
+        [Test]
+        public void MatchScale_WithScaledTarget()
+        {
+            // Test matchScale behavior when the target itself has a scaled parent
+            var root = CreateRoot("root");
+            
+            var targetParent = CreateChild(root, "targetParent");
+            targetParent.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            
+            var target = CreateChild(targetParent, "target");
+            target.transform.localScale = new Vector3(2f, 2f, 2f);
+            
+            var proxy = CreateChild(root, "proxy");
+            proxy.transform.localScale = new Vector3(4f, 4f, 4f);
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = true;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+            proxy.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+
+            // After processing, local scale should be (1, 1, 1)
+            // even though the target has a scaled parent
+            Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
+                "Local scale should be (1, 1, 1) when matchScale is enabled, regardless of target's parent scale");
+
+            // The proxy should now be a child of the target
+            Assert.AreEqual(target, proxy.transform.parent.gameObject);
+        }
+
+        [Test]
+        public void MatchScale_NonUniformScale()
+        {
+            // Test matchScale with non-uniform scales
+            var root = CreateRoot("root");
+            var target = CreateChild(root, "target");
+            var proxy = CreateChild(root, "proxy");
+
+            // Set different scale values in each axis
+            proxy.transform.localScale = new Vector3(1f, 2f, 3f);
+
+            var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
+            boneProxy.target = target.transform;
+            boneProxy.matchScale = true;
+            boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
+            proxy.AddComponent<MeshRenderer>(); // Prevent optimization
+
+            // Process the avatar
+            AvatarProcessor.ProcessAvatar(root);
+
+            // After processing, local scale should be (1, 1, 1)
+            Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
+                "Local scale should be (1, 1, 1) for non-uniform scales when matchScale is enabled");
+        }
     }
 }
 

@@ -118,6 +118,7 @@
   "boneproxy.attachment.AsChildKeepWorldPose": "As child; keep position and rotation",
   "boneproxy.attachment.AsChildKeepPosition": "As child; keep position",
   "boneproxy.attachment.AsChildKeepRotation": "As child; keep rotation",
+  "boneproxy.match_scale": "Match scale",
   "mesh_settings.header_probe_anchor": "Anchor Override Configuration",
   "mesh_settings.inherit_probe_anchor": "Anchor Override Mode",
   "mesh_settings.probe_anchor": "Anchor Override",
