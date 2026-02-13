@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using nadena.dev.modular_avatar.core.menu;
@@ -20,6 +21,38 @@ namespace nadena.dev.modular_avatar.core.editor
     class SubmenuSourceDrawer : EnumDrawer<SubmenuSource>
     {
         protected override string localizationPrefix => "submenu_source";
+    }
+
+    internal static class MenuWatchdog
+    {
+        private const int TIME_LIMIT_MS = 5000;
+        private const int REDUCED_TIME_LIMIT_MS = 50;
+        private const int FIRE_LIMIT = 5;
+        private static readonly Stopwatch elapsed = new();
+        private static int fireCount = 0;
+        private static int editorFrame;
+        private static int lastEditorFrame = -1;
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.update += () => { editorFrame++; };
+        }
+
+        public static void Check()
+        {
+            if (editorFrame != lastEditorFrame) elapsed.Restart();
+            else if (!elapsed.IsRunning) elapsed.Start();
+
+            lastEditorFrame = editorFrame;
+            var limit = fireCount >= FIRE_LIMIT ? REDUCED_TIME_LIMIT_MS : TIME_LIMIT_MS;
+
+            if (elapsed.ElapsedMilliseconds > limit)
+            {
+                fireCount++;
+                throw new Exception("[MenuItemCoreGUI] Watchdog timeout");
+            }
+        }
     }
 
     internal class MenuItemCoreGUI
@@ -70,6 +103,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public MenuItemCoreGUI(SerializedObject obj, Action redraw)
         {
+            MenuWatchdog.Check();
+            
             _obj = obj;
 
             GameObject parameterReference = null;
@@ -146,6 +181,7 @@ namespace nadena.dev.modular_avatar.core.editor
                          .Where(p => p.Namespace == ParameterNamespace.Animator)
                     )
             {
+                MenuWatchdog.Check();
                 if (!string.IsNullOrWhiteSpace(param.EffectiveName))
                 {
                     rootParameters[param.EffectiveName] = param;
@@ -155,6 +191,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var remaps = ParameterIntrospectionCache.GetParameterRemappingsAt(paramRef);
             foreach (var remap in remaps)
             {
+                MenuWatchdog.Check();
                 if (remap.Key.Item1 != ParameterNamespace.Animator) continue;
                 if (rootParameters.ContainsKey(remap.Value.ParameterName))
                     _knownParameters[remap.Key.Item2] = rootParameters[remap.Value.ParameterName];
@@ -163,6 +200,7 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var rootParam in rootParameters)
                 if (!remaps.ContainsKey((ParameterNamespace.Animator, rootParam.Key)))
                     _knownParameters[rootParam.Key] = rootParam.Value;
+            MenuWatchdog.Check();
         }
 
         /// <summary>
@@ -301,6 +339,7 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.PropertyField(_type, G("menuitem.prop.type"));
             DoValueField();
 
+            MenuWatchdog.Check();
             _parameterGUI.DoGUI(true);
 
             ShowInnateParameterGUI();
@@ -418,6 +457,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             if (ExpandContents)
                             {
+                                MenuWatchdog.Check();
                                 if (menuSource is VRCExpressionsMenu menu) _previewGUI.DoGUI(menu, _parameterReference);
                                 else if (menuSource is MenuSource nodes) _previewGUI.DoGUI(nodes);
                             }

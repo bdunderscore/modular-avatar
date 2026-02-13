@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1923] メニュー描画時間に時間制限を設けた（一時的なデバッグ処置です）
 
 ### Fixed
 - [#1921] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
