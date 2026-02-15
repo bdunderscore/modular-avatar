@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
 
 ### Fixed
+- [#1926] Revisions to the Japanese FAQ page
 - [#1921] Fixed additional false positives in the non-constant curve check
 
 ### Changed
