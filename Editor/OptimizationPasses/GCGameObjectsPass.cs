@@ -17,11 +17,20 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal class GCGameObjectsPass
     {
-        private readonly BuildContext _context;
+        [DependsOnContext(typeof(AnimatorServicesContext))]
+        internal class PluginPass : Pass<PluginPass>
+        {
+            protected override void Execute(ndmf.BuildContext context)
+            {
+                new GCGameObjectsPass(context, context.AvatarRootObject).OnPreprocessAvatar();
+            }
+        }
+
+        private readonly ndmf.BuildContext _context;
         private readonly GameObject _root;
         private readonly HashSet<GameObject> referencedGameObjects = new HashSet<GameObject>();
 
-        internal GCGameObjectsPass(BuildContext context, GameObject root)
+        internal GCGameObjectsPass(ndmf.BuildContext context, GameObject root)
         {
             _context = context;
             _root = root;
@@ -134,7 +143,7 @@ namespace nadena.dev.modular_avatar.core.editor
             
             // https://github.com/bdunderscore/modular-avatar/issues/1775
             // Also retain any object referenced by animation layers
-            var asc = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
+            var asc = _context.Extension<AnimatorServicesContext>();
             asc.AnimationIndex.RewritePaths(path => {
                 var obj = asc.ObjectPathRemapper.GetObjectForPath(path);
                 if (obj != null) MarkObject(obj);

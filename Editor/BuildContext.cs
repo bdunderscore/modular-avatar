@@ -12,9 +12,9 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class BuildContext
+    internal class BuildContext : IExtensionContext
     {
-        internal readonly ndmf.BuildContext PluginBuildContext;
+        internal ndmf.BuildContext PluginBuildContext { get; private set; }
 
 #if MA_VRCSDK3_AVATARS
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
@@ -35,15 +35,27 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
-        public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
-            ctx.Extension<ModularAvatarContext>().BuildContext;
 
-        public BuildContext(ndmf.BuildContext PluginBuildContext)
+        public void OnActivate(ndmf.BuildContext context)
+        {
+            PluginBuildContext = context;
+        }
+
+        public void OnDeactivate(ndmf.BuildContext context)
+        {
+            // No cleanup needed
+        }
+
+        // Private constructor used by public test constructors below
+        private BuildContext(ndmf.BuildContext PluginBuildContext)
         {
             this.PluginBuildContext = PluginBuildContext;
         }
 
 #if MA_VRCSDK3_AVATARS
+        /// <summary>
+        /// Constructor for testing purposes. Creates a BuildContext from a VRCAvatarDescriptor.
+        /// </summary>
         public BuildContext(VRCAvatarDescriptor avatarDescriptor)
             : this(new ndmf.BuildContext(avatarDescriptor, null))
         {
@@ -58,6 +70,9 @@ namespace nadena.dev.modular_avatar.core.editor
             PlatformRegistry.PlatformProviders[WellKnownPlatforms.Generic];
 #endif
 
+        /// <summary>
+        /// Constructor for testing purposes. Creates a BuildContext from a GameObject.
+        /// </summary>
         public BuildContext(GameObject avatarGameObject)
             : this(new ndmf.BuildContext(avatarGameObject, null, DefaultPlatformProvider))
         {
