@@ -92,7 +92,7 @@ namespace modular_avatar_tests.RenameParametersTests
             var prefab = CreatePrefab("ParameterConflicts.prefab");
 
             var context = CreateContext(prefab);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(
@@ -223,7 +223,7 @@ namespace modular_avatar_tests.RenameParametersTests
             c2.parameter = "a";
 
             var context = CreateContext(av);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
@@ -258,7 +258,7 @@ namespace modular_avatar_tests.RenameParametersTests
             };
 
             var context = CreateContext(av);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
