@@ -617,10 +617,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         name = p.name,
                         defaultFloat = p.type switch
                         {
-                            AnimatorControllerParameterType.Bool => p.defaultBool ? 1 : 0,
+                            AnimatorControllerParameterType.Float => p.defaultFloat,
                             AnimatorControllerParameterType.Int => p.defaultInt,
-                            _ => 0
-                        }
+                            AnimatorControllerParameterType.Bool => p.defaultBool ? 1f : 0f,
+                            _ => 0f
+                        },
+                        defaultInt = p.defaultInt,       // Fixes PreexistingParamsTest
+                        defaultBool = p.defaultBool      // Fixes PreexistingParamsTest
                     };
                 }
 
@@ -630,41 +633,18 @@ namespace nadena.dev.modular_avatar.core.editor
             fx.Parameters = parameters;
         }
         
-                private void GenerateReactiveBlendTree(Dictionary<TargetProp, AnimatedProperty> shapes)
+private void GenerateReactiveBlendTree(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
             var asc = context.Extension<AnimatorServicesContext>();
             var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             if (fx == null) return;
 
-            // Create a single optimized layer for all reactive components
-            var asm = fx.AddLayer(LayerPriority.Default, "Modular Avatar: Responsive Objects Blendtree").StateMachine;
-
-            var layerControl = ScriptableObject.CreateInstance<ModularAvatarMMDLayerControl>();
-            layerControl.DisableInMMDMode = false;
-            asm.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(layerControl);
-
             var alwaysOneParam = MergeBlendTreePass.ALWAYS_ONE;
-
-            // Create the Root Direct BlendTree using NDMF's Virtual API
-            var rootTree = VirtualBlendTree.Create("Reactive Root");
-            rootTree.BlendType = BlendTreeType.Direct;
-            rootTree.BlendParameter = alwaysOneParam;
-
-            var rootState = asm.AddState("Responsive Direct BlendTree");
-            rootState.WriteDefaultValues = _writeDefaults;
-            rootState.Motion = rootTree;
-            asm.DefaultState = rootState;
-
-            var dummyState = asm.AddState("NDMF GC Retainer (Unreachable)");
-            var dummyTree = VirtualBlendTree.Create("Dummy Root");
-            dummyTree.BlendType = BlendTreeType.Direct;
-            dummyTree.BlendParameter = alwaysOneParam;
+            var emptyClip = asc.ControllerContext.Clone(new AnimationClip { name = "Empty Motion" });
+            
+            var childMotions = new List<VirtualBlendTree.VirtualChildMotion>();
             var dummyMotions = new List<VirtualBlendTree.VirtualChildMotion>();
 
-            var emptyClip = asc.ControllerContext.Clone(new AnimationClip { name = "Empty Motion" });
-            var childMotions = new List<VirtualBlendTree.VirtualChildMotion>();
-
-            // Populate the BlendTree
             foreach (var info in shapes.Values)
             {
                 if (info.actionGroups.Count == 0) continue;
@@ -695,9 +675,33 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            // Apply children safely as an ImmutableList cause of C# and NDMF
+            // EARLY RETURN: Don't create an empty layer if there are no responsive objects
+            // This fixes the MMDMode and MergeAnimatorReplacement test failures
+            if (childMotions.Count == 0) return;
+
+            // Create the optimized layer
+            var asm = fx.AddLayer(LayerPriority.Default, "Modular Avatar: Responsive Objects Blendtree").StateMachine;
+            var layerControl = ScriptableObject.CreateInstance<ModularAvatarMMDLayerControl>();
+            layerControl.DisableInMMDMode = false;
+            asm.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(layerControl);
+
+            var rootTree = VirtualBlendTree.Create("Reactive Root");
+            rootTree.BlendType = BlendTreeType.Direct;
+            rootTree.BlendParameter = alwaysOneParam;
             rootTree.Children = ImmutableList.CreateRange(childMotions);
 
+            var rootState = asm.AddState("Responsive Direct BlendTree");
+            rootState.WriteDefaultValues = _writeDefaults;
+            rootState.Motion = rootTree;
+            asm.DefaultState = rootState;
+
+            // Create dummy state and apply WriteDefaults
+            var dummyState = asm.AddState("NDMF GC Retainer (Unreachable)");
+            dummyState.WriteDefaultValues = _writeDefaults; // Fixes WriteDefaultMerge tests!
+            
+            var dummyTree = VirtualBlendTree.Create("Dummy Root");
+            dummyTree.BlendType = BlendTreeType.Direct;
+            dummyTree.BlendParameter = alwaysOneParam;
             dummyTree.Children = ImmutableList.CreateRange(dummyMotions);
             dummyState.Motion = dummyTree;
         }
