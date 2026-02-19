@@ -86,16 +86,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             ProcessInitialStates(initialStates, shapes);
             ProcessInitialAnimatorVariables(shapes);
-            
+
 #if MA_VRCSDK3_AVATARS
             if (generateAnimations)
             {
                 GenerateParameters(shapes);
                 
-                foreach (var groups in shapes.Values)
-                {
-                    ProcessShapeKey(groups);
-                }
+                // NEW: Call the optimized blendtree generator instead of per-shape layers
+                GenerateReactiveBlendTree(shapes);
             }
 #endif
         }
@@ -632,167 +630,106 @@ namespace nadena.dev.modular_avatar.core.editor
             fx.Parameters = parameters;
         }
         
-        private void ProcessShapeKey(AnimatedProperty info)
-        {
-            if (info.actionGroups.Count == 0)
-            {
-                // This is present only to override the static state; skip animation generation
-                return;
-            }
-            
-            // TODO: prune non-animated keys
-            GenerateStateMachine(info);
-        }
-
-        private void GenerateStateMachine(AnimatedProperty info)
+                private void GenerateReactiveBlendTree(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
             var asc = context.Extension<AnimatorServicesContext>();
-            var asm = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!
-                .AddLayer(LayerPriority.Default, $"MA Responsive: {info.TargetProp.TargetObject.name}").StateMachine!;
+            var fx = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+            if (fx == null) return;
+
+            // Create a single optimized layer for all reactive components
+            var asm = fx.AddLayer(LayerPriority.Default, "Modular Avatar: Responsive Objects Blendtree").StateMachine;
 
             var layerControl = ScriptableObject.CreateInstance<ModularAvatarMMDLayerControl>();
             layerControl.DisableInMMDMode = false;
             asm.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(layerControl);
 
-            var x = 200;
-            var y = 0;
-            var yInc = 60;
+            var alwaysOneParam = MergeBlendTreePass.ALWAYS_ONE;
 
-            asm.AnyStatePosition = new Vector3(-200, 0);
+            // Create the Root Direct BlendTree using NDMF's Virtual API
+            var rootTree = VirtualBlendTree.Create("Reactive Root");
+            rootTree.BlendType = BlendTreeType.Direct;
+            rootTree.BlendParameter = alwaysOneParam;
 
-            var initialState = asm.AddState("<default>");
-            initialState.WriteDefaultValues = _writeDefaults;
-            asm.DefaultState = initialState;
+            var rootState = asm.AddState("Responsive Direct BlendTree");
+            rootState.WriteDefaultValues = _writeDefaults;
+            rootState.Motion = rootTree;
+            asm.DefaultState = rootState;
 
-            asm.EntryPosition = new Vector3(0, 0);
+            var emptyClip = asc.ControllerContext.Clone(new AnimationClip { name = "Empty Motion" });
+            var childMotions = new List<VirtualBlendTree.VirtualChildMotion>();
 
-            var lastConstant = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
-            var transitionBuffer = new List<(VirtualState, List<VirtualStateTransition>)>();
-            var entryTransitions = new List<VirtualTransition>();
-
-            transitionBuffer.Add((initialState, new List<VirtualStateTransition>()));
-
-            // Note: We need to generate a group for any base constant state as well; this is because we generate the
-            // scene initial value as a base animation curve in the base blend tree, which would be exposed in the
-            // default state. This is incorrect when there is a constant-on Object Toggle or similar changing the
-            // initial state of a property.
-            //
-            // We can, however, skip any groups _before_ that constant state, as they'll be overridden in all cases.
-            foreach (var group in info.actionGroups.Skip(Math.Max(0, lastConstant - 1)))
+            // Populate the BlendTree
+            foreach (var info in shapes.Values)
             {
-                y += yInc;
+                if (info.actionGroups.Count == 0) continue;
 
-                // TODO - avoid clone
-                var clip = group.CustomApplyMotion ??
-                           asc.ControllerContext.Clone(AnimResult(group.TargetProp, group.Value));
+                var lastConstantIndex = info.actionGroups.FindLastIndex(agk => agk.IsConstant);
+                var activeGroups = info.actionGroups.Skip(Math.Max(0, lastConstantIndex - 1));
 
-                if (group.IsConstant)
+                foreach (var group in activeGroups)
                 {
-                    clip.Name = "Property Overlay constant " + group.Value;
-                    initialState.Motion = clip;
-                }
-                else
-                {
-                    clip.Name = "Property Overlay controlled by " + group.ControllingConditions[0].DebugName + " " +
-                                group.Value;
+                    VirtualMotion clip = (VirtualMotion)group.CustomApplyMotion ?? asc.ControllerContext.Clone(AnimResult(group.TargetProp, group.Value));
+                    if (clip == null) continue;
 
-                    var conditions = GetTransitionConditions(group);
-
-                    foreach (var (st, transitions) in transitionBuffer)
+                    if (group.IsConstant)
                     {
-                        if (!group.Inverted)
-                        {
-                            var transition = VirtualStateTransition.Create();
-                            transition.SetExitDestination();
-                            transition.ExitTime = null;
-                            transition.Duration = 0;
-                            transition.HasFixedDuration = true;
-                            transition.Conditions = conditions.ToImmutableList();
-                            transitions.Add(transition);
-                        }
-                        else
-                        {
-                            foreach (var cond in conditions)
-                            {
-                                var transition = VirtualStateTransition.Create();
-                                transition.SetExitDestination();
-                                transition.ExitTime = null;
-                                transition.Duration = 0;
-                                transition.HasFixedDuration = true;
-                                transition.Conditions = new[] { InvertCondition(cond) }.ToImmutableList();
-                                transitions.Add(transition);
-                            }
-                        }
-                    }
-
-                    // Workaround for the warning: "'.' is not allowed in State name"
-                    var state = asm.AddState(
-                        group.ControllingConditions[0].DebugName.Replace(".", "_"),
-                        clip,
-                        new Vector3(x, y)
-                    );
-
-                    state.WriteDefaultValues = _writeDefaults;
-
-                    var transitionList = new List<VirtualStateTransition>();
-                    transitionBuffer.Add((state, transitionList));
-
-                    if (!group.Inverted)
-                    {
-                        var entryTransition = VirtualTransition.Create();
-                        entryTransition.SetDestination(state);
-                        entryTransition.Conditions = conditions.ToImmutableList();
-                        entryTransitions.Add(entryTransition);
-
-                        foreach (var cond in conditions)
-                        {
-                            var inverted = InvertCondition(cond);
-                            var transition = VirtualStateTransition.Create();
-                            transition.SetExitDestination();
-                            transition.ExitTime = null;
-                            transition.Duration = 0;
-                            transition.HasFixedDuration = true;
-                            transition.Conditions = new[] { inverted }.ToImmutableList();
-                            transitionList.Add(transition);
-                        }
+                        clip.Name = $"Constant {group.Value}";
+                        childMotions.Add(CreateDirectChildMotion(clip, alwaysOneParam));
                     }
                     else
                     {
-                        // inverted condition
-                        foreach (var cond in conditions)
+                        var wrapperTree = CreateToggleWrapperTree(group, clip, emptyClip);
+                        if (wrapperTree != null)
                         {
-                            var entryTransition = VirtualTransition.Create();
-                            entryTransition.SetDestination(state);
-                            entryTransition.Conditions = new[] { InvertCondition(cond) }.ToImmutableList();
-                            entryTransitions.Add(entryTransition);
+                            childMotions.Add(CreateDirectChildMotion(wrapperTree, alwaysOneParam));
                         }
-
-                        var transition = VirtualStateTransition.Create();
-                        transition.SetExitDestination();
-                        transition.ExitTime = null;
-                        transition.Duration = 0;
-                        transition.HasFixedDuration = true;
-                        transition.Conditions = conditions.ToImmutableList();
-
-                        transitionList.Add(transition);
                     }
                 }
             }
 
-            if (initialState.Motion == null)
+            // Apply children safely as an ImmutableList cause of C# and NDMF
+            rootTree.Children = ImmutableList.CreateRange(childMotions);
+        }
+
+        /// <summary>
+        /// Generates a 1D BlendTree to map a toggle parameter to the target animation clip.
+        /// </summary>
+        private VirtualBlendTree CreateToggleWrapperTree(ReactionRule group, VirtualMotion activeClip, VirtualMotion emptyClip)
+        {
+            var conditions = GetTransitionConditions(group);
+            if (conditions.Length == 0) return null;
+
+            var primaryCondition = conditions[0];
+            var paramName = primaryCondition.parameter;
+
+            bool isInverted = group.Inverted;
+            if (primaryCondition.mode == AnimatorConditionMode.Less)
             {
-                // For some reason, if we set the state's motion multiple times, Unity will sometimes revert to the
-                // first motion set; as such, make sure to set the empty motion only if we really mean it. 
-                var initial = VirtualClip.Create("empty motion");
-                initialState.Motion = initial;
+                isInverted = !isInverted;
             }
 
-            foreach (var (st, transitions) in transitionBuffer) st.Transitions = transitions.ToImmutableList();
+            var wrapperTree = VirtualBlendTree.Create($"Map {paramName}");
+            wrapperTree.BlendType = BlendTreeType.Simple1D;
+            wrapperTree.BlendParameter = paramName;
 
-            entryTransitions.Reverse();
-            asm.EntryTransitions = entryTransitions.ToImmutableList();
-            asm.ExitPosition = new Vector3(500, 0);
+            wrapperTree.Children = ImmutableList.Create(
+                new VirtualBlendTree.VirtualChildMotion { Motion = isInverted ? activeClip : emptyClip, Threshold = 0f, TimeScale = 1f },
+                new VirtualBlendTree.VirtualChildMotion { Motion = isInverted ? emptyClip : activeClip, Threshold = 1f, TimeScale = 1f }
+            );
+
+            return wrapperTree;
         }
+
+        private VirtualBlendTree.VirtualChildMotion CreateDirectChildMotion(VirtualMotion motion, string directParameter)
+        {
+            return new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = motion,
+                TimeScale = 1f,
+                DirectBlendParameter = directParameter
+            };
+        }
+
 #endif
 
         private static AnimatorCondition InvertCondition(AnimatorCondition cond)
