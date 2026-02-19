@@ -15,6 +15,9 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1921] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
 
 ### Changed
+- [#1929] アニメーション生成を統合するため、ReactiveObjectPass をリファクタリングしました。ProcessShapeKey および GenerateStateMachine
+  を単一の Direct BlendTree生成処理 (GenerateReactiveBlendTree, CreateToggleWrapperTree, CreateDirectChildMotion)
+  に置き換え、冗長な Animator レイヤーを排除してパフォーマンスを向上させました。
 
 ### Removed
 
