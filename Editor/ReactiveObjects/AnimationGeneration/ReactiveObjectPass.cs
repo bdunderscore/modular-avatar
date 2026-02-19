@@ -655,6 +655,12 @@ namespace nadena.dev.modular_avatar.core.editor
             rootState.Motion = rootTree;
             asm.DefaultState = rootState;
 
+            var dummyState = asm.AddState("NDMF GC Retainer (Unreachable)");
+            var dummyTree = VirtualBlendTree.Create("Dummy Root");
+            dummyTree.BlendType = BlendTreeType.Direct;
+            dummyTree.BlendParameter = alwaysOneParam;
+            var dummyMotions = new List<VirtualBlendTree.VirtualChildMotion>();
+
             var emptyClip = asc.ControllerContext.Clone(new AnimationClip { name = "Empty Motion" });
             var childMotions = new List<VirtualBlendTree.VirtualChildMotion>();
 
@@ -670,6 +676,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     VirtualMotion clip = (VirtualMotion)group.CustomApplyMotion ?? asc.ControllerContext.Clone(AnimResult(group.TargetProp, group.Value));
                     if (clip == null) continue;
+
+                    dummyMotions.Add(CreateDirectChildMotion(clip, alwaysOneParam));
 
                     if (group.IsConstant)
                     {
@@ -689,6 +697,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             // Apply children safely as an ImmutableList cause of C# and NDMF
             rootTree.Children = ImmutableList.CreateRange(childMotions);
+
+            dummyTree.Children = ImmutableList.CreateRange(dummyMotions);
+            dummyState.Motion = dummyTree;
         }
 
         /// <summary>
