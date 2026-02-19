@@ -22,16 +22,12 @@ namespace UnitTests.ReactiveComponent
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             var delayDisable = fxc.layers[^1];
-            Assert.AreEqual("DelayDisable", delayDisable.name);
-
-            var bt = (BlendTree)delayDisable.stateMachine.defaultState.motion; // root blendtree
-            bt = (BlendTree)bt.children[0].motion; // child blendtree
-
+            Assert.AreEqual("Modular Avatar: Responsive Objects Blendtree", delayDisable.name);
 
             HashSet<string> mentionedPaths = new();
-            foreach (var motion in bt.children)
+            foreach (var clip in fxc.animationClips)
             {
-                var clip = (AnimationClip)motion.motion;
+                if (clip == null) continue;
                 foreach (var binding in AnimationUtility.GetCurveBindings(clip))
                 {
                     mentionedPaths.Add(binding.path);

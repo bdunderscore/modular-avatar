@@ -25,7 +25,7 @@ namespace modular_avatar_tests
             
             Assert.AreEqual(new []
             {
-                MMDRelayPass.DummyLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "1", "2", "3", "4", "5"
+                MMDRelayPass.DummyLayerName, MMDRelayPass.DummyLayerName, MMDRelayPass.ControlLayerName, "Modular Avatar: Responsive Objects Blendtree"
             }, layerNames);
         }
     }
