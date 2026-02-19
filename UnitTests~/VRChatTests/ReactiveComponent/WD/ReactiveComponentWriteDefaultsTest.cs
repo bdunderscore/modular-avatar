@@ -29,7 +29,7 @@ public class ReactiveComponentWriteDefaultsTest : TestBase
 
         AvatarProcessor.ProcessAvatar(root);
 
-        var fx = findFxLayer(root, "Modular Avatar: Responsive Objects Blendtree");
+        var fx = findFxLayer(root, "MA Responsive: GameObject");
         Assert.AreEqual(
             controllerPath.StartsWith("rc_wd_on"),
             fx.stateMachine.defaultState.writeDefaultValues

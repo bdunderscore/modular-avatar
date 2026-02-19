@@ -21,18 +21,20 @@ public class StaticOverrideTest : TestBase
         var fx = (AnimatorController) FindFxController(prefab).animatorController;
 
         float? foundValue = null;
-        foreach (var clip in fx.animationClips)
+        foreach (var layer in fx.layers)
         {
-            if (clip == null) continue;
+            var defaultState = layer.stateMachine.defaultState;
+            if (defaultState.motion is not AnimationClip clip) continue;
+            
             var curve = AnimationUtility.GetEditorCurve(clip,
                 EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom")
             );
-            if (curve != null && curve.keys.Length > 0)
+            if (curve != null)
             {
                 foundValue = curve.keys[0].value;
             }
         }
-
+        
         Assert.AreEqual(50.0f, foundValue);
     }
 
