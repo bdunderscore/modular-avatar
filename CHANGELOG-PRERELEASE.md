@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 
 ### Fixed
-- [#1921] Fixed additional false positives in the non-constant curve check
 
 ### Changed
 
@@ -20,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.3-alpha.0] - [2026-02-13]
+
+### Added
+- [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
+
+### Fixed
+- [#1921] Fixed additional false positives in the non-constant curve check
 
 ## [1.16.2] - [2026-02-11]
 
