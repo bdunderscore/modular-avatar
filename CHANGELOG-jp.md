@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
 - [#1924] メニュー描画時間に時間制限を設けた（一時的なデバッグ処置です）
 
 ### Fixed

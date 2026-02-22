@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 
 ### Fixed
 - [#1926] Revisions to the Japanese FAQ page

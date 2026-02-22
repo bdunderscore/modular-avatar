@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             //HierarchyViewPatches.Patch,
 #if MA_VRCSDK3_AVATARS
             VRCSDKBuildInitiationHook.Patch,
+            VRCExpressionMenuHangPatch.Patch,
 #endif
             TMProPostProcessorDisabler.Patch
         };

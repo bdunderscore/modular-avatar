@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
 
 ### Fixed
 - [#1926] 日本語版FAQページの改訂
