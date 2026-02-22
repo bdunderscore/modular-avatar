@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
 
 ### Fixed
 - [#1921] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
