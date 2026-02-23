@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public ObjectPathRemapper ObjectPathRemapper { get; private set; }
         public CloneContext CloneContext { get; private set; }
         public VirtualMotion EmptyMotion { get; private set; }
-        public VirtualClip BaseClip { get; }
+        public VirtualClip AlwaysOnClip { get; }
         public VirtualBlendTree RootTree { get; }
         public VirtualLayer BaseLayer { get; }
         public VirtualClip BaseLayerClip { get; }
@@ -22,8 +23,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public int Latency { get; private set; }
         public int LatencyHorizon { get; private set; }
 
-        public BakeContext(AnimatorServicesContext asc, VirtualAnimatorController vac)
+        public BakeContext(ndmf.BuildContext buildContext, VirtualAnimatorController vac)
         {
+            var asc = buildContext.Extension<AnimatorServicesContext>();
             AnimationIndex = asc.AnimationIndex;
             ObjectPathRemapper = asc.ObjectPathRemapper;
             CloneContext = asc.ControllerContext.CloneContext;
@@ -31,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             EmptyMotion = VirtualClip.Create("Empty");
             _vac = vac;
 
-            BaseClip = VirtualClip.Create("Base");
+            AlwaysOnClip = VirtualClip.Create("Base");
 
             vac.Parameters = vac.Parameters.Add(ALWAYS_ONE, new AnimatorControllerParameter
             {
@@ -47,13 +49,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             RootTree.Children = RootTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
-                Motion = BaseClip,
+                Motion = AlwaysOnClip,
                 DirectBlendParameter = ALWAYS_ONE
             });
 
             // Base layer at lowest priority to hold initial active-state defaults
-            BaseLayerClip = VirtualClip.Create("BaseLayer");
             var baseBlendTree = VirtualBlendTree.Create("BaseLayerTree");
+            BaseLayerClip = VirtualClip.Create("BaseLayerClip");
             baseBlendTree.BlendType = BlendTreeType.Direct;
             baseBlendTree.NormalizedBlendValues = false;
             baseBlendTree.UseAutomaticThresholds = false;
@@ -70,6 +72,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var state = sm.AddState("Base");
             sm.DefaultState = state;
             state.Motion = baseBlendTree;
+
+            var animLayer = vac.AddLayer(new LayerPriority(1), "MA/RC Apply");
+            animLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
+            animLayer.DefaultWeight = 1;
+            sm = animLayer.StateMachine!;
+            state = sm.AddState("Apply");
+            sm.DefaultState = state;
+            state.Motion = RootTree;
         }
 
         private void SetLatencyHorizon(IMotionNode root)
@@ -103,16 +113,23 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         
         public string AddParameter(string prefix, float value)
         {
+            var name = "$$MA/RC/" + prefix + "$" + _counter++;
+
+            SetParameter(name, value);
+
+            return name;
+        }
+
+        public void SetParameter(string name, float value)
+        {
             var template = new AnimatorControllerParameter
             {
-                name = "$$MA/RC/" + prefix + "$" + _counter++,
+                name = name,
                 type = AnimatorControllerParameterType.Float,
                 defaultFloat = value
             };
 
-            _vac.Parameters = _vac.Parameters.Add(template.name, template);
-
-            return template.name;
+            _vac.Parameters = _vac.Parameters.SetItem(template.name, template);
         }
 
         public IDisposable LatencyScope(int frames)
@@ -136,6 +153,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             public void Dispose()
             {
                 _context.Latency = _originalLatency;
+            }
+        }
+
+        public float GetParameterInitialValue(string priorNode)
+        {
+            return _vac.Parameters.GetValueOrDefault(priorNode)?.defaultFloat ?? 0;
+        }
+
+        public void EnsureParameterPresent(string argParameter)
+        {
+            if (!_vac.Parameters.ContainsKey(argParameter))
+            {
+                SetParameter(argParameter, 0);
             }
         }
     }

@@ -171,6 +171,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             );
             group.Depth = depth;
 
+            context.SetParameter(delayParameter, context.GetParameterInitialValue(priorNode));
+            
             return group;
         }
 
@@ -214,26 +216,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             void Visit(ref IExpression expr)
             {
                 if (expr is InternalParameterCondition condition) references.Add(condition.ParameterName);
-                else expr.Walk(Visit);
-            }
-        }
-
-        private static bool DependsOnInternalParameter(EffectGroup group)
-        {
-            var hasInternalParameter = false;
-
-            foreach (var node in group.Nodes)
-            {
-                var exp = node.Expression;
-                Visit(ref exp);
-            }
-
-            return hasInternalParameter;
-
-            void Visit(ref IExpression expr)
-            {
-                if (hasInternalParameter) return;
-                if (expr is InternalParameterCondition) hasInternalParameter = true;
                 else expr.Walk(Visit);
             }
         }

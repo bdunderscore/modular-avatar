@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
 using modular_avatar_tests;
@@ -6,6 +7,7 @@ using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
@@ -28,7 +30,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(_asc, vac);
+            _bakeContext = new BakeContext(bc, vac);
         }
 
         [Test]
@@ -78,7 +80,7 @@ namespace UnitTestsReactiveComponentIL
                 ));
             }
             
-            graph.ProcessExternalObjectStateInputs(_bakeContext);
+            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
 
             var targetRule = graph.Nodes[0].Expression;
             if (targetRule is not OrNode orNode)
@@ -148,7 +150,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj), new NullAction()));
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
 
-            var subgraphs = graph.SplitIntoSubgraphs();
+            var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
             Assert.AreEqual(2, subgraphs[0].Nodes.Count);
@@ -163,7 +165,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new InternalParameterCondition("p"), new NullAction()));
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
 
-            var subgraphs = graph.SplitIntoSubgraphs();
+            var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
             Assert.AreEqual(2, subgraphs[0].Nodes.Count);
@@ -178,7 +180,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
 
-            var subgraphs = graph.SplitIntoSubgraphs();
+            var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
             Assert.AreEqual(2, subgraphs[0].Nodes.Count);
@@ -193,7 +195,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ParameterExpression("p1"), new DriveParameter("p2", 0.5f)));
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
 
-            var subgraphs = graph.SplitIntoSubgraphs();
+            var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(3, subgraphs.Count);
             Assert.That(subgraphs.All(g => g.Nodes.Count == 1));

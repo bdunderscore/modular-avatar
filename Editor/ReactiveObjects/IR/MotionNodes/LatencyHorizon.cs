@@ -44,7 +44,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     EditorCurveBinding.FloatCurve("", typeof(Animator), delayVariable),
                     AnimationCurve.Constant(0, 1, 1)
                 );
-                context.BaseClip.SetFloatCurve(
+                context.AlwaysOnClip.SetFloatCurve(
                     EditorCurveBinding.FloatCurve("", typeof(Animator), delayVariable),
                     AnimationCurve.Constant(0, 1, 0)
                 );

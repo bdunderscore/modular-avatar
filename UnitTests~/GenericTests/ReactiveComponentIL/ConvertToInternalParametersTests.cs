@@ -3,6 +3,7 @@ using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             _vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(_asc, _vac);
+            _bakeContext = new BakeContext(bc, _vac);
         }
 
         [Test]
@@ -39,7 +40,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that the expression was converted to InternalParameterCondition
             Assert.IsInstanceOf<InternalParameterCondition>(graph.Nodes[0].Expression);
@@ -65,7 +66,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveActiveState(obj, true)
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that the action was converted to DriveInternalParameter
             Assert.AreEqual(1, graph.Nodes[0].Effects.Count);
@@ -93,7 +94,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that two different parameters were created
             var ipc1 = (InternalParameterCondition)graph.Nodes[0].Expression;
@@ -119,7 +120,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveActiveState(obj, true)
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that both use the same parameter
             var ipc = (InternalParameterCondition)graph.Nodes[0].Expression;
@@ -143,7 +144,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that the nested structure was preserved
             Assert.IsInstanceOf<AndNode>(graph.Nodes[0].Expression);
@@ -174,7 +175,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check the structure: OrNode -> [AndNode, NotNode]
             Assert.IsInstanceOf<OrNode>(graph.Nodes[0].Expression);
@@ -208,7 +209,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveParameter("param2", 1.0f)
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that non-ObjectActive expressions and actions are preserved
             Assert.IsInstanceOf<ParameterExpression>(graph.Nodes[0].Expression);
@@ -227,7 +228,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that the parameter default value matches the object's initial state
             var ipc = (InternalParameterCondition)graph.Nodes[0].Expression;
@@ -249,7 +250,7 @@ namespace UnitTestsReactiveComponentIL
             node.Effects.Add(new DriveActiveState(obj2, false));
             graph.AddNode(node);
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Check that both effects were converted
             Assert.AreEqual(2, graph.Nodes[0].Effects.Count);
@@ -280,7 +281,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
 
-            graph.ConvertToInternalParameters(_bakeContext);
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
             // Both should reference the same parameter
             var ipc1 = (InternalParameterCondition)graph.Nodes[0].Expression;

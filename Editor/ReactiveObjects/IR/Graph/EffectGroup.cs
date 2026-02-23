@@ -35,6 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 {
                     var (pc, node) = conditions[i];
                     pc.OnFalse = onFalse;
+                    pc.OnTrue = node;
                     onFalse = pc.ProxyNode;
                 }
 
@@ -66,8 +67,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private readonly List<ProxyCondition> _proxyConditions = new();
 
         public IMotionNode RootNode;
-
-        private List<(ProxyNode, ProxyNode, ProxyNode)> _deferredExpressions = new();
 
         /// <summary>
         ///     The number of frames between the inputs to this node, to the outputs of the node.
@@ -112,7 +111,20 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 case InternalParameterCondition ipc:
                     return new BranchNode(ipc.ParameterName, onTrue, onFalse);
                 case ParameterExpression pe:
-                    return new BranchNode(pe.ParameterName, onTrue, onFalse);
+                {
+                    BranchNode bn;
+                    if (pe.Mode == ParameterExpression.ConditionMode.LessThan)
+                    {
+                        bn = new BranchNode(pe.ParameterName, onTrue, onFalse);
+                    }
+                    else
+                    {
+                        bn = new BranchNode(pe.ParameterName, onFalse, onTrue);
+                    }
+
+                    bn.Threshold = pe.Threshold;
+                    return bn;
+                }
                 default:
                     throw new Exception($"Unhandled expression type {expr.GetType()}");
             }

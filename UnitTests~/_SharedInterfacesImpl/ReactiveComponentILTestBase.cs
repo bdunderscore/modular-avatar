@@ -101,7 +101,7 @@ namespace UnitTests.SharedInterfacesImpl
         /// <param name="rootNode">The node to bake</param>
         protected void BakeConditions(IMotionNode rootNode)
         {
-            var bakeContext = new BakeContext(asc, vac);
+            var bakeContext = new BakeContext(buildContext, vac);
             MaxLatency = rootNode.Latency;
             bakeContext.Bake(rootNode);
 

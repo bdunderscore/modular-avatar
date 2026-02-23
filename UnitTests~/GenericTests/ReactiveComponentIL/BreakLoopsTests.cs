@@ -3,6 +3,7 @@ using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             _vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(_asc, _vac);
+            _bakeContext = new BakeContext(bc, _vac);
         }
 
         [Test]
@@ -47,7 +48,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Should not change anything since there's no cycle
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0]);
@@ -67,7 +68,7 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // The loop should be broken: DriveInternalParameter -> DriveParameter
             Assert.AreEqual(1, node.Effects.Count);
@@ -98,7 +99,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // The cycle should be broken. Since both nodes form a cycle, both edges should be broken.
             // But we prefer higher priority (later in list), so Node2 should be broken first.
@@ -142,7 +143,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // At least one parameter should have been broken
             bool hasBrokenEdge = 
@@ -177,7 +178,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Both should have their loops broken
             Assert.IsInstanceOf<DriveParameter>(node0.Effects[0]);
@@ -218,7 +219,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // At least some loop should be broken
             bool hasBrokenEdge = 
@@ -242,7 +243,7 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Should have 2 effects
             Assert.AreEqual(2, node.Effects.Count);
@@ -290,7 +291,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param3 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
@@ -318,7 +319,7 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             var driveParam = (DriveParameter)node.Effects[0];
             Assert.AreEqual(1.0f, driveParam.Value);
@@ -338,7 +339,7 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             var paramExpr = (ParameterExpression)node.Expression;
             Assert.AreEqual("param1", paramExpr.ParameterName);
@@ -380,7 +381,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param2 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
@@ -422,7 +423,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // No cycles, so nothing should change
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0]);
@@ -473,7 +474,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param2 should be broken (driven by node2, highest priority)
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
@@ -524,7 +525,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param2 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
@@ -620,7 +621,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param_A (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param_B internally");
@@ -690,7 +691,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node3);
             graph.AddNode(node4);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // param_A is driven by node2 (priority 2) and node3 (priority 3)
             // param_D is driven by node4 (priority 4)
@@ -743,7 +744,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param_A (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
@@ -788,7 +789,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node3);
             graph.AddNode(node5);
 
-            graph.BreakLoops();
+            BreakLoopsTransform.Apply(graph);
 
             // Only param_A1 (node3) and param_A2 (node5) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "node0 should still drive param_B internally");

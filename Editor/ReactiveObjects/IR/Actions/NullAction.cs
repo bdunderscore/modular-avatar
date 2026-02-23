@@ -31,7 +31,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
             return TargetKey != null ? TargetKey.GetHashCode() : 0;
         }
 
-        public string ToString()
+        public void SetBaseState(BakeContext context, bool actionStartsActive)
+        {
+            // no-op
+        }
+
+        public override string ToString()
         {
             return "<noop>";
         }

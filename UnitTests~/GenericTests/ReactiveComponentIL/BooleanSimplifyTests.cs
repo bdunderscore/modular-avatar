@@ -3,6 +3,7 @@ using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using NUnit.Framework;
 
 namespace UnitTestsReactiveComponentIL
@@ -19,7 +20,7 @@ namespace UnitTestsReactiveComponentIL
         private IExpression SimplifyExpression(IExpression expression)
         {
             var graph = CreateGraphWithExpression(expression);
-            graph.BooleanSimplify();
+            BooleanSimplifyTransform.Apply(graph);
             return graph.Nodes[0].Expression;
         }
 
@@ -343,7 +344,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(expr1, new NullAction()));
             graph.AddNode(new ReactionNode(expr2, new NullAction()));
             
-            graph.BooleanSimplify();
+            BooleanSimplifyTransform.Apply(graph);
 
             Assert.AreEqual(param1, graph.Nodes[0].Expression);
             Assert.AreEqual(param2, graph.Nodes[1].Expression);

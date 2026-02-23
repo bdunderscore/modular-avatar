@@ -23,6 +23,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
             return $"DriveParameter({ParameterName}, {Value})";
         }
 
+        public void SetBaseState(BakeContext context, bool actionStartsActive)
+        {
+            if (actionStartsActive)
+            {
+                context.SetParameter(ParameterName, Value);
+            }
+            else
+            {
+                context.EnsureParameterPresent(ParameterName);
+            }
+        }
+        
         public void ToMotion(BakeContext context, VirtualClip clip)
         {
             clip.SetFloatCurve(

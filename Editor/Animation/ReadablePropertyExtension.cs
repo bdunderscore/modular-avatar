@@ -13,6 +13,8 @@ namespace nadena.dev.modular_avatar.animation
     [DependsOnContext(typeof(AnimatorServicesContext))]
     internal class ReadablePropertyExtension : IExtensionContext
     {
+        internal const string ACTIVE_SELF_PREFIX = "__MA/ActiveSelfProxy/";
+        
         // This is a temporary hack for GameObjectDelayDisablePass
         public class Retained
         {
@@ -38,7 +40,7 @@ namespace nadena.dev.modular_avatar.animation
 
             if (proxyProps.TryGetValue(ecb, out var prop)) return prop;
 
-            prop = $"__MA/ActiveSelfProxy/{obj.name}##{index++}";
+            prop = $"{ACTIVE_SELF_PREFIX}{obj.name}##{index++}";
             proxyProps[ecb] = prop;
 
             // Add prop to all animators

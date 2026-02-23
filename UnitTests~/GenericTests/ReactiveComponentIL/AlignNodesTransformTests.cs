@@ -27,7 +27,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(_asc, vac);
+            _bakeContext = new BakeContext(bc, vac);
         }
 
         #region Effect Group Tests

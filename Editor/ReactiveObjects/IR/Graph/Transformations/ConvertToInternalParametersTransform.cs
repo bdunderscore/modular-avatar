@@ -45,12 +45,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 node.Expression = ReplaceObjectActiveStates(node.Expression, objectToParameter);
 
                 // Replace DriveActiveState actions with DriveInternalParameter actions
-                for (var i = 0; i < node.Effects.Count; i++)
+                var initialCount = node.Effects.Count;
+                for (var i = 0; i < initialCount; i++)
                 {
                     if (node.Effects[i] is DriveActiveState das)
                     {
                         var paramName = objectToParameter[das.Target];
-                        node.Effects[i] = new DriveInternalParameter(paramName, das.Active);
+                        node.Effects.Add(new DriveInternalParameter(paramName, das.Active));
                     }
                 }
             }

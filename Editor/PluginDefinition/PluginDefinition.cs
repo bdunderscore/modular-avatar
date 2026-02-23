@@ -85,14 +85,14 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
-                        seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
+                        seq.Run("Reactive Components", ctx => new ReactiveObjectPassV2(ctx).Execute())
                             .PreviewingWith(new ShapeChangerPreview(), new MeshDeleterPreview(),
                                 new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     })
 ;
 #if MA_VRCSDK3_AVATARS
                     seq.Run(FixupHeadChopRootBone.Instance);
-                    seq.Run(GameObjectDelayDisablePass.Instance);
+                    //seq.Run(GameObjectDelayDisablePass.Instance);
 
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
                     // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
