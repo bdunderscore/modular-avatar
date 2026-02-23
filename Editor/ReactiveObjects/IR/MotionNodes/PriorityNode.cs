@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// <summary>
     ///     The priority node selects the first of several conditions that are true.
     /// </summary>
-    public class PriorityNode : IMotionNode
+    internal class PriorityNode : IMotionNode
     {
         public IMotionNode DefaultMotion = EmptyNode.Instance;
         public List<(ProxyCondition, IMotionNode)> Conditions { get; set; } = new();
@@ -24,8 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             // Because we need a buffer zone between entries, we can't use every bit. In particular, we want to ensure
             // that we leave two floats between ranges. This means we need to avoid using the low two bits. As such,
             // we can encode up to 20 conditions per node.
-
-            var tmpConditions = Conditions.ToList();
+            
             VirtualMotion? subExecution = null, subSum = null;
             if (Conditions.Count > 20)
             {
@@ -94,8 +93,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     initialState = myStart;
                 }
             }
-
-            Debug.Log("[PriorityNode] Initial state = " + initialState);
 
             // We now construct the functional blend tree. This has two components: A direct blend tree, which
             // sums the conditions, and which then references a 1D blend tree which selects between them.

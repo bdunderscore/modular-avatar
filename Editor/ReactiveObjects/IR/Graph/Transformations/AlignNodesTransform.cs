@@ -16,37 +16,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     /// </summary>
     internal class AlignNodesTransform
     {
-        public class EffectGroup
-        {
-            public EffectGroup(object targetKey, List<ReactionNode> nodes)
-            {
-                TargetKey = targetKey;
-                Nodes = nodes;
-                Latency = nodes.Count > 2 ? 2 : 1;
-            }
-
-            public readonly object TargetKey;
-            public readonly List<ReactionNode> Nodes;
-
-            /// <summary>
-            ///     The number of frames between the inputs to this node, to the outputs of the node.
-            /// </summary>
-            public readonly int Latency;
-
-            /// <summary>
-            ///     Represents the number of frames away this node is from an externally-visible effect.
-            ///     It follows that external effects always have depth zero.
-            /// </summary>
-            public int? Depth;
-        }
-
-        public static List<EffectGroup> Apply(ReactionGraph graph)
+        public static List<EffectGroup> Apply(BakeContext context, ReactionGraph graph)
         {
             // TODO: group multiple effects that always activate together into the same condition nodes
 
             var byEffect = graph.Nodes.SelectMany(n => n.Effects.Select(e => (n, e)))
                 .GroupBy(pair => pair.e.TargetKey)
-                .Select(g => new EffectGroup(g.Key, g.Select(p => p.n).ToList()))
+                .Select(g => new EffectGroup(context, g.Key, g.Select(p => p.n).ToList()))
                 .ToDictionary(kv => kv.TargetKey, kv => kv);
 
             // Our high level algorithm is as follows: The EffectGroups form a directed graph, to which we will assign
@@ -148,7 +124,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                         if (byEffect.ContainsKey(delayParam)) break;
 
                         byEffect[delayParam] =
-                            BuildDelayNode(priorNode, delayParam.ParameterName, paramNode.Depth.Value - i);
+                            BuildDelayNode(context, priorNode, delayParam.ParameterName, paramNode.Depth.Value - i);
                     }
 
                     replacements[parameter] = finalDelayParam;
@@ -177,7 +153,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             return byEffect.Values.ToList();
         }
 
-        private static EffectGroup BuildDelayNode(string priorNode, string delayParameter, int depth)
+        private static EffectGroup BuildDelayNode(BakeContext context, string priorNode, string delayParameter,
+            int depth)
         {
             var onFalse = new ReactionNode(
                 new Constant(true),
@@ -188,8 +165,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 new DriveInternalParameter(delayParameter, true)
             );
 
-            var group = new EffectGroup(new ParameterTarget(delayParameter),
-                new List<ReactionNode> { onFalse, onTrue });
+            var group = new EffectGroup(context,
+                new ParameterTarget(delayParameter),
+                new List<ReactionNode> { onFalse, onTrue }
+            );
             group.Depth = depth;
 
             return group;

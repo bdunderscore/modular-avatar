@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         // Private backing fields used for ref-passing
         private ProxyNode _onFalseProxy;
         private ProxyNode _onTrueProxy;
-        private IMotionNode _node;
+        private readonly ProxyNode _node = new();
 
         public bool InitialState { get; set; }
 
@@ -42,14 +42,16 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public IMotionNode Node
         {
-            get => _node;
-            set => _node = value;
+            get => _node.Target;
+            set => _node.Target = value;
         }
 
+        public IMotionNode ProxyNode => _node;
+        
         public ProxyCondition(bool initialState, IMotionNode node, ProxyNode onFalse, ProxyNode onTrue)
         {
             InitialState = initialState;
-            _node = node;
+            Node = node;
             _onFalseProxy = onFalse;
             _onTrueProxy = onTrue;
         }
@@ -64,7 +66,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public static ProxyCondition Always()
         {
             var proxyNode = new ProxyNode(null);
-            return new ProxyCondition(true, proxyNode, proxyNode, proxyNode);
+            var onFalse = new ProxyNode();
+            return new ProxyCondition(true, proxyNode, onFalse, proxyNode);
         }
 
         public IMotionNode Flatten(IMotionNode onFalse, IMotionNode onTrue)
@@ -74,7 +77,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             _node.WalkTree(FlattenVisitor);
 
-            return _node;
+            return _node.Target;
 
             void FlattenVisitor(ref IMotionNode? node)
             {
@@ -85,7 +88,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(ConditionNodeVisitor visitor)
         {
-            visitor(ref _node);
+            var target = _node.Target;
+            visitor(ref target);
+            _node.Target = target;
         }
     }
 }

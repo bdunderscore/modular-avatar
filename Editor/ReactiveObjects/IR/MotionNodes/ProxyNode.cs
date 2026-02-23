@@ -6,7 +6,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     public class ProxyNode : IMotionNode
     {
-        public ProxyNode(IMotionNode? target)
+        public ProxyNode(IMotionNode? target = null)
         {
             Target = target;
         }

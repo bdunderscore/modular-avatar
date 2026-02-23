@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -15,12 +16,18 @@ namespace UnitTestsReactiveComponentIL
     public class AlignNodesTransformTests : TestBase
     {
         private GameObject _root;
+        private BakeContext _bakeContext;
+        private AnimatorServicesContext _asc;
 
         [SetUp]
         public override void Setup()
         {
             base.Setup();
             _root = CreateRoot("root");
+            var bc = CreateContext(_root);
+            _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
+            _bakeContext = new BakeContext(_asc, vac);
         }
 
         #region Effect Group Tests
@@ -35,7 +42,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(1, groups[0].Nodes.Count);
@@ -56,7 +63,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", false)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(2, groups.Count);
             
@@ -85,7 +92,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(2, groups[0].Nodes.Count);
@@ -112,7 +119,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("pair1", false)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var singleGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("single")));
             var pairGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("pair1")));
@@ -139,7 +146,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(3, groups[0].Nodes.Count);
@@ -196,7 +203,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("D", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var aGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("A")));
             var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("B")));
@@ -259,7 +266,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("D", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var aGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("A")));
             var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("B")));
@@ -334,7 +341,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             // Find the original and delay node groups
             var cGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("C")));
@@ -431,7 +438,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("A", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var xGroup = groups.FirstOrDefault(g => g.TargetKey as string == "x");
             var yGroup = groups.FirstOrDefault(g => g.TargetKey as string == "y");
@@ -491,7 +498,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             // Should have only the original node groups, no delay nodes
             Assert.AreEqual(1, groups.Count);
@@ -532,7 +539,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("D", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             // Find delay nodes
             var delayGroups = groups.Where(g => 
@@ -564,7 +571,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("internalParam", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("internalParam")));
             Assert.IsNotNull(group);
@@ -589,7 +596,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("param1")));
             var param2Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("param2")));
@@ -630,7 +637,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("param1")));
             var param2Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("param2")));
@@ -673,7 +680,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             // Verify we got the correct groups
             Assert.That(groups.Any(g => g.TargetKey.Equals(new ParameterTarget("output"))));
@@ -721,7 +728,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             var outputGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("output")));
             var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new ParameterTarget("param1")));
@@ -744,7 +751,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(0, groups.Count);
         }
@@ -758,7 +765,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("output", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(0, groups[0].Depth);
@@ -780,7 +787,7 @@ namespace UnitTestsReactiveComponentIL
             ));
 
             // Should throw an exception due to invalid edge depth
-            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(graph));
+            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_bakeContext, graph));
         }
 
         [Test]
@@ -795,7 +802,7 @@ namespace UnitTestsReactiveComponentIL
             ));
 
             // Should throw an exception due to invalid edge depth
-            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(graph));
+            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_bakeContext, graph));
         }
 
         #endregion
@@ -839,7 +846,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(graph);
+            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
             // Verify a delay node was created for C
             var cDelayGroup = groups.FirstOrDefault(g => 
@@ -901,7 +908,7 @@ namespace UnitTestsReactiveComponentIL
         /// - onFalse: Constant(true) → DriveInternalParameter(delayParamName, false)
         /// - onTrue: InternalParameterCondition(originalParamName) → DriveInternalParameter(delayParamName, true)
         /// </summary>
-        private void ValidateDelayNode(AlignNodesTransform.EffectGroup delayGroup, string delayParamName, string originalParamName)
+        private void ValidateDelayNode(EffectGroup delayGroup, string delayParamName, string originalParamName)
         {
             // Validate basic structure
             Assert.AreEqual(2, delayGroup.Nodes.Count, 
