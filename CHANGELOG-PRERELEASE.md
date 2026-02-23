@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 
 ### Fixed
-- [#1926] Revisions to the Japanese FAQ page
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.16.3-alpha.1] - [2026-02-23]
+
+### Added
+- [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
+
+### Fixed
+- [#1926] Revisions to the Japanese FAQ page
 
 ## [1.16.3-alpha.0] - [2026-02-13]
 
