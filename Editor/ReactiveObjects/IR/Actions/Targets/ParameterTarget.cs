@@ -1,6 +1,6 @@
 ﻿namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 {
-    public sealed class ParameterTarget
+    public readonly struct ParameterTarget
     {
         public string ParameterName { get; }
 

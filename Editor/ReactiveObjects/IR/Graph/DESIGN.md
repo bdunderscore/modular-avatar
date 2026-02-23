@@ -31,6 +31,7 @@ for each target. We then take these through a series of transformations to gener
    InternalParameterDrivers.
 8. We check for loops in this graph; if we find one, we break the loop (by replacing the InternalParameterDrivers with
    normal ParameterDrivers/ParameterConditions).
+   -- done to here --
 9. We construct PriorityGroups for each target, then group together targets with the same PriorityGroups. However,
    we do not group InternalParameterDrivers (we keep each as an independent PriorityGroup)
 10. We now assign a depth to each PriorityGroup, with all PriorityGroups that contain non-InternalParameterDrivers at
