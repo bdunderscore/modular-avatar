@@ -266,7 +266,26 @@ namespace nadena.dev.modular_avatar.core.editor
             _window.AvatarRoot = RuntimeUtil.FindAvatarTransformInParents(((ModularAvatarBlendshapeSync) target).transform)
                 .gameObject;
             _window.OfferBinding += OfferBinding;
+            _window.OfferMultipleBindings += OfferMultipleBindings;
             _window.Show();
+        }
+
+        private void OfferMultipleBindings(IList<BlendshapeBinding> bindings)
+        {
+            foreach (var obj in targets)
+            {
+                var sync = (ModularAvatarBlendshapeSync) obj;
+                Undo.RecordObject(sync, "Adding blendshape bindings");
+                foreach (var binding in bindings)
+                {
+                    if (!sync.Bindings.Contains(binding)) sync.Bindings.Add(binding);
+                }
+                EditorUtility.SetDirty(sync);
+            }
+
+            ClearSerializedObject();
+            InitList();
+            if (_window != null) _window.Close();
         }
 
         private void OfferBinding(BlendshapeBinding binding)

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
+
 ### Fixed
 
 ### Changed

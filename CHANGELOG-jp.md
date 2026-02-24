@@ -12,6 +12,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
 - [#1924] メニュー描画時間に時間制限を設けた（一時的なデバッグ処置です）
 
+- [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
+
 ### Fixed
 - [#1926] 日本語版FAQページの改訂
 - [#1921] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正

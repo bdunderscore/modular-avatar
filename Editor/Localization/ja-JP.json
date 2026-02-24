@@ -106,6 +106,7 @@
   "blendshape.mesh": "メッシュ",
   "blendshape.source": "元メッシュのブレンドシェイプ",
   "blendshape.target": "このメッシュのブレンドシェイプ",
+  "blendshape.add_selected": "{0}個選択中を追加",
   "hint.not_in_avatar": "このコンポーネントを正しく動作させるには、アバター内に配置する必要があります。",
   "boneproxy.err.MovingTarget": "他のモジュラーアバターコンポーネントで移動されるオブジェクトは指定できません。",
   "boneproxy.err.NotInAvatar": "アバター内のオブジェクトを指定してください。",

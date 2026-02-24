@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
 
+- [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
+
 ### Fixed
 - [#1926] Revisions to the Japanese FAQ page
 - [#1921] Fixed additional false positives in the non-constant curve check
