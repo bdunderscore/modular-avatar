@@ -45,3 +45,15 @@ be useful for more advanced applications.
 
 When you set the target for a bone proxy component, the attachment mode will be automatically set based on whether the object is
 currently at the target bone's position and orientation.
+
+### Match Parent Scale
+
+The "Match Parent Scale" option allows you to automatically adjust the local scale of the bone proxy to compensate for
+the target bone's parent scale.
+
+When disabled, Bone Proxy maintains its classic behavior: The bone proxy will retain its original world scale when moved
+to its new target bone.
+
+When enabled, the bone's local scale will be adjusted to (1, 1, 1) when moved to the target bone. This is useful, for
+example, when using bone proxy to place an accessory on a bone of the avatar, where you want the accessory to maintain
+the same _relative_ size when the target bone might be scaled.
