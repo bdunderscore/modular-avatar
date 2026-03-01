@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
 
 ### Changed
 
