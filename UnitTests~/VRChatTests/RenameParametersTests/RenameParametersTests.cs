@@ -92,7 +92,7 @@ namespace modular_avatar_tests.RenameParametersTests
             var prefab = CreatePrefab("ParameterConflicts.prefab");
 
             var context = CreateContext(prefab);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = new BuildContext(context);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             var errors = ErrorReport.CaptureErrors(
@@ -100,7 +100,7 @@ namespace modular_avatar_tests.RenameParametersTests
                 {
                     using (new ObjectRegistryScope(new ObjectRegistry(prefab.transform)))
                     {
-                        new RenameParametersHook().OnPreprocessAvatar(prefab, maContext);
+                        RenameParametersHook.ProcessAvatar(prefab, maContext);
                     }
                 });
 
@@ -223,10 +223,10 @@ namespace modular_avatar_tests.RenameParametersTests
             c2.parameter = "a";
 
             var context = CreateContext(av);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = new BuildContext(context);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
-            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            var errors = ErrorReport.CaptureErrors(() => RenameParametersHook.ProcessAvatar(av, maContext));
             
             Assert.IsEmpty(errors);
             
@@ -258,10 +258,10 @@ namespace modular_avatar_tests.RenameParametersTests
             };
 
             var context = CreateContext(av);
-            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            var maContext = new BuildContext(context);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
-            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(av, maContext));
+            var errors = ErrorReport.CaptureErrors(() => RenameParametersHook.ProcessAvatar(av, maContext));
             
             Assert.IsNotEmpty(errors);
         }

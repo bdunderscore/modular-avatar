@@ -43,12 +43,11 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class
-        MergeArmatureHook
+        MergeArmatureHook : Pass<MergeArmatureHook>
     {
         private const float DuplicatedBoneMaxSqrDistance = 0.001f * 0.001f;
 
         private ndmf.BuildContext frameworkContext;
-        private BuildContext context;
 #if MA_VRCSDK3_AVATARS
         private Dictionary<Transform, VRCPhysBoneBase> physBoneByRootBone;
 #endif
@@ -62,10 +61,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         private HashSet<Transform> transformLookthrough = new HashSet<Transform>();
 
-        internal void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            OnPreprocessAvatar(context, context.AvatarRootObject);
+        }
+
+        private void OnPreprocessAvatar(ndmf.BuildContext context, GameObject avatarGameObject)
         {
             this.frameworkContext = context;
-            this.context = context.Extension<ModularAvatarContext>().BuildContext;
 #if MA_VRCSDK3_AVATARS
             physBoneByRootBone = new Dictionary<Transform, VRCPhysBoneBase>();
             foreach (var physbone in avatarGameObject.transform.GetComponentsInChildren<VRCPhysBoneBase>(true))

@@ -26,14 +26,20 @@
 
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
+using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class PhysboneBlockerPass
+    internal class PhysboneBlockerPass : Pass<PhysboneBlockerPass>
     {
-        public static void Process(GameObject avatarRoot)
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            Process(context.AvatarRootObject);
+        }
+
+        private static void Process(GameObject avatarRoot)
         {
             var blockers = avatarRoot.GetComponentsInChildren<ModularAvatarPBBlocker>(true);
             if (blockers.Length == 0) return;

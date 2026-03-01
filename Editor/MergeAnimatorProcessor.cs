@@ -62,9 +62,21 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal class MergeAnimatorProcessor
+    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
+    internal class MergeAnimatorProcessor : Pass<MergeAnimatorProcessor>
     {
         private AnimatorServicesContext _asc;
+
+        protected override void Execute(ndmf.BuildContext context)
+        {
+            var maContext = context.Extension<BuildContext>();
+            ProcessAvatar(context.AvatarRootObject, maContext);
+        }
+
+        public static void ProcessAvatar(GameObject avatarGameObject, BuildContext context)
+        {
+            new MergeAnimatorProcessor().OnPreprocessAvatar(avatarGameObject, context);
+        }
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -83,7 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
             };
         }
         
-        internal void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
+        private void OnPreprocessAvatar(GameObject avatarGameObject, BuildContext context)
         {
             _asc = context.PluginBuildContext.Extension<AnimatorServicesContext>();
             

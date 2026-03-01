@@ -29,12 +29,11 @@ namespace UnitTests.MergeAnimatorTests
             var merge = av.AddComponent<ModularAvatarMergeAnimator>();
 
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             
@@ -50,12 +49,11 @@ namespace UnitTests.MergeAnimatorTests
             merge.animator = LoadAsset<AnimatorOverrideController>("AOC_Override.overrideController");
 
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             
@@ -89,12 +87,11 @@ namespace UnitTests.MergeAnimatorTests
             
             
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
             var errors = ErrorReport.CaptureErrors(() =>
             {
-                new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
+                MergeAnimatorProcessor.ProcessAvatar(av, ctx);
                 ctx.DeactivateAllExtensionContexts();
             });
             

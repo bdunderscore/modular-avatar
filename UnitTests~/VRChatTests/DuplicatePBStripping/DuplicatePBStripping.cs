@@ -103,7 +103,6 @@ namespace modular_avatar_tests.DuplicatePBStripping
 
             var context = CreateContext(prefab);
             
-            context.ActivateExtensionContext<ModularAvatarContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var errors = ErrorReport.CaptureErrors(() => new MergeArmatureHook().OnPreprocessAvatar(context, prefab));
             Assert.AreEqual(1, errors.Count);

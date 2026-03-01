@@ -1,25 +1,24 @@
 ﻿using System.Linq;
+using nadena.dev.ndmf;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.plugin
 {
     // workaround problem with avatar matching
     // https://github.com/bdunderscore/modular-avatar/issues/430
-    internal class RebindHumanoidAvatar
+    internal class RebindHumanoidAvatar : Pass<RebindHumanoidAvatar>
     {
-        private readonly ndmf.BuildContext _buildContext;
-
-        public RebindHumanoidAvatar(ndmf.BuildContext context)
+        protected override void Execute(ndmf.BuildContext context)
         {
-            _buildContext = context;
+            Process(context);
         }
 
-        public void Process()
+        private static void Process(ndmf.BuildContext buildContext)
         {
-            var avatarAnimator = _buildContext.AvatarRootObject.GetComponent<Animator>();
+            var avatarAnimator = buildContext.AvatarRootObject.GetComponent<Animator>();
             if (avatarAnimator == null || avatarAnimator.avatar == null) return;
 
-            var localTransformValues = _buildContext.AvatarRootObject
+            var localTransformValues = buildContext.AvatarRootObject
                 .GetComponentsInChildren<Transform>(true)
                 .ToDictionary((t) => t, LocalTransformValue.FromTransform);
 

@@ -54,29 +54,28 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             seq = InPhase(BuildPhase.Transforming);
             seq.Run("Validate configuration",
                 context => ComponentValidation.ValidateAll(context.AvatarRootObject));
-            seq.WithRequiredExtension(typeof(ModularAvatarContext), _s1 =>
-            {
-                seq.Run(ClearEditorOnlyTags.Instance);
-                seq.Run(VRChatSettingsPass.Instance);
-                seq.Run(MeshSettingsPluginPass.Instance);
-                seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
+            
+            seq.Run(ClearEditorOnlyTags.Instance);
+            seq.Run(VRChatSettingsPass.Instance);
+            seq.Run(MeshSettingsPass.PluginPass.Instance);
+            seq.Run(ScaleAdjusterPass.Instance).PreviewingWith(new ScaleAdjusterPreview());
 
 #if MA_VRCSDK3_AVATARS
-				seq.Run(VRChatGlobalColliderPass.Instance);
-				seq.Run(RenameCollisionTagsPass.Instance);
-                seq.Run(ReactiveObjectPrepass.Instance);
+            seq.Run(VRChatGlobalColliderPass.Instance);
+            seq.Run(RenameCollisionTagsPass.Instance);
+            seq.Run(ReactiveObjectPrepass.Instance);
 #endif
 
-                seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
-                {
+            seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>
+            {
 #if MA_VRCSDK3_AVATARS
                     seq.Run(FixupAbsolutePlayAudioPass.Instance);
                     seq.Run(MMDRelayEarlyPass.Instance);
-                    seq.Run(RenameParametersPluginPass.Instance);
+                    seq.Run(RenameParametersHook.Instance);
                     seq.Run(ParameterAssignerPass.Instance);
                     seq.Run(RemoveLayerPass.Instance);
                     seq.Run(MergeBlendTreePass.Instance);
-                    seq.Run(MergeAnimatorPluginPass.Instance);
+                    seq.Run(MergeAnimatorProcessor.Instance);
                     seq.Run(ApplyAnimatorDefaultValuesPass.Instance);
 
 #endif
@@ -94,16 +93,16 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     // TODO: We currently run this above MergeArmaturePlugin, because Merge Armature might destroy
                     // game objects which contain Menu Installers. It'd probably be better however to teach Merge Armature
                     // to retain those objects? maybe?
-                    seq.Run(MenuInstallPluginPass.Instance);
+                    seq.Run(MenuInstallHook.Instance);
 #endif
                     seq.Run(CycleCheckPass.Instance);
                     // This resolves targets before Merge Armature moves them around
                     seq.Run(BoneProxyPluginPrepass.Instance);
-                    seq.Run(MergeArmaturePluginPass.Instance);
+                    seq.Run(MergeArmatureHook.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(VisibleHeadAccessoryPluginPass.Instance);
+                    seq.Run(VisibleHeadAccessoryProcessor.PluginPass.Instance);
 #endif
 
                     seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
@@ -115,10 +114,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(WorldScaleObjectPass.Instance);
 
 
-                    seq.Run(ReplaceObjectPluginPass.Instance);
+                    seq.Run(ReplaceObjectPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
-                    seq.Run(BlendshapeSyncAnimationPluginPass.Instance);
+                    seq.Run(BlendshapeSyncAnimationProcessor.PluginPass.Instance);
                     seq.Run(ConstraintConverterPass.Instance);
 #endif
 
@@ -132,38 +131,36 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 });
 #if MA_VRCSDK3_AVATARS
-                seq.Run(PhysbonesBlockerPluginPass.Instance);
-                seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
+            seq.Run(PhysboneBlockerPass.Instance);
+            seq.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30 }, _seq =>
+            {
+                seq.Run("Fixup Expressions Menu", ctx =>
                 {
-                    seq.Run("Fixup Expressions Menu", ctx =>
-                    {
-                        var maContext = ctx.Extension<ModularAvatarContext>().BuildContext;
-                        FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
-                    });
+                    var maContext = ctx.Extension<BuildContext>();
+                    FixupExpressionsMenuPass.FixupExpressionsMenu(maContext);
                 });
-                seq.Run(SyncParameterSequencePass.Instance);
-#endif
-                seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
-                seq.Run(RebindHumanoidAvatarPass.Instance);
-                seq.Run("Purge ModularAvatar components", ctx =>
-                {
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                });
-#if MA_VRCSDK3_AVATARS
-                seq.Run(PruneParametersPass.Instance);
-#endif
             });
+            seq.Run(SyncParameterSequencePass.Instance);
+#endif
+            seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
+            seq.Run(RebindHumanoidAvatar.Instance);
+            seq.Run("Purge ModularAvatar components", ctx =>
+            {
+                foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
+                {
+                    Object.DestroyImmediate(component);
+                }
+                foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
+                {
+                    Object.DestroyImmediate(component);
+                }
+            });
+#if MA_VRCSDK3_AVATARS
+            seq.Run(PruneParametersPass.Instance);
+#endif
 
             InPhase(BuildPhase.Optimizing)
-                .WithRequiredExtension(typeof(ModularAvatarContext),
-                    s => s.Run(GCGameObjectsPluginPass.Instance));
+                .Run(GCGameObjectsPass.PluginPass.Instance);
         }
     }
 
@@ -182,15 +179,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
-    abstract class MAPass<T> : Pass<T> where T : Pass<T>, new()
-    {
-        protected BuildContext MAContext(ndmf.BuildContext context)
-        {
-            return context.Extension<ModularAvatarContext>().BuildContext;
-        }
-    }
-
-    class ClearEditorOnlyTags : MAPass<ClearEditorOnlyTags>
+    class ClearEditorOnlyTags : Pass<ClearEditorOnlyTags>
     {
         protected override void Execute(ndmf.BuildContext context)
         {
@@ -217,106 +206,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     Traverse(transform);
                 }
             }
-        }
-    }
-
-    class MeshSettingsPluginPass : MAPass<MeshSettingsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MeshSettingsPass(MAContext(context)).OnPreprocessAvatar();
-        }
-    }
-
-#if MA_VRCSDK3_AVATARS
-    class RenameParametersPluginPass : MAPass<RenameParametersPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new RenameParametersHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class MergeAnimatorPluginPass : MAPass<MergeAnimatorPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MergeAnimatorProcessor().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class MenuInstallPluginPass : MAPass<MenuInstallPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MenuInstallHook().OnPreprocessAvatar(context.AvatarRootObject, MAContext(context));
-        }
-    }
-#endif
-
-    class MergeArmaturePluginPass : MAPass<MergeArmaturePluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new MergeArmatureHook().OnPreprocessAvatar(context, context.AvatarRootObject);
-        }
-    }
-
-#if MA_VRCSDK3_AVATARS
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
-    class VisibleHeadAccessoryPluginPass : MAPass<VisibleHeadAccessoryPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new VisibleHeadAccessoryProcessor(MAContext(context)).Process();
-        }
-    }
-#endif
-
-    class ReplaceObjectPluginPass : MAPass<ReplaceObjectPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new ReplaceObjectPass(context).Process();
-        }
-    }
-
-#if MA_VRCSDK3_AVATARS
-    [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)] // TODO - support other platforms
-    class BlendshapeSyncAnimationPluginPass : MAPass<BlendshapeSyncAnimationPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new BlendshapeSyncAnimationProcessor(context).OnPreprocessAvatar();
-        }
-    }
-
-    class PhysbonesBlockerPluginPass : MAPass<PhysbonesBlockerPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            PhysboneBlockerPass.Process(context.AvatarRootObject);
-        }
-    }
-#endif
-
-    class RebindHumanoidAvatarPass : MAPass<RebindHumanoidAvatarPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new RebindHumanoidAvatar(context).Process();
-        }
-    }
-
-    [DependsOnContext(typeof(ModularAvatarContext))]
-    [DependsOnContext(typeof(AnimatorServicesContext))]
-    class GCGameObjectsPluginPass : MAPass<GCGameObjectsPluginPass>
-    {
-        protected override void Execute(ndmf.BuildContext context)
-        {
-            new GCGameObjectsPass(MAContext(context), context.AvatarRootObject).OnPreprocessAvatar();
         }
     }
 }

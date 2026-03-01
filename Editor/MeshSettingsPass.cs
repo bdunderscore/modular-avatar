@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,6 +18,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
     internal class MeshSettingsPass
     {
+        internal class PluginPass : Pass<PluginPass>
+        {
+            protected override void Execute(ndmf.BuildContext context)
+            {
+                new MeshSettingsPass(context.Extension<BuildContext>()).OnPreprocessAvatar();
+            }
+        }
+
         private readonly BuildContext context;
 
         public MeshSettingsPass(BuildContext context)

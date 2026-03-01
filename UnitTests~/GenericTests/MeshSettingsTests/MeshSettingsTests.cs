@@ -13,7 +13,7 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab(PREFAB_NAME);
             var context = new BuildContext(prefab);
-            new MeshSettingsPass(context).OnPreprocessAvatar();
+            MeshSettingsPass.OnPreprocessAvatar(context);
 
             var root = prefab.transform.Find("RendererRoot");
             var target = prefab.transform.Find("ProbeTarget");
@@ -35,7 +35,7 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab(PREFAB_NAME);
             var context = new BuildContext(prefab);
-            new MeshSettingsPass(context).OnPreprocessAvatar();
+            MeshSettingsPass.OnPreprocessAvatar(context);
 
             var noninherit = prefab.transform.Find("ProbeTargetRenderers/NonInherited").GetComponent<MeshRenderer>();
             var overrideset = prefab.transform.Find("ProbeTargetRenderers/OverrideSet").GetComponent<MeshRenderer>();
@@ -51,7 +51,7 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab(PREFAB_NAME);
             var context = new BuildContext(prefab);
-            new MeshSettingsPass(context).OnPreprocessAvatar();
+            MeshSettingsPass.OnPreprocessAvatar(context);
 
             var target = prefab.transform.Find("ProbeTarget");
 
