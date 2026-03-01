@@ -262,7 +262,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var rect = EditorGUILayout.GetControlRect(GUILayout.Width(width));
             EditorGUI.BeginProperty(rect, label, prop);
 
-            using var mixedScope = forceMixedValues.HasValue ? new ShowMixedValueScope(forceMixedValues.Value) : null;
+            using var mixedScope = new ShowMixedValueScope(forceMixedValues == true);
             EditorGUI.BeginChangeCheck();
             var value = EditorGUI.ToggleLeft(rect, label, forceValue ?? prop.boolValue);
             if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
