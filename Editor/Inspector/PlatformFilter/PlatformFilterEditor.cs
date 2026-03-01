@@ -47,30 +47,32 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else
             {
-                EditorGUI.showMixedValue = m_platform.hasMultipleDifferentValues;
-                // Show a text field to enter a platform name, with a button to open a dropdown.
-                
-                var btnRect = new Rect(rect.xMax - rect.height, rect.y, rect.height, rect.height);
-                rect = new Rect(rect.x, rect.y, rect.width - rect.height, rect.height);
-
-                m_platform.stringValue = EditorGUI.TextField(rect, label, m_platform.stringValue);
-                if (GUI.Button(btnRect, new GUIContent(), (GUIStyle)"DropDownButton"))
+                using (new ShowMixedValueScope(m_platform.hasMultipleDifferentValues))
                 {
-                    EditorUtility.DisplayCustomMenu(
-                        btnRect,
-                        platformNames,
-                        -1, 
-                        (userData, options, selected) =>
-                        {
-                            if (selected >= 0 && selected < knownPlatforms.Count)
+                    // Show a text field to enter a platform name, with a button to open a dropdown.
+                    
+                    var btnRect = new Rect(rect.xMax - rect.height, rect.y, rect.height, rect.height);
+                    rect = new Rect(rect.x, rect.y, rect.width - rect.height, rect.height);
+
+                    m_platform.stringValue = EditorGUI.TextField(rect, label, m_platform.stringValue);
+                    if (GUI.Button(btnRect, new GUIContent(), (GUIStyle)"DropDownButton"))
+                    {
+                        EditorUtility.DisplayCustomMenu(
+                            btnRect,
+                            platformNames,
+                            -1, 
+                            (userData, options, selected) =>
                             {
-                                m_platform.stringValue = knownPlatforms[selected].QualifiedName;
-                                serializedObject.ApplyModifiedProperties();
-                            }
-                        },
-                        null,
-                        false
-                    );
+                                if (selected >= 0 && selected < knownPlatforms.Count)
+                                {
+                                    m_platform.stringValue = knownPlatforms[selected].QualifiedName;
+                                    serializedObject.ApplyModifiedProperties();
+                                }
+                            },
+                            null,
+                            false
+                        );
+                    }
                 }
             }
             EditorGUI.EndProperty();
@@ -81,20 +83,21 @@ namespace nadena.dev.modular_avatar.core.editor
             var leftRect = new Rect(excludeRect.x, excludeRect.y, excludeRect.width / 2, excludeRect.height);
             var rightRect = new Rect(excludeRect.x + excludeRect.width / 2, excludeRect.y, excludeRect.width / 2, excludeRect.height);
             
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = m_excludePlatform.hasMultipleDifferentValues;
-
-            var tmp = EditorGUI.ToggleLeft(leftRect, G("platform_filter.exclude"), m_excludePlatform.boolValue);
-            if (EditorGUI.EndChangeCheck())
+            using (new ShowMixedValueScope(m_excludePlatform.hasMultipleDifferentValues))
             {
-                m_excludePlatform.boolValue = tmp;
+                EditorGUI.BeginChangeCheck();
+                var tmp = EditorGUI.ToggleLeft(leftRect, G("platform_filter.exclude"), m_excludePlatform.boolValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_excludePlatform.boolValue = tmp;
+                }
             }
 
             EditorGUI.BeginChangeCheck();
-            tmp = EditorGUI.ToggleLeft(rightRect, G("platform_filter.include"), !m_excludePlatform.boolValue);
+            var includeValue = EditorGUI.ToggleLeft(rightRect, G("platform_filter.include"), !m_excludePlatform.boolValue);
             if (EditorGUI.EndChangeCheck())
             {
-                m_excludePlatform.boolValue = !tmp;
+                m_excludePlatform.boolValue = !includeValue;
             }
             EditorGUI.EndProperty();
             

@@ -262,12 +262,11 @@ namespace nadena.dev.modular_avatar.core.editor
             var rect = EditorGUILayout.GetControlRect(GUILayout.Width(width));
             EditorGUI.BeginProperty(rect, label, prop);
 
-            if (forceMixedValues != null) EditorGUI.showMixedValue = forceMixedValues.Value;
-
+            using var mixedScope = forceMixedValues.HasValue ? new ShowMixedValueScope(forceMixedValues.Value) : null;
             EditorGUI.BeginChangeCheck();
             var value = EditorGUI.ToggleLeft(rect, label, forceValue ?? prop.boolValue);
             if (EditorGUI.EndChangeCheck()) prop.boolValue = value;
-            
+
             EditorGUI.EndProperty();
         }
         
@@ -719,8 +718,11 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUI.BeginProperty(autoRect, auto_label, _prop_automaticValue);
             EditorGUI.BeginChangeCheck();
 
-            EditorGUI.showMixedValue = _prop_automaticValue.hasMultipleDifferentValues;
-            var autoValue = EditorGUI.ToggleLeft(autoRect, auto_label, _prop_automaticValue.boolValue);
+            bool autoValue;
+            using (new ShowMixedValueScope(_prop_automaticValue.hasMultipleDifferentValues))
+            {
+                autoValue = EditorGUI.ToggleLeft(autoRect, auto_label, _prop_automaticValue.boolValue);
+            }
 
             if (EditorGUI.EndChangeCheck()) _prop_automaticValue.boolValue = autoValue;
             EditorGUI.EndProperty();
