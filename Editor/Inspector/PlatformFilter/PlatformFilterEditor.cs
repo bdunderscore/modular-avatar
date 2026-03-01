@@ -91,13 +91,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     m_excludePlatform.boolValue = tmp;
                 }
-            }
 
-            EditorGUI.BeginChangeCheck();
-            var includeValue = EditorGUI.ToggleLeft(rightRect, G("platform_filter.include"), !m_excludePlatform.boolValue);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_excludePlatform.boolValue = !includeValue;
+                EditorGUI.BeginChangeCheck();
+                var includeValue = EditorGUI.ToggleLeft(rightRect, G("platform_filter.include"), !m_excludePlatform.boolValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_excludePlatform.boolValue = !includeValue;
+                }
             }
             EditorGUI.EndProperty();
             
