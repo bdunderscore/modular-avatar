@@ -110,6 +110,10 @@ namespace nadena.dev.modular_avatar.core.editor
             var p_attachmentMode = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.attachmentMode));
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(p_attachmentMode, G("boneproxy.attachment"));
+
+            var p_matchScale = serializedObject.FindProperty(nameof(ModularAvatarBoneProxy.matchScale));
+            EditorGUILayout.PropertyField(p_matchScale, G("boneproxy.match_scale"));
+            
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
@@ -120,7 +124,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     t.Update();
                 }
             }
-
+            
             foldout = EditorGUILayout.Foldout(foldout, G("boneproxy.foldout.advanced"));
             if (foldout)
             {

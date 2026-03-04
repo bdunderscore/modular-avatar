@@ -8,20 +8,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
 - [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
+- [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
 
 ### Fixed
-
-- [#1916] `Mesh Settings` の配下にボーン未設定の `Skinned Mesh Renderer` があると位置がズレる問題を修正
+- [#1936] インスペクターGUIでの `EditorGUI.showMixedValue` が使用後にリセットされない問題を修正しました（他のエディタ拡張に影響を与える可能性がありました）
 
 ### Changed
+- [#1939] `Merge Motion` における、時間で変動する値がある場合に表示される注意は、ビルド後に現れるリポートからインスペクターUIに移動しました。
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.16.3-alpha.1] - [2026-02-23]
+
+### Added
+- [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
+
+### Fixed
+- [#1926] 日本語版FAQページの改訂
+
+## [1.16.3-alpha.0] - [2026-02-13]
+
+### Added
+- [#1924] メニュー描画時間に時間制限を設けた（一時的なデバッグ処置です）
+
+### Fixed
+- [#1921] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
+
+## [1.16.2] - [2026-02-11]
+
+### Fixed
+- [#1916] `Mesh Settings` の配下にボーン未設定の `Skinned Mesh Renderer` があると位置がズレる問題を修正
+- [#1920] `MA Merge Blend Tree` で非定数のカーブが含まれるクリップを検出する際の誤検出を修正
 
 ## [1.16.1] - [2026-02-09]
 
