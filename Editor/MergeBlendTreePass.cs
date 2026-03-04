@@ -106,15 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal, "error.merge_blend_tree.missing_tree");
                 return;
             }
-
-            foreach (var motion in virtualBlendTree.AllReachableNodes())
-            {
-                if (motion is VirtualClip clip)
-                {
-                    if (CheckClip(clip, component)) break;
-                }
-            }
-
+            
             var rootBlend = GetRootBlendTree();
             
             rootBlend.Children = rootBlend.Children.Add(new()
@@ -158,39 +150,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             Object.DestroyImmediate(component);
         }
-
-        private bool CheckClip(VirtualClip clip, ModularAvatarMergeBlendTree component)
-        {
-            foreach (var ecb in clip.GetFloatCurveBindings())
-            {
-                var keys = clip.GetFloatCurve(ecb);
-                if (keys == null || keys.length < 2) continue;
-
-                var firstKey = keys[0];
-                for (var i = 0; i < keys.length; i++)
-                {
-                    var t0 = i == 0 ? -0.5f : keys[i - 1].time;
-                    var t1 = keys[i].time;
-                    var t2 = keys[i].time + (t1 - t0);
-
-                    var v0 = keys.Evaluate((t0 + t1) / 2);
-                    var v1 = keys.Evaluate(t1);
-                    var v2 = keys.Evaluate((t1 + t2) / 2);
-
-                    if (Mathf.Approximately(v0, v1) && Mathf.Approximately(v1, v2))
-                    {
-                        continue;
-                    }
-
-                    ErrorReport.ReportError(Localization.L, ErrorSeverity.NonFatal,
-                        "error.merge_blend_tree.non_constant_curve", component, clip);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
+        
         private VirtualBlendTree GetRootBlendTree()
         {
             if (_rootBlendTree != null) return _rootBlendTree;
