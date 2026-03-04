@@ -143,6 +143,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 });
                 seq.Run(SyncParameterSequencePass.Instance);
 #endif
+                seq.Run(FloorAdjusterPass.Instance);
                 seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
                 seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>

@@ -19,11 +19,17 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             var avatarAnimator = _buildContext.AvatarRootObject.GetComponent<Animator>();
             if (avatarAnimator == null || avatarAnimator.avatar == null) return;
 
-            var localTransformValues = _buildContext.AvatarRootObject
-                .GetComponentsInChildren<Transform>(true)
-                .ToDictionary((t) => t, LocalTransformValue.FromTransform);
-
             var boundAvatar = avatarAnimator.avatar;
+
+            RebindAvatar(avatarAnimator, boundAvatar);
+        }
+
+        internal static void RebindAvatar(Animator avatarAnimator, Avatar boundAvatar)
+        {
+            var localTransformValues = avatarAnimator
+                .GetComponentsInChildren<Transform>(true)
+                .ToDictionary(t => t, LocalTransformValue.FromTransform);
+
             avatarAnimator.avatar = null;
             // ReSharper disable once Unity.InefficientPropertyAccess
             avatarAnimator.avatar = boundAvatar;
