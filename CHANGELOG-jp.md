@@ -15,6 +15,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 - [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
 
+- [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
+
 ### Fixed
 - [#1936] インスペクターGUIでの `EditorGUI.showMixedValue` が使用後にリセットされない問題を修正しました（他のエディタ拡張に影響を与える可能性がありました）
 - [#1926] 日本語版FAQページの改訂

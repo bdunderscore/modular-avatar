@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#1915] Added `Match scale` option to `MA Bone Proxy`
 
+- [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
+
 ### Fixed
 - [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
 - [#1926] Revisions to the Japanese FAQ page
