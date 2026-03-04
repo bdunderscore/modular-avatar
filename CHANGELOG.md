@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
 
+- [#1915] Added `Match scale` option to `MA Bone Proxy`
+
 ### Fixed
 - [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
 - [#1926] Revisions to the Japanese FAQ page

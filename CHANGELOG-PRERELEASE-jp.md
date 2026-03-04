@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
+
 ### Fixed
 - [#1936] インスペクターGUIでの `EditorGUI.showMixedValue` が使用後にリセットされない問題を修正しました（他のエディタ拡張に影響を与える可能性がありました）
 

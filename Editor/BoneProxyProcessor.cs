@@ -119,6 +119,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     transform.localRotation = Quaternion.identity;
                 }
+
+                if (Proxy.matchScale)
+                {
+                    transform.localScale = Vector3.one;
+                }
             }
         }
 
