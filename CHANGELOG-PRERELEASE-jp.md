@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1936] インスペクターGUIでの `EditorGUI.showMixedValue` が使用後にリセットされない問題を修正しました（他のエディタ拡張に影響を与える可能性がありました）
 
 ### Changed
+- [#1939] `Merge Motion` における、時間で変動する値がある場合に表示される注意は、ビルド後に現れるリポートからインスペクターUIに移動しました。
 
 ### Removed
 

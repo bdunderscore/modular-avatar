@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1921] Fixed additional false positives in the non-constant curve check
 
 ### Changed
+- [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
 
 ### Removed
 
