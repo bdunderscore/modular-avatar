@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1941] Added `MA Floor Adjuster`
 
 - [#1915] Added `Match scale` option to `MA Bone Proxy`
 

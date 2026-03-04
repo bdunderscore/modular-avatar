@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1941] `MA Floor Adjuster` を追加
 
 - [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
 
