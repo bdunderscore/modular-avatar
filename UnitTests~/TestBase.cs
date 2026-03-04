@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.runtime.components;
 using NUnit.Framework;
 using UnitTests.SharedInterfaces;
@@ -42,9 +44,11 @@ namespace modular_avatar_tests
             ITestSupport.Instance.Teardown();
         }
 
-        protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root)
+        protected nadena.dev.ndmf.BuildContext CreateContext(GameObject root, [CanBeNull] string platformName = null)
         {
-            return new nadena.dev.ndmf.BuildContext(root, TEMP_ASSET_PATH); // TODO - cleanup
+            platformName ??= AmbientPlatform.DefaultPlatform.QualifiedName;
+            var platform = PlatformRegistry.PlatformProviders[platformName];
+            return new nadena.dev.ndmf.BuildContext(root, TEMP_ASSET_PATH, platform); // TODO - cleanup
         }
 
         protected GameObject CreateRoot(string name)
