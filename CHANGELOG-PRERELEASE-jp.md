@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.17.0-beta.0] - [2026-03-04]
+
+### Added
 - [#1919] ブレンドシェイプ選択ウィンドウで複数選択に対応（Shape Changer、Blendshape Sync、VF By Shape）
 - [#1941] `MA Floor Adjuster` を追加
 - [#1915] `MA Bone Proxy` に `スケールを合わせる` オプションを追加
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1939] `Merge Motion` における、時間で変動する値がある場合に表示される注意は、ビルド後に現れるリポートからインスペクターUIに移動しました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.3-alpha.1] - [2026-02-23]
 

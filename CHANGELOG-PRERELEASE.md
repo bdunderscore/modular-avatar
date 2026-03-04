@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.17.0-beta.0] - [2026-03-04]
+
+### Added
 - [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
 - [#1941] Added `MA Floor Adjuster`
 - [#1915] Added `Match scale` option to `MA Bone Proxy`
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.3-alpha.1] - [2026-02-23]
 
