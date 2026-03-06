@@ -324,7 +324,7 @@ namespace nadena.dev.modular_avatar.core.editor
         [BurstCompile]
         private struct WriteBoneStatesJob : IJobParallelForTransform
         {
-            private const float EPSILON = 0.001f;
+            private const float EPSILON = float.Epsilon;
             private const float SQR_EPSILON = EPSILON * EPSILON;
             
             [ReadOnly] public NativeArray<BoneState> BoneStates;
