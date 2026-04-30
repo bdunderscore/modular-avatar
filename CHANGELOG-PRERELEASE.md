@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1973] Fixed an issue causing compilation errors when importing into World Project
 
 ### Changed
 

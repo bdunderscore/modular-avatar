@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
 - [#1926] Revisions to the Japanese FAQ page
 - [#1921] Fixed additional false positives in the non-constant curve check
+- [#1973] Fixed an issue causing compilation errors when importing into World Project
 
 ### Changed
 - [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
