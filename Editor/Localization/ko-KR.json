@@ -361,5 +361,11 @@
   "reactive_object.delete-mesh-by-shape.shape_name.tooltip": "버텍스를 필터링할 블렌드 셰이프의 이름입니다.",
   "reactive_object.delete-mesh-by-shape.browse": "선택",
   "reactive_object.delete-mesh-by-shape.threshold": "임계값",
-  "reactive_object.delete-mesh-by-shape.threshold.tooltip": "블렌드 셰이프가 활성화될 때 이 거리 이상 이동하는 버텍스가 필터링됩니다."
+  "reactive_object.delete-mesh-by-shape.threshold.tooltip": "블렌드 셰이프가 활성화될 때 이 거리 이상 이동하는 버텍스가 필터링됩니다.",
+  "global_collider.header_shape": "모양",
+  "global_collider.radius": "반경",
+  "global_collider.height": "높이",
+  "global_collider.position": "위치",
+  "global_collider.rotation": "회전",
+  "global_collider.visualize_gizmo": "기즈모 시각화"
 }
