@@ -18,7 +18,6 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.syncmode.PhysBonesPrefix": "PB 접두사",
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   자동 감지된 파라미터   ",
   "params.internal": "내부 값",
