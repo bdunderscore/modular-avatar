@@ -18,7 +18,6 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.syncmode.PhysBonesPrefix": "PB 前缀",
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   自动检测参数   ",
   "params.internal": "内部",
