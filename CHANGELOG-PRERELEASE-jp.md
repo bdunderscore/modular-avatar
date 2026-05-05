@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1974] `MA Parameters` が `VRCRaycast` に対応
 
 ### Fixed
-- [#1973] ワールドプロジェクトへのインポート時にコンパイルエラーが発生する問題を修正
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.17.0-beta.1] - [2026-05-05]
+
+### Added
+- [#1974] `MA Parameters` が `VRCRaycast` に対応
+
+### Fixed
+- [#1973] ワールドプロジェクトへのインポート時にコンパイルエラーが発生する問題を修正
 
 ## [1.17.0-beta.0] - [2026-03-04]
 
