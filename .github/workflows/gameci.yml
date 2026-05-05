@@ -134,7 +134,7 @@ jobs:
             Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
             Library-${{ steps.configure.outputs.unity_version }}
 
-      - uses: game-ci/unity-test-runner@v4
+      - uses: game-ci/unity-test-runner@v3
         id: gameci
         env:
           # meh, just a personal license...
