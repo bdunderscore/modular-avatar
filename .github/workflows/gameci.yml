@@ -147,7 +147,7 @@ jobs:
           customParameters: -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
           checkName: ${{ steps.setup.outputs.check_name }}
 
-      - uses: dorny/test-reporter@v2
+      - uses: dorny/test-reporter@v3
         if: ${{ matrix.testmode != 'EditMode' }}
         with:
           reporter: dotnet-nunit
@@ -155,7 +155,7 @@ jobs:
           fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
           path: ${{ steps.gameci.outputs.artifactsPath }}/playmode-results.xml
 
-      - uses: dorny/test-reporter@v2
+      - uses: dorny/test-reporter@v3
         if: ${{ matrix.testmode != 'PlayMode' }}
         with:
           reporter: dotnet-nunit
