@@ -1,6 +1,4 @@
 ﻿{
-  "test0.test_a": "test_a",
-  "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "고급 설정",
   "boneproxy.target": "대상",
   "menuinstall.help.hint_set_menu": "이 프리팹은 자동으로 아바타의 최상단 메뉴에 추가됩니다. 필요하지 않은 경우 다른 메뉴를 지정하거나 컴포넌트를 비활성화하세요.",
@@ -18,7 +16,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.__comment__": "=== Unity 2019 only strings ===",
+  "params.syncmode.PhysBonesPrefix": "접두사",
   "params.autodetect_header": "   자동 감지된 파라미터   ",
   "params.internal": "내부 값",
   "params.pb_prefix": "PhysBones 접두사",
@@ -30,7 +28,6 @@
   "params.remapto": "변경 후 이름",
   "params.remapto.tooltip": "여기에 새 이름을 입력하면 이름 충돌을 해결할 수 있습니다",
   "params.devmode": "프리팹 개발자 설정 표시",
-  "params.__comment1__": "=== Unity 2022 only strings ===",
   "merge_parameter.ui.name": "매개변수 이름",
   "merge_parameter.ui.prefix": "PhysBone 접두사",
   "merge_parameter.ui.remapTo": "이름 변경",
