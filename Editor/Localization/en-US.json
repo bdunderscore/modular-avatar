@@ -18,7 +18,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.syncmode.PhysBonesPrefix": "PB Prefix",
+  "params.syncmode.PhysBonesPrefix": "Prefix",
   "params.__comment__": "=== Unity 2019 only strings ===",
   "params.autodetect_header": "   Autodetected Parameters   ",
   "params.internal": "Internal",
