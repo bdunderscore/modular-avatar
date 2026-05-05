@@ -58,6 +58,11 @@
             "define": "MA_VRCSDK3_AVATARS_3_7_0_OR_NEWER"
         },
         {
+            "name": "com.vrchat.avatars",
+            "expression": "3.10.3",
+            "define": "MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER"
+        },
+        {
             "name": "net.nekobako.mask-texture-editor",
             "expression": "1.1.0",
             "define": "MA_MASK_TEXTURE_EDITOR"

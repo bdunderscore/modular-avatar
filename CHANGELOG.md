@@ -14,10 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1941] Added `MA Floor Adjuster`
 - [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
-
 - [#1915] Added `Match scale` option to `MA Bone Proxy`
-
 - [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
+- [#1974] Added support for `VRCRaycast` components and parameters in `MA Parameters`
 
 ### Fixed
 - [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions

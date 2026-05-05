@@ -15,6 +15,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
+using VRC.SDK3.Dynamics.PhysBone.Components;
 using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
 namespace modular_avatar_tests.RenameParametersTests
@@ -407,6 +408,36 @@ namespace modular_avatar_tests.RenameParametersTests
             
             AvatarProcessor.ProcessAvatar(prefab);
         }
+
+        #if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
+        [Test]
+        public void Remaps_PhysBone_And_Raycast()
+        {
+            var prefab = CreatePrefab("RaycastAndPhysBone/RaycastAndPhysBone.prefab");
+            
+            AvatarProcessor.ProcessAvatar(prefab);
+            
+            var transition = findFxLayer(prefab, "test").stateMachine.defaultState.transitions[0];
+            var transitionParams = transition.conditions.Select(c => c.parameter).ToList();
+            
+            Assert.That(transitionParams, Does.Not.Contain("pb2_Unmapped"));
+            Assert.That(transitionParams, Does.Not.Contain("rc2_Unmapped"));
+            
+            Assert.That(transitionParams, Does.Contain("rc2_Hit"));
+            Assert.That(transitionParams, Does.Contain("rc2_Ratio"));
+            Assert.That(transitionParams, Does.Contain("rc2_Distance"));
+            Assert.That(transitionParams, Does.Contain("pb2_IsGrabbed"));
+            Assert.That(transitionParams, Does.Contain("pb2_Angle"));
+            Assert.That(transitionParams, Does.Contain("pb2_Stretch"));
+            Assert.That(transitionParams, Does.Contain("pb2_Squish"));
+
+            var pb = prefab.GetComponentInChildren<VRCPhysBone>();
+            Assert.That(pb.parameter, Is.EqualTo("pb2"));
+            
+            var rc = prefab.GetComponentInChildren<VRCRaycast>();
+            Assert.That(rc.Parameter, Is.EqualTo("rc2"));
+        }
+        #endif
     }
 }
 

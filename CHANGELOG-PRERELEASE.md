@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#1974] Added support for `VRCRaycast` components and parameters in `MA Parameters`
 
 ### Fixed
 - [#1973] Fixed an issue causing compilation errors when importing into World Project
