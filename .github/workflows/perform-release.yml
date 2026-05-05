@@ -218,7 +218,7 @@ jobs:
           cat .github/release-note.md
 
       - name: Make Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         if: ${{ github.event.inputs.publish == 'true' }}
         with:
           draft: true
