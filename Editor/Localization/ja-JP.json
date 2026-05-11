@@ -16,7 +16,7 @@
   "params.syncmode.Int": "Int",
   "params.syncmode.Float": "Float",
   "params.syncmode.Bool": "Bool",
-  "params.syncmode.PhysBonesPrefix": "PB前置詞",
+  "params.syncmode.PhysBonesPrefix": "接頭辞",
   "params.autodetect_header": "   自動検出されたパラメーター   ",
   "params.internal": "内部値",
   "params.pb_prefix": "PhysBones接頭辞",
