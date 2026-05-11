@@ -324,8 +324,7 @@ namespace nadena.dev.modular_avatar.core.editor
         [BurstCompile]
         private struct WriteBoneStatesJob : IJobParallelForTransform
         {
-            private const float EPSILON = float.Epsilon;
-            private const float SQR_EPSILON = EPSILON * EPSILON;
+            private const float THRESHOLD = 0f;
             
             [ReadOnly] public NativeArray<BoneState> BoneStates;
             [ReadOnly] public NativeArray<bool> BoneIsValid;
@@ -336,9 +335,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var state = BoneStates[index];
                     
-                    if (Vector3.SqrMagnitude(transform.position - state.position) > SQR_EPSILON
-                        || Mathf.Abs(Quaternion.Dot(transform.rotation, state.rotation)) < (1 - SQR_EPSILON)
-                        || Vector3.SqrMagnitude(transform.localScale - state.localScale) > SQR_EPSILON)
+                    if (Vector3.SqrMagnitude(transform.position - state.position) > THRESHOLD
+                        || Mathf.Abs(Quaternion.Dot(transform.rotation, state.rotation)) < (1 - THRESHOLD)
+                        || Vector3.SqrMagnitude(transform.localScale - state.localScale) > THRESHOLD)
                     {
                         transform.position = state.position;
                         transform.rotation = state.rotation;
