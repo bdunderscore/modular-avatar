@@ -30,8 +30,9 @@ The parameter type field in the upper right can be set to any of the following:
 If you select Animator Only, the parameter will not be added to the Expressions Parameters list. However, it will still
 be able to rename the parameter in question, as described below.
 
-The Prefix setting is used when this parameter prefix is set in a PhysBones or Raycast component. As with Animator Only,
-this will not be added to the Expressions Parameters list.
+The Prefix setting is used when this parameter prefix is set in a PhysBones or Raycast component.
+These components generate multiple parameters with the prefix at the start, so this allows you to configure them all at once.
+As with Animator Only, this will not be added to the Expressions Parameters list.
 
 ### Renaming parameters
 
