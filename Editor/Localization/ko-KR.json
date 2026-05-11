@@ -329,7 +329,7 @@
   "reactive_object.material-swap.quick_swap_mode.None": "없음",
   "reactive_object.material-swap.quick_swap_mode.SameDirectory": "같은 폴더",
   "reactive_object.material-swap.quick_swap_mode.SiblingDirectory": "인접 폴더",
-  "reactive_object.shape_changer.threshold": "기준값",
+  "reactive_object.shape_changer.threshold": "변위 임계값",
   "reactive_object.shape_changer.threshold.tooltip": "블렌드 셰이프 영향 판정 최소 이동 거리",
   "menuitem.misc.add_toggle": "토글 추가",
   "ro_sim.open_debugger_button": "Reaction 디버거 열기",
