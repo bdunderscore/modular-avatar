@@ -68,6 +68,8 @@ namespace nadena.dev.modular_avatar.core.editor
             "IsAnimatorEnabled",
         }.ToImmutableHashSet();
 
+        // TODO: Move into NDMF
+        // Note: includes Raycast as well (legacy naming convention)
         public static ImmutableList<string> PhysBoneSuffixes = new string[]
         {
             "_IsGrabbed",
@@ -75,6 +77,9 @@ namespace nadena.dev.modular_avatar.core.editor
             "_Stretch",
             "_IsPosed",
             "_Squish",
+            "_Hit",
+            "_Ratio",
+            "_Distance"
         }.ToImmutableList();
 
         public static ImmutableDictionary<string, DetectedParameter> ProbeParameters(GameObject root)
@@ -119,6 +124,27 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         break;
                     }
+
+#if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
+
+                    case VRCRaycast raycast:
+                    {
+                        if (!string.IsNullOrWhiteSpace(raycast.Parameter))
+                        {
+                            var param = new DetectedParameter
+                            {
+                                OriginalName = raycast.Parameter,
+                                IsPrefix = true,
+                                Source = raycast
+                            };
+
+                            parameters[param.MapKey] = param;
+                        }
+
+                        break;
+                    }
+
+#endif
 
                     case VRCContactReceiver contact:
                     {

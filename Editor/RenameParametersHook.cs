@@ -81,13 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private BuildContext _context;
 
-        // TODO: Move into NDMF
-        private ImmutableList<string> PhysBoneSuffixes = ImmutableList<string>.Empty
-            .Add("_IsGrabbed")
-            .Add("_IsPosed")
-            .Add("_Angle")
-            .Add("_Stretch")
-            .Add("_Squish");
+        private readonly ImmutableList<string> PhysBoneSuffixes = ParameterPolicy.PhysBoneSuffixes;
         
         class ParameterInfo
         {
@@ -375,6 +369,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             break;
                         }
+
+#if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
+                        case VRCRaycast raycast:
+                        {
+                            var remaps = paramInfo.GetParameterRemappingsAt(obj);
+                            if (raycast.Parameter != null &&
+                                remaps.TryGetValue((ParameterNamespace.PhysBonesPrefix, raycast.Parameter),
+                                    out var newVal))
+                            {
+                                raycast.Parameter = newVal.ParameterName;
+                            }
+
+                            break;
+                        }
+#endif
 
                         case VRCContactReceiver contact:
                         {

@@ -11,27 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#1941] Added `MA Floor Adjuster`
-- [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
-- [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
-
-- [#1915] Added `Match scale` option to `MA Bone Proxy`
-
-- [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
 
 ### Fixed
-- [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
-- [#1926] Revisions to the Japanese FAQ page
-- [#1921] Fixed additional false positives in the non-constant curve check
 
 ### Changed
-- [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.17.0] - [2026-05-11]
+
+### Added
+- [#1941] Added `MA Floor Adjuster`
+- [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
+- [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
+- [#1915] Added `Match scale` option to `MA Bone Proxy`
+- [#1919] Added multi-select support for blendshape picker window (Shape Changer, Blendshape Sync, VF By Shape)
+- [#1974] Added support for `VRCRaycast` components and parameters in `MA Parameters`
+
+### Fixed
+- [#1936] Fixed `EditorGUI.showMixedValue` not being reset after use in inspector GUIs, which could affect other editor extensions
+- [#1926] Revisions to the Japanese FAQ page
+- [#1921] Fixed additional false positives in the non-constant curve check
+- [#1973] Fixed an issue causing compilation errors when importing into World Project
+
+### Changed
+- [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
 
 ## [1.16.2] - [2026-02-11]
 
