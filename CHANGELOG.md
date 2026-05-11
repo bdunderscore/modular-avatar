@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.17.0] - [2026-05-11]
+
+### Added
 - [#1941] Added `MA Floor Adjuster`
 - [#1932] Patched a VRCSDK bug which caused the expressions menu editor to hang
 - [#1924] Added a watchdog to limit time spent in menu GUI rendering to help diagnose an issue
@@ -26,12 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1939] The "non-constant curves" warning now appears only on the `Merge Motion` inspector UI, instead of as part of the build report.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.2] - [2026-02-11]
 

@@ -9,6 +9,20 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.17.0] - [2026-05-11]
+
+### Added
 - [#1941] `MA Floor Adjuster` を追加
 - [#1932] Expressions Menuのインスペクターが固まるVRCSDKのバグを迂回
 - [#1924] メニュー描画時間に時間制限を設けた（一時的なデバッグ処置です）
@@ -24,12 +38,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Changed
 - [#1939] `Merge Motion` における、時間で変動する値がある場合に表示される注意は、ビルド後に現れるリポートからインスペクターUIに移動しました。
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.16.2] - [2026-02-11]
 
