@@ -152,37 +152,37 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 mesh = Object.Instantiate(mesh);
-                
+
                 var vertexMask = new bool[mesh.vertexCount];
                 new ORFilter(filters).MarkFilteredVertices(proxy, mesh, vertexMask);
 
-                var tris = new List<int>();
+                var originalTriangles = new List<int>();
+                var processedTriangles = new List<int>();
                 for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
                 {
-                    tris.Clear();
+                    originalTriangles.Clear();
+                    processedTriangles.Clear();
 
                     var baseVertex = (int)mesh.GetBaseVertex(subMesh);
-                    mesh.GetTriangles(tris, subMesh, false);
+                    mesh.GetTriangles(originalTriangles, subMesh, false);
 
-                    for (var i = 0; i < tris.Count; i += 3)
+                    for (var i = 0; i < originalTriangles.Count; i += 3)
                     {
-                        var t0 = tris[i + 0];
-                        var t1 = tris[i + 1];
-                        var t2 = tris[i + 2];
+                        var t0 = originalTriangles[i + 0];
+                        var t1 = originalTriangles[i + 1];
+                        var t2 = originalTriangles[i + 2];
 
-                        if (vertexMask[t0 + baseVertex] ||
-                            vertexMask[t1 + baseVertex] ||
-                            vertexMask[t2 + baseVertex])
+                        if (!vertexMask[t0 + baseVertex] &&
+                            !vertexMask[t1 + baseVertex] &&
+                            !vertexMask[t2 + baseVertex])
                         {
-                            // Replace with degenerate triangle. We could try to erase the triangle from the
-                            // mesh entirely, but for preview purposes we want to lean towards mesh processing
-                            // speed.
-                            tris[i + 1] = t0;
-                            tris[i + 2] = t0;
+                            processedTriangles.Add(t0);
+                            processedTriangles.Add(t1);
+                            processedTriangles.Add(t2);
                         }
                     }
 
-                    mesh.SetTriangles(tris, subMesh, false, baseVertex: baseVertex);
+                    mesh.SetTriangles(processedTriangles, subMesh, false, baseVertex: baseVertex);
                 }
 
                 return mesh;
