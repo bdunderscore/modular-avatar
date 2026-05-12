@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1981] `MA Floor Adjuster` の実行順を TexTransTools などの既存のNDMFプラグインの後に来るように調整
 
 ### Removed
 

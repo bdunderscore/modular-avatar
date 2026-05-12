@@ -20,6 +20,9 @@ using nadena.dev.modular_avatar.core.editor.SyncParameterSequence;
 [assembly: ExportsPlugin(
     typeof(PluginDefinition)
 )]
+[assembly: ExportsPlugin(
+    typeof(LateTransformPluginDefinition)
+)]
 
 namespace nadena.dev.modular_avatar.core.editor.plugin
 {
@@ -143,7 +146,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                 });
                 seq.Run(SyncParameterSequencePass.Instance);
 #endif
-                seq.Run(FloorAdjusterPass.Instance);
                 seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
                 seq.Run(RebindHumanoidAvatarPass.Instance);
                 seq.Run("Purge ModularAvatar components", ctx =>
@@ -168,6 +170,30 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
         }
     }
 
+    /// <summary>
+    ///     Stages executed late in the transform process. These may shift the avatar in ways not reflected in the preview
+    ///     system, so we execute them after e.g. TTT.
+    ///     See https://github.com/bdunderscore/modular-avatar/issues/1944
+    /// </summary>
+    internal class LateTransformPluginDefinition : Plugin<LateTransformPluginDefinition>
+    {
+        public override string QualifiedName => "nadena.dev.modular-avatar.late-transform-stages";
+        public override string DisplayName => "Modular Avatar";
+
+        protected override void Configure()
+        {
+            InPhase(BuildPhase.Transforming)
+                .WithRequiredExtension(typeof(ModularAvatarContext),
+                    s =>
+                    {
+                        s.AfterPlugin(PluginDefinition.Instance.QualifiedName)
+                            .AfterPlugin("net.rs64.tex-trans-tool")
+                            .AfterPlugin("wataameya.marshmallow_PB.ndmf")
+                            .Run(FloorAdjusterPass.Instance);
+                    });
+        }
+    }
+    
     /// <summary>
     /// This plugin runs very early in order to resolve all AvatarObjectReferences to their
     /// referent before any other plugins perform heirarchy manipulations.
