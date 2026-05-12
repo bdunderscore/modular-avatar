@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1981] Adjusted execution order of `Floor Adjuster` to be after TexTransTool and some other pre-existing NDMF plugins.
 
 ### Removed
 

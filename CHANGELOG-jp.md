@@ -13,6 +13,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Fixed
 
 ### Changed
+- [#1981] `MA Floor Adjuster` の実行順を TexTransTools などの既存のNDMFプラグインの後に来るように調整
 
 ### Removed
 
