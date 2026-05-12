@@ -175,6 +175,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
     ///     system, so we execute them after e.g. TTT.
     ///     See https://github.com/bdunderscore/modular-avatar/issues/1944
     /// </summary>
+    [RunsOnAllPlatforms]
     internal class LateTransformPluginDefinition : Plugin<LateTransformPluginDefinition>
     {
         public override string QualifiedName => "nadena.dev.modular-avatar.late-transform-stages";
