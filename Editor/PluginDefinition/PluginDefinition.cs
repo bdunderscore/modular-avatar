@@ -148,17 +148,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #endif
                 seq.Run(RemoveVertexColorPass.Instance).PreviewingWith(new RemoveVertexColorPreview());
                 seq.Run(RebindHumanoidAvatarPass.Instance);
-                seq.Run("Purge ModularAvatar components", ctx =>
-                {
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<AvatarTagComponent>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                    foreach (var component in ctx.AvatarRootTransform.GetComponentsInChildren<MAMoveIndependently>(true))
-                    {
-                        Object.DestroyImmediate(component);
-                    }
-                });
 #if MA_VRCSDK3_AVATARS
                 seq.Run(PruneParametersPass.Instance);
 #endif
@@ -190,7 +179,22 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                         s.AfterPlugin(PluginDefinition.Instance.QualifiedName)
                             .AfterPlugin("net.rs64.tex-trans-tool")
                             .AfterPlugin("wataameya.marshmallow_PB.ndmf")
-                            .Run(FloorAdjusterPass.Instance);
+                            .Run(FloorAdjusterPass.Instance)
+                            .Then.Run("Purge ModularAvatar components", ctx =>
+                            {
+                                foreach (var component in ctx.AvatarRootTransform
+                                             .GetComponentsInChildren<AvatarTagComponent>(true))
+                                {
+                                    Object.DestroyImmediate(component);
+                                }
+
+                                foreach (var component in ctx.AvatarRootTransform
+                                             .GetComponentsInChildren<MAMoveIndependently>(true))
+                                {
+                                    Object.DestroyImmediate(component);
+                                }
+                            })
+                            .Then.Run("Rebind humanoid avatar (again)", ctx => new RebindHumanoidAvatar(ctx).Process());
                     });
         }
     }
