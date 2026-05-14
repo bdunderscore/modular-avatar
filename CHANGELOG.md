@@ -15,13 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- [#1981] Adjusted execution order of `Floor Adjuster` to be after TexTransTool and some other pre-existing NDMF plugins.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.17.1] - [2026-05-14]
+
+### Changed
+- [#1981] Adjusted execution order of `Floor Adjuster` to be after TexTransTool and some other pre-existing NDMF plugins.
 
 ## [1.17.0] - [2026-05-11]
 
