@@ -20,12 +20,12 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class BlendshapeSyncAnimationProcessor
     {
         private readonly ndmf.BuildContext _context;
-        private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
+        private Dictionary<SummaryBinding, List<(SummaryBinding target, bool invert)>> _bindingMappings;
 
         internal BlendshapeSyncAnimationProcessor(ndmf.BuildContext context)
         {
             _context = context;
-            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, bool invert)>>();
         }
 
         private struct SummaryBinding : IEquatable<SummaryBinding>
@@ -93,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var asc = _context.Extension<AnimatorServicesContext>();
             var animDb = asc.AnimationIndex;
             
-            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, bool invert)>>();
 
             var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
@@ -114,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var srcWeight = smr.GetBlendShapeWeight(srcIndex);
 
-                foreach (var target in targets)
+                foreach (var (target, invert) in targets)
                 {
                     var targetSmr = target.Renderer;
                     if (targetSmr == null) continue;
@@ -122,7 +122,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.BlendshapeName);
                     if (targetIndex < 0) continue;
 
-                    targetSmr.SetBlendShapeWeight(targetIndex, srcWeight);
+                    var targetWeight = invert ? 100f - srcWeight : srcWeight;
+                    targetSmr.SetBlendShapeWeight(targetIndex, targetWeight);
                 }
             }
 
@@ -158,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
                 {
-                    dstBindings = new List<SummaryBinding>();
+                    dstBindings = new List<(SummaryBinding target, bool invert)>();
                     _bindingMappings[srcBinding] = dstBindings;
                 }
 
@@ -166,7 +167,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add(new SummaryBinding(targetSmr, targetBlendshapeName));
+                dstBindings.Add((new SummaryBinding(targetSmr, targetBlendshapeName), binding.Invert));
             }
         }
 
@@ -181,9 +182,21 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var curve = clip.GetFloatCurve(binding);
-                foreach (var dst in dstBindings)
+                foreach (var (dst, invert) in dstBindings)
                 {
-                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
+                    if (invert)
+                    {
+                        var invertedCurve = new AnimationCurve();
+                        foreach (var key in curve.keys)
+                        {
+                            invertedCurve.AddKey(new Keyframe(key.time, 100f - key.value, -key.inTangent, -key.outTangent));
+                        }
+                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), invertedCurve);
+                    }
+                    else
+                    {
+                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
+                    }
                 }
             }
         }
