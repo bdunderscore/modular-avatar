@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.
 
 ### Changed
 
