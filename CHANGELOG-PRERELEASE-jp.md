@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
 
 ### Removed
 
