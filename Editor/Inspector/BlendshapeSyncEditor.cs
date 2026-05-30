@@ -68,7 +68,8 @@ namespace nadena.dev.modular_avatar.core.editor
             Rect rect,
             out Rect meshFieldRect,
             out Rect baseShapeNameRect,
-            out Rect targetShapeNameRect
+            out Rect targetShapeNameRect,
+            out Rect remapCurveRect
         )
         {
             if (elementWidth > 1 && elementWidth < rect.width)
@@ -77,16 +78,23 @@ namespace nadena.dev.modular_avatar.core.editor
                 rect.width = elementWidth;
             }
 
+            float curveFieldWidth = 70f;
+            float remainingWidth = rect.width - curveFieldWidth;
+
             meshFieldRect = rect;
-            meshFieldRect.width /= 3;
+            meshFieldRect.width = remainingWidth / 3;
 
             baseShapeNameRect = rect;
-            baseShapeNameRect.width /= 3;
+            baseShapeNameRect.width = remainingWidth / 3;
             baseShapeNameRect.x = meshFieldRect.x + meshFieldRect.width;
 
             targetShapeNameRect = rect;
-            targetShapeNameRect.width /= 3;
+            targetShapeNameRect.width = remainingWidth / 3;
             targetShapeNameRect.x = baseShapeNameRect.x + baseShapeNameRect.width;
+
+            remapCurveRect = rect;
+            remapCurveRect.x = targetShapeNameRect.x + targetShapeNameRect.width + 4;
+            remapCurveRect.width = curveFieldWidth - 4;
 
             meshFieldRect.width -= 12;
             baseShapeNameRect.width -= 12;
@@ -94,11 +102,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void DrawHeader(Rect rect)
         {
-            ComputeRects(rect, out var meshFieldRect, out var baseShapeNameRect, out var targetShapeNameRect);
+            ComputeRects(rect, out var meshFieldRect, out var baseShapeNameRect, out var targetShapeNameRect, out var remapCurveRect);
 
             EditorGUI.LabelField(meshFieldRect, G("blendshape.mesh"));
             EditorGUI.LabelField(baseShapeNameRect, G("blendshape.source"));
             EditorGUI.LabelField(targetShapeNameRect, G("blendshape.target"));
+            EditorGUI.LabelField(remapCurveRect, G("blendshape.remap"));
         }
 
         private void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
@@ -112,12 +121,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 Repaint();
             }
 
-            ComputeRects(rect, out var meshFieldRect, out var baseShapeNameRect, out var targetShapeNameRect);
+            ComputeRects(rect, out var meshFieldRect, out var baseShapeNameRect, out var targetShapeNameRect, out var remapCurveRect);
 
             var item = _bindings.GetArrayElementAtIndex(index);
             var mesh = item.FindPropertyRelative(nameof(BlendshapeBinding.ReferenceMesh));
             var sourceBlendshape = item.FindPropertyRelative(nameof(BlendshapeBinding.Blendshape));
             var localBlendshape = item.FindPropertyRelative(nameof(BlendshapeBinding.LocalBlendshape));
+            var remapCurve = item.FindPropertyRelative(nameof(BlendshapeBinding.RemapCurve));
 
             using (var scope = new ZeroIndentScope())
             {
@@ -145,6 +155,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 DrawBlendshapePopup(sourceMesh, baseShapeNameRect, sourceBlendshape);
 
                 DrawBlendshapePopup(localMesh, targetShapeNameRect, localBlendshape, sourceBlendshape.stringValue);
+
+                if (remapCurve.animationCurveValue == null || remapCurve.animationCurveValue.length < 2)
+                {
+                    remapCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+                }
+                EditorGUI.PropertyField(remapCurveRect, remapCurve, GUIContent.none);
             }
         }
 

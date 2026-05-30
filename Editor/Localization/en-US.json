@@ -111,6 +111,8 @@
   "blendshape.mesh": "Mesh",
   "blendshape.source": "Source blendshape",
   "blendshape.target": "Target blendshape",
+  "blendshape.remap": "Remap",
+  "blendshape.remap.tooltip": "Curve to remap blendshape values (0-1). Linear transforms (invert, scale) are exact. Non-linear curves depend on source animation keyframe density.",
   "blendshape.add_selected": "Add {0} selected",
   "hint.not_in_avatar": "This component needs to be placed inside your avatar to work properly.",
   "boneproxy.err.MovingTarget": "You cannot specify a target object that will be moved by other Modular Avatar components",

@@ -10,6 +10,7 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference ReferenceMesh;
         public string Blendshape;
         public string LocalBlendshape;
+        public AnimationCurve RemapCurve;
 
         public bool Equals(BlendshapeBinding other)
         {
@@ -84,6 +85,7 @@ namespace nadena.dev.modular_avatar.core
             public SkinnedMeshRenderer TargetMesh;
             public int RemoteBlendshapeIndex;
             public int LocalBlendshapeIndex;
+            public int BindingIndex;
         }
 
         private List<EditorBlendshapeBinding> _editorBindings;
@@ -150,7 +152,8 @@ namespace nadena.dev.modular_avatar.core
                 {
                     TargetMesh = smr,
                     RemoteBlendshapeIndex = refIndex,
-                    LocalBlendshapeIndex = localIndex
+                    LocalBlendshapeIndex = localIndex,
+                    BindingIndex = Bindings.IndexOf(binding)
                 });
             }
 
@@ -169,6 +172,9 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (binding.TargetMesh == null) return;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
+                var remapCurve = Bindings[binding.BindingIndex].RemapCurve;
+                if (remapCurve != null && remapCurve.length >= 2)
+                    weight = remapCurve.Evaluate(weight / 100f) * 100f;
                 var currentWeight = localRenderer.GetBlendShapeWeight(binding.LocalBlendshapeIndex);
                 if (!Mathf.Approximately(currentWeight, weight))
                 {

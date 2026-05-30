@@ -20,12 +20,12 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class BlendshapeSyncAnimationProcessor
     {
         private readonly ndmf.BuildContext _context;
-        private Dictionary<SummaryBinding, List<SummaryBinding>> _bindingMappings;
+        private Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>> _bindingMappings;
 
         internal BlendshapeSyncAnimationProcessor(ndmf.BuildContext context)
         {
             _context = context;
-            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>>();
         }
 
         private struct SummaryBinding : IEquatable<SummaryBinding>
@@ -93,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var asc = _context.Extension<AnimatorServicesContext>();
             var animDb = asc.AnimationIndex;
             
-            _bindingMappings = new Dictionary<SummaryBinding, List<SummaryBinding>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>>();
 
             var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
@@ -114,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var srcWeight = smr.GetBlendShapeWeight(srcIndex);
 
-                foreach (var target in targets)
+                foreach (var (target, remapCurve) in targets)
                 {
                     var targetSmr = target.Renderer;
                     if (targetSmr == null) continue;
@@ -122,7 +122,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.BlendshapeName);
                     if (targetIndex < 0) continue;
 
-                    targetSmr.SetBlendShapeWeight(targetIndex, srcWeight);
+                    var targetWeight = (remapCurve != null && remapCurve.length >= 2)
+                        ? remapCurve.Evaluate(srcWeight / 100f) * 100f
+                        : srcWeight;
+                    targetSmr.SetBlendShapeWeight(targetIndex, targetWeight);
                 }
             }
 
@@ -158,7 +161,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
                 {
-                    dstBindings = new List<SummaryBinding>();
+                    dstBindings = new List<(SummaryBinding target, AnimationCurve remapCurve)>();
                     _bindingMappings[srcBinding] = dstBindings;
                 }
 
@@ -166,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add(new SummaryBinding(targetSmr, targetBlendshapeName));
+                dstBindings.Add((new SummaryBinding(targetSmr, targetBlendshapeName), binding.RemapCurve));
             }
         }
 
@@ -181,9 +184,33 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var curve = clip.GetFloatCurve(binding);
-                foreach (var dst in dstBindings)
+                foreach (var (dst, remapCurve) in dstBindings)
                 {
-                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
+                    if (remapCurve == null || remapCurve.length < 2)
+                    {
+                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
+                    }
+                    else
+                    {
+                        const float epsilon = 0.005f;
+                        var remappedCurve = new AnimationCurve();
+                        foreach (var key in curve.keys)
+                        {
+                            var t = Mathf.Clamp01(key.value / 100f);
+                            var val = remapCurve.Evaluate(t) * 100f;
+                            var tPlus = Mathf.Clamp01(t + epsilon);
+                            var tMinus = Mathf.Clamp01(t - epsilon);
+                            var valPlus = remapCurve.Evaluate(tPlus) * 100f;
+                            var valMinus = remapCurve.Evaluate(tMinus) * 100f;
+                            var slope = (valPlus - valMinus) / (tPlus - tMinus);
+                            remappedCurve.AddKey(new Keyframe(
+                                key.time, val,
+                                key.inTangent * slope,
+                                key.outTangent * slope
+                            ));
+                        }
+                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), remappedCurve);
+                    }
                 }
             }
         }

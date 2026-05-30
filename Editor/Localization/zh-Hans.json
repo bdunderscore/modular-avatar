@@ -109,6 +109,8 @@
   "blendshape.mesh": "网格",
   "blendshape.source": "源 blendshape",
   "blendshape.target": "目标 blendshape",
+  "blendshape.remap": "重映射",
+  "blendshape.remap.tooltip": "用于重映射 blendshape 值的曲线（0-1）。线性变换（反转、缩放）完全精确；非线性曲线的精度取决于源动画的关键帧密度。",
   "hint.not_in_avatar": "此组件需要放置于你的 Avatar 内才能工作。",
   "boneproxy.err.MovingTarget": "你不能指定将由其他 Modular Avatar 组件移动的对象",
   "boneproxy.err.NotInAvatar": "你必须指定一个在 Avatar 内的对象",
