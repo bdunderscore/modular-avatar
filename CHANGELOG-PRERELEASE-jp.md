@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0-alpha.0] - [2026-05-31]
+
+### Added
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
@@ -16,12 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.17.1] - [2026-05-14]
 
