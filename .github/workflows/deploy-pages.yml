@@ -118,7 +118,7 @@ jobs:
           YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
           
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           command: deploy --name modular-avatar-docs
