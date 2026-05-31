@@ -26,11 +26,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             AssertDecomposed(graph);
 
             ConvertToInternalParametersTransform.Apply(graph, context);
+            
             // ConvertToInternalParameters introduces new effects on existing nodes, so we need to decompose again
             DecomposeTransform.Apply(graph);
             AssertDecomposed(graph);
             
             BreakLoopsTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            PruneUnusedInternalParametersTransform.Apply(graph);
             AssertDecomposed(graph);
 
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
