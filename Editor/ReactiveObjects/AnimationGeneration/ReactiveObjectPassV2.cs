@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext context;
         private readonly AnimatorServicesContext asc;
         private readonly BakeContext _bakeContext;
+        private readonly Dictionary<TargetProp, List<GameObject>> _nanBonesForProp = new();
 
         public ReactiveObjectPassV2(ndmf.BuildContext context)
         {
@@ -38,8 +39,119 @@ namespace nadena.dev.modular_avatar.core.editor
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             var shapes = analysis.Shapes;
+            var initialStates = analysis.InitialStates;
+
+            PreProcessMeshDeletion(shapes, initialStates);
 
             ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+        }
+
+        private void PreProcessMeshDeletion(
+            Dictionary<TargetProp, AnimatedProperty> shapes,
+            Dictionary<TargetProp, object> initialStates)
+        {
+            var rendererGroups = shapes.Values
+                .Where(prop => prop.actionGroups.Any(x => x.Value is IVertexFilter))
+                .GroupBy(prop => prop.TargetProp.TargetObject as SkinnedMeshRenderer)
+                .ToList();
+
+            foreach (var grouping in rendererGroups)
+            {
+                var renderer = grouping.Key;
+                if (renderer == null) continue;
+
+                var mesh = renderer.sharedMesh;
+                if (mesh == null) continue;
+
+                var toDelete = grouping
+                    .Where(prop =>
+                    {
+                        var activeGroup = prop.actionGroups.LastOrDefault();
+                        return activeGroup?.IsConstantActive is true && activeGroup?.Value is IVertexFilter;
+                    })
+                    .Select(prop => (
+                        prop.TargetProp,
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
+                    ))
+                    .ToList();
+
+                var toNaNimate = grouping
+                    .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
+                    .Select(prop => (
+                        prop.TargetProp,
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
+                    ))
+                    .ToList();
+
+                renderer.sharedMesh = mesh = RemoveVerticesFromMesh.RemoveVertices(renderer, mesh, toDelete);
+
+                foreach (var (prop, _) in toDelete)
+                {
+                    shapes.Remove(prop);
+                    initialStates.Remove(prop);
+
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                    {
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
+                }
+
+                if (toNaNimate.Count == 0) continue;
+
+                var nanPlan = NaNimationFilter.ComputeNaNPlan(renderer, ref mesh, toNaNimate);
+                renderer.sharedMesh = mesh;
+
+                if (nanPlan.Count > 0)
+                {
+                    var nanBones = NaNimationFilter.GenerateNaNimatedBones(renderer, nanPlan);
+                    foreach (var kv in nanBones)
+                    {
+                        _nanBonesForProp[kv.Key.Item1] = kv.Value;
+                    }
+                }
+
+                // Props for which ComputeNaNPlan generated no bones (empty/no-op filter) should
+                // be removed so we don't emit a pointless animator layer.
+                var nanimatedProps = nanPlan.Select(x => x.Key.Item1).ToHashSet();
+                foreach (var (prop, _) in toNaNimate.Where(x => !nanimatedProps.Contains(x.TargetProp)))
+                {
+                    shapes.Remove(prop);
+                    initialStates.Remove(prop);
+
+                    if (prop.PropertyName.StartsWith(ReactiveObjectAnalyzer.DeletedShapePrefix))
+                    {
+                        var shapeName = prop.PropertyName[ReactiveObjectAnalyzer.DeletedShapePrefix.Length..];
+                        var shapeProp = new TargetProp
+                        {
+                            TargetObject = renderer,
+                            PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + shapeName
+                        };
+                        shapes.Remove(shapeProp);
+                        initialStates.Remove(shapeProp);
+                    }
+                }
+            }
+        }
+
+        private static IVertexFilter AggregateVertexFilters(IEnumerable<IVertexFilter?> filters)
+        {
+            var list = filters.ToList();
+            var filter = list.LastOrDefault(f => f != null);
+            if (filter is VertexFilterByShape filterByShape)
+            {
+                return new VertexFilterByShape(filterByShape.Shapes, list
+                    .OfType<VertexFilterByShape>()
+                    .Min(x => x.Threshold));
+            }
+
+            return filter!;
         }
 
         private ReactionGraph ShapeToGraph(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -55,6 +167,29 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (rule.TargetProp.TargetObject is GameObject go && rule.TargetProp.PropertyName == "m_IsActive")
                     {
                         action = new DriveActiveState(go, (float)rule.Value! > 0.5f);
+                    }
+                    else if (_nanBonesForProp.TryGetValue(rule.TargetProp, out var bones))
+                    {
+                        if (rule.Value is IVertexFilter)
+                        {
+#if MA_VRCSDK3_AVATARS
+                            action = new NaNimationAction(rule.TargetProp, bones, true);
+#else
+                            continue;
+#endif
+                        }
+                        else
+                        {
+                            // Non-filter rule for a NaNimated prop: the base clip handles the retain
+                            // state, so no explicit action is needed here.
+                            continue;
+                        }
+                    }
+                    else if (rule.Value is IVertexFilter)
+                    {
+                        // No bones were generated (no-op filter or unconditional deletion already
+                        // handled in pre-processing); skip this rule.
+                        continue;
                     }
                     else
                     {
