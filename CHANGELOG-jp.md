@@ -15,6 +15,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Fixed
 
 ### Changed
+- [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
 
 ### Removed
 

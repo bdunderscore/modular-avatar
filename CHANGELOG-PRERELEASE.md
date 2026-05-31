@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
 
 ### Removed
 
