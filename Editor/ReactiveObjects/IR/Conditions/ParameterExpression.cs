@@ -26,6 +26,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             Mode = mode;
         }
 
+        public IExpression DeepClone()
+        {
+            return new ParameterExpression(ParameterName, Threshold, Mode);
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             // leaf node

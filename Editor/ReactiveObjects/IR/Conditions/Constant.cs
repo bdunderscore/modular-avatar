@@ -16,6 +16,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return Value.ToString();
         }
 
+        public IExpression DeepClone()
+        {
+            return new Constant(Value);
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             // leaf node

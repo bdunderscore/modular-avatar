@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
@@ -11,27 +12,52 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private static List<IMotionNode> ApplyTransformations(BakeContext context, ReactionGraph graph)
         {
             DecomposeTransform.Apply(graph);
+            AssertDecomposed(graph);
             ProcessExternalObjectStateInputsTransform.Apply(graph, context);
+            AssertDecomposed(graph);
             // Eliminates redundant ObjectActiveState conditions, and forwards simple conditions
             // to downstream nodes
             ForwardObjectActiveDriversTransform.Apply(graph);
+            AssertDecomposed(graph);
             BooleanSimplifyTransform.Apply(graph);
+            AssertDecomposed(graph);
 
             AssignInitialStates.ProcessGraph(context, graph);
+            AssertDecomposed(graph);
 
             ConvertToInternalParametersTransform.Apply(graph, context);
+            // ConvertToInternalParameters introduces new effects on existing nodes, so we need to decompose again
+            DecomposeTransform.Apply(graph);
+            AssertDecomposed(graph);
+            
             BreakLoopsTransform.Apply(graph);
-            var groups = SplitIntoSubgraphsTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
 
             List<IMotionNode> motions = new();
-            foreach (var group in groups)
+            foreach (var subgraph in subgraphs)
             {
-                var aligned = AlignNodesTransform.Apply(context, group);
+                var byEffect = AlignNodesTransform.CreateEffectGroups(context, subgraph);
+                EffectGroupDumper.DumpEffectGroups(byEffect.Values, "before AlignNodes");
+                var aligned = AlignNodesTransform.Apply(context, byEffect);
+                EffectGroupDumper.DumpEffectGroups(aligned, "after AlignNodes");
                 AssignInitialStates.ProcessGroups(context, aligned);
                 motions.AddRange(aligned.Select(g => g.Emit()));
             }
 
             return motions;
+        }
+
+        private static void AssertDecomposed(ReactionGraph graph)
+        {
+            foreach (var n in graph.Nodes)
+            {
+                if (n.Effects.Count != 1)
+                {
+                    throw new Exception("Expected node to be decomposed");
+                }
+            }
         }
 
         private static void BuildMotions(BakeContext context, List<IMotionNode> nodes)

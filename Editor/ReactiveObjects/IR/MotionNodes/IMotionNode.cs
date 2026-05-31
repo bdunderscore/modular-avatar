@@ -4,7 +4,7 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public delegate void ConditionNodeVisitor(ref IMotionNode node);
+    public delegate void MotionNodeVisitor(ref IMotionNode node);
 
     public interface IMotionNode
     {
@@ -16,6 +16,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public VirtualMotion Bake(BakeContext context);
 
-        public void WalkTree(ConditionNodeVisitor visitor);
+        public void WalkTree(MotionNodeVisitor visitor);
     }
 }

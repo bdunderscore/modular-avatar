@@ -4,19 +4,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     public class MotionNode : IMotionNode
     {
-        private readonly VirtualMotion _motion;
+        public VirtualMotion Motion { get; }
 
         public MotionNode(VirtualMotion motion)
         {
-            _motion = motion;
+            Motion = motion;
         }
 
         public VirtualMotion Bake(BakeContext context)
         {
-            return _motion;
+            return Motion;
         }
 
-        public void WalkTree(ConditionNodeVisitor visitor)
+        public void WalkTree(MotionNodeVisitor visitor)
         {
         }
     }

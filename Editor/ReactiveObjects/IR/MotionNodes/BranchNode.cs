@@ -61,7 +61,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return vbt;
         }
 
-        public void WalkTree(ConditionNodeVisitor visitor)
+        public void WalkTree(MotionNodeVisitor visitor)
         {
             visitor(ref OnGreaterEquals);
             visitor(ref OnLessThan);

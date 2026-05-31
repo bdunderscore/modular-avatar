@@ -23,6 +23,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             StateMode = mode ?? State.Active;
         }
 
+        public IExpression DeepClone()
+        {
+            return new ObjectActiveState(TargetObject, StateMode);
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             // leaf node

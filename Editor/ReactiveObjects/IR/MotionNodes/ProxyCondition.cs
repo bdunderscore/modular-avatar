@@ -3,7 +3,7 @@
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
     /// <summary>
-    ///     Represents a condition via a IConditionNode which triggers a true/false animation or set of animations.
+    ///     Represents a condition via a IMotionNode which triggers a true/false animation or set of animations.
     ///     This can be used, for example, to use a BranchNode as a virtual boolean expression; at bake time, the containing
     ///     node will fill in the OnTrue or OnFalse branches, then bake the node to an actual Motion.
     /// </summary>
@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
         }
 
-        public void WalkTree(ConditionNodeVisitor visitor)
+        public void WalkTree(MotionNodeVisitor visitor)
         {
             var target = _node.Target;
             visitor(ref target);

@@ -69,7 +69,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return initial;
         }
 
-        public void WalkTree(ConditionNodeVisitor visitor)
+        public void WalkTree(MotionNodeVisitor visitor)
         {
             visitor(ref _downstream);
         }

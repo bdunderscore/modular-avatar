@@ -10,5 +10,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
     public interface IExpression
     {
         public void Walk(ExpressionVisitor visitor);
+        public IExpression DeepClone();
     }
 }

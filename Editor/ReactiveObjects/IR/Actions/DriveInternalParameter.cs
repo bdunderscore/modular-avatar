@@ -7,7 +7,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
 {
     public class DriveInternalParameter : IAction
     {
-        public object TargetKey => new ParameterTarget(ParameterName);
+        public object TargetKey => new InternalParameterTarget(ParameterName);
 
         public string ParameterName { get; set; }
         public bool State { get; set; }

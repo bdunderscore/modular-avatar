@@ -19,6 +19,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             Children = children.ToList();
         }
 
+        public IExpression DeepClone()
+        {
+            return new AndNode(Children.Select(c => c.DeepClone()).ToArray());
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             for (var i = 0; i < Children.Count; i++)

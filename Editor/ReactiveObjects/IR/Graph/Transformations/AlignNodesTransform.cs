@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.ndmf.animator;
+using UnityEditor;
+using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 {
@@ -16,207 +18,314 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     /// </summary>
     internal class AlignNodesTransform
     {
-        public static List<EffectGroup> Apply(BakeContext context, ReactionGraph graph)
+        private readonly BakeContext context;
+
+        // Edges from high delay to low delay - ie, from data source to sink
+        private readonly Dictionary<object, HashSet<object>> _fwdEdges = new();
+        private readonly Dictionary<object, HashSet<object>> _revEdges = new();
+        private readonly Dictionary<object, int> _visitedDownstream = new();
+        private readonly Dictionary<object, int> _assignedDepths = new();
+        private readonly HashSet<string> _createdDelayParameters = new();
+
+        private AlignNodesTransform(BakeContext context)
+        {
+            this.context = context;
+
+            _assignedDepths[ExternalEffect.Instance] = 0;
+        }
+
+        private void AddEdge(object from, object to)
+        {
+            if (!_fwdEdges.TryGetValue(from, out var fwd))
+            {
+                fwd = new HashSet<object>();
+                _fwdEdges[from] = fwd;
+            }
+
+            if (!_revEdges.TryGetValue(to, out var rev))
+            {
+                rev = new HashSet<object>();
+                _revEdges[to] = rev;
+            }
+
+            // Ensure we have an entry to avoid needing conditionals elsewhere
+            _visitedDownstream[from] = 0;
+
+            fwd.Add(to);
+            rev.Add(from);
+
+            Debug.Log($"[AlignNodes] Adding edge {from} -> {to}");
+        }
+
+        internal static Dictionary<object, EffectGroup> CreateEffectGroups(BakeContext context, ReactionGraph graph)
         {
             // TODO: group multiple effects that always activate together into the same condition nodes
-
-            var byEffect = graph.Nodes.SelectMany(n => n.Effects.Select(e => (n, e)))
+            return graph.Nodes.SelectMany(n => n.Effects.Select(e => (n, e)))
                 .GroupBy(pair => pair.e.TargetKey)
                 .Select(g => new EffectGroup(context, g.Key, g.Select(p => p.n).ToList()))
                 .ToDictionary(kv => kv.TargetKey, kv => kv);
+        }
 
-            // Our high level algorithm is as follows: The EffectGroups form a directed graph, to which we will assign
-            // depths. All nodes with visible effects have depth zero. A node's inputs must all be the same depth,
-            // and that differs from the node by a constant value (1 for 2-or-less condition nodes, 2 for others)
+        public static List<EffectGroup> Apply(BakeContext context, ReactionGraph graph)
+        {
+            return Apply(context, CreateEffectGroups(context, graph));
+        }
+
+        private void AddInitialEdges(Dictionary<object, EffectGroup> byEffect)
+        {
+            object? downstream = null;
+
+            foreach (var (k, v) in byEffect)
+            {
+                // v drives k
+                if (k is InternalParameterTarget)
+                {
+                    AddEdge(v, k);
+                }
+
+                // Add an outbound edge from each EffectGroup so that we never have unrooted nodes, even if we have
+                // an unconsumed internal parameter.
+                AddEdge(v, ExternalEffect.Instance);
+
+                downstream = v;
+                foreach (var node in v.Nodes)
+                {
+                    // We deep clone the expression here as we will be mutating it in-place when we insert delay nodes.
+                    // We also need unique nodes for each EffectGroup that shares condition nodes, as we currently can't
+                    // insert delay nodes between combinator nodes.
+                    var expr = node.Expression.DeepClone();
+                    ExprVisitor(ref expr);
+                    node.Expression = expr;
+                }
+
+                void ExprVisitor(ref IExpression e)
+                {
+                    switch (e)
+                    {
+                        case InternalParameterCondition ipc:
+                            AddEdge(new InternalParameterTarget(ipc.ParameterName), downstream);
+                            return;
+                        case ParameterExpression:
+                            AddEdge(ExternalSource.Instance, downstream);
+                            return;
+                    }
+
+                    var edgeKey = (v, e);
+
+                    AddEdge(edgeKey, downstream);
+                    var savedTarget = downstream;
+
+                    downstream = edgeKey;
+                    e.Walk(ExprVisitor);
+                    downstream = savedTarget;
+                }
+            }
+        }
+
+        private void TopoAssignDepths()
+        {
+            var toVisit = new Queue<object>();
+            toVisit.Enqueue(ExternalEffect.Instance);
+
+            while (toVisit.Count > 0)
+            {
+                var next = toVisit.Dequeue();
+                var nextDepth = _assignedDepths[next];
+
+                var depth = nextDepth + NodeLatency(next);
+
+                foreach (var prev in _revEdges.TryGetValue(next, out var rev) ? rev : Enumerable.Empty<object>())
+                {
+                    if (_assignedDepths.TryGetValue(prev, out var prevDepth))
+                    {
+                        prevDepth = Math.Max(prevDepth, depth);
+                    }
+                    else
+                    {
+                        prevDepth = depth;
+                    }
+
+                    _assignedDepths[prev] = prevDepth;
+                    if (++_visitedDownstream[prev] == _fwdEdges[prev].Count)
+                    {
+                        toVisit.Enqueue(prev);
+                    }
+
+                    Debug.Log(
+                        $"[AlignNodes] Visited {prev} -> {next}, depth {depth}, downstream {_visitedDownstream[prev]}/{_fwdEdges[prev].Count}");
+                }
+            }
+        }
+
+        private int NodeLatency(object next)
+        {
+            switch (next)
+            {
+                case EffectGroup eg:
+                    return eg.Latency;
+                default:
+                    return 0;
+            }
+        }
+
+        internal static List<EffectGroup> Apply(BakeContext context, Dictionary<object, EffectGroup> byEffect)
+        {
+            // Our high level algorithm is as follows: We will create a dataflow graph containing all externally
+            // visible effects, condition nodes, and parameters. We will then perform a topological sort, assigning
+            // depths to each node.
             //
-            // We'll start by indexing the inbound and outbound edges for each node.
+            // We have the following vertices in the graph:
+            // - (singleton) ExternalSource: A single source node representing all external inputs.
+            // - (singleton) ExternalEffect: A single sink node representing all external effects, at depth zero.
+            // - InternalParameter: A node for each internal parameter. Treated as having latency zero (latency is
+            //   accounted for at the EffectGroup driving the InternalParameter
+            // - ConditionNode
+            // - EffectGroup
+            // - Delayed parameters: A node for a delayed internal or external parameter. We'll add a simple direct
+            // blend tree branch to forward the raw value of the parameter.
+            //
+            // We apply the following constraint to the graph: All inputs to a node have the same latency
+            // We then inject delay nodes where needed to enforce this constraint.
+            //
+            // Note that currently, IR emission only supports delay nodes around InternalParameterCondition or
+            // ParameterExpression (ie - not around intermediate And/Or nodes).
 
-            // node -> list of all internal ParameterExpression()s it depends on
-            Dictionary<object, List<ParameterTarget>> nodeToSourceExpressions = new();
-            // parameter node -> list of all internal nodes which depends on this expression
-            Dictionary<ParameterTarget, List<object>> nodeToTargetExpressions = new();
+            var transform = new AlignNodesTransform(context);
 
-            foreach (var group in byEffect.Values)
-            {
-                var srcExpressions = GetInternalParameterReferences(group)
-                    .Select(pn => new ParameterTarget(pn)).ToList();
-                nodeToSourceExpressions[group.TargetKey] = srcExpressions;
-
-                foreach (var pn in srcExpressions)
-                {
-                    if (!nodeToTargetExpressions.TryGetValue(pn, out var targets))
-                    {
-                        targets = new List<object>();
-                        nodeToTargetExpressions[pn] = targets;
-                    }
-
-                    targets.Add(group.TargetKey);
-                }
-            }
-
-            // Now, for nodes which have an external effect, we'll assign depth zero.
-            Queue<EffectGroup> pending = new();
-            HashSet<EffectGroup> enqueued = new();
-
-            foreach (var group in byEffect.Values.Where(g =>
-                         g.TargetKey is not ParameterTarget pt || !nodeToTargetExpressions.ContainsKey(pt))
-                    )
-            {
-                AssignDepth(group, 0);
-            }
-
-            // Now we go through the remaining until we have nothing left to assign
-            while (pending.Count > 0)
-            {
-                var group = pending.Dequeue();
-                if (group.TargetKey is not ParameterTarget pt
-                    || !nodeToTargetExpressions.TryGetValue(pt, out var downstreamNodes))
-                {
-                    continue;
-                }
-
-                var downstreamDepth = downstreamNodes.Select(key => byEffect[key])
-                    .Max(node => node.Depth! + node.Latency) ?? 0;
-
-                AssignDepth(group, downstreamDepth);
-            }
-
-            void AssignDepth(EffectGroup group, int depth)
-            {
-                enqueued.Add(group);
-                group.Depth = depth;
-                foreach (var node in nodeToSourceExpressions[group.TargetKey])
-                {
-                    // If one of our source nodes has all of its downstream edges set, we can now process it
-                    var upstream = byEffect[node];
-                    if (!enqueued.Contains(upstream) &&
-                        nodeToTargetExpressions[node].All(t => byEffect[t].Depth.HasValue))
-                    {
-                        pending.Enqueue(upstream);
-                        enqueued.Add(upstream);
-                    }
-                }
-            }
-
-            // Now assign delay nodes. We do this where the latency gap is higher on an edge than it needs to be
-            foreach (var group in byEffect.Values.ToList())
-            {
-                if (!group.Depth.HasValue) throw new Exception("Failed to assign depth to node " + group.TargetKey);
-
-                var parameters = GetInternalParameterReferences(group);
-                var targetDepth = group.Latency + group.Depth.Value;
-
-                Dictionary<string, string> replacements = new();
-                foreach (var parameter in parameters)
-                {
-                    var paramNode = byEffect[new ParameterTarget(parameter)];
-                    if (!paramNode.Depth.HasValue) throw new Exception("Failed to assign depth to node " + parameter);
-                    if (paramNode.Depth == targetDepth) continue;
-                    if (paramNode.Depth < targetDepth)
-                        throw new Exception("Invalid edge from " + group.TargetKey + " to " + parameter);
-
-                    var neededDelay = paramNode.Depth.Value - targetDepth;
-                    var finalDelayParam = parameter + "$d" + neededDelay;
-                    for (var i = neededDelay; i > 0; i--)
-                    {
-                        var priorNode = i == 1 ? parameter : parameter + "$d" + (i - 1);
-                        var delayParam = new ParameterTarget(parameter + "$d" + i);
-                        if (byEffect.ContainsKey(delayParam)) break;
-
-                        byEffect[delayParam] =
-                            BuildDelayNode(context, priorNode, delayParam.ParameterName, paramNode.Depth.Value - i);
-                    }
-
-                    replacements[parameter] = finalDelayParam;
-                }
-
-                if (replacements.Count > 0)
-                {
-                    ApplyReplacements(group, replacements);
-                }
-            }
-
-            // Do a final check that everything is correct
-            foreach (var group in byEffect.Values)
-            {
-                var parameters = GetInternalParameterReferences(group);
-                if (!group.Depth.HasValue) throw new Exception("Failed to assign depth to group " + group.TargetKey);
-                foreach (var parameter in parameters)
-                {
-                    var paramNode = byEffect[new ParameterTarget(parameter)];
-                    if (!paramNode.Depth.HasValue) throw new Exception("Failed to assign depth to node " + parameter);
-                    if (paramNode.Depth.Value != group.Depth.Value + group.Latency)
-                        throw new Exception("Invalid edge from " + group.TargetKey + " to " + parameter);
-                }
-            }
+            transform.AddInitialEdges(byEffect);
+            transform.TopoAssignDepths();
+            transform.InjectDelayNodes(byEffect);
 
             return byEffect.Values.ToList();
         }
 
-        private static EffectGroup BuildDelayNode(BakeContext context, string priorNode, string delayParameter,
-            int depth)
+        private void InjectDelayNodes(Dictionary<object, EffectGroup> byEffect)
         {
-            var onFalse = new ReactionNode(
-                new Constant(true),
-                new DriveInternalParameter(delayParameter, false)
-            );
-            var onTrue = new ReactionNode(
-                new InternalParameterCondition(priorNode),
-                new DriveInternalParameter(delayParameter, true)
-            );
-
-            var group = new EffectGroup(context,
-                new ParameterTarget(delayParameter),
-                new List<ReactionNode> { onFalse, onTrue }
-            );
-            group.Depth = depth;
-
-            context.SetParameter(delayParameter, context.GetParameterInitialValue(priorNode));
-            
-            return group;
-        }
-
-        private static void ApplyReplacements(EffectGroup group, Dictionary<string, string> replacements)
-        {
-            foreach (var node in group.Nodes)
+            if (!_assignedDepths.TryGetValue(ExternalSource.Instance, out var externalSourceDepth))
             {
-                var exp = node.Expression;
-                Visit(ref exp);
-                node.Expression = exp;
+                externalSourceDepth = 0; // We should have only constant nodes, so this is a bit arbitrary
             }
 
-            void Visit(ref IExpression expr)
+            foreach (var (k, v) in byEffect)
             {
-                if (expr is InternalParameterCondition ipc)
+                var effectDepth = _assignedDepths[v];
+                var expectedParamDepth = effectDepth + v.Latency;
+                foreach (var node in v.Nodes)
                 {
-                    if (replacements.TryGetValue(ipc.ParameterName, out var replacement))
+                    var expr = node.Expression;
+                    WalkExpr(ref expr);
+                    node.Expression = expr;
+                }
+
+
+                void WalkExpr(ref IExpression expression)
+                {
+                    switch (expression)
                     {
-                        ipc.ParameterName = replacement;
+                        case InternalParameterCondition ip:
+                        {
+                            var name = ip.ParameterName;
+                            var depth = _assignedDepths[new InternalParameterTarget(name)];
+                            var delay = depth - expectedParamDepth;
+                            if (delay > 0)
+                            {
+                                ip.ParameterName = GetDelayedParameter(ip.ParameterName, delay);
+                            }
+
+                            break;
+                        }
+                        case ParameterExpression pe:
+                        {
+                            if (IsDelayParam(pe.ParameterName))
+                            {
+                                throw new Exception("duplicate delay application");
+                            }
+
+                            var depth = _assignedDepths[ExternalSource.Instance];
+                            var delay = depth - expectedParamDepth;
+                            if (delay > 0)
+                            {
+                                pe.ParameterName = GetDelayedParameter(pe.ParameterName, delay);
+                            }
+
+                            break;
+                        }
+                        default:
+                            expression.Walk(WalkExpr);
+                            break;
                     }
                 }
-                else
-                {
-                    expr.Walk(Visit);
-                }
             }
         }
 
-        private static HashSet<string> GetInternalParameterReferences(EffectGroup group)
+        internal static string DelayParamName(string baseName, int delay)
         {
-            HashSet<string> references = new();
+            return $"$$MA/RC/DELAY/{baseName}/${delay}";
+        }
 
-            foreach (var node in group.Nodes)
+        internal static bool IsDelayParam(string name)
+        {
+            return name.StartsWith("$$MA/RC/DELAY/");
+        }
+
+        internal static string DelayParamBaseName(string delayName)
+        {
+            var rest = delayName.Substring("$$MA/RC/DELAY/".Length);
+            return rest.Substring(0, rest.LastIndexOf("/$"));
+        }
+
+        private string GetDelayedParameter(string ipParameterName, int delay)
+        {
+            if (delay == 0)
             {
-                var exp = node.Expression;
-                Visit(ref exp);
+                return ipParameterName;
             }
 
-            return references;
-
-            void Visit(ref IExpression expr)
+            for (var i = delay; i > 0; i--)
             {
-                if (expr is InternalParameterCondition condition) references.Add(condition.ParameterName);
-                else expr.Walk(Visit);
+                var delayedName = DelayParamName(ipParameterName, i);
+                var prevDelay = i > 1 ? DelayParamName(ipParameterName, i - 1) : ipParameterName;
+
+                if (!_createdDelayParameters.Add(delayedName))
+                {
+                    break;
+                }
+
+                context.SetParameter(delayedName, context.GetParameterInitialValue(ipParameterName));
+
+                var linearMotionClip = VirtualClip.Create($"Delay {ipParameterName} {i}");
+                linearMotionClip.SetFloatCurve(
+                    EditorCurveBinding.FloatCurve("", typeof(Animator), delayedName),
+                    AnimationCurve.Constant(0, 1, 1)
+                );
+                context.RootTree.Children = context.RootTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+                {
+                    Motion = linearMotionClip,
+                    DirectBlendParameter = prevDelay
+                });
+            }
+
+            return DelayParamName(ipParameterName, delay);
+        }
+
+
+        private class ExternalSource
+        {
+            public static readonly ExternalSource Instance = new();
+
+            public override string ToString()
+            {
+                return "ExternalSource";
+            }
+        }
+
+        private class ExternalEffect
+        {
+            public static readonly ExternalEffect Instance = new();
+
+            public override string ToString()
+            {
+                return "ExternalEffect";
             }
         }
     }

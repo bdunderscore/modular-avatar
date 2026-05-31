@@ -22,6 +22,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return $"NOT({Inner})";
         }
 
+        public IExpression DeepClone()
+        {
+            return new NotNode(Inner.DeepClone());
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             visitor(ref _inner);

@@ -9,6 +9,11 @@
             ParameterName = parameterName;
         }
 
+        public IExpression DeepClone()
+        {
+            return new InternalParameterCondition(ParameterName);
+        }
+
         public void Walk(ExpressionVisitor visitor)
         {
             // leaf node
