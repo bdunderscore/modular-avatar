@@ -10,6 +10,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Added
 
+- [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
+
 ### Fixed
 
 ### Changed

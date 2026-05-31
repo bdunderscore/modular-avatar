@@ -20,14 +20,20 @@ namespace modular_avatar_tests
     {
         private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
 
-        private List<GameObject> objects;
+        private List<UnityEngine.Object> objects;
 
+        public T TrackObject<T>(T obj) where T : UnityEngine.Object
+        {
+            objects.Add(obj);
+            return obj;
+        }
+        
         [SetUp]
         public virtual void Setup()
         {
             ITestSupport.Instance.Setup();
 
-            objects = new List<GameObject>();
+            objects = new List<Object>();
         }
 
         [TearDown]
@@ -35,7 +41,10 @@ namespace modular_avatar_tests
         {
             foreach (var obj in objects)
             {
-                Object.DestroyImmediate(obj);
+                if (obj != null)
+                {
+                    Object.DestroyImmediate(obj);
+                }
             }
 
             AssetDatabase.DeleteAsset(TEMP_ASSET_PATH);

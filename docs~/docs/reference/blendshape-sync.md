@@ -16,8 +16,6 @@ This can also be useful in base avatars as well - to sync up blendshapes between
 
 ## When shouldn't I use it?
 
-Blendshape Sync always copies the same value from one renderer's blendshape to another. If the scale or animation curves need to be different, then it will not work properly.
-
 Blendshape Sync cannot be chained - that is, you can copy from A to B and A to C, but you can't copy from A to B and B to C.
 
 At runtime, Blendshape Sync only supports syncing blendshapes that are controlled by animators. Blendshapes controlled by VRChat's builtin eyelook or viseme systems cannot be synced accurately. 
@@ -29,6 +27,12 @@ Add the Blendshape Sync component to an object in your prefab. Then click the + 
 ![Selection window](blendshape-select-1.png)
 
 Double-click on a blendshape to add it to the list to sync. When you've added enough, click the X to close the editor window.
+If the name of the blendshape is different on the target object, you can adjust that after adding it by lcicking on the
+"Target blendshape" dropdown.
+
+You can adjust the way that the target blendshape responds to the source by clicking the "Remap" curve. This can be used
+to, for example, have the blendshape be inverted compared to the original. Note that, as with animation curves, it's
+necessary to set appropriate tangents on this curve to get the desired effect.
 
 Blendshape Sync supports multi-selection editing as well, so you can select multiple meshes to configure at once.
 

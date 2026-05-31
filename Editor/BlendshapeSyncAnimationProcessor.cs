@@ -192,7 +192,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        const float epsilon = 0.005f;
+                        const float epsilon = 0.005f; // ~200fps
                         var remappedCurve = new AnimationCurve();
                         foreach (var key in curve.keys)
                         {
