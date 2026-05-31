@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 #if MA_MASK_TEXTURE_EDITOR
 using net.nekobako.MaskTextureEditor.Editor;
@@ -46,65 +47,104 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var uv = mesh.uv;
-            if (uv == null || uv.Length == 0 || _maskTexture == null)
-            {
-                // TODO: add an appropriate error report here
-                return;
-            }
-
-            Texture2D? tempTexture = null;
+            Profiler.BeginSample("VertexFilterByMask.MarkFilteredVertices");
             try
             {
-                var targetTexture = _editingTexture ?? _maskTexture;
-                if (!targetTexture.isReadable)
+                var uv = mesh.uv;
+                if (uv == null || uv.Length == 0 || _maskTexture == null)
                 {
-                    // We need a readable texture to read pixels from it, so copy the non-readable texture to a
-                    // readable temporary texture. This requires taking a trip through a render texture first.
-                    var tempRT = RenderTexture.GetTemporary(targetTexture.width, targetTexture.height, 0,
-                        RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-                    var oldActive = RenderTexture.active;
-                    try
-                    {
-                        tempTexture = new Texture2D(targetTexture.width, targetTexture.height, TextureFormat.ARGB32,
-                            false);
-                        Graphics.Blit(targetTexture, tempRT);
-                        tempTexture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height), 0, 0);
-                        tempTexture.Apply(false);
-                        tempTexture.wrapModeU = targetTexture.wrapModeU;
-                        tempTexture.wrapModeV = targetTexture.wrapModeV;
-                        tempTexture.filterMode = targetTexture.filterMode;
-                        targetTexture = tempTexture;
-                    }
-                    finally
-                    {
-                        RenderTexture.active = oldActive;
-                        RenderTexture.ReleaseTemporary(tempRT);
-                    }
+                    // TODO: add an appropriate error report here
+                    return;
                 }
 
-                var subMeshIndices = Enumerable.Range(0, mesh.subMeshCount)
-                    .Select(x => mesh.GetIndices(x).ToHashSet())
-                    .ToArray();
-
-                foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
+                Texture2D? tempTexture = null;
+                try
                 {
-                    Color? deleteColor = DeleteMode switch
+                    var targetTexture = _editingTexture ?? _maskTexture;
+                    if (!targetTexture.isReadable)
                     {
-                        ByMaskMode.DeleteBlack => Color.black,
-                        ByMaskMode.DeleteWhite => Color.white,
-                        _ => null
-                    };
-                    if (targetTexture.GetPixel((int)(targetTexture.width * uv[v].x),
-                            (int)(targetTexture.height * uv[v].y)) == deleteColor)
-                    {
-                        filtered[v] = true;
+                        Profiler.BeginSample("Clone unreadable texture");
+                        // We need a readable texture to read pixels from it, so copy the non-readable texture to a
+                        // readable temporary texture. This requires taking a trip through a render texture first.
+                        var tempRT = RenderTexture.GetTemporary(targetTexture.width, targetTexture.height, 0,
+                            RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                        var oldActive = RenderTexture.active;
+                        try
+                        {
+                            tempTexture = new Texture2D(targetTexture.width, targetTexture.height, TextureFormat.ARGB32,
+                                false);
+                            Graphics.Blit(targetTexture, tempRT);
+                            tempTexture.ReadPixels(new Rect(0, 0, targetTexture.width, targetTexture.height), 0, 0);
+                            tempTexture.Apply(false);
+                            tempTexture.wrapModeU = targetTexture.wrapModeU;
+                            tempTexture.wrapModeV = targetTexture.wrapModeV;
+                            tempTexture.filterMode = targetTexture.filterMode;
+                            targetTexture = tempTexture;
+                        }
+                        finally
+                        {
+                            RenderTexture.active = oldActive;
+                            RenderTexture.ReleaseTemporary(tempRT);
+                        }
+                        Profiler.EndSample();
                     }
+
+                    var subMeshIndices = Enumerable.Range(0, mesh.subMeshCount)
+                        .Select(x => mesh.GetIndices(x).ToHashSet())
+                        .ToArray();
+
+                    Profiler.BeginSample("GetPixels");
+                    Color[] pixels = targetTexture.GetPixels();
+                    int width = targetTexture.width;
+                    int height = targetTexture.height;
+                    var wrapU = targetTexture.wrapModeU;
+                    var wrapV = targetTexture.wrapModeV;
+                    Profiler.EndSample();
+
+                    foreach (var v in subMeshIndices[Mathf.Min(_materialIndex, subMeshIndices.Length - 1)])
+                    {
+                        Color? deleteColor = DeleteMode switch
+                        {
+                            ByMaskMode.DeleteBlack => Color.black,
+                            ByMaskMode.DeleteWhite => Color.white,
+                            _ => null
+                        };
+                        int px = ApplyWrap(uv[v].x, width, wrapU);
+                        int py = ApplyWrap(uv[v].y, height, wrapV);
+                        if (pixels[py * width + px] == deleteColor)
+                        {
+                            filtered[v] = true;
+                        }
+                    }
+
+                    static int ApplyWrap(float coord, int size, TextureWrapMode mode)
+                    {
+                        int i = Mathf.FloorToInt(coord * size);
+                        switch (mode)
+                        {
+                            case TextureWrapMode.Repeat:
+                                i = i % size;
+                                if (i < 0) i += size;
+                                return i;
+                            case TextureWrapMode.Mirror:
+                                i = ((i % (2 * size)) + 2 * size) % (2 * size);
+                                return i >= size ? 2 * size - 1 - i : i;
+                            case TextureWrapMode.MirrorOnce:
+                                if (i < 0) i = -1 - i;
+                                return Mathf.Clamp(i, 0, size - 1);
+                            default: // Clamp
+                                return Mathf.Clamp(i, 0, size - 1);
+                        }
+                    }
+                }
+                finally
+                {
+                    if (tempTexture != null) Object.DestroyImmediate(tempTexture);
                 }
             }
             finally
             {
-                if (tempTexture != null) Object.DestroyImmediate(tempTexture);
+                Profiler.EndSample();
             }
         }
 

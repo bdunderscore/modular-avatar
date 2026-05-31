@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -38,26 +39,34 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var deltaPositions = new Vector3[mesh.vertexCount];
-
-            foreach (var shape in Shapes)
+            Profiler.BeginSample("VertexFilterByShape.MarkFilteredVertices");
+            try
             {
-                var shapeIndex = mesh.GetBlendShapeIndex(shape);
-                if (shapeIndex < 0) continue; // shape not found
+                var deltaPositions = new Vector3[mesh.vertexCount];
 
-                var sqrThreshold = Threshold * Threshold;
-
-                for (var f = 0; f < mesh.GetBlendShapeFrameCount(shapeIndex); f++)
+                foreach (var shape in Shapes)
                 {
-                    mesh.GetBlendShapeFrameVertices(shapeIndex, f, deltaPositions, null, null);
-                    for (var v = 0; v < deltaPositions.Length; v++)
+                    var shapeIndex = mesh.GetBlendShapeIndex(shape);
+                    if (shapeIndex < 0) continue; // shape not found
+
+                    var sqrThreshold = Threshold * Threshold;
+
+                    for (var f = 0; f < mesh.GetBlendShapeFrameCount(shapeIndex); f++)
                     {
-                        if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                        mesh.GetBlendShapeFrameVertices(shapeIndex, f, deltaPositions, null, null);
+                        for (var v = 0; v < deltaPositions.Length; v++)
                         {
-                            filtered[v] = true;
+                            if (deltaPositions[v].sqrMagnitude > sqrThreshold)
+                            {
+                                filtered[v] = true;
+                            }
                         }
                     }
                 }
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 

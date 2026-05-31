@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -48,33 +49,41 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            if (filters.Count == 0) return;
-
-            if (filters.Count == 1)
+            Profiler.BeginSample("ANDFilter.MarkFilteredVertices");
+            try
             {
-                filters[0].MarkFilteredVertices(renderer, mesh, filtered);
-                return;
-            }
+                if (filters.Count == 0) return;
 
-            var result = new bool[filtered.Length];
-            var temp = new bool[filtered.Length];
-
-            filters[0].MarkFilteredVertices(renderer, mesh, result);
-
-            foreach (var filter in filters.Skip(1))
-            {
-                Array.Fill(temp, false);
-                filter.MarkFilteredVertices(renderer, mesh, temp);
-
-                for (var i = 0; i < temp.Length; i++)
+                if (filters.Count == 1)
                 {
-                    result[i] = result[i] && temp[i];
+                    filters[0].MarkFilteredVertices(renderer, mesh, filtered);
+                    return;
+                }
+
+                var result = new bool[filtered.Length];
+                var temp = new bool[filtered.Length];
+
+                filters[0].MarkFilteredVertices(renderer, mesh, result);
+
+                foreach (var filter in filters.Skip(1))
+                {
+                    Array.Fill(temp, false);
+                    filter.MarkFilteredVertices(renderer, mesh, temp);
+
+                    for (var i = 0; i < temp.Length; i++)
+                    {
+                        result[i] = result[i] && temp[i];
+                    }
+                }
+
+                for (var i = 0; i < filtered.Length; i++)
+                {
+                    filtered[i] = filtered[i] || result[i];
                 }
             }
-
-            for (var i = 0; i < filtered.Length; i++)
+            finally
             {
-                filtered[i] = filtered[i] || result[i];
+                Profiler.EndSample();
             }
         }
 

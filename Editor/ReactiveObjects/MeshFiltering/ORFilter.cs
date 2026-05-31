@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -48,9 +49,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            foreach (var filter in filters)
+            Profiler.BeginSample("ORFilter.MarkFilteredVertices");
+            try
             {
-                filter.MarkFilteredVertices(renderer, mesh, filtered);
+                foreach (var filter in filters)
+                {
+                    filter.MarkFilteredVertices(renderer, mesh, filtered);
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 

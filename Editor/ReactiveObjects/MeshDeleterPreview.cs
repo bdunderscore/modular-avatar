@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -151,15 +152,20 @@ namespace nadena.dev.modular_avatar.core.editor
                     return null;
                 }
 
+                Profiler.BeginSample("Clone mesh");
                 mesh = Object.Instantiate(mesh);
-
+                Profiler.EndSample();
+                
                 var vertexMask = new bool[mesh.vertexCount];
+                Profiler.BeginSample("MarkFilteredVertices");
                 new ORFilter(filters).MarkFilteredVertices(proxy, mesh, vertexMask);
+                Profiler.EndSample();
 
                 var originalTriangles = new List<int>();
                 var processedTriangles = new List<int>();
                 for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
                 {
+                    Profiler.BeginSample("Process submesh");
                     originalTriangles.Clear();
                     processedTriangles.Clear();
 
@@ -183,6 +189,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
 
                     mesh.SetTriangles(processedTriangles, subMesh, false, baseVertex: baseVertex);
+                    Profiler.EndSample();
                 }
 
                 return mesh;
