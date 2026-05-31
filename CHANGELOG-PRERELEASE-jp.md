@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
+- [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
 
 ### Changed
 - [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 
 ### Fixed
+- [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
