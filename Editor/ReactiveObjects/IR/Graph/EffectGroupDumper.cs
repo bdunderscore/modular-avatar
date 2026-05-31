@@ -286,11 +286,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                     break;
 
-                case LatencyHorizon lh:
-                    sb.Append(indent + "LatencyHorizon: ");
-                    DumpInline(lh.Downstream, indent + "  ", sb, depth + 1);
-                    break;
-
                 default:
                     sb.AppendLine(indent + unwrapped.GetType().Name + $" (latency={unwrapped.Latency})");
                     break;
