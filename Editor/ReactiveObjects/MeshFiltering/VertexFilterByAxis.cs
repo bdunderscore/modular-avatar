@@ -4,6 +4,7 @@ using System;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -40,66 +41,72 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
         {
-            var referenceTransform = renderer.transform;
-
-            var rootBoneTransform = renderer.transform;
-            Mesh? temporaryMesh = null;
+            Profiler.BeginSample("VertexFilterByAxis.MarkFilteredVertices");
             try
             {
-                if (renderer is SkinnedMeshRenderer smr)
+                var rootBoneTransform = renderer.transform;
+                Mesh? temporaryMesh = null;
+                try
                 {
-                    temporaryMesh = new Mesh();
-                    var originalMesh = smr.sharedMesh;
-                    try
+                    if (renderer is SkinnedMeshRenderer smr)
                     {
-                        smr.sharedMesh = mesh;
-                        smr.BakeMesh(temporaryMesh, true);
+                        temporaryMesh = new Mesh();
+                        var originalMesh = smr.sharedMesh;
+                        try
+                        {
+                            smr.sharedMesh = mesh;
+                            smr.BakeMesh(temporaryMesh, true);
+                        }
+                        finally
+                        {
+                            smr.sharedMesh = originalMesh;
+                        }
+
+                        mesh = temporaryMesh;
                     }
-                    finally
+
+                    var meshSpaceCenter = _center;
+                    var meshSpaceAxis = _axis;
+
+                    var originalRenderer = NDMFPreview.GetOriginalObjectForProxy(renderer.gameObject);
+                    if (originalRenderer != null)
                     {
-                        smr.sharedMesh = originalMesh;
+                        // Translate the meshSpaceCenter coordinates from the original renderer to the new
+                        // renderer's coordinate space; in preview, these don't match in general.
+                        meshSpaceCenter = renderer.transform.InverseTransformPoint(
+                            originalRenderer.transform.TransformPoint(meshSpaceCenter)
+                        );
+                        meshSpaceAxis = renderer.transform.InverseTransformDirection(
+                            originalRenderer.transform.TransformDirection(meshSpaceAxis)
+                        );
                     }
 
-                    mesh = temporaryMesh;
-                }
+                    var vertices = mesh.vertices;
 
-                var meshSpaceCenter = _center;
-                var meshSpaceAxis = _axis;
-
-                var originalRenderer = NDMFPreview.GetOriginalObjectForProxy(renderer.gameObject);
-                if (originalRenderer != null)
-                {
-                    // Translate the meshSpaceCenter coordinates from the original renderer to the new
-                    // renderer's coordinate space; in preview, these don't match in general.
-                    meshSpaceCenter = renderer.transform.InverseTransformPoint(
-                        originalRenderer.transform.TransformPoint(meshSpaceCenter)
-                    );
-                    meshSpaceAxis = renderer.transform.InverseTransformDirection(
-                        originalRenderer.transform.TransformDirection(meshSpaceAxis)
-                    );
-                }
-                
-                var vertices = mesh.vertices;
-
-                if (vertices.Length != filtered.Length)
-                {
-                    throw new ArgumentException("Mesh vertex count does not match filtered array length.");
-                }
-
-                for (var i = 0; i < vertices.Length; i++)
-                {
-                    if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) > 0.0f)
+                    if (vertices.Length != filtered.Length)
                     {
-                        filtered[i] = true;
+                        throw new ArgumentException("Mesh vertex count does not match filtered array length.");
+                    }
+
+                    for (var i = 0; i < vertices.Length; i++)
+                    {
+                        if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) > 0.0f)
+                        {
+                            filtered[i] = true;
+                        }
+                    }
+                }
+                finally
+                {
+                    if (temporaryMesh != null)
+                    {
+                        Object.DestroyImmediate(temporaryMesh);
                     }
                 }
             }
             finally
             {
-                if (temporaryMesh != null)
-                {
-                    Object.DestroyImmediate(temporaryMesh);
-                }
+                Profiler.EndSample();
             }
         }
     }

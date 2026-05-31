@@ -9,11 +9,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
-
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
 - [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
+- [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）
 
 ### Changed
 - [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
