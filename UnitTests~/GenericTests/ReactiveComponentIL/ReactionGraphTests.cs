@@ -176,9 +176,9 @@ namespace UnitTestsReactiveComponentIL
         public void SplitIntoSubgraphs_GroupsByActionTarget()
         {
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p", 1f)));
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
-            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p1", 1f)));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p2", true)));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p1", 1f)));
 
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 

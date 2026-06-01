@@ -16,22 +16,13 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly ndmf.BuildContext context;
         private readonly AnimatorServicesContext asc;
-        private readonly BakeContext _bakeContext;
+        private BakeContext? _bakeContext;
         private readonly Dictionary<TargetProp, List<GameObject>> _nanBonesForProp = new();
 
         public ReactiveObjectPassV2(ndmf.BuildContext context)
         {
             this.context = context;
             asc = context.Extension<AnimatorServicesContext>();
-
-#if MA_VRCSDK3_AVATARS
-            var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-#else
-            // Disable animation generation, but still evaluate initial states
-            VirtualAnimatorController? controller = null;
-#endif
-
-            _bakeContext = new BakeContext(context, controller);
         }
 
         internal void Execute()
@@ -43,7 +34,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PreProcessMeshDeletion(shapes, initialStates);
 
+            if (shapes.Count == 0)
+            {
+                return;
+            }
+
+#if MA_VRCSDK3_AVATARS
+            var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+            _bakeContext = new BakeContext(context, controller);
             ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+#endif
         }
 
         private void PreProcessMeshDeletion(

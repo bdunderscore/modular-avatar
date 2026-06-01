@@ -44,16 +44,16 @@ namespace modular_avatar_tests.MMD
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
 
-            // RC, MMD, dummy, L0, L1, L2
-            AssertMMDModeHandling(fxc, 4, 5, 6);
+            // dummy, dummy, MMD, Merge Blend Tree, RC base, (5) L0, L1, L2, RC a[[;y
+            AssertMMDModeHandling(fxc, 5, 6, 7);
             
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
             Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[3].name);
-            Assert.AreEqual("L0", fxc.layers[4].name);
-            Assert.AreEqual("L1", fxc.layers[5].name);
-            Assert.AreEqual("L2", fxc.layers[6].name);
+            Assert.AreEqual("L0", fxc.layers[5].name);
+            Assert.AreEqual("L1", fxc.layers[6].name);
+            Assert.AreEqual("L2", fxc.layers[7].name);
         }
 
         [Test]
@@ -248,7 +248,7 @@ namespace modular_avatar_tests.MMD
                     }
                 }
                 
-                Assert.That(actualLayers, Is.EquivalentTo(expectedLayers));
+                Assert.That(actualLayers, Is.EquivalentTo(expectedLayers), "Unexpected MMD layer configuration. Layer list: " + string.Join(", ", fxc.layers.Select(l => l.name)));
             }
         }
     }
