@@ -9,6 +9,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     public sealed class BakeContext
     {
         public const string ALWAYS_ONE = "$$MA/RC/AlwaysOne";
+        internal const string BASE_LAYER_NAME = "MA/RC Base";
+        internal const string APPLY_LAYER_NAME = "MA/RC Apply";
         public AnimationIndex AnimationIndex { get; private set; }
         public ObjectPathRemapper ObjectPathRemapper { get; private set; }
         public CloneContext CloneContext { get; private set; }
@@ -65,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 DirectBlendParameter = ALWAYS_ONE
             });
 
-            BaseLayer = vac.AddLayer(new LayerPriority(int.MinValue), "MA/RC Base");
+            BaseLayer = vac.AddLayer(new LayerPriority(int.MinValue), BASE_LAYER_NAME);
             BaseLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
             BaseLayer.DefaultWeight = 1;
             var sm = BaseLayer.StateMachine!;
@@ -73,7 +75,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             sm.DefaultState = state;
             state.Motion = baseBlendTree;
 
-            var animLayer = vac.AddLayer(new LayerPriority(1), "MA/RC Apply");
+            var animLayer = vac.AddLayer(new LayerPriority(1), APPLY_LAYER_NAME);
             animLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
             animLayer.DefaultWeight = 1;
             sm = animLayer.StateMachine!;

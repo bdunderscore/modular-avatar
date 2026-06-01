@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
+using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
@@ -34,16 +35,130 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PreProcessMeshDeletion(shapes, initialStates);
 
-            if (shapes.Count == 0)
-            {
-                return;
-            }
+            // Drop constant shapes that have no preexisting foreign animations (apply their value
+            // directly to the scene object). Shapes that DO have foreign animations must be kept so
+            // the apply layer can override them.
+#if MA_VRCSDK3_AVATARS
+            RemoveRedundantConstantShapes(shapes, initialStates);
+#endif
+
+            var hasAnimatableShapes = shapes.Values.Any(p => p.actionGroups.Count > 0);
 
 #if MA_VRCSDK3_AVATARS
-            var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-            _bakeContext = new BakeContext(context, controller);
-            ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+            if (hasAnimatableShapes)
+            {
+                var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+                _bakeContext = new BakeContext(context, controller);
+                ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+            }
 #endif
+
+            ApplyStaticStateOverrides(shapes);
+        }
+
+#if MA_VRCSDK3_AVATARS
+        private void RemoveRedundantConstantShapes(
+            Dictionary<TargetProp, AnimatedProperty> shapes,
+            Dictionary<TargetProp, object> initialStates)
+        {
+            var constantShapes = shapes
+                .Where(kv => kv.Value.actionGroups.LastOrDefault()?.IsConstant is true)
+                .Where(kv => kv.Value.actionGroups.All(x => x.Value is not IVertexFilter))
+                .Where(kv => kv.Value.overrideStaticState == null)
+                .ToList();
+
+            foreach (var (key, _) in constantShapes)
+            {
+                GameObject gameObject;
+                switch (key.TargetObject)
+                {
+                    case GameObject go: gameObject = go; break;
+                    case Component c: gameObject = c.gameObject; break;
+                    default: continue;
+                }
+
+                var ecb = EditorCurveBinding.FloatCurve(
+                    asc.ObjectPathRemapper.GetVirtualPathForObject(gameObject),
+                    key.TargetObject.GetType(),
+                    key.PropertyName
+                );
+
+                // If any preexisting clip already animates this binding, keep the shape so the
+                // apply layer can override it.
+                if (asc.AnimationIndex.GetClipsForBinding(ecb).Any()) continue;
+
+                shapes.Remove(key);
+
+                // Apply the constant value directly to the scene object since no animation will.
+                if (!initialStates.TryGetValue(key, out var constantValue)) continue;
+
+                var so = new SerializedObject(key.TargetObject);
+                var sprop = so.FindProperty(key.PropertyName);
+                if (sprop == null) continue;
+
+                switch (sprop.propertyType)
+                {
+                    case SerializedPropertyType.Boolean:
+                        sprop.boolValue = (float)constantValue > 0.5f;
+                        break;
+                    case SerializedPropertyType.Float:
+                        sprop.floatValue = (float)constantValue;
+                        break;
+                    case SerializedPropertyType.ObjectReference:
+                        sprop.objectReferenceValue = (Object)constantValue;
+                        break;
+                    default:
+                        continue;
+                }
+
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+#endif
+
+        private void ApplyStaticStateOverrides(Dictionary<TargetProp, AnimatedProperty> shapes)
+        {
+            foreach (var (key, prop) in shapes)
+            {
+                if (prop.overrideStaticState == null) continue;
+
+                var so = new SerializedObject(key.TargetObject);
+                var sprop = so.FindProperty(key.PropertyName);
+                if (sprop == null) continue;
+
+                float originalValue;
+                switch (sprop.propertyType)
+                {
+                    case SerializedPropertyType.Boolean:
+                        originalValue = sprop.boolValue ? 1f : 0f;
+                        sprop.boolValue = (float)prop.overrideStaticState > 0.5f;
+                        break;
+                    case SerializedPropertyType.Float:
+                        originalValue = sprop.floatValue;
+                        sprop.floatValue = (float)prop.overrideStaticState;
+                        break;
+                    default:
+                        continue;
+                }
+
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                // For no-action-group shapes, SetBaseState was never called, so we must record
+                // the original value in BaseLayerClip so animations restore it when the object
+                // is active (e.g., AudioSource re-enabled when its parent GameObject is toggled on).
+                if (prop.actionGroups.Count == 0 && _bakeContext != null &&
+                    key.TargetObject is Component c)
+                {
+                    _bakeContext.BaseLayerClip.SetFloatCurve(
+                        EditorCurveBinding.FloatCurve(
+                            _bakeContext.ObjectPathRemapper.GetVirtualPathForObject(c.gameObject),
+                            key.TargetObject.GetType(),
+                            key.PropertyName
+                        ),
+                        AnimationCurve.Constant(0, 1, originalValue)
+                    );
+                }
+            }
         }
 
         private void PreProcessMeshDeletion(
@@ -158,7 +273,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var graph = new ReactionGraph();
 
-            // TODO - handle overrideStaticState
             foreach (var prop in shapes.Values)
             {
                 foreach (var rule in prop.actionGroups)
@@ -193,6 +307,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
+                        Debug.Log(
+                            $"[ROPassV2] Generate property action for {rule.TargetProp.TargetObject.name}.{rule.TargetProp.PropertyName} = {rule.Value}");
                         action = new PropAction(rule.TargetProp, rule.Value);
                     }
 
