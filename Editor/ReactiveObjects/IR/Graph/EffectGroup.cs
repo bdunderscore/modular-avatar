@@ -159,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     return onTrue;
                 }
                 case InternalParameterCondition ipc:
-                    return new BranchNode(ipc.ParameterName, onTrue, onFalse);
+                    return new BranchNode(ipc.ParameterName, onFalse, onTrue);
                 case ParameterExpression pe:
                 {
                     BranchNode bn;

@@ -200,5 +200,30 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(3, subgraphs.Count);
             Assert.That(subgraphs.All(g => g.Nodes.Count == 1));
         }
+
+        [Test]
+        public void SplitIntoSubgraphs_GroupsByDriveInternalParameterEffect()
+        {
+            // A node whose *effect* drives internal parameter "p" and a node whose *condition*
+            // reads "p" must land in the same subgraph so their latencies can be aligned.
+            // Before the fix, only expression-side parameter names were collected, so a writer
+            // node with a Constant condition was not linked to its reader.
+            var graph = new ReactionGraph();
+            var writer = new ReactionNode(new Constant(true), new DriveInternalParameter("p", true));
+            var reader = new ReactionNode(new InternalParameterCondition("p"), new NullAction());
+            var independent = new ReactionNode(new Constant(true), new NullAction());
+
+            graph.AddNode(writer);
+            graph.AddNode(reader);
+            graph.AddNode(independent);
+
+            var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
+
+            Assert.AreEqual(2, subgraphs.Count);
+            var writerGroup = subgraphs.FirstOrDefault(g => g.Nodes.Contains(writer));
+            Assert.IsNotNull(writerGroup);
+            Assert.That(writerGroup.Nodes, Contains.Item(reader),
+                "Writer and reader of the same internal parameter must be in the same subgraph");
+        }
     }
 }

@@ -787,6 +787,42 @@ namespace UnitTestsReactiveComponentIL
 
         #endregion
 
+        #region EffectGroup Emit Tests
+
+        [Test]
+        public void Emit_InternalParameterCondition_TrueCaseUsesOnGreaterEquals()
+        {
+            // Regression test: EmitCondition used to call new BranchNode(name, onTrue, onFalse)
+            // but the BranchNode constructor signature is (name, onLess, onGreaterEquals),
+            // so the true and false branches were swapped for InternalParameterCondition.
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new InternalParameterCondition("p"),
+                new DriveInternalParameter("effect", true)
+            ));
+
+            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            var eg = groups[new InternalParameterTarget("effect")];
+
+            var rootNode = eg.Emit();
+
+            var branchNode = ((ProxyNode)rootNode).Target as BranchNode;
+            Assert.IsNotNull(branchNode, "EmitCondition should produce a BranchNode for InternalParameterCondition");
+            Assert.AreEqual("p", branchNode.Parameter);
+
+            // When p >= threshold (true), the effect MotionNode must play
+            var trueTarget = ((ProxyNode)branchNode.OnGreaterEquals).Target;
+            Assert.IsInstanceOf<MotionNode>(trueTarget,
+                "OnGreaterEquals (p=true) must resolve to the effect MotionNode, not the empty node");
+
+            // When p < threshold (false), no effect should play
+            var falseTarget = ((ProxyNode)branchNode.OnLessThan).Target;
+            Assert.IsNotInstanceOf<MotionNode>(falseTarget,
+                "OnLessThan (p=false) must not resolve to the effect MotionNode");
+        }
+
+        #endregion
+
         #region Edge Case Tests
 
         [Test]

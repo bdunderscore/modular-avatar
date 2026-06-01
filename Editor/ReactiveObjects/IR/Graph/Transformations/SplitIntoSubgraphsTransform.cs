@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using UnityEngine;
@@ -31,6 +32,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 objectTargets[i] = new HashSet<GameObject>();
                 parameterNames[i] = new HashSet<string>();
                 CollectKeys(graph.Nodes[i].Expression, objectTargets[i], parameterNames[i]);
+
+                foreach (var effect in graph.Nodes[i].Effects)
+                {
+                    if (effect is DriveInternalParameter dip)
+                    {
+                        if (!string.IsNullOrEmpty(dip.ParameterName)) parameterNames[i].Add(dip.ParameterName);
+                    }
+                }
             }
 
             // Build key -> node index maps for quick adjacency construction (LINQ)
