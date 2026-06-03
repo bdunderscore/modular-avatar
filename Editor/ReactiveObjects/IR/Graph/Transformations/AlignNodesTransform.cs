@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
@@ -23,7 +25,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         // Edges from high delay to low delay - ie, from data source to sink
         private readonly Dictionary<object, HashSet<object>> _fwdEdges = new();
         private readonly Dictionary<object, HashSet<object>> _revEdges = new();
+
+        // Tracks how many downstream neighbors have been depth-assigned for each node.
         private readonly Dictionary<object, int> _visitedDownstream = new();
+
+        // All nodes not yet fully processed (all downstream depth-assigned). Populated in CreateNode,
+        // drained as nodes are enqueued during TopoAssignDepths; anything remaining after is in a cycle.
+        private readonly HashSet<object> _unprocessedNodes = new();
         private readonly Dictionary<object, int> _assignedDepths = new();
         private readonly HashSet<string> _createdDelayParameters = new();
 
@@ -31,28 +39,36 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         {
             this.context = context;
 
+            // We need at least one edge for things to work properly, so bootstrap with a trivial edge
+            AddEdge(ExternalSource.Instance, ExternalEffect.Instance);
+
+            // External effects, by definition, have depth zero.
             _assignedDepths[ExternalEffect.Instance] = 0;
         }
 
+        private void CreateNode(object node)
+        {
+            if (!_fwdEdges.ContainsKey(node))
+            {
+                _fwdEdges[node] = new HashSet<object>();
+            }
+
+            if (!_revEdges.ContainsKey(node))
+            {
+                _revEdges[node] = new HashSet<object>();
+            }
+
+            _visitedDownstream[node] = 0;
+            _unprocessedNodes.Add(node);
+        }
+        
         private void AddEdge(object from, object to)
         {
-            if (!_fwdEdges.TryGetValue(from, out var fwd))
-            {
-                fwd = new HashSet<object>();
-                _fwdEdges[from] = fwd;
-            }
+            CreateNode(from);
+            CreateNode(to);
 
-            if (!_revEdges.TryGetValue(to, out var rev))
-            {
-                rev = new HashSet<object>();
-                _revEdges[to] = rev;
-            }
-
-            // Ensure we have an entry to avoid needing conditionals elsewhere
-            _visitedDownstream[from] = 0;
-
-            fwd.Add(to);
-            rev.Add(from);
+            _fwdEdges[from].Add(to);
+            _revEdges[to].Add(from);
 
             Debug.Log($"[AlignNodes] Adding edge {from} -> {to}");
         }
@@ -81,10 +97,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 if (k is InternalParameterTarget)
                 {
                     AddEdge(v, k);
+                    // Ensure that dead-end internal parameters are still connected to the graph and get assigned a depth
+                    AddEdge(k, ExternalEffect.Instance);
                 }
 
-                // Add an outbound edge from each EffectGroup so that we never have unrooted nodes, even if we have
-                // an unconsumed internal parameter.
+                // Add an outbound edge from each EffectGroup so that we never have unrooted nodes, even if there is
+                // no associated effect.
                 AddEdge(v, ExternalEffect.Instance);
 
                 downstream = v;
@@ -116,7 +134,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     var savedTarget = downstream;
 
                     downstream = edgeKey;
+                    var edgeCount = _revEdges.GetValueOrDefault(edgeKey)?.Count ?? 0;
                     e.Walk(ExprVisitor);
+                    var newEdgeCount = _revEdges.GetValueOrDefault(edgeKey)?.Count ?? 0;
+                    if (newEdgeCount == edgeCount)
+                    {
+                        // Add fallback edge from ExternalSource if this expression doesn't reference any parameters
+                        // or child expressions, to bootstrap the graph
+                        AddEdge(ExternalSource.Instance, edgeKey);
+                    }
                     downstream = savedTarget;
                 }
             }
@@ -194,6 +220,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
             transform.AddInitialEdges(byEffect);
             transform.TopoAssignDepths();
+            transform.CheckForCycles();
             transform.InjectDelayNodes(byEffect);
 
             return byEffect.Values.ToList();
@@ -308,6 +335,77 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             return DelayParamName(ipParameterName, delay);
         }
 
+
+        private void CheckForCycles()
+        {
+            var unprocessed = new HashSet<object>(
+                _visitedDownstream.Keys.Where(n => _visitedDownstream[n] < _fwdEdges[n].Count)
+            );
+
+            if (unprocessed.Count == 0) return;
+
+            var visited = new HashSet<object>();
+            var path = new List<object>();
+            var onPath = new HashSet<object>();
+
+            foreach (var start in unprocessed)
+            {
+                if (!visited.Contains(start))
+                    DfsFindCycle(start, unprocessed, visited, path, onPath);
+            }
+
+            // Should be unreachable: every unprocessed node must have an unprocessed downstream neighbor,
+            // so the subgraph must contain at least one cycle. Dump the graph for diagnosis.
+            var sb = new StringBuilder();
+            sb.AppendLine($"Reaction graph has {unprocessed.Count} unprocessed nodes but no cycle was found.");
+            sb.AppendLine("All edges (id:label):");
+            foreach (var (from, targets) in _fwdEdges)
+            {
+                var fromId = RuntimeHelpers.GetHashCode(from);
+                var fromMark = _assignedDepths.ContainsKey(from) ? "+" : "-";
+                foreach (var to in targets)
+                {
+                    var toId = RuntimeHelpers.GetHashCode(to);
+                    var toMark = _assignedDepths.ContainsKey(to) ? "+" : "-";
+                    sb.AppendLine($"  [{fromMark}]{fromId:x8}:{from} -> [{toMark}]{toId:x8}:{to}");
+                }
+            }
+
+            Debug.LogError(sb.ToString());
+            throw new Exception(
+                $"Reaction graph has {unprocessed.Count} nodes that could not be processed (cycle not found)");
+        }
+
+        private void DfsFindCycle(object node, HashSet<object> unprocessed, HashSet<object> visited,
+            List<object> path, HashSet<object> onPath)
+        {
+            onPath.Add(node);
+            path.Add(node);
+
+            if (_fwdEdges.TryGetValue(node, out var fwd))
+            {
+                foreach (var next in fwd)
+                {
+                    if (!unprocessed.Contains(next)) continue;
+
+                    if (onPath.Contains(next))
+                    {
+                        var cycleStartIdx = path.IndexOf(next);
+                        var cycleNodes = path.Skip(cycleStartIdx).Select(n => n.ToString()).ToList();
+                        cycleNodes.Add(next.ToString());
+                        throw new Exception(
+                            $"Cycle detected in reaction graph: {string.Join(" -> ", cycleNodes)}");
+                    }
+
+                    if (!visited.Contains(next))
+                        DfsFindCycle(next, unprocessed, visited, path, onPath);
+                }
+            }
+
+            path.RemoveAt(path.Count - 1);
+            onPath.Remove(node);
+            visited.Add(node);
+        }
 
         private class ExternalSource
         {
