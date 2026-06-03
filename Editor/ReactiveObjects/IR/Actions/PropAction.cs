@@ -80,23 +80,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
             if (targetObject is SkinnedMeshRenderer smr && _prop.PropertyName.StartsWith("blendShape."))
             {
                 var shapeName = _prop.PropertyName[11..];
-                var value = (float)_value;
                 var index = smr.sharedMesh.GetBlendShapeIndex(shapeName);
                 originalValue = smr.GetBlendShapeWeight(index);
-
-                if (actionStartsActive)
-                {
-                    smr.SetBlendShapeWeight(index, value);
-                }
             }
             else
             {
                 var so = new SerializedObject(_prop.TargetObject);
-                var staticState = _value;
-
-                if (staticState == null) return;
-
-                // TODO - staticStateOverrides
                 var prop = so.FindProperty(_prop.PropertyName);
                 if (prop != null)
                 {
@@ -104,18 +93,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
                     {
                         case SerializedPropertyType.Boolean:
                             originalValue = prop.boolValue ? 1.0f : 0.0f;
-                            prop.boolValue = (float)staticState > 0.5f;
                             break;
                         case SerializedPropertyType.Float:
                             originalValue = prop.floatValue;
-                            prop.floatValue = (float)staticState;
                             break;
                         case SerializedPropertyType.ObjectReference:
                             originalValue = prop.objectReferenceValue;
-                            prop.objectReferenceValue = (Object)staticState;
                             break;
                         default:
-                            // TODO - objectReference
                             return;
                     }
                 }

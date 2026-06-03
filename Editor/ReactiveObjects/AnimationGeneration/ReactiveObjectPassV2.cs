@@ -51,6 +51,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 _bakeContext = new BakeContext(context, controller);
                 ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
             }
+
+            // Apply the initially-active state to scene objects for all remaining (non-constant)
+            // props. This must run after ILBuild so that SetBaseState has already read the original
+            // scene values into BaseLayerClip before we overwrite them here.
+            ApplyInitialSceneStates(shapes, initialStates);
 #endif
 
             ApplyStaticStateOverrides(shapes);
@@ -90,29 +95,57 @@ namespace nadena.dev.modular_avatar.core.editor
                 shapes.Remove(key);
 
                 // Apply the constant value directly to the scene object since no animation will.
-                if (!initialStates.TryGetValue(key, out var constantValue)) continue;
+                if (!initialStates.TryGetValue(key, out var constantValue) || constantValue == null)
+                    continue;
 
-                var so = new SerializedObject(key.TargetObject);
-                var sprop = so.FindProperty(key.PropertyName);
-                if (sprop == null) continue;
-
-                switch (sprop.propertyType)
-                {
-                    case SerializedPropertyType.Boolean:
-                        sprop.boolValue = (float)constantValue > 0.5f;
-                        break;
-                    case SerializedPropertyType.Float:
-                        sprop.floatValue = (float)constantValue;
-                        break;
-                    case SerializedPropertyType.ObjectReference:
-                        sprop.objectReferenceValue = (Object)constantValue;
-                        break;
-                    default:
-                        continue;
-                }
-
-                so.ApplyModifiedPropertiesWithoutUndo();
+                ApplyValueToSceneObject(key, constantValue);
             }
+        }
+
+        private static void ApplyInitialSceneStates(
+            Dictionary<TargetProp, AnimatedProperty> shapes,
+            Dictionary<TargetProp, object> initialStates)
+        {
+            foreach (var (key, prop) in shapes)
+            {
+                if (!prop.actionGroups.Any(ag => ag.InitiallyActive)) continue;
+                if (!initialStates.TryGetValue(key, out var value) || value == null) continue;
+                ApplyValueToSceneObject(key, value);
+            }
+        }
+
+        private static void ApplyValueToSceneObject(TargetProp key, object value)
+        {
+            if (key.TargetObject is SkinnedMeshRenderer smr &&
+                key.PropertyName.StartsWith(ReactiveObjectAnalyzer.BlendshapePrefix))
+            {
+                var shapeName = key.PropertyName[ReactiveObjectAnalyzer.BlendshapePrefix.Length..];
+                var index = smr.sharedMesh?.GetBlendShapeIndex(shapeName) ?? -1;
+                if (index >= 0)
+                    smr.SetBlendShapeWeight(index, (float)value);
+                return;
+            }
+
+            var so = new SerializedObject(key.TargetObject);
+            var sprop = so.FindProperty(key.PropertyName);
+            if (sprop == null) return;
+
+            switch (sprop.propertyType)
+            {
+                case SerializedPropertyType.Boolean:
+                    sprop.boolValue = (float)value > 0.5f;
+                    break;
+                case SerializedPropertyType.Float:
+                    sprop.floatValue = (float)value;
+                    break;
+                case SerializedPropertyType.ObjectReference:
+                    sprop.objectReferenceValue = (Object)value;
+                    break;
+                default:
+                    return;
+            }
+
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 #endif
 
