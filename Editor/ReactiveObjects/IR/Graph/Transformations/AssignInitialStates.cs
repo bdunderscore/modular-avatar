@@ -27,7 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
                 foreach (var (expr, driver) in drivers)
                 {
-                    var target = (ParameterTarget)driver.TargetKey;
+                    var target = new ParameterTarget(driver.ParameterName);
                     bool? state = null;
 
                     var exprValue = VirtualEvaluate(context, currentValues, expr);
@@ -62,7 +62,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 nextValues = new Dictionary<ParameterTarget, bool>();
             } while (changed && --iterationLimit > 0);
 
-            foreach (var (k, v) in nextValues)
+            foreach (var (k, v) in currentValues)
             {
                 context.SetParameter(k.ParameterName, v ? 1.0f : 0.0f);
             }
