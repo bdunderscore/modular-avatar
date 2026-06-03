@@ -1,4 +1,5 @@
-﻿using modular_avatar_tests;
+﻿using System.Linq;
+using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -68,10 +69,10 @@ namespace UnitTestsReactiveComponentIL
 
             ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
-            // Check that the action was converted to DriveInternalParameter
-            Assert.AreEqual(1, graph.Nodes[0].Effects.Count);
-            Assert.IsInstanceOf<DriveInternalParameter>(graph.Nodes[0].Effects[0]);
-            var dip = (DriveInternalParameter)graph.Nodes[0].Effects[0];
+            // The transform keeps the original DriveActiveState and appends a DriveInternalParameter
+            Assert.AreEqual(1, graph.Nodes[0].Effects.OfType<DriveActiveState>().Count());
+            Assert.AreEqual(1, graph.Nodes[0].Effects.OfType<DriveInternalParameter>().Count());
+            var dip = graph.Nodes[0].Effects.OfType<DriveInternalParameter>().Single();
 
             // Check that it drives the same parameter
             Assert.IsTrue(dip.ParameterName.StartsWith("$$MA/RC/ObjActive/obj$"));
@@ -124,7 +125,7 @@ namespace UnitTestsReactiveComponentIL
 
             // Check that both use the same parameter
             var ipc = (InternalParameterCondition)graph.Nodes[0].Expression;
-            var dip = (DriveInternalParameter)graph.Nodes[1].Effects[0];
+            var dip = graph.Nodes[1].Effects.OfType<DriveInternalParameter>().Single();
 
             Assert.AreEqual(ipc.ParameterName, dip.ParameterName);
         }
@@ -213,7 +214,7 @@ namespace UnitTestsReactiveComponentIL
 
             // Check that non-ObjectActive expressions and actions are preserved
             Assert.IsInstanceOf<ParameterExpression>(graph.Nodes[0].Expression);
-            Assert.IsInstanceOf<DriveParameter>(graph.Nodes[1].Effects[0]);
+            Assert.AreEqual(1, graph.Nodes[1].Effects.OfType<DriveParameter>().Count());
         }
 
         [Test]
@@ -252,16 +253,13 @@ namespace UnitTestsReactiveComponentIL
 
             ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
 
-            // Check that both effects were converted
-            Assert.AreEqual(2, graph.Nodes[0].Effects.Count);
-            Assert.IsInstanceOf<DriveInternalParameter>(graph.Nodes[0].Effects[0]);
-            Assert.IsInstanceOf<DriveInternalParameter>(graph.Nodes[0].Effects[1]);
+            // Original DriveActiveState effects are kept; DriveInternalParameter effects are appended
+            Assert.AreEqual(2, graph.Nodes[0].Effects.OfType<DriveActiveState>().Count());
+            Assert.AreEqual(2, graph.Nodes[0].Effects.OfType<DriveInternalParameter>().Count());
 
-            var dip1 = (DriveInternalParameter)graph.Nodes[0].Effects[0];
-            var dip2 = (DriveInternalParameter)graph.Nodes[0].Effects[1];
+            var dip1 = graph.Nodes[0].Effects.OfType<DriveInternalParameter>().Single(d => d.ParameterName.Contains("obj1"));
+            var dip2 = graph.Nodes[0].Effects.OfType<DriveInternalParameter>().Single(d => d.ParameterName.Contains("obj2"));
 
-            Assert.IsTrue(dip1.ParameterName.Contains("obj1"));
-            Assert.IsTrue(dip2.ParameterName.Contains("obj2"));
             Assert.AreEqual(true, dip1.State);
             Assert.AreEqual(false, dip2.State);
         }
