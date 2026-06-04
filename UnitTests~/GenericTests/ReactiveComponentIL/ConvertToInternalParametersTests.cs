@@ -287,6 +287,34 @@ namespace UnitTestsReactiveComponentIL
 
             Assert.AreEqual(ipc1.ParameterName, ipc2.ParameterName);
         }
+
+        [Test]
+        public void ConvertToInternal_CreatesMultiEffectNodes_DecomposeProducesValidSingleEffectNodes()
+        {
+            // ConvertToInternalParametersTransform appends DriveInternalParameter to nodes that have
+            // DriveActiveState effects, producing multi-effect nodes. DecomposeTransform (step 7 in
+            // the pipeline) must then split those back to single-effect nodes with contiguous priorities.
+            var obj = CreateChild(_root, "obj");
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(obj, true)));
+
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
+
+            Assert.AreEqual(1, graph.Nodes.Count, "ConvertToInternal should not change node count");
+            Assert.AreEqual(2, graph.Nodes[0].Effects.Count,
+                "Node should now carry both DriveActiveState and the appended DriveInternalParameter");
+
+            DecomposeTransform.Apply(graph);
+
+            Assert.AreEqual(2, graph.Nodes.Count, "One node per effect after decomposition");
+            Assert.IsTrue(graph.Nodes.All(n => n.Effects.Count == 1), "All nodes must be single-effect");
+            CollectionAssert.AreEqual(
+                new[] { 0, 1 },
+                graph.Nodes.Select(n => n.Priority).OrderBy(p => p).ToList(),
+                "Priorities must be 0, 1 after decomposition");
+            Assert.AreEqual(1, graph.Nodes.Count(n => n.Effects[0] is DriveActiveState));
+            Assert.AreEqual(1, graph.Nodes.Count(n => n.Effects[0] is DriveInternalParameter));
+        }
     }
 }
 
