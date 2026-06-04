@@ -26,7 +26,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public VirtualMotion Bake(BakeContext context)
         {
-            var cc = context.CloneContext;
             var empty = context.EmptyMotion;
 
             var vbt = VirtualBlendTree.Create("BoolParam " + Parameter);

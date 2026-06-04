@@ -340,8 +340,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        Debug.Log(
-                            $"[ROPassV2] Generate property action for {rule.TargetProp.TargetObject.name}.{rule.TargetProp.PropertyName} = {rule.Value}");
                         action = new PropAction(rule.TargetProp, rule.Value);
                     }
 

@@ -67,7 +67,6 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
 #if MA_VRCSDK3_AVATARS
 				seq.Run(VRChatGlobalColliderPass.Instance);
 				seq.Run(RenameCollisionTagsPass.Instance);
-                seq.Run(ReactiveObjectPrepass.Instance);
 #endif
 
                 seq.WithRequiredExtension(typeof(AnimatorServicesContext), _s2 =>

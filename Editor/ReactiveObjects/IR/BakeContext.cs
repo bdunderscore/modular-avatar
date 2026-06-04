@@ -13,7 +13,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         internal const string APPLY_LAYER_NAME = "MA/RC Apply";
         public AnimationIndex AnimationIndex { get; private set; }
         public ObjectPathRemapper ObjectPathRemapper { get; private set; }
-        public CloneContext CloneContext { get; private set; }
         public VirtualMotion EmptyMotion { get; private set; }
         public VirtualClip AlwaysOnClip { get; }
         public VirtualBlendTree RootTree { get; }
@@ -30,7 +29,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var asc = buildContext.Extension<AnimatorServicesContext>();
             AnimationIndex = asc.AnimationIndex;
             ObjectPathRemapper = asc.ObjectPathRemapper;
-            CloneContext = asc.ControllerContext.CloneContext;
             
             EmptyMotion = VirtualClip.Create("Empty");
             _vac = vac;

@@ -66,19 +66,6 @@ namespace nadena.dev.modular_avatar.core.editor
             return GetActiveSelfProxy(obj);
         }
 
-        public string GetMenuItemProperty(GameObject obj)
-        {
-#if MA_VRCSDK3_AVATARS
-            var mami = obj?.GetComponent<ModularAvatarMenuItem>();
-            if (mami == null) return null;
-
-            return ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates, ForceMenuItems)
-                ?.Parameter;
-#else
-            return null;
-#endif
-        }
-
         public struct AnalysisResult
         {
             public Dictionary<TargetProp, AnimatedProperty> Shapes;

@@ -509,9 +509,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(cObjNode);
 
             var byEffect = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
-            EffectGroupDumper.DumpEffectGroups(byEffect.Values, "Before AlignNodes");
             var aligned = AlignNodesTransform.Apply(_bakeContext, byEffect);
-            EffectGroupDumper.DumpEffectGroups(aligned, "After AlignNodes");
 
             // Locate groups
             var andGroup  = aligned.FirstOrDefault(g => g.TargetKey as string == "AND");

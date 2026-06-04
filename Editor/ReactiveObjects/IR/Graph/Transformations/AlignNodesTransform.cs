@@ -69,8 +69,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
             _fwdEdges[from].Add(to);
             _revEdges[to].Add(from);
-
-            Debug.Log($"[AlignNodes] Adding edge {from} -> {to}");
         }
 
         internal static Dictionary<object, EffectGroup> CreateEffectGroups(BakeContext context, ReactionGraph graph)
@@ -177,8 +175,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                         toVisit.Enqueue(prev);
                     }
 
-                    Debug.Log(
-                        $"[AlignNodes] Visited {prev} -> {next}, depth {depth}, downstream {_visitedDownstream[prev]}/{_fwdEdges[prev].Count}");
                 }
             }
         }
