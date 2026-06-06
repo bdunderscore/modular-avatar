@@ -602,6 +602,77 @@ namespace UnitTestsReactiveComponentIL
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
         }
 
+        [Test]
+        public void DelayParameters_HaveBaseCurveSetToZero()
+        {
+            // Regression: delay parameters had no base curve, so when prevDelay dropped to 0
+            // nothing drove the parameter back down and it stuck at 1.
+            // AlwaysOnClip must contain a constant-0 curve for every delay parameter so that
+            // the direct blend tree always resets it before the forwarding clip can override it.
+            var graph = new ReactionGraph();
+
+            graph.AddNode(new ReactionNode(
+                new InternalParameterCondition("A"),
+                new NullAction("output")
+            ));
+            graph.AddNode(new ReactionNode(
+                new OrNode(
+                    new InternalParameterCondition("B"),
+                    new InternalParameterCondition("C")
+                ),
+                new DriveInternalParameter("A", true)
+            ));
+            graph.AddNode(new ReactionNode(
+                new InternalParameterCondition("C"),
+                new DriveInternalParameter("B", true)
+            ));
+            graph.AddNode(new ReactionNode(
+                new Constant(true),
+                new DriveInternalParameter("C", true)
+            ));
+
+            AlignNodesTransform.Apply(_bakeContext, graph);
+
+            ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
+        }
+
+        [Test]
+        public void DelayParameters_MultipleDepths_AllHaveBaseCurves()
+        {
+            // Each delay level (C$d1, C$d2, B$d1, etc.) must independently have a base curve.
+            var graph = new ReactionGraph();
+
+            graph.AddNode(new ReactionNode(
+                new OrNode(
+                    new InternalParameterCondition("A"),
+                    new InternalParameterCondition("B"),
+                    new InternalParameterCondition("C")
+                ),
+                new NullAction("output")
+            ));
+            graph.AddNode(new ReactionNode(
+                new OrNode(
+                    new InternalParameterCondition("B"),
+                    new InternalParameterCondition("C")
+                ),
+                new DriveInternalParameter("A", true)
+            ));
+            graph.AddNode(new ReactionNode(
+                new InternalParameterCondition("C"),
+                new DriveInternalParameter("B", true)
+            ));
+            graph.AddNode(new ReactionNode(
+                new Constant(true),
+                new DriveInternalParameter("C", true)
+            ));
+
+            AlignNodesTransform.Apply(_bakeContext, graph);
+
+            ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("B", 1));
+            ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
+            ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 2));
+        }
+
         #endregion
 
         #region Depth Assignment Tests
@@ -990,6 +1061,19 @@ namespace UnitTestsReactiveComponentIL
 
             Assert.IsNotNull(forwardingClip,
                 $"RootTree should have a forwarding entry: {sourceParamName} → {delayParamName}");
+        }
+
+        /// <summary>
+        /// Validates that AlwaysOnClip has a constant-0 base curve for the given delay parameter.
+        /// Without this curve, when the source parameter drops to 0 the delay parameter sticks at 1.
+        /// </summary>
+        private void ValidateDelayBaseCurve(string delayParamName)
+        {
+            var curve = _bakeContext.AlwaysOnClip.GetFloatCurve("", typeof(Animator), delayParamName);
+            Assert.IsNotNull(curve,
+                $"AlwaysOnClip should have a base curve for {delayParamName} to reset it to 0 when not driven");
+            Assert.AreEqual(0f, curve.Evaluate(0f),
+                $"Base curve for {delayParamName} must evaluate to 0");
         }
 
         #endregion

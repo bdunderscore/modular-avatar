@@ -318,6 +318,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
                 context.SetParameter(delayedName, context.GetParameterInitialValue(ipParameterName));
 
+                // Base curve zeroes the parameter so it resets when prevDelay drops to 0
+                context.AlwaysOnClip.SetFloatCurve(
+                    EditorCurveBinding.FloatCurve("", typeof(Animator), delayedName),
+                    AnimationCurve.Constant(0, 1, 0)
+                );
+
                 var linearMotionClip = VirtualClip.Create($"Delay {ipParameterName} {i}");
                 linearMotionClip.SetFloatCurve(
                     EditorCurveBinding.FloatCurve("", typeof(Animator), delayedName),
