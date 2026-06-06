@@ -40,12 +40,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 
         public override bool Equals(object? obj)
         {
-            return obj is ObjectActiveState other && TargetObject == other.TargetObject;
+            return obj is ObjectActiveState other &&
+                   TargetObject == other.TargetObject &&
+                   StateMode == other.StateMode;
         }
 
         public override int GetHashCode()
         {
-            return TargetObject?.GetHashCode() ?? 0;
+            return HashCode.Combine(TargetObject, StateMode);
         }
     }
 }

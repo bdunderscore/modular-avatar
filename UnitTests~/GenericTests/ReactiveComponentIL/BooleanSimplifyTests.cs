@@ -416,6 +416,153 @@ namespace UnitTestsReactiveComponentIL
 
             Assert.AreEqual(param, result);
         }
+
+        // PruneIdenticalConditions tests
+
+        [Test]
+        public void AndNode_WithConsecutiveDuplicates_RemovesOneDuplicate()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            var expr = new AndNode(param, param, other);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new AndNode(param, other), result);
+        }
+
+        [Test]
+        public void AndNode_WithAllDuplicates_CollapsesToParam()
+        {
+            var param = new ParameterExpression("test");
+            var expr = new AndNode(param, param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(param, result);
+        }
+
+        [Test]
+        public void AndNode_WithThreeConsecutiveDuplicates_CollapsesToParam()
+        {
+            var param = new ParameterExpression("test");
+            var expr = new AndNode(param, param, param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(param, result);
+        }
+
+        [Test]
+        public void AndNode_WithMultipleGroupsOfConsecutiveDuplicates_PrunesAllGroups()
+        {
+            var param1 = new ParameterExpression("test1");
+            var param2 = new ParameterExpression("test2");
+            var expr = new AndNode(param1, param1, param2, param2);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new AndNode(param1, param2), result);
+        }
+
+        [Test]
+        public void AndNode_WithNonConsecutiveDuplicates_Deduped()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            var expr = new AndNode(param, other, param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new AndNode(param, other), result);
+        }
+
+        [Test]
+        public void OrNode_WithConsecutiveDuplicates_RemovesOneDuplicate()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            var expr = new OrNode(param, param, other);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new OrNode(param, other), result);
+        }
+
+        [Test]
+        public void OrNode_WithAllDuplicates_CollapsesToParam()
+        {
+            var param = new ParameterExpression("test");
+            var expr = new OrNode(param, param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(param, result);
+        }
+
+        [Test]
+        public void OrNode_WithNonConsecutiveDuplicates_Deduped()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            var expr = new OrNode(param, other, param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new OrNode(param, other), result);
+        }
+
+        [Test]
+        public void AndNode_ConsecutiveDuplicatesAfterFlattening_Pruned()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            // AND(param, AND(param, other)) flattens to AND(param, param, other), then prunes to AND(param, other)
+            var expr = new AndNode(param, new AndNode(param, other));
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new AndNode(param, other), result);
+        }
+
+        [Test]
+        public void OrNode_ConsecutiveDuplicatesAfterFlattening_Pruned()
+        {
+            var param = new ParameterExpression("test");
+            var other = new ParameterExpression("other");
+            // OR(param, OR(param, other)) flattens to OR(param, param, other), then prunes to OR(param, other)
+            var expr = new OrNode(param, new OrNode(param, other));
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new OrNode(param, other), result);
+        }
+
+        [Test]
+        public void AndNode_ConsecutiveDuplicateComplexExpressions_Pruned()
+        {
+            var param1 = new ParameterExpression("test1");
+            var param2 = new ParameterExpression("test2");
+            // AND(OR(a,b), OR(a,b)) — two structurally equal sub-expressions are pruned
+            var expr = new AndNode(new OrNode(param1, param2), new OrNode(param1, param2));
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new OrNode(param1, param2), result);
+        }
+
+        [Test]
+        public void OrNode_ConsecutiveDuplicateComplexExpressions_Pruned()
+        {
+            var param1 = new ParameterExpression("test1");
+            var param2 = new ParameterExpression("test2");
+            // OR(AND(a,b), AND(a,b)) — two structurally equal sub-expressions are pruned
+            var expr = new OrNode(new AndNode(param1, param2), new AndNode(param1, param2));
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new AndNode(param1, param2), result);
+        }
     }
 }
 

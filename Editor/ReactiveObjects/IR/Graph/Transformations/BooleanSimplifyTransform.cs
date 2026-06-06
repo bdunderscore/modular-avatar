@@ -52,6 +52,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                             return new[] { c };
                         }).ToList();
 
+                        PruneIdenticalConditions(and.Children);
+                        
                         // After flattening/filtering, check if we can simplify further
                         if (and.Children.Count == 0)
                         {
@@ -89,6 +91,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                             return new[] { c };
                         }).ToList();
 
+                        PruneIdenticalConditions(or.Children);
+                        
                         // After flattening/filtering, check if we can simplify further
                         if (or.Children.Count == 0)
                         {
@@ -116,6 +120,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     }
                 }
             }
+        }
+
+        /// <summary>
+        ///     Prunes identical conditions in AND/OR nodes. This optimization is performance-critical - we frequently
+        ///     generate duplicate parameter conditions, and allowing them to flow through the graph roughly doubles (or
+        ///     more) the number of active blend trees.
+        /// </summary>
+        /// <param name="expressions"></param>
+        private static void PruneIdenticalConditions(List<IExpression> expressions)
+        {
+            HashSet<IExpression> seen = new();
+
+            expressions.RemoveAll(item => !seen.Add(item));
         }
 
         private static void WalkAllExpressions(ReactionGraph graph, ExpressionVisitor walk)
