@@ -133,7 +133,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 defaultFloat = value
             };
 
-            _vac.Parameters = _vac.Parameters.SetItem(template.name, template);
+            _vac.SetParameter(name, template);
         }
 
         public IDisposable LatencyScope(int frames)

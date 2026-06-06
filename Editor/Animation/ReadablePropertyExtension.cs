@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.animation
             // Add prop to all animators
             foreach (var animator in asc.ControllerContext.GetAllControllers())
             {
-                animator.Parameters = animator.Parameters.SetItem(
+                animator.SetParameter(
                     prop,
                     new AnimatorControllerParameter
                     {
