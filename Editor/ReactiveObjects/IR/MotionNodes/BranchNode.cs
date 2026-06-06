@@ -38,10 +38,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             vbt.UseAutomaticThresholds = false;
             vbt.NormalizedBlendValues = false;
             vbt.Children = ImmutableList.Create(
-                new VirtualBlendTree.VirtualChildMotion
-                {
-                    Motion = onLess, Threshold = Threshold - 1f
-                },
                 // Ensure this is a hard transition by having no floats in between the false and true values
                 new VirtualBlendTree.VirtualChildMotion
                 {
@@ -50,10 +46,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 new VirtualBlendTree.VirtualChildMotion
                 {
                     Motion = onGreater, Threshold = Threshold
-                },
-                new VirtualBlendTree.VirtualChildMotion
-                {
-                    Motion = onGreater, Threshold = Threshold + 1f
                 }
             );
 
