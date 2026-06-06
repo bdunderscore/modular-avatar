@@ -49,7 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             if (conditions.Count <= 2)
             {
                 IMotionNode onFalse = new EmptyNode();
-                for (var i = conditions.Count - 1; i >= 0; i--)
+                for (var i = 0; i < conditions.Count; i++)
                 {
                     var (pc, node) = conditions[i];
                     pc.OnFalse = onFalse;

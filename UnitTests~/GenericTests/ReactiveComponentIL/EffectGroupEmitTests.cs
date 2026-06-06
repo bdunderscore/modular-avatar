@@ -81,6 +81,39 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreSame(onFalse, branch.OnLessThan);
         }
 
+        // ── Two-node priority ordering ────────────────────────────────────────
+
+        /// <summary>
+        /// With exactly two nodes, the ≤2 code path builds a chain of ProxyConditions.
+        /// "Last component wins" requires that conditions[1] (second) is checked first so it takes
+        /// priority over conditions[0] (first) when both are active.
+        /// </summary>
+        [Test]
+        public void TwoNodes_LastNodeWins_SecondConditionCheckedFirst()
+        {
+            var group = MakeGroup(
+                new InternalParameterCondition("first"),
+                new InternalParameterCondition("second")
+            );
+            var root = group.Emit();
+
+            // Root must check "second" first so it can win over "first".
+            var outerBranch = Resolve(root) as BranchNode;
+            Assert.IsNotNull(outerBranch, "Root should be a BranchNode");
+            Assert.AreEqual("second", outerBranch.Parameter,
+                "Last condition must be checked first so it wins when both are true");
+
+            Assert.IsTrue(ResolvesToEffect(outerBranch.OnGreaterEquals),
+                "second=true → second's effect");
+
+            // second=false path must fall through to check "first".
+            var innerBranch = Resolve(outerBranch.OnLessThan) as BranchNode;
+            Assert.IsNotNull(innerBranch, "second=false path should check 'first'");
+            Assert.AreEqual("first", innerBranch.Parameter);
+            Assert.IsTrue(ResolvesToEffect(innerBranch.OnGreaterEquals), "first=true → first's effect");
+            Assert.IsTrue(ResolvesToEmpty(innerBranch.OnLessThan), "both false → empty");
+        }
+
         // ── PriorityNode groups ───────────────────────────────────────────────
 
         [Test]

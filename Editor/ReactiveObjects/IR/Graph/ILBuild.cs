@@ -45,6 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             foreach (var subgraph in subgraphs)
             {
                 var byEffect = AlignNodesTransform.CreateEffectGroups(context, subgraph);
+                EffectGroupDumper.DumpEffectGroups(byEffect.Values, "Pre-align");
                 var aligned = AlignNodesTransform.Apply(context, byEffect);
                 AssignInitialStates.ProcessGroups(context, aligned);
                 motions.AddRange(aligned.Select(g => g.Emit()));
