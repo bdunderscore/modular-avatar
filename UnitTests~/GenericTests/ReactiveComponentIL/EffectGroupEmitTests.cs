@@ -136,7 +136,7 @@ namespace UnitTestsReactiveComponentIL
 
             AssertBranchCondition(
                 priority.Conditions[0].Item1,
-                "first",
+                "third",
                 priority.Conditions[0].Item1.OnTrueProxy,
                 priority.Conditions[0].Item1.OnFalseProxy);
             AssertBranchCondition(
@@ -146,9 +146,37 @@ namespace UnitTestsReactiveComponentIL
                 priority.Conditions[1].Item1.OnFalseProxy);
             AssertBranchCondition(
                 priority.Conditions[2].Item1,
-                "third",
+                "first",
                 priority.Conditions[2].Item1.OnTrueProxy,
                 priority.Conditions[2].Item1.OnFalseProxy);
+        }
+
+        /// <summary>
+        /// PriorityNode is "first wins", so for "last component wins" semantics the conditions list
+        /// must be in reverse node order: conditions[0] = last/highest-priority node.
+        /// </summary>
+        [Test]
+        public void ThreeNodes_LastNodeWins_ConditionsOrderedLastFirst()
+        {
+            var group = MakeGroup(
+                new InternalParameterCondition("first"),
+                new InternalParameterCondition("second"),
+                new InternalParameterCondition("third")
+            );
+            var root = group.Emit();
+
+            var priority = root as PriorityNode;
+            Assert.IsNotNull(priority);
+            Assert.AreEqual(3, priority.Conditions.Count);
+
+            // PriorityNode is first-wins, so the last-added (highest-priority) node must be at index 0.
+            Assert.AreEqual("third",
+                (priority.Conditions[0].Item1.Node as BranchNode)?.Parameter,
+                "conditions[0] must be 'third' so it wins over earlier nodes");
+            Assert.AreEqual("second",
+                (priority.Conditions[1].Item1.Node as BranchNode)?.Parameter);
+            Assert.AreEqual("first",
+                (priority.Conditions[2].Item1.Node as BranchNode)?.Parameter);
         }
 
         // ── Constant conditions ───────────────────────────────────────────────

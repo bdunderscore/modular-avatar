@@ -63,6 +63,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 var pn = new PriorityNode();
                 pn.Conditions = conditions;
+                // PriorityNode expects highest priority first
+                pn.Conditions.Reverse();
                 RootNode = pn;
             }
 
