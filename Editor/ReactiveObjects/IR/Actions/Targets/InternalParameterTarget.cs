@@ -1,4 +1,6 @@
-﻿namespace nadena.dev.modular_avatar.core.editor.rc.Graph
+#nullable enable
+
+namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 {
     public readonly struct InternalParameterTarget
     {
@@ -19,7 +21,7 @@
             return ParameterName == other.ParameterName;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return ReferenceEquals(this, obj) || (obj is InternalParameterTarget other && Equals(other));
         }

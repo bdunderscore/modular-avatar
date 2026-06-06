@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,12 +45,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         }
 
         // Formats an IExpression, compacting AND(param > lo, param < hi) into "(lo < param < hi)".
-        private static string FormatExpression(IExpression expr)
+        private static string FormatExpression(IExpression? expr)
         {
             if (expr is AndNode and)
             {
-                ParameterExpression lo = null, hi = null;
-                List<IExpression> rest = null;
+                ParameterExpression? lo = null, hi = null;
+                List<IExpression>? rest = null;
                 foreach (var child in and.Children)
                 {
                     if (child is ParameterExpression pe)
@@ -80,7 +82,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return expr?.ToString() ?? "(null)";
         }
 
-        private static IMotionNode Unwrap(IMotionNode node)
+        private static IMotionNode? Unwrap(IMotionNode? node)
         {
             while (node is ProxyNode pn && pn.Target != null)
                 node = pn.Target;
@@ -88,7 +90,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         }
 
         // Returns a one-line string for leaf nodes, or null if the node needs a block.
-        private static string DescribeLeaf(IMotionNode node)
+        private static string? DescribeLeaf(IMotionNode? node)
         {
             if (node == null) return "(null)";
             if (node is EmptyNode) return "(empty)";
@@ -118,8 +120,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         // Collects non-empty leaf segments from a single-param branch subtree.
         // Returns null if the tree mixes parameters (caller should fall back to raw dump).
-        private static List<(float? lo, float? hi, IMotionNode motion, string param)> TryCollectSegments(
-            IMotionNode node, string param, float? lo, float? hi)
+        private static List<(float? lo, float? hi, IMotionNode motion, string param)>? TryCollectSegments(
+            IMotionNode? node, string? param, float? lo, float? hi)
         {
             node = Unwrap(node);
             if (node == null || node is EmptyNode)
@@ -162,8 +164,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         // Collects the ranges in a ProxyCondition's condition tree that route to onTrueProxy.
         // Starting node should be cond.ProxyNode so the Always() case (where _node == onTrueProxy) works.
         // Returns null when the tree structure is not a pure single-param branch tree.
-        private static List<(float? lo, float? hi, string param)> TryCollectTrueSegments(
-            IMotionNode node, string param, float? lo, float? hi,
+        private static List<(float? lo, float? hi, string param)>? TryCollectTrueSegments(
+            IMotionNode? node, string? param, float? lo, float? hi,
             ProxyNode onFalseProxy, ProxyNode onTrueProxy)
         {
             // Check proxy identity before unwrapping.
@@ -235,6 +237,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             if (leaf != null)
             {
                 sb.AppendLine(indent + leaf);
+                return;
+            }
+
+            if (unwrapped == null)
+            {
+                sb.AppendLine(indent + "(null)");
                 return;
             }
 

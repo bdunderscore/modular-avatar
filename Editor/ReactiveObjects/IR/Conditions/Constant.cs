@@ -26,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             // leaf node
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Constant other && Value == other.Value;
         }

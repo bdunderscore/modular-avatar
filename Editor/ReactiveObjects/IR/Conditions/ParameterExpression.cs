@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return $"{ParameterName} {op} {Threshold}";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ParameterExpression other &&
                    ParameterName == other.ParameterName &&

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable enable
+
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -86,13 +88,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 if (group.DefaultNode.HasValue)
                 {
                     var defaultNode = group.DefaultNode.Value;
-                    group.Nodes[defaultNode].Effects.First(e => e.TargetKey.Equals(group.TargetKey))!
+                    group.Nodes[defaultNode].Effects.First(e => e.TargetKey.Equals(group.TargetKey))
                         .SetBaseState(context, true);
                 }
                 else
                 {
                     group.Nodes.SelectMany(n => n.Effects)
-                        .First(e => e.TargetKey.Equals(group.TargetKey))!
+                        .First(e => e.TargetKey.Equals(group.TargetKey))
                         .SetBaseState(context, false);
                 }
             }

@@ -1,5 +1,7 @@
 #nullable enable
 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc;
@@ -10,6 +12,7 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -64,7 +67,7 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
         private void RemoveRedundantConstantShapes(
             Dictionary<TargetProp, AnimatedProperty> shapes,
-            Dictionary<TargetProp, object> initialStates)
+            Dictionary<TargetProp, object?> initialStates)
         {
             var constantShapes = shapes
                 .Where(kv => kv.Value.actionGroups.LastOrDefault()?.IsConstant is true)
@@ -104,7 +107,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private static void ApplyInitialSceneStates(
             Dictionary<TargetProp, AnimatedProperty> shapes,
-            Dictionary<TargetProp, object> initialStates)
+            Dictionary<TargetProp, object?> initialStates)
         {
             foreach (var (key, prop) in shapes)
             {
@@ -196,7 +199,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void PreProcessMeshDeletion(
             Dictionary<TargetProp, AnimatedProperty> shapes,
-            Dictionary<TargetProp, object> initialStates)
+            Dictionary<TargetProp, object?> initialStates)
         {
             var rendererGroups = shapes.Values
                 .Where(prop => prop.actionGroups.Any(x => x.Value is IVertexFilter))
@@ -299,7 +302,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     .Min(x => x.Threshold));
             }
 
-            return filter!;
+            return filter ?? throw new InvalidOperationException("Expected at least one vertex filter to aggregate");
         }
 
         private ReactionGraph ShapeToGraph(Dictionary<TargetProp, AnimatedProperty> shapes)
@@ -313,7 +316,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     IAction action;
                     if (rule.TargetProp.TargetObject is GameObject go && rule.TargetProp.PropertyName == "m_IsActive")
                     {
-                        action = new DriveActiveState(go, (float)rule.Value! > 0.5f);
+                        if (rule.Value is not float activeValue)
+                            throw new InvalidOperationException(
+                                $"Object active state reaction for {rule.TargetProp} did not contain a float value; got {DescribeValue(rule.Value)}");
+                        action = new DriveActiveState(go, activeValue > 0.5f);
                     }
                     else if (_nanBonesForProp.TryGetValue(rule.TargetProp, out var bones))
                     {
@@ -365,6 +371,9 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             // TODO - find correct initial value here
+            if (_bakeContext == null)
+                throw new InvalidOperationException(
+                    "ReactiveObjectPassV2 condition conversion requires an active bake context");
             _bakeContext.EnsureParameterPresent(arg.Parameter);
 
             if (!float.IsFinite(arg.ParameterValueHi))
@@ -382,6 +391,11 @@ namespace nadena.dev.modular_avatar.core.editor
             var c2 = new ParameterExpression(arg.Parameter, arg.ParameterValueHi,
                 ParameterExpression.ConditionMode.LessThan);
             return new AndNode(c1, c2);
+        }
+
+        private static string DescribeValue(object? value)
+        {
+            return value == null ? "null" : value.GetType().FullName;
         }
     }
 }

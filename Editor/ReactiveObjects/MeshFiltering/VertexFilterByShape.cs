@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -70,14 +72,14 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IVertexFilter? other)
         {
             return other is VertexFilterByShape filter
                    && filter.Shapes.SetEquals(Shapes)
                    && Mathf.Approximately(filter.Threshold, Threshold);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as IVertexFilter);
         }

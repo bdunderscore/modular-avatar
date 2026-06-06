@@ -1,4 +1,6 @@
-﻿using nadena.dev.ndmf.animator;
+#nullable enable
+
+using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {

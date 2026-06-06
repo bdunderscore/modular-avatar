@@ -1,4 +1,6 @@
-﻿namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
+#nullable enable
+
+namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
     public class InternalParameterCondition : IExpression
     {
@@ -29,7 +31,7 @@
             return ParameterName == other.ParameterName;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;

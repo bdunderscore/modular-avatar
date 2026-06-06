@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.preview;
@@ -16,7 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor
             this.filters = (filters ?? throw new ArgumentNullException(nameof(filters))).ToList();
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IVertexFilter? other)
         {
             if (other is ORFilter orFilter)
             {

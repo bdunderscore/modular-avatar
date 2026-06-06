@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using JetBrains.Annotations;
 
 namespace nadena.dev.modular_avatar.core.editor

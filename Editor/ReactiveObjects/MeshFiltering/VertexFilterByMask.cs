@@ -157,7 +157,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 #endif
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IVertexFilter? other)
         {
             return other is VertexFilterByMask filter
                    && filter._materialIndex == _materialIndex
@@ -168,7 +168,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    && filter.DeleteMode == DeleteMode;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as IVertexFilter);
         }

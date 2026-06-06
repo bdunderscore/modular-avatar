@@ -1,4 +1,6 @@
-﻿using nadena.dev.ndmf.animator;
+#nullable enable
+
+using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Actions
 {
@@ -21,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
             return Equals(TargetKey, other.TargetKey);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return ReferenceEquals(this, obj) || (obj is NullAction other && Equals(other));
         }

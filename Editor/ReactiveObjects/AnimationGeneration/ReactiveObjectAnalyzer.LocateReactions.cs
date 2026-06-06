@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.modular_avatar.core.vertex_filters;
@@ -10,7 +12,8 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object value, GameObject affectedObject = null)
+        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object? value,
+            GameObject? affectedObject = null)
         {
             var rule = new ReactionRule(key, value);
 
@@ -21,16 +24,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private string GetActiveSelfProxy(GameObject obj)
         {
-            if (_asc != null)
+            if (_rpe != null)
             {
                 return _rpe.GetActiveSelfProxy(obj);
             }
-            else
-            {
-                var param = "__ActiveSelfProxy/" + obj.GetInstanceID();
+
+            var param = "__ActiveSelfProxy/" + obj.GetInstanceID();
+            if (_simulationInitialStates != null)
                 _simulationInitialStates[param] = obj.activeSelf ? 1.0f : 0.0f;
-                return param;
-            }
+            return param;
         }
 
         private readonly Dictionary<(SkinnedMeshRenderer, string), HashSet<(SkinnedMeshRenderer, string)>>
@@ -103,8 +105,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 yield return key;
             }
         }
-        
-        private void BuildConditions(Component controllingComponent, ReactionRule rule, GameObject affectedObject)
+
+        private void BuildConditions(Component controllingComponent, ReactionRule rule, GameObject? affectedObject)
         {
             var affectedTransform = affectedObject?.transform;
             
@@ -112,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var conditions = new List<ControlCondition>();
 
-            var cursor = controllingComponent?.transform;
+            var cursor = controllingComponent.transform;
 
             bool did_mami = false;
 
@@ -147,7 +149,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // We don't need to disable or enable this rule based on parents of the affected object, since
                 // the rule is irrelevant when the affected object itself is disabled.
                 var cursorTransform = cursor.transform;
-                if (affectedObject == null ||
+                if (affectedTransform == null ||
                     (affectedTransform != cursorTransform && !affectedTransform.IsChildOf(cursorTransform)))
                 {
                     conditions.Add(new ControlCondition
@@ -253,7 +255,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return shapeKeys;
 
-            void RegisterAction(TargetProp key, float? currentValue, object value, ModularAvatarShapeChanger changer)
+            void RegisterAction(TargetProp key, float? currentValue, object? value, ModularAvatarShapeChanger changer)
             {
                 if (!shapeKeys.TryGetValue(key, out var info))
                 {
@@ -454,7 +456,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            void RegisterAction(ReactiveComponent component, Renderer renderer, int index, Material material)
+            void RegisterAction(ReactiveComponent component, Renderer renderer, int index, Material? material)
             {
                 var key = new TargetProp
                 {

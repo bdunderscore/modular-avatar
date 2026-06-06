@@ -1,4 +1,6 @@
-﻿using nadena.dev.modular_avatar.core.editor.rc.Graph;
+#nullable enable
+
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;

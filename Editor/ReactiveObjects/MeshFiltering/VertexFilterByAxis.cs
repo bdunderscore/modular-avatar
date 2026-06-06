@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(component.transform);
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IVertexFilter? other)
         {
             return other is VertexFilterByAxis
                    && ((VertexFilterByAxis)other)._axis == _axis

@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {

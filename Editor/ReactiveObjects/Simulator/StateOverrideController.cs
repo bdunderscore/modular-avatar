@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using nadena.dev.modular_avatar.core.editor.Simulator;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -15,9 +17,9 @@ namespace nadena.dev.modular_avatar.core.editor
         {
         }
 
-        private static StyleSheet uss;
+        private static StyleSheet? uss;
         private Button btn_disable, btn_default, btn_enable;
-        public System.Action<bool?> OnStateOverrideChanged;
+        public Action<bool?>? OnStateOverrideChanged;
         
         public StateOverrideController()
         {

@@ -32,7 +32,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             visitor(ref _inner);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is NotNode other && Equals(Inner, other.Inner);
         }

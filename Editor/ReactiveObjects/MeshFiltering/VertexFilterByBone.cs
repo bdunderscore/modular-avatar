@@ -27,7 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor
             (_bone, _threshold) = context.Observe(component, c => (c.Bone.Get(c)?.transform, c.Threshold));
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IVertexFilter? other)
         {
             return other is VertexFilterByBone filter
                    && filter._bone == _bone

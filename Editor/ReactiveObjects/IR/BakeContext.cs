@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
@@ -68,7 +70,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             BaseLayer = vac.AddLayer(new LayerPriority(int.MinValue), BASE_LAYER_NAME);
             BaseLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
             BaseLayer.DefaultWeight = 1;
-            var sm = BaseLayer.StateMachine!;
+            var sm = BaseLayer.StateMachine ??
+                     throw new InvalidOperationException("Base animator layer was created without a state machine");
             var state = sm.AddState("Base");
             sm.DefaultState = state;
             state.Motion = baseBlendTree;
@@ -76,7 +79,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var animLayer = vac.AddLayer(new LayerPriority(1), APPLY_LAYER_NAME);
             animLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
             animLayer.DefaultWeight = 1;
-            sm = animLayer.StateMachine!;
+            sm = animLayer.StateMachine ??
+                 throw new InvalidOperationException("Apply animator layer was created without a state machine");
             state = sm.AddState("Apply");
             sm.DefaultState = state;
             state.Motion = RootTree;

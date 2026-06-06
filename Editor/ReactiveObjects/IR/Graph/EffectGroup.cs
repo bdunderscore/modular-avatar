@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;

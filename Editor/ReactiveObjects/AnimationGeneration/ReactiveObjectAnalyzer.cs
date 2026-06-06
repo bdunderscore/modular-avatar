@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,14 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor
     internal partial class ReactiveObjectAnalyzer
     {
         private readonly ComputeContext _computeContext;
-        private readonly ndmf.BuildContext _context;
-        private readonly AnimatorServicesContext _asc;
-        private readonly ReadablePropertyExtension _rpe;
+        private readonly ndmf.BuildContext? _context;
+        private readonly AnimatorServicesContext? _asc;
+        private readonly ReadablePropertyExtension? _rpe;
 
         private static readonly ImmutableHashSet<Type> ActiveObjectTypes =
             new[] { typeof(AudioSource) }.ToImmutableHashSet();
-        
-        private Dictionary<string, float> _simulationInitialStates;
+
+        private readonly Dictionary<string, float>? _simulationInitialStates;
 
         public const string BlendshapePrefix = "blendShape.";
         public const string DeletedShapePrefix = "deletedShape.";
@@ -34,14 +36,14 @@ namespace nadena.dev.modular_avatar.core.editor
         
         public ImmutableDictionary<string, float> ForcePropertyOverrides { get; set; } = ImmutableDictionary<string, float>.Empty;
 
-        public ImmutableDictionary<string, ModularAvatarMenuItem> ForceMenuItems { get; set; } =
-            ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+        public ImmutableDictionary<string, ModularAvatarMenuItem?> ForceMenuItems { get; set; } =
+            ImmutableDictionary<string, ModularAvatarMenuItem?>.Empty;
 
         public static AnalysisResult NullAnalysis =>
             new()
             {
                 Shapes = new Dictionary<TargetProp, AnimatedProperty>(),
-                InitialStates = new Dictionary<TargetProp, object>()
+                InitialStates = new Dictionary<TargetProp, object?>()
             };
 
         public ReactiveObjectAnalyzer(ndmf.BuildContext context)
@@ -53,11 +55,12 @@ namespace nadena.dev.modular_avatar.core.editor
             _simulationInitialStates = null;
         }
 
-        public ReactiveObjectAnalyzer(ComputeContext computeContext = null)
+        public ReactiveObjectAnalyzer(ComputeContext? computeContext = null)
         {
             _computeContext = computeContext ?? ComputeContext.NullContext;
             _context = null;
             _asc = null;
+            _rpe = null;
             _simulationInitialStates = new();
         }
 
@@ -69,10 +72,10 @@ namespace nadena.dev.modular_avatar.core.editor
         public struct AnalysisResult
         {
             public Dictionary<TargetProp, AnimatedProperty> Shapes;
-            public Dictionary<TargetProp, object> InitialStates;
+            public Dictionary<TargetProp, object?> InitialStates;
         }
 
-        private static PropCache<GameObject, AnalysisResult> _analysisCache;
+        private static PropCache<GameObject, AnalysisResult>? _analysisCache;
 
         public static AnalysisResult CachedAnalyze(ComputeContext context, GameObject root)
         {
@@ -89,7 +92,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     analysis.ForcePropertyOverrides = ctx.Observe(ROSimulator.PropertyOverrides, a=>a, (a,b) => false)
                         ?? ImmutableDictionary<string, float>.Empty;
                     analysis.ForceMenuItems = ctx.Observe(ROSimulator.MenuItemOverrides, a => a, (a, b) => false)
-                                              ?? ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+                                              ?? ImmutableDictionary<string, ModularAvatarMenuItem?>.Empty;
                     return analysis.Analyze(root);
                 });
             }
@@ -104,7 +107,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="initialStates">A dictionary of target property to initial state (float or UnityEngine.Object)</param>
         /// <returns></returns>
         public AnalysisResult Analyze(
-            GameObject root
+            GameObject? root
         )
         {
             AnalysisResult result = new();
@@ -215,9 +218,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var actionGroup in group.actionGroups)
                 {
                     foreach (var condition in actionGroup.ControllingConditions)
-                        if (condition.ReferenceObject && !toggledObjects.Contains(condition.ReferenceObject))
+                        if (condition.ReferenceObject is { } referenceObject &&
+                            !toggledObjects.Contains(referenceObject))
                         {
-                            var virtualPath = asc.ObjectPathRemapper.GetVirtualPathForObject(condition.ReferenceObject);
+                            var virtualPath = asc.ObjectPathRemapper.GetVirtualPathForObject(referenceObject);
 
                             condition.IsConstant = !asc.AnimationIndex.GetClipsForBinding(
                                 EditorCurveBinding.FloatCurve(
@@ -299,7 +303,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         if (evaluated)
                         {
-                            state = (float) actionGroup.Value;
+                            if (actionGroup.Value is not float activeValue)
+                                throw new InvalidOperationException(
+                                    $"Object active state analysis for {actionGroup.TargetProp} did not contain a float value; got {DescribeValue(actionGroup.Value)}");
+                            state = activeValue;
                         }
                     }
 
@@ -339,12 +346,12 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <param name="shapes"></param>
         /// <param name="initialStates"></param>
         private void PreprocessShapes(Dictionary<TargetProp, AnimatedProperty> shapes,
-            out Dictionary<TargetProp, object> initialStates)
+            out Dictionary<TargetProp, object?> initialStates)
         {
             // For each shapekey, determine 1) if we can just set an initial state and skip and 2) if we can delete the
             // corresponding mesh. If we can't, delete ops are merged into the main list of operations.
-            
-            initialStates = new Dictionary<TargetProp, object>();
+
+            initialStates = new Dictionary<TargetProp, object?>();
             
             foreach (var (key, info) in shapes.ToList())
             {
@@ -373,6 +380,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     shapes.Remove(key);
                 }
             }
+        }
+
+        private static string DescribeValue(object? value)
+        {
+            return value == null ? "null" : value.GetType().FullName;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -45,9 +47,9 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         public static bool TryGetVertexFilter(IVertexFilterBehavior behavior, ComputeContext context,
-            out IVertexFilter filter)
+            out IVertexFilter? filter)
         {
-            filter = default;
+            filter = null;
 
             if (!_providers.TryGetValue(behavior.GetType(), out var provider))
             {

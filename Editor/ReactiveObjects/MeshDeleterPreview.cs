@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,8 +88,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
             var (original, proxy) = proxyPairs.First();
-            var node = new Node(_cache, original as SkinnedMeshRenderer, proxy as SkinnedMeshRenderer, context);
-            return node.Refresh(null, context, 0);
+            var node = new Node(_cache, (SkinnedMeshRenderer)original, (SkinnedMeshRenderer)proxy, context);
+            return node.Refresh(Enumerable.Empty<(Renderer, Renderer)>(), context, 0);
         }
 
         private class Node : IRenderFilterNode
@@ -95,7 +97,7 @@ namespace nadena.dev.modular_avatar.core.editor
             private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache;
             private readonly SkinnedMeshRenderer _original;
             private readonly ImmutableList<IVertexFilter> _filters;
-            private Mesh _generatedMesh;
+            private Mesh? _generatedMesh;
 
             public RenderAspects WhatChanged => RenderAspects.Mesh;
 
@@ -117,13 +119,13 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if ((updatedAspects & RenderAspects.Mesh) != 0)
                 {
-                    return Task.FromResult<IRenderFilterNode>(null);
+                    return Task.FromResult<IRenderFilterNode>(null!);
                 }
 
                 var filters = _cache.Get(context, _original);
                 if (!filters.SequenceEqual(_filters))
                 {
-                    return Task.FromResult<IRenderFilterNode>(null);
+                    return Task.FromResult<IRenderFilterNode>(null!);
                 }
 
                 return Task.FromResult<IRenderFilterNode>(this);
@@ -140,10 +142,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(
+            private Mesh? GenerateMesh(
                 Renderer original,
                 Renderer proxy,
-                Mesh mesh,
+                Mesh? mesh,
                 ImmutableList<IVertexFilter> filters
             )
             {

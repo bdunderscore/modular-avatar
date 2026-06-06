@@ -38,7 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return TargetObject != null ? $"ObjectActive({TargetObject.name})" : "ObjectActive(null)";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ObjectActiveState other && TargetObject == other.TargetObject;
         }

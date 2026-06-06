@@ -34,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is OrNode other && Children.SequenceEqual(other.Children);
         }

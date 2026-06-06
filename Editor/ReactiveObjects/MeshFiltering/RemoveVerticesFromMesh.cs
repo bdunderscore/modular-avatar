@@ -1,4 +1,6 @@
-﻿#region
+#nullable enable
+
+#region
 
 using System;
 using System.Collections.Generic;
@@ -192,9 +194,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // Add a degenerate triangle to avoid creating an empty submesh.
                     // TODO: Perform necessary animation updates to allow us to delete the submesh entirely.
-                    new_tri.Add(default);
-                    new_tri.Add(default);
-                    new_tri.Add(default);
+                    new_tri.Add(fromInt(0));
+                    new_tri.Add(fromInt(0));
+                    new_tri.Add(fromInt(0));
                 }
             }
         }

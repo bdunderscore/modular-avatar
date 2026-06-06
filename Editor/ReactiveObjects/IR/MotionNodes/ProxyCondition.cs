@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
@@ -24,7 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public IMotionNode OnFalse
         {
-            get => OnFalseProxy.Target;
+            get => RequiredTarget(OnFalseProxy, nameof(OnFalse));
             set => OnFalseProxy.Target = value;
         }
 
@@ -36,13 +38,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public IMotionNode OnTrue
         {
-            get => OnTrueProxy.Target;
+            get => RequiredTarget(OnTrueProxy, nameof(OnTrue));
             set => OnTrueProxy.Target = value;
         }
 
         public IMotionNode Node
         {
-            get => _node.Target;
+            get => RequiredTarget(_node, nameof(Node));
             set => _node.Target = value;
         }
 
@@ -77,20 +79,25 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             _node.WalkTree(FlattenVisitor);
 
-            return _node.Target;
+            return Node;
 
-            void FlattenVisitor(ref IMotionNode? node)
+            void FlattenVisitor(ref IMotionNode node)
             {
-                if (node == _onFalseProxy) node = _onFalseProxy.Target;
-                else if (node == _onTrueProxy) node = _onTrueProxy.Target;
+                if (node == _onFalseProxy) node = RequiredTarget(_onFalseProxy, nameof(OnFalse));
+                else if (node == _onTrueProxy) node = RequiredTarget(_onTrueProxy, nameof(OnTrue));
             }
         }
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            var target = _node.Target;
+            var target = Node;
             visitor(ref target);
             _node.Target = target;
+        }
+
+        private static IMotionNode RequiredTarget(ProxyNode proxy, string targetName)
+        {
+            return proxy.Target ?? throw new InvalidOperationException($"ProxyCondition {targetName} target is null");
         }
     }
 }

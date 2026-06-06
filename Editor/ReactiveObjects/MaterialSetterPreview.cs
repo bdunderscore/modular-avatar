@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -94,7 +96,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var node = new Node(_cache, proxyPairs.First().Item1);
 
-            return node.Refresh(null, context, 0);
+            return node.Refresh(Enumerable.Empty<(Renderer, Renderer)>(), context, 0);
         }
 
         private class Node : IRenderFilterNode

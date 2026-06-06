@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+#nullable enable
+
+using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 {
@@ -21,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
             return Equals(Target, other.Target);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return ReferenceEquals(this, obj) || (obj is ObjectActiveTarget other && Equals(other));
         }

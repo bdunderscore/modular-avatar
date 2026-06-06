@@ -1,4 +1,5 @@
-﻿#nullable enable
+#nullable enable
+
 
 using nadena.dev.ndmf.animator;
 
@@ -21,7 +22,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            visitor(ref _target);
+            if (_target == null) return;
+
+            var target = _target;
+            visitor(ref target);
+            _target = target;
         }
 
         public int Latency => Target?.Latency ?? 0;

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,8 +94,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context)
         {
             var (original, proxy) = proxyPairs.First();
-            var node = new Node(_cache, original as SkinnedMeshRenderer, proxy as SkinnedMeshRenderer, context);
-            return node.Refresh(null, context, 0);
+            var node = new Node(_cache, (SkinnedMeshRenderer)original, (SkinnedMeshRenderer)proxy, context);
+            return node.Refresh(Enumerable.Empty<(Renderer, Renderer)>(), context, 0);
         }
 
         private class Node : IRenderFilterNode
@@ -116,13 +118,13 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 if ((updatedAspects & RenderAspects.Shapes) != 0)
                 {
-                    return Task.FromResult<IRenderFilterNode>(null);
+                    return Task.FromResult<IRenderFilterNode>(null!);
                 }
 
                 var shapes = _cache.Get(context, _original);
                 if (!shapes.SequenceEqual(_shapes))
                 {
-                    return Task.FromResult<IRenderFilterNode>(null);
+                    return Task.FromResult<IRenderFilterNode>(null!);
                 }
 
                 return Task.FromResult<IRenderFilterNode>(this);
