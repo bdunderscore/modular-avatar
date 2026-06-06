@@ -355,8 +355,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     while (i < children.Length)
                     {
                         // Collapse consecutive children that share the same Motion reference
-                        // (BranchNode and PriorityNode execution trees each emit two thresholds
-                        // per logical branch to create a hard step; only one entry is needed).
+                        // (PriorityNode execution trees emit two thresholds per logical branch
+                        // to create a hard step; only one entry is needed).
                         var isActive = i == aLo || i == aHi;
                         var j = i + 1;
                         while (j < children.Length && ReferenceEquals(children[j].motion, children[i].motion))
