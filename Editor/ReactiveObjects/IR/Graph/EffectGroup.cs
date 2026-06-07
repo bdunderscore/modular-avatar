@@ -15,18 +15,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// </summary>
     internal class EffectGroup
     {
-        private EffectGroup(object targetKey, List<ReactionNode> nodes, List<ProxyCondition> proxyConditions,
-            IMotionNode rootNode, int latency, int? depth, int? defaultNode)
-        {
-            TargetKey = targetKey;
-            Nodes = nodes;
-            _proxyConditions = proxyConditions;
-            RootNode = rootNode;
-            Latency = latency;
-            Depth = depth;
-            DefaultNode = defaultNode;
-        }
-
         public EffectGroup(BakeContext context, object targetKey, List<ReactionNode> nodes)
         {
             TargetKey = targetKey;
@@ -69,40 +57,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
 
             Latency = RootNode.Latency + 1;
-        }
-
-        public EffectGroup DeepClone()
-        {
-            var clonedNodes = Nodes.Select(n =>
-            {
-                var clone = new ReactionNode(n.Expression.DeepClone(), n.Effects[0]) { Priority = n.Priority };
-                for (var i = 1; i < n.Effects.Count; i++) clone.Effects.Add(n.Effects[i]);
-                return clone;
-            }).ToList();
-
-            var newPCs = _proxyConditions.Select(_ => ProxyCondition.Always()).ToList();
-            IMotionNode newRoot;
-
-            if (newPCs.Count <= 2)
-            {
-                IMotionNode onFalse = new EmptyNode();
-                for (var i = newPCs.Count - 1; i >= 0; i--)
-                {
-                    newPCs[i].OnFalse = onFalse;
-                    newPCs[i].OnTrue = _proxyConditions[i].OnTrue;
-                    onFalse = newPCs[i].ProxyNode;
-                }
-
-                newRoot = onFalse;
-            }
-            else
-            {
-                var pn = new PriorityNode();
-                pn.Conditions = newPCs.Select((pc, i) => (pc, _proxyConditions[i].OnTrue)).ToList();
-                newRoot = pn;
-            }
-
-            return new EffectGroup(TargetKey, clonedNodes, newPCs, newRoot, Latency, Depth, DefaultNode);
         }
 
         public IMotionNode Emit()
