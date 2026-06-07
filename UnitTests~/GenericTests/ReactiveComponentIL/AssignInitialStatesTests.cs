@@ -90,10 +90,11 @@ namespace UnitTestsReactiveComponentIL
         // ── external parameter conditions ────────────────────────────────────
 
         [Test]
-        public void ExternalParameterCondition_TreatedAsFalse_DriverNotActivated()
+        public void ExternalParameter_DefaultZero_DriverNotActivated()
         {
-            // ParameterExpression (external) evaluates to false during initial-state analysis
-            // because external parameter values are unknowable at build time.
+            // ParameterExpression evaluates against the parameter's default value in the context.
+            // "externalParam" is not registered → GetParameterInitialValue returns 0, which is
+            // not > 0.5 (default threshold), so the driver does not fire.
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("externalParam"),
@@ -103,6 +104,82 @@ namespace UnitTestsReactiveComponentIL
             AssignInitialStates.ProcessGraph(_bakeContext, graph);
 
             Assert.AreEqual(0f, ContextValue("p"));
+        }
+
+        [Test]
+        public void ExternalParameter_DefaultAboveThreshold_DriverActivated()
+        {
+            // ParameterExpression must read the parameter's registered default value.
+            // P defaults to 1.0, threshold is 0.5 (GreaterThan) → condition is true → driver fires.
+            _bakeContext.SetParameter("P", 1.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveInternalParameter("p", true)
+            ));
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(1f, ContextValue("p"));
+        }
+
+        [Test]
+        public void ExternalParameter_LessThanMode_DefaultBelowThreshold_DriverActivated()
+        {
+            // LessThan mode: P=0.0 < 0.5 → true → driver fires.
+            _bakeContext.SetParameter("P", 0.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.LessThan),
+                new DriveInternalParameter("p", true)
+            ));
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(1f, ContextValue("p"));
+        }
+
+        [Test]
+        public void ExternalParameter_LessThanMode_DefaultAboveThreshold_DriverNotActivated()
+        {
+            // LessThan mode: P=1.0 is not < 0.5 → false → driver does not fire.
+            _bakeContext.SetParameter("P", 1.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.LessThan),
+                new DriveInternalParameter("p", true)
+            ));
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(0f, ContextValue("p"));
+        }
+
+        [Test]
+        public void ProcessGroups_ExternalParameterAboveThreshold_DefaultNodeSet()
+        {
+            // Regression: VirtualEvaluate hit the default branch for ParameterExpression,
+            // returning false regardless of the parameter value. This left DefaultNode null
+            // and caused SetBaseState(false) to record the wrong base-layer clip value.
+            // After the fix, P=1.0 > 0.5 → condition true → DefaultNode is set.
+            _bakeContext.SetParameter("P", 1.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveInternalParameter("q", true)
+            ));
+
+            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            AssignInitialStates.ProcessGroups(_bakeContext, groups.Values.ToList());
+
+            var group = groups[new InternalParameterTarget("q")];
+            Assert.IsNotNull(group.DefaultNode, "DefaultNode must be set when P > 0.5");
+            Assert.AreEqual(0, group.DefaultNode);
+            Assert.AreEqual(1f, ContextValue("q"), "SetBaseState(true) must set q to 1");
         }
 
         // ── initial BakeContext value as seed ────────────────────────────────

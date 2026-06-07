@@ -128,6 +128,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     return !VirtualEvaluate(bakeContext, stateOverrides, not.Inner);
                 case Constant c:
                     return c.Value;
+                case ParameterExpression pe:
+                {
+                    var value = bakeContext.GetParameterInitialValue(pe.ParameterName);
+                    return pe.Mode == ParameterExpression.ConditionMode.GreaterThan
+                        ? value > pe.Threshold
+                        : value < pe.Threshold;
+                }
                 default:
                     return false;
             }
