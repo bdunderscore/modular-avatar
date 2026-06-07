@@ -144,13 +144,13 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
-        public void OrNode_EmptyChildren_CollapsesToTrue()
+        public void OrNode_EmptyChildren_CollapsesToFalse()
         {
             var expr = new OrNode();
 
             var result = SimplifyExpression(expr);
 
-            Assert.AreEqual(new Constant(true), result);
+            Assert.AreEqual(new Constant(false), result);
         }
 
         [Test]
@@ -362,14 +362,34 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
-        public void OrNode_WithOnlyConstants_SimplifiesCorrectly()
+        public void OrNode_WithOnlyFalseConstants_CollapsesToFalse()
         {
             var expr = new OrNode(new Constant(false), new Constant(false), new Constant(false));
 
             var result = SimplifyExpression(expr);
 
-            // After removing all constants, should be empty and collapse to TRUE
-            Assert.AreEqual(new Constant(true), result);
+            Assert.AreEqual(new Constant(false), result);
+        }
+
+        /// <summary>
+        /// Regression test: ObjectActiveState(X, Active) where X is inactive, has no external clips, and is not
+        /// RC-driven produces OrNode(AndNode(Constant(false), Constant(true)), Constant(false)). The AndNode
+        /// short-circuits to Constant(false), leaving an OrNode whose only children are Constant(false). That must
+        /// collapse to Constant(false), not Constant(true).
+        /// </summary>
+        [Test]
+        public void OrNode_AllChildrenSimplifyToFalse_CollapsesToFalse()
+        {
+            // Mirrors what ProcessExternalObjectStateInputsTransform emits for an inactive, undriven, clip-free object.
+            // AndNode(Constant(false), Constant(true)) short-circuits to Constant(false).
+            // OrNode then has [Constant(false), Constant(false)] → should collapse to Constant(false).
+            var expr = new OrNode(
+                new AndNode(new Constant(false), new Constant(true)),
+                new Constant(false));
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(new Constant(false), result);
         }
 
         [Test]
@@ -413,6 +433,33 @@ namespace UnitTestsReactiveComponentIL
             var param = new ParameterExpression("test", 0.5f, ParameterExpression.ConditionMode.GreaterThan);
 
             var result = SimplifyExpression(param);
+
+            Assert.AreEqual(param, result);
+        }
+
+        // Guard: a single surviving child must collapse to that child, never to a zero-children constant.
+        // PruneIdenticalConditions is skipped for lists of length < 2 so it cannot erroneously drop the last child.
+
+        [Test]
+        public void OrNode_SingleNonConstantChild_NeverCollapsesToZero()
+        {
+            var param = new ParameterExpression("test");
+            // After filtering false constants the only survivor is param; it must become param, not Constant(false).
+            var expr = new OrNode(new Constant(false), param);
+
+            var result = SimplifyExpression(expr);
+
+            Assert.AreEqual(param, result);
+        }
+
+        [Test]
+        public void AndNode_SingleNonConstantChild_NeverCollapsesToZero()
+        {
+            var param = new ParameterExpression("test");
+            // After filtering true constants the only survivor is param; it must become param, not Constant(true).
+            var expr = new AndNode(new Constant(true), param);
+
+            var result = SimplifyExpression(expr);
 
             Assert.AreEqual(param, result);
         }

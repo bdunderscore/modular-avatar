@@ -96,7 +96,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                         // After flattening/filtering, check if we can simplify further
                         if (or.Children.Count == 0)
                         {
-                            expression = new Constant(true);
+                            expression = new Constant(false);
                         }
                         else if (or.Children.Count == 1)
                         {
