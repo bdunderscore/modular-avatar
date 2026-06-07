@@ -7,6 +7,7 @@ using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace UnitTestsReactiveComponentIL
 {
@@ -333,6 +334,36 @@ namespace UnitTestsReactiveComponentIL
 
             Assert.AreEqual(1f, ContextValue("p"), "'p' condition is true → parameter 1");
             Assert.AreEqual(0f, ContextValue("q"), "'q' condition is false → parameter 0");
+        }
+
+        // ── pipeline-ordering regression ──────────────────────────────────────
+
+        [Test]
+        public void InactiveObject_DrivenActiveByAlwaysOnNode_InitialValuePropagated()
+        {
+            // Regression: ProcessGraph was previously called before ConvertToInternalParametersTransform,
+            // so DriveInternalParameter effects didn't exist yet and the fixpoint was a no-op.
+            // Object A is inactive (activeSelf=false); a Constant(true) node drives A active.
+            // After ConvertToInternal + Decompose + ProcessGraph the ObjActive/A param must be 1.
+            var objA = CreateChild(CreateRoot("objects"), "A");
+            objA.SetActive(false);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(objA, true)));
+
+            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
+            DecomposeTransform.Apply(graph);
+
+            var dipNode = graph.Nodes.Single(n => n.Effects[0] is DriveInternalParameter);
+            var paramName = ((DriveInternalParameter)dipNode.Effects[0]).ParameterName;
+
+            Assert.AreEqual(0f, ContextValue(paramName),
+                "Before ProcessGraph, param reflects activeSelf (inactive → 0)");
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(1f, ContextValue(paramName),
+                "After ProcessGraph, always-on driver must propagate A's initial value to 1");
         }
     }
 }

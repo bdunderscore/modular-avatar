@@ -24,13 +24,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             BooleanSimplifyTransform.Apply(graph);
             AssertDecomposed(graph);
 
-            AssignInitialStates.ProcessGraph(context, graph);
-            AssertDecomposed(graph);
-
             ConvertToInternalParametersTransform.Apply(graph, context);
-            
+
             // ConvertToInternalParameters introduces new effects on existing nodes, so we need to decompose again
             DecomposeTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            AssignInitialStates.ProcessGraph(context, graph);
             AssertDecomposed(graph);
             
             BreakLoopsTransform.Apply(graph);
