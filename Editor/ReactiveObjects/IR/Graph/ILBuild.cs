@@ -39,6 +39,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             PruneUnusedInternalParametersTransform.Apply(graph);
             AssertDecomposed(graph);
 
+            // Remove RC parameters whose nodes were pruned from the graph so they don't
+            // remain in the animator with stale or incorrect default values.
+            context.PruneOrphanedInternalParameters(graph);
+
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
 
             List<IMotionNode> motions = new();

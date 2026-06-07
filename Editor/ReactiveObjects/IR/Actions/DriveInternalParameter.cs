@@ -27,7 +27,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
 
         public void SetBaseState(BakeContext context, bool actionStartsActive)
         {
-            context.SetParameter(ParameterName, actionStartsActive && State ? 1.0f : 0.0f);
+            // Note: We explicitly _don't_ set this. This method is intended to set the unity-level base state,
+            // but the animator base state for internal parameters will be set via AssignInitialStates, and we don't
+            // want to be overwriting that.
         }
 
         public void ToMotion(BakeContext context, VirtualClip clip)

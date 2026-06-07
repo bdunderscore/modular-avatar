@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -171,6 +173,40 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 SetParameter(argParameter, defaultValue);
             }
+        }
+
+        /// <summary>
+        ///     Removes internal RC parameters from the VAC that are no longer referenced by any
+        ///     node in the graph after pruning. This prevents orphaned parameters (e.g. ObjActive/X
+        ///     parameters whose EffectGroups were removed by PruneUnusedInternalParametersTransform)
+        ///     from remaining in the animator with stale or incorrect default values.
+        /// </summary>
+        internal void PruneOrphanedInternalParameters(ReactionGraph graph)
+        {
+            // Collect all RC parameter names still referenced by the graph (either as
+            // InternalParameterTarget or ParameterTarget from BreakLoops-converted nodes).
+            var survivingNames = new HashSet<string>(
+                graph.Nodes.Select(n => n.Effects[0].TargetKey).Select(tk => tk switch
+                {
+                    InternalParameterTarget ipt => ipt.ParameterName,
+                    ParameterTarget pt => pt.ParameterName,
+                    _ => null
+                }).Where(name => name != null)!
+            );
+
+            const string rcPrefix = "$$MA/RC/";
+            const string delayPrefix = "$$MA/RC/DELAY/";
+            var orphans = _vac.Parameters.Keys
+                .Where(k => k.StartsWith(rcPrefix)
+                            && !k.StartsWith(delayPrefix)
+                            && k != ALWAYS_ONE
+                            && !survivingNames.Contains(k))
+                .ToList();
+
+            // Build the pruned dictionary first, then assign once.
+            // Assigning to _vac.Parameters is O(n) (it triggers a parameter-change callback),
+            // so we batch all removals through Aggregate before the single assignment.
+            _vac.Parameters = orphans.Aggregate(_vac.Parameters, (dict, name) => dict.Remove(name));
         }
     }
 }

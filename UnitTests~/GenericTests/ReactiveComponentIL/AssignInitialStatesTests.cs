@@ -170,13 +170,13 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
-                new DriveInternalParameter("q", true)
+                new DriveParameter("q", 1.0f)
             ));
 
             var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
             AssignInitialStates.ProcessGroups(_bakeContext, groups.Values.ToList());
 
-            var group = groups[new InternalParameterTarget("q")];
+            var group = groups[new ParameterTarget("q")];
             Assert.IsNotNull(group.DefaultNode, "DefaultNode must be set when P > 0.5");
             Assert.AreEqual(0, group.DefaultNode);
             Assert.AreEqual(1f, ContextValue("q"), "SetBaseState(true) must set q to 1");
@@ -333,33 +333,15 @@ namespace UnitTestsReactiveComponentIL
         // ── AssignInitialStates.ProcessGroups ─────────────────────────────────
 
         [Test]
-        public void ProcessGroups_NoNodeTrue_DefaultNodeNull_BaseStateFalse()
-        {
-            var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("p", true)));
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
-
-            // Pre-set "p" so we can prove SetBaseState(false) overwrites it to 0.
-            _bakeContext.SetParameter("p", 1f);
-
-            AssignInitialStates.ProcessGroups(_bakeContext, groups.Values.ToList());
-
-            var group = groups[new InternalParameterTarget("p")];
-            Assert.IsNull(group.DefaultNode, "No condition is true → DefaultNode must be null");
-            Assert.AreEqual(0f, ContextValue("p"),
-                "SetBaseState(false) must reset the parameter to 0");
-        }
-
-        [Test]
         public void ProcessGroups_SingleNodeTrue_DefaultNodeZero_BaseStateTrue()
         {
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p", 1.0f)));
             var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
 
             AssignInitialStates.ProcessGroups(_bakeContext, groups.Values.ToList());
 
-            var group = groups[new InternalParameterTarget("p")];
+            var group = groups[new ParameterTarget("p")];
             Assert.AreEqual(0, group.DefaultNode, "Only node is true → DefaultNode should be 0");
             Assert.AreEqual(1f, ContextValue("p"),
                 "SetBaseState(true) with State=true should set 'p' to 1");
@@ -403,8 +385,8 @@ namespace UnitTestsReactiveComponentIL
         public void ProcessGroups_MultipleGroups_EachProcessedIndependently()
         {
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(true),  new DriveInternalParameter("p", true)));
-            graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("q", true)));
+            graph.AddNode(new ReactionNode(new Constant(true),  new DriveParameter("p", 1.0f)));
+            graph.AddNode(new ReactionNode(new Constant(false), new DriveParameter("q", 1.0f)));
             var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
 
             AssignInitialStates.ProcessGroups(_bakeContext, groups.Values.ToList());
