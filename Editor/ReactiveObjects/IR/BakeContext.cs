@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
@@ -183,8 +184,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         /// </summary>
         internal void PruneOrphanedInternalParameters(ReactionGraph graph)
         {
-            // Collect all RC parameter names still referenced by the graph (either as
-            // InternalParameterTarget or ParameterTarget from BreakLoops-converted nodes).
+            const string rcPrefix = "$$MA/RC/";
+
+            // Collect all RC parameter names still referenced by the graph — either as
+            // InternalParameterTarget/ParameterTarget effect targets, or as ParameterExpression
+            // references inside surviving node conditions (e.g. ActiveSelf params created by
+            // ProcessExternalObjectStateInputsTransform have no driver nodes, only condition refs).
             var survivingNames = new HashSet<string>(
                 graph.Nodes.Select(n => n.Effects[0].TargetKey).Select(tk => tk switch
                 {
@@ -194,7 +199,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 }).Where(name => name != null)!
             );
 
-            const string rcPrefix = "$$MA/RC/";
+            foreach (var node in graph.Nodes)
+            {
+                CollectRcParameterExpressions(node.Expression, rcPrefix, survivingNames);
+            }
+
             const string delayPrefix = "$$MA/RC/DELAY/";
             var orphans = _vac.Parameters.Keys
                 .Where(k => k.StartsWith(rcPrefix)
@@ -207,6 +216,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             // Assigning to _vac.Parameters is O(n) (it triggers a parameter-change callback),
             // so we batch all removals through Aggregate before the single assignment.
             _vac.Parameters = orphans.Aggregate(_vac.Parameters, (dict, name) => dict.Remove(name));
+        }
+
+        private static void CollectRcParameterExpressions(IExpression expr, string rcPrefix, HashSet<string> names)
+        {
+            switch (expr)
+            {
+                case ParameterExpression pe when pe.ParameterName.StartsWith(rcPrefix):
+                    names.Add(pe.ParameterName);
+                    break;
+                default:
+                    expr.Walk((ref IExpression child) => CollectRcParameterExpressions(child, rcPrefix, names));
+                    break;
+            }
         }
     }
 }
