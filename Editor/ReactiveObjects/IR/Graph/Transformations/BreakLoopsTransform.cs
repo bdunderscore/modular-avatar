@@ -201,7 +201,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             {
                 if (node.Effects[0] is DriveInternalParameter dip && parametersToBreak.Contains(dip.ParameterName))
                 {
-                    node.Effects[0] = new DriveParameter(dip.ParameterName, 1.0f);
+                    node.Effects[0] = new DriveParameter(dip.ParameterName, dip.State ? 1.0f : 0.0f);
                 }
 
                 var nodeExpression = node.Expression;

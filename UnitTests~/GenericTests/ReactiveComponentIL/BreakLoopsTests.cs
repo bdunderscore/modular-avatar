@@ -309,20 +309,56 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void ConvertedParameterValue_IsOne()
         {
-            // When we convert a DriveInternalParameter to DriveParameter, it should have value 1.0f
+            // When we convert a DriveInternalParameter(State=true) to DriveParameter, it should have value 1.0f
             var graph = new ReactionGraph();
-            
+
             var node = new ReactionNode(
                 new InternalParameterCondition("param1"),
                 new DriveInternalParameter("param1", true)
             );
-            
+
             graph.AddNode(node);
 
             BreakLoopsTransform.Apply(graph);
 
             var driveParam = (DriveParameter)node.Effects[0];
             Assert.AreEqual(1.0f, driveParam.Value);
+        }
+
+        [Test]
+        public void DriveToInactive_StatePreservedWhenLoopBroken()
+        {
+            // Regression test: when a loop-breaking edge has State=false (drive-to-inactive),
+            // the replacement DriveParameter must use 0.0f, not 1.0f.
+            //
+            // Scenario: A active → drives B inactive; B active → drives A active.
+            // Cycle: ObjActive/A <-> ObjActive/B.
+            // node2 has higher priority so its edge (DriveInternalParameter("ObjActive/B", false)) is broken.
+            var graph = new ReactionGraph();
+
+            var node1 = new ReactionNode(
+                new InternalParameterCondition("ObjActive/B"),
+                new DriveInternalParameter("ObjActive/A", true)
+            );
+            node1.Priority = 0;
+
+            // Higher priority: when A is active, drive B *inactive* (State = false).
+            var node2 = new ReactionNode(
+                new InternalParameterCondition("ObjActive/A"),
+                new DriveInternalParameter("ObjActive/B", false)
+            );
+            node2.Priority = 1;
+
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+
+            BreakLoopsTransform.Apply(graph);
+
+            // node2 is higher priority, so its drive edge is broken.
+            Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
+            var dp = (DriveParameter)node2.Effects[0];
+            Assert.AreEqual("ObjActive/B", dp.ParameterName);
+            Assert.AreEqual(0.0f, dp.Value, "State=false must produce 0.0f, not 1.0f");
         }
 
         [Test]
