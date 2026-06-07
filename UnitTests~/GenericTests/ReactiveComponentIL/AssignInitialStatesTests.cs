@@ -413,6 +413,28 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(0f, ContextValue("q"), "'q' condition is false → parameter 0");
         }
 
+        // ── external parameter initial value ─────────────────────────────────
+
+        [Test]
+        public void ExternalParameter_NonZeroDefault_NotPreRegistered_DrivesInitialStateCorrectly()
+        {
+            // Regression: EnsureParameterPresent used 0 for unregistered external parameters.
+            // ProcessGraph would evaluate ParameterExpression("P") = 0 > 0.5 = false and leave
+            // ObjActive/A at 0 instead of 1. The fix passes InitialValue so P = 1.0 in context.
+            _bakeContext.EnsureParameterPresent("P", 1.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveInternalParameter("ObjActive/A", true)
+            ));
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(1f, ContextValue("ObjActive/A"),
+                "P defaults to 1.0 > 0.5 — ProcessGraph must set ObjActive/A to 1");
+        }
+
         // ── pipeline-ordering regression ──────────────────────────────────────
 
         [Test]

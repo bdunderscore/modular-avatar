@@ -370,11 +370,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 return new ObjectActiveState(arg.ReferenceObject, ObjectActiveState.State.Active);
             }
 
-            // TODO - find correct initial value here
             if (_bakeContext == null)
                 throw new InvalidOperationException(
                     "ReactiveObjectPassV2 condition conversion requires an active bake context");
-            _bakeContext.EnsureParameterPresent(arg.Parameter);
+            _bakeContext.EnsureParameterPresent(arg.Parameter, arg.InitialValue);
 
             if (!float.IsFinite(arg.ParameterValueHi))
             {

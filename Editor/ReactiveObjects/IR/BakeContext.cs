@@ -165,11 +165,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return _vac.Parameters.GetValueOrDefault(priorNode)?.defaultFloat ?? 0;
         }
 
-        public void EnsureParameterPresent(string argParameter)
+        public void EnsureParameterPresent(string argParameter, float defaultValue = 0)
         {
             if (!_vac.Parameters.ContainsKey(argParameter))
             {
-                SetParameter(argParameter, 0);
+                SetParameter(argParameter, defaultValue);
             }
         }
     }
