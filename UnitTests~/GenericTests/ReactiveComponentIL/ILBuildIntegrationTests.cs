@@ -225,18 +225,15 @@ namespace UnitTestsReactiveComponentIL
         //   ObjActive/A should always reflect A's ACTUAL active state:
         //   - When P=1 (rule fires): ObjActive/A=1, A set active by SetBaseState
         //   - When P=0, A inactive: ObjActive/A=0, A stays inactive
-        //   - When P=0, A active: ObjActive/A=1 (A IS active via scene state)
-        //     NOTE: this last case currently fails because DriveInternalParameter.SetBaseState
-        //     resets the parameter to 0 when actionStartsActive=false, overwriting the correct
-        //     EnsureParameter seed value.
+        //   - When P=0, A active: ObjActive/A=1 (A IS active initially)
 
         private static readonly object[] NonOrphanObjActiveCases =
         {
             // (aStartsActive, pDefault, expectedObjActiveA, expectedAActiveAfterBuild)
-            new object[] { false, 0.0f, 0f, false },  // inactive, rule off  → stays inactive
-            new object[] { false, 1.0f, 1f, true  },  // inactive, rule on   → set active
-            new object[] { true,  1.0f, 1f, true  },  // active,   rule on   → stays active
-            new object[] { true,  0.0f, 1f, true  },  // active,   rule off  → ObjActive/A must remain 1
+            new object[] { false, 0.0f, 0f, false },  // inactive, rule off → stays inactive
+            new object[] { false, 1.0f, 1f, true  },  // inactive, rule on  → set active
+            new object[] { true,  1.0f, 1f, true  },  // active,   rule on  → stays active
+            new object[] { true,  0.0f, 1f, true  },  // active,   rule off → ObjActive/A seeded to 1
         };
 
         [Test, TestCaseSource(nameof(NonOrphanObjActiveCases))]
@@ -275,6 +272,39 @@ namespace UnitTestsReactiveComponentIL
                 "ObjActive/A must reflect A's actual active state (not just whether the RC rule fired)");
             Assert.AreEqual(expectedAActive, objA.activeSelf,
                 "A's scene state must match the RC-evaluated initial state");
+        }
+
+        // ── PruneOrphanedInternalParameters preserves condition-only RC params ─
+        //
+        // ProcessExternalObjectStateInputsTransform creates $$MA/RC/ActiveSelf$N parameters and
+        // embeds them in ParameterExpression conditions. These have no effect-target nodes, so
+        // the original PruneOrphanedInternalParameters (which only checked effect targets) would
+        // prune them. After pruning the BranchNode blend tree references a missing VAC parameter,
+        // which Unity silently treats as 0, breaking external-clip-driven object state tracking.
+
+        [Test]
+        public void PruneOrphanedInternalParameters_PreservesRcParamReferencedInCondition()
+        {
+            var objA = CreateChild(_root, "A");
+            objA.SetActive(false);
+
+            // Simulate what ProcessExternalObjectStateInputsTransform does: create an RC-prefixed
+            // parameter and use it in a ParameterExpression condition of an external-effect node.
+            var activeSelfParam = _bakeContext.AddParameter("ActiveSelf", 1.0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression(activeSelfParam, 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveActiveState(objA, true)
+            ));
+
+            ILBuild.Build(_bakeContext, graph);
+
+            Assert.IsTrue(_vac.Parameters.ContainsKey(activeSelfParam),
+                $"RC parameter '{activeSelfParam}' is referenced in a ParameterExpression condition " +
+                "of a surviving node and must not be pruned from the VAC");
+            Assert.AreEqual(1.0f, _bakeContext.GetParameterInitialValue(activeSelfParam),
+                "The preserved parameter must retain its initial value for correct blend-tree behavior");
         }
     }
 }
