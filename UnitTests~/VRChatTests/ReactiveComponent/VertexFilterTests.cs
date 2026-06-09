@@ -1,114 +1,238 @@
 #if MA_VRCSDK3_AVATARS
 
-using System;
-using System.Linq;
 using modular_avatar_tests;
-using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 public class VertexFilterTests : TestBase
 {
     [Test]
     public void VertexFilterByMaskClampUVTest(
-        [Values("DeletionTest/MaskTexture_Clamp.png", "DeletionTest/MaskTexture_Clamp_NonReadable.png")]
-        string maskPath
+        [Values(true, false)]
+        bool readable
     )
     {
-        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
-        var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
-        var mesh = renderer.sharedMesh;
-        var mask = LoadAsset<Texture2D>(maskPath);
-
-        var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
-        var outRangeUvs = mesh.vertexCount - inRangeUvs;
-
-        Assert.AreEqual(12, inRangeUvs);
-        Assert.AreEqual(12, outRangeUvs);
+        var renderer = CreateRoot("MaskFilterClampTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateUvTriangleMesh(
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            UvPrim(new Vector2(0.75f, 0.75f)),
+            new[] { new Vector2(0.25f, 0.25f), new Vector2(0.75f, 0.75f), new Vector2(0.75f, 0.75f) },
+            UvPrim(new Vector2(-0.25f, 0.25f)),
+            UvPrim(new Vector2(1.25f, 0.75f))
+        );
+        var mask = CreateMaskTexture(readable, TextureWrapMode.Clamp);
 
         var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack);
-        var filtered = new bool[mesh.vertexCount];
-        filter.MarkFilteredVertices(renderer, mesh, filtered);
+        var filtered = RunFilterPrimitives(filter, renderer, mesh);
 
-        Assert.AreEqual(inRangeUvs, filtered.Count(x => x));
-        Assert.AreEqual(outRangeUvs, filtered.Count(x => !x));
+        CollectionAssert.AreEqual(new[] { true, false, true, true, false }, filtered);
     }
 
     [Test]
     public void VertexFilterByMaskRepeatUVTest(
-        [Values("DeletionTest/MaskTexture_Repeat.png", "DeletionTest/MaskTexture_Repeat_NonReadable.png")]
-        string maskPath
+        [Values(true, false)]
+        bool readable
     )
     {
-        var root = CreatePrefab("DeletionTest/DeletionTest.prefab");
-        var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
-        var mesh = renderer.sharedMesh;
-        var mask = LoadAsset<Texture2D>(maskPath);
-
-        var inRangeUvs = mesh.uv.Count(new Rect(0, 0, 1, 1).Contains);
-        var outRangeUvs = mesh.vertexCount - inRangeUvs;
-
-        Assert.AreEqual(12, inRangeUvs);
-        Assert.AreEqual(12, outRangeUvs);
+        var renderer = CreateRoot("MaskFilterRepeatTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateUvTriangleMesh(
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            UvPrim(new Vector2(0.75f, 0.75f)),
+            UvPrim(new Vector2(1.25f, 0.25f)),
+            UvPrim(new Vector2(0.25f, 1.25f)),
+            UvPrim(new Vector2(-0.25f, 0.75f))
+        );
+        var mask = CreateMaskTexture(readable, TextureWrapMode.Repeat);
 
         var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack);
-        var filtered = new bool[mesh.vertexCount];
-        Array.Fill(filtered, true);
-        filter.MarkFilteredVertices(renderer, mesh, filtered);
+        var filtered = RunFilterPrimitives(filter, renderer, mesh);
 
-        Assert.AreEqual(mesh.vertexCount, filtered.Count(x => x));
-        Assert.AreEqual(0, filtered.Count(x => !x));
+        CollectionAssert.AreEqual(new[] { true, false, true, true, false }, filtered);
+    }
+
+    [Test]
+    public void VertexFilterByMaskAllVerticesModeTest()
+    {
+        var renderer = CreateRoot("MaskFilterAllVerticesTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateUvTriangleMesh(
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            new[] { new Vector2(0.25f, 0.25f), new Vector2(0.25f, 0.25f), new Vector2(0.75f, 0.75f) },
+            UvPrim(new Vector2(0.75f, 0.75f))
+        );
+        var mask = CreateMaskTexture(true, TextureWrapMode.Clamp);
+
+        var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack, VertexSelectionMode.AllVertices);
+        var filtered = RunFilterPrimitives(filter, renderer, mesh);
+
+        CollectionAssert.AreEqual(new[] { true, false, false }, filtered);
+    }
+
+    [Test]
+    public void VertexFilterByMaskCentroidModeTest()
+    {
+        var renderer = CreateRoot("MaskFilterCentroidTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateUvTriangleMesh(
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            new[] { new Vector2(0.25f, 0.25f), new Vector2(0.25f, 0.25f), new Vector2(0.75f, 0.75f) },
+            UvPrim(new Vector2(0.75f, 0.75f))
+        );
+        var mask = CreateMaskTexture(true, TextureWrapMode.Clamp);
+
+        var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack, VertexSelectionMode.Centroid);
+        var filtered = RunFilterPrimitives(filter, renderer, mesh);
+
+        CollectionAssert.AreEqual(new[] { true, true, false }, filtered);
+    }
+
+    [Test]
+    public void VertexFilterByMaskOnlyMarksSelectedMaterialSubmesh()
+    {
+        var renderer = CreateRoot("MaskFilterSubmeshTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateTwoSubmeshMaskMesh();
+        var mask = CreateMaskTexture(true, TextureWrapMode.Clamp);
+        var filter = new VertexFilterByMask(1, mask, ByMaskMode.DeleteBlack);
+
+        CollectionAssert.AreEqual(new[] { false }, RunFilterPrimitives(filter, renderer, mesh, 0));
+        CollectionAssert.AreEqual(new[] { true }, RunFilterPrimitives(filter, renderer, mesh, 1));
     }
 
     [Test]
     public void ANDFilter_DoesNotClearFilteredArray()
     {
-        // Arrange
-        int vertexCount = 5;
+        int primCount = 5;
         var dummyRenderer = new GameObject().AddComponent<MeshRenderer>();
         var dummyMesh = new Mesh();
-        dummyMesh.vertices = new Vector3[vertexCount];
+        dummyMesh.vertices = new Vector3[primCount];
+        // Degenerate triangles: each primitive maps to exactly one vertex index.
+        var tris = new int[primCount * 3];
+        for (int i = 0; i < primCount; i++) tris[i * 3] = tris[i * 3 + 1] = tris[i * 3 + 2] = i;
+        dummyMesh.triangles = tris;
 
-        // First filter: marks vertices 0, 1, 2 as true
-        var filterA = new MockVertexFilter(new[] { true, true, true, false, false });
-        // Second filter: marks vertices 1, 2, 3 as true
-        var filterB = new MockVertexFilter(new[] { false, true, true, true, false });
+        // filterA marks primitives 0, 1, 2; filterB marks primitives 1, 2, 3
+        var filterA = new MockMeshSelector(new[] { true, true, true, false, false });
+        var filterB = new MockMeshSelector(new[] { false, true, true, true, false });
+        var andFilter = new ANDFilter(new IMeshSelector[] { filterA, filterB });
 
-        var andFilter = new ANDFilter(new IVertexFilter[] { filterA, filterB });
+        using var selectorJob = new MeshSelectorJob(dummyRenderer, dummyMesh);
+        var primMask = new NativeArray<bool>(primCount, Allocator.TempJob);
+        try
+        {
+            primMask[4] = true; // pre-mark primitive 4 (would not be matched by AND)
+            andFilter.MarkFilteredPrimitives(selectorJob, 0, primMask).Complete();
 
-        // Pre-populate filtered array with some true values
-        var filtered = new bool[vertexCount];
-        filtered[4] = true; // Only index 4 is true initially
-
-        // Act
-        andFilter.MarkFilteredVertices(dummyRenderer, dummyMesh, filtered);
-
-        // Assert
-        // Only indexes 1 and 2 should be set to true by the AND filter (intersection of filterA and filterB)
-        // Index 4 should remain true (was set before), others should be false
-        Assert.IsFalse(filtered[0]);
-        Assert.IsTrue(filtered[1]);
-        Assert.IsTrue(filtered[2]);
-        Assert.IsFalse(filtered[3]);
-        Assert.IsTrue(filtered[4]);
+            // AND of filterA and filterB: only primitives 1 and 2 should be newly set.
+            Assert.IsFalse(primMask[0]);
+            Assert.IsTrue(primMask[1]);
+            Assert.IsTrue(primMask[2]);
+            Assert.IsFalse(primMask[3]);
+            Assert.IsTrue(primMask[4]); // pre-marked; must not be cleared
+        }
+        finally
+        {
+            primMask.Dispose();
+        }
     }
 
-    // Dummy filter for testing
-    private class MockVertexFilter : IVertexFilter
+    private class MockMeshSelector : IMeshSelector
     {
         private readonly bool[] _mask;
-        public MockVertexFilter(bool[] mask) { _mask = mask; }
-        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
+        public MockMeshSelector(bool[] mask) { _mask = mask; }
+
+        public JobHandle MarkFilteredPrimitives(MeshSelectorJob job, int submesh, NativeSlice<bool> selectedPrimitives)
         {
-            for (int i = 0; i < _mask.Length; i++)
-            {
-                filtered[i] = filtered[i] || _mask[i];
-            }
+            for (int i = 0; i < System.Math.Min(_mask.Length, selectedPrimitives.Length); i++)
+                if (_mask[i]) selectedPrimitives[i] = true;
+            return default;
         }
+
         public void Observe(nadena.dev.ndmf.preview.ComputeContext context) { }
-        public bool Equals(IVertexFilter other) => false;
+        public bool Equals(IMeshSelector other) => false;
+    }
+
+    private Mesh CreateUvTriangleMesh(params Vector2[][] primitiveUvs)
+    {
+        var vertices = new Vector3[primitiveUvs.Length * 3];
+        var uvs = new Vector2[vertices.Length];
+        var triangles = new int[vertices.Length];
+
+        for (int p = 0; p < primitiveUvs.Length; p++)
+        {
+            var baseIndex = p * 3;
+            vertices[baseIndex] = new Vector3(p * 2, 0, 0);
+            vertices[baseIndex + 1] = new Vector3(p * 2 + 1, 0, 0);
+            vertices[baseIndex + 2] = new Vector3(p * 2, 1, 0);
+            triangles[baseIndex] = baseIndex;
+            triangles[baseIndex + 1] = baseIndex + 1;
+            triangles[baseIndex + 2] = baseIndex + 2;
+
+            for (int i = 0; i < 3; i++) uvs[baseIndex + i] = primitiveUvs[p][i];
+        }
+
+        var mesh = TrackObject(new Mesh
+        {
+            vertices = vertices,
+            uv = uvs,
+            triangles = triangles
+        });
+        mesh.RecalculateBounds();
+        return mesh;
+    }
+
+    private Mesh CreateTwoSubmeshMaskMesh()
+    {
+        var mesh = TrackObject(new Mesh
+        {
+            vertices = new[]
+            {
+                new Vector3(0, 0, 0),
+                new Vector3(1, 0, 0),
+                new Vector3(0, 1, 0),
+                new Vector3(2, 0, 0),
+                new Vector3(3, 0, 0),
+                new Vector3(2, 1, 0)
+            },
+            uv = new[]
+            {
+                new Vector2(0.25f, 0.25f),
+                new Vector2(0.25f, 0.25f),
+                new Vector2(0.25f, 0.25f),
+                new Vector2(0.25f, 0.25f),
+                new Vector2(0.25f, 0.25f),
+                new Vector2(0.25f, 0.25f)
+            },
+            subMeshCount = 2
+        });
+
+        mesh.SetTriangles(new[] { 0, 1, 2 }, 0);
+        mesh.SetTriangles(new[] { 3, 4, 5 }, 1);
+        mesh.RecalculateBounds();
+        return mesh;
+    }
+
+    private static Vector2[] UvPrim(Vector2 uv)
+    {
+        return new[] { uv, uv, uv };
+    }
+
+    private Texture2D CreateMaskTexture(bool readable, TextureWrapMode wrapMode)
+    {
+        var texture = TrackObject(new Texture2D(2, 2, TextureFormat.RGBA32, false, true)
+        {
+            wrapMode = wrapMode
+        });
+        texture.SetPixels32(new[]
+        {
+            new Color32(0, 0, 0, 255),
+            new Color32(255, 255, 255, 255),
+            new Color32(255, 255, 255, 255),
+            new Color32(255, 255, 255, 255)
+        });
+        texture.Apply(false, !readable);
+        return texture;
     }
 }
 

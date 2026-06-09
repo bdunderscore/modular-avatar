@@ -291,9 +291,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (_computeContext.Observe(renderer.sharedMesh) == null) continue;
 
-                var filterComponents = _computeContext.GetComponents<IVertexFilterBehavior>(deleter.gameObject);
+                var filterComponents = _computeContext.GetComponents<IMeshSelectorBehavior>(deleter.gameObject);
 
-                var filterList = new List<IVertexFilter>();
+                var filterList = new List<IMeshSelector>();
                 foreach (var component in filterComponents)
                 {
                     if (VertexFilterRegistry.TryGetVertexFilter(component, _computeContext, out var filter))
@@ -304,31 +304,31 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (filterList.Count == 0) continue;
 
-                IVertexFilter vertexFilter;
+                IMeshSelector meshSelector;
                 if (filterList.Count == 1)
                 {
-                    vertexFilter = filterList[0];
+                    meshSelector = filterList[0];
                 }
                 else
                 {
                     switch (_computeContext.Observe(deleter, d => d.MultiMode))
                     {
                         case MeshCutterMultiMode.VertexUnion:
-                            vertexFilter = new ORFilter(filterList);
+                            meshSelector = new ORFilter(filterList);
                             break;
 
                         case MeshCutterMultiMode.VertexIntersection:
                         default:
-                            vertexFilter = new ANDFilter(filterList);
+                            meshSelector = new ANDFilter(filterList);
                             break;
                     }
                 }
-                vertexFilter.Observe(_computeContext);
+                meshSelector.Observe(_computeContext);
 
                 var key = new TargetProp
                 {
                     TargetObject = renderer,
-                    PropertyName = "deletedMeshByMask." + vertexFilter
+                    PropertyName = "deletedMeshByMask." + meshSelector
                 };
 
                 if (!objectGroups.TryGetValue(key, out var group))
@@ -337,7 +337,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     objectGroups[key] = group;
                 }
 
-                var action = ObjectRule(key, deleter, vertexFilter, renderer.gameObject);
+                var action = ObjectRule(key, deleter, meshSelector, renderer.gameObject);
                 action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
 
                 if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))

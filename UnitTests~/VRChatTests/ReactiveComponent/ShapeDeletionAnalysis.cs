@@ -1,5 +1,6 @@
 #if MA_VRCSDK3_AVATARS
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ShapeDeletionAnalysis : TestBase
 {
@@ -132,7 +134,7 @@ public class ShapeDeletionAnalysis : TestBase
         });
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.That(activeGroup?.Value is IVertexFilter);
+        Assert.That(activeGroup?.Value is IMeshSelector);
         return mesh;
     }
     
@@ -148,7 +150,7 @@ public class ShapeDeletionAnalysis : TestBase
         if (deletedShape != null)
         {
             var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-            Assert.IsFalse(activeGroup?.Value is IVertexFilter);
+            Assert.IsFalse(activeGroup?.Value is IMeshSelector);
         }
         
     }
@@ -157,8 +159,18 @@ public class ShapeDeletionAnalysis : TestBase
     {
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var originalSharedMesh = mesh.sharedMesh;
+        var originalPrimitives = PrimitiveSignatures(originalSharedMesh);
+
         AvatarProcessor.ProcessAvatar(root);
-        Assert.AreEqual(originalSharedMesh.vertexCount, mesh.sharedMesh.vertexCount);
+
+        var processedPrimitives = PrimitiveSignatures(mesh.sharedMesh);
+        foreach (var primitive in originalPrimitives)
+        {
+            var index = processedPrimitives.FindIndex(p => p.Matches(primitive));
+            Assert.That(index, Is.GreaterThanOrEqualTo(0),
+                $"Expected primitive from submesh {primitive.Submesh} to remain after processing.");
+            processedPrimitives.RemoveAt(index);
+        }
     }
     
     private static void AssertMeshDeletion(GameObject root)
@@ -167,6 +179,65 @@ public class ShapeDeletionAnalysis : TestBase
         var originalSharedMesh = mesh.sharedMesh;
         AvatarProcessor.ProcessAvatar(root);
         Assert.AreNotEqual(originalSharedMesh.vertexCount, mesh.sharedMesh.vertexCount);
+    }
+
+    private static List<PrimitiveSignature> PrimitiveSignatures(Mesh mesh)
+    {
+        var vertices = mesh.vertices;
+        var signatures = new List<PrimitiveSignature>();
+
+        for (int sm = 0; sm < mesh.subMeshCount; sm++)
+        {
+            var topology = mesh.GetTopology(sm);
+            var vertsPerPrimitive = topology switch
+            {
+                MeshTopology.Triangles => 3,
+                MeshTopology.Quads => 4,
+                _ => 1
+            };
+            var indices = mesh.GetIndices(sm);
+            for (int i = 0; i < indices.Length; i += vertsPerPrimitive)
+            {
+                var primitiveVertices = new Vector3[vertsPerPrimitive];
+                for (int v = 0; v < vertsPerPrimitive; v++)
+                    primitiveVertices[v] = vertices[indices[i + v]];
+
+                Array.Sort(primitiveVertices, CompareVector3);
+                signatures.Add(new PrimitiveSignature(sm, topology, primitiveVertices));
+            }
+        }
+
+        return signatures;
+    }
+
+    private static int CompareVector3(Vector3 a, Vector3 b)
+    {
+        var x = a.x.CompareTo(b.x);
+        if (x != 0) return x;
+        var y = a.y.CompareTo(b.y);
+        if (y != 0) return y;
+        return a.z.CompareTo(b.z);
+    }
+
+    private readonly struct PrimitiveSignature
+    {
+        public readonly int Submesh;
+        private readonly MeshTopology _topology;
+        private readonly Vector3[] _vertices;
+
+        public PrimitiveSignature(int submesh, MeshTopology topology, Vector3[] vertices)
+        {
+            Submesh = submesh;
+            _topology = topology;
+            _vertices = vertices;
+        }
+
+        public bool Matches(PrimitiveSignature other)
+        {
+            return Submesh == other.Submesh
+                   && _topology == other._topology
+                   && _vertices.SequenceEqual(other._vertices);
+        }
     }
 }
 

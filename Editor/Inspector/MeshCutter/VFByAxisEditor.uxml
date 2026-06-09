@@ -5,6 +5,9 @@
     <ed:PropertyField name="f-axis" binding-path="m_axis"
                       label="reactive_object.delete-mesh-by-axis.axis"
                       class="ndmf-tr"/>
+    <ed:PropertyField name="f-selection-mode" binding-path="m_selectionMode"
+                      label="reactive_object.delete-mesh.selection-mode"
+                      class="ndmf-tr"/>
     <ui:VisualElement class="horizontal children-grow">
         <ui:Button name="f-axis-edit" class="ndmf-tr" text="reactive_object.delete-mesh-by-axis.edit"/>
         <ui:Button name="f-axis-flip" class="ndmf-tr" text="reactive_object.delete-mesh-by-axis.flip"/>

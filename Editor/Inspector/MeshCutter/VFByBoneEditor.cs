@@ -23,6 +23,13 @@ namespace nadena.dev.modular_avatar.core.editor
             uxml.styleSheets.Add(uss);
             uxml.Bind(serializedObject);
 
+            RestrictedEnumDropdown.Bind(
+                uxml.Q<DropdownField>("f-selection-mode"),
+                serializedObject.FindProperty(nameof(VertexFilterByBoneComponent.m_selectionMode)),
+                new[] { VertexSelectionMode.AnyVertex, VertexSelectionMode.AllVertices },
+                "reactive_object.delete-mesh.selection-mode"
+            );
+
             return uxml;
         }
 

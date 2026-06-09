@@ -3,8 +3,8 @@ using nadena.dev.ndmf.preview;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal interface IVertexFilterProvider
+    internal interface IMeshSelectorProvider
     {
-        IVertexFilter GetFilterFor(IVertexFilterBehavior behavior, ComputeContext context);
+        IMeshSelector GetSelectorFor(IMeshSelectorBehavior behavior, ComputeContext context);
     }
 }

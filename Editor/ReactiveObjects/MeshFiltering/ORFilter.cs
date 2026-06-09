@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.preview;
-using UnityEngine;
-using UnityEngine.Profiling;
+using Unity.Collections;
+using Unity.Jobs;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal sealed class ORFilter : IVertexFilter
+    internal sealed class ORFilter : IMeshSelector
     {
-        private readonly List<IVertexFilter> filters;
+        private readonly List<IMeshSelector> filters;
 
-        public ORFilter(IEnumerable<IVertexFilter> filters)
+        public ORFilter(IEnumerable<IMeshSelector> filters)
         {
             this.filters = (filters ?? throw new ArgumentNullException(nameof(filters))).ToList();
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IMeshSelector other)
         {
             if (other is ORFilter orFilter)
             {
@@ -46,21 +46,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             return hash;
         }
-
-        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
+        
+        public JobHandle MarkFilteredPrimitives(MeshSelectorJob job, int submesh, NativeSlice<bool> prims)
         {
-            Profiler.BeginSample("ORFilter.MarkFilteredVertices");
-            try
-            {
-                foreach (var filter in filters)
-                {
-                    filter.MarkFilteredVertices(renderer, mesh, filtered);
-                }
-            }
-            finally
-            {
-                Profiler.EndSample();
-            }
+            return MeshSelectorCombine.Combine(false, filters, job, submesh, prims);
         }
 
         public void Observe(ComputeContext context)

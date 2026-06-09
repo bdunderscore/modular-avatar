@@ -33,6 +33,12 @@ namespace nadena.dev.modular_avatar.core.editor
             Localization.UI.Localize(uxml);
             uxml.styleSheets.Add(uss);
             uxml.Bind(serializedObject);
+            RestrictedEnumDropdown.Bind(
+                uxml.Q<DropdownField>("f-selection-mode"),
+                serializedObject.FindProperty(nameof(VertexFilterByShapeComponent.m_selectionMode)),
+                new[] { VertexSelectionMode.AnyVertex, VertexSelectionMode.AllVertices },
+                "reactive_object.delete-mesh.selection-mode"
+            );
 
             var listView = uxml.Q<ListView>("Shapes");
             listView.showBoundCollectionSize = false;

@@ -11,7 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal static class VertexFilterRegistry
     {
-        private static readonly ImmutableDictionary<Type, IVertexFilterProvider> _providers = FindProviders();
+        private static readonly ImmutableDictionary<Type, IMeshSelectorProvider> _providers = FindProviders();
         private static readonly string[] _componentLabels;
 
         internal static List<string> ComponentLabels => _componentLabels.ToList();
@@ -44,8 +44,8 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public static bool TryGetVertexFilter(IVertexFilterBehavior behavior, ComputeContext context,
-            out IVertexFilter filter)
+        public static bool TryGetVertexFilter(IMeshSelectorBehavior behavior, ComputeContext context,
+            out IMeshSelector filter)
         {
             filter = default;
 
@@ -54,14 +54,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 return false;
             }
 
-            filter = provider.GetFilterFor(behavior, context);
+            filter = provider.GetSelectorFor(behavior, context);
 
             return true;
         }
         
-        private static ImmutableDictionary<Type, IVertexFilterProvider> FindProviders()
+        private static ImmutableDictionary<Type, IMeshSelectorProvider> FindProviders()
         {
-            var builder = ImmutableDictionary.CreateBuilder<Type, IVertexFilterProvider>();
+            var builder = ImmutableDictionary.CreateBuilder<Type, IMeshSelectorProvider>();
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -70,10 +70,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     var attr = (ProvidesVertexFilter)type.GetCustomAttribute(typeof(ProvidesVertexFilter));
                     if (attr == null) continue;
 
-                    if (!typeof(IVertexFilter).IsAssignableFrom(type))
+                    if (!typeof(IMeshSelector).IsAssignableFrom(type))
                     {
                         Debug.LogError(
-                            $"[ModularAvatar] Vertex filter provider {type.FullName} does not implement IVertexFilter.");
+                            $"[ModularAvatar] Mesh selector provider {type.FullName} does not implement IMeshSelector.");
                         continue;
                     }
 
@@ -81,7 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (ctor == null)
                     {
                         Debug.LogError(
-                            $"[ModularAvatar] Vertex filter provider {type.FullName} does not have a constructor that takes ({attr.Target}, ComputeContext).");
+                            $"[ModularAvatar] Mesh selector provider {type.FullName} does not have a constructor that takes ({attr.Target}, ComputeContext).");
                         continue;
                     }
 
@@ -93,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal class ReflectiveProvider : IVertexFilterProvider
+    internal class ReflectiveProvider : IMeshSelectorProvider
     {
         private readonly ConstructorInfo _ctor;
 
@@ -102,9 +102,9 @@ namespace nadena.dev.modular_avatar.core.editor
             _ctor = ctor;
         }
 
-        public IVertexFilter GetFilterFor(IVertexFilterBehavior behavior, ComputeContext context)
+        public IMeshSelector GetSelectorFor(IMeshSelectorBehavior behavior, ComputeContext context)
         {
-            return (IVertexFilter)_ctor.Invoke(new object[] { behavior, context });
+            return (IMeshSelector)_ctor.Invoke(new object[] { behavior, context });
         }
     }
 }

@@ -18,4 +18,7 @@
     <ed:PropertyField name="f-threshold" binding-path="m_threshold"
                       label="reactive_object.delete-mesh-by-shape.threshold"
                       class="ndmf-tr"/>
+    <ui:DropdownField name="f-selection-mode"
+                      label="reactive_object.delete-mesh.selection-mode"
+                      class="ndmf-tr"/>
 </UXML>

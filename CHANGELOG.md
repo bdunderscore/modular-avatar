@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
+- [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
 
 ### Fixed
 - [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.

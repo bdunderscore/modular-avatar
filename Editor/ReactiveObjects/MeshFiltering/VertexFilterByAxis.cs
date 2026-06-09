@@ -1,112 +1,69 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Profiling;
-using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     [ProvidesVertexFilter(typeof(VertexFilterByAxisComponent))]
-    internal sealed class VertexFilterByAxis : IVertexFilter
+    internal sealed class VertexFilterByAxis : IMeshSelector
     {
         private readonly Vector3 _center;
         private readonly Vector3 _axis;
-        private readonly Transform _avatarRoot;
-        
+        private readonly VertexSelectionMode _selectionMode;
+
         public VertexFilterByAxis(VertexFilterByAxisComponent component, ComputeContext context)
         {
-            (_center, _axis) = context.Observe(component, c => (c.Center, c.Axis));
-            _avatarRoot = RuntimeUtil.FindAvatarTransformInParents(component.transform);
+            (_center, _axis, _selectionMode) = context.Observe(
+                component,
+                c => (c.Center, c.Axis, c.SelectionMode)
+            );
         }
 
-        public bool Equals(IVertexFilter other)
+        public bool Equals(IMeshSelector other)
         {
-            return other is VertexFilterByAxis
-                   && ((VertexFilterByAxis)other)._axis == _axis
-                   && ((VertexFilterByAxis)other)._center == _center;
+            return other is VertexFilterByAxis other2
+                   && other2._axis == _axis
+                   && other2._center == _center
+                   && other2._selectionMode == _selectionMode;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(typeof(VertexFilterByAxis), _axis, _center);
+            return HashCode.Combine(typeof(VertexFilterByAxis), _axis, _center, _selectionMode);
         }
 
         public override string ToString()
         {
-            return $"VertexFilterByAxis: {_axis} @ {_center}";
+            return $"VertexFilterByAxis: {_axis} @ {_center} ({_selectionMode})";
         }
 
-        public void MarkFilteredVertices(Renderer renderer, Mesh mesh, bool[] filtered)
+        public JobHandle MarkFilteredPrimitives(MeshSelectorJob job, int submesh, NativeSlice<bool> selectedPrimitives)
         {
-            Profiler.BeginSample("VertexFilterByAxis.MarkFilteredVertices");
-            try
+            return job.MarkPrimitivesFromPositionFilter<AxisFilter>(
+                this,
+                new AxisFilter { Axis = _axis, Center = _center },
+                _selectionMode,
+                submesh,
+                selectedPrimitives
+            );
+        }
+
+        [BurstCompile]
+        private struct AxisFilter : MeshSelectorJob.IPositionFilter
+        {
+            public float3 Axis;
+            public float3 Center;
+
+            public bool IsVertexSelected(float3 vertexPosition)
             {
-                var rootBoneTransform = renderer.transform;
-                Mesh? temporaryMesh = null;
-                try
-                {
-                    if (renderer is SkinnedMeshRenderer smr)
-                    {
-                        temporaryMesh = new Mesh();
-                        var originalMesh = smr.sharedMesh;
-                        try
-                        {
-                            smr.sharedMesh = mesh;
-                            smr.BakeMesh(temporaryMesh, true);
-                        }
-                        finally
-                        {
-                            smr.sharedMesh = originalMesh;
-                        }
-
-                        mesh = temporaryMesh;
-                    }
-
-                    var meshSpaceCenter = _center;
-                    var meshSpaceAxis = _axis;
-
-                    var originalRenderer = NDMFPreview.GetOriginalObjectForProxy(renderer.gameObject);
-                    if (originalRenderer != null)
-                    {
-                        // Translate the meshSpaceCenter coordinates from the original renderer to the new
-                        // renderer's coordinate space; in preview, these don't match in general.
-                        meshSpaceCenter = renderer.transform.InverseTransformPoint(
-                            originalRenderer.transform.TransformPoint(meshSpaceCenter)
-                        );
-                        meshSpaceAxis = renderer.transform.InverseTransformDirection(
-                            originalRenderer.transform.TransformDirection(meshSpaceAxis)
-                        );
-                    }
-
-                    var vertices = mesh.vertices;
-
-                    if (vertices.Length != filtered.Length)
-                    {
-                        throw new ArgumentException("Mesh vertex count does not match filtered array length.");
-                    }
-
-                    for (var i = 0; i < vertices.Length; i++)
-                    {
-                        if (Vector3.Dot(meshSpaceAxis, vertices[i] - meshSpaceCenter) > 0.0f)
-                        {
-                            filtered[i] = true;
-                        }
-                    }
-                }
-                finally
-                {
-                    if (temporaryMesh != null)
-                    {
-                        Object.DestroyImmediate(temporaryMesh);
-                    }
-                }
-            }
-            finally
-            {
-                Profiler.EndSample();
+                return math.dot(Axis, vertexPosition - Center) > 0f;
             }
         }
     }

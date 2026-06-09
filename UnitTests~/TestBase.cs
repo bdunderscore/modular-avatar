@@ -6,9 +6,11 @@ using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.runtime.components;
 using NUnit.Framework;
 using UnitTests.SharedInterfaces;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
@@ -18,6 +20,57 @@ namespace modular_avatar_tests
 {
     public class TestBase
     {
+        internal static bool[] RunFilterPrimitives(IMeshSelector filter, Renderer renderer, Mesh mesh, int submesh = 0)
+        {
+            using var selectorJob = new MeshSelectorJob(renderer, mesh);
+            var desc = selectorJob.MeshData.GetSubMesh(submesh);
+            int vertsPerPrim = desc.topology switch
+            {
+                MeshTopology.Triangles => 3,
+                MeshTopology.Quads => 4,
+                _ => 1
+            };
+
+            using var primMask = new NativeArray<bool>(desc.indexCount / vertsPerPrim, Allocator.TempJob);
+            filter.MarkFilteredPrimitives(selectorJob, submesh, primMask).Complete();
+            return primMask.ToArray();
+        }
+
+        protected Mesh CreateShapeFilterTestMesh()
+        {
+            var vertices = new Vector3[15];
+            var triangles = new int[vertices.Length];
+            for (int p = 0; p < 5; p++)
+            {
+                var baseIndex = p * 3;
+                vertices[baseIndex] = new Vector3(p * 2, 0, 0);
+                vertices[baseIndex + 1] = new Vector3(p * 2 + 1, 0, 0);
+                vertices[baseIndex + 2] = new Vector3(p * 2, 1, 0);
+                triangles[baseIndex] = baseIndex;
+                triangles[baseIndex + 1] = baseIndex + 1;
+                triangles[baseIndex + 2] = baseIndex + 2;
+            }
+
+            var mesh = TrackObject(new Mesh
+            {
+                vertices = vertices,
+                triangles = triangles
+            });
+            // Primitives: Positive, Negative, Center, Positive+Negative, static.
+            AddBlendShape(mesh, "Positive", 0, 9);
+            AddBlendShape(mesh, "Negative", 3, 10);
+            AddBlendShape(mesh, "Center", 6);
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        private static void AddBlendShape(Mesh mesh, string name, params int[] movedVertices)
+        {
+            var deltas = new Vector3[mesh.vertexCount];
+            foreach (var vertex in movedVertices) deltas[vertex] = Vector3.up;
+            mesh.AddBlendShapeFrame(name, 100, deltas, new Vector3[mesh.vertexCount], new Vector3[mesh.vertexCount]);
+        }
+
         private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
 
         private List<UnityEngine.Object> objects;

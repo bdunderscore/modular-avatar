@@ -2,7 +2,7 @@
 {
     // Unstable API for now.
     // Tag interface.
-    internal interface IVertexFilterBehavior
+    internal interface IMeshSelectorBehavior
     {
     }
 }

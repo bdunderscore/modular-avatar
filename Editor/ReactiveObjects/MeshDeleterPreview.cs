@@ -27,29 +27,29 @@ namespace nadena.dev.modular_avatar.core.editor
             return context.Observe(EnableNode.IsEnabled);
         }
 
-        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache = new(
+        private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IMeshSelector>> _cache = new(
             "FiltersForRenderer", FiltersForRenderer, Enumerable.SequenceEqual);
 
-        private static ImmutableList<IVertexFilter> FiltersForRenderer(ComputeContext context, Renderer renderer)
+        private static ImmutableList<IMeshSelector> FiltersForRenderer(ComputeContext context, Renderer renderer)
         {
             if (renderer == null)
             {
-                return ImmutableList<IVertexFilter>.Empty;
+                return ImmutableList<IMeshSelector>.Empty;
             }
 
             var avatar = context.GetAvatarRoot(renderer.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(context, avatar);
-            var filters = ImmutableList<IVertexFilter>.Empty;
+            var filters = ImmutableList<IMeshSelector>.Empty;
 
             foreach (var property in analysis.Shapes.Values)
             {
                 var prop = property.TargetProp;
                 if (prop.TargetObject != renderer) continue;
                 if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
+                if (!property.actionGroups.Any(x => x.Value is IMeshSelector)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not IVertexFilter filter) continue;
+                if (activeRule == null || activeRule.Value is not IMeshSelector filter) continue;
 
                 filters = filters.Add(filter);
             }
@@ -66,10 +66,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var prop = property.TargetProp;
                 if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!property.actionGroups.Any(x => x.Value is IVertexFilter)) continue;
+                if (!property.actionGroups.Any(x => x.Value is IMeshSelector)) continue;
 
                 var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not IVertexFilter) continue;
+                if (activeRule == null || activeRule.Value is not IMeshSelector) continue;
 
                 renderers.Add(smr);
             }
@@ -92,20 +92,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private class Node : IRenderFilterNode
         {
-            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> _cache;
+            private readonly PropCache<SkinnedMeshRenderer, ImmutableList<IMeshSelector>> _cache;
             private readonly SkinnedMeshRenderer _original;
-            private readonly ImmutableList<IVertexFilter> _filters;
+            private readonly ImmutableList<IMeshSelector> _filters;
             private Mesh _generatedMesh;
 
             public RenderAspects WhatChanged => RenderAspects.Mesh;
 
-            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<IVertexFilter>> cache,
+            internal Node(PropCache<SkinnedMeshRenderer, ImmutableList<IMeshSelector>> cache,
                 SkinnedMeshRenderer original, SkinnedMeshRenderer proxy, ComputeContext context)
             {
                 _cache = cache;
                 _original = original;
                 _filters = _cache.Get(context, _original);
-                _generatedMesh = GenerateMesh(original, proxy, proxy.sharedMesh, _filters);
+                _generatedMesh = GenerateMesh(proxy, proxy.sharedMesh, _filters);
 
                 foreach (var filter in _filters)
                 {
@@ -140,59 +140,19 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            private Mesh GenerateMesh(
-                Renderer original,
-                Renderer proxy,
-                Mesh mesh,
-                ImmutableList<IVertexFilter> filters
-            )
+            private static Mesh GenerateMesh(Renderer proxy, Mesh mesh, ImmutableList<IMeshSelector> filters)
             {
-                if (mesh == null)
+                if (mesh == null) return null;
+
+                Profiler.BeginSample("FilterPrimitivesOnly");
+                try
                 {
-                    return null;
+                    return RemoveVerticesFromMesh.FilterPrimitivesOnly(proxy, mesh, filters);
                 }
-
-                Profiler.BeginSample("Clone mesh");
-                mesh = Object.Instantiate(mesh);
-                Profiler.EndSample();
-                
-                var vertexMask = new bool[mesh.vertexCount];
-                Profiler.BeginSample("MarkFilteredVertices");
-                new ORFilter(filters).MarkFilteredVertices(proxy, mesh, vertexMask);
-                Profiler.EndSample();
-
-                var originalTriangles = new List<int>();
-                var processedTriangles = new List<int>();
-                for (var subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
+                finally
                 {
-                    Profiler.BeginSample("Process submesh");
-                    originalTriangles.Clear();
-                    processedTriangles.Clear();
-
-                    var baseVertex = (int)mesh.GetBaseVertex(subMesh);
-                    mesh.GetTriangles(originalTriangles, subMesh, false);
-
-                    for (var i = 0; i < originalTriangles.Count; i += 3)
-                    {
-                        var t0 = originalTriangles[i + 0];
-                        var t1 = originalTriangles[i + 1];
-                        var t2 = originalTriangles[i + 2];
-
-                        if (!vertexMask[t0 + baseVertex] &&
-                            !vertexMask[t1 + baseVertex] &&
-                            !vertexMask[t2 + baseVertex])
-                        {
-                            processedTriangles.Add(t0);
-                            processedTriangles.Add(t1);
-                            processedTriangles.Add(t2);
-                        }
-                    }
-
-                    mesh.SetTriangles(processedTriangles, subMesh, false, baseVertex: baseVertex);
                     Profiler.EndSample();
                 }
-
-                return mesh;
             }
 
             public void Dispose()

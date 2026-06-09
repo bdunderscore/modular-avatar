@@ -10,13 +10,14 @@
         "nadena.dev.ndmf.runtime",
         "VRC.SDK3A.Editor",
         "Unity.Burst",
-        "net.nekobako.MaskTextureEditor.Editor"
+        "net.nekobako.MaskTextureEditor.Editor",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+  "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
         "Newtonsoft.Json.dll",
