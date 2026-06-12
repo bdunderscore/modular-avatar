@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
 
 ### Changed
 

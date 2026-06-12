@@ -23,6 +23,7 @@ namespace nadena.dev.modular_avatar.animation
     internal class MMDRelayState
     {
         internal HashSet<VirtualLayer> mmdAffectedOriginalLayers = new();
+        internal VirtualLayer? originalFirstLayer;
     }
 
 #if MA_VRCSDK3_AVATARS
@@ -36,9 +37,11 @@ namespace nadena.dev.modular_avatar.animation
             var asc = context.Extension<AnimatorServicesContext>();
             if (asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
             {
-                context.GetState<MMDRelayState>().mmdAffectedOriginalLayers = new HashSet<VirtualLayer>(
+                var state = context.GetState<MMDRelayState>();
+                state.mmdAffectedOriginalLayers = new HashSet<VirtualLayer>(
                     fx.Layers.Take(3)
                 );
+                state.originalFirstLayer = fx.Layers.FirstOrDefault();
             }
         }
     }
@@ -74,7 +77,8 @@ namespace nadena.dev.modular_avatar.animation
             if (!asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx))
                 return;
 
-            var affectedLayers = context.GetState<MMDRelayState>().mmdAffectedOriginalLayers;
+            var relayState = context.GetState<MMDRelayState>();
+            var affectedLayers = relayState.mmdAffectedOriginalLayers;
             var hasAnyOptInMmdLayerControl = false;
             var layersWithMmdControl = new HashSet<VirtualLayer>();
 
@@ -88,7 +92,7 @@ namespace nadena.dev.modular_avatar.animation
                 
                 if (rootMMDModeBehaviors.Count == 0) continue;
 
-                hasAnyOptInMmdLayerControl = rootMMDModeBehaviors.Any(b => b.DisableInMMDMode);
+                hasAnyOptInMmdLayerControl |= rootMMDModeBehaviors.Any(b => b.DisableInMMDMode);
                 layersWithMmdControl.Add(layer);
                 
                 if (rootMMDModeBehaviors.Count > 1)
@@ -165,6 +169,16 @@ namespace nadena.dev.modular_avatar.animation
                 // You might think that layer zero's weight can't be changed, but it seems that this is not the case, at
                 // least when it contains a blend tree. So we need to insert a dummy layer zero in that case.
                 CreateDummyLayer(fx, newLayers);
+
+                // If the avatar's original first layer was displaced from index zero (e.g. by the Merge Blend Tree
+                // layer), we must not disable it in MMD mode: on an unprocessed avatar, MMD worlds can't affect the
+                // first FX layer (its weight is effectively pinned to one), so disabling it would diverge from the
+                // avatar's original behavior (see issue #1922). An explicit MMD Layer Control opt-in overrides this.
+                var originalFirstLayer = relayState.originalFirstLayer;
+                if (originalFirstLayer != null && !layersWithMmdControl.Contains(originalFirstLayer))
+                {
+                    affectedLayers.Remove(originalFirstLayer);
+                }
             }
 
             // Add a dummy layer at layer 1 as well
