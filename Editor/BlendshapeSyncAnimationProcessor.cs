@@ -205,8 +205,8 @@ namespace nadena.dev.modular_avatar.core.editor
                             var slope = (valPlus - valMinus) / (tPlus - tMinus);
 
                             key.value = val;
-                            key.inTangent = key.time * slope;
-                            key.outTangent = key.time * slope;
+                            key.inTangent *= slope;
+                            key.outTangent *= slope;
                         }
                         var remappedCurve = new AnimationCurve(keys);
                         clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), remappedCurve);
