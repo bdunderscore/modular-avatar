@@ -44,8 +44,10 @@ namespace modular_avatar_tests.MMD
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
 
-            // RC, MMD, dummy, L0, L1, L2
-            AssertMMDModeHandling(fxc, 4, 5, 6);
+            // dummy, dummy, MMD, RC, L0, L1, L2
+            // L0 (the avatar's original first layer) is displaced by the Merge Blend Tree layer, but must not be
+            // disabled in MMD mode, since MMD worlds can't disable the first layer of an unprocessed avatar (#1922).
+            AssertMMDModeHandling(fxc, 5, 6);
             
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
@@ -66,8 +68,10 @@ namespace modular_avatar_tests.MMD
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             
-            // M0, MMD, dummy, M1, M2, L0, L1, L2
-            AssertMMDModeHandling(fxc, 6, 7, 8);
+            // dummy, dummy, MMD, M0, M1, M2, L0, L1, L2
+            // L0 (the avatar's original first layer) is displaced by the merged layers, but must not be disabled
+            // in MMD mode (#1922).
+            AssertMMDModeHandling(fxc, 7, 8);
             
             Assert.AreEqual(9, fxc.layers.Length);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
@@ -116,7 +120,9 @@ namespace modular_avatar_tests.MMD
                 "L1",
                 "L2"
             }));
-            AssertMMDModeLayerDrivers(fxc, 3, 4, 5, 6);
+            // OptIn (explicit opt-in), L1 and L2 are disabled in MMD mode; L0 (the avatar's original first layer,
+            // displaced by the OptIn layer merged in front of it) is not (#1922).
+            AssertMMDModeLayerDrivers(fxc, 3, 5, 6);
         }
         
         [Test]
