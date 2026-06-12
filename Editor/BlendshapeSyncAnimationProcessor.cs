@@ -193,8 +193,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     else
                     {
                         const float epsilon = 0.005f; // ~200fps
-                        var remappedCurve = new AnimationCurve();
-                        foreach (var key in curve.keys)
+                        var keys = curve.keys;
+                        foreach (ref var key in keys.AsSpan())
                         {
                             var t = Mathf.Clamp01(key.value / 100f);
                             var val = remapCurve.Evaluate(t) * 100f;
@@ -203,12 +203,12 @@ namespace nadena.dev.modular_avatar.core.editor
                             var valPlus = remapCurve.Evaluate(tPlus);
                             var valMinus = remapCurve.Evaluate(tMinus);
                             var slope = (valPlus - valMinus) / (tPlus - tMinus);
-                            remappedCurve.AddKey(new Keyframe(
-                                key.time, val,
-                                key.inTangent * slope,
-                                key.outTangent * slope
-                            ));
+
+                            key.value = val;
+                            key.inTangent = key.time * slope;
+                            key.outTangent = key.time * slope;
                         }
+                        var remappedCurve = new AnimationCurve(keys);
                         clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), remappedCurve);
                     }
                 }
