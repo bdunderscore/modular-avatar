@@ -200,8 +200,8 @@ namespace nadena.dev.modular_avatar.core.editor
                             var val = remapCurve.Evaluate(t) * 100f;
                             var tPlus = Mathf.Clamp01(t + epsilon);
                             var tMinus = Mathf.Clamp01(t - epsilon);
-                            var valPlus = remapCurve.Evaluate(tPlus) * 100f;
-                            var valMinus = remapCurve.Evaluate(tMinus) * 100f;
+                            var valPlus = remapCurve.Evaluate(tPlus);
+                            var valMinus = remapCurve.Evaluate(tMinus);
                             var slope = (valPlus - valMinus) / (tPlus - tMinus);
                             remappedCurve.AddKey(new Keyframe(
                                 key.time, val,
