@@ -297,6 +297,8 @@
   "ma_info.param_usage_ui.free_space": "未使用領域 ({0} 個のビット)",
   "ma_info.param_usage_ui.exceeded_space": "超過分 ({0} 個のビット)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 個のビットを使用中)",
+  "ma_info.param_usege_ui.parameter_type":  "タイプ : {0} ({1} ビット)", 
+  "ma_info.param_usage_ui.is_name_deferred": "自動リネーム : {0}",
   "ma_info.param_usage_ui.no_data": "[ NO DATA ]",
   "reactive_object.inverse": "条件を反転",
   "reactive_object.mesh_cutter.object": "対象のレンダラー",

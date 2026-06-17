@@ -28,6 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var hidden = false;
             var name = _component.Control?.parameter?.name;
+            var isAutoName = string.IsNullOrWhiteSpace(name);
             if (string.IsNullOrWhiteSpace(name))
             {
                 name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetInstanceID()}";
@@ -37,7 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor
             yield return new ProvidedParameter(
                 name,
                 ParameterNamespace.Animator,
-                _component, PluginDefinition.Instance, _component.AnimatorControllerParameterType)
+                _component, PluginDefinition.Instance, _component.AnimatorControllerParameterType, isAutoName)
             {
                 ExpandTypeOnConflict = true,
                 WantSynced = _component.isSynced,
@@ -85,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return new ProvidedParameter(
                     p.nameOrPrefix,
                     p.isPrefix ? ParameterNamespace.PhysBonesPrefix : ParameterNamespace.Animator,
-                    _component, PluginDefinition.Instance, paramType)
+                    _component, PluginDefinition.Instance, paramType, p.internalParameter)
                 {
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly && !animatorOnly,
