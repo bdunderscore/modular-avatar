@@ -48,11 +48,15 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
         }
 
         public void NormalizeParameters(ndmf.BuildContext context, VRCAvatarDescriptor desc,
-            BuildTarget activeBuildTarget, bool isPrimaryPlatform)
+            BuildTarget activeBuildTarget, bool isPrimaryPlatform,
+            SyncParameterSequenceDebugLog.Context? debugContext = null)
         {
             var blueprintId = GetBlueprintId(desc);
-            if (blueprintId == null) return;
-
+            if (blueprintId == null)
+            {
+                debugContext?.Append("Skipped: Avatar has no blueprint ID.");
+                return;
+            }
 
             VRCExpressionParameters newExpressionParametersAsset;
             if (desc.expressionParameters == null)
@@ -77,18 +81,22 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
             Array.Sort(newExpressionParametersAsset.parameters,
                 (p1, p2) => string.Compare(p1.name, p2.name, StringComparison.Ordinal));
 
+            debugContext?.SetInitialParameters(newExpressionParametersAsset.parameters);
             var wantedParameters = ConvertParameters(newExpressionParametersAsset.parameters);
+            debugContext?.SetSyncedAvatarParameters(wantedParameters);
 
             // Merge in anything from the primary platform
             if (!isPrimaryPlatform)
             {
                 var current = _store.GetRecordForBlueprintId(blueprintId);
+                debugContext?.SetInitialRegistry(current);
                 if (current.PrimaryPlatformRecord != null)
                 {
                     List<VRCExpressionParameters.Parameter> parameters =
                         newExpressionParametersAsset.parameters.ToList();
 
-                    var knownParameters = newExpressionParametersAsset.parameters.ToDictionary(p => p.name, p => p);
+                    var knownParameters = BuildParameterLookup(newExpressionParametersAsset.parameters, debugContext,
+                        "initial expression parameters during primary-platform merge");
                     foreach (var parameter in current.PrimaryPlatformRecord.WantedParameters)
                     {
                         var toVRC = parameter.ToVRC();
@@ -134,6 +142,10 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
                         (p1, p2) => string.Compare(p1.name, p2.name, StringComparison.Ordinal));
                 }
             }
+            else
+            {
+                debugContext?.SetInitialRegistry(_store.GetRecordForBlueprintId(blueprintId));
+            }
 
             var actualParameters = ConvertParameters(newExpressionParametersAsset.parameters);
 
@@ -144,6 +156,10 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
                 ActualParameters = actualParameters
             });
 
+            debugContext?.SetFinalRegistry(updated);
+            debugContext?.SetFinalParameters(newExpressionParametersAsset.parameters);
+            debugContext?.Append();
+
             if (updated.IsConsistent)
             {
                 InconsistentBlueprints = InconsistentBlueprints.Remove(blueprintId);
@@ -153,6 +169,31 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
                 InconsistentBlueprints = InconsistentBlueprints.Add(blueprintId);
                 OnInconsistentBlueprintDetected?.Invoke();
             }
+        }
+
+        private static Dictionary<string, VRCExpressionParameters.Parameter> BuildParameterLookup(
+            IEnumerable<VRCExpressionParameters.Parameter> parameters,
+            SyncParameterSequenceDebugLog.Context? debugContext,
+            string source)
+        {
+            var lookup = new Dictionary<string, VRCExpressionParameters.Parameter>(StringComparer.Ordinal);
+            var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+
+            foreach (var parameter in parameters)
+            {
+                var name = parameter.name ?? string.Empty;
+                counts.TryGetValue(name, out var count);
+                counts[name] = count + 1;
+                lookup[name] = parameter;
+            }
+
+            foreach (var duplicate in counts.Where(kv => kv.Value > 1).OrderBy(kv => kv.Key))
+            {
+                debugContext?.AddAnomaly(
+                    $"Duplicate parameter name '{duplicate.Key}' found in {source}; using the last occurrence.");
+            }
+
+            return lookup;
         }
     }
 }

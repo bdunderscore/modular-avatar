@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed

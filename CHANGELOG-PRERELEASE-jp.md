@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
+- [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
 - [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
