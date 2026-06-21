@@ -1,10 +1,14 @@
-﻿#region
+#region
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -13,193 +17,214 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class RemoveVerticesFromMesh
     {
         public static Mesh RemoveVertices(Renderer renderer, Mesh original,
-            IEnumerable<(TargetProp, IVertexFilter)> targets)
+            IEnumerable<(TargetProp, IMeshSelector)> targets)
         {
             var mesh = new Mesh();
             mesh.indexFormat = original.indexFormat;
             mesh.bounds = original.bounds;
 
-            bool[] toDeleteVertices = new bool[original.vertexCount];
-            bool[] toRetainVertices = new bool[original.vertexCount];
+            int submeshCount = original.subMeshCount;
+            var primitiveMasks = new NativeArray<bool>[submeshCount];
+            var retainMask = new NativeArray<bool>(original.vertexCount, Allocator.TempJob);
 
-            new ORFilter(targets.Select(t => t.Item2)).MarkFilteredVertices(renderer, original, toDeleteVertices);
-            
-            ProbeRetainedVertices(original, toDeleteVertices, toRetainVertices);
-
-            if (toRetainVertices.All(v => !v))
+            try
             {
-                // Retain vertex zero to use as a fallback
-                toRetainVertices[0] = true;
-                toDeleteVertices[0] = false;
+                using var selectorJob = new MeshSelectorJob(renderer, original);
+                
+                var selectors = targets.Select(t => t.Item2).ToList();
+                IMeshSelector combinedSelector = selectors.Count == 0 ? null
+                    : selectors.Count == 1 ? selectors[0]
+                    : new ORFilter(selectors);
+
+                // Phase 1: schedule primitive mask jobs
+                var primMaskHandles = new JobHandle[submeshCount];
+                for (int sm = 0; sm < submeshCount; sm++)
+                {
+                    var desc = selectorJob.MeshData.GetSubMesh(sm);
+                    int vertsPerPrim = VertsPerPrim(desc.topology);
+                    primitiveMasks[sm] = new NativeArray<bool>(desc.indexCount / vertsPerPrim, Allocator.TempJob);
+                    if (combinedSelector != null)
+                        primMaskHandles[sm] = combinedSelector.MarkFilteredPrimitives(
+                            selectorJob, sm, primitiveMasks[sm]);
+                }
+
+                // Phase 2: build retain mask using the already-adjusted index buffers.
+                // Jobs are chained so writes to retainMask don't race across submeshes.
+                JobHandle retainChain = default;
+                for (int sm = 0; sm < submeshCount; sm++)
+                {
+                    var (indexBuffer, indexDep) = selectorJob.GetSubmeshIndexBuffer(sm);
+                    int vertsPerPrim = VertsPerPrim(selectorJob.MeshData.GetSubMesh(sm).topology);
+                    var deps = JobHandle.CombineDependencies(indexDep, primMaskHandles[sm], retainChain);
+                    retainChain = new MarkRetainedVerticesJob
+                    {
+                        IndexBuffer = indexBuffer,
+                        PrimitiveMask = primitiveMasks[sm],
+                        PrimSize = vertsPerPrim,
+                        RetainMask = retainMask
+                    }.Schedule(primitiveMasks[sm].Length, 64, deps);
+                }
+
+                retainChain.Complete();
+
+                if (!retainMask.Any(b => b)) retainMask[0] = true;
+
+                RemapVerts(retainMask, out var origToNewVertIndex, out var newToOrigVertIndex);
+
+                TransferVertexData(mesh, original, retainMask);
+                mesh.bindposes = original.bindposes;
+                TransferShapes(mesh, original, newToOrigVertIndex);
+                UpdateTriangles(mesh, selectorJob, primitiveMasks, origToNewVertIndex);
             }
-
-            RemapVerts(toRetainVertices, out var origToNewVertIndex, out var newToOrigVertIndex);
-
-            TransferVertexData(mesh, original, toRetainVertices);
-            mesh.bindposes = original.bindposes;
-            TransferShapes(mesh, original, newToOrigVertIndex);
-            UpdateTriangles(mesh, original, toRetainVertices, origToNewVertIndex);
+            finally
+            {
+                retainMask.Dispose();
+                foreach (var mask in primitiveMasks)
+                    if (mask.IsCreated) mask.Dispose();
+            }
 
             return mesh;
         }
 
-        private static void TransferVertexData(Mesh mesh, Mesh original, bool[] toRetain)
+        /// <summary>
+        ///     Preview-optimized path: clones the mesh and filters only the index buffers, keeping all vertices intact.
+        /// </summary>
+        public static Mesh FilterPrimitivesOnly(Renderer renderer, Mesh original, IEnumerable<IMeshSelector> selectors)
+        {
+            var mesh = Object.Instantiate(original);
+
+            var submeshCount = original.subMeshCount;
+            var primitiveMasks = new NativeArray<bool>[submeshCount];
+
+            try
+            {
+                using var selectorJob = new MeshSelectorJob(renderer, original);
+
+                var selectorList = selectors.ToList();
+                var combinedSelector = selectorList.Count == 0 ? null
+                    : selectorList.Count == 1 ? selectorList[0]
+                    : new ORFilter(selectorList);
+
+                var primMaskHandles = new JobHandle[submeshCount];
+                for (var sm = 0; sm < submeshCount; sm++)
+                {
+                    var desc = selectorJob.MeshData.GetSubMesh(sm);
+                    var vertsPerPrim = VertsPerPrim(desc.topology);
+                    primitiveMasks[sm] = new NativeArray<bool>(desc.indexCount / vertsPerPrim, Allocator.TempJob);
+                    if (combinedSelector != null)
+                        primMaskHandles[sm] = combinedSelector.MarkFilteredPrimitives(
+                            selectorJob, sm, primitiveMasks[sm]);
+                }
+
+                for (var sm = 0; sm < submeshCount; sm++)
+                    primMaskHandles[sm].Complete();
+
+                var origToNewVertIndex = new int[original.vertexCount];
+                for (var i = 0; i < origToNewVertIndex.Length; i++) origToNewVertIndex[i] = i;
+                UpdateTriangles(mesh, selectorJob, primitiveMasks, origToNewVertIndex);
+            }
+            finally
+            {
+                foreach (var mask in primitiveMasks)
+                    if (mask.IsCreated)
+                        mask.Dispose();
+            }
+
+            return mesh;
+        }
+
+        private static int VertsPerPrim(MeshTopology topology)
+        {
+            switch (topology)
+            {
+                case MeshTopology.Triangles: return 3;
+                case MeshTopology.Quads: return 4;
+                default: return 1;
+            }
+        }
+
+        [BurstCompile]
+        private struct MarkRetainedVerticesJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<int> IndexBuffer;
+            [ReadOnly] public NativeArray<bool> PrimitiveMask;
+            // Multiple threads may write true to the same vertex index; writes are idempotent.
+            public int PrimSize;
+            [NativeDisableParallelForRestriction] public NativeArray<bool> RetainMask;
+
+            public void Execute(int primIndex)
+            {
+                if (PrimitiveMask[primIndex]) return;
+                for (int v = 0; v < PrimSize; v++)
+                    RetainMask[IndexBuffer[primIndex * PrimSize + v]] = true;
+            }
+        }
+
+        private static void TransferVertexData(Mesh mesh, Mesh original, NativeArray<bool> toRetain)
         {
             var newToOriginal = new List<int>(toRetain.Length);
-
             for (var i = 0; i < toRetain.Length; i++)
-            {
                 if (toRetain[i])
-                {
                     newToOriginal.Add(i);
-                }
-            }
-
-            // We transfer all relevant attributes (positions, normals, tangents, UVs, colors, and bone weights)
-            // in one go by using the raw vertex attribute stream API
-
-            var attrs = original.GetVertexAttributes();
-            mesh.SetVertexBufferParams(newToOriginal.Count, attrs);
-
-            for (var stream = 0; stream < 4; stream++)
-            {
-                var stride = original.GetVertexBufferStride(stream);
-                if (stride == 0) continue; // stream is not present
-
-                var srcBuf = original.GetVertexBuffer(stream);
-                var origVertexData = new byte[stride * original.vertexCount];
-                srcBuf.GetData(origVertexData);
-
-                var newVertexData = new byte[stride * newToOriginal.Count];
-                for (var v = 0; v < newToOriginal.Count; v++)
-                {
-                    Array.Copy(origVertexData, newToOriginal[v] * stride, newVertexData, v * stride, stride);
-                }
-
-                mesh.SetVertexBufferData(newVertexData, 0, 0, newVertexData.Length, stream);
-            }
+            MeshVertexCopyUtil.TransferVertexData(mesh, original, newToOriginal.ToArray());
         }
 
         private static void TransferShapes(Mesh mesh, Mesh original, int[] newToOrigVertIndex)
         {
-            Vector3[] o_pos = new Vector3[original.vertexCount];
-            Vector3[] n_pos = new Vector3[mesh.vertexCount];
-
-            Vector3[] o_nrm = new Vector3[original.vertexCount];
-            Vector3[] n_nrm = new Vector3[mesh.vertexCount];
-
-            Vector3[] o_tan = new Vector3[original.vertexCount];
-            Vector3[] n_tan = new Vector3[mesh.vertexCount];
-
-            int blendshapeCount = original.blendShapeCount;
-            for (int s = 0; s < blendshapeCount; s++)
-            {
-                int frameCount = original.GetBlendShapeFrameCount(s);
-                var shapeName = original.GetBlendShapeName(s);
-
-                for (int f = 0; f < frameCount; f++)
-                {
-                    original.GetBlendShapeFrameVertices(s, f, o_pos, o_nrm, o_tan);
-                    Remap();
-
-                    var frameWeight = original.GetBlendShapeFrameWeight(s, f);
-                    mesh.AddBlendShapeFrame(shapeName, frameWeight, n_pos, n_nrm, n_tan);
-                }
-            }
-
-            void Remap()
-            {
-                for (int i = 0; i < n_pos.Length; i++)
-                {
-                    try
-                    {
-                        n_pos[i] = o_pos[newToOrigVertIndex[i]];
-                        n_nrm[i] = o_nrm[newToOrigVertIndex[i]];
-                        n_tan[i] = o_tan[newToOrigVertIndex[i]];
-                    }
-                    catch (IndexOutOfRangeException)
-                    {
-                        throw;
-                    }
-                }
-            }
+            MeshVertexCopyUtil.TransferShapes(mesh, original, newToOrigVertIndex);
         }
 
-        private static void UpdateTriangles(Mesh mesh, Mesh original, bool[] toRetainVertices, int[] origToNewVertIndex)
+        private static void UpdateTriangles(Mesh mesh, MeshSelectorJob selectorJob,
+            NativeArray<bool>[] primitiveMasks, int[] origToNewVertIndex)
         {
-            int submeshCount = original.subMeshCount;
-
-            List<int> orig_tris = new List<int>();
-            List<int> new_tris = new List<int>();
-
-            List<ushort> orig_tris_16 = new List<ushort>();
-            List<ushort> new_tris_16 = new List<ushort>();
+            int submeshCount = primitiveMasks.Length;
+            var newIndices = new List<int>();
+            var newIndices16 = new List<ushort>();
 
             mesh.subMeshCount = submeshCount;
 
             for (int sm = 0; sm < submeshCount; sm++)
             {
-                var smDesc = original.GetSubMesh(sm);
-                orig_tris.Clear();
-                new_tris.Clear();
-                orig_tris_16.Clear();
-                new_tris_16.Clear();
+                var smDesc = selectorJob.MeshData.GetSubMesh(sm);
+                int vertsPerPrim = VertsPerPrim(smDesc.topology);
+                newIndices.Clear();
+                newIndices16.Clear();
 
-                original.GetTriangles(orig_tris, sm, true);
-                ProcessSubmesh(orig_tris, new_tris, i => i, i => i);
+                var (indexBuffer, jobHandle) = selectorJob.GetSubmeshIndexBuffer(sm);
+                // This _should_ be done by now, but just to avoid any mistakes we'll ensure it's completed at the
+                // pointer where we fetch it.
+                jobHandle.Complete();
+                var mask = primitiveMasks[sm];
+
+                for (int p = 0; p < mask.Length; p++)
+                {
+                    if (mask[p]) continue; // deleted
+                    for (int v = 0; v < vertsPerPrim; v++)
+                        newIndices.Add(origToNewVertIndex[indexBuffer[p * vertsPerPrim + v]]);
+                }
+
+                if (newIndices.Count == 0)
+                {
+                    // Add a degenerate primitive to avoid creating an empty submesh.
+                    // TODO: Perform necessary animation updates to allow us to delete the submesh entirely.
+                    for (int v = 0; v < vertsPerPrim; v++) newIndices.Add(0);
+                }
 
                 if (mesh.indexFormat == IndexFormat.UInt16)
                 {
-                    var minVertex = Math.Max(0, new_tris.Min());
-
-                    for (int i = 0; i < new_tris.Count; i++)
-                    {
-                        new_tris_16.Add((ushort)(new_tris[i] - minVertex));
-                    }
-
-                    mesh.SetIndices(new_tris_16, 0, new_tris_16.Count, smDesc.topology,
-                        sm, true, minVertex);
+                    var minVertex = Math.Max(0, newIndices.Min());
+                    foreach (var i in newIndices) newIndices16.Add((ushort)(i - minVertex));
+                    mesh.SetIndices(newIndices16, 0, newIndices16.Count, smDesc.topology, sm, true, minVertex);
                 }
                 else
                 {
                     // don't bother computing min vertex for UInt32 indices, as it will always fit anyway
-                    mesh.SetIndices(new_tris, 0, new_tris.Count, smDesc.topology, sm);
-                }
-            }
-
-            void ProcessSubmesh<T>(List<T> orig_tri, List<T> new_tri, Func<T, int> toInt, Func<int, T> fromInt)
-            {
-                int limit = orig_tri.Count - 2;
-
-                new_tri.Clear();
-
-                for (int i = 0; i < limit; i += 3)
-                {
-                    if (!toRetainVertices[toInt(orig_tri[i])]
-                        || !toRetainVertices[toInt(orig_tri[i + 1])]
-                        || !toRetainVertices[toInt(orig_tri[i + 2])]
-                       )
-                    {
-                        continue;
-                    }
-
-                    new_tri.Add(fromInt(origToNewVertIndex[toInt(orig_tri[i])]));
-                    new_tri.Add(fromInt(origToNewVertIndex[toInt(orig_tri[i + 1])]));
-                    new_tri.Add(fromInt(origToNewVertIndex[toInt(orig_tri[i + 2])]));
-                }
-
-                if (new_tri.Count == 0)
-                {
-                    // Add a degenerate triangle to avoid creating an empty submesh.
-                    // TODO: Perform necessary animation updates to allow us to delete the submesh entirely.
-                    new_tri.Add(default);
-                    new_tri.Add(default);
-                    new_tri.Add(default);
+                    mesh.SetIndices(newIndices, 0, newIndices.Count, smDesc.topology, sm);
                 }
             }
         }
 
-        private static void RemapVerts(bool[] toRetainVertices, out int[] origToNewVertIndex,
+        private static void RemapVerts(NativeArray<bool> toRetainVertices, out int[] origToNewVertIndex,
             out int[] newToOrigVertIndex)
         {
             List<int> n2o = new List<int>(toRetainVertices.Length);
@@ -220,33 +245,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             newToOrigVertIndex = n2o.ToArray();
             origToNewVertIndex = o2n.ToArray();
-        }
-
-        private static void ProbeRetainedVertices(Mesh mesh, bool[] toDeleteVertices, bool[] toRetainVertices)
-        {
-            List<int> tris = new List<int>();
-            for (int subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
-            {
-                tris.Clear();
-
-                var baseVertex = (int)mesh.GetBaseVertex(subMesh);
-                mesh.GetTriangles(tris, subMesh, false);
-
-                for (int i = 0; i < tris.Count; i += 3)
-                {
-                    if (toDeleteVertices[tris[i] + baseVertex] || toDeleteVertices[tris[i + 1] + baseVertex] ||
-                        toDeleteVertices[tris[i + 2] + baseVertex])
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        toRetainVertices[tris[i] + baseVertex] = true;
-                        toRetainVertices[tris[i + 1] + baseVertex] = true;
-                        toRetainVertices[tris[i + 2] + baseVertex] = true;
-                    }
-                }
-            }
         }
     }
 }

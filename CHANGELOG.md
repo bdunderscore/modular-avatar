@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#2006] Add a debug logging feature for Sync Parameter Sequence
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
+- [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
 
 ### Fixed
 - [#2007] Improved compatibility with Unity 6000.0

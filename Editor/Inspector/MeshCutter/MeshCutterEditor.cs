@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (target is Component c)
                     {
-                        shouldDisplayHint = !c.TryGetComponent<IVertexFilterBehavior>(out _);
+                        shouldDisplayHint = !c.TryGetComponent<IMeshSelectorBehavior>(out _);
                     }
                 }
 

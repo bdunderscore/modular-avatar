@@ -18,6 +18,11 @@
                           label="reactive_object.delete-mesh-by-mask.delete-mode" class="ndmf-tr"/>
     </ui:VisualElement>
 
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-selection-mode" binding-path="m_selectionMode"
+                          label="reactive_object.delete-mesh.selection-mode" class="ndmf-tr"/>
+    </ui:VisualElement>
+
     <ui:HelpBox text="reactive_object.delete-mesh-by-mask.hint-install-mask-editor"
                 message-type="Info"
                 class="ndmf-tr"

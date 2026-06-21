@@ -188,20 +188,20 @@ public class ModularAvatarMeshCutterTest : TestBase
         {
             bool shouldHaveBeenDeleted = false;
             bool wasDeleted = false;
-            for (int v = 3; v < i + 3; v++)
+            for (int vi = i; vi < i + 3; vi++)
             {
-                var pos = processedVertices[tris[v]];
+                var pos = processedVertices[tris[vi]];
                 if (pos.z > 0.5f && pos.z < 1.5f) shouldHaveBeenDeleted = true;
-                switch (weights[tris[v]].boneIndex0)
+                switch (weights[tris[vi]].boneIndex0)
                 {
                     case 0: break; // not deleted
                     case 1: wasDeleted = true; break;
-                    default: Assert.Fail($"Unexpected bone index {weights[v].boneIndex0} on vertex {pos}"); break;
+                    default: Assert.Fail($"Unexpected bone index {weights[tris[vi]].boneIndex0} on vertex {pos}"); break;
                 }
             }
-            
-            Assert.AreEqual(shouldHaveBeenDeleted, wasDeleted, 
-                $"Triangle at {i} should have {(shouldHaveBeenDeleted ? "" : " not")} been deleted");
+
+            Assert.AreEqual(shouldHaveBeenDeleted, wasDeleted,
+                $"Triangle at {i} should have {(shouldHaveBeenDeleted ? "" : "not ")} been deleted");
         }
     }
     
@@ -332,10 +332,10 @@ public class ModularAvatarMeshCutterTest : TestBase
         var smrBones = meshRenderer.bones;
         Assert.AreEqual(2, smrBones.Length, "SkinnedMeshRenderer should have two bones for NaNimation");
         
-        // Verify mesh structure is preserved (no vertex deletion with NaNimation)
-        Assert.AreEqual(originalVertexCount, processedMesh.vertexCount, 
-            "Vertex count should remain the same with NaNimation");
-        Assert.AreEqual(originalTriangleCount, processedMesh.triangles.Length, 
+        // NaNimation duplicates vertices for the selected primitives but does not delete any.
+        Assert.GreaterOrEqual(processedMesh.vertexCount, originalVertexCount,
+            "Vertex count should be at least original with NaNimation (clone vertices may be added)");
+        Assert.AreEqual(originalTriangleCount, processedMesh.triangles.Length,
             "Triangle count should remain the same with NaNimation");
         
         // Verify new bones were added for NaNimation
@@ -377,45 +377,49 @@ public class ModularAvatarMeshCutterTest : TestBase
         
         if (affectedVertices.Any(a => a) && boneWeights.Length > 0)
         {
-            // Check triangles containing affected vertices
+            // After NaNimation, selected primitives contain clone vertices (index >= originalVertexCount).
+            // Clone vertices are weighted to new NaN bones and have the same position as their original.
+            // We check that at least one primitive has a vertex (clone or original) weighted to a new bone
+            // whose position was originally in the affected zone.
             var triangles = processedMesh.triangles;
             bool foundAffectedTriangleWithNewBone = false;
-            
+
             for (int t = 0; t < triangles.Length; t += 3)
             {
                 int v0 = triangles[t];
                 int v1 = triangles[t + 1];
                 int v2 = triangles[t + 2];
-                
-                // Check if this triangle contains any affected vertices
-                if (affectedVertices[v0] || affectedVertices[v1] || affectedVertices[v2])
+
+                // A vertex is "affected" if its position (in processed mesh) was in the filter zone.
+                // Clone vertices have the same position as their originals, so this check still works.
+                bool triangleIsAffected = processedVertices[v0].z > 1.5f
+                                       || processedVertices[v1].z > 1.5f
+                                       || processedVertices[v2].z > 1.5f;
+
+                if (!triangleIsAffected) continue;
+
+                foreach (int vertexIndex in new[] { v0, v1, v2 })
                 {
-                    // Check if any vertex in this triangle references a new bone
-                    foreach (int vertexIndex in new[] { v0, v1, v2 })
+                    int startIndex = 0;
+                    for (int i = 0; i < vertexIndex; i++)
+                        startIndex += bonesPerVertex[i];
+
+                    for (int b = 0; b < bonesPerVertex[vertexIndex]; b++)
                     {
-                        int startIndex = 0;
-                        for (int i = 0; i < vertexIndex; i++)
+                        if (boneWeights[startIndex + b].boneIndex >= originalBindposeCount)
                         {
-                            startIndex += bonesPerVertex[i];
+                            foundAffectedTriangleWithNewBone = true;
+                            break;
                         }
-                        
-                        for (int b = 0; b < bonesPerVertex[vertexIndex]; b++)
-                        {
-                            if (boneWeights[startIndex + b].boneIndex >= originalBindposeCount)
-                            {
-                                foundAffectedTriangleWithNewBone = true;
-                                break;
-                            }
-                        }
-                        
-                        if (foundAffectedTriangleWithNewBone) break;
                     }
-                    
+
                     if (foundAffectedTriangleWithNewBone) break;
                 }
+
+                if (foundAffectedTriangleWithNewBone) break;
             }
-            
-            Assert.IsTrue(foundAffectedTriangleWithNewBone, 
+
+            Assert.IsTrue(foundAffectedTriangleWithNewBone,
                 "Triangles containing affected vertices should have at least one vertex weighted to a new bone");
         }
     }

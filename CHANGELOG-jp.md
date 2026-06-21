@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 - [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
+- [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 
 ### Fixed
 - [#2007] Unity 6000.0との互換性を改善

@@ -513,7 +513,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         f_property.value = targetProp.PropertyName;
                         f_property.style.display = DisplayStyle.Flex;
 
-                        if (reactionRule.Value is IVertexFilter)
+                        if (reactionRule.Value is IMeshSelector)
                         {
                             f_delete.style.display = DisplayStyle.Flex;
                             f_delete.value = reactionRule.Value.ToString();

@@ -104,7 +104,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var constantShapes = shapes
                 .Where(kv => kv.Value.actionGroups.LastOrDefault()?.IsConstant is true)
-                .Where(kv => kv.Value.actionGroups.All(x => x.Value is not IVertexFilter))
+                .Where(kv => kv.Value.actionGroups.All(x => x.Value is not IMeshSelector))
                 .Where(kv => kv.Value.overrideStaticState == null)
                 .ToList();
 
@@ -314,7 +314,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         #region Mesh processing
 
-        private IVertexFilter AggregateVertexFilters(IEnumerable<IVertexFilter> filters)
+        private IMeshSelector AggregateVertexFilters(IEnumerable<IMeshSelector> filters)
         {
             filters = filters.ToList();
             var filter = filters.LastOrDefault(f => f != null);
@@ -331,7 +331,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<TargetProp, AnimatedProperty> shapes)
         {
             var renderers = shapes.Values
-                .Where(prop => prop.actionGroups.Any(x => x.Value is IVertexFilter))
+                .Where(prop => prop.actionGroups.Any(x => x.Value is IMeshSelector))
                 .GroupBy(prop => prop.TargetProp.TargetObject as SkinnedMeshRenderer)
                 .ToList();
             foreach (var grouping in renderers)
@@ -341,18 +341,18 @@ namespace nadena.dev.modular_avatar.core.editor
                     .Where(prop =>
                     {
                         var activeGroup = prop.actionGroups.LastOrDefault();
-                        return activeGroup?.IsConstantActive is true && activeGroup?.Value is IVertexFilter;
+                        return activeGroup?.IsConstantActive is true && activeGroup?.Value is IMeshSelector;
                     })
                     .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IMeshSelector))
                     ))
                     .ToList();
                 var toNaNimate = grouping
                     .Where(prop => prop.actionGroups.LastOrDefault()?.IsConstantActive is false)
                     .Select(prop => (
                         prop.TargetProp,
-                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IVertexFilter))
+                        VertexFilter: AggregateVertexFilters(prop.actionGroups.Select(x => x.Value as IMeshSelector))
                     ))
                     .ToList();
                 
@@ -409,7 +409,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                         foreach (var group in animProp.actionGroups)
                         {
-                            group.CustomApplyMotion = group.Value is IVertexFilter ? clip_delete : clip_retain;
+                            group.CustomApplyMotion = group.Value is IMeshSelector ? clip_delete : clip_retain;
                         }
 
                         var isInitiallyActive = animProp.actionGroups.Any(agk => agk.InitiallyActive);
@@ -502,12 +502,12 @@ namespace nadena.dev.modular_avatar.core.editor
             return clip;
         }
 
-        private Dictionary<(TargetProp, IVertexFilter), List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
-            Dictionary<(TargetProp, IVertexFilter), List<NaNimationFilter.AddedBone>> plan)
+        private Dictionary<(TargetProp, IMeshSelector), List<GameObject>> GenerateNaNimatedBones(SkinnedMeshRenderer renderer,
+            Dictionary<(TargetProp, IMeshSelector), List<NaNimationFilter.AddedBone>> plan)
         {
             Dictionary<Transform, Transform> parentToBuffer = new();
             
-            List<(NaNimationFilter.AddedBone, (TargetProp, IVertexFilter))> createdBones =
+            List<(NaNimationFilter.AddedBone, (TargetProp, IMeshSelector))> createdBones =
                 plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
                     .OrderBy(b => b.bone.newBoneIndex)
                     .ToList();
