@@ -12,17 +12,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
-- [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
-- [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）
+- [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
+- [#2000] `MA Blendshape Sync` の値のマッピングの計算を正しいものに修正
 
 ### Changed
-- [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.18.0-alpha.0] - [2026-05-31]
+
+### Added
+- [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
+
+### Fixed
+- [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
+- [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）
+
+### Changed
+- [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
 
 ## [1.17.1] - [2026-05-14]
 

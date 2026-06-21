@@ -8,6 +8,7 @@ using nadena.dev.modular_avatar.core;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace modular_avatar_tests
 {
@@ -108,6 +109,39 @@ namespace modular_avatar_tests
             int syncedShape1 = syncedMesh.sharedMesh.GetBlendShapeIndex("shape_1");
             Assert.AreEqual(42.5f, syncedMesh.GetBlendShapeWeight(syncedShape0Local));
             Assert.AreEqual(13.7f, syncedMesh.GetBlendShapeWeight(syncedShape1));
+        }
+
+        [Test]
+        public void BlendShapeSync_RemapsOrignalCurve()
+        {
+            var root = CreatePrefab("BlendshapeSyncRemapCurveTest.prefab");
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            var clip = findFxClip(root, "Base Layer");
+            var bindings = AnimationUtility.GetCurveBindings(clip)
+                .Where((cb) => cb.path == "SyncedMesh")
+                .ToImmutableDictionary((cb) => cb.propertyName);
+
+            const float epsilon = 1E-3f;
+            var values = new[]
+            {
+                ("blendShape.shape_0", new[] { (0.0f, 0.0f), (0.25f, 0.0f), (0.5f, 0.0f), (0.75f, 50.0f), (1.0f, 100.0f) }.ToImmutableArray()),
+                ("blendShape.shape_1", new[] { (0.0f, 100.0f), (0.25f, 50.0f), (0.5f, 0.0f), (0.75f, 0.0f), (1.0f, 0.0f) }.ToImmutableArray()),
+                ("blendShape.missing_mesh_shape", new[] { (0.0f, 100.0f), (0.25f, 100.0f), (0.5f, 100.0f), (0.75f, 50.0f), (1.0f, 0.0f) }.ToImmutableArray()),
+                ("blendShape.missing_mesh_shape_2", new[] { (0.0f, 0.0f), (0.25f, 50.0f), (0.5f, 100.0f), (0.75f, 100.0f), (1.0f, 100.0f) }.ToImmutableArray()),
+            }
+            .ToImmutableList();
+            foreach (var (property, expectedValues) in values)
+            {
+                Assert.True(bindings.ContainsKey(property));
+                var curve = AnimationUtility.GetEditorCurve(clip, bindings[property]);
+
+                foreach (var (time, expectedValue) in expectedValues)
+                {
+                    Assert.AreEqual(expectedValue, curve.Evaluate(time), epsilon, $"Property: {property}, Time: {time}");
+                }
+            }
         }
     }
 }
