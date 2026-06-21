@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2006] Add a debug logging feature for Sync Parameter Sequence
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 
 ### Fixed

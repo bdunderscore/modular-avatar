@@ -45,5 +45,10 @@
         internal const string TopMenu_ReloadLocalizations = "Tools/Modular Avatar/Reload Localizations";
         internal const int TopMenu_ReloadLocalizationsOrder = 1001;
 
+        internal const string TopMenu_SyncParameterSequenceDebugLog =
+            "Tools/Modular Avatar/Debug/Log Sync Parameter Sequence";
+
+        internal const int TopMenu_SyncParameterSequenceDebugLogOrder = 1100;
+
     }
 }

@@ -46,9 +46,20 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
         internal static void ExecuteStatic(ndmf.BuildContext context)
         {
             var refObj = LastPrimaryTarget.Value ?? context.AvatarRootObject;
+            var target = OverrideBuildTarget ?? EditorUserBuildSettings.activeBuildTarget;
+            var targetDesc = context.VRChatAvatarDescriptor();
+            var debugContext = SyncParameterSequenceDebugLog.CreateContext(
+                targetDesc,
+                target,
+                context.AvatarRootObject);
 
             var components = refObj.GetComponentsInChildren<ModularAvatarSyncParameterSequence>(true);
-            if (components.Length == 0) return;
+            if (components.Length == 0)
+            {
+                debugContext?.Append("Skipped: No Sync Parameter Sequence component is present.");
+                return;
+            }
+
             if (components.Length > 1)
             {
                 BuildReport.LogFatal("error.singleton", "Sync Parameter Sequence", components.Cast<object>().ToArray());
@@ -56,12 +67,10 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
             }
 
             var primaryPlatform = components[0].PrimaryPlatform;
+            debugContext?.SetPrimaryPlatform(primaryPlatform);
 
-            var target = OverrideBuildTarget ?? EditorUserBuildSettings.activeBuildTarget;
-
-            var targetDesc = context.VRChatAvatarDescriptor();
             ParameterInfoRegistry.Instance.NormalizeParameters(context, targetDesc,
-                target, CurrentPlatform == primaryPlatform);
+                target, CurrentPlatform == primaryPlatform, debugContext);
         }
     }
 }
