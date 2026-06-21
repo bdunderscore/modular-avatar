@@ -101,7 +101,11 @@ namespace nadena.dev.modular_avatar.core.editor
 #if UNITY_6000_3_OR_NEWER
                 menu.DropDown(_fromField.worldBound, _fromField,DropdownMenuSizeMode.Auto);
 #else
+#if UNITY_6000_0_OR_NEWER
+                menu.DropDown(_fromField.worldBound, _fromField, false, false);
+#else
                 menu.DropDown(_fromField.worldBound, _fromField);
+#endif
 #endif
             };
         }
