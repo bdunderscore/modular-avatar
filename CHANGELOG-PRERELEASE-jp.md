@@ -8,13 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
-- [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 
 ### Fixed
-- [#2007] Unity 6000.0との互換性を改善
-- [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
-- [#2000] `MA Blendshape Sync` の値のマッピングの計算を正しいものに修正
 
 ### Changed
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.0-alpha.1] - [2026-06-21]
+
+### Added
+- [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
+- [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
+
+### Fixed
+- [#2007] Unity 6000.0との互換性を改善
+- [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
+- [#2000] `MA Blendshape Sync` の値のマッピングの計算を正しいものに修正
 
 ## [1.18.0-alpha.0] - [2026-05-31]
 
