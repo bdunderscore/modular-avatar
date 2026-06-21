@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 
 ### Fixed
+- [#2007] Improved compatibility with Unity 6000.0
 - [#1922] Fixed an issue where the avatar's original first FX layer would be disabled in MMD worlds when reactive
   components (or other layers merged in front of it) were present
 - [#2000] Fixed incorrect remap curve calculation in `MA Blendshape Sync`
