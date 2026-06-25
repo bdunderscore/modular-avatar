@@ -1,4 +1,4 @@
-﻿---
+---
 sidebar_position: 1
 ---
 
@@ -14,6 +14,7 @@ sidebar_position: 1
 - [Shape Changer](./shape-changer.md) - レンダラーのブレンドシェープを変更します
 - [Material Setter](./material-setter.md) - レンダラーのマテリアルを変更します
 - [Material Swap](./material-swap.md) - マテリアルを別のマテリアルに置換します
+- [Mesh Cutter](./mesh-cutter/index.md) - メッシュの頂点を削除または非表示にします
 
 ## リアクティブコンポーネントの一般的なルール
 

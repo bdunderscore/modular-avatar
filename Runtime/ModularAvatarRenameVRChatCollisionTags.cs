@@ -18,7 +18,7 @@ namespace nadena.dev.modular_avatar.core
 
   [DisallowMultipleComponent]
   [AddComponentMenu("Modular Avatar/MA Rename VRChat Collision Tags")]
-  [HelpURL("https://modular-avatar.nadena.dev/docs/reference/rename-collision-tags?lang=auto")]
+  [HelpURL("https://modular-avatar.nadena.dev/docs/reference/rename-vrchat-collision-tags?lang=auto")]
   public class ModularAvatarRenameVRChatCollisionTags : AvatarTagComponent
   {
     public List<RenameCollisionTagConfig> configs = new();
