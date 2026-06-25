@@ -136,7 +136,7 @@ namespace nadena.dev.modular_avatar.core
         }
         public override int GetHashCode() => InstanceID;
         public static EntityId None => default(EntityId);
-
+        public static EntityId FromULong(ulong fromValue) => new(unchecked((int)fromValue));
 
         public static bool operator ==(EntityId left, EntityId right) => left.Equals(right);
         public static bool operator !=(EntityId left, EntityId right) => !left.Equals(right);
