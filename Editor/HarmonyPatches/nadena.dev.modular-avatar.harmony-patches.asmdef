@@ -14,7 +14,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "0Harmony.dll"
+        "0Harmony.dll",
+        "VRCSDK3A.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
