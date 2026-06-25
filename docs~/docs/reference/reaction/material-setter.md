@@ -1,8 +1,8 @@
-﻿# Material Setter
+# Material Setter
 
 ![Material Setter](material-setter.png)
 
-The Material Setter component allows you to change the materials of a renderer on yout avatar, when the Material Setter
+The Material Setter component allows you to change the materials of a renderer on your avatar, when the Material Setter
 component's GameObject is enabled.
 
 Material Setter is a type of [Reactive Component](./index.md). See that page for general rules and behavior of reactive

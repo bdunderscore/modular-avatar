@@ -1,4 +1,4 @@
-﻿import ReactPlayer from 'react-player'
+import ReactPlayer from 'react-player'
 
 # Blendshape Sync
 
@@ -27,7 +27,7 @@ Add the Blendshape Sync component to an object in your prefab. Then click the + 
 ![Selection window](blendshape-select-1.png)
 
 Double-click on a blendshape to add it to the list to sync. When you've added enough, click the X to close the editor window.
-If the name of the blendshape is different on the target object, you can adjust that after adding it by lcicking on the
+If the name of the blendshape is different on the target object, you can adjust that after adding it by clicking on the
 "Target blendshape" dropdown.
 
 You can adjust the way that the target blendshape responds to the source by clicking the "Remap" curve. This can be used
