@@ -5,12 +5,12 @@ using UnityEngine.UIElements;
 namespace nadena.dev.modular_avatar.core.editor
 {
 
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
     [UxmlElement]
 #endif
     internal partial class DefaultValueField : VisualElement
     {
-#if !UNITY_6000_6_OR_NEWER
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<DefaultValueField, UxmlTraits>
         {
         }
