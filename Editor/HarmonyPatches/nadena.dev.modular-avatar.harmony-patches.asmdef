@@ -12,11 +12,12 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "0Harmony.dll"
     ],
+    "autoReferenced": true,
+    "defineConstraints": [],
     "versionDefines": [
         {
             "name": "com.vrchat.avatars",
