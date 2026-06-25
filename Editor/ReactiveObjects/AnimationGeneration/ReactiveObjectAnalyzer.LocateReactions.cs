@@ -27,7 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             else
             {
-                var param = "__ActiveSelfProxy/" + obj.GetInstanceID();
+                var param = "__ActiveSelfProxy/" + obj.GetEntityId();
                 _simulationInitialStates[param] = obj.activeSelf ? 1.0f : 0.0f;
                 return param;
             }

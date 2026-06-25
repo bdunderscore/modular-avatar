@@ -12,13 +12,23 @@ namespace nadena.dev.modular_avatar.core.editor
         static void CreateNewBlendTree()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-               0,
+               EntityId.None,
                Editor.CreateInstance<DoCreateBlendTree>(),
                "New BlendTree.asset",
                EditorGUIUtility.IconContent("BlendTree Icon").image as Texture2D,
                null);
         }
-
+#if UNITY_6000_6_OR_NEWER
+        class DoCreateBlendTree : AssetCreationEndAction
+        {
+            public override void Action(EntityId entityId, string pathName, string resourceFile)
+            {
+                BlendTree blendTree = new BlendTree { name = Path.GetFileNameWithoutExtension(pathName) };
+                AssetDatabase.CreateAsset(blendTree, pathName);
+                Selection.activeObject = blendTree;
+            }
+        }
+#else
         class DoCreateBlendTree : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -28,5 +38,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 Selection.activeObject = blendTree;
             }
         }
+#endif
     }
 }

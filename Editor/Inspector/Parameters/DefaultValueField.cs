@@ -4,11 +4,17 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class DefaultValueField : VisualElement
+
+#if UNITY_6000_6_OR_NEWER
+    [UxmlElement]
+#endif
+    internal partial class DefaultValueField : VisualElement
     {
+#if !UNITY_6000_6_OR_NEWER
         public new class UxmlFactory : UxmlFactory<DefaultValueField, UxmlTraits>
         {
         }
+#endif
 
         private const string V_None = "　";
         private const string V_True = "ON";
@@ -21,7 +27,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private ParameterSyncType _syncType;
         private bool _hasInitialBinding;
-        
+
         public DefaultValueField()
         {
             // Hidden binding elements
@@ -108,7 +114,7 @@ namespace nadena.dev.modular_avatar.core.editor
             // Upon initial creation, sometimes the OnUpdateSyncType fires before we receive the initial value event.
             // In this case, suppress the update to avoid losing data.
             if (implicitUpdate && !_hasInitialBinding) return;
-            
+
             _defaultValueField.value = value == V_True ? 1 : 0;
             _hasExplicitDefaultValueField.value = value != V_None;
 
@@ -118,7 +124,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private void UpdateVisibleField(float value, bool hasExplicitValue)
         {
             _hasInitialBinding = true;
-            
+
             if (hasExplicitValue || Mathf.Abs(value) > 0.0000001)
             {
                 _numberField.SetValueWithoutNotify(value.ToString(CultureInfo.InvariantCulture));

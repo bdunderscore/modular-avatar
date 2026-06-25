@@ -10,7 +10,10 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class LogoElement : VisualElement
+#if UNITY_6000_6_OR_NEWER
+    [UxmlElement]
+#endif
+    public partial class LogoElement : VisualElement
     {
         private const string LISTENER_REGISTERED = "ma--logo-listener-registered";
         private static WeakHashSet<LogoElement> _activeLogos = new WeakHashSet<LogoElement>();
@@ -19,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
             = null;
 
         private VisualElement _inner;
-
+#if !UNITY_6000_6_OR_NEWER
         public new class UxmlFactory : UxmlFactory<LogoElement, UxmlTraits>
         {
         }
@@ -27,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
-        
+#endif
         private static void RegisterNode(LogoElement target)
         {
             if (_logoDisplayNode == null)

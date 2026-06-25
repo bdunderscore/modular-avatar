@@ -105,7 +105,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private GUIStyle lockButtonStyle;
         private bool locked, is_enabled;
 
-        private Dictionary<(int, string), bool> foldoutState = new();
+        private Dictionary<(EntityId, string), bool> foldoutState = new();
         private Button _btn_clear;
 
         private bool _refreshPending;
@@ -393,7 +393,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
                 var propGroup = new Foldout();
                 propGroup.text = targetProp.TargetObject.GetType() + "." + targetProp.PropertyName;
-                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetInstanceID() ?? -1, shape.TargetProp.PropertyName);
+                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetEntityId() ?? EntityId.FromULong(unchecked((ulong)-1)), shape.TargetProp.PropertyName);
                 propGroup.RegisterValueChangedCallback(evt =>
                 {
                     foldoutState[foldoutStateKey] = evt.newValue;
