@@ -8,6 +8,12 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
+#if UNITY_6000_4_OR_NEWER
+using TreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#endif
+
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ParameterGUI
