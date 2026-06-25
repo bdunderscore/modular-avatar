@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
 using TV = UnityEditor.IMGUI.Controls.TreeView<int>;
 using TVS = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 using TVI = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
