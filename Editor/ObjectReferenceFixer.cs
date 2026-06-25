@@ -11,9 +11,9 @@ namespace nadena.dev.modular_avatar.core
     {
         private static ComputeContext _context;
 
-        private static int? _lastStage;
+        private static EntityId? _lastStage;
 
-        private static int? GetCurrentContentsRootId(out GameObject contentsRoot)
+        private static EntityId? GetCurrentContentsRootId(out GameObject contentsRoot)
         {
             contentsRoot = null;
 
@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core
 
             contentsRoot = stage.prefabContentsRoot;
 
-            return stage.prefabContentsRoot.GetInstanceID();
+            return stage.prefabContentsRoot.GetEntityId();
         }
         
         [InitializeOnLoadMethod]

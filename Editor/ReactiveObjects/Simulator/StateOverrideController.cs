@@ -5,8 +5,13 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class StateOverrideController : VisualElement
+
+#if UNITY_6000_6_OR_NEWER
+    [UxmlElement]
+#endif
+    internal partial class StateOverrideController : VisualElement
     {
+#if !UNITY_6000_6_OR_NEWER
         public new class UxmlFactory : UxmlFactory<StateOverrideController, UxmlTraits>
         {
         }
@@ -14,6 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
+#endif
 
         private static StyleSheet uss;
         private Button btn_disable, btn_default, btn_enable;
