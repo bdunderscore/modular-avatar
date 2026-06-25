@@ -6,6 +6,15 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+#if UNITY_6000_6_OR_NEWER
+using TV = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TVS = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+using TVI = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#else
+using TV = UnityEditor.IMGUI.Controls.TreeView;
+using TVS = UnityEditor.IMGUI.Controls.TreeViewState;
+using TVI = UnityEditor.IMGUI.Controls.TreeViewItem;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -39,9 +48,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 _searchField = new SearchField();
                 if (SingleMesh != null)
                 {
-                    _tree = new BlendshapeTree(SingleMesh, new TreeViewState<int>());
+                    _tree = new BlendshapeTree(SingleMesh, new TVS());
                 } else if (AvatarRoot != null) {
-                    _tree = new BlendshapeTree(AvatarRoot, new TreeViewState<int>());
+                    _tree = new BlendshapeTree(AvatarRoot, new TVS());
                 }
                 else
                 {
@@ -78,9 +87,9 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    internal class BlendshapeTree : TreeView<int>
+    internal class BlendshapeTree : TV
     {
-        internal class OfferItem : TreeViewItem<int>
+        internal class OfferItem : TVI
         {
             // Initialized when the item is created in CreateBlendshapes()
             public BlendshapeBinding binding = default!;
@@ -96,17 +105,17 @@ namespace nadena.dev.modular_avatar.core.editor
         internal Action<BlendshapeBinding>? OfferSingleClick;
         internal Action<IList<BlendshapeBinding>>? OfferMultipleBindings;
 
-        public BlendshapeTree(GameObject avatarRoot, TreeViewState<int> state) : base(state)
+        public BlendshapeTree(GameObject avatarRoot, TVS state) : base(state)
         {
             this._avatarRoot = avatarRoot;
         }
         
-        public BlendshapeTree(Mesh mesh, TreeViewState<int> state) : base(state)
+        public BlendshapeTree(Mesh mesh, TVS state) : base(state)
         {
             this._singleMesh = mesh;
         }
 
-        public BlendshapeTree(GameObject avatarRoot, TreeViewState<int> state, MultiColumnHeader multiColumnHeader) : base(
+        public BlendshapeTree(GameObject avatarRoot, TVS state, MultiColumnHeader multiColumnHeader) : base(
             state, multiColumnHeader)
         {
             this._avatarRoot = avatarRoot;
@@ -160,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        protected override bool CanMultiSelect(TreeViewItem<int> item)
+        protected override bool CanMultiSelect(TVI item)
         {
             return item is OfferItem;
         }
@@ -212,13 +221,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        protected override TreeViewItem<int> BuildRoot()
+        protected override TVI BuildRoot()
         {
-            var root = new TreeViewItem<int> {id = 0, depth = -1, displayName = "Root"};
+            var root = new TVI {id = 0, depth = -1, displayName = "Root"};
             _candidateBindings = new List<BlendshapeBinding?>();
             _candidateBindings.Add(null);
 
-            var allItems = new List<TreeViewItem<int>>();
+            var allItems = new List<TVI>();
 
             int createdDepth = 0;
             List<string> ObjectDisplayNames = new List<string>();
@@ -237,7 +246,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return root;
         }
 
-        private void WalkTree(GameObject node, List<TreeViewItem<int>> items, List<string> objectDisplayNames,
+        private void WalkTree(GameObject node, List<TVI> items, List<string> objectDisplayNames,
             ref int createdDepth)
         {
             objectDisplayNames.Add(node.name);
@@ -247,7 +256,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 while (createdDepth < objectDisplayNames.Count)
                 {
-                    items.Add(new TreeViewItem<int>
+                    items.Add(new TVI
                     {
                         id = _candidateBindings.Count, depth = createdDepth,
                         displayName = objectDisplayNames[createdDepth]
@@ -268,9 +277,9 @@ namespace nadena.dev.modular_avatar.core.editor
             createdDepth = Math.Min(createdDepth, objectDisplayNames.Count);
         }
 
-        private void CreateBlendshapes(SkinnedMeshRenderer smr, List<TreeViewItem<int>> items, ref int createdDepth)
+        private void CreateBlendshapes(SkinnedMeshRenderer smr, List<TVI> items, ref int createdDepth)
         {
-            items.Add(new TreeViewItem<int>
+            items.Add(new TVI
                 {id = _candidateBindings.Count, depth = createdDepth, displayName = "BlendShapes"});
             _candidateBindings.Add(null);
             createdDepth++;
@@ -283,7 +292,7 @@ namespace nadena.dev.modular_avatar.core.editor
             createdDepth--;
         }
 
-        private void CreateBlendshapes(List<TreeViewItem<int>> items, Mesh mesh, string? path, int createdDepth)
+        private void CreateBlendshapes(List<TVI> items, Mesh mesh, string? path, int createdDepth)
         {
             List<BlendshapeBinding> bindings = Enumerable.Range(0, mesh.blendShapeCount)
                 .Select(n =>

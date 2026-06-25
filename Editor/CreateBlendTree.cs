@@ -12,7 +12,11 @@ namespace nadena.dev.modular_avatar.core.editor
         static void CreateNewBlendTree()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+#if UNITY_6000_6_OR_NEWER
                EntityId.None,
+#else
+               0,
+#endif
                Editor.CreateInstance<DoCreateBlendTree>(),
                "New BlendTree.asset",
                EditorGUIUtility.IconContent("BlendTree Icon").image as Texture2D,
