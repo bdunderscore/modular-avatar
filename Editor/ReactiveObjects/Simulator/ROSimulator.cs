@@ -393,7 +393,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
                 var propGroup = new Foldout();
                 propGroup.text = targetProp.TargetObject.GetType() + "." + targetProp.PropertyName;
-                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetEntityId() ?? EntityId.FromULong(unchecked((ulong)-1)), shape.TargetProp.PropertyName);
+                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetEntityId() ?? UnityObjectIDHelper.InvalidID, shape.TargetProp.PropertyName);
                 propGroup.RegisterValueChangedCallback(evt =>
                 {
                     foldoutState[foldoutStateKey] = evt.newValue;
