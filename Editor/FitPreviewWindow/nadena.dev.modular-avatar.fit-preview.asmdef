@@ -20,7 +20,8 @@
         "VRCSDKBase-Editor.dll",
         "VRC.Dynamics.dll",
         "VRC.SDK3.Dynamics.PhysBone.dll",
-        "VRC.SDK3.Dynamics.Contact.dll"
+        "VRC.SDK3.Dynamics.Contact.dll",
+        "System.Collections.Immutable.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
