@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core.editor
         static void CreateNewBlendTree()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
                EntityId.None,
 #else
                0,
@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
                EditorGUIUtility.IconContent("BlendTree Icon").image as Texture2D,
                null);
         }
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
         class DoCreateBlendTree : AssetCreationEndAction
         {
             public override void Action(EntityId entityId, string pathName, string resourceFile)

@@ -8,7 +8,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_2_OR_NEWER
 using TreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;

@@ -63,13 +63,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, IMeshSelectorProvider>();
 
-            foreach (var assembly in
-#if UNITY_6000_6_OR_NEWER
-                UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
-#else
-                AppDomain.CurrentDomain.GetAssemblies()
-#endif
-            )
+            foreach (var assembly in AssemblyCollector.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypes())
                 {

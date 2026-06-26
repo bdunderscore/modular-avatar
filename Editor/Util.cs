@@ -108,25 +108,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            foreach (var assembly in
-#if UNITY_6000_6_OR_NEWER
-                UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
-#else
-                AppDomain.CurrentDomain.GetAssemblies()
-#endif
-            )
+            foreach (var assembly in AssemblyCollector.GetAssemblies())
             {
-                try
+                foreach (var ty in assembly.GetTypes())
                 {
-                    foreach (var ty in assembly.GetTypes())
+                    if (typeof(AvatarTagComponent).IsAssignableFrom(ty) && !ty.IsAbstract)
                     {
-                        if (typeof(AvatarTagComponent).IsAssignableFrom(ty) && !ty.IsAbstract)
-                        {
-                            SetGizmoIconEnabled(ty, false);
-                        }
+                        SetGizmoIconEnabled(ty, false);
                     }
                 }
-                catch (ReflectionTypeLoadException) { /* 握りつぶす！*/ }
             }
 
             EditorApplication.update -= DisableMAGizmoIcons;
@@ -150,13 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public static Type FindType(string typeName)
         {
             Type avatarValidation = null;
-            foreach (Assembly assembly in
-#if UNITY_6000_6_OR_NEWER
-                UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
-#else
-                AppDomain.CurrentDomain.GetAssemblies()
-#endif
-            )
+            foreach (Assembly assembly in AssemblyCollector.GetAssemblies())
             {
                 avatarValidation = assembly.GetType(typeName);
                 if (avatarValidation != null)
