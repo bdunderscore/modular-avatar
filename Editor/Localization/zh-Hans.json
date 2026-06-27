@@ -142,7 +142,7 @@
   "error.stack_trace": "Stack trace（请在报告错误时提供此信息！）",
   "error.merge_armature.circular_dependency": "[MA-0001] 在 Merge armature 组件中存在循环引用",
   "error.merge_armature.circular_dependency:description": "你的 Merge Armature 组件正在将自身或其子级作为合并目标。",
-  "error.merge_armature.circular_dependency:hint": "通常应在 Merge Armature 组件的「合并目标」字段上指定 Avatar 本身的 Armture。不要指定服装本身！",
+  "error.merge_armature.circular_dependency:hint": "通常应在 Merge Armature 组件的“合并目标”字段上指定 Avatar 本身的 Armture。不要指定服装本身！",
   "error.merge_armature.physbone_on_humanoid_bone": "[MA-0002] 在 Humanoid 骨骼上存在 PhysBones 组件",
   "error.merge_armature.physbone_on_humanoid_bone:hint": "在要合并的骨架中，某些 Humanoid 骨骼受到 PhysBones 控制，其位置与合并目标中相应的 Humanoid 骨骼不同。你应该在要合并的骨架中，移除这些 Humanoid 骨骼上的 PhysBones。",
   "error.merge_blend_tree.missing_tree": "[MA-0009] 未指定 Blend Tree",
