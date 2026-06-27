@@ -73,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (SetIconEnabled == null) return;
             const int MONO_BEHAVIOR_CLASS_ID = 114; // https://docs.unity3d.com/Manual/ClassIDReference.html
-            SetIconEnabled.Invoke(null, new object[] {MONO_BEHAVIOR_CLASS_ID, type.Name, enabled ? 1 : 0});
+            SetIconEnabled.Invoke(null, new object[] { MONO_BEHAVIOR_CLASS_ID, type.Name, enabled ? 1 : 0 });
         }
 
         static void DisableMAGizmoIcons()
@@ -87,13 +87,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
 
-            var annotations = (Array) GetAnnotations.Invoke(null, new object[] { });
+            var annotations = (Array)GetAnnotations.Invoke(null, new object[] { });
             bool hasBoneProxy = false;
             for (int i = 0; i < annotations.Length; i++)
             {
                 var annotation = annotations.GetValue(i);
-                var classID = (int) f_classID.GetValue(annotation);
-                var scriptClass = (string) f_scriptClass.GetValue(annotation);
+                var classID = (int)f_classID.GetValue(annotation);
+                var scriptClass = (string)f_scriptClass.GetValue(annotation);
 
                 if (classID == 114 && scriptClass == "ModularAvatarBoneProxy")
                 {
@@ -108,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AssemblyCollector.GetAssemblies())
             {
                 foreach (var ty in assembly.GetTypes())
                 {
@@ -140,7 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public static Type FindType(string typeName)
         {
             Type avatarValidation = null;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly assembly in AssemblyCollector.GetAssemblies())
             {
                 avatarValidation = assembly.GetType(typeName);
                 if (avatarValidation != null)

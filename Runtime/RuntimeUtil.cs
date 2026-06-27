@@ -114,47 +114,12 @@ namespace nadena.dev.modular_avatar.core
             EditorUtility.SetDirty(obj);
 #endif
         }
-
-#if UNITY_EDITOR
-        private static Object cachedAnimationWindowState;
-
-        private static readonly Type animationWindowStateType
-            = typeof(Editor).Assembly.GetType("UnityEditorInternal.AnimationWindowState");
-
-        private static readonly PropertyInfo recordingProp = animationWindowStateType.GetProperty(
-            "recording",
-            BindingFlags.Instance | BindingFlags.Public
-        );
-
-        private static readonly PropertyInfo previewingProp = animationWindowStateType.GetProperty(
-            "previewing",
-            BindingFlags.Instance | BindingFlags.Public
-        );
-
-        private static readonly PropertyInfo playingProp = animationWindowStateType.GetProperty(
-            "playing",
-            BindingFlags.Instance | BindingFlags.Public
-        );
-#endif
-
         public static bool IsAnimationEditMode()
         {
 #if !UNITY_EDITOR
             return false;
 #else
-            if (cachedAnimationWindowState == null)
-            {
-                foreach (var obj in Resources.FindObjectsOfTypeAll(animationWindowStateType))
-                {
-                    cachedAnimationWindowState = obj;
-                }
-            }
-
-            if (cachedAnimationWindowState == null) return false;
-
-            return (bool) recordingProp.GetValue(cachedAnimationWindowState, null)
-                   || (bool) previewingProp.GetValue(cachedAnimationWindowState, null)
-                   || (bool) playingProp.GetValue(cachedAnimationWindowState, null);
+            return AnimationMode.InAnimationMode();
 #endif
         }
 

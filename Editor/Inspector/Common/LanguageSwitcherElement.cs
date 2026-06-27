@@ -2,8 +2,12 @@
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class LanguageSwitcherElement : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    public partial class LanguageSwitcherElement : VisualElement
     {
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<LanguageSwitcherElement, UxmlTraits>
         {
         }
@@ -11,6 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
+#endif
 
         public LanguageSwitcherElement()
         {

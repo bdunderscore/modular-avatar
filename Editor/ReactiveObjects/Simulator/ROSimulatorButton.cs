@@ -8,8 +8,12 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class ROSimulatorButton : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    internal partial class ROSimulatorButton : VisualElement
     {
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<ROSimulatorButton, UxmlTraits>
         {
         }
@@ -17,6 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
+#endif
 
         private Button btn;
         public UnityEngine.Object ReferenceObject;

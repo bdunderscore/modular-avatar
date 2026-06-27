@@ -331,7 +331,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            return $"{_materialIndex}_{_maskTexture?.GetInstanceID()}_{DeleteMode}_{_selectionMode}";
+            return $"{_materialIndex}_{_maskTexture?.GetEntityId()}_{DeleteMode}_{_selectionMode}";
         }
     }
 }

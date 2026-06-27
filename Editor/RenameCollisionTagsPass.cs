@@ -5,6 +5,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using UnityEditor;
+using UnityEngine;
 using VRC.Dynamics;
 
 namespace nadena.dev.modular_avatar.core.editor
