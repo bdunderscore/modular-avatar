@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
 
 ### Changed
 

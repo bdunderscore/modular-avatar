@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 Modular Avatarの主な変更点をこのファイルで記録しています。
 なお、プレリリース版の変更点は `CHANGELOG-PRERELEASE.md` に記録されます。
@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 
 ### Fixed
+- `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
 - [#2007] Unity 6000.0との互換性を改善
 - [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
 - [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）

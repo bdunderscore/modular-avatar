@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1922] Fixed an issue where the avatar's original first FX layer would be disabled in MMD worlds when reactive
   components (or other layers merged in front of it) were present
 - [#2000] Fixed incorrect remap curve calculation in `MA Blendshape Sync`
+- Fixed incorrect mesh processing in `Visible Head Accessory`
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
