@@ -76,6 +76,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.NotNull(headClone, "Head clone bone should exist under Head");
             Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
 
+
             // -- Verify SMR bone references --
             Assert.IsTrue(
                 smr.bones.Any(b => b.name.Contains("(VHA Clone)")),
@@ -196,6 +197,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             var headClone = boneO1.parent.Find("Head (VHA Clone)");
             Assert.NotNull(headClone);
             Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
+
 
             // -- SMR bones --
             Assert.IsTrue(smr.bones.Any(b => b.name.Contains("(VHA Clone)")),
@@ -343,6 +345,20 @@ namespace UnitTests.VisibleHeadAccessoryTest
 
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
 
+            // -- HeadChop --
+            var headChopObj = root.transform.Find("VHA HeadChop");
+            Assert.NotNull(headChopObj);
+            var headChop = headChopObj.GetComponent<VRCHeadChop>();
+            Assert.NotNull(headChop);
+
+            var targets = headChop.targetBones.Select(b => b.transform).ToList();
+            Assert.IsTrue(targets.Contains(boneO1), "HeadChop should reference BoneO1");
+
+            var headClone = boneO1.parent.Find("Head (VHA Clone)");
+            Assert.NotNull(headClone);
+            Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
+
+
             // -- Processed mesh --
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
@@ -470,6 +486,69 @@ namespace UnitTests.VisibleHeadAccessoryTest
             // Original quad [0,1,2,3] → [4,1,2,5] (V0→clone, V3→clone)
             int[] expected = { 4, 1, 2, 5 };
             Assert.AreEqual(expected, indices);
+        }
+
+        [Test]
+        public void TestPBBlockerOnClones()
+        {
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
+
+            var animator = root.GetComponent<Animator>();
+            var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
+            Assert.NotNull(headBone);
+
+            var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
+            var boneO1 = boneO1Go.transform;
+            boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
+
+            var smrGo = new GameObject("Accessory Mesh");
+            smrGo.transform.SetParent(boneO1, false);
+            var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
+
+            // Simple mixed triangle mesh
+            var mesh = new Mesh();
+            mesh.vertices = new Vector3[]
+            {
+                new Vector3(0, 0, 0), // V0: Head
+                new Vector3(1, 0, 0), // V1: BoneO1
+                new Vector3(0, 1, 0), // V2: Head
+            };
+            mesh.triangles = new int[] { 0, 1, 2 };
+
+            using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1 }, Allocator.Temp);
+            using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
+            {
+                new BoneWeight1 { boneIndex = 0, weight = 1 },
+                new BoneWeight1 { boneIndex = 1, weight = 1 },
+                new BoneWeight1 { boneIndex = 0, weight = 1 },
+            }, Allocator.Temp);
+            mesh.SetBoneWeights(bpv, bws);
+
+            mesh.bindposes = new Matrix4x4[]
+            {
+                headBone.worldToLocalMatrix,
+                boneO1.worldToLocalMatrix,
+            };
+            mesh.RecalculateBounds();
+            TrackObject(mesh);
+
+            smr.sharedMesh = mesh;
+            smr.bones = new[] { headBone, boneO1 };
+
+            // Run only the VisibleHeadAccessoryProcessor (not the full build pipeline
+            // which strips PBBlocker)
+            var maCtx = new nadena.dev.modular_avatar.core.editor.BuildContext(root);
+            var processor = new VisibleHeadAccessoryProcessor(maCtx);
+            processor.Process();
+
+            var headClone = boneO1.parent.Find("Head (VHA Clone)");
+            Assert.NotNull(headClone, "Head clone should be created");
+
+            // PBBlocker should be present when running the VHA processor in isolation
+            Assert.IsNull(boneO1.GetComponent<ModularAvatarPBBlocker>(),
+                "VHA hierarchy bones should NOT have PBBlocker");
+            Assert.NotNull(headClone.GetComponent<ModularAvatarPBBlocker>(),
+                "Clone bones SHOULD have PBBlocker");
         }
     }
 }

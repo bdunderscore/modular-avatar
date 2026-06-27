@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -10,18 +12,19 @@ namespace nadena.dev.modular_avatar.core.editor
         private SkinnedMeshRenderer _renderer;
         private HashSet<Transform> _visibleBones;
         private BuildContext _context;
-
-        public List<Transform> HeadChopTargets { get; } = new List<Transform>();
+        private readonly Func<Transform, Transform> _boneRemap;
 
         public VisibleHeadAccessoryMeshProcessor(
             SkinnedMeshRenderer renderer,
             HashSet<Transform> visibleBones,
-            BuildContext context
+            BuildContext context,
+            Func<Transform, Transform> boneRemap
         )
         {
             _renderer = renderer;
             _visibleBones = visibleBones;
             _context = context;
+            _boneRemap = boneRemap;
         }
 
         public bool NeedsRetargeting()
@@ -66,7 +69,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             if (!anyVisible) return;
 
-            // Step 2: find mixed primitives → mark vertices with non-visible weights for cloning
+            // Step 2: find mixed primitives -> mark vertices with non-visible weights for cloning
             var needsClone = new bool[vertexCount];
             var cloneCount = 0;
 
@@ -86,7 +89,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         if (hasVisible[indices[t + i]]) primHasVisible = true;
                         if (hasNonVisible[indices[t + i]]) primHasNonVisible = true;
                     }
-
                     if (!primHasVisible || !primHasNonVisible) continue;
 
                     for (var i = 0; i < stride; i++)
@@ -135,7 +137,8 @@ namespace nadena.dev.modular_avatar.core.editor
             MeshVertexCopyUtil.TransferVertexData(newMesh, originalMesh, newToOrig);
             MeshVertexCopyUtil.TransferShapes(newMesh, originalMesh, newToOrig);
 
-            // These transfer calls invalidate the native arrays we obtained above, so reacquire them
+            // Instantiate shares internal buffers; SetVertexBufferData on the copy invalidates
+            // the original mesh's native arrays. Reacquire before step 5.
             boneWeights = originalMesh.GetAllBoneWeights();
             bonesPerVertex = originalMesh.GetBonesPerVertex();
 
@@ -148,23 +151,29 @@ namespace nadena.dev.modular_avatar.core.editor
             var bones = new List<Transform>(originalBones);
             var proxyIndices = new Dictionary<int, int>();
 
+            // Precompute cumulative bone-weight start offsets for O(1) random access
+            var boneWeightStart = new int[vertexCount];
+            var running = 0;
+            for (var v = 0; v < vertexCount; v++)
+            {
+                boneWeightStart[v] = running;
+                running += bonesPerVertex[v];
+            }
+
             var weightIdx = 0;
-            src_w_base = 0;
             for (int v = 0; v < vertexCount; v++)
             {
                 int count = bonesPerVertex[v];
                 newBonesPerVertex[v] = (byte)count;
                 for (var w = 0; w < count; w++)
-                    newWeights[weightIdx++] = boneWeights[src_w_base + w];
-                src_w_base += count;
+                    newWeights[weightIdx++] = boneWeights[boneWeightStart[v] + w];
             }
 
             // Clones: copy original weights, remap non-visible bone indices
             for (var v = vertexCount; v < newVertexCount; v++)
             {
                 var origV = newToOrig[v];
-                var origBase = 0;
-                for (var i = 0; i < origV; i++) origBase += bonesPerVertex[i];
+                var origBase = boneWeightStart[origV];
 
                 int count = bonesPerVertex[origV];
                 newBonesPerVertex[v] = (byte)count;
@@ -184,6 +193,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 newMesh.SetBoneWeights(bpvNative, nativeWeights);
             }
             newMesh.bindposes = bindposes.ToArray();
+
             // Step 6: rebuild index buffers using clone refs for mixed primitives
             for (var s = 0; s < originalMesh.subMeshCount; s++)
             {
@@ -214,7 +224,6 @@ namespace nadena.dev.modular_avatar.core.editor
                                 newIndices[t + i] = origIdx;
                         }
                     }
-
                     newMesh.SetIndices(newIndices, topology, s, false);
                 }
                 else
@@ -231,14 +240,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (proxyIndices.TryGetValue(originalIndex, out var index)) return index;
 
                 var originalBone = originalBones[originalIndex];
-
-                var clone = new GameObject(originalBone.name + " (VHA Clone)");
-                clone.transform.SetParent(originalBone, false);
-
-                HeadChopTargets.Add(clone.transform);
+                var clone = _boneRemap(originalBone);
 
                 index = bones.Count;
-                bones.Add(clone.transform);
+                bones.Add(clone);
                 bindposes.Add(bindposes[originalIndex]);
 
                 proxyIndices[originalIndex] = index;

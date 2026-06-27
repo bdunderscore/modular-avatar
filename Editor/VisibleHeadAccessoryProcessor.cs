@@ -1,7 +1,6 @@
 #if MA_VRCSDK3_AVATARS
 #region
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
@@ -120,18 +119,30 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (didWork)
             {
-                // Process meshes — bone clones registered via HeadChopTargets property
+                // Shared clone transform mapping (cross-mesh dedup)
+                var cloneMappings = new Dictionary<Transform, Transform>();
+
+                Transform RemapBone(Transform original)
+                {
+                    if (!cloneMappings.TryGetValue(original, out var clone))
+                    {
+                        clone = new GameObject(original.name + " (VHA Clone)").transform;
+                        clone.SetParent(original, false);
+                        clone.gameObject.AddComponent<ModularAvatarPBBlocker>();
+                        _headChopTargets.Add(clone);
+                        cloneMappings[original] = clone;
+                    }
+
+                    return clone;
+                }
+
+                // Process meshes
                 foreach (var smr in _avatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     if (smr.sharedMesh == null) continue;
 
-                    VisibleHeadAccessoryMeshProcessor mp = null;
-                    BuildReport.ReportingObject(smr, () =>
-                    {
-                        mp = new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _context);
-                        mp.Retarget();
-                    });
-                    if (mp != null) _headChopTargets.AddRange(mp.HeadChopTargets);
+                    var mp = new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _context, RemapBone);
+                    BuildReport.ReportingObject(smr, () => mp.Retarget());
                 }
 
                 // Create a single HeadChop referencing all targets
@@ -140,7 +151,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var headChopObj = new GameObject("VHA HeadChop");
                     headChopObj.transform.SetParent(_avatarTransform, false);
                     var headChop = headChopObj.AddComponent<VRCHeadChop>();
-                    
+
                     var bones = new VRCHeadChop.HeadChopBone[_headChopTargets.Count];
                     for (int i = 0; i < _headChopTargets.Count; i++)
                     {
