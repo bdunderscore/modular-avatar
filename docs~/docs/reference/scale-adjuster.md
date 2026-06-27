@@ -1,4 +1,4 @@
-﻿# Scale Adjuster
+# Scale Adjuster
 
 ![Scale Adjuster](scale-adjuster.png)
 
@@ -20,9 +20,10 @@ normal unity scale tools.
 Simply add the Scale Adjuster component to the bone in question. Now, when you have the scaling tool selected, changes
 will affect only this one bone.
 
-You can check or uncheck the "Adjust child positions" checkbox to adjust the relative position of child bones when the
-scale of their parent changes. This is useful when you want to adjust the scale of a bone, but don't want to move the
-child bones. Note that this adjusts only the _position_ of child bones, and not their scale.
+The "Adjust child positions" checkbox controls whether the relative position of child bones is adjusted when the
+scale of their parent changes. This is an editor-wide setting — it applies to all Scale Adjuster components, not
+individual ones, and resets when Unity restarts. It is useful when you want to adjust the scale of a bone, but
+don't want to move the child bones. Note that this adjusts only the _position_ of child bones, and not their scale.
 
 Scale Adjuster supports adjusting the scale of multiple bones by adding the Scale Component to all of the bones in
 question, then selecting multiple bones before adjusting their scale. However, if these bones are rotated, the scale

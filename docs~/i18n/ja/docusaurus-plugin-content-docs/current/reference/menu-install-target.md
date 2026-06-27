@@ -1,4 +1,4 @@
-﻿# Menu Install Target
+# Menu Install Target
 
 Menu Install Targetコンポーネントは、[MA Menu Installer](menu-installer.md)コンポーネントの「メニューを選択」ボタンを実装するために使用されるコンポーネントです。
 MA Menu Installerコンポーネントからメニューを「引っ張り」、自分の位置にインストールします。
@@ -13,4 +13,4 @@ MA Menu Installerコンポーネントからメニューを「引っ張り」、
 ## 何をするもの？
 
 このコンポーネントは、選択されたメニューインストーラーの「インストール先」設定を上書きし、Menu Install Targetの位置にインストールさせます。
-これでMenu Installerを仕様したアセットを[オブジェクト型メニューシステム](/docs/tutorials/menu)に併用できるようになります。
+これでMenu Installerを使用したアセットを[オブジェクト型メニューシステム](/docs/tutorials/menu)に併用できるようになります。

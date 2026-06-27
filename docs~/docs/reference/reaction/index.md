@@ -1,4 +1,4 @@
-﻿---
+---
 sidebar_position: 1
 ---
 
@@ -14,6 +14,7 @@ The following reactive components are currently available:
 * [Shape Changer](./shape-changer.md) - modifies blendshapes on a target renderer
 * [Material Setter](./material-setter.md) - changes materials on a target renderer
 * [Material Swap](./material-swap.md) - swaps materials with other materials
+* [Mesh Cutter](./mesh-cutter/index.md) - deletes or hides vertices on a target mesh
 
 ## General rules for reactive components
 

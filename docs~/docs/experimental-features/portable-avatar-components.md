@@ -5,7 +5,7 @@ NDMF provides a number of components that can be used to create an avatar that d
 A minimal setup for a portable avatar consists of three components:
 - **NDMFAvatarRoot**: This component is required for all avatars. Place it at the root of your avatar.
 - **NDMF Viewpoint**: This component sets the viewpoint of your avatar. Create an empty gameobject at the position of your viewpoint, and add this component to it. The viewpoint object can be anywhere in the hierarchy, but it is recommended to place it at the root of your avatar.
-- **NDMF Blendshape Visemes**: This component is required for avatars that use blendshape visemes for lipsync. Use it to configure the face mesh and the viseme blendshapes.
+- **NDMF Portable Visemes**: This component is required for avatars that use blendshape visemes for lipsync. Use it to configure the face mesh and the viseme blendshapes.
 
 ## Portable Dynamic Bones {#portable-dynamic-bones}
 

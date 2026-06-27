@@ -79,7 +79,7 @@ This allows the merge armature component to automatically restore its Merge Targ
 
 ## Matching bone names
 
-Since Merge Animator will attempt to match bones by name, just attaching it won't always work to make an outfit designed for one avatar work with another avatar.
+Since Merge Armature will attempt to match bones by name, just attaching it won't always work to make an outfit designed for one avatar work with another avatar.
 You can click the "Adjust bone names to match target" button to attempt to rename bones in the outfit to match the base avatar it's currently attached to.
 This will be done automatically if you added the Merge Armature component using the "Setup Outfit" menu item.
 

@@ -1,4 +1,4 @@
-﻿# Global Collider
+# Global Collider
 
 The `MA Global Collider` component is used to define colliders on your avatar which can globally interact with other
 avatars.
@@ -38,6 +38,30 @@ The implementation strategy may differ by platform. On VRChat, the number of glo
 component will take over one of the base colliders (fingers) in order to implement the global collider.
 
 On other platforms, we may implement this in a different way.
+
+### Collider Shape Parameters
+
+You can configure the collider shape using the following parameters:
+
+- **Radius**: The radius of the capsule collider.
+- **Height**: The height of the capsule along its Y axis.
+- **Position**: Local position offset of the collider.
+- **Rotation**: Local rotation of the collider.
+
+### Root Transform
+
+By default, the collider is placed at the transform of the GameObject the component is attached to. You can override
+this by setting the **Root Transform** field to point to a different transform, allowing the collider to follow a
+different part of the avatar.
+
+### Copy Hijacked Shape
+
+Only available when Manual Remap is enabled. When enabled, the radius, height, position, and rotation will be
+copied from the VRChat descriptor collider being hijacked, rather than using the values configured on this component.
+
+### Visualize Gizmo
+
+Controls whether the collider gizmo is visible in the scene view. Uncheck to hide it.
 
 ## Manual Remap
 
