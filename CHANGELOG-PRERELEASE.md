@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Fixed incorrect mesh processing in `Visible Head Accessory`
+- [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
+- [#2017] Fixed potential exception in reactive component processing
 
 ### Changed
 

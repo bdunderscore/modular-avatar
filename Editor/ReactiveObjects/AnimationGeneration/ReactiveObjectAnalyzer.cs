@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -153,7 +153,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var targetProp in shapes.Keys)
             {
-                if (targetProp.TargetObject is GameObject go && targetProp.PropertyName == "m_IsActive")
+                if (targetProp.TargetObject is GameObject go && go != null && targetProp.PropertyName == "m_IsActive")
                 {
                     foreach (var ty in ActiveObjectTypes)
                     {

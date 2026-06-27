@@ -20,6 +20,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）
 - [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
 - [#2000] `MA Blendshape Sync` の値のマッピングの計算を正しいものに修正
+- [#2017] Reactive Component の処理で発声し得る例外を修正
 
 ### Changed
 - [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整
