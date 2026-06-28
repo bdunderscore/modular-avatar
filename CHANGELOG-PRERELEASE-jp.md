@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2024] メモリのデフラグ後に `Merge Armature` が一部の使用中スロットを見失い、トランスフォーム更新が不正になる場合がある問題を修正
 - [#2023] マージ先の設定が不足している場合に `ModularAvatarMergeArmature.MapBone` で例外が発生しうる問題を修正
 - [#2019] `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
+- [#2017] Reactive Component の処理で発声し得る例外を修正
+- [#2026] `MA Blendshape Sync` のエディタープレビューで、バインディングのターゲットメッシュが欠落している場合に残りのバインディングが同期されなくなる問題を修正
 - [#2017] Reactive Component の処理で発生し得る例外を修正
 
 ### Changed

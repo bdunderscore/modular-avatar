@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   components (or other layers merged in front of it) were present
 - [#2000] Fixed incorrect remap curve calculation in `MA Blendshape Sync`
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
-- [#2017] Fixed potential exception in reactive component processing 
+- [#2017] Fixed potential exception in reactive component processing
+- [#2026] Fixed `MA Blendshape Sync` editor preview stopping early when one binding's target mesh is missing
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.

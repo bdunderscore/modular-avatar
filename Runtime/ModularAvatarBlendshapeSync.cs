@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
@@ -80,7 +83,7 @@ namespace nadena.dev.modular_avatar.core
     {
         public List<BlendshapeBinding> Bindings = new List<BlendshapeBinding>();
 
-        struct EditorBlendshapeBinding
+        internal struct EditorBlendshapeBinding
         {
             public SkinnedMeshRenderer TargetMesh;
             public int RemoteBlendshapeIndex;
@@ -88,7 +91,7 @@ namespace nadena.dev.modular_avatar.core
             public int BindingIndex;
         }
 
-        private List<EditorBlendshapeBinding> _editorBindings;
+        internal List<EditorBlendshapeBinding> _editorBindings;
 
         protected override void OnValidate()
         {
@@ -119,7 +122,7 @@ namespace nadena.dev.modular_avatar.core
         {
             #if UNITY_EDITOR
             if (this == null) return;
-            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this)) return;
+            if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
 
             _editorBindings = new List<EditorBlendshapeBinding>();
 
@@ -170,7 +173,7 @@ namespace nadena.dev.modular_avatar.core
             if (localRenderer == null) return;
             foreach (var binding in _editorBindings)
             {
-                if (binding.TargetMesh == null) return;
+                if (binding.TargetMesh == null) continue;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
                 var remapCurve = Bindings[binding.BindingIndex].RemapCurve;
                 if (remapCurve != null && remapCurve.length >= 2)
