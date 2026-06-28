@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
 - [#2017] Fixed potential exception in reactive component processing
+- [#2026] Fixed `MA Blendshape Sync` editor preview stopping early when one binding's target mesh is missing
 
 ### Changed
 
