@@ -201,6 +201,9 @@ namespace nadena.dev.modular_avatar.core.armature_lock
 
                 OnSegmentMove?.Invoke(src, dst, length);
             });
+
+            // Re-mark segments that didn't move; the callback above only fires for moved segments.
+            _allocationMap.ForEachInUse((offset, length) => SetInUseMask(offset, length, true));
         }
         
         private void ResizeNativeArrays(int minimumLength)

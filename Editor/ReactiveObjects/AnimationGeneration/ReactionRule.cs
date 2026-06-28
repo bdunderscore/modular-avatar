@@ -35,7 +35,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                   || ControllingConditions.All(c => c.IsConstant)
                                   || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
 
-        public bool IsConstantActive => IsConstant && InitiallyActive ^ Inverted;
+        public bool IsConstantActive => IsConstant && InitiallyActive;
 
         public VirtualClip? CustomApplyMotion; 
         
