@@ -25,8 +25,8 @@ namespace UnitTests.GenericTests
         [Test]
         public void IsConstantActive_NoConditions_Inverted_IsFalse()
         {
-            // Regression: operator precedence bug caused IsConstant && (InitiallyActive ^ Inverted)
-            // to evaluate as true here, double-cancelling the inversion already baked into InitiallyActive.
+            // Regression: `IsConstant && InitiallyActive ^ Inverted` was parsed as
+            // `(IsConstant && InitiallyActive) ^ Inverted`, and `InitiallyActive` already includes inversion.
             var rule = MakeRule(inverted: true);
             Assert.IsTrue(rule.IsConstant);
             Assert.IsFalse(rule.InitiallyActive);   // inversion already applied
