@@ -15,13 +15,14 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Fixed
 - [#2024] メモリのデフラグ後に `Merge Armature` が一部の使用中スロットを見失い、トランスフォーム更新が不正になる場合がある問題を修正
+- [#2023] マージ先の設定が不足している場合に `ModularAvatarMergeArmature.MapBone` で例外が発生しうる問題を修正
 - [#2019] `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
 - [#2007] Unity 6000.0との互換性を改善
 - [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
 - [#1994] `Mesh Cutter` のパフォーマンス向上（プレビュー、ビルド両方）
 - [#1922] Reactive Component など、元のFXレイヤーの前にレイヤーが挿入される場合に、元の最初のFXレイヤーがMMDワールドで無効化されてしまう問題を修正
 - [#2000] `MA Blendshape Sync` の値のマッピングの計算を正しいものに修正
-- [#2017] Reactive Component の処理で発声し得る例外を修正
+- [#2017] Reactive Component の処理で発生し得る例外を修正
 
 ### Changed
 - [#1980] 他のプラグインへの互換性向上のため、Mesh Deleterのプレビュー処理を調整

@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -8,7 +9,6 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using static nadena.dev.modular_avatar.core.editor.Localization;
-using System;
 
 #endregion
 
@@ -200,6 +200,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     var parentTransform = subConfig.transform.parent;
                     var parentConfig = parentTransform.GetComponentInParent<ModularAvatarMergeArmature>();
                     var parentMapping = parentConfig.MapBone(parentTransform);
+
+                    if (parentMapping == null) continue;
 
                     subConfig.mergeTarget = new AvatarObjectReference();
                     subConfig.mergeTarget.referencePath =

@@ -198,6 +198,51 @@ public class MergeArmatureTests : TestBase
         Assert.IsFalse(mappingDict.ContainsKey(nonMatchingBone.transform));
     }
 
+    [Test]
+    public void MapBone_ReturnsNull_WhenMergeTargetUnset()
+    {
+        var root = CreateRoot("Root");
+        var mergeArmature = CreateChild(root, "MergeArmature");
+        var mergeHips = CreateChild(mergeArmature, "Hips");
+
+        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+        // mergeTarget deliberately left unset — Get() will return null.
+        mergeComponent.prefix = "";
+        mergeComponent.suffix = "";
+
+        Assert.IsNull(mergeComponent.MapBone(mergeHips.transform));
+    }
+
+    [Test]
+    public void MapBone_ReturnsNull_WhenTargetNameMissing()
+    {
+        // Reproduce the null-ref from issue #3: pointer.Find() returns null for an intermediate
+        // bone whose stripped name doesn't exist under the merge target. Without the fix, the next
+        // loop iteration calls .Find() on the null pointer and throws NullReferenceException.
+        // The crash only triggers with at least 3 path segments so the null pointer is used again.
+
+        var root = CreateRoot("Root");
+
+        var baseArmature = CreateChild(root, "BaseArmature");
+        var baseHips = CreateChild(baseArmature, "Hips");
+        // Intentionally do NOT create "Spine" under baseHips — simulates a misconfigured armature.
+
+        var mergeArmature = CreateChild(root, "MergeArmature");
+        var mergeHips = CreateChild(mergeArmature, "Hips");
+        var mergeSpine = CreateChild(mergeHips, "Spine");
+        // Third level: Find("Spine") returns null, then the loop tries pointer.Find("Chest") → NRE.
+        var mergeChest = CreateChild(mergeSpine, "Chest");
+
+        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+        mergeComponent.mergeTarget.Set(baseArmature);
+        mergeComponent.prefix = "";
+        mergeComponent.suffix = "";
+
+        // Should return null (bone not found), not throw a NullReferenceException.
+        var result = mergeComponent.MapBone(mergeChest.transform);
+        Assert.IsNull(result);
+    }
+
     private static GameObject LoadShapell()
     {
         return GameObject.Instantiate(

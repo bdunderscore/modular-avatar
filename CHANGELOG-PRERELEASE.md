@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2024] Fixed an issue where `Merge Armature` could lose track of some in-use armature slots after memory defragmentation, potentially causing incorrect transform updates
+- [#2023] Fixed a potential exception in `ModularAvatarMergeArmature.MapBone` when merge targets are missing
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
 - [#2017] Fixed potential exception in reactive component processing
 
