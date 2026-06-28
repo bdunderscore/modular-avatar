@@ -79,11 +79,15 @@ namespace nadena.dev.modular_avatar.core
             var relPath = RuntimeUtil.RelativePath(gameObject, bone.gameObject);
             
             if (relPath == null) throw new ArgumentException("Bone is not a child of this component");
-            if (relPath == "") return mergeTarget.Get(this).transform;
-            
+
+            var mergeTargetObject = mergeTarget.Get(this);
+            if (mergeTargetObject == null) return null;
+
+            if (relPath == "") return mergeTargetObject.transform;
+
             var segments = relPath.Split('/');
-            
-            var pointer = mergeTarget.Get(this).transform;
+
+            var pointer = mergeTargetObject.transform;
             foreach (var segment in segments)
             {
                 if (!segment.StartsWith(prefix) || !segment.EndsWith(suffix)
@@ -91,6 +95,7 @@ namespace nadena.dev.modular_avatar.core
                 var targetObjectName = segment.Substring(prefix.Length,
                     segment.Length - prefix.Length - suffix.Length);
                 pointer = pointer.Find(targetObjectName);
+                if (pointer == null) return null;
             }
 
             return pointer;
