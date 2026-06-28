@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
@@ -413,10 +413,11 @@ namespace nadena.dev.modular_avatar.core.editor
             TCond uvFilter,
             VertexSelectionMode mode,
             int submesh,
-            NativeSlice<bool> primitiveMask
+            NativeSlice<bool> primitiveMask,
+            int uvChannel = 0
         ) where TCond : struct, IUVFilter
         {
-            if (!MeshData.HasVertexAttribute(VertexAttribute.TexCoord0))
+            if (!MeshData.HasVertexAttribute((VertexAttribute)((int)VertexAttribute.TexCoord0 + uvChannel)))
             {
                 return default;
             }
@@ -425,7 +426,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var vertsPerPrim = VertsPerPrim(MeshData.GetSubMesh(submesh).topology);
 
             JobHandle uvDep = default;
-            var uv = GetUV(ref uvDep, 0);
+            var uv = GetUV(ref uvDep, uvChannel);
             var deps = JobHandle.CombineDependencies(indexJobHandle, uvDep);
 
             switch (mode)

@@ -1,4 +1,4 @@
-﻿# Mesh Cutter
+# Mesh Cutter
 
 ![Mesh Cutter](mesh-cutter.png)
 
@@ -31,11 +31,11 @@ Next, add one or more Vertex Filter components to the same object. You can do th
 button on the Mesh Cutter component, or by adding a Vertex Filter component manually.
 
 ### Supported Vertex Filters
-
 - [By Mask](./by-mask.md) - Allows you to select portions of the mesh by using a mask texture.
 - [By Axis](./by-axis.md) - Allows you to select portions of the mesh by whether they are on one side of a plane.  
 - [By Bone](./by-bone.md) - Allows you to select portions of the mesh based on their bone weights to a specific bone.
 - [By Blendshape](./by-shape.md) - Allows you to select portions of the mesh based on whether vertices move when a specific blendshape is activated.
+- [By UV Tile](./by-uv-tile.md) - Allows you to select portions of the mesh based on UV coordinates within a rectangular region.
 
 ## Using multiple Vertex Filters
 
