@@ -441,5 +441,8 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "For VRC, you can't use more than 8 Global Colliders. You currently have {0}.",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "Reduce the number of MA Global Collider components.",
   "validation.global_collider.manual_collider_overwrite": "Global Collider components are manually using the same collider.",
-  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components."
+  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components.",
+  "error.parameter_assigner.value_out_of_range": "[MA-0025] Too many automatic values for parameter '{0}'",
+  "error.parameter_assigner.value_out_of_range:description": "The parameter '{0}' has more auto-valued menu items than the VRChat Int parameter range (0-255) allows.",
+  "error.parameter_assigner.value_out_of_range:hint": "Reduce the number of auto-valued menu items using this parameter, or assign explicit values within the valid range."
 }

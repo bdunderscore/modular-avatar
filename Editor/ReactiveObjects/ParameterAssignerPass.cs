@@ -3,6 +3,7 @@ using nadena.dev.ndmf;
 
 #if MA_VRCSDK3_AVATARS
 using System.Linq;
+using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -154,7 +155,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                         else
                         {
-                            while (usedValues.Contains(nextValue)) nextValue++;
+                            while (usedValues.Contains(nextValue) && nextValue < 256) nextValue++;
+
+                            if (nextValue >= 256)
+                            {
+                                BuildReport.LogFatal("error.parameter_assigner.value_out_of_range", paramName, mami);
+                                break;
+                            }
 
                             mami.Control.value = nextValue;
                             usedValues.Add(nextValue);
