@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#XXXX] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
+- [#2028] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
 
 ### Fixed
 - [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正
@@ -19,10 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2026] `MA Blendshape Sync` のエディタープレビューで、バインディングのターゲットメッシュが欠落している場合に残りのバインディングが同期されなくなる問題を修正
 - [#2027] 新しいルートボーンのスケールがゼロの軸を持つ場合にメッシュリターゲティングでゼロ除算が発生する問題を修正
 - [#2027] Reactive Object の定数解析において、無効な条件グループが削除されないオフバイワンエラーを修正
-- [#XXXX] `MA Merge Armature` のエディットモードポーズ同期処理に関する軽微な修正：
+- [#2028] `MA Merge Armature` のエディットモードポーズ同期処理に関する軽微な修正：
   - アーマチュアロックコントローラーの初期化が完了する前にコンポーネントが無効化された際の NullReferenceException を修正
   - メモリ使用率が最適でなくなる可能性のある問題を修正
-- [#XXXX] `MA Bone Proxy` でエディットモード時の CPU 使用率が上昇する可能性のある問題を修正
+- [#2028] `MA Bone Proxy` でエディットモード時の CPU 使用率が上昇する可能性のある問題を修正
 
 ### Changed
 

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#XXXX] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
+- [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 
 ### Fixed
 - [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
@@ -19,10 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2026] Fixed `MA Blendshape Sync` editor preview stopping early when one binding's target mesh is missing
 - [#2027] Fixed a division-by-zero in mesh retargeting when the new root bone has a zero-scale axis
 - [#2027] Fixed an off-by-one error in reactive object constant analysis that could leave dead condition groups unreduced
-- [#XXXX] Minor fixes for the `MA Merge Armature` edit-mode pose sync logic:
+- [#2028] Minor fixes for the `MA Merge Armature` edit-mode pose sync logic:
   - Fixed a null reference exception when a merge armature component was disabled before the armature lock controller finished initializing.
   - Fixed an issue that could result in suboptimal memory usage.
-- [#XXXX] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
+- [#2028] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
 
 ### Changed
 
