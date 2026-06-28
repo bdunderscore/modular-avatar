@@ -550,6 +550,221 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.NotNull(headClone.GetComponent<ModularAvatarPBBlocker>(),
                 "Clone bones SHOULD have PBBlocker");
         }
+
+        [Test]
+        public void TestIndexFormatUpgradeToUInt32()
+        {
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
+
+            var animator = root.GetComponent<Animator>();
+            var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
+            Assert.NotNull(headBone);
+
+            var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
+            var boneO1 = boneO1Go.transform;
+            boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
+
+            var smrGo = new GameObject("Accessory Mesh");
+            smrGo.transform.SetParent(boneO1, false);
+            var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
+
+            // The VHA component is on boneO1, so _visibleBones contains boneO1
+            // but NOT headBone. Thus bone index 1 (boneO1) = visible, bone index 0
+            // (headBone) = non-visible.
+            //
+            // Layout: low indices = visible (boneO1), high indices = non-visible (headBone).
+            // Clones of high-index non-visible vertices land at ~50000..~70000,
+            // while visible vertices stay at 0..~30000, giving span > 65536.
+            var visibleCount = 30000;  // vertices 0..29999, bone 1 = boneO1 = visible
+            var nonVisibleCount = 20000; // vertices 30000..49999, bone 0 = headBone = non-visible
+            var totalVertices = visibleCount + nonVisibleCount; // 50000
+
+            var vertices = new Vector3[totalVertices];
+            var bpv = new byte[totalVertices];
+            var bws = new BoneWeight1[totalVertices];
+
+            for (var i = 0; i < totalVertices; i++)
+            {
+                vertices[i] = new Vector3(i, 0, 0);
+                bpv[i] = 1;
+                // boneIndex 0 = headBone (non-visible), boneIndex 1 = boneO1 (visible)
+                bws[i] = new BoneWeight1
+                {
+                    boneIndex = i < visibleCount ? 1 : 0,
+                    weight = 1,
+                };
+            }
+
+            // Triangles: (visible, non-visible, visible). Each non-visible vertex
+            // appears in one mixed primitive → gets cloned, adding ~20000 clones
+            // → total ~70000, span 69999 > 65535.
+            var tris = new int[nonVisibleCount * 3];
+            for (var i = 0; i < nonVisibleCount; i++)
+            {
+                var triBase = i * 3;
+                tris[triBase] = i % visibleCount;           // visible
+                tris[triBase + 1] = visibleCount + i;        // non-visible
+                tris[triBase + 2] = (i + 1) % visibleCount;  // visible
+            }
+
+            var mesh = new Mesh();
+            mesh.vertices = vertices;
+            mesh.triangles = tris;
+
+            using var bpvNative = new NativeArray<byte>(bpv, Allocator.Temp);
+            using var bwsNative = new NativeArray<BoneWeight1>(bws, Allocator.Temp);
+            mesh.SetBoneWeights(bpvNative, bwsNative);
+
+            mesh.bindposes = new[]
+            {
+                headBone.worldToLocalMatrix,
+                boneO1.worldToLocalMatrix,
+            };
+            mesh.RecalculateBounds();
+            TrackObject(mesh);
+
+            smr.sharedMesh = mesh;
+            smr.bones = new[] { headBone, boneO1 };
+
+            Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
+
+            var processedMesh = smr.sharedMesh;
+            Assert.AreNotSame(mesh, processedMesh);
+            Assert.Greater(processedMesh.vertexCount, 65535);
+            Assert.AreEqual(
+                UnityEngine.Rendering.IndexFormat.UInt32,
+                processedMesh.indexFormat
+            );
+        }
+
+        [Test]
+        public void TestUInt16WithBaseVertex()
+        {
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
+
+            var animator = root.GetComponent<Animator>();
+            var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
+            Assert.NotNull(headBone);
+
+            var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
+            var boneO1 = boneO1Go.transform;
+            boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
+
+            var smrGo = new GameObject("Accessory Mesh");
+            smrGo.transform.SetParent(boneO1, false);
+            var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
+
+            // 70000 vertices: V0-V39999 non-visible (bone 0 = headBone),
+            // V40000-V69999 visible (bone 1 = boneO1).
+            //
+            // Submesh 0: V0-V29999, all non-visible → no mixed, no clones.
+            // Submesh 1: V30000-V39999 (non-visible) + V40000-V49999 (visible)
+            //   → mixed, V30000-V39999 clones to 70000-79999.
+            //   Span: 40000..79999 = 39999 < 65536 → stays UInt16 w/ baseVertex=40000.
+            // Total after VHA: 70000 + 10000 = 80000 > 65535.
+            var nonVisCount = 40000;
+            var visCount = 30000;
+            var totalVertices = nonVisCount + visCount; // 70000
+
+            var vertices = new Vector3[totalVertices];
+            var bpv = new byte[totalVertices];
+            var bws = new BoneWeight1[totalVertices];
+
+            for (var i = 0; i < totalVertices; i++)
+            {
+                vertices[i] = new Vector3(i, 0, 0);
+                bpv[i] = 1;
+                bws[i] = new BoneWeight1
+                {
+                    boneIndex = i < nonVisCount ? 0 : 1,
+                    weight = 1,
+                };
+            }
+
+            // Submesh 0: 9999 triangles using V0-V29999 only (all non-visible)
+            var sub0Tris = new int[29997];
+            for (var i = 0; i < 9999; i++)
+            {
+                sub0Tris[i * 3] = i * 3;
+                sub0Tris[i * 3 + 1] = i * 3 + 1;
+                sub0Tris[i * 3 + 2] = i * 3 + 2;
+            }
+
+            // Submesh 1: mix V30000-V39999 (non-visible) + V40000-V49999 (visible)
+            // Triangle pattern: (visible_i, non-visible_i, V40000) — no wraparound needed.
+            var mixNonVisStart = 30000;
+            var mixNonVisCount = 10000;
+            var mixVisStart = 40000;
+            var sub1Tris = new int[mixNonVisCount * 3];
+            for (var i = 0; i < mixNonVisCount; i++)
+            {
+                var baseIdx = i * 3;
+                sub1Tris[baseIdx] = mixVisStart + i;       // visible_i
+                sub1Tris[baseIdx + 1] = mixNonVisStart + i; // non-visible_i
+                sub1Tris[baseIdx + 2] = mixVisStart;         // V40000
+            }
+
+            var mesh = new Mesh();
+            mesh.vertices = vertices;
+            mesh.subMeshCount = 2;
+            mesh.SetIndices(sub0Tris, MeshTopology.Triangles, 0, false);
+            mesh.SetIndices(sub1Tris, MeshTopology.Triangles, 1, false);
+
+            using var bpvNative = new NativeArray<byte>(bpv, Allocator.Temp);
+            using var bwsNative = new NativeArray<BoneWeight1>(bws, Allocator.Temp);
+            mesh.SetBoneWeights(bpvNative, bwsNative);
+
+            mesh.bindposes = new[]
+            {
+                headBone.worldToLocalMatrix,
+                boneO1.worldToLocalMatrix,
+            };
+            mesh.RecalculateBounds();
+            TrackObject(mesh);
+
+            smr.sharedMesh = mesh;
+            smr.bones = new[] { headBone, boneO1 };
+
+            Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
+
+            var processedMesh = smr.sharedMesh;
+            Assert.AreNotSame(mesh, processedMesh);
+            Assert.Greater(processedMesh.vertexCount, 65535);
+            Assert.AreEqual(
+                UnityEngine.Rendering.IndexFormat.UInt16,
+                processedMesh.indexFormat
+            );
+
+            // Submesh 0: no clones → indices unchanged, baseVertex=0
+            Assert.AreEqual(0, processedMesh.GetBaseVertex(0));
+            var sub0Stored = processedMesh.GetIndices(0);
+            Assert.AreEqual(sub0Tris.Length, sub0Stored.Length);
+            for (var i = 0; i < 30; i++)
+                Assert.AreEqual(sub0Tris[i], sub0Stored[i]);
+
+            // Submesh 1: baseVertex should be 40000 (min index in this submesh)
+            var baseV = processedMesh.GetBaseVertex(1);
+            Assert.AreEqual(mixVisStart, baseV);
+
+            var sub1Stored = processedMesh.GetIndices(1);
+            Assert.AreEqual(sub1Tris.Length, sub1Stored.Length);
+
+            // GetIndices returns absolute vertex indices (baseVertex already applied).
+            // First triangle: V40000 stays, V30000 → clone at 70000, third vertex is always V40000.
+            Assert.AreEqual(40000, sub1Stored[0], "V40000 stays visible");
+            Assert.AreEqual(70000, sub1Stored[1], "Clone of V30000");
+            Assert.AreEqual(40000, sub1Stored[2], "Third vertex is V40000");
+            // Last triangle (i=9999): V49999 stays, V39999 → clone at 79999, third vertex is V40000.
+            var lastTri = mixNonVisCount - 1;
+            Assert.AreEqual(mixVisStart + lastTri, sub1Stored[lastTri * 3],
+                $"V{mixVisStart + lastTri} stays visible");
+            Assert.AreEqual(
+                70000 + lastTri,
+                sub1Stored[lastTri * 3 + 1],
+                "Clone of V" + (mixNonVisStart + lastTri)
+            );
+            Assert.AreEqual(40000, sub1Stored[lastTri * 3 + 2], "Third vertex is V40000");
+        }
     }
 }
 

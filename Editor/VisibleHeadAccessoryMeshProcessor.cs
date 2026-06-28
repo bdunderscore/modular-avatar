@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -194,13 +195,19 @@ namespace nadena.dev.modular_avatar.core.editor
             }
             newMesh.bindposes = bindposes.ToArray();
 
-            // Step 6: rebuild index buffers using clone refs for mixed primitives
-            for (var s = 0; s < originalMesh.subMeshCount; s++)
+            // Step 6: rebuild index buffers using clone refs for mixed primitives.
+            // Build all buffers first, then determine if UInt32 format is needed.
+            var subMeshCount = originalMesh.subMeshCount;
+            var newIndexArrays = new int[subMeshCount][];
+            var newTopologies = new MeshTopology[subMeshCount];
+
+            for (var s = 0; s < subMeshCount; s++)
             {
                 var indices = originalMesh.GetIndices(s);
                 var topology = originalMesh.GetTopology(s);
                 var stride = PrimitiveStride(topology);
                 var count = indices.Length;
+                newTopologies[s] = topology;
 
                 if (stride > 0)
                 {
@@ -224,13 +231,61 @@ namespace nadena.dev.modular_avatar.core.editor
                                 newIndices[t + i] = origIdx;
                         }
                     }
-                    newMesh.SetIndices(newIndices, topology, s, false);
+
+                    newIndexArrays[s] = newIndices;
                 }
                 else
                 {
-                    newMesh.SetIndices(indices, topology, s, false);
+                    newIndexArrays[s] = indices;
                 }
             }
+
+            // Check if all submeshes fit within UInt16 range (span < 65536)
+            // using baseVertex per submesh.
+            var needsUInt32 = false;
+            var baseVertices = new int[subMeshCount];
+
+            for (var s = 0; s < subMeshCount; s++)
+            {
+                var buf = newIndexArrays[s];
+                if (buf.Length == 0) continue;
+
+                var min = buf[0];
+                var max = buf[0];
+                for (var i = 1; i < buf.Length; i++)
+                {
+                    var idx = buf[i];
+                    if (idx < min) min = idx;
+                    if (idx > max) max = idx;
+                }
+
+                if (max - min >= 65536)
+                {
+                    needsUInt32 = true;
+                    break;
+                }
+
+                baseVertices[s] = min;
+            }
+
+            // Always rebase indices to use baseVertex — harmless for UInt32, required for UInt16.
+            for (var s = 0; s < subMeshCount; s++)
+            {
+                var buf = newIndexArrays[s];
+                var bv = baseVertices[s];
+                if (bv > 0)
+                {
+                    for (var i = 0; i < buf.Length; i++)
+                        buf[i] -= bv;
+                }
+            }
+
+            newMesh.indexFormat = needsUInt32
+                ? IndexFormat.UInt32
+                : IndexFormat.UInt16;
+
+            for (var s = 0; s < subMeshCount; s++)
+                newMesh.SetIndices(newIndexArrays[s], newTopologies[s], s, false, baseVertices[s]);
 
             _renderer.bones = bones.ToArray();
             _renderer.sharedMesh = newMesh;
