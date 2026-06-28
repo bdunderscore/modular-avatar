@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正
 - [#2019] `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
 - [#2017] Reactive Component の処理で発声し得る例外を修正
 

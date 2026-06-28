@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
 
 ### Fixed
+- [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
 - [#2007] Improved compatibility with Unity 6000.0
 - [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.
 - [#1994] Improved performance of `Mesh Cutter` previews and builds
