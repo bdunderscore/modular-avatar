@@ -73,6 +73,25 @@ namespace UnitTests.ArmatureAwase
         }
 
         [Test]
+        public void FreeingLastStripsTrailingFreeSegments()
+        {
+            var map = new AllocationMap();
+            var s1 = map.Allocate(10);
+            var s2 = map.Allocate(5);
+            var s3 = map.Allocate(7);
+
+            map.FreeSegment(s2);
+            // s3 is the last element; freeing it should remove it and any trailing free segment
+            // that precedes it so the invariant "last element is always in use" is preserved.
+            map.FreeSegment(s3);
+
+            // A new allocation should occupy the space immediately after s1, not after the
+            // stripped trailing free segment that would otherwise remain at the end.
+            var s4 = map.Allocate(3);
+            AssertSegment(s4, 10, 3, true);
+        }
+
+        [Test]
         public void SegmentRandomOps()
         {
             for (int i = 0; i < 1000; i++)

@@ -128,6 +128,12 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             if (index == segments.Count - 1)
             {
                 segments.RemoveAt(index);
+                // Preserve invariant: the last element (if any) must be in use.
+                while (segments.Count > 0 && !segments[segments.Count - 1]._inUse)
+                {
+                    segments.RemoveAt(segments.Count - 1);
+                }
+
                 return;
             }
 
