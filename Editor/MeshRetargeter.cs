@@ -1,4 +1,4 @@
-﻿/*
+/*
  * MIT License
  *
  * Copyright (c) 2022 bd_
@@ -270,9 +270,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var bounds = renderer.localBounds;
             bounds.extents = new Vector3(
-                bounds.extents.x * oldLossyScale.x / newLossyScale.x,
-                bounds.extents.y * oldLossyScale.y / newLossyScale.y,
-                bounds.extents.z * oldLossyScale.z / newLossyScale.z
+                newLossyScale.x != 0 ? bounds.extents.x * oldLossyScale.x / newLossyScale.x : bounds.extents.x,
+                newLossyScale.y != 0 ? bounds.extents.y * oldLossyScale.y / newLossyScale.y : bounds.extents.y,
+                newLossyScale.z != 0 ? bounds.extents.z * oldLossyScale.z / newLossyScale.z : bounds.extents.z
             );
             bounds.center = newRootBone.transform.InverseTransformPoint(
                 scaleBone.transform.TransformPoint(bounds.center)
