@@ -765,6 +765,115 @@ namespace UnitTests.VisibleHeadAccessoryTest
             );
             Assert.AreEqual(40000, sub1Stored[lastTri * 3 + 2], "Third vertex is V40000");
         }
+
+        [Test]
+        public void TestBindposeMathForClonedBones()
+        {
+            // Verifies the skinning math identity for cloned bones:
+            //   clone.localToWorld * clone_bindpose * V_local
+            //     == original.localToWorld * original_bindpose * V_local
+            // which is required for cloned vertices to render at the same world
+            // position as their originals.
+            //
+            // The fix achieves this by (a) parenting the clone under the original
+            // with identity local transform, and (b) preserving the original
+            // bone's bindpose in the clone's slot.
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
+            var animator = root.GetComponent<Animator>();
+            var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
+            Assert.NotNull(headBone);
+
+            // Non-trivial bone offset/rotation so the assertion catches a missing
+            // identity-local-transform on the clone.
+            var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
+            var boneO1 = boneO1Go.transform;
+            boneO1.localPosition = new Vector3(0.1f, 0.2f, 0.3f);
+            boneO1.localRotation = Quaternion.Euler(15, 30, 45);
+            boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
+
+            var smrGo = new GameObject("Accessory Mesh");
+            smrGo.transform.SetParent(boneO1, false);
+            var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
+
+            var mesh = new Mesh();
+            mesh.vertices = new Vector3[]
+            {
+                new Vector3(0.5f, 1.0f, 1.5f),
+                new Vector3(-0.5f, 0.5f, 0.0f),
+                new Vector3(0.0f, 0.0f, 0.0f),
+            };
+            mesh.triangles = new int[] { 0, 1, 2 };
+
+            using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1 }, Allocator.Temp);
+            using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
+            {
+                new BoneWeight1 { boneIndex = 0, weight = 1 },
+                new BoneWeight1 { boneIndex = 1, weight = 1 },
+                new BoneWeight1 { boneIndex = 1, weight = 1 },
+            }, Allocator.Temp);
+            mesh.SetBoneWeights(bpv, bws);
+
+            var bindpose0 = headBone.worldToLocalMatrix;
+            var bindpose1 = boneO1.worldToLocalMatrix;
+            mesh.bindposes = new Matrix4x4[] { bindpose0, bindpose1 };
+            mesh.RecalculateBounds();
+            TrackObject(mesh);
+
+            smr.sharedMesh = mesh;
+            smr.bones = new[] { headBone, boneO1 };
+
+            Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
+
+            var processedMesh = smr.sharedMesh;
+            var newBones = smr.bones;
+            var newBindposes = processedMesh.bindposes;
+
+            Transform cloneBone = null;
+            int cloneBoneIndex = -1;
+            for (var i = 0; i < newBones.Length; i++)
+            {
+                if (newBones[i] != headBone && newBones[i] != boneO1)
+                {
+                    cloneBone = newBones[i];
+                    cloneBoneIndex = i;
+                    break;
+                }
+            }
+            Assert.NotNull(cloneBone, "Clone bone should exist");
+            Assert.AreEqual(headBone, cloneBone.parent, "Clone should be parented under the original bone");
+
+            const float tol = 1e-4f;
+            Assert.AreEqual(0f, cloneBone.localPosition.x, tol, "Clone local x");
+            Assert.AreEqual(0f, cloneBone.localPosition.y, tol, "Clone local y");
+            Assert.AreEqual(0f, cloneBone.localPosition.z, tol, "Clone local z");
+            Assert.AreEqual(0f, cloneBone.localRotation.x, tol, "Clone local rot x");
+            Assert.AreEqual(0f, cloneBone.localRotation.y, tol, "Clone local rot y");
+            Assert.AreEqual(0f, cloneBone.localRotation.z, tol, "Clone local rot z");
+            Assert.AreEqual(1f, cloneBone.localRotation.w, tol, "Clone local rot w");
+
+            // Clone's bindpose must equal original bone's bindpose (RemapBone preserves it).
+            AssertMatricesEqual(bindpose0, newBindposes[cloneBoneIndex], tol);
+        }
+
+        private static void AssertMatricesEqual(Matrix4x4 expected, Matrix4x4 actual, float tol)
+        {
+            Assert.AreEqual(expected.m00, actual.m00, tol, "m00");
+            Assert.AreEqual(expected.m01, actual.m01, tol, "m01");
+            Assert.AreEqual(expected.m02, actual.m02, tol, "m02");
+            Assert.AreEqual(expected.m03, actual.m03, tol, "m03");
+            Assert.AreEqual(expected.m10, actual.m10, tol, "m10");
+            Assert.AreEqual(expected.m11, actual.m11, tol, "m11");
+            Assert.AreEqual(expected.m12, actual.m12, tol, "m12");
+            Assert.AreEqual(expected.m13, actual.m13, tol, "m13");
+            Assert.AreEqual(expected.m20, actual.m20, tol, "m20");
+            Assert.AreEqual(expected.m21, actual.m21, tol, "m21");
+            Assert.AreEqual(expected.m22, actual.m22, tol, "m22");
+            Assert.AreEqual(expected.m23, actual.m23, tol, "m23");
+            Assert.AreEqual(expected.m30, actual.m30, tol, "m30");
+            Assert.AreEqual(expected.m31, actual.m31, tol, "m31");
+            Assert.AreEqual(expected.m32, actual.m32, tol, "m32");
+            Assert.AreEqual(expected.m33, actual.m33, tol, "m33");
+        }
     }
 }
 
