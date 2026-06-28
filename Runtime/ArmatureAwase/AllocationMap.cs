@@ -148,6 +148,14 @@ namespace nadena.dev.modular_avatar.core.armature_lock
             segments[index] = new Segment(FreeSegment, s._offset, s._requestedLength, s._trueLength, false);
         }
 
+        public void ForEachInUse(Action<int, int> action)
+        {
+            foreach (var seg in segments)
+            {
+                if (seg._inUse) action(seg._offset, seg._requestedLength);
+            }
+        }
+
         /// <summary>
         /// Defragments all free space. When a segment is moved, the passed callback is called with the old and new offsets,
         /// and then the callback associated with the segment (if any) is also invoked.
