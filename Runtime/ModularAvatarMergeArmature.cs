@@ -168,7 +168,10 @@ namespace nadena.dev.modular_avatar.core
         private void OnDisable()
         {
             // we use enabled instead of activeAndEnabled to ensure we track even when the GameObject is disabled
-            _lockController.Enabled = enabled;
+            if (_lockController != null)
+            {
+                _lockController.Enabled = enabled;
+            }
         }
 
         protected override void OnDestroy()
