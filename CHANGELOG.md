@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
 
 ### Fixed
+- [#2024] Fixed an issue where `Merge Armature` could lose track of some in-use armature slots after memory defragmentation, potentially causing incorrect transform updates
 - [#2023] Fixed a potential exception in `ModularAvatarMergeArmature.MapBone` when merge targets are missing
 - [#2007] Improved compatibility with Unity 6000.0
 - [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.
