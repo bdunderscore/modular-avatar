@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2017] Reactive Component の処理で発声し得る例外を修正
 - [#2026] `MA Blendshape Sync` のエディタープレビューで、バインディングのターゲットメッシュが欠落している場合に残りのバインディングが同期されなくなる問題を修正
 - [#2017] Reactive Component の処理で発生し得る例外を修正
+- [#2027] 新しいルートボーンのスケールがゼロの軸を持つ場合にメッシュリターゲティングでゼロ除算が発生する問題を修正
+- [#2027] Reactive Object の定数解析において、無効な条件グループが削除されないオフバイワンエラーを修正
 
 ### Changed
 

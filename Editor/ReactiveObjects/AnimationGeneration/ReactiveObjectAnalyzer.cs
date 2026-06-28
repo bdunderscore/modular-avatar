@@ -212,7 +212,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// No-op if there is not build context (as animations cannot be determined)
         /// </summary>
         /// <param name="shapes"></param>
-        private void AnalyzeConstants(Dictionary<TargetProp, AnimatedProperty> shapes)
+        internal void AnalyzeConstants(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
             var asc = _context?.Extension<AnimatorServicesContext>();
             HashSet<GameObject> toggledObjects = new();
@@ -250,7 +250,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Remove all action groups up until the last one where we're always on
                 var lastAlwaysOnGroup = group.actionGroups.FindLastIndex(ag => ag.IsConstantActive);
                 if (lastAlwaysOnGroup > 0)
-                    group.actionGroups.RemoveRange(0, lastAlwaysOnGroup - 1);
+                    group.actionGroups.RemoveRange(0, lastAlwaysOnGroup);
             }
 
             // Remove shapes with no action groups (unless we need to override static state)
