@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 
 ### Fixed
+- [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正
 - [#2024] メモリのデフラグ後に `Merge Armature` が一部の使用中スロットを見失い、トランスフォーム更新が不正になる場合がある問題を修正
 - [#2023] マージ先の設定が不足している場合に `ModularAvatarMergeArmature.MapBone` で例外が発生しうる問題を修正
 - [#2019] `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
 - [#2024] Fixed an issue where `Merge Armature` could lose track of some in-use armature slots after memory defragmentation, potentially causing incorrect transform updates
 - [#2023] Fixed a potential exception in `ModularAvatarMergeArmature.MapBone` when merge targets are missing
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
