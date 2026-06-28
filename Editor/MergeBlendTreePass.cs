@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal const string ALWAYS_ONE = "__ModularAvatarInternal/One";
         internal const string BlendTreeLayerName = "ModularAvatar: Merge Blend Tree";
 
-        private AnimatorServicesContext _asc;
+        internal AnimatorServicesContext _asc;
         private VirtualBlendTree _rootBlendTree;
         private HashSet<string> _parameterNames;
 
@@ -151,18 +151,18 @@ namespace nadena.dev.modular_avatar.core.editor
             Object.DestroyImmediate(component);
         }
         
-        private VirtualBlendTree GetRootBlendTree()
+        internal VirtualBlendTree GetRootBlendTree()
         {
             if (_rootBlendTree != null) return _rootBlendTree;
 
-            var fx = _asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-
-            var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
-            var stateMachine = controller.StateMachine;
-            if (fx == null)
+            if (!_asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fx)
+                || fx == null)
             {
                 throw new Exception("FX layer not found");
             }
+
+            var controller = fx.AddLayer(new LayerPriority(int.MinValue), BlendTreeLayerName);
+            var stateMachine = controller.StateMachine;
             
             _rootBlendTree = VirtualBlendTree.Create("Root");
             var state = stateMachine.AddState("State", _rootBlendTree);
