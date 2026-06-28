@@ -1,12 +1,9 @@
-﻿#if MA_VRCSDK3_AVATARS
+#if MA_VRCSDK3_AVATARS
 #region
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
-using nadena.dev.ndmf.animator;
-using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
@@ -92,19 +89,13 @@ namespace nadena.dev.modular_avatar.core.editor
     
     internal class VisibleHeadAccessoryProcessor
     {
-        private const double EPSILON = 0.01;
-
         private BuildContext _context;
         private VisibleHeadAccessoryValidation _validator;
         
         private Transform _avatarTransform;
-        private ImmutableHashSet<Transform> _activeBones => _validator.ActiveBones;
-        private Transform _headBone => _validator.HeadBone;
 
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
-        private Transform _proxyHead;
-
-        private Dictionary<Transform, Transform> _boneShims = new Dictionary<Transform, Transform>();
+        private List<Transform> _headChopTargets = new List<Transform>();
 
         public VisibleHeadAccessoryProcessor(BuildContext context)
         {
@@ -126,13 +117,51 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (didWork)
             {
+                // Shared clone transform mapping (cross-mesh dedup)
+                var cloneMappings = new Dictionary<Transform, Transform>();
+
+                Transform RemapBone(Transform original)
+                {
+                    if (!cloneMappings.TryGetValue(original, out var clone))
+                    {
+                        clone = new GameObject(original.name + " (VHA Clone)").transform;
+                        clone.SetParent(original, false);
+                        clone.gameObject.AddComponent<ModularAvatarPBBlocker>();
+                        _headChopTargets.Add(clone);
+                        cloneMappings[original] = clone;
+                    }
+
+                    return clone;
+                }
+
                 // Process meshes
                 foreach (var smr in _avatarTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     if (smr.sharedMesh == null) continue;
 
-                    BuildReport.ReportingObject(smr,
-                        () => new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _proxyHead).Retarget(_context));
+                    var mp = new VisibleHeadAccessoryMeshProcessor(smr, _visibleBones, _context, RemapBone);
+                    BuildReport.ReportingObject(smr, () => mp.Retarget());
+                }
+
+                // Create a single HeadChop referencing all targets
+                if (_headChopTargets.Count > 0)
+                {
+                    var headChopObj = new GameObject("VHA HeadChop");
+                    headChopObj.transform.SetParent(_avatarTransform, false);
+                    var headChop = headChopObj.AddComponent<VRCHeadChop>();
+
+                    var bones = new VRCHeadChop.HeadChopBone[_headChopTargets.Count];
+                    for (int i = 0; i < _headChopTargets.Count; i++)
+                    {
+                        bones[i] = new VRCHeadChop.HeadChopBone
+                        {
+                            transform = _headChopTargets[i],
+                            applyCondition = VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply,
+                            scaleFactor = 1
+                        };
+                    }
+                    headChop.targetBones = bones;
+                    headChop.globalScaleFactor = 1;
                 }
             }
         }
@@ -143,116 +172,19 @@ namespace nadena.dev.modular_avatar.core.editor
             
             if (_validator.Validate(target) == VisibleHeadAccessoryValidation.ReadyStatus.Ready)
             {
-                var shim = CreateShim(target.transform.parent);
-
-                target.transform.SetParent(shim, true);
-
-                didWork = true;
-            }
-
-            if (didWork)
-            {
+                // All transforms under the VHA component should be visible in first person
                 foreach (var xform in target.GetComponentsInChildren<Transform>(true))
                 {
                     _visibleBones.Add(xform);
+                    _headChopTargets.Add(xform);
                 }
 
-                ProcessAnimations();
+                didWork = true;
             }
 
             Object.DestroyImmediate(target);
 
             return didWork;
-        }
-
-        private void ProcessAnimations()
-        {
-            var animdb = _context.PluginBuildContext.Extension<AnimatorServicesContext>();
-            var paths = animdb.ObjectPathRemapper;
-            Dictionary<string, string> pathMappings = new Dictionary<string, string>();
-            HashSet<VirtualClip> clips = new();
-
-            foreach (var kvp in _boneShims)
-            {
-                var orig = paths.GetVirtualPathForObject(kvp.Key.gameObject);
-                var shim = paths.GetVirtualPathForObject(kvp.Value.gameObject);
-
-                pathMappings[orig] = shim;
-
-                clips.UnionWith(animdb.AnimationIndex.GetClipsForObjectPath(orig));
-            }
-
-            foreach (var clip in clips)
-            {
-                foreach (var binding in clip.GetFloatCurveBindings())
-                {
-                    if (binding.type == typeof(Transform) && pathMappings.TryGetValue(binding.path, out var newPath))
-                    {
-                        clip.SetFloatCurve(
-                            EditorCurveBinding.FloatCurve(newPath, typeof(Transform), binding.propertyName),
-                            clip.GetFloatCurve(binding)
-                        );
-                    }
-                }
-            }
-        }
-
-        private Transform CreateShim(Transform target)
-        {
-            if (_boneShims.TryGetValue(target.transform, out var shim)) return shim;
-
-            if (target == _headBone) return CreateProxy();
-            if (target.parent == null)
-            {
-                // parent is not the head bone...?
-                throw new ArgumentException("Failed to find head bone");
-            }
-
-            var parentShim = CreateShim(target.parent);
-
-            GameObject obj = new GameObject(target.gameObject.name);
-            obj.transform.SetParent(parentShim, false);
-            obj.transform.localPosition = target.localPosition;
-            obj.transform.localRotation = target.localRotation;
-            obj.transform.localScale = target.localScale;
-
-            _boneShims[target] = obj.transform;
-
-            return obj.transform;
-        }
-
-        private Transform CreateProxy()
-        {
-            if (_proxyHead != null) return _proxyHead;
-
-            var src = _headBone;
-            var obj = new GameObject(src.name + " (HeadChop)");
-
-            var parent = _headBone;
-
-            obj.transform.SetParent(parent, false);
-            obj.transform.localPosition = src.localPosition;
-            obj.transform.localRotation = src.localRotation;
-            obj.transform.localScale = src.localScale;
-            Debug.Log($"src.localScale = {src.localScale} obj.transform.localScale = {obj.transform.localScale}");
-
-            var headChop = obj.AddComponent<VRCHeadChop>();
-            headChop.targetBones = new[]
-            {
-                new VRCHeadChop.HeadChopBone
-                {
-                    transform = obj.transform,
-                    applyCondition = VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply,
-                    scaleFactor = 1
-                }
-            };
-            headChop.globalScaleFactor = 1;
-
-            _proxyHead = obj.transform;
-
-            // TODO - lock proxy scale to head scale in animation?
-
-            return obj.transform;
         }
     }
 }

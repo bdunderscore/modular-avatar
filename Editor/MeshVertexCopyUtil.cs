@@ -37,6 +37,8 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal static void TransferShapes(Mesh dst, Mesh src, int[] newToOrig)
         {
+            dst.ClearBlendShapes();
+
             var newVertCount = newToOrig.Length;
             var o_pos = new Vector3[src.vertexCount];
             var n_pos = new Vector3[newVertCount];
