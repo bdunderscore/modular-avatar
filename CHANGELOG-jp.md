@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 
 ### Fixed
+- [#2023] マージ先の設定が不足している場合に `ModularAvatarMergeArmature.MapBone` で例外が発生しうる問題を修正
 - [#2019] `Visible Head Accessory` のメッシュ処理が正しく行われない問題を修正
 - [#2007] Unity 6000.0との互換性を改善
 - [#1947] オブジェクトが短距離移動する際に、Scale Adjusterのプレビューが更新されないバグを修正
