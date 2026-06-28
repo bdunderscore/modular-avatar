@@ -95,7 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private Transform _avatarTransform;
 
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
-        private List<Transform> _headChopTargets = new List<Transform>();
+        private readonly HashSet<Transform> _headChopTargets = new();
 
         public VisibleHeadAccessoryProcessor(BuildContext context)
         {
@@ -151,11 +151,12 @@ namespace nadena.dev.modular_avatar.core.editor
                     var headChop = headChopObj.AddComponent<VRCHeadChop>();
 
                     var bones = new VRCHeadChop.HeadChopBone[_headChopTargets.Count];
-                    for (int i = 0; i < _headChopTargets.Count; i++)
+                    var i = 0;
+                    foreach (var t in _headChopTargets)
                     {
-                        bones[i] = new VRCHeadChop.HeadChopBone
+                        bones[i++] = new VRCHeadChop.HeadChopBone
                         {
-                            transform = _headChopTargets[i],
+                            transform = t,
                             applyCondition = VRCHeadChop.HeadChopBone.ApplyCondition.AlwaysApply,
                             scaleFactor = 1
                         };
