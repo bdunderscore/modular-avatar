@@ -93,8 +93,6 @@ namespace nadena.dev.modular_avatar.core.editor
         private VisibleHeadAccessoryValidation _validator;
         
         private Transform _avatarTransform;
-        private ImmutableHashSet<Transform> _activeBones => _validator.ActiveBones;
-        private Transform _headBone => _validator.HeadBone;
 
         private HashSet<Transform> _visibleBones = new HashSet<Transform>();
         private List<Transform> _headChopTargets = new List<Transform>();
