@@ -100,6 +100,22 @@ namespace nadena.dev.modular_avatar.core
 
             BlendshapeSyncUpdateLoop.Register(this);
             RuntimeUtil.delayCall(Rebind);
+#if UNITY_EDITOR
+            // limit the curve to linear curve since we cannot support non-liner curve reliably
+            foreach (var blendshapeBinding in Bindings)
+            {
+                var remapCurve = blendshapeBinding.RemapCurve;
+                if (remapCurve != null)
+                {
+                    for (int i = 0; i < remapCurve.length; i++)
+                    {
+                        UnityEditor.AnimationUtility.SetKeyBroken(remapCurve, i, true);
+                        UnityEditor.AnimationUtility.SetKeyLeftTangentMode(remapCurve, i, UnityEditor.AnimationUtility.TangentMode.Linear);
+                        UnityEditor.AnimationUtility.SetKeyRightTangentMode(remapCurve, i, UnityEditor.AnimationUtility.TangentMode.Linear);
+                    }
+                }
+            }
+#endif
         }
 
         private void Awake()
