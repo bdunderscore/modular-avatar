@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
-- [#2029] Added warnings to `Sync Parameter Sequence` when the configured primary platform has changed since the previous primary-platform build, or when building a secondary platform without a prior primary-platform record.
+- [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
 - [#2031] Added `Vertex Filter - By UV Tile`
 
 ### Fixed

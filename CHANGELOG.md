@@ -11,18 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2006] Add a debug logging feature for Sync Parameter Sequence
-- [#2029] Added warnings to `Sync Parameter Sequence` when the configured primary platform has changed since the previous primary-platform build, or when building a secondary platform without a prior primary-platform record.
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
-- [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
-- [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 - [#2031] Added `Vertex Filter - By UV Tile`
+- [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters 
+- [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
+- [#2006] Add a debug logging feature for Sync Parameter Sequence
+- [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 
 ### Fixed
+- [#2007] Improved compatibility with Unity 6000.0
 - [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
 - [#2024] Fixed an issue where `Merge Armature` could lose track of some in-use armature slots after memory defragmentation, potentially causing incorrect transform updates
 - [#2023] Fixed a potential exception in `ModularAvatarMergeArmature.MapBone` when merge targets are missing
-- [#2007] Improved compatibility with Unity 6000.0
 - [#1947] Fixed an issue where the scale adjuster preview would not update properly when objects move a small distance.
 - [#1994] Improved performance of `Mesh Cutter` previews and builds
 - [#1922] Fixed an issue where the avatar's original first FX layer would be disabled in MMD worlds when reactive
