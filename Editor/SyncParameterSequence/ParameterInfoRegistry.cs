@@ -40,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
             return convertedInfo;
         }
 
-        private static string? GetBlueprintId(VRCAvatarDescriptor descriptor)
+        internal static string? GetBlueprintId(VRCAvatarDescriptor descriptor)
         {
             var pipelineManager = descriptor.GetComponent<PipelineManager>();
             var blueprintId = pipelineManager?.blueprintId;

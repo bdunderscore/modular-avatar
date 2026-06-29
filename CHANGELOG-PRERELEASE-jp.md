@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2028] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
+- [#2029] `Sync Parameter Sequence` で、前回のプライマリプラットフォームビルド以降に設定されたプライマリプラットフォームが変更されている場合、またはプライマリプラットフォームの記録がない状態でセカンダリプラットフォームをビルドする場合に警告を追加しました。
 
 ### Fixed
 - [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正

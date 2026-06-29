@@ -9,6 +9,7 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.vrchat;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using static nadena.dev.modular_avatar.core.ModularAvatarSyncParameterSequence;
 
 namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
@@ -66,11 +67,72 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
                 return;
             }
 
-            var primaryPlatform = components[0].PrimaryPlatform;
+            var component = components[0];
+            var primaryPlatform = component.PrimaryPlatform;
+            var currentPlatform = CurrentPlatform;
+            var isPrimaryPlatform = currentPlatform == primaryPlatform;
             debugContext?.SetPrimaryPlatform(primaryPlatform);
 
+            WarnIfPrimaryPlatformChanged(component, targetDesc, primaryPlatform);
+            WarnIfNoPrimaryRecordAndSecondary(component, targetDesc, target, isPrimaryPlatform);
+
             ParameterInfoRegistry.Instance.NormalizeParameters(context, targetDesc,
-                target, CurrentPlatform == primaryPlatform, debugContext);
+                target, isPrimaryPlatform, debugContext);
+        }
+
+        private static void WarnIfPrimaryPlatformChanged(
+            ModularAvatarSyncParameterSequence component,
+            VRCAvatarDescriptor targetDesc,
+            Platform primaryPlatform)
+        {
+            var blueprintId = ParameterInfoRegistry.GetBlueprintId(targetDesc);
+            if (blueprintId == null) return;
+
+            var record = ParameterInfoStore.Instance.GetRecordForBlueprintId(blueprintId);
+            if (record.PrimaryPlatformRecord == null) return;
+
+            var previousPlatform = PlatformFromBuildTarget(record.PrimaryPlatformRecord.Target);
+            if (previousPlatform != primaryPlatform)
+            {
+                BuildReport.ReportingObject(component, () =>
+                    BuildReport.Log(ErrorSeverity.NonFatal,
+                        "validation.syncparamsequence.primary_platform_changed",
+                        primaryPlatform,
+                        record.PrimaryPlatformRecord.Target));
+            }
+        }
+
+        private static void WarnIfNoPrimaryRecordAndSecondary(
+            ModularAvatarSyncParameterSequence component,
+            VRCAvatarDescriptor targetDesc,
+            BuildTarget target,
+            bool isPrimaryPlatform)
+        {
+            if (isPrimaryPlatform) return;
+
+            var blueprintId = ParameterInfoRegistry.GetBlueprintId(targetDesc);
+            if (blueprintId == null) return;
+
+            var record = ParameterInfoStore.Instance.GetRecordForBlueprintId(blueprintId);
+            if (record.PrimaryPlatformRecord != null) return;
+
+            BuildReport.ReportingObject(component, () =>
+                BuildReport.Log(ErrorSeverity.NonFatal,
+                    "validation.syncparamsequence.no_primary_record",
+                    target,
+                    component.PrimaryPlatform));
+        }
+
+        private static Platform? PlatformFromBuildTarget(BuildTarget buildTarget)
+        {
+            switch (buildTarget)
+            {
+                case BuildTarget.Android: return Platform.Android;
+                case BuildTarget.iOS: return Platform.iOS;
+                case BuildTarget.StandaloneWindows64: return Platform.PC;
+                case BuildTarget.StandaloneLinux64: return Platform.PC; // for CI
+                default: return null;
+            }
         }
     }
 }
