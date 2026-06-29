@@ -70,9 +70,17 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
             var component = components[0];
             var primaryPlatform = component.PrimaryPlatform;
             var currentPlatform = CurrentPlatform;
+
+            if (currentPlatform == null)
+            {
+                debugContext?.Append(
+                    $"Skipped: Current platform ({target}) is not supported for Sync Parameter Sequence");
+                return;
+            }
+            
             var isPrimaryPlatform = currentPlatform == primaryPlatform;
             debugContext?.SetPrimaryPlatform(primaryPlatform);
-
+            
             WarnIfPrimaryPlatformChanged(component, targetDesc, primaryPlatform);
             WarnIfNoPrimaryRecordAndSecondary(component, targetDesc, target, isPrimaryPlatform);
 
