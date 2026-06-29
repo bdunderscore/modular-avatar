@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2000] Fixed incorrect remap curve calculation in `MA Blendshape Sync`
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
 - [#2017] Fixed potential exception in reactive component processing
-<<<<<<< HEAD
 - [#2026] Fixed `MA Blendshape Sync` editor preview stopping early when one binding's target mesh is missing
 - [#2027] Fixed a division-by-zero in mesh retargeting when the new root bone has a zero-scale axis
 - [#2027] Fixed an off-by-one error in reactive object constant analysis that could leave dead condition groups unreduced
@@ -38,8 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed a null reference exception when a merge armature component was disabled before the armature lock controller finished initializing.
   - Fixed an issue that could result in suboptimal memory usage.
 - [#2028] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
-=======
->>>>>>> e4bbe48c (feat: add UV range selection component)
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
