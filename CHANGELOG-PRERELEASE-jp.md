@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0-beta.0] - [2026-06-29]
+
+### Added
 - [#2028] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
 - [#2029] `Sync Parameter Sequence` で設定ミスがありそうな場合に注意を出す処理を追加
 - [#2031] `Vertex Filter - By UV Tile` を追加
@@ -26,14 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - アーマチュアロックコントローラーの初期化が完了する前にコンポーネントが無効化された際の NullReferenceException を修正
   - メモリ使用率が最適でなくなる可能性のある問題を修正
 - [#2028] `MA Bone Proxy` でエディットモード時の CPU 使用率が上昇する可能性のある問題を修正
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.18.0-alpha.1] - [2026-06-21]
 

@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0-beta.0] - [2026-06-29]
+
+### Added
 - [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 - [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
 - [#2031] Added `Vertex Filter - By UV Tile`
@@ -26,14 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed a null reference exception when a merge armature component was disabled before the armature lock controller finished initializing.
   - Fixed an issue that could result in suboptimal memory usage.
 - [#2028] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.18.0-alpha.1] - [2026-06-21]
 
