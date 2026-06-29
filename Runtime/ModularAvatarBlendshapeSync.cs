@@ -13,6 +13,7 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference ReferenceMesh;
         public string Blendshape;
         public string LocalBlendshape;
+        [ui.Curve(0, 0, 1, 1)]
         public AnimationCurve RemapCurve;
 
         public bool Equals(BlendshapeBinding other)

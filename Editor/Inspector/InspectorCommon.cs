@@ -31,4 +31,18 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUILayout.HelpBox(Localization.S("hint.bad_vrcsdk"), MessageType.Error);
         }
     }
+
+    [CustomPropertyDrawer(typeof(ui.CurveAttribute))]
+    internal class CurveDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var attribute = (ui.CurveAttribute)this.attribute;
+            if (property.propertyType != SerializedPropertyType.AnimationCurve)
+                return;
+            EditorGUI.CurveField(position, property, Color.green,
+                new Rect(attribute.PosX, attribute.PosY, attribute.RangeX, attribute.RangeY),
+                label);
+        }
+    }
 }
