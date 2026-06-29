@@ -208,13 +208,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 var val = remapCurve.Evaluate(t) * 100f;
                 var tPlus = Mathf.Clamp01(t + epsilon);
                 var tMinus = Mathf.Clamp01(t - epsilon);
-                var valPlus = remapCurve.Evaluate(tPlus);
-                var valMinus = remapCurve.Evaluate(tMinus);
-                var slope = (valPlus - valMinus) / (tPlus - tMinus);
+                var valPlus = remapCurve.Evaluate(tPlus) * 100f;
+                var valMinus = remapCurve.Evaluate(tMinus) * 100f;
+                var slopeLeft = (val - valMinus) / (t - tMinus) / 100;
+                var slopeRight = (valPlus - val) / (tPlus - t) / 100;
+                if (float.IsNaN(slopeLeft)) slopeLeft = 1;
+                if (float.IsNaN(slopeRight)) slopeRight = 1;
 
                 key.value = val;
-                key.inTangent *= slope;
-                key.outTangent *= slope;
+                key.inTangent *= key.inTangent > 0 ? slopeLeft : slopeRight;
+                key.outTangent *= key.outTangent < 0 ? slopeLeft : slopeRight;
             }
 
             return new AnimationCurve(keys);
