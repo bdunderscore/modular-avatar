@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 - [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 - [#2028] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
+- [#2031] `Vertex Filter - By UV Tile` を追加
 
 ### Fixed
 - [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正

@@ -1,4 +1,4 @@
-﻿#group-box {
+#group-box {
     margin-top: 4px;
     margin-bottom: 4px;
     padding: 4px;
@@ -124,4 +124,42 @@ ListView {
 
 HelpBox > Label {
     flex-grow: 1;
+}
+
+.uvtile-toggle {
+    flex-grow: 0;
+    margin: 0 2px 0 0;
+}
+
+.uvtile-op {
+    width: 38px;
+    flex-grow: 0;
+    margin: 0 2px 0 0;
+}
+
+.uvtile-value {
+    flex-grow: 1;
+    min-width: 50px;
+    margin: 0;
+}
+
+.uvtile-row {
+    justify-content: flex-start;
+}
+
+.uvtile-label {
+    flex-grow: 0;
+    margin: 0 4px;
+    -unity-font-style: bold;
+}
+
+.uvtile-section {
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.uvtile-value.uvtile-disabled .unity-text-element,
+.uvtile-op.uvtile-disabled .unity-text-element,
+.uvtile-op.uvtile-disabled .unity-base-popup-field__arrow {
+    display: none;
 }

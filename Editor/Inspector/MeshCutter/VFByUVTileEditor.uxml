@@ -1,0 +1,48 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement class="uvtile-section">
+        <ui:VisualElement class="horizontal uvtile-row">
+            <ed:FloatField name="f-u-min" binding-path="m_uMin" label=""
+                           class="uvtile-value"/>
+            <ui:DropdownField name="f-u-min-op" choices="&lt;,&lt;="
+                              class="uvtile-op"/>
+            <ui:Toggle name="f-use-u-min" binding-path="m_useUMin" label=""
+                       class="uvtile-toggle"/>
+            <ui:Label text="U" class="uvtile-label"/>
+            <ui:Toggle name="f-use-u-max" binding-path="m_useUMax" label=""
+                       class="uvtile-toggle"/>
+            <ui:DropdownField name="f-u-max-op" choices="&lt;,&lt;="
+                              class="uvtile-op"/>
+            <ed:FloatField name="f-u-max" binding-path="m_uMax" label=""
+                           class="uvtile-value"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="horizontal uvtile-row">
+            <ed:FloatField name="f-v-min" binding-path="m_vMin" label=""
+                           class="uvtile-value"/>
+            <ui:DropdownField name="f-v-min-op" choices="&lt;,&lt;="
+                              class="uvtile-op"/>
+            <ui:Toggle name="f-use-v-min" binding-path="m_useVMin" label=""
+                       class="uvtile-toggle"/>
+            <ui:Label text="V" class="uvtile-label"/>
+            <ui:Toggle name="f-use-v-max" binding-path="m_useVMax" label=""
+                       class="uvtile-toggle"/>
+            <ui:DropdownField name="f-v-max-op" choices="&lt;,&lt;="
+                              class="uvtile-op"/>
+            <ed:FloatField name="f-v-max" binding-path="m_vMax" label=""
+                           class="uvtile-value"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+
+    <ed:PropertyField name="f-invert" binding-path="m_invert"
+                      label="reactive_object.delete-mesh-by-uvtile.invert"
+                      class="ndmf-tr"/>
+    <ed:PropertyField name="f-selection-mode" binding-path="m_selectionMode"
+                      label="reactive_object.delete-mesh.selection-mode"
+                      class="ndmf-tr"/>
+    <ed:PropertyField name="f-uv-channel" binding-path="m_uvChannel"
+                      label="reactive_object.delete-mesh-by-uvtile.uv-channel"
+                      class="ndmf-tr"/>
+
+    <ma:LanguageSwitcherElement/>
+</UXML>

@@ -1,4 +1,4 @@
-﻿# Mesh Cutter
+# Mesh Cutter
 
 ![Mesh Cutter](mesh-cutter.png)
 
@@ -38,6 +38,7 @@ Mesh Cutterコンポーネントの「頂点フィルターを追加」ボタン
 - [By Axis](./by-axis.md) - 平面の片側であるかどうかでメッシュの一部を選択できます。
 - [By Bone](./by-bone.md) - 特定のボーンに対するボーンウェイトに基づいてメッシュの一部を選択できます。
 - [By Blendshape](./by-shape.md) - 特定のブレンドシェイプがアクティブになったときに頂点が動くかどうかでメッシュの一部を選択できます。
+- [By UV Tile](./by-uv-tile.md) - UV 座標が指定された矩形領域内にあるかに基づいてメッシュの一部を選択できます。
 
 ## 複数の頂点フィルターの使用
 
