@@ -1,4 +1,4 @@
-﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements">
     <ed:PropertyField name="f-cutter-object" binding-path="m_object" class="hidden"/>
 
     <ui:VisualElement class="horizontal disable-while-editing-mask-texture">
@@ -20,7 +20,12 @@
 
     <ui:VisualElement class="horizontal">
         <ed:PropertyField name="f-selection-mode" binding-path="m_selectionMode"
-                          label="reactive_object.delete-mesh.selection-mode" class="ndmf-tr"/>
+                            label="reactive_object.delete-mesh.selection-mode" class="ndmf-tr"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="horizontal">
+        <ed:PropertyField name="f-uv-channel" binding-path="m_uvChannel"
+                          label="reactive_object.delete-mesh.uv-channel" class="ndmf-tr"/>
     </ui:VisualElement>
 
     <ui:HelpBox text="reactive_object.delete-mesh-by-mask.hint-install-mask-editor"

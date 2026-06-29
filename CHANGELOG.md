@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 - [#2031] Added `Vertex Filter - By UV Tile`
+- [#2032] Added support for selecting alternate UV channels in `Vertex Filter - By Mask`
 - [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters 
 - [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
 - [#2006] Add a debug logging feature for Sync Parameter Sequence

@@ -22,11 +22,13 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly int _materialIndex;
         private readonly Texture2D _maskTexture;
         private readonly Hash128 _maskTextureContentHash;
+        private readonly ByMaskMode _deleteMode;
         private readonly VertexSelectionMode _selectionMode;
+        private readonly int _uvChannel;
 
         public int MaterialIndex => _materialIndex;
         public Texture2D MaskTexture => _maskTexture;
-        public ByMaskMode DeleteMode { get; }
+        public ByMaskMode DeleteMode => _deleteMode;
 
         private Texture2D? _editingTexture;
         private Hash128 _editingTextureContentHash;
@@ -35,20 +37,24 @@ namespace nadena.dev.modular_avatar.core.editor
             int materialIndex,
             Texture2D maskTexture,
             ByMaskMode deleteMode,
-            VertexSelectionMode selectionMode = VertexSelectionMode.AnyVertex
+            VertexSelectionMode selectionMode = VertexSelectionMode.AnyVertex,
+            int uvChannel = 0
         )
         {
             _materialIndex = materialIndex;
             _maskTexture = maskTexture;
             _maskTextureContentHash = maskTexture == null ? default : maskTexture.imageContentsHash;
-            DeleteMode = deleteMode;
+            _deleteMode = deleteMode;
             _selectionMode = selectionMode;
+            _uvChannel = math.clamp(uvChannel, 0, 7);
         }
 
         public VertexFilterByMask(VertexFilterByMaskComponent component, ComputeContext context) : this(
-            component.MaterialIndex, component.MaskTexture, component.DeleteMode, component.SelectionMode)
+            component.MaterialIndex, component.MaskTexture, component.DeleteMode, component.SelectionMode,
+            component.UVChannel)
         {
-            context.Observe(component, c => (c.MaterialIndex, c.MaskTexture, c.DeleteMode, c.SelectionMode));
+            context.Observe(component,
+                c => (c.MaterialIndex, c.MaskTexture, c.DeleteMode, c.SelectionMode, c.UVChannel));
             if (component.MaskTexture != null)
             {
                 context.Observe(component.MaskTexture, tex => tex.imageContentsHash);
@@ -61,13 +67,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             if (_selectionMode == VertexSelectionMode.Centroid)
             {
-                if (!job.MeshData.HasVertexAttribute(VertexAttribute.TexCoord0)) return default;
-
                 var maskFilter = BuildMaskUVFilter();
                 if (maskFilter == null) return default;
 
                 return job.MarkPrimitivesFromUVFilter(this, maskFilter.Value, _selectionMode, submesh,
-                    selectedPrimitives);
+                    selectedPrimitives, _uvChannel);
             }
 
             return job.MarkPrimitivesFromVertexIndices(
@@ -92,7 +96,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var mesh = job.OriginalMesh;
             var vertexMask = new NativeArray<bool>(mesh.vertexCount, Allocator.TempJob);
 
-            if (_maskTexture == null || !job.MeshData.HasVertexAttribute(VertexAttribute.TexCoord0))
+            var uvAttr = (VertexAttribute)((int)VertexAttribute.TexCoord0 + _uvChannel);
+            if (_maskTexture == null || !job.MeshData.HasVertexAttribute(uvAttr))
                 return (vertexMask, default);
 
             byte? deleteRGB = DeleteMode switch
@@ -136,7 +141,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var pixelData = new NativeArray<Color32>(targetTexture.GetPixels32(), Allocator.TempJob);
 
                 JobHandle uvDep = default;
-                var uvData = job.GetUV(ref uvDep, 0);
+                var uvData = job.GetUV(ref uvDep, _uvChannel);
 
                 var jobHandle = new MarkVertexByMaskJob
                 {
@@ -312,7 +317,8 @@ namespace nadena.dev.modular_avatar.core.editor
                    && filter._editingTexture == _editingTexture
                    && filter._editingTextureContentHash == _editingTextureContentHash
                    && filter.DeleteMode == DeleteMode
-                   && filter._selectionMode == _selectionMode;
+                   && filter._selectionMode == _selectionMode
+                   && filter._uvChannel == _uvChannel;
         }
 
         public override bool Equals(object obj)
@@ -326,12 +332,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 _materialIndex,
                 _maskTexture, _maskTextureContentHash,
                 _editingTexture, _editingTextureContentHash,
-                DeleteMode, _selectionMode);
+                DeleteMode, _selectionMode, _uvChannel);
         }
 
         public override string ToString()
         {
-            return $"{_materialIndex}_{_maskTexture?.GetInstanceID()}_{DeleteMode}_{_selectionMode}";
+            return $"{_materialIndex}_{_maskTexture?.GetInstanceID()}_{DeleteMode}_{_selectionMode}_uv{_uvChannel}";
         }
     }
 }

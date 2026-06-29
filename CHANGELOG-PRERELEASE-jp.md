@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2028] 自動 Int パラメーター値が VRChat の 0-255 範囲を超える場合に、範囲外の値を黙って割り当てる代わりに致命的なビルドエラーを報告する機能を追加
 - [#2029] `Sync Parameter Sequence` で設定ミスがありそうな場合に注意を出す処理を追加
 - [#2031] `Vertex Filter - By UV Tile` を追加
+- [#2032] `Vertex Filter - By Mask` で、UVタイルの範囲を指定して頂点を選択できるようになった
 
 ### Fixed
 - [#2025] Reactive Component の `IsConstantActive` 解析で、反転された定数条件が誤判定される問題を修正
