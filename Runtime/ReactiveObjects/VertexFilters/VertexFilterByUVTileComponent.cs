@@ -10,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
     [HelpURL("https://modular-avatar.nadena.dev/docs/reference/reaction/mesh-cutter?lang=auto")]
     public class VertexFilterByUVTileComponent : AvatarTagComponent, IMeshSelectorBehavior
     {
-        [SerializeField] internal int m_uvChannel;
+        [SerializeField, Range(0, 7)] internal int m_uvChannel;
         [SerializeField] internal bool m_useUMin;
         [SerializeField] internal bool m_uMinInclusive;
         [SerializeField] internal float m_uMin;
