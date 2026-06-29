@@ -296,6 +296,8 @@
   "ma_info.param_usage_ui.free_space": "사용 가능 영역 ({0} 비트)",
   "ma_info.param_usage_ui.exceeded_space": "초과 영역 ({0} 비트)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 비트 사용 중)",
+  "ma_info.param_usege_ui.parameter_type":  "type : {0} ({1} bits)",
+  "ma_info.param_usage_ui.is_name_deferred": "Auto rename : {0}",
   "ma_info.param_usage_ui.no_data": "[ 데이터 없음 ]",
   "reactive_object.inverse": "조건 반전",
   "reactive_object.mesh_cutter.object": "대상 렌더러",
