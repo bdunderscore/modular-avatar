@@ -338,7 +338,7 @@
   "reactive_object.delete-mesh-by-bone.bone.tooltip": "The bone to filter vertices by. Vertices weighted to this bone will be selected.",
   "reactive_object.delete-mesh-by-bone.threshold": "Weight Threshold",
   "reactive_object.delete-mesh-by-bone.threshold.tooltip": "Minimum bone weight required for a vertex to be selected (0.0 to 1.0)",
-  "reactive_object.delete-mesh-by-uvtile.uv-channel": "UV Channel",
+  "reactive_object.delete-mesh.uv-channel": "UV Channel",
   "reactive_object.delete-mesh-by-uvtile.invert": "Invert",
   "reactive_object.material-setter.set-to": "Set material to: ",
   "reactive_object.material-swap.root": "Target Root",

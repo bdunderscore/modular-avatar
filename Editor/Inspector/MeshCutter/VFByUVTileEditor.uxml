@@ -41,8 +41,6 @@
                       label="reactive_object.delete-mesh.selection-mode"
                       class="ndmf-tr"/>
     <ed:PropertyField name="f-uv-channel" binding-path="m_uvChannel"
-                      label="reactive_object.delete-mesh-by-uvtile.uv-channel"
+                      label="reactive_object.delete-mesh.uv-channel"
                       class="ndmf-tr"/>
-
-    <ma:LanguageSwitcherElement/>
 </UXML>

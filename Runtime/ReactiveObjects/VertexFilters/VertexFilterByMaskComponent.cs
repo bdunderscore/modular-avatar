@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -21,6 +21,7 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
         [SerializeField] internal Texture2D m_maskTexture;
         [SerializeField] internal ByMaskMode m_deleteMode;
         [SerializeField] internal VertexSelectionMode m_selectionMode = VertexSelectionMode.AnyVertex;
+        [SerializeField, Range(0, 7)] internal int m_uvChannel;
 
         public int MaterialIndex
         {
@@ -44,6 +45,12 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
         {
             get => m_selectionMode;
             set => m_selectionMode = value;
+        }
+
+        public int UVChannel
+        {
+            get => m_uvChannel;
+            set => m_uvChannel = Mathf.Clamp(value, 0, 7);
         }
     }
 }

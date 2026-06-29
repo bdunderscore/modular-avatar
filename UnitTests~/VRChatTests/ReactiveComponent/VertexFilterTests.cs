@@ -101,6 +101,32 @@ public class VertexFilterTests : TestBase
     }
 
     [Test]
+    public void VertexFilterByMaskAlternateUVChannelTest()
+    {
+        var renderer = CreateRoot("MaskFilterUVChannelTestObject").AddComponent<MeshRenderer>();
+        var mesh = CreateUvTriangleMesh(
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            UvPrim(new Vector2(0.25f, 0.25f)),
+            UvPrim(new Vector2(0.25f, 0.25f))
+        );
+
+        // Channel 1 (TexCoord1) has all-white UVs, opposite of channel 0.
+        var uv1 = new Vector2[mesh.vertexCount];
+        for (int i = 0; i < uv1.Length; i++) uv1[i] = new Vector2(0.75f, 0.75f);
+        mesh.SetUVs(1, uv1);
+
+        var mask = CreateMaskTexture(true, TextureWrapMode.Clamp);
+
+        var filterChannel0 = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack, VertexSelectionMode.AnyVertex, 0);
+        var filterChannel1 = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack, VertexSelectionMode.AnyVertex, 1);
+
+        CollectionAssert.AreEqual(new[] { true, true, true }, RunFilterPrimitives(filterChannel0, renderer, mesh),
+            "Channel 0 should select primitives with black UVs");
+        CollectionAssert.AreEqual(new[] { false, false, false }, RunFilterPrimitives(filterChannel1, renderer, mesh),
+            "Channel 1 should not select primitives with white UVs");
+    }
+
+    [Test]
     public void ANDFilter_DoesNotClearFilteredArray()
     {
         int primCount = 5;

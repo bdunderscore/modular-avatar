@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 - [#2031] `Vertex Filter - By UV Tile` を追加
+- [#2032] `Vertex Filter - By Mask` で、UVタイルの範囲を指定して頂点を選択できるようになった
 - [#2005] Vertex Filter で、三角面をすべての頂点がヒットしたとき、あるいは重点がヒットした時に選択できるようになった
 - [#2006] `Sync Parameter Sequence` にデバッグログ機能を追加
 - [#2029] `Sync Parameter Sequence` で設定ミスがありそうな場合に注意を出す処理を追加

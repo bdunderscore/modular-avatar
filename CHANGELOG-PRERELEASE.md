@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 - [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
 - [#2031] Added `Vertex Filter - By UV Tile`
+- [#2032] Added support for selecting alternate UV channels in `Vertex Filter - By Mask`
 
 ### Fixed
 - [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
