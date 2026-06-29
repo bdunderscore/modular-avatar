@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 Changes between prerelease versions will be documented in `CHANGELOG-PRERELEASE.md` instead.
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2006] Add a debug logging feature for Sync Parameter Sequence
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 - [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
+- [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
 
 ### Fixed
 - [#2025] Fixed reactive `IsConstantActive` analysis for inverted constant conditions
@@ -27,10 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2000] Fixed incorrect remap curve calculation in `MA Blendshape Sync`
 - [#2019] Fixed incorrect mesh processing in `Visible Head Accessory`
 - [#2017] Fixed potential exception in reactive component processing
-- [#2017] Fixed potential exception in reactive component processing
 - [#2026] Fixed `MA Blendshape Sync` editor preview stopping early when one binding's target mesh is missing
 - [#2027] Fixed a division-by-zero in mesh retargeting when the new root bone has a zero-scale axis
 - [#2027] Fixed an off-by-one error in reactive object constant analysis that could leave dead condition groups unreduced
+- [#2028] Minor fixes for the `MA Merge Armature` edit-mode pose sync logic:
+  - Fixed a null reference exception when a merge armature component was disabled before the armature lock controller finished initializing.
+  - Fixed an issue that could result in suboptimal memory usage.
+- [#2028] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.

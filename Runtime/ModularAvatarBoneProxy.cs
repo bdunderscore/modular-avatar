@@ -66,6 +66,7 @@ namespace nadena.dev.modular_avatar.core
     public class ModularAvatarBoneProxy : AvatarTagComponent
     {
         private Transform _targetCache;
+        private bool _subscribedToHierarchyChanges;
 
         public Transform target
         {
@@ -73,8 +74,7 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (_targetCache != null) return _targetCache;
                 _targetCache = UpdateDynamicMapping();
-                RuntimeUtil.OnHierarchyChanged -= ClearCache;
-                RuntimeUtil.OnHierarchyChanged += ClearCache;
+                EnsureSubscribedToHierarchyChanges();
                 return _targetCache;
             }
             set
@@ -87,9 +87,17 @@ namespace nadena.dev.modular_avatar.core
                     RuntimeUtil.MarkDirty(this);
                 }
 
-                RuntimeUtil.OnHierarchyChanged -= ClearCache;
-                RuntimeUtil.OnHierarchyChanged += ClearCache;
+                EnsureSubscribedToHierarchyChanges();
             }
+        }
+
+        private void EnsureSubscribedToHierarchyChanges()
+        {
+            if (_subscribedToHierarchyChanges) return;
+
+            RuntimeUtil.OnHierarchyChanged -= ClearCache;
+            RuntimeUtil.OnHierarchyChanged += ClearCache;
+            _subscribedToHierarchyChanges = true;
         }
 
         public HumanBodyBones boneReference = HumanBodyBones.LastBone;
@@ -125,6 +133,7 @@ namespace nadena.dev.modular_avatar.core
             }
 
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
+            _subscribedToHierarchyChanges = false;
         }
 
         internal void Update()
@@ -167,6 +176,7 @@ namespace nadena.dev.modular_avatar.core
         {
             base.OnDestroy();
             RuntimeUtil.OnHierarchyChanged -= ClearCache;
+            _subscribedToHierarchyChanges = false;
         }
 
         private Transform UpdateDynamicMapping()
