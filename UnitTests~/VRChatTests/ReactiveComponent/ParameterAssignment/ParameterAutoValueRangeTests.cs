@@ -14,7 +14,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
     public class ParameterAutoValueRangeTests : TestBase
     {
         [Test]
-        public void AutoAssignedIntValues_AreClampedToVrcRange()
+        public void AutoAssignedIntValues_StayWithinVrcRange_AndEmitErrorWhenExhausted()
         {
             var root = CreateRoot("Root");
             var descriptor = root.GetComponent<VRCAvatarDescriptor>();
