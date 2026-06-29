@@ -107,6 +107,10 @@ namespace nadena.dev.modular_avatar.core
                 var remapCurve = blendshapeBinding.RemapCurve;
                 if (remapCurve != null)
                 {
+                    if (remapCurve.length <= 1) continue;
+                    // We ensure key at time = 0 and time = 1
+                    if (remapCurve[0].time > 0) remapCurve.AddKey(0, remapCurve[0].value);
+                    if (remapCurve[remapCurve.length - 1].time < 1) remapCurve.AddKey(1, remapCurve[remapCurve.length - 1].value);
                     for (int i = 0; i < remapCurve.length; i++)
                     {
                         UnityEditor.AnimationUtility.SetKeyBroken(remapCurve, i, true);
