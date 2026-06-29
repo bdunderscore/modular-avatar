@@ -87,18 +87,26 @@ public class VertexFilterByUVTileTest : TestBase
         bool useVMin, float vMin, bool useVMax, float vMax,
         bool invert = false,
         VertexSelectionMode mode = VertexSelectionMode.AnyVertex,
-        int uvChannel = 0)
+        int uvChannel = 0,
+        bool uMinInclusive = true,
+        bool uMaxInclusive = true,
+        bool vMinInclusive = true,
+        bool vMaxInclusive = true)
     {
         var component = avatarRoot.AddComponent<VertexFilterByUVTileComponent>();
         component.UVChannel = uvChannel;
         component.UseUMin = useUMin;
         component.UMin = uMin;
+        component.UMinInclusive = uMinInclusive;
         component.UseUMax = useUMax;
         component.UMax = uMax;
+        component.UMaxInclusive = uMaxInclusive;
         component.UseVMin = useVMin;
         component.VMin = vMin;
+        component.VMinInclusive = vMinInclusive;
         component.UseVMax = useVMax;
         component.VMax = vMax;
+        component.VMaxInclusive = vMaxInclusive;
         component.Invert = invert;
         component.SelectionMode = mode;
         return component;
@@ -135,7 +143,7 @@ public class VertexFilterByUVTileTest : TestBase
     [Test]
     public void TestSingleBoundUMinInclusive()
     {
-        // MakeComponent defaults all inclusive to false, so set manually
+        // Explicitly exercise the inclusive flag path
         var component = avatarRoot.AddComponent<VertexFilterByUVTileComponent>();
         component.UseUMin = true;
         component.UMinInclusive = true;
@@ -315,14 +323,19 @@ public class VertexFilterByUVTileTest : TestBase
         // Filter on UV channel 0 (default): U in [0,0.5], V in [0,0.5]
         var component0 = go.AddComponent<VertexFilterByUVTileComponent>();
         component0.UseUMin = true;
+        component0.UMinInclusive = true;
         component0.UMin = 0f;
         component0.UseUMax = true;
+        component0.UMaxInclusive = true;
         component0.UMax = 0.5f;
         component0.UseVMin = true;
+        component0.VMinInclusive = true;
         component0.VMin = 0f;
         component0.UseVMax = true;
+        component0.VMaxInclusive = true;
         component0.VMax = 0.5f;
         component0.UVChannel = 0;
+        component0.SelectionMode = VertexSelectionMode.Centroid;
         var filter0 = new VertexFilterByUVTile(component0, ComputeContext.NullContext);
         var filtered0 = RunFilterPrimitives(filter0, r, mesh);
 
@@ -330,14 +343,19 @@ public class VertexFilterByUVTileTest : TestBase
         // So U in [0,0.5] on channel 1 selects nothing
         var component1 = go.AddComponent<VertexFilterByUVTileComponent>();
         component1.UseUMin = true;
+        component1.UMinInclusive = true;
         component1.UMin = 0f;
         component1.UseUMax = true;
+        component1.UMaxInclusive = true;
         component1.UMax = 0.5f;
         component1.UseVMin = true;
+        component1.VMinInclusive = true;
         component1.VMin = 0f;
         component1.UseVMax = true;
+        component1.VMaxInclusive = true;
         component1.VMax = 0.5f;
         component1.UVChannel = 1;
+        component1.SelectionMode = VertexSelectionMode.Centroid;
         var filter1 = new VertexFilterByUVTile(component1, ComputeContext.NullContext);
         var filtered1 = RunFilterPrimitives(filter1, r, mesh);
 
