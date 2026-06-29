@@ -193,10 +193,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal static AnimationCurve MapCurve(AnimationCurve curve, AnimationCurve? remapCurve)
         {
-            if (remapCurve == null || remapCurve.length < 2)
-            {
-                return curve;
-            }
+            if (remapCurve == null || remapCurve.length < 2 || 
+                remapCurve.length == 2 
+                && remapCurve[0].time == 0 && remapCurve[0].value == 0 
+                && remapCurve[1].time == 1 && remapCurve[1].value == 1) return curve;
 
             const float epsilon = 0.005f; // ~200fps
 
