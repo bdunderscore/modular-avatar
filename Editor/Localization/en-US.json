@@ -178,6 +178,12 @@
   "error.syncparamsequence.type_mismatch": "[MA-0016] Cross-platform parameter type mismatch",
   "error.syncparamsequence.type_mismatch:description": "Parameter {0} has multiple types: {1} on {2} != {3} on {4} (primary platform)",
   "error.syncparamsequence.type_mismatch:hint": "Ensure that the parameter type is the same on all platforms. Try rebuilding the {4} variant to ensure that parameter changes take effect.",
+  "validation.syncparamsequence.primary_platform_changed": "[MA-0027] Sync Parameter Sequence primary platform changed",
+  "validation.syncparamsequence.primary_platform_changed:description": "The primary platform is set to {0}, but the recorded primary platform build used {1}.",
+  "validation.syncparamsequence.primary_platform_changed:hint": "Check whether all of the Sync Parameter Sequence components for different variants of the same avatar use the same primary platform setting.",
+  "validation.syncparamsequence.no_primary_record": "[MA-0026] No primary platform parameter record found",
+  "validation.syncparamsequence.no_primary_record:description": "There is no saved record of a primary platform build for this avatar, but the current build target is {0} and the configured primary platform is {1}.",
+  "validation.syncparamsequence.no_primary_record:hint": "Build the primary platform variant first.",
   "error.object_cycle": "[MA-0017] Object cycle detected",
   "error.object_cycle:description": "The indicated Bone Proxy and/or Merge Armature components refer to each other cyclically",
   "error.object_cycle:hint": "Break the cycle by removing one of the components, or changing its target reference.",
@@ -441,5 +447,8 @@
   "validation.global_collider.no_global_colliders_available_vrc:description": "For VRC, you can't use more than 8 Global Colliders. You currently have {0}.",
   "validation.global_collider.no_global_colliders_available_vrc:hint": "Reduce the number of MA Global Collider components.",
   "validation.global_collider.manual_collider_overwrite": "Global Collider components are manually using the same collider.",
-  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components."
+  "validation.global_collider.manual_collider_overwrite:description": "The last such component will overwrite prior components.",
+  "error.parameter_assigner.value_out_of_range": "[MA-0025] Too many automatic values for parameter '{0}'",
+  "error.parameter_assigner.value_out_of_range:description": "The parameter '{0}' has more auto-valued menu items than the VRChat Int parameter range (0-255) allows.",
+  "error.parameter_assigner.value_out_of_range:hint": "Reduce the number of auto-valued menu items using this parameter, or assign explicit values within the valid range."
 }
