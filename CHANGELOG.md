@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 Changes between prerelease versions will be documented in `CHANGELOG-PRERELEASE.md` instead.
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2006] Add a debug logging feature for Sync Parameter Sequence
+- [#XXXX] Added warnings to `Sync Parameter Sequence` when the configured primary platform has changed since the previous primary-platform build, or when building a secondary platform without a prior primary-platform record.
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 - [#2005] Added support for selecting triangles when all vertices match, or based on the triangle centroid in vertex filters
 - [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
