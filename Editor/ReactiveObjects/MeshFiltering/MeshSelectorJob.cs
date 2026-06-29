@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf.preview;
@@ -417,6 +417,7 @@ namespace nadena.dev.modular_avatar.core.editor
             int uvChannel = 0
         ) where TCond : struct, IUVFilter
         {
+            uvChannel = math.clamp(uvChannel, 0, 7);
             if (!MeshData.HasVertexAttribute((VertexAttribute)((int)VertexAttribute.TexCoord0 + uvChannel)))
             {
                 return default;
