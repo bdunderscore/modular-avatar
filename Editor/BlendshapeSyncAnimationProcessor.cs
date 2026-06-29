@@ -183,36 +183,41 @@ namespace nadena.dev.modular_avatar.core.editor
                     continue;
                 }
 
-                var curve = clip.GetFloatCurve(binding);
+                var curve = clip.GetFloatCurve(binding)!;
                 foreach (var (dst, remapCurve) in dstBindings)
                 {
-                    if (remapCurve == null || remapCurve.length < 2)
-                    {
-                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), curve);
-                    }
-                    else
-                    {
-                        const float epsilon = 0.005f; // ~200fps
-                        var keys = curve.keys;
-                        foreach (ref var key in keys.AsSpan())
-                        {
-                            var t = Mathf.Clamp01(key.value / 100f);
-                            var val = remapCurve.Evaluate(t) * 100f;
-                            var tPlus = Mathf.Clamp01(t + epsilon);
-                            var tMinus = Mathf.Clamp01(t - epsilon);
-                            var valPlus = remapCurve.Evaluate(tPlus);
-                            var valMinus = remapCurve.Evaluate(tMinus);
-                            var slope = (valPlus - valMinus) / (tPlus - tMinus);
-
-                            key.value = val;
-                            key.inTangent *= slope;
-                            key.outTangent *= slope;
-                        }
-                        var remappedCurve = new AnimationCurve(keys);
-                        clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), remappedCurve);
-                    }
+                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), MapCurve(curve, remapCurve));
                 }
             }
+        }
+
+        internal static AnimationCurve MapCurve(AnimationCurve curve, AnimationCurve? remapCurve)
+        {
+            if (remapCurve == null || remapCurve.length < 2)
+            {
+                return curve;
+            }
+
+            const float epsilon = 0.005f; // ~200fps
+
+            var keys = curve.keys;
+
+            foreach (ref var key in keys.AsSpan())
+            {
+                var t = Mathf.Clamp01(key.value / 100f);
+                var val = remapCurve.Evaluate(t) * 100f;
+                var tPlus = Mathf.Clamp01(t + epsilon);
+                var tMinus = Mathf.Clamp01(t - epsilon);
+                var valPlus = remapCurve.Evaluate(tPlus);
+                var valMinus = remapCurve.Evaluate(tMinus);
+                var slope = (valPlus - valMinus) / (tPlus - tMinus);
+
+                key.value = val;
+                key.inTangent *= slope;
+                key.outTangent *= slope;
+            }
+
+            return new AnimationCurve(keys);
         }
     }
 }
