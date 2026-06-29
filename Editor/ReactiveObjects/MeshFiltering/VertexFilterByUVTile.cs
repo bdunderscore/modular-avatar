@@ -66,10 +66,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         public override string ToString()
         {
-            var parts = (_useUMin ? (_uMinInclusive ? "U≤" : "U<") + _uMin : "")
-                        + (_useUMax ? (_uMaxInclusive ? "U≥" : "U>") + _uMax : "")
-                        + (_useVMin ? (_vMinInclusive ? "V≤" : "V<") + _vMin : "")
-                        + (_useVMax ? (_vMaxInclusive ? "V≥" : "V>") + _vMax : "");
+            var parts = (_useUMin ? (_uMinInclusive ? "U≥" : "U>") + _uMin : "")
+                        + (_useUMax ? (_uMaxInclusive ? "U≤" : "U<") + _uMax : "")
+                        + (_useVMin ? (_vMinInclusive ? "V≥" : "V>") + _vMin : "")
+                        + (_useVMax ? (_vMaxInclusive ? "V≤" : "V<") + _vMax : "");
             return $"VertexFilterByUVTile: uv{_uvChannel} [{parts}] {(_invert ? "invert " : "")}({_selectionMode})";
         }
 
