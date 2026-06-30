@@ -196,32 +196,85 @@ namespace nadena.dev.modular_avatar.core.editor
             if (remapCurve == null || remapCurve.length < 2 || 
                 remapCurve.length == 2 
                 && remapCurve[0].time == 0 && remapCurve[0].value == 0 
-                && remapCurve[1].time == 1 && remapCurve[1].value == 1) return curve;
+                && remapCurve[1].time == 1 && remapCurve[1].value == 1)
+                return curve;
+
+            // the remapCurve, splitPoints, and derivatives
+            //
+            //   x
+            //   ^
+            //   | keys[0]              keys[2]                 so keys.Length == 4
+            //   |/        keys[1]                    keys[3]
+            // 1 +------------*------------+------------*
+            //   |          ,'|',          |          ,'|
+            //   |        ,'  |  ',        |        ,'  |
+            //   |      ,'    |    ',      |      ,'    |
+            //   |    ,'      |      ',    |    ,'      |
+            //   |  ,'        |        ',  |  ,'        |
+            //   |,'          |          ',|,'          |
+            // 0 *------------+------------*------------*--+> t
+            //   0      splitPoints[0]     |            1
+            //   |            |      splitPoints[1]     |
+            //   |============|============|============|
+            //   derivatives[0]            derivatives[2]
+            //                derivatives[1]
+
+            // the list of original curve values that (may) changes their derivatives
+            var splitPoints = new float[remapCurve.length - 2];
+            for (var i = 0; i < splitPoints.Length; i++)
+                splitPoints[i] = remapCurve[i + 1].time;
+            var derivatives = new float[remapCurve.length - 1];
+            for (var i = 0; i < derivatives.Length; i++)
+                derivatives[i] = (remapCurve[i + 1].value - remapCurve[i].value) / (remapCurve[i + 1].time - remapCurve[i].time);
 
             const float epsilon = 0.005f; // ~200fps
+            var comparer = new FloatComparerIgnoreEpsilon(epsilon);
 
             var keys = curve.keys;
 
             foreach (ref var key in keys.AsSpan())
             {
-                var t = Mathf.Clamp01(key.value / 100f);
-                var val = remapCurve.Evaluate(t) * 100f;
-                var tPlus = Mathf.Clamp01(t + epsilon);
-                var tMinus = Mathf.Clamp01(t - epsilon);
-                var valPlus = remapCurve.Evaluate(tPlus) * 100f;
-                var valMinus = remapCurve.Evaluate(tMinus) * 100f;
-                var slopeLeft = (val - valMinus) / (t - tMinus) / 100;
-                var slopeRight = (valPlus - val) / (tPlus - t) / 100;
-                if (float.IsNaN(slopeLeft)) slopeLeft = 1;
-                if (float.IsNaN(slopeRight)) slopeRight = 1;
+                var t = key.value / 100f;
+                var find = Array.BinarySearch(splitPoints, t, comparer);
+                if (find >= 0)
+                {
+                    var pointIndex = find;
+                    // the point is exactly at splitPoints[pointIndex].
 
-                key.value = val;
-                key.inTangent *= key.inTangent > 0 ? slopeLeft : slopeRight;
-                key.outTangent *= key.outTangent < 0 ? slopeLeft : slopeRight;
+                    var val = remapCurve.Evaluate(t) * 100f;
+                    var slopeLeft = derivatives[pointIndex];
+                    var slopeRight = derivatives[pointIndex + 1];
+
+                    key.value = val;
+                    key.inTangent *= key.inTangent > 0 ? slopeLeft : slopeRight;
+                    key.outTangent *= key.outTangent < 0 ? slopeLeft : slopeRight;
+                }
+                else
+                {
+                    var derivativeRangeIndex = ~find;
+                    // the point is in derivatives[derivativeRangeIndex] range
+                        
+                    var val = remapCurve.Evaluate(t) * 100f;
+                    var slope = derivatives[derivativeRangeIndex];
+
+                    key.value = val;
+                    key.inTangent *= slope;
+                    key.outTangent *= slope;
+                }
             }
 
             return new AnimationCurve(keys);
         }
+    }
+
+    // please note that this comparator is not transitive in equality
+    internal class FloatComparerIgnoreEpsilon : IComparer<float>
+    {
+        private readonly float _epsilon;
+
+        public FloatComparerIgnoreEpsilon(float epsilon) => _epsilon = epsilon;
+
+        public int Compare(float x, float y) => Mathf.Abs(x - y) < _epsilon ? 0 : x.CompareTo(y);
     }
 }
 
