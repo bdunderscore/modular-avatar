@@ -230,11 +230,12 @@ namespace nadena.dev.modular_avatar.core.editor
             const float epsilon = 0.005f; // ~200fps
             var comparer = new FloatComparerIgnoreEpsilon(epsilon);
 
-            var keys = curve.keys;
+            var outputKeyframes = new List<FullKeyframe>(curve.length);
 
-            foreach (ref var key in keys.AsSpan())
+            for (var index = 0; index < curve.length; index++)
             {
-                var t = key.value / 100f;
+                var key = new FullKeyframe(curve, index);
+                var t = key.Keyframe.value / 100f;
                 var find = Array.BinarySearch(splitPoints, t, comparer);
                 if (find >= 0)
                 {
@@ -245,25 +246,62 @@ namespace nadena.dev.modular_avatar.core.editor
                     var slopeLeft = derivatives[pointIndex];
                     var slopeRight = derivatives[pointIndex + 1];
 
-                    key.value = val;
-                    key.inTangent *= key.inTangent > 0 ? slopeLeft : slopeRight;
-                    key.outTangent *= key.outTangent < 0 ? slopeLeft : slopeRight;
+                    key.Keyframe.value = val;
+                    key.Keyframe.inTangent *= key.Keyframe.inTangent > 0 ? slopeLeft : slopeRight;
+                    key.Keyframe.outTangent *= key.Keyframe.outTangent < 0 ? slopeLeft : slopeRight;
                 }
                 else
                 {
                     var derivativeRangeIndex = ~find;
                     // the point is in derivatives[derivativeRangeIndex] range
-                        
+
                     var val = remapCurve.Evaluate(t) * 100f;
                     var slope = derivatives[derivativeRangeIndex];
 
-                    key.value = val;
-                    key.inTangent *= slope;
-                    key.outTangent *= slope;
+                    key.Keyframe.value = val;
+                    key.Keyframe.inTangent *= slope;
+                    key.Keyframe.outTangent *= slope;
                 }
+
+                outputKeyframes.Add(key);
             }
 
-            return new AnimationCurve(keys);
+            var keys = new Keyframe[outputKeyframes.Count];
+
+            for (var i = 0; i < outputKeyframes.Count; i++)
+                keys[i] = outputKeyframes[i].Keyframe;
+
+            var newCurve = new AnimationCurve(keys);
+
+            for (var index = 0; index < outputKeyframes.Count; index++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(newCurve, index, outputKeyframes[index].LeftTangentMode);
+                AnimationUtility.SetKeyRightTangentMode(newCurve, index, outputKeyframes[index].RightTangentMode);
+                AnimationUtility.SetKeyBroken(newCurve, index, outputKeyframes[index].Broken);
+            }
+
+            return newCurve;
+        }
+
+        /// <summary>
+        /// The struct that holds keyframe information with TangentMode and Broken state.
+        ///
+        /// (The TangentMode and Broken state are stored in Keyframe struct and accessible with internal function, but unaccessible through public API)
+        /// </summary>
+        private struct FullKeyframe
+        {
+            public Keyframe Keyframe;
+            public AnimationUtility.TangentMode LeftTangentMode;
+            public AnimationUtility.TangentMode RightTangentMode;
+            public bool Broken;
+
+            public FullKeyframe(AnimationCurve curve, int index)
+            {
+                Keyframe = curve[index];
+                LeftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, index);
+                RightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, index);
+                Broken = AnimationUtility.GetKeyBroken(curve, index);
+            }
         }
     }
 
