@@ -223,47 +223,187 @@ namespace nadena.dev.modular_avatar.core.editor
             var splitPoints = new float[remapCurve.length - 2];
             for (var i = 0; i < splitPoints.Length; i++)
                 splitPoints[i] = remapCurve[i + 1].time;
-            var derivatives = new float[remapCurve.length - 1];
+            var splitPointValues = new float[remapCurve.length - 2];
+            for (var i = 0; i < splitPoints.Length; i++)
+                splitPointValues[i] = remapCurve[i + 1].value;
+            var derivatives = new double[remapCurve.length - 1];
             for (var i = 0; i < derivatives.Length; i++)
-                derivatives[i] = (remapCurve[i + 1].value - remapCurve[i].value) / (remapCurve[i + 1].time - remapCurve[i].time);
+                derivatives[i] = ((double)remapCurve[i + 1].value - remapCurve[i].value) / ((double)remapCurve[i + 1].time - remapCurve[i].time);
 
             const float epsilon = 0.005f; // ~200fps
             var comparer = new FloatComparerIgnoreEpsilon(epsilon);
 
             var outputKeyframes = new List<FullKeyframe>(curve.length);
 
+            var nextKeyFromPrevLoop = new FullKeyframe(curve, 0);
             for (var index = 0; index < curve.length; index++)
             {
-                var key = new FullKeyframe(curve, index);
-                var t = key.Keyframe.value / 100f;
-                var find = Array.BinarySearch(splitPoints, t, comparer);
+                var originalKey = nextKeyFromPrevLoop;
+                var key = originalKey;
+                var find = Array.BinarySearch(splitPoints, key.Keyframe.value / 100f, comparer);
+                var val = remapCurve.Evaluate(key.Keyframe.value / 100f) * 100f;
                 if (find >= 0)
                 {
                     var pointIndex = find;
                     // the point is exactly at splitPoints[pointIndex].
 
-                    var val = remapCurve.Evaluate(t) * 100f;
                     var slopeLeft = derivatives[pointIndex];
                     var slopeRight = derivatives[pointIndex + 1];
 
                     key.Keyframe.value = val;
-                    key.Keyframe.inTangent *= key.Keyframe.inTangent > 0 ? slopeLeft : slopeRight;
-                    key.Keyframe.outTangent *= key.Keyframe.outTangent < 0 ? slopeLeft : slopeRight;
+                    key.Keyframe.inTangent = (float)(key.Keyframe.inTangent * (key.Keyframe.inTangent > 0 ? slopeLeft : slopeRight));
+                    key.Keyframe.outTangent = (float)(key.Keyframe.outTangent * (key.Keyframe.outTangent < 0 ? slopeLeft : slopeRight));
                 }
                 else
                 {
                     var derivativeRangeIndex = ~find;
                     // the point is in derivatives[derivativeRangeIndex] range
 
-                    var val = remapCurve.Evaluate(t) * 100f;
                     var slope = derivatives[derivativeRangeIndex];
 
                     key.Keyframe.value = val;
-                    key.Keyframe.inTangent *= slope;
-                    key.Keyframe.outTangent *= slope;
+                    key.Keyframe.inTangent = (float)(key.Keyframe.inTangent * slope);
+                    key.Keyframe.outTangent = (float)(key.Keyframe.outTangent * slope);
                 }
 
-                outputKeyframes.Add(key);
+                if (index + 1 < curve.length)
+                {
+                    // TODO: support tangent = infinity
+                    var nextKeyIndex = index + 1;
+                    var nextOriginalKey = new FullKeyframe(curve, nextKeyIndex);
+                    var nextKey = nextOriginalKey;
+
+                    const float oneThird = 1.0f / 3;
+
+                    var startTangentWeight = (originalKey.Keyframe.weightedMode & WeightedMode.Out) != 0 ? originalKey.Keyframe.outWeight : oneThird;
+                    var endTangentWeight = (nextOriginalKey.Keyframe.weightedMode & WeightedMode.In) != 0 ? nextOriginalKey.Keyframe.inWeight : oneThird;
+                    var timeSpan = nextOriginalKey.Keyframe.time - originalKey.Keyframe.time;
+                    var linearTangent = (nextOriginalKey.Keyframe.value - originalKey.Keyframe.value) / timeSpan;
+                    var startTangent = originalKey.RightTangentMode switch
+                    {
+                        AnimationUtility.TangentMode.Free => originalKey.Keyframe.outTangent,
+                        //AnimationUtility.TangentMode.Auto => expr,
+                        AnimationUtility.TangentMode.Linear => linearTangent,
+                        //AnimationUtility.TangentMode.Constant => todo,
+                        //AnimationUtility.TangentMode.ClampedAuto => todo,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                    var endTangent = nextOriginalKey.LeftTangentMode switch
+                    {
+                        AnimationUtility.TangentMode.Free => nextOriginalKey.Keyframe.inTangent,
+                        //AnimationUtility.TangentMode.Auto => expr,
+                        AnimationUtility.TangentMode.Linear => linearTangent,
+                        //AnimationUtility.TangentMode.Constant => todo,
+                        //AnimationUtility.TangentMode.ClampedAuto => todo,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    var p0 = originalKey.Keyframe.value;
+                    var p3 = nextOriginalKey.Keyframe.value;
+                    var d1 = startTangentWeight * startTangent * timeSpan;
+                    var d2 = endTangentWeight * endTangent * timeSpan;
+                    var timeAxisBezier = new BezierSegment(0, startTangentWeight, endTangentWeight, 1);
+                    var valueAxisBezier = new BezierSegment(p0, d1, d2, p3);
+
+                    var roots = new List<(double t, int pointIndex)>();
+                    for (var i = 0; i < splitPoints.Length; i++)
+                    {
+                        var splitPoint = splitPoints[i];
+                        var rootsForThisSplitPoint = valueAxisBezier.Solve(splitPoint * 100).ToArray();
+                        foreach (var root in rootsForThisSplitPoint)
+                        {
+                            if (root is > epsilon and < (1 - epsilon))
+                                roots.Add((root, i));
+                        }
+                    }
+
+                    if (roots.Count != 0)
+                    {
+                        // When the curve passes some of the split points, we split the curve at those points.
+
+                        var isHermite = (originalKey.Keyframe.weightedMode & WeightedMode.Out) == 0 && (nextOriginalKey.Keyframe.weightedMode & WeightedMode.In) == 0;
+
+                        roots.Add((0, -1));
+                        roots.Add((1, -1));
+                        roots.Sort((a, b) => a.t.CompareTo(b.t));
+
+                        if (!isHermite)
+                        {
+                            key.Keyframe.weightedMode |= WeightedMode.Out;
+
+                            var timeDerivative = timeAxisBezier.Derivative(0);
+
+                            var tRangeAfter = roots[1].t - 0;
+                            var timeRangeAfter = timeAxisBezier.Compute(roots[1].t) - timeAxisBezier.Compute(0);
+                            key.Keyframe.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                        }
+
+                        outputKeyframes.Add(key);
+
+                        for (var i = 1; i < roots.Count - 1; i++)
+                        {
+                            var root = roots[i];
+
+                            // TODO: We need to special handle timeAxisDerivative == 0 since it will create infinite tangent
+                            var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(root.t);
+                            var valueAxisDerivative = valueAxisBezier.Derivative(root.t);
+                            var tangent = valueAxisDerivative / timeAxisDerivative / timeSpan;
+
+                            var insertTimeRatio = timeAxisBezier.Compute(root.t);
+
+                            var newFrame0 = new FullKeyframe
+                            {
+                                Broken = true,
+                                LeftTangentMode = AnimationUtility.TangentMode.Free,
+                                RightTangentMode = AnimationUtility.TangentMode.Free,
+                                Keyframe = {
+                                    time = Mathf.LerpUnclamped(originalKey.Keyframe.time, nextOriginalKey.Keyframe.time, (float)insertTimeRatio),
+                                    value = splitPointValues[root.pointIndex] * 100,
+                                    inTangent = (float)(tangent * (tangent > 0 ? derivatives[root.pointIndex] : derivatives[root.pointIndex + 1])),
+                                    outTangent = (float)(tangent * (tangent > 0 ? derivatives[root.pointIndex + 1] : derivatives[root.pointIndex])),
+                                },
+                            };
+
+                            if (!isHermite)
+                            {
+                                var timeDerivative = timeAxisBezier.Derivative(root.t);
+
+                                var tRangeBefore = root.t - roots[i - 1].t;
+                                var timeRangeBefore = insertTimeRatio - timeAxisBezier.Compute(roots[i - 1].t);
+                                newFrame0.Keyframe.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
+
+                                var tRangeAfter = roots[i + 1].t - root.t;
+                                var timeRangeAfter = timeAxisBezier.Compute(roots[i + 1].t) - insertTimeRatio;
+                                newFrame0.Keyframe.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+
+                                newFrame0.Keyframe.weightedMode = WeightedMode.Both;
+                            }
+
+                            outputKeyframes.Add(newFrame0);
+                        }
+
+                        if (!isHermite)
+                        {
+                            nextKey.Keyframe.weightedMode |= WeightedMode.In;
+
+                            var timeDerivative = timeAxisBezier.Derivative(1);
+
+                            var tRangeBefore = 1 - roots[^2].t;
+                            var timeRangeBefore = timeAxisBezier.Compute(1) - timeAxisBezier.Compute(roots[^2].t);
+                            nextKey.Keyframe.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
+                        }
+                    }
+                    else
+                    {
+                        outputKeyframes.Add(key);
+                    }
+
+                    nextKeyFromPrevLoop = nextKey;
+                }
+                else
+                {
+                    outputKeyframes.Add(key);
+                }
             }
 
             var keys = new Keyframe[outputKeyframes.Count];
@@ -275,9 +415,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             for (var index = 0; index < outputKeyframes.Count; index++)
             {
+                AnimationUtility.SetKeyBroken(newCurve, index, outputKeyframes[index].Broken);
                 AnimationUtility.SetKeyLeftTangentMode(newCurve, index, outputKeyframes[index].LeftTangentMode);
                 AnimationUtility.SetKeyRightTangentMode(newCurve, index, outputKeyframes[index].RightTangentMode);
-                AnimationUtility.SetKeyBroken(newCurve, index, outputKeyframes[index].Broken);
             }
 
             return newCurve;
@@ -302,6 +442,35 @@ namespace nadena.dev.modular_avatar.core.editor
                 RightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, index);
                 Broken = AnimationUtility.GetKeyBroken(curve, index);
             }
+        }
+
+        /// <summary>
+        /// Represents single-axis single bezier curve.
+        /// 
+        /// If this is only used on value axis, it will be hermite curve.
+        /// </summary>
+        readonly struct BezierSegment
+        {
+            // bezier curve in a + bt + ct^2 + dt^3
+            // bezier curve in at^3 + bt^2 + ct + d
+            private readonly double a;
+            private readonly double b;
+            private readonly double c;
+            private readonly double d;
+
+            public BezierSegment(float p0, float d1, float d2, float p3)
+            {
+                a = 2.0 * p0 + 3.0 * d1 + 3.0 * d2 - 2.0 * p3;
+                b = -3.0 * p0 - 6.0 * d1 - 3.0 * d2 + 3.0 * p3;
+                c = 3.0 * d1;
+                d = p0;
+            }
+
+            public double Derivative(double t) => 3.0 * a * t * t + 2.0 * b * t + c;
+
+            public double Compute(double t) => a * t * t * t + b * t * t + c * t + d;
+
+            public CubicSolver.Roots Solve(float value) => CubicSolver.SolveCubicDouble(a, b, c, d - value);
         }
     }
 
