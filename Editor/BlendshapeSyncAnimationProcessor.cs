@@ -290,7 +290,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (index + 1 < curve.length)
                 {
-                    // TODO: support tangent = infinity
                     var nextKeyIndex = index + 1;
                     var nextOriginalKey = new FullKeyframe(curve, nextKeyIndex);
                     var nextKey = nextOriginalKey;
@@ -308,14 +307,20 @@ namespace nadena.dev.modular_avatar.core.editor
                         nextOriginalKey.Keyframe.value);
 
                     var roots = new List<(double t, int pointIndex)>();
-                    for (var i = 0; i < splitPoints.Length; i++)
+
+                    // If tangent is infinite, the curve becomes constant curve which will never splits curve.
+                    if (float.IsFinite(originalKey.Keyframe.outTangent) &&
+                        float.IsFinite(nextOriginalKey.Keyframe.inTangent))
                     {
-                        var splitPoint = splitPoints[i];
-                        var rootsForThisSplitPoint = valueAxisBezier.Solve(splitPoint * 100).ToArray();
-                        foreach (var root in rootsForThisSplitPoint)
+                        for (var i = 0; i < splitPoints.Length; i++)
                         {
-                            if (root is > epsilon and < (1 - epsilon))
-                                roots.Add((root, i));
+                            var splitPoint = splitPoints[i];
+                            var rootsForThisSplitPoint = valueAxisBezier.Solve(splitPoint * 100).ToArray();
+                            foreach (var root in rootsForThisSplitPoint)
+                            {
+                                if (root is > epsilon and < (1 - epsilon))
+                                    roots.Add((root, i));
+                            }
                         }
                     }
 
