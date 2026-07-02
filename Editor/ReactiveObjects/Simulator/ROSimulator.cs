@@ -11,6 +11,12 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+#if UNITY_6000_4_OR_NEWER
+using ObjectId = UnityEngine.EntityId;
+#else
+using ObjectId = System.Int32;
+#endif
+
 namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
     internal class ROSimulator : EditorWindow, IHasCustomMenu
@@ -105,7 +111,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private GUIStyle lockButtonStyle;
         private bool locked, is_enabled;
 
-        private Dictionary<(int, string), bool> foldoutState = new();
+        private Dictionary<(ObjectId, string), bool> foldoutState = new();
         private Button _btn_clear;
 
         private bool _refreshPending;
@@ -393,7 +399,11 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
                 var propGroup = new Foldout();
                 propGroup.text = targetProp.TargetObject.GetType() + "." + targetProp.PropertyName;
+                #if UNITY_6000_4_OR_NEWER
+                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetEntityId() ?? EntityId.None, shape.TargetProp.PropertyName);
+#else
                 var foldoutStateKey = (shape.TargetProp.TargetObject?.GetInstanceID() ?? -1, shape.TargetProp.PropertyName);
+#endif
                 propGroup.RegisterValueChangedCallback(evt =>
                 {
                     foldoutState[foldoutStateKey] = evt.newValue;

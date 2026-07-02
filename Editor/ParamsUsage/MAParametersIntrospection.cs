@@ -30,7 +30,11 @@ namespace nadena.dev.modular_avatar.core.editor
             var name = _component.Control?.parameter?.name;
             if (string.IsNullOrWhiteSpace(name))
             {
+                #if UNITY_6000_4_OR_NEWER
+                name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetEntityId()}";
+#else
                 name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetInstanceID()}";
+#endif
                 hidden = true;
             }
 
@@ -113,7 +117,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
+                        #if UNITY_6000_4_OR_NEWER
+                        remapTo = p.nameOrPrefix + "$" + _component.GetEntityId();
+#else
                         remapTo = p.nameOrPrefix + "$" + _component.GetInstanceID();
+#endif
                     }
                 }
                 else if (string.IsNullOrEmpty(p.remapTo))
