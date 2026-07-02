@@ -418,7 +418,11 @@ namespace nadena.dev.modular_avatar.core.editor
             for (var i = 0; i < outputKeyframes.Count; i++)
                 keys[i] = outputKeyframes[i].Keyframe;
 
-            var newCurve = new AnimationCurve(keys);
+            var newCurve = new AnimationCurve(keys)
+            {
+                preWrapMode = curve.preWrapMode,
+                postWrapMode = curve.postWrapMode,
+            };
 
             for (var index = 0; index < outputKeyframes.Count; index++)
             {
