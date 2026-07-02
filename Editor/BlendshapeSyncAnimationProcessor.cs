@@ -186,9 +186,26 @@ namespace nadena.dev.modular_avatar.core.editor
                 var curve = clip.GetFloatCurve(binding)!;
                 foreach (var (dst, remapCurve) in dstBindings)
                 {
-                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), MapCurve(curve, remapCurve));
+                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), MapCurve(NormalizeCurveToFreeTangents(curve), remapCurve));
                 }
             }
+        }
+
+        internal static AnimationCurve NormalizeCurveToFreeTangents(AnimationCurve curve)
+        {
+            var newCurve = new AnimationCurve(curve.keys)
+            {
+                preWrapMode = curve.preWrapMode,
+                postWrapMode = curve.postWrapMode
+            };
+
+            for (var i = 0; i < newCurve.length; i++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(newCurve, i, AnimationUtility.TangentMode.Free);
+                AnimationUtility.SetKeyRightTangentMode(newCurve, i, AnimationUtility.TangentMode.Free);
+            }
+
+            return newCurve;
         }
 
         internal static AnimationCurve MapCurve(AnimationCurve curve, AnimationCurve? remapCurve)
@@ -240,6 +257,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var originalKey = nextKeyFromPrevLoop;
                 var key = originalKey;
+
+                Debug.Assert(originalKey.RightTangentMode == AnimationUtility.TangentMode.Free);
+                Debug.Assert(originalKey.LeftTangentMode == AnimationUtility.TangentMode.Free);
+
                 var find = Array.BinarySearch(splitPoints, key.Keyframe.value / 100f, comparer);
                 var val = remapCurve.Evaluate(key.Keyframe.value / 100f) * 100f;
                 key.Broken = true;
@@ -279,42 +300,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     var startTangentWeight = (originalKey.Keyframe.weightedMode & WeightedMode.Out) != 0 ? originalKey.Keyframe.outWeight : oneThird;
                     var endTangentWeight = (nextOriginalKey.Keyframe.weightedMode & WeightedMode.In) != 0 ? nextOriginalKey.Keyframe.inWeight : oneThird;
                     var timeSpan = nextOriginalKey.Keyframe.time - originalKey.Keyframe.time;
-                    var linearTangent = (nextOriginalKey.Keyframe.value - originalKey.Keyframe.value) / timeSpan;
-                    var startTangent = originalKey.RightTangentMode switch
-                    {
-                        AnimationUtility.TangentMode.Free => originalKey.Keyframe.outTangent,
-                        AnimationUtility.TangentMode.Auto => (hasLeft: index - 1 >= 0, hasRight: index + 1 < curve.length) switch
-                        {
-                            (true, true) => ((curve[index].value - curve[index - 1].value) / (curve[index].time - curve[index - 1].time) + (curve[index + 1].value - curve[index].value) / (curve[index + 1].time - curve[index].time)) / 2,
-                            (false, true) => (curve[index + 1].value - curve[index].value) / (curve[index + 1].time - curve[index].time),
-                            (true, false) => (curve[index].value - curve[index - 1].value) / (curve[index].time - curve[index - 1].time),
-                            (false, false) => throw new Exception("unreachable"),
-                        },
-                        AnimationUtility.TangentMode.Linear => linearTangent,
-                        //AnimationUtility.TangentMode.Constant => todo,
-                        //AnimationUtility.TangentMode.ClampedAuto => todo,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-                    var endTangent = nextOriginalKey.LeftTangentMode switch
-                    {
-                        AnimationUtility.TangentMode.Free => nextOriginalKey.Keyframe.inTangent,
-                        AnimationUtility.TangentMode.Auto => (hasLeft: nextKeyIndex - 1 >= 0, hasRight: nextKeyIndex + 1 < curve.length) switch
-                        {
-                            (true, true) => ((curve[nextKeyIndex].value - curve[nextKeyIndex - 1].value) / (curve[nextKeyIndex].time - curve[nextKeyIndex - 1].time) + (curve[nextKeyIndex + 1].value - curve[nextKeyIndex].value) / (curve[nextKeyIndex + 1].time - curve[nextKeyIndex].time)) / 2,
-                            (false, true) => (curve[nextKeyIndex + 1].value - curve[nextKeyIndex].value) / (curve[nextKeyIndex + 1].time - curve[nextKeyIndex].time),
-                            (true, false) => (curve[nextKeyIndex].value - curve[nextKeyIndex - 1].value) / (curve[nextKeyIndex].time - curve[nextKeyIndex - 1].time),
-                            (false, false) => throw new Exception("unreachable"),
-                        },
-                        AnimationUtility.TangentMode.Linear => linearTangent,
-                        //AnimationUtility.TangentMode.Constant => todo,
-                        //AnimationUtility.TangentMode.ClampedAuto => todo,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
 
                     var timeAxisBezier = new BezierSegment(0, startTangentWeight, endTangentWeight, 1);
                     var valueAxisBezier = new BezierSegment(originalKey.Keyframe.value, 
-                        startTangentWeight * startTangent * timeSpan, 
-                        endTangentWeight * endTangent * timeSpan, 
+                        startTangentWeight * originalKey.Keyframe.outTangent * timeSpan, 
+                        endTangentWeight * nextOriginalKey.Keyframe.inTangent * timeSpan, 
                         nextOriginalKey.Keyframe.value);
 
                     var roots = new List<(double t, int pointIndex)>();
@@ -339,10 +329,6 @@ namespace nadena.dev.modular_avatar.core.editor
                         roots.Add((1, -1));
                         roots.Sort((a, b) => a.t.CompareTo(b.t));
 
-                        // TODO? consider 'fix'ing key.Keyframe.inTangent?
-                        key.RightTangentMode = AnimationUtility.TangentMode.Free;
-                        if (key.LeftTangentMode is AnimationUtility.TangentMode.Auto or AnimationUtility.TangentMode.ClampedAuto)
-                            key.LeftTangentMode = AnimationUtility.TangentMode.Free;
                         if (!isHermite)
                         {
                             key.Keyframe.weightedMode |= WeightedMode.Out;
@@ -398,9 +384,6 @@ namespace nadena.dev.modular_avatar.core.editor
                             outputKeyframes.Add(newFrame0);
                         }
 
-                        nextKey.LeftTangentMode = AnimationUtility.TangentMode.Free;
-                        if (nextKey.LeftTangentMode is AnimationUtility.TangentMode.Auto or AnimationUtility.TangentMode.ClampedAuto)
-                            nextKey.RightTangentMode = AnimationUtility.TangentMode.Free;
                         if (!isHermite)
                         {
                             nextKey.Keyframe.weightedMode |= WeightedMode.In;
