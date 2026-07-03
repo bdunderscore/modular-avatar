@@ -214,39 +214,43 @@ namespace nadena.dev.modular_avatar.core.editor
             if (remapCurve.IsIdentity)
                 return curve;
 
-            var outputKeyframes = new List<FullKeyframe>(curve.length);
+            // We expect the curve to be in Free mode.
+            for (var i = 0; i < curve.length; i++)
+            {
+                Debug.Assert(AnimationUtility.GetKeyLeftTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
+                Debug.Assert(AnimationUtility.GetKeyLeftTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
+            }
 
-            var nextKeyFromPrevLoop = new FullKeyframe(curve, 0);
-            var nextKeyOnMapFromPrevLoop = remapCurve.GetPointOnCurve(nextKeyFromPrevLoop.Keyframe.value);
+            var outputKeyframes = new List<Keyframe>(curve.length);
+
+            var nextKeyFromPrevLoop = curve[0];
+            var nextKeyOnMapFromPrevLoop = remapCurve.GetPointOnCurve(nextKeyFromPrevLoop.value);
             // we loop for each keyframe range
             for (var rangeIndex = 0; rangeIndex < curve.length - 1; rangeIndex++)
             {
                 var startKey = nextKeyFromPrevLoop;
                 var startKeyOnMap = nextKeyOnMapFromPrevLoop;
-                var endKey = new FullKeyframe(curve, rangeIndex + 1);
-                var endKeyOnMap = remapCurve.GetPointOnCurve(endKey.Keyframe.value);
+                var endKey = curve[rangeIndex + 1];
+                var endKeyOnMap = remapCurve.GetPointOnCurve(endKey.value);
 
                 const float oneThird = 1.0f / 3;
-                var startTangentWeight = (startKey.Keyframe.weightedMode & WeightedMode.Out) != 0 ? startKey.Keyframe.outWeight : oneThird;
-                var endTangentWeight = (endKey.Keyframe.weightedMode & WeightedMode.In) != 0 ? endKey.Keyframe.inWeight : oneThird;
-                var timeSpan = endKey.Keyframe.time - startKey.Keyframe.time;
+                var startTangentWeight = (startKey.weightedMode & WeightedMode.Out) != 0 ? startKey.outWeight : oneThird;
+                var endTangentWeight = (endKey.weightedMode & WeightedMode.In) != 0 ? endKey.inWeight : oneThird;
+                var timeSpan = endKey.time - startKey.time;
 
                 var timeAxisBezier = new BezierSegment(0, startTangentWeight, endTangentWeight, 1);
-                var valueAxisBezier = new BezierSegment(startKey.Keyframe.value, 
-                    startTangentWeight * startKey.Keyframe.outTangent * timeSpan, 
-                    endTangentWeight * endKey.Keyframe.inTangent * timeSpan, 
-                    endKey.Keyframe.value);
+                var valueAxisBezier = new BezierSegment(startKey.value, 
+                    startTangentWeight * startKey.outTangent * timeSpan, 
+                    endTangentWeight * endKey.inTangent * timeSpan, 
+                    endKey.value);
 
-                Debug.Assert(startKey.RightTangentMode == AnimationUtility.TangentMode.Free);
-                Debug.Assert(startKey.LeftTangentMode == AnimationUtility.TangentMode.Free);
-
-                startKey.Keyframe.value = startKeyOnMap.MappedValue;
-                startKey.Keyframe.outTangent = startKeyOnMap.MapTangent(startKey.Keyframe.outTangent, isOut: true);
+                startKey.value = startKeyOnMap.MappedValue;
+                startKey.outTangent = startKeyOnMap.MapTangent(startKey.outTangent, isOut: true);
 
                 var roots = new List<(double t, RemapCurve.SplitPoint splitPoint)>();
 
                 // If tangent is infinite, the curve becomes constant curve which will never splits curve.
-                if (float.IsFinite(startKey.Keyframe.outTangent) && float.IsFinite(endKey.Keyframe.inTangent))
+                if (float.IsFinite(startKey.outTangent) && float.IsFinite(endKey.inTangent))
                 {
                     foreach (var splitPoint in remapCurve.SplitPoints)
                     {
@@ -263,7 +267,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     // When the curve passes some of the split points, we split the curve at those points.
 
-                    var isHermite = (startKey.Keyframe.weightedMode & WeightedMode.Out) == 0 && (endKey.Keyframe.weightedMode & WeightedMode.In) == 0;
+                    var isHermite = (startKey.weightedMode & WeightedMode.Out) == 0 && (endKey.weightedMode & WeightedMode.In) == 0;
 
                     roots.Add((0, default));
                     roots.Add((1, default));
@@ -271,20 +275,20 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (!isHermite)
                     {
-                        startKey.Keyframe.weightedMode |= WeightedMode.Out;
+                        startKey.weightedMode |= WeightedMode.Out;
 
                         var timeDerivative = timeAxisBezier.Derivative(0);
 
                         var tRangeAfter = roots[1].t - 0;
                         var timeRangeAfter = timeAxisBezier.Compute(roots[1].t) - timeAxisBezier.Compute(0);
-                        startKey.Keyframe.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                        startKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
                     }
 
                     outputKeyframes.Add(startKey);
 
                     for (var i = 1; i < roots.Count - 1; i++)
                     {
-                        FullKeyframe splitKey;
+                        Keyframe splitKey;
                         {
                             var rootT = roots[i].t;
                             var splitPoint = roots[i].splitPoint;
@@ -295,17 +299,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             var insertTimeRatio = timeAxisBezier.Compute(rootT);
 
-                            splitKey = new FullKeyframe
+                            splitKey = new Keyframe
                             {
-                                Broken = true,
-                                LeftTangentMode = AnimationUtility.TangentMode.Free,
-                                RightTangentMode = AnimationUtility.TangentMode.Free,
-                                Keyframe = {
-                                    time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                    value = (float)splitPoint.MappedValue,
-                                    inTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                    outTangent = splitPoint.MapTangent(tangent, isOut: true),
-                                },
+                                time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio),
+                                value = (float)splitPoint.MappedValue,
+                                inTangent = splitPoint.MapTangent(tangent, isOut: false),
+                                outTangent = splitPoint.MapTangent(tangent, isOut: true),
                             };
 
                             if (!isHermite)
@@ -314,17 +313,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                 var tRangeBefore = rootT - roots[i - 1].t;
                                 var timeRangeBefore = insertTimeRatio - timeAxisBezier.Compute(roots[i - 1].t);
-                                splitKey.Keyframe.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
+                                splitKey.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
 
                                 var tRangeAfter = roots[i + 1].t - rootT;
                                 var timeRangeAfter = timeAxisBezier.Compute(roots[i + 1].t) - insertTimeRatio;
-                                splitKey.Keyframe.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                                splitKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
 
-                                splitKey.Keyframe.weightedMode = WeightedMode.Both;
+                                splitKey.weightedMode = WeightedMode.Both;
                             }
                         }
 
-                        if (float.IsFinite(splitKey.Keyframe.inTangent) && float.IsFinite(splitKey.Keyframe.outTangent))
+                        if (float.IsFinite(splitKey.inTangent) && float.IsFinite(splitKey.outTangent))
                         {
                             outputKeyframes.Add(splitKey);
                         }
@@ -332,8 +331,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             // if either in/out is not finite, this typically means timeAxisDerivative ~= 0.
                             // to not create Infinite / NaN tangents
-                            FullKeyframe leftSplitKey;
-                            FullKeyframe rightSplitKey;
+                            Keyframe leftSplitKey;
+                            Keyframe rightSplitKey;
 
                             int multiplier = 0;
                             do
@@ -350,19 +349,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                     var insertTimeRatio = timeAxisBezier.Compute(leftT);
 
-                                    leftSplitKey = new FullKeyframe
+                                    leftSplitKey = new Keyframe
                                     {
-                                        Broken = true,
-                                        LeftTangentMode = AnimationUtility.TangentMode.Free,
-                                        RightTangentMode = AnimationUtility.TangentMode.Free,
-                                        Keyframe =
-                                        {
-                                            time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                            value = (float)splitPoint.MappedValue,
-                                            // this key is before the split point, so always use out tangent.
-                                            inTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                            outTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                        },
+                                        time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio),
+                                        value = (float)splitPoint.MappedValue,
+                                        // this key is before the split point, so always use out tangent.
+                                        inTangent = splitPoint.MapTangent(tangent, isOut: false),
+                                        outTangent = splitPoint.MapTangent(tangent, isOut: false),
                                     };
 
                                     if (!isHermite)
@@ -371,12 +364,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                         var tRangeBefore = leftT - roots[i - 1].t;
                                         var timeRangeBefore = insertTimeRatio - timeAxisBezier.Compute(roots[i - 1].t);
-                                        leftSplitKey.Keyframe.inWeight =
+                                        leftSplitKey.inWeight =
                                             (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
 
-                                        leftSplitKey.Keyframe.outWeight = oneThird;
+                                        leftSplitKey.outWeight = oneThird;
 
-                                        leftSplitKey.Keyframe.weightedMode = WeightedMode.In;
+                                        leftSplitKey.weightedMode = WeightedMode.In;
                                     }
                                 }
 
@@ -390,34 +383,29 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                     var insertTimeRatio = timeAxisBezier.Compute(rightT);
 
-                                    rightSplitKey = new FullKeyframe
+                                    rightSplitKey = new Keyframe
                                     {
-                                        Broken = true,
-                                        LeftTangentMode = AnimationUtility.TangentMode.Free,
-                                        RightTangentMode = AnimationUtility.TangentMode.Free,
-                                        Keyframe = {
-                                            time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                            value = (float)splitPoint.MappedValue,
-                                            // this key is after the split point, so always use in tangent.
-                                            inTangent = splitPoint.MapTangent(tangent, isOut: true),
-                                            outTangent = splitPoint.MapTangent(tangent, isOut: true),
-                                        },
+                                        time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio),
+                                        value = (float)splitPoint.MappedValue,
+                                        // this key is after the split point, so always use in tangent.
+                                        inTangent = splitPoint.MapTangent(tangent, isOut: true),
+                                        outTangent = splitPoint.MapTangent(tangent, isOut: true),
                                     };
 
                                     if (!isHermite)
                                     {
                                         var timeDerivative = timeAxisBezier.Derivative(rightT);
 
-                                        rightSplitKey.Keyframe.inWeight = oneThird;
+                                        rightSplitKey.inWeight = oneThird;
 
                                         var tRangeAfter = roots[i + 1].t - rightT;
                                         var timeRangeAfter = timeAxisBezier.Compute(roots[i + 1].t) - insertTimeRatio;
-                                        rightSplitKey.Keyframe.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                                        rightSplitKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
 
-                                        rightSplitKey.Keyframe.weightedMode = WeightedMode.Out;
+                                        rightSplitKey.weightedMode = WeightedMode.Out;
                                     }
                                 }
-                            } while (!float.IsFinite(leftSplitKey.Keyframe.inTangent) || !float.IsFinite(rightSplitKey.Keyframe.outTangent));
+                            } while (!float.IsFinite(leftSplitKey.inTangent) || !float.IsFinite(rightSplitKey.outTangent));
 
                             outputKeyframes.Add(leftSplitKey);
                             outputKeyframes.Add(rightSplitKey);
@@ -426,13 +414,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     if (!isHermite)
                     {
-                        endKey.Keyframe.weightedMode |= WeightedMode.In;
+                        endKey.weightedMode |= WeightedMode.In;
 
                         var timeDerivative = timeAxisBezier.Derivative(1);
 
                         var tRangeBefore = 1 - roots[^2].t;
                         var timeRangeBefore = timeAxisBezier.Compute(1) - timeAxisBezier.Compute(roots[^2].t);
-                        endKey.Keyframe.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
+                        endKey.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
                     }
                 }
                 else
@@ -440,32 +428,23 @@ namespace nadena.dev.modular_avatar.core.editor
                     outputKeyframes.Add(startKey);
                 }
 
-                endKey.Keyframe.inTangent = endKeyOnMap.MapTangent(endKey.Keyframe.inTangent, isOut: false);
+                endKey.inTangent = endKeyOnMap.MapTangent(endKey.inTangent, isOut: false);
 
                 nextKeyFromPrevLoop = endKey;
                 nextKeyOnMapFromPrevLoop = endKeyOnMap;
             }
 
-            nextKeyFromPrevLoop.Keyframe.value = nextKeyOnMapFromPrevLoop.MappedValue;
+            nextKeyFromPrevLoop.value = nextKeyOnMapFromPrevLoop.MappedValue;
             outputKeyframes.Add(nextKeyFromPrevLoop);
 
-            var keys = new Keyframe[outputKeyframes.Count];
-
-            for (var i = 0; i < outputKeyframes.Count; i++)
-                keys[i] = outputKeyframes[i].Keyframe;
-
-            var newCurve = new AnimationCurve(keys)
+            var newCurve = new AnimationCurve(outputKeyframes.ToArray())
             {
                 preWrapMode = curve.preWrapMode,
                 postWrapMode = curve.postWrapMode,
             };
 
-            for (var index = 0; index < outputKeyframes.Count; index++)
-            {
-                AnimationUtility.SetKeyBroken(newCurve, index, outputKeyframes[index].Broken);
-                AnimationUtility.SetKeyLeftTangentMode(newCurve, index, outputKeyframes[index].LeftTangentMode);
-                AnimationUtility.SetKeyRightTangentMode(newCurve, index, outputKeyframes[index].RightTangentMode);
-            }
+            for (var index = 0; index < newCurve.length; index++)
+                AnimationUtility.SetKeyBroken(newCurve, index, true);
 
             return newCurve;
         }
@@ -569,38 +548,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 public double LeftDerivative => _remapCurve.DerivativeOfRange(_index - 1);
                 public double RightDerivative => _remapCurve.DerivativeOfRange(_index);
-            }
-        }
-
-        /// <summary>
-        /// The struct that holds keyframe information with TangentMode and Broken state.
-        ///
-        /// (The TangentMode and Broken state are stored in Keyframe struct and accessible with internal function, but unaccessible through public API)
-        /// </summary>
-        private struct FullKeyframe
-        {
-            public Keyframe Keyframe;
-            public AnimationUtility.TangentMode LeftTangentMode;
-            public AnimationUtility.TangentMode RightTangentMode;
-            public bool Broken;
-
-            public FullKeyframe(AnimationCurve curve, int index)
-            {
-                var keyIn = curve[index];
-                // We do not copy tangentMode because setting tangentMode may let unity alter Keyframe on SetKey{Left,Right}TangentMode
-                Keyframe = new Keyframe
-                {
-                    time = keyIn.time,
-                    value = keyIn.value,
-                    inTangent = keyIn.inTangent,
-                    outTangent = keyIn.outTangent,
-                    inWeight = keyIn.inWeight,
-                    outWeight = keyIn.outWeight,
-                    weightedMode = keyIn.weightedMode,
-                };
-                LeftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, index);
-                RightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, index);
-                Broken = AnimationUtility.GetKeyBroken(curve, index);
             }
         }
 
