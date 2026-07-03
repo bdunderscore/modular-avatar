@@ -45,6 +45,9 @@ namespace nadena.dev.modular_avatar.core.editor
             for (var i = 0; i < tRoots.Length; i++)
                 roots[i] = tRoots[i] - shift;
 
+            for (int i = 0; i < roots.Length; i++)
+                roots[i] = NewtonPolish(a, b, c, d, roots[i]);
+
             return roots;
         }
 
