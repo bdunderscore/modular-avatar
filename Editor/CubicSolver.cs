@@ -17,29 +17,6 @@ namespace nadena.dev.modular_avatar.core.editor
     /// </summary>
     internal static class CubicSolver
     {
-        // SolveCubic
-
-        private class CubicSolverWindow : EditorWindow
-        {
-            [MenuItem("Window/Modular Avatar Solver")]
-            private static void ShowWindow() => GetWindow(typeof(CubicSolverWindow)).Show();
-
-            private double a, b, c, d;
-
-            private void OnGUI()
-            {
-                a = EditorGUILayout.DoubleField("A", a);
-                b = EditorGUILayout.DoubleField("B", b);
-                c = EditorGUILayout.DoubleField("C", c);
-                d = EditorGUILayout.DoubleField("D", d);
-                var sw = Stopwatch.StartNew();
-                var result = SolveCubicDouble(a, b, c, d);
-                var dur = sw.Elapsed;
-                EditorGUILayout.SelectableLabel($"{result}");
-                EditorGUILayout.SelectableLabel($"took {dur}");
-            }
-        }
-
         private const double Eps = 1e-12;
 
         /// <summary>
