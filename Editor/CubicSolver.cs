@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Text;
 using UnityEditor;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -22,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <summary>
         /// Internal double-precision solver for a x^3 + b x^2 + c x + d = 0.
         /// </summary>
-        public static Roots SolveCubicDouble(double a, double b, double c, double d)
+        public static double[] SolveCubicDouble(double a, double b, double c, double d)
         {
             // If a is essentially 0, fall back to a lower-degree solver (quadratic / linear)
             if (Math.Abs(a) < Eps)
@@ -42,9 +41,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var tRoots = SolveDepressedCubic(p, q);
 
-            var roots = Roots.New();
+            var roots = new double[tRoots.Length];
             for (var i = 0; i < tRoots.Length; i++)
-                roots.Add(tRoots[i] - shift);
+                roots[i] = tRoots[i] - shift;
 
             return roots;
         }
@@ -55,12 +54,12 @@ namespace nadena.dev.modular_avatar.core.editor
         /// method (3 real roots) based on the discriminant. On the Cardano branch,
         /// u is computed first and v is derived via v = -p/(3u) to avoid cancellation.
         /// </summary>
-        private static Roots SolveDepressedCubic(double p, double q)
+        private static double[] SolveDepressedCubic(double p, double q)
         {
             // p and q both ~0 -> triple root at t = 0
             if (Math.Abs(p) < Eps && Math.Abs(q) < Eps)
             {
-                return new Roots(0.0);
+                return new[] { 0.0 };
             }
 
             // D = q^2/4 + p^3/27  (D > 0: 1 real root / D <= 0: 3 real roots, D = 0 includes a repeated root)
@@ -85,7 +84,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var t0 = u + v;
-                return new Roots(t0);
+                return new [] { t0 };
             }
             else if (D < -Eps)
             {
@@ -104,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var t1 = 2.0 * r * Math.Cos(theta - twoPiOver3);
                 var t2 = 2.0 * r * Math.Cos(theta - 2.0 * twoPiOver3);
 
-                return new Roots(t0, t1, t2);
+                return new [] { t0, t1, t2 };
             }
             else
             {
@@ -112,7 +111,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var u = CubeRoot(-q / 2.0);
                 var t0 = 2.0 * u; // simple root
                 var t1 = -u; // double root
-                return new Roots(t0, t1, t1);
+                return new [] { t0, t1, t1 };
             }
         }
 
@@ -132,24 +131,24 @@ namespace nadena.dev.modular_avatar.core.editor
         /// <summary>
         /// Fallback for when a is essentially 0 (quadratic / linear equation).
         /// </summary>
-        private static Roots SolveQuadraticOrLower(double b, double c, double d)
+        private static double[] SolveQuadraticOrLower(double b, double c, double d)
         {
             if (Math.Abs(b) < Eps)
             {
                 // Linear equation: c x + d = 0
                 if (Math.Abs(c) < Eps)
                 {
-                    return Roots.New(); // No solution (or indeterminate; not handled here)
+                    return Array.Empty<double>(); // No solution (or indeterminate; not handled here)
                 }
 
-                return new Roots(-d / c);
+                return new[] { -d / c };
             }
 
             // Quadratic equation: b x^2 + c x + d = 0 (cancellation-avoiding form of the quadratic formula)
             var disc = c * c - 4.0 * b * d;
             if (disc < 0.0)
             {
-                return Roots.New();
+                return Array.Empty<double>();
             }
 
             var sqrtDisc = Math.Sqrt(disc);
@@ -160,12 +159,12 @@ namespace nadena.dev.modular_avatar.core.editor
             if (Math.Abs(q) < Eps)
             {
                 var x0 = -c / (2.0 * b);
-                return new Roots(x0);
+                return new [] { x0 };
             }
 
             var r0 = q / b;
             var r1 = d / q;
-            return r0 <= r1 ? new Roots(r0, r1) : new Roots(r1, r0);
+            return new [] { r0, r1 };
         }
 
         /// <summary>
@@ -194,92 +193,6 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return x;
-        }
-
-        public struct Roots
-        {
-            private double _s0;
-            private double _s1;
-            private double _s2;
-
-            public Roots(double s0)
-            {
-                this = New();
-                Add(s0);
-            }
-            
-            public Roots(double s0, double s1)
-            {
-                this = New();
-                Add(s0);
-                Add(s1);
-            }
-            
-            public Roots(double s0, double s1, double s2)
-            {
-                this = New();
-                Add(s0);
-                Add(s1);
-                Add(s2);
-            }
-
-            public static Roots New() =>
-                new()
-                {
-                    _s0 = double.NaN,
-                    _s1 = double.NaN,
-                    _s2 = double.NaN,
-                };
-
-            public void Add(double x)
-            {
-                if (double.IsNaN(_s0)) _s0 = x;
-                else if (double.IsNaN(_s1)) _s1 = x;
-                else if (double.IsNaN(_s2)) _s2 = x;
-                else throw new InvalidOperationException("Cannot add more than three solution.");
-            }
-
-            public int Length => double.IsNaN(_s0) ? 0 : double.IsNaN(_s1) ? 1 : double.IsNaN(_s2) ? 2 : 3;
-            public double this[int i]
-            {
-                get => i == 0 ? _s0 : i == 1 ? _s1 : i == 2 ? _s2 : throw new IndexOutOfRangeException();
-                set
-                {
-                    switch (i)
-                    {
-                        case 0:
-                            _s0 = value;
-                            break;
-                        case 1:
-                            _s1 = value;
-                            break;
-                        case 2:
-                            _s2 = value;
-                            break;
-                        default:
-                            throw new IndexOutOfRangeException();
-                    }
-                }
-            }
-
-            public double[] ToArray() => Length switch
-            {
-                0 => Array.Empty<double>(),
-                1 => new[] { _s0 },
-                2 => new[] { _s0, _s1 },
-                3 => new[] { _s0, _s1, _s2 },
-            };
-
-            public override string ToString()
-            {
-                if (double.IsNaN(_s0)) return "{}";
-                var builder = new StringBuilder("{");
-                builder.Append(_s0);
-                if (!double.IsNaN(_s1)) builder.Append($", {_s1}");
-                if (!double.IsNaN(_s2)) builder.Append($", {_s2}");
-                builder.Append("}");
-                return builder.ToString();
-            }
         }
     }
 }
