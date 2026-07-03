@@ -20,12 +20,12 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class BlendshapeSyncAnimationProcessor
     {
         private readonly ndmf.BuildContext _context;
-        private Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>> _bindingMappings;
+        private Dictionary<SummaryBinding, List<(SummaryBinding target, RemapCurve remapCurve)>> _bindingMappings;
 
         internal BlendshapeSyncAnimationProcessor(ndmf.BuildContext context)
         {
             _context = context;
-            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, RemapCurve remapCurve)>>();
         }
 
         private struct SummaryBinding : IEquatable<SummaryBinding>
@@ -93,7 +93,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var asc = _context.Extension<AnimatorServicesContext>();
             var animDb = asc.AnimationIndex;
             
-            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, AnimationCurve remapCurve)>>();
+            _bindingMappings = new Dictionary<SummaryBinding, List<(SummaryBinding target, RemapCurve remapCurve)>>();
 
             var components = avatarGameObject.GetComponentsInChildren<ModularAvatarBlendshapeSync>(true);
             if (components.Length == 0) return;
@@ -122,9 +122,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.BlendshapeName);
                     if (targetIndex < 0) continue;
 
-                    var targetWeight = (remapCurve != null && remapCurve.length >= 2)
-                        ? remapCurve.Evaluate(srcWeight / 100f) * 100f
-                        : srcWeight;
+                    var targetWeight = remapCurve.IsIdentity ? srcWeight : remapCurve.GetPointOnCurve(srcWeight).MappedValue;
                     targetSmr.SetBlendShapeWeight(targetIndex, targetWeight);
                 }
             }
@@ -161,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!_bindingMappings.TryGetValue(srcBinding, out var dstBindings))
                 {
-                    dstBindings = new List<(SummaryBinding target, AnimationCurve remapCurve)>();
+                    dstBindings = new List<(SummaryBinding target, RemapCurve remapCurve)>();
                     _bindingMappings[srcBinding] = dstBindings;
                 }
 
@@ -169,7 +167,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add((new SummaryBinding(targetSmr, targetBlendshapeName), binding.RemapCurve));
+                dstBindings.Add((new SummaryBinding(targetSmr, targetBlendshapeName), new RemapCurve(binding.RemapCurve)));
             }
         }
 
@@ -209,59 +207,24 @@ namespace nadena.dev.modular_avatar.core.editor
             return newCurve;
         }
 
-        internal static AnimationCurve MapCurve(AnimationCurve curve, AnimationCurve? remapCurve)
+        const float epsilon = 1 / 200f;
+
+        internal static AnimationCurve MapCurve(AnimationCurve curve, RemapCurve remapCurve)
         {
-            if (remapCurve == null || remapCurve.length < 2 || 
-                remapCurve.length == 2 
-                && remapCurve[0].time == 0 && remapCurve[0].value == 0 
-                && remapCurve[1].time == 1 && remapCurve[1].value == 1)
+            if (remapCurve.IsIdentity)
                 return curve;
-
-            // the remapCurve, splitPoints, and derivatives
-            //
-            //   x
-            //   ^
-            //   | keys[0]              keys[2]                 so keys.Length == 4
-            //   |/        keys[1]                    keys[3]
-            // 1 +------------*------------+------------*
-            //   |          ,'|',          |          ,'|
-            //   |        ,'  |  ',        |        ,'  |
-            //   |      ,'    |    ',      |      ,'    |
-            //   |    ,'      |      ',    |    ,'      |
-            //   |  ,'        |        ',  |  ,'        |
-            //   |,'          |          ',|,'          |
-            // 0 *------------+------------*------------*--+> t
-            //   0      splitPoints[0]     |            1
-            //   |            |      splitPoints[1]     |
-            //   |============|============|============|
-            //   derivatives[0]            derivatives[2]
-            //                derivatives[1]
-
-            // the list of original curve values that (may) changes their derivatives
-            var splitPoints = new float[remapCurve.length - 2];
-            for (var i = 0; i < splitPoints.Length; i++)
-                splitPoints[i] = remapCurve[i + 1].time;
-            var splitPointValues = new float[remapCurve.length - 2];
-            for (var i = 0; i < splitPoints.Length; i++)
-                splitPointValues[i] = remapCurve[i + 1].value;
-            var derivatives = new double[remapCurve.length - 1];
-            for (var i = 0; i < derivatives.Length; i++)
-                derivatives[i] = ((double)remapCurve[i + 1].value - remapCurve[i].value) / ((double)remapCurve[i + 1].time - remapCurve[i].time);
-
-            const float epsilon = 0.005f; // ~200fps
-            var comparer = new FloatComparerIgnoreEpsilon(epsilon);
 
             var outputKeyframes = new List<FullKeyframe>(curve.length);
 
             var nextKeyFromPrevLoop = new FullKeyframe(curve, 0);
-            var nextKeyBinarySearchResultFromPrevLoop = Array.BinarySearch(splitPoints, nextKeyFromPrevLoop.Keyframe.value / 100f, comparer);
+            var nextKeyOnMapFromPrevLoop = remapCurve.GetPointOnCurve(nextKeyFromPrevLoop.Keyframe.value);
             // we loop for each keyframe range
             for (var rangeIndex = 0; rangeIndex < curve.length - 1; rangeIndex++)
             {
                 var startKey = nextKeyFromPrevLoop;
-                var startKeySplitPointSearchResult = nextKeyBinarySearchResultFromPrevLoop;
+                var startKeyOnMap = nextKeyOnMapFromPrevLoop;
                 var endKey = new FullKeyframe(curve, rangeIndex + 1);
-                var endKeySplitPointSearchResult = Array.BinarySearch(splitPoints, endKey.Keyframe.value / 100f, comparer);
+                var endKeyOnMap = remapCurve.GetPointOnCurve(endKey.Keyframe.value);
 
                 const float oneThird = 1.0f / 3;
                 var startTangentWeight = (startKey.Keyframe.weightedMode & WeightedMode.Out) != 0 ? startKey.Keyframe.outWeight : oneThird;
@@ -277,33 +240,21 @@ namespace nadena.dev.modular_avatar.core.editor
                 Debug.Assert(startKey.RightTangentMode == AnimationUtility.TangentMode.Free);
                 Debug.Assert(startKey.LeftTangentMode == AnimationUtility.TangentMode.Free);
 
-                startKey.Keyframe.value = remapCurve.Evaluate(startKey.Keyframe.value / 100f) * 100f;
-                if (startKeySplitPointSearchResult >= 0)
-                {
-                    // the point is exactly at splitPoints[binarySearchResult].
-                    startKey.Keyframe.outTangent = (float)(startKey.Keyframe.outTangent 
-                            * (startKey.Keyframe.outTangent < 0 ? derivatives[startKeySplitPointSearchResult] : derivatives[startKeySplitPointSearchResult + 1]));
-                }
-                else
-                {
-                    // the point is in derivatives[~binarySearchResult] range
+                startKey.Keyframe.value = startKeyOnMap.MappedValue;
+                startKey.Keyframe.outTangent = startKeyOnMap.MapTangent(startKey.Keyframe.outTangent, isOut: true);
 
-                    startKey.Keyframe.outTangent = (float)(startKey.Keyframe.outTangent * derivatives[~startKeySplitPointSearchResult]);
-                }
-
-                var roots = new List<(double t, int pointIndex)>();
+                var roots = new List<(double t, RemapCurve.SplitPoint splitPoint)>();
 
                 // If tangent is infinite, the curve becomes constant curve which will never splits curve.
                 if (float.IsFinite(startKey.Keyframe.outTangent) && float.IsFinite(endKey.Keyframe.inTangent))
                 {
-                    for (var i = 0; i < splitPoints.Length; i++)
+                    foreach (var splitPoint in remapCurve.SplitPoints)
                     {
-                        var splitPoint = splitPoints[i];
-                        var rootsForThisSplitPoint = valueAxisBezier.Solve(splitPoint * 100).ToArray();
+                        var rootsForThisSplitPoint = valueAxisBezier.Solve(splitPoint.OriginalValue).ToArray();
                         foreach (var root in rootsForThisSplitPoint)
                         {
                             if (root is > epsilon and < (1 - epsilon))
-                                roots.Add((root, i));
+                                roots.Add((root, splitPoint));
                         }
                     }
                 }
@@ -314,8 +265,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
                     var isHermite = (startKey.Keyframe.weightedMode & WeightedMode.Out) == 0 && (endKey.Keyframe.weightedMode & WeightedMode.In) == 0;
 
-                    roots.Add((0, -1));
-                    roots.Add((1, -1));
+                    roots.Add((0, default));
+                    roots.Add((1, default));
                     roots.Sort((a, b) => a.t.CompareTo(b.t));
 
                     if (!isHermite)
@@ -336,7 +287,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         FullKeyframe splitKey;
                         {
                             var rootT = roots[i].t;
-                            var splitPointIndex = roots[i].pointIndex;
+                            var splitPoint = roots[i].splitPoint;
 
                             var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(rootT);
                             var valueAxisDerivative = valueAxisBezier.Derivative(rootT);
@@ -351,9 +302,9 @@ namespace nadena.dev.modular_avatar.core.editor
                                 RightTangentMode = AnimationUtility.TangentMode.Free,
                                 Keyframe = {
                                     time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                    value = splitPointValues[splitPointIndex] * 100,
-                                    inTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex] : derivatives[splitPointIndex + 1])),
-                                    outTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex + 1] : derivatives[splitPointIndex])),
+                                    value = (float)splitPoint.MappedValue,
+                                    inTangent = splitPoint.MapTangent(tangent, isOut: false),
+                                    outTangent = splitPoint.MapTangent(tangent, isOut: true),
                                 },
                             };
 
@@ -391,7 +342,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                 var diff = epsilon * multiplier;
                                 {
                                     var leftT = roots[i].t - diff;
-                                    var splitPointIndex = roots[i].pointIndex;
+                                    var splitPoint = roots[i].splitPoint;
 
                                     var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(leftT);
                                     var valueAxisDerivative = valueAxisBezier.Derivative(leftT);
@@ -407,9 +358,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                         Keyframe =
                                         {
                                             time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                            value = splitPointValues[splitPointIndex] * 100,
-                                            inTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex] : derivatives[splitPointIndex + 1])),
-                                            outTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex] : derivatives[splitPointIndex + 1])),
+                                            value = (float)splitPoint.MappedValue,
+                                            // this key is before the split point, so always use out tangent.
+                                            inTangent = splitPoint.MapTangent(tangent, isOut: false),
+                                            outTangent = splitPoint.MapTangent(tangent, isOut: false),
                                         },
                                     };
 
@@ -430,7 +382,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                                 {
                                     var rightT = roots[i].t + diff;
-                                    var splitPointIndex = roots[i].pointIndex;
+                                    var splitPoint = roots[i].splitPoint;
 
                                     var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(rightT);
                                     var valueAxisDerivative = valueAxisBezier.Derivative(rightT);
@@ -445,9 +397,10 @@ namespace nadena.dev.modular_avatar.core.editor
                                         RightTangentMode = AnimationUtility.TangentMode.Free,
                                         Keyframe = {
                                             time = Mathf.LerpUnclamped(startKey.Keyframe.time, endKey.Keyframe.time, (float)insertTimeRatio),
-                                            value = splitPointValues[splitPointIndex] * 100,
-                                            inTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex + 1] : derivatives[splitPointIndex])),
-                                            outTangent = (float)(tangent * (tangent > 0 ? derivatives[splitPointIndex + 1] : derivatives[splitPointIndex])),
+                                            value = (float)splitPoint.MappedValue,
+                                            // this key is after the split point, so always use in tangent.
+                                            inTangent = splitPoint.MapTangent(tangent, isOut: true),
+                                            outTangent = splitPoint.MapTangent(tangent, isOut: true),
                                         },
                                     };
 
@@ -487,24 +440,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     outputKeyframes.Add(startKey);
                 }
 
-                    
-                if (endKeySplitPointSearchResult >= 0)
-                {
-                    // the point is exactly at splitPoints[pointIndex].
-                    endKey.Keyframe.inTangent = (float)(endKey.Keyframe.inTangent 
-                            * (endKey.Keyframe.inTangent > 0 ? derivatives[endKeySplitPointSearchResult] : derivatives[endKeySplitPointSearchResult + 1]));
-                }
-                else
-                {
-                    // the point is in derivatives[~binarySearchResult] range
-                    endKey.Keyframe.inTangent = (float)(endKey.Keyframe.inTangent * derivatives[~endKeySplitPointSearchResult]);
-                }
+                endKey.Keyframe.inTangent = endKeyOnMap.MapTangent(endKey.Keyframe.inTangent, isOut: false);
 
                 nextKeyFromPrevLoop = endKey;
-                nextKeyBinarySearchResultFromPrevLoop = endKeySplitPointSearchResult;
+                nextKeyOnMapFromPrevLoop = endKeyOnMap;
             }
 
-            nextKeyFromPrevLoop.Keyframe.value = remapCurve.Evaluate(nextKeyFromPrevLoop.Keyframe.value / 100f) * 100f;
+            nextKeyFromPrevLoop.Keyframe.value = nextKeyOnMapFromPrevLoop.MappedValue;
             outputKeyframes.Add(nextKeyFromPrevLoop);
 
             var keys = new Keyframe[outputKeyframes.Count];
@@ -526,6 +468,108 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             return newCurve;
+        }
+
+        /// <summary>
+        /// The class folds information of remapCurve.
+        ///
+        /// This class provides easy access to the remap curve of BlendShape Sync.
+        ///
+        /// The reason why this class is used instead of directly using Animation Curve is:
+        /// - We want to use Array.BinarySearch to find the index of the closest remap key or segment. There is no generic way to do this with Animation Curve in C# api.
+        /// - We want to get derivative of the remap curve easily. We often require this for mapping implementation.
+        /// - We want to change the behavior of the remap curve for out-of-range values for compatibility reasons.
+        ///   In previous versions of Modular Avatar without remap curves, any out-of-zero range will be mapped as-is.
+        ///   However, AnimationCurve will repeat or clamp the out-of-range values.
+        ///   We need to preserve previous behavior for remap curves looks like identity, so we need to change the behavior for out-of-range values.
+        /// </summary>
+        internal class RemapCurve
+        {
+            private const int MapScale = 100;
+            private static readonly FloatComparerIgnoreEpsilon Comparer = new(epsilon);
+
+            private readonly float[] _originalValues;
+            private readonly float[] _mappedValues;
+
+            public RemapCurve(AnimationCurve? curve)
+            {
+                if (curve == null || curve.length < 2)
+                {
+                    _originalValues = new float[] { 0, 1 };
+                    _mappedValues = new float[] { 0, 1 };
+                }
+                else
+                {
+                    _originalValues = curve.keys.Select(k => k.time).ToArray();
+                    _mappedValues = curve.keys.Select(k => k.value).ToArray();
+                }
+            }
+
+            public bool IsIdentity => _originalValues.Length == 2 && _originalValues[0] == 0 && _mappedValues[0] == 0 && _mappedValues[1] == 1 && _originalValues[1] == 1;
+
+            public IEnumerable<SplitPoint> SplitPoints => Enumerable.Range(1, _originalValues.Length - 2).Select(i => new SplitPoint(this, i));
+
+            public Point GetPointOnCurve(float value) => new(this, Array.BinarySearch(_originalValues, value / MapScale, Comparer), value);
+
+            private double DerivativeOfRange(int range)
+                => ((double)_mappedValues[range + 1] - _mappedValues[range])
+                   / ((double)_originalValues[range + 1] - _originalValues[range]);
+
+            private int ClampRangeIndex(int range) => Mathf.Clamp(range, 0, _originalValues.Length - 2);
+
+            private double GetMappedValue(int binarySearch, float value)
+            {
+                if (binarySearch >= 0)
+                {
+                    // if the value is exactly at 
+                    return _mappedValues[binarySearch] * MapScale;
+                }
+                else
+                {
+                    var range = ClampRangeIndex(~binarySearch - 1);
+                    return (_mappedValues[range] + DerivativeOfRange(range) * (value / MapScale - _originalValues[range])) * MapScale;
+                }
+            }
+
+            public readonly struct Point
+            {
+                private readonly RemapCurve _remapCurve;
+                private readonly int _binarySearch;
+                private readonly float _originalValue;
+
+                internal Point(RemapCurve remapCurve, int binarySearch, float originalValue)
+                    => (_remapCurve, _binarySearch, _originalValue) = (remapCurve, binarySearch, originalValue);
+
+                public float OriginalValue => _originalValue;
+                public float MappedValue => (float)_remapCurve.GetMappedValue(_binarySearch, _originalValue);
+
+                public float MapTangent(float tangent, bool isOut) => !float.IsFinite(tangent) ? tangent 
+                    : (float)(tangent * (isOut == tangent < 0 ? LeftDerivative : RightDerivative));
+
+                public double LeftDerivative => _binarySearch >= 0
+                    ? _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(_binarySearch - 1))
+                    : _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(~_binarySearch - 1));
+                public double RightDerivative => _binarySearch >= 0
+                    ? _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(_binarySearch))
+                    : _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(~_binarySearch - 1));
+            }
+
+            public readonly struct SplitPoint
+            {
+                private readonly RemapCurve _remapCurve;
+                private readonly int _index;
+
+                internal SplitPoint(RemapCurve remapCurve, int i) => (_remapCurve, _index) = (remapCurve, i);
+
+                public double OriginalValue => (double)_remapCurve._originalValues[_index] * MapScale;
+                public double MappedValue => _remapCurve._mappedValues[_index] * MapScale;
+                
+                public float MapTangent(double tangent, bool isOut) => !double.IsFinite(tangent) ? (float)tangent 
+                    : (float)(tangent * (isOut == tangent < 0 ? LeftDerivative : RightDerivative));
+
+                public double LeftDerivative => _remapCurve.DerivativeOfRange(_index - 1);
+                public double RightDerivative => _remapCurve.DerivativeOfRange(_index);
+            }
         }
 
         /// <summary>
@@ -586,7 +630,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public double Compute(double t) => a * t * t * t + b * t * t + c * t + d;
 
-            public CubicSolver.Roots Solve(float value) => CubicSolver.SolveCubicDouble(a, b, c, d - value);
+            public double[] Solve(double value) => CubicSolver.SolveCubicDouble(a, b, c, d - value);
         }
     }
 
