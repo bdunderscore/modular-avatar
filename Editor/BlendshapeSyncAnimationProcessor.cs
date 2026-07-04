@@ -247,7 +247,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 startKey.value = startKeyOnMap.MappedValue;
                 startKey.outTangent = startKeyOnMap.MapTangent(startKey.outTangent, isOut: true);
 
-                var roots = new List<(double t, RemapCurve.SplitPoint splitPoint)>();
+                var roots = new List<(double t, RemapCurve.Point splitPoint)>();
 
                 // If tangent is infinite, the curve becomes constant curve which will never splits curve.
                 if (float.IsFinite(startKey.outTangent) && float.IsFinite(endKey.inTangent))
@@ -486,7 +486,8 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public bool IsIdentity => _originalValues.Length == 2 && _originalValues[0] == 0 && _mappedValues[0] == 0 && _mappedValues[1] == 1 && _originalValues[1] == 1;
 
-            public IEnumerable<SplitPoint> SplitPoints => Enumerable.Range(1, _originalValues.Length - 2).Select(i => new SplitPoint(this, i));
+            public IEnumerable<Point> SplitPoints => Enumerable.Range(1, _originalValues.Length - 2)
+                .Select(i => new Point(this, i, _originalValues[i] * MapScale));
 
             public Point GetPointOnCurve(float value) => new(this, Array.BinarySearch(_originalValues, value / MapScale, Comparer), value);
 
@@ -522,7 +523,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 public float OriginalValue => _originalValue;
                 public float MappedValue => (float)_remapCurve.GetMappedValue(_binarySearch, _originalValue);
 
-                public float MapTangent(float tangent, bool isOut) => !float.IsFinite(tangent) ? tangent 
+                public float MapTangent(double tangent, bool isOut) => !double.IsFinite(tangent) ? (float)tangent 
                     : (float)(tangent * (isOut == tangent < 0 ? LeftDerivative : RightDerivative));
 
                 public double LeftDerivative => _binarySearch >= 0
@@ -531,23 +532,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 public double RightDerivative => _binarySearch >= 0
                     ? _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(_binarySearch))
                     : _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(~_binarySearch - 1));
-            }
-
-            public readonly struct SplitPoint
-            {
-                private readonly RemapCurve _remapCurve;
-                private readonly int _index;
-
-                internal SplitPoint(RemapCurve remapCurve, int i) => (_remapCurve, _index) = (remapCurve, i);
-
-                public double OriginalValue => (double)_remapCurve._originalValues[_index] * MapScale;
-                public double MappedValue => _remapCurve._mappedValues[_index] * MapScale;
-                
-                public float MapTangent(double tangent, bool isOut) => !double.IsFinite(tangent) ? (float)tangent 
-                    : (float)(tangent * (isOut == tangent < 0 ? LeftDerivative : RightDerivative));
-
-                public double LeftDerivative => _remapCurve.DerivativeOfRange(_index - 1);
-                public double RightDerivative => _remapCurve.DerivativeOfRange(_index);
             }
         }
 
