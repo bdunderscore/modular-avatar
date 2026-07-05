@@ -266,7 +266,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (roots.Count != 0)
                 {
                     // When the curve passes some of the split points, we split the curve at those points.
-
                     var isHermite = (startKey.weightedMode & WeightedMode.Out) == 0 && (endKey.weightedMode & WeightedMode.In) == 0;
 
                     roots.Add((0, default));
@@ -276,12 +275,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!isHermite)
                     {
                         startKey.weightedMode |= WeightedMode.Out;
-
-                        var timeDerivative = timeAxisBezier.Derivative(0);
-
-                        var tRangeAfter = roots[1].t - 0;
-                        var timeRangeAfter = timeAxisBezier.Compute(roots[1].t) - timeAxisBezier.Compute(0);
-                        startKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                        startKey.outWeight = ComputeWeight(0, roots[1].t);
                     }
 
                     outputKeyframes.Add(startKey);
@@ -290,37 +284,24 @@ namespace nadena.dev.modular_avatar.core.editor
                     double lastKeyT = 0;
                     for (var i = 1; i < roots.Count - 1; i++)
                     {
+                        var splitPoint = roots[i].splitPoint;
+
                         Keyframe splitKey;
                         {
                             var rootT = roots[i].t;
-                            var splitPoint = roots[i].splitPoint;
-
-                            var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(rootT);
-                            var valueAxisDerivative = valueAxisBezier.Derivative(rootT);
-                            var tangent = valueAxisDerivative / timeAxisDerivative / timeSpan;
-
-                            var insertTimeRatio = timeAxisBezier.Compute(rootT);
 
                             splitKey = new Keyframe
                             {
-                                time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio),
-                                value = (float)splitPoint.MappedValue,
-                                inTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                outTangent = splitPoint.MapTangent(tangent, isOut: true),
+                                time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)timeAxisBezier.Compute(rootT)),
+                                value = splitPoint.MappedValue,
+                                inTangent = splitPoint.MapTangent(ComputeTangent(rootT), isOut: false),
+                                outTangent = splitPoint.MapTangent(ComputeTangent(rootT), isOut: true),
                             };
 
                             if (!isHermite)
                             {
-                                var timeDerivative = timeAxisBezier.Derivative(rootT);
-
-                                var tRangeBefore = rootT - lastKeyT;
-                                var timeRangeBefore = insertTimeRatio - timeAxisBezier.Compute(lastKeyT);
-                                splitKey.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
-
-                                var tRangeAfter = roots[i + 1].t - rootT;
-                                var timeRangeAfter = timeAxisBezier.Compute(roots[i + 1].t) - insertTimeRatio;
-                                splitKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
-
+                                splitKey.inWeight = ComputeWeight(rootT, lastKeyT);
+                                splitKey.outWeight = ComputeWeight(rootT, roots[i + 1].t);
                                 splitKey.weightedMode = WeightedMode.Both;
                             }
                         }
@@ -337,81 +318,47 @@ namespace nadena.dev.modular_avatar.core.editor
                             Keyframe leftSplitKey;
                             Keyframe rightSplitKey;
 
-                            int multiplier = 0;
+                            var multiplier = 0;
                             float diff;
+                            double leftT;
+                            double rightT;
                             do
                             {
                                 multiplier++;
                                 diff = epsilon * multiplier;
+ 
+                                leftT = roots[i].t - diff;
+                                rightT = roots[i].t + diff;
+
+                                if (leftT <= lastKeyT || rightT > roots[i + 1].t) throw new Exception("Failed to split keyframe");
+
+                                leftSplitKey = new Keyframe
                                 {
-                                    var leftT = roots[i].t - diff;
-                                    var splitPoint = roots[i].splitPoint;
-                                    if (leftT <= lastKeyT) throw new Exception("Failed to split keyframe");
+                                    time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)timeAxisBezier.Compute(leftT)),
+                                    value = remapCurve.GetPointOnCurve((float)valueAxisBezier.Compute(leftT)).MappedValue,
+                                    // this key is before the split point, so always use out tangent.
+                                    inTangent = splitPoint.MapTangent(ComputeTangent(leftT), isOut: false),
+                                    outTangent = splitPoint.MapTangent(ComputeTangent(leftT), isOut: false),
+                                };
 
-                                    var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(leftT);
-                                    var valueAxisDerivative = valueAxisBezier.Derivative(leftT);
-                                    var tangent = valueAxisDerivative / timeAxisDerivative / timeSpan;
-
-                                    var insertTimeRatio = timeAxisBezier.Compute(leftT);
-                                    var time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio);
-
-                                    leftSplitKey = new Keyframe
-                                    {
-                                        time = time,
-                                        value = remapCurve.GetPointOnCurve((float)valueAxisBezier.Compute(leftT)).MappedValue,
-                                        // this key is before the split point, so always use out tangent.
-                                        inTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                        outTangent = splitPoint.MapTangent(tangent, isOut: false),
-                                    };
-
-                                    if (!isHermite)
-                                    {
-                                        var timeDerivative = timeAxisBezier.Derivative(leftT);
-
-                                        var tRangeBefore = leftT - lastKeyT;
-                                        var timeRangeBefore = insertTimeRatio - timeAxisBezier.Compute(lastKeyT);
-                                        leftSplitKey.inWeight =
-                                            (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
-
-                                        leftSplitKey.outWeight = oneThird;
-
-                                        leftSplitKey.weightedMode = WeightedMode.In;
-                                    }
-                                }
-
+                                rightSplitKey = new Keyframe
                                 {
-                                    var rightT = roots[i].t + diff;
-                                    var splitPoint = roots[i].splitPoint;
-                                    if (rightT > roots[i + 1].t) throw new Exception("Failed to split keyframe");
+                                    time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)timeAxisBezier.Compute(rightT)),
+                                    value = remapCurve.GetPointOnCurve((float)valueAxisBezier.Compute(rightT)).MappedValue,
+                                    // this key is after the split point, so always use in tangent.
+                                    inTangent = splitPoint.MapTangent(ComputeTangent(rightT), isOut: true),
+                                    outTangent = splitPoint.MapTangent(ComputeTangent(rightT), isOut: true),
+                                };
 
-                                    var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(rightT);
-                                    var valueAxisDerivative = valueAxisBezier.Derivative(rightT);
-                                    var tangent = valueAxisDerivative / timeAxisDerivative / timeSpan;
-
-                                    var insertTimeRatio = timeAxisBezier.Compute(rightT);
-                                    var time = Mathf.LerpUnclamped(startKey.time, endKey.time, (float)insertTimeRatio);
-
-                                    rightSplitKey = new Keyframe
-                                    {
-                                        time = time,
-                                        value = (float)remapCurve.GetPointOnCurve((float)valueAxisBezier.Compute(rightT)).MappedValue,
-                                        // this key is after the split point, so always use in tangent.
-                                        inTangent = splitPoint.MapTangent(tangent, isOut: true),
-                                        outTangent = splitPoint.MapTangent(tangent, isOut: true),
-                                    };
-
-                                    if (!isHermite)
-                                    {
-                                        var timeDerivative = timeAxisBezier.Derivative(rightT);
-
-                                        rightSplitKey.inWeight = oneThird;
-
-                                        var tRangeAfter = roots[i + 1].t - rightT;
-                                        var timeRangeAfter = timeAxisBezier.Compute(roots[i + 1].t) - insertTimeRatio;
-                                        rightSplitKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
-
-                                        rightSplitKey.weightedMode = WeightedMode.Out;
-                                    }
+                                if (!isHermite)
+                                {
+                                    leftSplitKey.inWeight = ComputeWeight(leftT, lastKeyT);
+                                    leftSplitKey.outWeight = oneThird;
+                                    leftSplitKey.weightedMode = WeightedMode.In;
+                                
+                                    rightSplitKey.inWeight = oneThird;
+                                    rightSplitKey.outWeight = ComputeWeight(rightT, roots[i + 1].t);
+                                    rightSplitKey.weightedMode = WeightedMode.Out;
                                 }
                             } while (!float.IsFinite(leftSplitKey.inTangent) || !float.IsFinite(rightSplitKey.outTangent) || rightSplitKey.time - leftSplitKey.time <= 0);
 
@@ -421,20 +368,11 @@ namespace nadena.dev.modular_avatar.core.editor
                                 // so we need to fix it
 
                                 var lastKey = outputKeyframes[^1];
-                                var rootT = roots[i - 1].t;
-                                var nextKeyT = roots[i].t - diff;
-
-                                var timeDerivative = timeAxisBezier.Derivative(rootT);
-                                var insertTimeRatio = timeAxisBezier.Compute(rootT);
-
-                                var tRangeAfter = nextKeyT - rootT;
-                                var timeRangeAfter = timeAxisBezier.Compute(roots[i].t) - insertTimeRatio;
-
-                                lastKey.outWeight = (float)(timeDerivative * tRangeAfter / timeRangeAfter / 3);
+                                lastKey.outWeight = ComputeWeight(roots[i - 1].t, leftT);
                                 outputKeyframes[^1] = lastKey;
                             }
 
-                            lastKeyT = roots[i].t + diff;
+                            lastKeyT = rightT;
                             outputKeyframes.Add(leftSplitKey);
                             outputKeyframes.Add(rightSplitKey);
                         }
@@ -443,12 +381,22 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!isHermite)
                     {
                         endKey.weightedMode |= WeightedMode.In;
+                        endKey.inWeight = ComputeWeight(1, lastKeyT);
+                    }
 
-                        var timeDerivative = timeAxisBezier.Derivative(1);
+                    double ComputeTangent(double t)
+                    {
+                        var timeAxisDerivative = isHermite ? 1 : timeAxisBezier.Derivative(t);
+                        var valueAxisDerivative = valueAxisBezier.Derivative(t);
+                        return valueAxisDerivative / timeAxisDerivative / timeSpan;
+                    }
 
-                        var tRangeBefore = 1 - roots[^2].t;
-                        var timeRangeBefore = timeAxisBezier.Compute(1) - timeAxisBezier.Compute(roots[^2].t);
-                        endKey.inWeight = (float)(timeDerivative * tRangeBefore / timeRangeBefore / 3);
+                    float ComputeWeight(double ourT, double siblingT)
+                    {
+                        var timeDerivative = timeAxisBezier.Derivative(ourT);
+                        var tRange = ourT - siblingT;
+                        var timeRange = timeAxisBezier.Compute(ourT) - timeAxisBezier.Compute(siblingT);
+                        return (float)(timeDerivative * tRange / timeRange / 3);
                     }
                 }
                 else
