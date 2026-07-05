@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2034] Fixed `MA Blendshape Sync` behavior is inconsistent for out of range values
+- [#2034] Fixed `MA Blendshape Sync` remapping curve did not create keypoints for animation curve when animation curve crosses keypoints of remapping curve
 
 ### Changed
 
 ### Removed
+- [#2034] Support for `MA Blendshape Sync` remapping curve with non-piecewise linear curves
+  - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently in the future
 
 ### Security
 
