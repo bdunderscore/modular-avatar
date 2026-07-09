@@ -31,7 +31,9 @@ concurrency:
   group: publish
   cancel-in-progress: true
 
-permissions: write-all
+permissions:
+  contents: write
+  checks: write
 
 jobs:
   check-gameci:
@@ -65,21 +67,21 @@ jobs:
       - name: Validate prerelease version
         id: check-version
         if: ${{ github.event.inputs.release_kind == 'prerelease' && !contains(github.event.inputs.version, '-') }}
-        run:
+        run: |
           echo "Prerelease version must contain a hyphen"
           exit 1
 
       - name: Validate stable version
         id: check-version-stable
         if: ${{ github.event.inputs.release_kind == 'stable' && contains(github.event.inputs.version, '-') }}
-        run:
+        run: |
           echo "Stable version must not contain a hyphen"
           exit 1
 
       - name: Validate adhoc
         id: validate-adhoc
         if: ${{ github.event.inputs.release_kind == 'adhoc' && github.event.inputs.publish == 'true' }}
-        run:
+        run: |
           echo "Adhoc release cannot be published"
           exit 1
 
@@ -105,7 +107,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Checkout logo assets
@@ -125,7 +126,7 @@ jobs:
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ github.event.inputs.version }}      
+          .github/workflows/check-semver-syntax.sh ${{ github.event.inputs.version }}
 
       - name: Set git user and email
         id: git-config
