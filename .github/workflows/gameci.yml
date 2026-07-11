@@ -44,6 +44,7 @@ jobs:
   build-and-test:
     name: Unit tests
     strategy:
+      fail-fast: false
       matrix:
         unity_major_version: [ 2022 ]
         sdk: [ vrcsdk, standalone ]
