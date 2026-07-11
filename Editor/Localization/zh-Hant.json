@@ -281,6 +281,8 @@
   "ma_info.param_usage_ui.free_space": "未使用的參數空間 ({0} bits)",
   "ma_info.param_usage_ui.exceeded_space": "額外參數（{0} bits）",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} bits)",
+  "ma_info.param_usege_ui.parameter_type":  "type : {0} ({1} bits)",
+  "ma_info.param_usage_ui.is_name_deferred": "Auto rename : {0}",
   "ma_info.param_usage_ui.no_data": "【無資訊】",
   "reactive_object.inverse": "反轉條件",
   "reactive_object.mesh_cutter.object": "目標 Renderer",
