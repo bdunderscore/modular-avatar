@@ -79,6 +79,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
+          # To limit the risk here, we explicitly opt out of all permissions (except for read-contents and write-checks)
+          # and expose only the unity license secret.
+          allow-unsafe-pr-checkout: 'true'
 
       - id: prepare-project
         name: Prepare project
