@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - [#2034] Support for `MA Blendshape Sync` remapping curve with non-piecewise linear curves
-  - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently in the future
+  - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently
+    in the future
 
 ### Security
 
