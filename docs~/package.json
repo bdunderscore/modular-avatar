@@ -29,7 +29,7 @@
     "search-insights": "^2.17.3"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.8.1",
+    "@docusaurus/module-type-aliases": "^3.10.2",
     "@tsconfig/docusaurus": "^2.0.3",
     "@types/react": "^19.1.8",
     "typescript": "^5.8.3"

@@ -3760,7 +3760,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/module-type-aliases@npm:3.8.1, @docusaurus/module-type-aliases@npm:^3.8.1":
+"@docusaurus/module-type-aliases@npm:3.8.1":
   version: 3.8.1
   resolution: "@docusaurus/module-type-aliases@npm:3.8.1"
   dependencies:
@@ -3775,6 +3775,24 @@ __metadata:
     react: "*"
     react-dom: "*"
   checksum: 7bcefad2a499bebb3a577ee18848fb496f0d4ddc5d9cac4c4ee43760d44c6f87fe5e8eb2d940692999216904e8f4c4b5f6b1dbca8e54475301e2c2d063494149
+  languageName: node
+  linkType: hard
+
+"@docusaurus/module-type-aliases@npm:^3.10.2":
+  version: 3.10.2
+  resolution: "@docusaurus/module-type-aliases@npm:3.10.2"
+  dependencies:
+    "@docusaurus/types": 3.10.2
+    "@types/history": ^4.7.11
+    "@types/react": "*"
+    "@types/react-router-config": "*"
+    "@types/react-router-dom": "*"
+    react-helmet-async: "npm:@slorber/react-helmet-async@1.3.0"
+    react-loadable: "npm:@docusaurus/react-loadable@6.0.0"
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+  checksum: 85ba7aa6f6e3f2caff89bedccfa09e4831b034b1ec28f3266644c3b826b2aead943474f59a59a3c9596e72962c317843564ebae21dee44a2c7011ceb36b9dd13
   languageName: node
   linkType: hard
 
@@ -4092,6 +4110,27 @@ __metadata:
     fs-extra: ^11.1.1
     tslib: ^2.6.0
   checksum: 24a05a2c755df2e88e27ae7be716ef291b265726259558e83ec82886989d7cafc2ff7b4e35ad27f8e3dcee16686369c7c963574a023bdedc881f9969524b4417
+  languageName: node
+  linkType: hard
+
+"@docusaurus/types@npm:3.10.2":
+  version: 3.10.2
+  resolution: "@docusaurus/types@npm:3.10.2"
+  dependencies:
+    "@mdx-js/mdx": ^3.0.0
+    "@types/history": ^4.7.11
+    "@types/mdast": ^4.0.2
+    "@types/react": "*"
+    commander: ^5.1.0
+    joi: ^17.9.2
+    react-helmet-async: "npm:@slorber/react-helmet-async@1.3.0"
+    utility-types: ^3.10.0
+    webpack: ^5.95.0
+    webpack-merge: ^5.9.0
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 9c9e40feb88ea0384b80e2ec325a9ccfd0486e130bebf0242d2c0d5ab68e45358ebda9ffaef760e8ab0984755f8392eb3beaa46fe443caf4f0b39f1060e36fea
   languageName: node
   linkType: hard
 
@@ -10353,7 +10392,7 @@ __metadata:
   resolution: "modular-avatar-docs@workspace:."
   dependencies:
     "@docusaurus/core": ^3.8.1
-    "@docusaurus/module-type-aliases": ^3.8.1
+    "@docusaurus/module-type-aliases": ^3.10.2
     "@docusaurus/preset-classic": ^3.8.1
     "@mdx-js/react": ^3.1.0
     "@tsconfig/docusaurus": ^2.0.3
