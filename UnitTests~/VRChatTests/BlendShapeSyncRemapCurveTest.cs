@@ -23,7 +23,6 @@ namespace modular_avatar_tests
             yield return new TestCaseData(null);
             yield return new TestCaseData(new AnimationCurve()).SetName("EmptyCurve");
             yield return new TestCaseData(new AnimationCurve(new Keyframe(-1, 0))).SetName("SingleKeyframe");
-            yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(1, 1))).SetName("ValidShortIdentityCurve");
             yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(100, 100))).SetName("ValidIdentityCurve");
         }
 
@@ -31,9 +30,9 @@ namespace modular_avatar_tests
         [TestCaseSource(nameof(IdentityCurve_Cases))]
         public void IdentityCurve(AnimationCurve? inCurve)
         {
-            var remapCurve = new RemapCurve(null);
-            Assert.That(remapCurve.IsIdentity, Is.True);
-            Assert.That(remapCurve.SplitPoints, Is.Empty);
+            var remapCurve = new RemapCurve(inCurve);
+            Assert.That(remapCurve.IsIdentity, Is.True, "IsIdentity");
+            Assert.That(remapCurve.SplitPoints, Is.Empty, "SplitPoints");
 
             Assert.That(remapCurve.GetPointOnCurve(-50).OriginalValue, Is.EqualTo(-50));
             Assert.That(remapCurve.GetPointOnCurve(-50).MappedValue, Is.EqualTo(-50));

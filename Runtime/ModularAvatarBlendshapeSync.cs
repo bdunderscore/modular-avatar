@@ -240,8 +240,8 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (curve == null || curve.length < 2)
                 {
-                    _originalValues = new float[] { 0, 1 };
-                    _mappedValues = new float[] { 0, 1 };
+                    _originalValues = new float[] { 0, 100 };
+                    _mappedValues = new float[] { 0, 100 };
                 }
                 else
                 {
