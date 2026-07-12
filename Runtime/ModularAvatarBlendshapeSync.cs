@@ -198,7 +198,7 @@ namespace nadena.dev.modular_avatar.core
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
                 var remapCurve = Bindings[binding.BindingIndex].RemapCurve;
                 if (remapCurve != null && remapCurve.length >= 2)
-                    weight = remapCurve.Evaluate(weight / 100f) * 100f;
+                    weight = remapCurve.Evaluate(weight);
                 var currentWeight = localRenderer.GetBlendShapeWeight(binding.LocalBlendshapeIndex);
                 if (!Mathf.Approximately(currentWeight, weight))
                 {
