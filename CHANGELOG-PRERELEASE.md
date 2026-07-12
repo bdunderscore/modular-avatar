@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- [#2034] Changed `MA Blendshape Sync` remapping curve to use 0-100 range instead of 0-1
+
 ### Added
 
 ### Fixed

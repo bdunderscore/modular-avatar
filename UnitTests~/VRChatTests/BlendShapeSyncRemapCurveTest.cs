@@ -22,7 +22,8 @@ namespace modular_avatar_tests
             yield return new TestCaseData(null);
             yield return new TestCaseData(new AnimationCurve()).SetName("EmptyCurve");
             yield return new TestCaseData(new AnimationCurve(new Keyframe(-1, 0))).SetName("SingleKeyframe");
-            yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(1, 1))).SetName("ValidIdentityCurve");
+            yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(1, 1))).SetName("ValidShortIdentityCurve");
+            yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(100, 100))).SetName("ValidIdentityCurve");
         }
 
         [Test]
@@ -64,8 +65,8 @@ namespace modular_avatar_tests
         {
             var remapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(0.5f, 0.5f),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(50, 50),
+                NewLinearFrame(100, 100)
             ));
             Assert.That(remapCurve.IsIdentity, Is.False);
 
@@ -108,11 +109,11 @@ namespace modular_avatar_tests
             RemapCurve.Point pointOnCurve;
 
             var remapCurve = new RemapCurve(new AnimationCurve(
-                NewLinearFrame(0.00f, 0),
-                NewLinearFrame(0.25f, 0),
-                NewLinearFrame(0.50f, 1),
-                NewLinearFrame(0.75f, 0),
-                NewLinearFrame(1.00f, 0)
+                NewLinearFrame(0, 0),
+                NewLinearFrame( 25, 0),
+                NewLinearFrame( 50, 100),
+                NewLinearFrame( 75, 0),
+                NewLinearFrame(100, 0)
             ));
             var split25 = remapCurve.SplitPoints.First();
             var split50 = remapCurve.SplitPoints.Skip(1).First();
@@ -188,9 +189,9 @@ namespace modular_avatar_tests
         public void MappedValue()
         {
             var remapCurve = new RemapCurve(new AnimationCurve(
-                NewLinearFrame(0.00f, 0),
-                NewLinearFrame(0.50f, 1),
-                NewLinearFrame(1.00f, 1)
+                NewLinearFrame(0, 0),
+                NewLinearFrame(50, 100),
+                NewLinearFrame(100, 100)
             ));
 
             // mapped value exactly at remap curve keyframe
@@ -230,8 +231,8 @@ namespace modular_avatar_tests
 
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(0.5f, 0.6f),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(50, 60),
+                NewLinearFrame(100, 100)
             ));
 
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
@@ -250,8 +251,8 @@ namespace modular_avatar_tests
 
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(0.5f, 0.6f),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(50, 60),
+                NewLinearFrame(100, 100)
             ));
 
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
@@ -273,8 +274,8 @@ namespace modular_avatar_tests
 
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(0.5f, 6f),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(50, 60),
+                NewLinearFrame(100, 100)
             ));
 
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
@@ -326,8 +327,8 @@ namespace modular_avatar_tests
 
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(0.5f, 6f),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(50, 60),
+                NewLinearFrame(100, 100)
             ));
 
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
@@ -357,7 +358,7 @@ namespace modular_avatar_tests
 
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
-                NewLinearFrame(1, 1)
+                NewLinearFrame(100, 100)
             ));
             Assert.That(mapCurve.IsIdentity, Is.True);
 
@@ -448,19 +449,19 @@ namespace modular_avatar_tests
         public static IEnumerable<AnimationCurveCase> TestRemapCases()
         {
             yield return new AnimationCurveCase("Linear-like with multiple split point",
-                NewLinearFrame(0.00f, 0.00f),
-                NewLinearFrame(0.01f, 0.01f),
-                NewLinearFrame(0.20f, 0.20f),
-                NewLinearFrame(0.50f, 0.50f),
-                NewLinearFrame(0.90f, 0.90f),
-                NewLinearFrame(1.00f, 1.00f)
+                NewLinearFrame(0, 0),
+                NewLinearFrame(1, 1),
+                NewLinearFrame(20, 20),
+                NewLinearFrame(50, 50),
+                NewLinearFrame(90, 90),
+                NewLinearFrame(100, 100)
             );
             yield return new AnimationCurveCase("Tangent Changing",
-                NewLinearFrame(0.00f, 0),
-                NewLinearFrame(0.25f, 0),
-                NewLinearFrame(0.50f, 1),
-                NewLinearFrame(0.75f, 0),
-                NewLinearFrame(1.00f, 0)
+                NewLinearFrame(0, 0),
+                NewLinearFrame(25, 0),
+                NewLinearFrame(50, 100),
+                NewLinearFrame(75, 0),
+                NewLinearFrame(100, 0)
             );
 
 #if MODULAR_AVATAR_FUZZ_TESTING

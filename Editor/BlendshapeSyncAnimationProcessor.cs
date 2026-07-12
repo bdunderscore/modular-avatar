@@ -440,7 +440,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal class RemapCurve
         {
-            private const int MapScale = 100;
+            private const int MapScale = 1;
 
             private readonly float[] _originalValues;
             private readonly float[] _mappedValues;
@@ -459,7 +459,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            public bool IsIdentity => _originalValues.Length == 2 && _originalValues[0] == 0 && _mappedValues[0] == 0 && _mappedValues[1] == 1 && _originalValues[1] == 1;
+            public bool IsIdentity => _originalValues.Length == 2 && _originalValues[0] == 0 && _mappedValues[0] == 0 && _mappedValues[1] == 100 && _originalValues[1] == 100;
 
             public IEnumerable<Point> SplitPoints => Enumerable.Range(1, _originalValues.Length - 2)
                 .Select(i => new Point(this, i, _originalValues[i] * MapScale));
@@ -515,7 +515,7 @@ namespace nadena.dev.modular_avatar.core.editor
         /// 
         /// If this is only used on value axis, it will be hermite curve.
         /// </summary>
-        readonly struct BezierSegment
+        public readonly struct BezierSegment
         {
             // bezier curve in a + bt + ct^2 + dt^3
             // bezier curve in at^3 + bt^2 + ct + d

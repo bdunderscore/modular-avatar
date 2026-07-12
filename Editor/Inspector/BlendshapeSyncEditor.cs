@@ -158,7 +158,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (remapCurve.animationCurveValue == null || remapCurve.animationCurveValue.length < 2)
                 {
-                    remapCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+                    remapCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 100f, 100f);
                 }
                 EditorGUI.PropertyField(remapCurveRect, remapCurve, GUIContent.none);
             }

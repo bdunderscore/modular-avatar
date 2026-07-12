@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- [#2034] `MA Blendshape Sync` のマッピングが 0-1 の代わりに 0-100 の範囲で行われるように
+
 ### Added
 
 ### Fixed
