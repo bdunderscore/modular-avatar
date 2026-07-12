@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnitTests.SharedInterfaces;
@@ -11,7 +12,7 @@ using UnityEngine;
 
 namespace modular_avatar_tests
 {
-    using RemapCurve = BlendshapeSyncAnimationProcessor.RemapCurve;
+    using RemapCurve = ModularAvatarBlendshapeSync.RemapCurve;
 
     public class BlendShapeSyncRemapCurveTest: TestBase
     {

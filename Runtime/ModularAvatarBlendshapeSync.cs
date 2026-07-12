@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -89,6 +90,7 @@ namespace nadena.dev.modular_avatar.core
             public SkinnedMeshRenderer TargetMesh;
             public int RemoteBlendshapeIndex;
             public int LocalBlendshapeIndex;
+            public RemapCurve RemapCurve;
             public int BindingIndex;
         }
 
@@ -177,6 +179,7 @@ namespace nadena.dev.modular_avatar.core
                     TargetMesh = smr,
                     RemoteBlendshapeIndex = refIndex,
                     LocalBlendshapeIndex = localIndex,
+                    RemapCurve = new RemapCurve(binding.RemapCurve),
                     BindingIndex = Bindings.IndexOf(binding)
                 });
             }
@@ -196,9 +199,7 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (binding.TargetMesh == null) continue;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
-                var remapCurve = Bindings[binding.BindingIndex].RemapCurve;
-                if (remapCurve != null && remapCurve.length >= 2)
-                    weight = remapCurve.Evaluate(weight);
+                weight = binding.RemapCurve.GetPointOnCurve(weight).MappedValue;
                 var currentWeight = localRenderer.GetBlendShapeWeight(binding.LocalBlendshapeIndex);
                 if (!Mathf.Approximately(currentWeight, weight))
                 {
@@ -213,5 +214,92 @@ namespace nadena.dev.modular_avatar.core
                 if (binding.ReferenceMesh != null)
                     yield return binding.ReferenceMesh;
         }
+
+#nullable enable
+        /// <summary>
+        /// The class folds information of remapCurve.
+        ///
+        /// This class provides easy access to the remap curve of BlendShape Sync.
+        ///
+        /// The reason why this class is used instead of directly using Animation Curve is:
+        /// - We want to use Array.BinarySearch to find the index of the closest remap key or segment. There is no generic way to do this with Animation Curve in C# api.
+        /// - We want to get derivative of the remap curve easily. We often require this for mapping implementation.
+        /// - We want to change the behavior of the remap curve for out-of-range values for compatibility reasons.
+        ///   In previous versions of Modular Avatar without remap curves, any out-of-zero range will be mapped as-is.
+        ///   However, AnimationCurve will repeat or clamp the out-of-range values.
+        ///   We need to preserve previous behavior for remap curves looks like identity, so we need to change the behavior for out-of-range values.
+        /// </summary>
+        internal class RemapCurve
+        {
+            private const int MapScale = 1;
+
+            private readonly float[] _originalValues;
+            private readonly float[] _mappedValues;
+
+            public RemapCurve(AnimationCurve? curve)
+            {
+                if (curve == null || curve.length < 2)
+                {
+                    _originalValues = new float[] { 0, 1 };
+                    _mappedValues = new float[] { 0, 1 };
+                }
+                else
+                {
+                    _originalValues = curve.keys.Select(k => k.time).ToArray();
+                    _mappedValues = curve.keys.Select(k => k.value).ToArray();
+                }
+            }
+
+            public bool IsIdentity => _originalValues.Length == 2 && _originalValues[0] == 0 && _mappedValues[0] == 0 && _mappedValues[1] == 100 && _originalValues[1] == 100;
+
+            public IEnumerable<Point> SplitPoints => Enumerable.Range(1, _originalValues.Length - 2)
+                .Select(i => new Point(this, i, _originalValues[i] * MapScale));
+
+            public Point GetPointOnCurve(float value) => new(this, Array.BinarySearch(_originalValues, value / MapScale), value);
+
+            private double DerivativeOfRange(int range)
+                => ((double)_mappedValues[range + 1] - _mappedValues[range])
+                   / ((double)_originalValues[range + 1] - _originalValues[range]);
+
+            private int ClampRangeIndex(int range) => Mathf.Clamp(range, 0, _originalValues.Length - 2);
+
+            private double GetMappedValue(int binarySearch, float value)
+            {
+                if (binarySearch >= 0)
+                {
+                    // if the value is exactly at 
+                    return _mappedValues[binarySearch] * MapScale;
+                }
+                else
+                {
+                    var range = ClampRangeIndex(~binarySearch - 1);
+                    return (_mappedValues[range] + DerivativeOfRange(range) * (value / MapScale - _originalValues[range])) * MapScale;
+                }
+            }
+
+            public readonly struct Point
+            {
+                private readonly RemapCurve _remapCurve;
+                private readonly int _binarySearch;
+                private readonly float _originalValue;
+
+                internal Point(RemapCurve remapCurve, int binarySearch, float originalValue)
+                    => (_remapCurve, _binarySearch, _originalValue) = (remapCurve, binarySearch, originalValue);
+
+                public float OriginalValue => _originalValue;
+                public float MappedValue => (float)_remapCurve.GetMappedValue(_binarySearch, _originalValue);
+
+                public float MapTangent(double tangent, bool isOut) => !double.IsFinite(tangent) ? (float)tangent 
+                    : (float)(tangent * (isOut == tangent < 0 ? LeftDerivative : RightDerivative));
+
+                public double LeftDerivative => _binarySearch >= 0
+                    ? _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(_binarySearch - 1))
+                    : _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(~_binarySearch - 1));
+                public double RightDerivative => _binarySearch >= 0
+                    ? _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(_binarySearch))
+                    : _remapCurve.DerivativeOfRange(_remapCurve.ClampRangeIndex(~_binarySearch - 1));
+            }
+        }
+#nullable restore
     }
 }
