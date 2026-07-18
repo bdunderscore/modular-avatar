@@ -134,10 +134,10 @@ jobs:
       - uses: actions/cache@v5
         with:
           path: Library
-          key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+          key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
           restore-keys: |
-            Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
-            Library-${{ steps.configure.outputs.unity_version }}
+            Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+            Library-v2-${{ steps.configure.outputs.unity_version }}
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
