@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2050] Fixed an issue where the `Vertex Filter - By Axis` preview could be incorrect
 
 ### Changed
 
