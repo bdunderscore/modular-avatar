@@ -6,7 +6,11 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/docs" # Location of package manifests
+    directory: "/docs~" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/docs-site~" # Location of package manifests
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"

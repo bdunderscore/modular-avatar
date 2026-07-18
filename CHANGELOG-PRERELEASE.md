@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [0.0.0-adhoc-ci-test] - [2026-07-10]
+
 ## [1.18.0-beta.0] - [2026-06-29]
 
 ### Added

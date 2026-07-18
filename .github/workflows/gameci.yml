@@ -44,6 +44,7 @@ jobs:
   build-and-test:
     name: Unit tests
     strategy:
+      fail-fast: false
       matrix:
         unity_major_version: [ 2022 ]
         sdk: [ vrcsdk, standalone ]
@@ -79,6 +80,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
+          # To limit the risk here, we explicitly opt out of all permissions (except for read-contents and write-checks)
+          # and expose only the unity license secret.
+          allow-unsafe-pr-checkout: 'true'
 
       - id: prepare-project
         name: Prepare project
@@ -129,10 +134,10 @@ jobs:
       - uses: actions/cache@v5
         with:
           path: Library
-          key: Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+          key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
           restore-keys: |
-            Library-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
-            Library-${{ steps.configure.outputs.unity_version }}
+            Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+            Library-v2-${{ steps.configure.outputs.unity_version }}
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
