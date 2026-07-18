@@ -72,6 +72,33 @@ public class VertexFilterByAxisTest : TestBase
     }
 
     [Test]
+    public void TestPreviewProxyUsesOriginalRendererCoordinateFrame()
+    {
+        var proxyObject = CreateChild(avatarRoot, "AxisFilterPreviewProxy");
+        proxyObject.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        proxyObject.transform.localScale = Vector3.one;
+        var proxyRenderer = proxyObject.AddComponent<MeshRenderer>();
+
+        avatarRoot.transform.position = new Vector3(2, 3, 4);
+
+        var component = avatarRoot.AddComponent<VertexFilterByAxisComponent>();
+        component.Center = Vector3.zero;
+        component.Axis = Vector3.up;
+
+        var filter = new VertexFilterByAxis(component, ComputeContext.NullContext);
+
+        // Preview proxies are mapped back to their original renderer. When both transforms are
+        // identical, the proxy-to-original conversion must be identity even away from world zero.
+        using var selectorJob = new MeshSelectorJob(proxyRenderer, testMesh, meshRenderer.gameObject);
+        var desc = selectorJob.MeshData.GetSubMesh(0);
+        using var primitiveMask = new NativeArray<bool>(desc.indexCount / 3, Allocator.TempJob);
+
+        filter.MarkFilteredPrimitives(selectorJob, 0, primitiveMask).Complete();
+
+        CollectionAssert.AreEqual(new[] { true, false, false, true, false }, primitiveMask.ToArray());
+    }
+
+    [Test]
     public void TestAllVerticesSelectionMode()
     {
         var component = avatarRoot.AddComponent<VertexFilterByAxisComponent>();
