@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -84,10 +81,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private bool posResetOptionFoldout = false;
-        private bool posReset_convertATPose = true;
-        private bool posReset_adjustRotation = false;
-        private bool posReset_adjustScale = false;
-        private bool posReset_heuristicRootScale = true;
+        private readonly MergeArmaturePositionResetOptions _resetOptions = new();
 
         protected override void OnInnerInspectorGUI()
         {
@@ -110,32 +104,17 @@ namespace nadena.dev.modular_avatar.core.editor
 
             EditorGUILayout.Separator();
 
-            var enable_name_assignment = target.mergeTarget.Get(target) != null;
+            var enable_name_assignment = MergeArmatureInspectorTools.HasValidTarget(target);
             using (var scope = new EditorGUI.DisabledScope(!enable_name_assignment))
             {
                 if (GUILayout.Button(G("merge_armature.adjust_names")))
                 {
-                    var avatarRoot = RuntimeUtil.FindAvatarTransformInParents(target.mergeTarget.Get(target).transform);
-                    var avatarAnimator = avatarRoot != null ? avatarRoot.GetComponent<Animator>() : null;
+                    MergeArmatureInspectorTools.AdjustNames(target);
+                }
 
-                    // Search Outfit Root Animator
-                    var outfitRoot = ((ModularAvatarMergeArmature)serializedObject.targetObject).transform;
-                    Animator outfitAnimator = null;
-                    while (outfitRoot != null)
-                    {
-                        if (outfitRoot == avatarRoot)
-                        {
-                            outfitAnimator = null;
-                            break;
-                        }
-                        outfitAnimator = outfitRoot.GetComponent<Animator>();
-                        if (outfitAnimator != null && outfitAnimator.isHuman) break;
-                        outfitAnimator = null;
-                        outfitRoot = outfitRoot.parent;
-                    }
-
-                    var outfitHumanoidBones = SetupOutfit.GetOutfitHumanoidBones(outfitRoot, outfitAnimator);
-                    HeuristicBoneMapper.RenameBonesByHeuristic(target, outfitHumanoidBones: outfitHumanoidBones, avatarAnimator: avatarAnimator);
+                if (GUILayout.Button(G("merge_armature.match_scale_adjusters")))
+                {
+                    MergeArmatureInspectorTools.MatchScaleAdjusters(target);
                 }
             }
 
@@ -155,21 +134,21 @@ namespace nadena.dev.modular_avatar.core.editor
                             MessageType.Info
                         );
 
-                        posReset_heuristicRootScale = EditorGUILayout.ToggleLeft(
+                        _resetOptions.HeuristicRootScale = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.heuristic_scale"),
-                            posReset_heuristicRootScale);
-                        posReset_convertATPose = EditorGUILayout.ToggleLeft(
+                            _resetOptions.HeuristicRootScale);
+                        _resetOptions.ConvertATPose = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.convert_atpose"),
-                            posReset_convertATPose);
-                        posReset_adjustRotation = EditorGUILayout.ToggleLeft(
+                            _resetOptions.ConvertATPose);
+                        _resetOptions.AdjustRotation = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.adjust_rotation"),
-                            posReset_adjustRotation);
-                        posReset_adjustScale = EditorGUILayout.ToggleLeft(G("merge_armature.reset_pos.adjust_scale"),
-                            posReset_adjustScale);
-
+                            _resetOptions.AdjustRotation);
+                        _resetOptions.AdjustScale = EditorGUILayout.ToggleLeft(
+                            G("merge_armature.reset_pos.adjust_scale"),
+                            _resetOptions.AdjustScale);
                         if (GUILayout.Button(G("merge_armature.reset_pos.execute")))
                         {
-                            ForcePositionToBaseAvatar();
+                            MergeArmatureInspectorTools.ForcePositionToBaseAvatar(target, _resetOptions);
                         }
                     }
                     finally
@@ -179,133 +158,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            Localization.ShowLanguageUI();
+            ShowLanguageUI();
         }
 
-        private void ForcePositionToBaseAvatar()
-        {
-            var mama = (ModularAvatarMergeArmature)target;
-            
-            ForcePositionToBaseAvatar(mama);
-        }
-
-        private void ForcePositionToBaseAvatar(ModularAvatarMergeArmature mama, bool suppressRootScale = false) {
-            var mergeTarget = mama.mergeTarget.Get(mama);
-            var xform_to_bone = new Dictionary<Transform, HumanBodyBones>();
-            var bone_to_xform = new Dictionary<HumanBodyBones, Transform>();
-            var rootAnimator = RuntimeUtil.FindAvatarTransformInParents(mergeTarget.transform)
-                .GetComponent<Animator>();
-
-            if (rootAnimator.isHuman)
-            {
-                foreach (var bone in Enum.GetValues(typeof(HumanBodyBones)).Cast<HumanBodyBones>())
-                {
-                    if (bone != HumanBodyBones.LastBone)
-                    {
-                        var xform = rootAnimator.GetBoneTransform(bone);
-                        if (xform != null)
-                        {
-                            xform_to_bone[xform] = bone;
-                            bone_to_xform[bone] = xform;
-                        }
-                    }
-                }
-            }
-
-            if (posReset_convertATPose)
-            {
-                SetupOutfit.FixAPose(RuntimeUtil.FindAvatarTransformInParents(mergeTarget.transform).gameObject, mama.transform, false);
-            }
-
-            if (posReset_heuristicRootScale && !suppressRootScale)
-            {
-                AdjustRootScale();
-            }
-
-            try
-            {
-                Walk(mama.transform, mergeTarget.transform);
-            }
-            finally
-            {
-                mama.ResetArmatureLock();
-            }
-
-            void AdjustRootScale()
-            {
-                // Adjust the overall scale of the avatar based on wingspan (arm length)
-                if (!bone_to_xform.TryGetValue(HumanBodyBones.LeftHand, out var target_hand)) return;
-
-                // Find the merge hand as well
-                var hand_path = RuntimeUtil.RelativePath(mergeTarget, target_hand.gameObject);
-                hand_path = string.Join("/", hand_path.Split('/').Select(elem => mama.prefix + elem + mama.suffix));
-
-                var merge_hand = mama.transform.Find(hand_path);
-                if (merge_hand == null) return;
-
-                var target_wingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(target_hand.position).x);
-                var merge_wingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(merge_hand.position).x);
-
-                var scale = target_wingspan / merge_wingspan;
-                mama.transform.localScale *= scale;
-            }
-
-            void Walk(Transform t_merge, Transform t_target)
-            {
-                Undo.RecordObject(t_merge, "Merge Armature: Force outfit position");
-                
-                Debug.Log("Merge: " + t_merge.gameObject.name + " => " + t_target.gameObject.name);
-                
-                t_merge.position = t_target.position;
-                if (posReset_adjustScale)
-                {
-                    if (!posReset_heuristicRootScale || t_merge != mama.transform)
-                    {
-                        t_merge.localScale = t_target.localScale;
-                    }
-                }
-
-                if (posReset_adjustRotation)
-                {
-                    t_merge.localRotation = t_target.localRotation;
-                }
-
-                Queue<Transform> traversalQueue = new Queue<Transform>();
-                traversalQueue.Enqueue(t_merge);
-
-                while (traversalQueue.Count > 0)
-                {
-                    foreach (Transform t_child in traversalQueue.Dequeue())
-                    {
-                        var mama_child = t_child.GetComponent<ModularAvatarMergeArmature>();
-                        if (mama_child != null)
-                        {
-                            traversalQueue.Enqueue(t_child);
-                            continue;
-                        }
-                    
-                        if (TryMatchChildBone(t_target, t_child, out var t_target_child))
-                        {
-                            Walk(t_child, t_target_child);
-                        }
-                    }
-                }
-            }
-
-            bool TryMatchChildBone(Transform t_target, Transform t_child, out Transform t_target_child)
-            {
-                var childName = t_child.gameObject.name;
-
-                t_target_child = null;
-                if (childName.StartsWith(mama.prefix) && childName.EndsWith(mama.suffix))
-                {
-                    var targetObjectName = childName.Substring(mama.prefix.Length,
-                        childName.Length - mama.prefix.Length - mama.suffix.Length);
-                    t_target_child = t_target.transform.Find(targetObjectName);
-                }
-
-                return t_target_child != null;
-            }
-        }
     }
 }

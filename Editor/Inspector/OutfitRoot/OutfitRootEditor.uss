@@ -1,0 +1,42 @@
+#actions {
+    margin-top: 6px;
+}
+
+#actions > Button {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+#reset-position {
+    margin-top: 4px;
+}
+
+#reset-position-divider {
+    border-top-width: 1px;
+    border-top-color: var(--unity-colors-default-border);
+    margin: 4px 3px 6px 3px;
+}
+
+#reset-position-label {
+    -unity-font-style: bold;
+    margin-left: 3px;
+    margin-bottom: 2px;
+}
+
+#reset-position-info {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.reset-option {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.reset-option .unity-toggle__text {
+    margin-left: 4px;
+}
+
+#execute-reset {
+    margin: 4px 3px 0 3px;
+}

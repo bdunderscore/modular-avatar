@@ -9,6 +9,9 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2051] 衣装のルートを示す `MA Outfit Root` を追加
+- [#2051] ベースアバターの `MA Scale Adjuster` の値を衣装へコピーする機能を追加。この機能は
+  `MA Outfit Root` または `MA Merge Armature` コンポーネントのインスペクターから使用できます。
 - [#1987] 曲線を用いて、 `MA Blendshape Sync`の値をマッピングできるようになった
 - [#2031] `Vertex Filter - By UV Tile` を追加
 - [#2032] `Vertex Filter - By Mask` で、UVタイルの範囲を指定して頂点を選択できるようになった

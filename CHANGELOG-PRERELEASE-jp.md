@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2051] 衣装のルートを示す `MA Outfit Root` を追加
+- [#2051] ベースアバターの `MA Scale Adjuster` の値を衣装へコピーする機能を追加。この機能は
+  `MA Outfit Root` または `MA Merge Armature` コンポーネントのインスペクターから使用できます。
 
 ### Fixed
 - [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正

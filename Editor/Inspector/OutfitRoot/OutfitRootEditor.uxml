@@ -1,0 +1,31 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ed:PropertyField name="armature-root" binding-path="armatureRoot"
+                          label="outfit_root.armature_root" class="ndmf-tr"/>
+
+        <ui:VisualElement name="actions">
+            <ui:Button name="adjust-names" text="merge_armature.adjust_names" class="ndmf-tr"/>
+            <ui:Button name="match-scale-adjusters" text="merge_armature.match_scale_adjusters"
+                       class="ndmf-tr"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="reset-position">
+            <ui:VisualElement name="reset-position-divider"/>
+            <ui:Label name="reset-position-label" text="merge_armature.reset_pos" class="ndmf-tr"/>
+            <ui:HelpBox name="reset-position-info" text="merge_armature.reset_pos.info"
+                        message-type="Info" class="ndmf-tr"/>
+            <ui:Toggle name="heuristic-scale" text="merge_armature.reset_pos.heuristic_scale"
+                       class="ndmf-tr reset-option"/>
+            <ui:Toggle name="convert-at-pose" text="merge_armature.reset_pos.convert_atpose"
+                       class="ndmf-tr reset-option"/>
+            <ui:Toggle name="adjust-rotation" text="merge_armature.reset_pos.adjust_rotation"
+                       class="ndmf-tr reset-option"/>
+            <ui:Toggle name="adjust-scale" text="merge_armature.reset_pos.adjust_scale"
+                       class="ndmf-tr reset-option"/>
+            <ui:Button name="execute-reset" text="merge_armature.reset_pos.execute" class="ndmf-tr"/>
+        </ui:VisualElement>
+
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>
