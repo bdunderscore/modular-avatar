@@ -220,7 +220,7 @@ namespace nadena.dev.modular_avatar.core.editor
             for (var i = 0; i < curve.length; i++)
             {
                 Debug.Assert(AnimationUtility.GetKeyLeftTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
-                Debug.Assert(AnimationUtility.GetKeyLeftTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
+                Debug.Assert(AnimationUtility.GetKeyRightTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
             }
 
             var outputKeyframes = new List<Keyframe>(curve.length);
