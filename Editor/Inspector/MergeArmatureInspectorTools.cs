@@ -129,10 +129,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 var mergeHand = mergeArmature.transform.Find(handPath);
                 if (mergeHand == null) return;
 
-                var targetWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(targetHand.position).x);
-                var mergeWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(mergeHand.position).x);
-
-                mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
+var targetWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(targetHand.position).x);
+var mergeWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(mergeHand.position).x);
+if (mergeWingspan <= Mathf.Epsilon) return;
+mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
             }
 
             void Walk(Transform mergeTransform, Transform targetTransform)
@@ -162,12 +162,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     foreach (Transform child in traversalQueue.Dequeue())
                     {
-                        var childMergeArmature = child.GetComponent<ModularAvatarMergeArmature>();
-                        if (childMergeArmature != null)
-                        {
-                            traversalQueue.Enqueue(child);
-                            continue;
-                        }
+var childMergeArmature = child.GetComponent<ModularAvatarMergeArmature>();
+if (childMergeArmature != null)
+{
+    continue;
+}
 
                         if (TryMatchChildBone(targetTransform, child, out var targetChild))
                         {
