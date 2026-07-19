@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2054] `MA Merge Motion` のインスペクターを複数選択した編集に対応
 
 ### Fixed
 - [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正

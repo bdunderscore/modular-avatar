@@ -9,6 +9,7 @@ using static nadena.dev.modular_avatar.core.editor.Localization;
 namespace nadena.dev.modular_avatar.core.editor
 {
     [CustomEditor(typeof(ModularAvatarMergeBlendTree))]
+    [CanEditMultipleObjects]
     internal class MergeBlendTreeEditor : MAEditorBase
     {
         private SerializedProperty _blendTree;
