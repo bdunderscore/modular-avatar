@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正
+- [#2053] `Scale Adjuster` や `Mesh Cutter` のプレビュー安定性を改善
 
 ### Changed
 

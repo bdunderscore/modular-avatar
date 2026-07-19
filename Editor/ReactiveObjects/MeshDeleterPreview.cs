@@ -115,7 +115,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public Task<IRenderFilterNode> Refresh(IEnumerable<(Renderer, Renderer)> proxyPairs, ComputeContext context, RenderAspects updatedAspects)
             {
-                if ((updatedAspects & RenderAspects.Mesh) != 0)
+                if ((updatedAspects & (RenderAspects.Mesh | RenderAspects.Shapes)) != 0)
                 {
                     return Task.FromResult<IRenderFilterNode>(null);
                 }

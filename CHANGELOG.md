@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed a null reference exception when a merge armature component was disabled before the armature lock controller finished initializing.
   - Fixed an issue that could result in suboptimal memory usage.
 - [#2028] Fixed issue in `MA Bone Proxy` that could result in elevated CPU usage in edit mode
+- [#2053] Improved reliability of `Scale Adjuster` and `Mesh Cutter` previews
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
