@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2029] Added warnings to `Sync Parameter Sequence` to detect potential misconfigurations
 - [#2006] Add a debug logging feature for Sync Parameter Sequence
 - [#2028] Added a fatal build error when automatic Int parameter values would exceed the VRChat 0-255 range, instead of silently assigning out-of-range values.
+- [#2054] Add support for multi-object editing to the `MA Merge Motion` inspector
 
 ### Fixed
 - [#2007] Improved compatibility with Unity 6000.0
