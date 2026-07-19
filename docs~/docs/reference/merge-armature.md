@@ -69,8 +69,15 @@ There are three additional options you can use:
 * "Adjust outfit overall scale to match base avatar": Changes the scale of the outfit as a whole to match that of the
   avatar as a whole. This uses arm length to determine the overall size of the avatar and outfit, and scales the whole
   outfit up (or down) before adjusting any positions. This is generally recommended for setting up outfits.
-
 These options are not saved; clicking "do it!" will just reset the positions/etc once.
+
+If the outfit was configured with Setup Outfit, these adjustment tools are also available from the outfit's [Outfit Root](outfit-root.md) component.
+
+## Match Scale Adjusters to base avatar
+
+The "Match Scale Adjusters to base avatar" button copies [Scale Adjuster](scale-adjuster.md) configuration from the
+base avatar to the outfit for each matching bone. Scale Adjusters are added or updated where present on the base avatar,
+and removed from outfit bones where absent on the base avatar.
 
 ## Object references
 

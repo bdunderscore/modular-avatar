@@ -173,6 +173,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PrefabUtility.RecordPrefabInstancePropertyModifications(merge);
 
+            var outfitRootTag = outfitRoot.GetComponent<ModularAvatarOutfitRoot>();
+            if (outfitRootTag == null)
+            {
+                outfitRootTag = Undo.AddComponent<ModularAvatarOutfitRoot>(outfitRoot);
+            }
+            else
+            {
+                Undo.RecordObject(outfitRootTag, "");
+            }
+
+            outfitRootTag.armatureRoot = outfitArmature;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(outfitRootTag);
+
             var outfitAnimator = outfitRoot.GetComponent<Animator>();
             var outfitHumanoidBones = GetOutfitHumanoidBones(outfitRoot.transform, outfitAnimator);
             var avatarAnimator = avatarRoot.GetComponent<Animator>();

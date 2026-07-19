@@ -112,6 +112,12 @@ be moved to be a child of the corresponding base avatar bone.
 
 <div style={{"clear": "both"}}/>
 
+#### Creating an Outfit Root component
+
+Setup Outfit will add an [Outfit Root](../../reference/outfit-root.md) component to the selected outfit object. It
+references the outfit's armature root and provides convenient access to the bone-name and position adjustment tools
+from the outfit root.
+
 #### Creating a Mesh Settings component
 
 <div style={{float: "right", "max-width": "45%"}}>
