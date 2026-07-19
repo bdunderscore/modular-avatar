@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version: 22
       
       - uses: actions/checkout@v7
         with:
@@ -49,10 +49,10 @@ jobs:
         run: |
           cp -Rv modular-avatar-images/img/* docs~/static/img
           
-      - name: Setup yarn 2.0
+      - name: Setup Yarn 4.17.0
         run: |
           corepack enable
-          corepack prepare yarn@stable --activate
+          corepack prepare yarn@4.17.0 --activate
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
