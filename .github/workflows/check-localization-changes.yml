@@ -1,0 +1,76 @@
+name: Check localization changes
+
+on:
+  workflow_call:
+    outputs:
+      localization_only:
+        description: Whether all changed files are localization JSON files
+        value: ${{ jobs.check-changes.outputs.localization_only }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-changes:
+    name: Check changed files
+    runs-on: ubuntu-latest
+    outputs:
+      localization_only: ${{ steps.changes.outputs.localization_only }}
+    steps:
+      - name: Check for localization-only changes
+        id: changes
+        uses: actions/github-script@v9
+        with:
+          script: |
+            let changedFiles;
+
+            if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                per_page: 100,
+              });
+
+              // The API returns at most 3,000 files. Run the workflow when the
+              // result may be incomplete rather than accidentally skipping it.
+              if (files.length >= 3000) {
+                core.setOutput('localization_only', 'false');
+                return;
+              }
+
+              changedFiles = files.flatMap(file =>
+                [file.filename, file.previous_filename].filter(Boolean)
+              );
+            } else if (context.eventName === 'push' &&
+                       context.payload.before !== '0000000000000000000000000000000000000000') {
+              const comparison = await github.rest.repos.compareCommitsWithBasehead({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                basehead: `${context.payload.before}...${context.payload.after}`,
+                per_page: 100,
+              });
+              const files = comparison.data.files;
+
+              // The compare API returns at most 300 files. Treat a full result
+              // as potentially truncated and run the workflow.
+              if (!files || files.length >= 300) {
+                core.setOutput('localization_only', 'false');
+                return;
+              }
+
+              changedFiles = files.flatMap(file =>
+                [file.filename, file.previous_filename].filter(Boolean)
+              );
+            } else {
+              // Always run for workflow_dispatch, workflow_call, and new branches.
+              core.setOutput('localization_only', 'false');
+              return;
+            }
+
+            const localizationJson = /^Editor\/Localization\/.*\.json$/;
+            core.setOutput(
+              'localization_only',
+              changedFiles.length > 0 && changedFiles.every(file => localizationJson.test(file))
+            );

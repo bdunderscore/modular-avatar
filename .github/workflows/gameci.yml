@@ -41,8 +41,17 @@ on:
 permissions: {}
 
 jobs:
+  check-changes:
+    name: Check changed files
+    uses: ./.github/workflows/check-localization-changes.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   build-and-test:
     name: Unit tests
+    needs: check-changes
+    if: ${{ !cancelled() && needs.check-changes.outputs.localization_only != 'true' }}
     strategy:
       fail-fast: false
       matrix:

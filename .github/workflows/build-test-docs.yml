@@ -30,8 +30,17 @@ on:
         default: true
 
 jobs:
+  check-changes:
+    name: Check changed files
+    uses: ./.github/workflows/check-localization-changes.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   build-docs:
     name: Build documentation
+    needs: check-changes
+    if: ${{ !cancelled() && needs.check-changes.outputs.localization_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v7
