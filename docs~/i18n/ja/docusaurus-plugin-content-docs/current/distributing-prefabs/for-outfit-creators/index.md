@@ -105,6 +105,11 @@ Merge Armatureは、ボーンの重複を回避するために、可能な限り
 
 <div style={{"clear": "both"}}/>
 
+#### Outfit Root コンポーネントの作成
+
+Setup Outfitは、選択した衣装オブジェクトに[Outfit Root](../../reference/outfit-root.md)コンポーネントを追加します。
+このコンポーネントは衣装のアーマチュアルートを参照し、衣装のルートからボーン名や位置の調整ツールを使用できるようにします。
+
 #### Mesh Settings コンポーネントの作成
 
 <div style={{float: "right", "max-width": "45%"}}>

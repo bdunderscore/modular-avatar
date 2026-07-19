@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2051] Added `MA Outfit Root` to mark the base of outfits
+  - [#2051] Added a feature to copy `MA Scale Adjuster` values from the base avatar to the outfit, accessible via
+    `MA Outfit Root` or `MA Merge Armature` component inspectors.
 - [#1987] Added support for remapping blendshapes using a curve in `MA Blendshape Sync`
 - [#2031] Added `Vertex Filter - By UV Tile`
 - [#2032] Added support for selecting alternate UV channels in `Vertex Filter - By Mask`

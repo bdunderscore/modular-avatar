@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2054] Add support for multi-object editing to the `MA Merge Motion` inspector
+- [#2051] Added `MA Outfit Root` to mark the base of outfits
+- [#2051] Added a feature to copy `MA Scale Adjuster` values from the base avatar to the outfit, accessible via
+  `MA Outfit Root` or `MA Merge Armature` component inspectors.
 
 ### Fixed
 - [#2050] Fixed an issue where the `Vertex Filter - By Axis` preview could be incorrect
