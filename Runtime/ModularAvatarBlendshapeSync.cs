@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.ui;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -14,7 +15,8 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference ReferenceMesh;
         public string Blendshape;
         public string LocalBlendshape;
-        [ui.Curve(0, 0, 100, 100)]
+
+        [Curve(0, 0, 100, 100)]
         public AnimationCurve RemapCurve;
 
         public bool Equals(BlendshapeBinding other)
@@ -115,9 +117,9 @@ namespace nadena.dev.modular_avatar.core
                     if (remapCurve[remapCurve.length - 1].time < 100) remapCurve.AddKey(100, remapCurve[remapCurve.length - 1].value);
                     for (int i = 0; i < remapCurve.length; i++)
                     {
-                        UnityEditor.AnimationUtility.SetKeyBroken(remapCurve, i, true);
-                        UnityEditor.AnimationUtility.SetKeyLeftTangentMode(remapCurve, i, UnityEditor.AnimationUtility.TangentMode.Linear);
-                        UnityEditor.AnimationUtility.SetKeyRightTangentMode(remapCurve, i, UnityEditor.AnimationUtility.TangentMode.Linear);
+                        AnimationUtility.SetKeyBroken(remapCurve, i, true);
+                        AnimationUtility.SetKeyLeftTangentMode(remapCurve, i, AnimationUtility.TangentMode.Linear);
+                        AnimationUtility.SetKeyRightTangentMode(remapCurve, i, AnimationUtility.TangentMode.Linear);
                     }
                 }
             }
@@ -199,7 +201,10 @@ namespace nadena.dev.modular_avatar.core
             {
                 if (binding.TargetMesh == null) continue;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
-                weight = binding.RemapCurve.GetPointOnCurve(weight).MappedValue;
+                if (binding.RemapCurve != null)
+                {
+                    weight = binding.RemapCurve.GetPointOnCurve(weight).MappedValue;
+                }
                 var currentWeight = localRenderer.GetBlendShapeWeight(binding.LocalBlendshapeIndex);
                 if (!Mathf.Approximately(currentWeight, weight))
                 {
