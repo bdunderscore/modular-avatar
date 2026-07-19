@@ -4374,6 +4374,70 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mux/mux-data-google-ima@npm:^0.3.4":
+  version: 0.3.17
+  resolution: "@mux/mux-data-google-ima@npm:0.3.17"
+  dependencies:
+    mux-embed: 5.18.1
+  checksum: 9eadf3d9f6820f2618217eb402e5db2032daf9083b1d169c0c87150228d90e523790afd4a4f07a24bdf4ecc1a66b6b0fe9f460b419046988943d34e8d7eb06ad
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player-react@npm:^3.8.0":
+  version: 3.13.0
+  resolution: "@mux/mux-player-react@npm:3.13.0"
+  dependencies:
+    "@mux/mux-player": 3.13.0
+    "@mux/playback-core": 0.35.0
+    prop-types: ^15.8.1
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^17.0.0-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+    react: ^17.0.2 || ^17.0.0-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+    react-dom: ^17.0.2 || ^17.0.2-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 21a139044ee769cf26ded9389c974e656e19289fa3664d5ce2e2c75e9b7a2922535d0452bd151bd815d26e9f83718887ab16a56e184a6d5a2e530b3ed4d20b8c
+  languageName: node
+  linkType: hard
+
+"@mux/mux-player@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@mux/mux-player@npm:3.13.0"
+  dependencies:
+    "@mux/mux-video": 0.31.0
+    "@mux/playback-core": 0.35.0
+    media-chrome: ~4.19.0
+    player.style: ^0.3.0
+  checksum: 79d8e24ca8c35fbd0d64b1847966fefddd4c9bd7c033f86d4037b51b54f64ea1fd3970722a33e1fe681cd9cbfe6b7e177035698c0d8add9bfa09d76d5080ab83
+  languageName: node
+  linkType: hard
+
+"@mux/mux-video@npm:0.31.0":
+  version: 0.31.0
+  resolution: "@mux/mux-video@npm:0.31.0"
+  dependencies:
+    "@mux/mux-data-google-ima": ^0.3.4
+    "@mux/playback-core": 0.35.0
+    castable-video: ~1.1.13
+    custom-media-element: ~1.4.6
+    media-tracks: ~0.3.5
+  checksum: 31b623e0df9b8809498e29a57c1f7353b8800a8a017bd7a3a5d6a0b5c0788ba548a5f96b908ea58aa5b90a546e0c20762e5d54a5d247548488f5b6da2549df2b
+  languageName: node
+  linkType: hard
+
+"@mux/playback-core@npm:0.35.0":
+  version: 0.35.0
+  resolution: "@mux/playback-core@npm:0.35.0"
+  dependencies:
+    hls.js: ~1.6.15
+    mux-embed: ^5.16.1
+  checksum: 026a95066d96f7fccbfa888f21f7774ded900fbd220f3ac2c3495e8c8d523755172ca18bcc6c68572ce57018238a25e9fe0afbc3ddc2fe9ec9313eedeaec032c
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4672,6 +4736,72 @@ __metadata:
     "@svgr/plugin-jsx": 8.1.0
     "@svgr/plugin-svgo": 8.1.0
   checksum: c6eec5b0cf2fb2ecd3a7a362d272eda35330b17c76802a3481f499b5d07ff8f87b31d2571043bff399b051a1767b1e2e499dbf186104d1c06d76f9f1535fac01
+  languageName: node
+  linkType: hard
+
+"@svta/cml-608@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@svta/cml-608@npm:1.0.2"
+  checksum: 1f2481679e1d315867a756964b4a8ee1f1f0305f7c1ac0bb14a298ced920ce2265010d4b59a9bc964763be8ce12493c8dd485508dcec1677d462818bceb3b392
+  languageName: node
+  linkType: hard
+
+"@svta/cml-cmcd@npm:2.3.2":
+  version: 2.3.2
+  resolution: "@svta/cml-cmcd@npm:2.3.2"
+  peerDependencies:
+    "@svta/cml-structured-field-values": 1.1.3
+    "@svta/cml-utils": 1.5.0
+  checksum: c7d5dbca19cbe54774d3b32cfdfdb8bfc27d30cc7112d5c4985a71f5c1977ea5cd1b8359b69a7f1bb83dbe3610400bcf2cb03719d9573d51a496fa4c14a8a9ee
+  languageName: node
+  linkType: hard
+
+"@svta/cml-cmsd@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@svta/cml-cmsd@npm:1.0.6"
+  peerDependencies:
+    "@svta/cml-cta": 1.0.6
+    "@svta/cml-structured-field-values": 1.1.3
+    "@svta/cml-utils": 1.5.0
+  checksum: d7f59677666d266648be8334e1d21495ef5b79569cd62aa85893845d9f8a050323bbed5cc9a9d69c5e51bda19c4e293b5df8d52e3257af42039b871da71681c9
+  languageName: node
+  linkType: hard
+
+"@svta/cml-dash@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@svta/cml-dash@npm:1.0.6"
+  peerDependencies:
+    "@svta/cml-utils": 1.5.0
+  checksum: 436229b0848e7a2649104fd4b6757424eb6a7449a456c5bddc4bfaf597ad3c974e8da35934343c2d561406397bc45a7d7f73a05acea31efeb5adee4155ce75d0
+  languageName: node
+  linkType: hard
+
+"@svta/cml-id3@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@svta/cml-id3@npm:1.0.6"
+  peerDependencies:
+    "@svta/cml-utils": 1.5.0
+  checksum: fa6f97978dddbf117e1f457567a233e233c39a1fec7974e6a97a63f6560f131c74046f7a3acf662dc4720bde5be2e0c1f715c4bccfd6ca1e560f5c7ef79d6c71
+  languageName: node
+  linkType: hard
+
+"@svta/cml-request@npm:1.0.12":
+  version: 1.0.12
+  resolution: "@svta/cml-request@npm:1.0.12"
+  peerDependencies:
+    "@svta/cml-cmcd": 2.3.2
+    "@svta/cml-utils": 1.5.0
+    "@svta/cml-xml": 1.1.4
+  checksum: e2857769c6590b83596216da49807bab641b27d0487db61f749957307604f5246bfff5a0688f70052af310d5ef19367ce27fcdc292252486d9deeb0b2eaf523f
+  languageName: node
+  linkType: hard
+
+"@svta/cml-xml@npm:1.1.4":
+  version: 1.1.4
+  resolution: "@svta/cml-xml@npm:1.1.4"
+  peerDependencies:
+    "@svta/cml-utils": 1.5.0
+  checksum: b49eb192d4a2410fc795662f09ed7e5bc7dfa9aa4461d83d4102a6d7a0ac7540268c3ca97bc8b4f8ee074297422e8ad347dbf3354ed2200960664ac2bdc17152
   languageName: node
   linkType: hard
 
@@ -5131,6 +5261,16 @@ __metadata:
   version: 1.2.0
   resolution: "@ungap/structured-clone@npm:1.2.0"
   checksum: 4f656b7b4672f2ce6e272f2427d8b0824ed11546a601d8d5412b9d7704e83db38a8d9f402ecdf2b9063fc164af842ad0ec4a55819f621ed7e7ea4d1efcc74524
+  languageName: node
+  linkType: hard
+
+"@vimeo/player@npm:2.29.0":
+  version: 2.29.0
+  resolution: "@vimeo/player@npm:2.29.0"
+  dependencies:
+    native-promise-only: 0.8.1
+    weakmap-polyfill: 2.0.4
+  checksum: a061cf85ddc89ee686e13365136d159d5b5da8d6f59715ca8df1b6ce48a7eaef3e08162ada935defcab43ecbdb81c5f5e9dc24bdba6e55275e79c2563f36cec2
   languageName: node
   linkType: hard
 
@@ -5736,6 +5876,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bcp-47-match@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "bcp-47-match@npm:2.0.3"
+  checksum: b36d34a035f1329aeef1db4ebbb0d8d7d6db1e7db920711cdb8ec4948a276b5e75ff84bc007cb0ba71d40c8470d463e5f36486ba48427e72c15c5189ce9c6577
+  languageName: node
+  linkType: hard
+
 "big.js@npm:^5.2.2":
   version: 5.2.2
   resolution: "big.js@npm:5.2.2"
@@ -6051,10 +6198,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"castable-video@npm:~1.1.13":
+  version: 1.1.16
+  resolution: "castable-video@npm:1.1.16"
+  dependencies:
+    custom-media-element: ~1.4.6
+  checksum: fde2fa3214fa0b775f3a907f1688ecde9b16040d56a5e65426db92f8fd947f580d941583a7af1aa9c9a017c2a145c8d867a8ca0c92e548d0db813dbc41b4725a
+  languageName: node
+  linkType: hard
+
 "ccount@npm:^2.0.0":
   version: 2.0.1
   resolution: "ccount@npm:2.0.1"
   checksum: 48193dada54c9e260e0acf57fc16171a225305548f9ad20d5471e0f7a8c026aedd8747091dccb0d900cde7df4e4ddbd235df0d8de4a64c71b12f0d3303eeafd4
+  languageName: node
+  linkType: hard
+
+"ce-la-react@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "ce-la-react@npm:0.3.2"
+  peerDependencies:
+    react: ">=17.0.0"
+  checksum: 61446d814125cf699ff9db798902f38acb51de6faa57df9a0d4df37be947936e1b8450f2b7eab0b96801acc636208df72d788b9e123234f75052dd864816c438
   languageName: node
   linkType: hard
 
@@ -6237,10 +6402,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cloudflare-video-element@npm:^1.3.4":
+  version: 1.3.5
+  resolution: "cloudflare-video-element@npm:1.3.5"
+  checksum: 5b3415134fc432c6e777c2cbd50660cd3ba80e07684d559f3978eccf81c48c88355474b2eaf55102077251bd4f1487fb9f1c8faab36848435db0c587982f7b71
+  languageName: node
+  linkType: hard
+
 "clsx@npm:^2.0.0, clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: acd3e1ab9d8a433ecb3cc2f6a05ab95fe50b4a3cfc5ba47abb6cbf3754585fcb87b84e90c822a1f256c4198e3b41c7f6c391577ffc8678ad587fc0976b24fd57
+  languageName: node
+  linkType: hard
+
+"codem-isoboxer@npm:0.3.10":
+  version: 0.3.10
+  resolution: "codem-isoboxer@npm:0.3.10"
+  checksum: 1c51c8d0067d923acd37f7e01dc8547523308735e52fbbddb15fcab5399af09a5e73d4c89dffa3f719d36c8f461024d37537f02d8a3641f3f9ca1732553c1bf1
   languageName: node
   linkType: hard
 
@@ -6822,6 +7001,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"custom-media-element@npm:^1.4.6, custom-media-element@npm:~1.4.6":
+  version: 1.4.6
+  resolution: "custom-media-element@npm:1.4.6"
+  checksum: b7e31ba6155a913a988419f62caf7480ec08ceb2657662d97e2660e31b449a89429be1603faf4f92cdf25be88a44ca25b25d633f2bb37af1f3b6cb84cf60e0dd
+  languageName: node
+  linkType: hard
+
+"dash-video-element@npm:^0.3.0":
+  version: 0.3.2
+  resolution: "dash-video-element@npm:0.3.2"
+  dependencies:
+    custom-media-element: ^1.4.6
+    dashjs: ^5.0.3
+    media-tracks: ^0.3.5
+  checksum: aa21a21e734abdc6fc6113addf6fdf268cd4bd31851ac73541a509f2ea8ffab31fb1fae46bf7500ca09868ac92f2d907a65a95203df6dd58f3d53efe1f66c825
+  languageName: node
+  linkType: hard
+
+"dashjs@npm:^5.0.3":
+  version: 5.2.0
+  resolution: "dashjs@npm:5.2.0"
+  dependencies:
+    "@svta/cml-608": 1.0.2
+    "@svta/cml-cmcd": 2.3.2
+    "@svta/cml-cmsd": 1.0.6
+    "@svta/cml-dash": 1.0.6
+    "@svta/cml-id3": 1.0.6
+    "@svta/cml-request": 1.0.12
+    "@svta/cml-xml": 1.1.4
+    bcp-47-match: ^2.0.3
+    codem-isoboxer: 0.3.10
+    fast-deep-equal: 3.1.3
+    html-entities: ^2.6.0
+    imsc: ^1.1.5
+    localforage: ^1.10.0
+    path-browserify: ^1.0.1
+  checksum: e841feee3ec67c3bc93f338cde118ab8a9934f1aee5415b721466f1ec300ded0087a231e3b442e4a7cf5275a19130a46f84ca26fb3b712f1fd6999f54e7b833d
+  languageName: node
+  linkType: hard
+
 "debounce@npm:^1.2.1":
   version: 1.2.1
   resolution: "debounce@npm:1.2.1"
@@ -6875,7 +7094,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deepmerge@npm:^4.0.0, deepmerge@npm:^4.3.1":
+"deepmerge@npm:^4.3.1":
   version: 4.3.1
   resolution: "deepmerge@npm:4.3.1"
   checksum: 2024c6a980a1b7128084170c4cf56b0fd58a63f2da1660dcfe977415f27b17dbe5888668b59d0b063753f3220719d5e400b7f113609489c90160bb9a5518d052
@@ -7566,7 +7785,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
+"fast-deep-equal@npm:3.1.3, fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
   checksum: e21a9d8d84f53493b6aa15efc9cfd53dd5b714a1f23f67fb5dc8f574af80df889b3bce25dc081887c6d25457cce704e636395333abad896ccdec03abaf1f3f9d
@@ -8242,6 +8461,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hls-video-element@npm:^1.5.9":
+  version: 1.5.11
+  resolution: "hls-video-element@npm:1.5.11"
+  dependencies:
+    custom-media-element: ^1.4.6
+    hls.js: ^1.6.5
+    media-tracks: ^0.3.5
+  checksum: d7f2bc094c21ae9ca6b9222b5bf252988798b9cd94b35f7b703229abdc18a9d6dea53ddbab569ce8856993eec6c759161ecdfa512d73649b872b0bf75a25a941
+  languageName: node
+  linkType: hard
+
+"hls.js@npm:^1.6.5, hls.js@npm:~1.6.15":
+  version: 1.6.16
+  resolution: "hls.js@npm:1.6.16"
+  checksum: 4e11ffffd241cb0a853b6465a49d781abb7fa6c2294745edb0c5a978d297824decc9e8c7f8bae842694da2390ce3c6369b82a28b421164b37d864f16fda87446
+  languageName: node
+  linkType: hard
+
 "hoist-non-react-statics@npm:^3.1.0":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
@@ -8267,6 +8504,13 @@ __metadata:
   version: 2.5.2
   resolution: "html-entities@npm:2.5.2"
   checksum: b23f4a07d33d49ade1994069af4e13d31650e3fb62621e92ae10ecdf01d1a98065c78fd20fdc92b4c7881612210b37c275f2c9fba9777650ab0d6f2ceb3b99b6
+  languageName: node
+  linkType: hard
+
+"html-entities@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "html-entities@npm:2.6.0"
+  checksum: 720643f7954019c80911430a7df2728524c07080edfe812610bfc5d8191cd772b470bee0ee151bf7426679314ae53cf28a1c845d702123714e625a8565b26567
   languageName: node
   linkType: hard
 
@@ -8427,8 +8671,8 @@ __metadata:
   linkType: hard
 
 "http-proxy-middleware@npm:^2.0.3":
-  version: 2.0.9
-  resolution: "http-proxy-middleware@npm:2.0.9"
+  version: 2.0.10
+  resolution: "http-proxy-middleware@npm:2.0.10"
   dependencies:
     "@types/http-proxy": ^1.17.8
     http-proxy: ^1.18.1
@@ -8440,7 +8684,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/express":
       optional: true
-  checksum: 0ea88609b9c13fa03b89f8e6b85bd5c537027ec6990005dd81a7fbb3e73fcf8d6a6e3db2b57b1c6cddbcda80965704584dc6291d0e721b2700198c4e59ee0d0b
+  checksum: 94dd3289f888021089ae6beb96c492ecfc0d2ea78fccf97f861ac1772c8ba471cf5f8cb17911d66d6084a9943db4deec841cc0b097b5dec21955e94e7c16dc64
   languageName: node
   linkType: hard
 
@@ -8525,6 +8769,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"immediate@npm:~3.0.5":
+  version: 3.0.6
+  resolution: "immediate@npm:3.0.6"
+  checksum: f9b3486477555997657f70318cc8d3416159f208bec4cca3ff3442fd266bc23f50f0c9bd8547e1371a6b5e82b821ec9a7044a4f7b944798b25aa3cc6d5e63e62
+  languageName: node
+  linkType: hard
+
 "import-fresh@npm:^3.3.0":
   version: 3.3.0
   resolution: "import-fresh@npm:3.3.0"
@@ -8539,6 +8790,15 @@ __metadata:
   version: 4.0.0
   resolution: "import-lazy@npm:4.0.0"
   checksum: 22f5e51702134aef78890156738454f620e5fe7044b204ebc057c614888a1dd6fdf2ede0fdcca44d5c173fd64f65c985f19a51775b06967ef58cc3d26898df07
+  languageName: node
+  linkType: hard
+
+"imsc@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "imsc@npm:1.1.5"
+  dependencies:
+    sax: 1.2.1
+  checksum: 7ea1087239394d5d0c24e0ea61503d57ecf8d16623b88562c3bca8066f89bc65c3d04e3d3824c832f9b0b0092fd592ffd446651ae50d64d7fecfa77033f761bc
   languageName: node
   linkType: hard
 
@@ -8990,14 +9250,14 @@ __metadata:
   linkType: hard
 
 "js-yaml@npm:^3.13.1":
-  version: 3.14.2
-  resolution: "js-yaml@npm:3.14.2"
+  version: 3.15.0
+  resolution: "js-yaml@npm:3.15.0"
   dependencies:
     argparse: ^1.0.7
     esprima: ^4.0.0
   bin:
     js-yaml: bin/js-yaml.js
-  checksum: 626fc207734a3452d6ba84e1c8c226240e6d431426ed94d0ab043c50926d97c509629c08b1d636f5d27815833b7cfd225865631da9fb33cb957374490bf3e90b
+  checksum: 0209830c3ce51cec4c2cefee4b2b68c547b56b36920004efbf7c6a91ae7eee784bf64341738ef1acffa975d16e7882e9b69234b9a4411f455b72b33d4d74771e
   languageName: node
   linkType: hard
 
@@ -9154,6 +9414,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lie@npm:3.1.1":
+  version: 3.1.1
+  resolution: "lie@npm:3.1.1"
+  dependencies:
+    immediate: ~3.0.5
+  checksum: 6da9f2121d2dbd15f1eca44c0c7e211e66a99c7b326ec8312645f3648935bc3a658cf0e9fa7b5f10144d9e2641500b4f55bd32754607c3de945b5f443e50ddd1
+  languageName: node
+  linkType: hard
+
 "lilconfig@npm:^3.1.1":
   version: 3.1.2
   resolution: "lilconfig@npm:3.1.2"
@@ -9165,13 +9434,6 @@ __metadata:
   version: 1.2.4
   resolution: "lines-and-columns@npm:1.2.4"
   checksum: 0c37f9f7fa212b38912b7145e1cd16a5f3cd34d782441c3e6ca653485d326f58b3caccda66efce1c5812bde4961bbde3374fae4b0d11bf1226152337f3894aa5
-  languageName: node
-  linkType: hard
-
-"load-script@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "load-script@npm:1.0.0"
-  checksum: 8458e3f07b4a86f8d9d66e47a987811491a5d013af23ba7b371c6d3c9dc899885b072ccf65abf7874c10cb197d4975eacd8a7a125bfb38dbbcb267539f5dc1e9
   languageName: node
   linkType: hard
 
@@ -9190,6 +9452,15 @@ __metadata:
     emojis-list: ^3.0.0
     json5: ^2.1.2
   checksum: a5281f5fff1eaa310ad5e1164095689443630f3411e927f95031ab4fb83b4a98f388185bb1fe949e8ab8d4247004336a625e9255c22122b815bb9a4c5d8fc3b7
+  languageName: node
+  linkType: hard
+
+"localforage@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "localforage@npm:1.10.0"
+  dependencies:
+    lie: 3.1.1
+  checksum: f2978b434dafff9bcb0d9498de57d97eba165402419939c944412e179cab1854782830b5ec196212560b22712d1dd03918939f59cf1d4fc1d756fca7950086cf
   languageName: node
   linkType: hard
 
@@ -9590,6 +9861,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"media-chrome@npm:~4.19.0":
+  version: 4.19.2
+  resolution: "media-chrome@npm:4.19.2"
+  dependencies:
+    ce-la-react: ^0.3.2
+  checksum: a383ec4283ebc0b2986e68399e2d7ea5d807ba38ea9aef576d3611719230c0cf2acb95327eca33c92f17cfdfeaab206a56fec5bed3a0cdcbb8bdbb92f4793690
+  languageName: node
+  linkType: hard
+
+"media-played-ranges-mixin@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "media-played-ranges-mixin@npm:0.1.0"
+  checksum: 72f7fa1119b0636dcc6b5329c8ff56065fa5cdf8df150b189d729f1aff660cef5de0a920e5a4ccb48dcc2f1a5889aa8aa5a329d87fedb590afbac5465c9477f0
+  languageName: node
+  linkType: hard
+
+"media-tracks@npm:^0.3.5, media-tracks@npm:~0.3.5":
+  version: 0.3.5
+  resolution: "media-tracks@npm:0.3.5"
+  checksum: 6e18a5a524729935493252ff6b84e0fd88a3002c112e6f62f415b6d64b0f54ca7f3e958ba5a286973059430977cd93fc076ef311fe5b9e6bc6fa44f43e39a909
+  languageName: node
+  linkType: hard
+
 "media-typer@npm:0.3.0":
   version: 0.3.0
   resolution: "media-typer@npm:0.3.0"
@@ -9603,13 +9897,6 @@ __metadata:
   dependencies:
     fs-monkey: ^1.0.4
   checksum: 18dfdeacad7c8047b976a6ccd58bc98ba76e122ad3ca0e50a21837fe2075fc0d9aafc58ab9cf2576c2b6889da1dd2503083f2364191b695273f40969db2ecc44
-  languageName: node
-  linkType: hard
-
-"memoize-one@npm:^5.1.1":
-  version: 5.2.1
-  resolution: "memoize-one@npm:5.2.1"
-  checksum: a3cba7b824ebcf24cdfcd234aa7f86f3ad6394b8d9be4c96ff756dafb8b51c7f71320785fbc2304f1af48a0467cbbd2a409efc9333025700ed523f254cb52e3d
   languageName: node
   linkType: hard
 
@@ -10365,7 +10652,7 @@ __metadata:
     react-loadable: ^5.5.0
     react-medium-image-zoom: ^5.2.14
     react-modal: ^3.16.3
-    react-player: ^2.16.1
+    react-player: ^3.4.0
     search-insights: ^2.17.3
     typescript: ^5.8.3
   languageName: unknown
@@ -10411,12 +10698,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mux-embed@npm:5.18.1, mux-embed@npm:^5.16.1":
+  version: 5.18.1
+  resolution: "mux-embed@npm:5.18.1"
+  checksum: 0e3a2ee4e812c6b187d7781c6ee8c2de2b2d745e260282aa6eeb9d07cba8da1314de5d74aac9bf5186ebe60f6fd51a6d60f3aeed97370c1e07ee859b5c762fc0
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^3.3.11":
   version: 3.3.11
   resolution: "nanoid@npm:3.3.11"
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 3be20d8866a57a6b6d218e82549711c8352ed969f9ab3c45379da28f405363ad4c9aeb0b39e9abc101a529ca65a72ff9502b00bf74a912c4b64a9d62dfd26c29
+  languageName: node
+  linkType: hard
+
+"native-promise-only@npm:0.8.1":
+  version: 0.8.1
+  resolution: "native-promise-only@npm:0.8.1"
+  checksum: bb4d8416c47d1b2cef0d4eb2c7f3442a9ed04d3734287f4037dfb7ff25948612976928e5baed105081927d5337d3f657e3a42ad2e8cca38a6428a81b32cd6dc4
   languageName: node
   linkType: hard
 
@@ -10846,6 +11147,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"path-browserify@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "path-browserify@npm:1.0.1"
+  checksum: c6d7fa376423fe35b95b2d67990060c3ee304fc815ff0a2dc1c6c3cfaff2bd0d572ee67e18f19d0ea3bbe32e8add2a05021132ac40509416459fffee35200699
+  languageName: node
+  linkType: hard
+
 "path-exists@npm:^5.0.0":
   version: 5.0.0
   resolution: "path-exists@npm:5.0.0"
@@ -10959,6 +11267,15 @@ __metadata:
   dependencies:
     find-up: ^6.3.0
   checksum: 94298b20a446bfbbd66604474de8a0cdd3b8d251225170970f15d9646f633e056c80520dd5b4c1d1050c9fed8f6a9e5054b141c93806439452efe72e57562c03
+  languageName: node
+  linkType: hard
+
+"player.style@npm:^0.3.0":
+  version: 0.3.4
+  resolution: "player.style@npm:0.3.4"
+  dependencies:
+    media-chrome: ~4.19.0
+  checksum: 27f5f6658e0eea504d0dba800cb7b18fa15435a3267e8c8be416cf0611f20da886108dde7b7a0034428160c6132064f54b529dbd811314c4e213a3a2165da9f0
   languageName: node
   linkType: hard
 
@@ -11869,7 +12186,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.5.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2":
+"prop-types@npm:^15.5.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -12003,7 +12320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-fast-compare@npm:^3.0.1, react-fast-compare@npm:^3.2.0":
+"react-fast-compare@npm:^3.2.0":
   version: 3.2.2
   resolution: "react-fast-compare@npm:3.2.2"
   checksum: 2071415b4f76a3e6b55c84611c4d24dcb12ffc85811a2840b5a3f1ff2d1a99be1020d9437ee7c6e024c9f4cbb84ceb35e48cf84f28fcb00265ad2dfdd3947704
@@ -12108,18 +12425,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-player@npm:^2.16.1":
-  version: 2.16.1
-  resolution: "react-player@npm:2.16.1"
+"react-player@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "react-player@npm:3.4.0"
   dependencies:
-    deepmerge: ^4.0.0
-    load-script: ^1.0.0
-    memoize-one: ^5.1.1
-    prop-types: ^15.7.2
-    react-fast-compare: ^3.0.1
+    "@mux/mux-player-react": ^3.8.0
+    cloudflare-video-element: ^1.3.4
+    dash-video-element: ^0.3.0
+    hls-video-element: ^1.5.9
+    spotify-audio-element: ^1.0.3
+    tiktok-video-element: ^0.1.1
+    twitch-video-element: ^0.1.5
+    vimeo-video-element: ^1.6.1
+    wistia-video-element: ^1.3.5
+    youtube-video-element: ^1.8.0
   peerDependencies:
-    react: ">=16.6.0"
-  checksum: 2e422ddc5213cf99d449a4a14f8a4a18f38bda0f08fca36434d66d86de6a7438d883122451434e38f5391d54e08a6ad7079674957b53c142341b53326d3a39b6
+    "@types/react": ^17.0.0 || ^18 || ^19
+    react: ^17.0.2 || ^18 || ^19
+    react-dom: ^17.0.2 || ^18 || ^19
+  checksum: 10588ae8cac9eb56f27bd50e713e66a0870b1ce02f90f2ea54fb8b17803ede62e091056309c07a46e90fd1a0fa6bb62e86b229c2cc453405b209023d4327622f
   languageName: node
   linkType: hard
 
@@ -12617,6 +12941,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sax@npm:1.2.1":
+  version: 1.2.1
+  resolution: "sax@npm:1.2.1"
+  checksum: 8dca7d5e1cd7d612f98ac50bdf0b9f63fbc964b85f0c4e2eb271f8b9b47fd3bf344c4d6a592e69ecf726d1485ca62cd8a52e603bbc332d18a66af25a9a1045ad
+  languageName: node
+  linkType: hard
+
 "sax@npm:^1.2.4":
   version: 1.4.1
   resolution: "sax@npm:1.4.1"
@@ -13089,6 +13420,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"spotify-audio-element@npm:^1.0.3":
+  version: 1.0.4
+  resolution: "spotify-audio-element@npm:1.0.4"
+  checksum: 52c7d42c8620dbb032753345212066e1cf7c93e616378553631a77fdc7c0aa305d4c2096e685fd0c3dc4561a9eb64ab624e5013ba4d91019d45f39cbe7d6c146
+  languageName: node
+  linkType: hard
+
 "sprintf-js@npm:^1.1.3":
   version: 1.1.3
   resolution: "sprintf-js@npm:1.1.3"
@@ -13277,6 +13615,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"super-media-element@npm:~1.4.2":
+  version: 1.4.2
+  resolution: "super-media-element@npm:1.4.2"
+  checksum: cb2838eee9051fba89cdfe09fabb417563bde47a28c9221fa18ac4dcc1795f6ed1ff92a8de698b188a45b75778d3c7a019762ebd034f7b0dec1efbedda4d6d69
+  languageName: node
+  linkType: hard
+
 "supports-color@npm:^5.3.0":
   version: 5.5.0
   resolution: "supports-color@npm:5.5.0"
@@ -13442,6 +13787,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tiktok-video-element@npm:^0.1.1":
+  version: 0.1.2
+  resolution: "tiktok-video-element@npm:0.1.2"
+  checksum: 6b9690cdd7148c997e4c4286782ef96767f341d2bda3de13890a036c1b3d4742dc4dd446c6b07b15d8e67227eec17805d4d479e8c604d762a73b741ae6e4be8d
+  languageName: node
+  linkType: hard
+
 "tiny-invariant@npm:^1.0.2":
   version: 1.3.3
   resolution: "tiny-invariant@npm:1.3.3"
@@ -13511,6 +13863,13 @@ __metadata:
   version: 2.6.3
   resolution: "tslib@npm:2.6.3"
   checksum: 74fce0e100f1ebd95b8995fbbd0e6c91bdd8f4c35c00d4da62e285a3363aaa534de40a80db30ecfd388ed7c313c42d930ee0eaf108e8114214b180eec3dbe6f5
+  languageName: node
+  linkType: hard
+
+"twitch-video-element@npm:^0.1.5":
+  version: 0.1.6
+  resolution: "twitch-video-element@npm:0.1.6"
+  checksum: 55fb4251caaab33a22bd5753b2b0f072fb0f2142ccff22b085ef2855fcb287fd750131ca901414873dafdd1df3016b343745302a2e0a3da0dafb89cb64a01239
   languageName: node
   linkType: hard
 
@@ -13928,6 +14287,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vimeo-video-element@npm:^1.6.1":
+  version: 1.7.2
+  resolution: "vimeo-video-element@npm:1.7.2"
+  dependencies:
+    "@vimeo/player": 2.29.0
+    media-played-ranges-mixin: ^0.1.0
+  checksum: d670cd79dafa806bac3fd631966ec3689e7541fa4db7e8270ad858939ea181697e25849ad135d07180824f5a5e50aeacc003b566247f3ff81c837f7dd9223690
+  languageName: node
+  linkType: hard
+
 "warning@npm:^4.0.3":
   version: 4.0.3
   resolution: "warning@npm:4.0.3"
@@ -13953,6 +14322,13 @@ __metadata:
   dependencies:
     minimalistic-assert: ^1.0.0
   checksum: 2abc306c96930b757972a1c4650eb6b25b5d99f24088714957f88629e137db569368c5de0e57986c89ea70db2f1df9bba11a87cb6d0c8694b6f53a0159fab3bf
+  languageName: node
+  linkType: hard
+
+"weakmap-polyfill@npm:2.0.4":
+  version: 2.0.4
+  resolution: "weakmap-polyfill@npm:2.0.4"
+  checksum: 4c733a927f7ac6b1244a4acf6a227bddfd74aa60eb03c21a10f7133b47b2d47c3b2a684f1c4723d574a5c5be516f7bb37af5eed7369a93aed5e19fb8eab6948c
   languageName: node
   linkType: hard
 
@@ -14133,13 +14509,13 @@ __metadata:
   linkType: hard
 
 "websocket-driver@npm:>=0.5.1, websocket-driver@npm:^0.7.4":
-  version: 0.7.4
-  resolution: "websocket-driver@npm:0.7.4"
+  version: 0.7.5
+  resolution: "websocket-driver@npm:0.7.5"
   dependencies:
     http-parser-js: ">=0.5.1"
     safe-buffer: ">=5.1.0"
     websocket-extensions: ">=0.1.1"
-  checksum: fffe5a33fe8eceafd21d2a065661d09e38b93877eae1de6ab5d7d2734c6ed243973beae10ae48c6613cfd675f200e5a058d1e3531bc9e6c5d4f1396ff1f0bfb9
+  checksum: 2ad622f4627bde71ce0f25a9466ced1cfc4e789603530a67944824cbafffd518224c4cc131da0f0aafe46c1b36f968326e0199845dfa56f7d15e5774aa53119d
   languageName: node
   linkType: hard
 
@@ -14185,6 +14561,15 @@ __metadata:
   version: 2.0.1
   resolution: "wildcard@npm:2.0.1"
   checksum: e0c60a12a219e4b12065d1199802d81c27b841ed6ad6d9d28240980c73ceec6f856771d575af367cbec2982d9ae7838759168b551776577f155044f5a5ba843c
+  languageName: node
+  linkType: hard
+
+"wistia-video-element@npm:^1.3.5":
+  version: 1.4.0
+  resolution: "wistia-video-element@npm:1.4.0"
+  dependencies:
+    super-media-element: ~1.4.2
+  checksum: d7bd8c83e4c17c8bbc75378ef644603f7081e694b390552129c6706e64acd91d4401fece5bcecb4c929ac72c993d2168994957d917e1708fe84f9851cbc184be
   languageName: node
   linkType: hard
 
@@ -14295,6 +14680,15 @@ __metadata:
   version: 1.0.0
   resolution: "yocto-queue@npm:1.0.0"
   checksum: 2cac84540f65c64ccc1683c267edce396b26b1e931aa429660aefac8fbe0188167b7aee815a3c22fa59a28a58d898d1a2b1825048f834d8d629f4c2a5d443801
+  languageName: node
+  linkType: hard
+
+"youtube-video-element@npm:^1.8.0":
+  version: 1.9.0
+  resolution: "youtube-video-element@npm:1.9.0"
+  dependencies:
+    media-played-ranges-mixin: ^0.1.0
+  checksum: 0aa003e8f7eb516752e9bfc066cde2ae3aded0df9ef20d23c2ec690b7562cd3c5458653b03e41342aac4c9094ab6f2b040d533dcc6ab6ecb1caa07f6a8d64f8e
   languageName: node
   linkType: hard
 

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2034] Fixed `MA Blendshape Sync` behavior is inconsistent for out of range values
 - [#2034] Fixed `MA Blendshape Sync` remapping curve did not create keypoints for animation curve when animation curve
   crosses keypoints of remapping curve
+- [#2050] Fixed an issue where the `Vertex Filter - By Axis` preview could be incorrect
 
 ### Changed
 

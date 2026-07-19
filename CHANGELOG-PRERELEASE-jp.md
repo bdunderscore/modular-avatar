@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#2034] `MA Blendshape Sync` が範囲外の値を扱う際の動作が一貫していなかった問題を修正
 - [#2034] `MA Blendshape Sync` において、アニメーションカーブがマッピングのキーポイントをまたぐ場合に、必要なキーポイントが生成されない問題を修正
+- [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正
 
 ### Changed
 

@@ -44,6 +44,11 @@ namespace nadena.dev.modular_avatar.core.editor
         private (NativeArray<float2>, JobHandle)?[] _uv; 
 
         public MeshSelectorJob(Renderer referenceRenderer, Mesh mesh)
+            : this(referenceRenderer, mesh, ResolveOriginalRenderer(referenceRenderer))
+        {
+        }
+
+        internal MeshSelectorJob(Renderer referenceRenderer, Mesh mesh, GameObject? originalRenderer)
         {
             ReferenceRenderer = referenceRenderer;
             OriginalMesh = mesh;
@@ -54,16 +59,13 @@ namespace nadena.dev.modular_avatar.core.editor
             _disposables = new List<IDisposable>();
             _uv = new (NativeArray<float2>, JobHandle)?[8];
 
-            GameObject? originalRenderer = null;
-            if (referenceRenderer != null)
-                originalRenderer = NDMFPreview.GetOriginalObjectForProxy(referenceRenderer.gameObject);
             if (originalRenderer != null)
             {
-                // Translate the meshSpaceCenter coordinates from the original renderer to the new
+                // Translate the meshSpaceCenter coordinates from the baked preview renderer to the original
                 // renderer's coordinate space; in preview, these don't match in general.
                 var refRendererToWorld = (float4x4)referenceRenderer.transform.localToWorldMatrix;
                 var worldtoOriginalRenderer = (float4x4)originalRenderer.transform.worldToLocalMatrix;
-                MeshPositionToOriginalRenderer = worldtoOriginalRenderer * refRendererToWorld;
+                MeshPositionToOriginalRenderer = math.mul(worldtoOriginalRenderer, refRendererToWorld);
             }
             else
             {
@@ -110,6 +112,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     _submeshIndexBuffers[i] = (decompressedBuffer, jobHandle);
                 }
             }
+        }
+
+        private static GameObject? ResolveOriginalRenderer(Renderer referenceRenderer)
+        {
+            return referenceRenderer != null
+                ? NDMFPreview.GetOriginalObjectForProxy(referenceRenderer.gameObject)
+                : null;
         }
 
         /// <summary>
