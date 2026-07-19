@@ -327,8 +327,6 @@
   "reactive_object.delete-mesh-by-bone.bone.tooltip": "頂点をフィルタリングするボーンです。このボーンにウェイトが付いている頂点が選択されます。",
   "reactive_object.delete-mesh-by-bone.threshold": "ウェイトしきい値",
   "reactive_object.delete-mesh-by-bone.threshold.tooltip": "頂点が選択されるための最小ボーンウェイト値 (0.0 から 1.0)",
-  "reactive_object.delete-mesh.uv-channel": "UV チャンネル",
-  "reactive_object.delete-mesh-by-uvtile.invert": "反転",
   "reactive_object.material-setter.set-to": "変更先のマテリアル",
   "reactive_object.material-swap.root": "対象のルート",
   "reactive_object.material-swap.quick_swap_mode": "クイックスワップモード",
