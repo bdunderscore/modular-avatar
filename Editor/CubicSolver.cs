@@ -1,201 +1,349 @@
 using System;
-using System.Diagnostics;
-using UnityEditor;
+using System.Collections.Generic;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     /// <summary>
-    /// Utility for finding the real roots of a cubic equation / a 1D cubic Bezier curve.
-    /// - Does not handle complex roots (intended for cases where the caller guarantees
-    ///   only real roots exist).
-    /// - Internal computation is done in double; inputs/outputs are float (Unity-friendly,
-    ///   targeting precision comparable to AnimationCurve).
-    /// - Uses Cardano's formula, switching to the trigonometric method when the
-    ///   discriminant indicates 3 real roots, to avoid cancellation error.
-    /// - Finishes with a few Newton-Raphson iterations to polish the result.
+    /// Finds the real roots of a cubic polynomial within a finite interval.
+    ///
+    /// The polynomial is partitioned at the roots of its derivative. It is monotonic
+    /// between adjacent partition points, so a sign change identifies exactly one root.
+    /// Roots in those intervals are found with safeguarded Newton iteration, falling
+    /// back to bisection whenever a Newton step would leave the bracket.
     /// </summary>
     internal static class CubicSolver
     {
-        private const double Eps = 1e-12;
+        // The distance from 1.0 to the next representable IEEE-754 binary64 value.
+        // System.Double.Epsilon is the smallest positive subnormal value, not this value.
+        private const double MachineEpsilon = 2.2204460492503131e-16;
+        private const double FloatMachineEpsilon = 1.1920928955078125e-7;
+        private const double ResidualToleranceFactor = 64.0;
+        private const double PositionToleranceFactor = 16.0;
+        private const double DuplicateToleranceFactor = 4.0;
+        private const int MaxIterations = 80;
 
         /// <summary>
-        /// Internal double-precision solver for a x^3 + b x^2 + c x + d = 0.
+        /// Finds the distinct real roots of
+        /// <c>a x^3 + b x^2 + c x + d = 0</c> in the closed interval
+        /// <paramref name="min"/> through <paramref name="max"/>, in ascending order.
         /// </summary>
-        public static double[] SolveCubicDouble(double a, double b, double c, double d)
+        public static IEnumerable<float> SolveCubicInterval(
+            double a,
+            double b,
+            double c,
+            double d,
+            double min,
+            double max
+        )
         {
-            // If a is essentially 0, fall back to a lower-degree solver (quadratic / linear)
-            if (Math.Abs(a) < Eps)
-            {
-                return SolveQuadraticOrLower(b, c, d);
-            }
+            ValidateFinite(a, nameof(a));
+            ValidateFinite(b, nameof(b));
+            ValidateFinite(c, nameof(c));
+            ValidateFinite(d, nameof(d));
+            ValidateFinite(min, nameof(min));
+            ValidateFinite(max, nameof(max));
 
-            // Normalize to monic form: x^3 + B x^2 + C x + D = 0
-            var B = b / a;
-            var C = c / a;
-            var D = d / a;
+            if (min > max)
+                throw new ArgumentException("The root interval must have min <= max.");
 
-            // Depress the cubic: t^3 + p t + q = 0 (x = t - B/3)
-            var shift = B / 3.0;
-            var p = C - B * B / 3.0;
-            var q = (2.0 * B * B * B) / 27.0 - (B * C) / 3.0 + D;
+            NormalizeCoefficients(ref a, ref b, ref c, ref d);
 
-            var tRoots = SolveDepressedCubic(p, q);
+            if (a == 0.0 && b == 0.0 && c == 0.0)
+                return Array.Empty<float>();
 
-            var roots = new double[tRoots.Length];
-            for (var i = 0; i < tRoots.Length; i++)
-                roots[i] = tRoots[i] - shift;
+            if (min == max)
+                return IsRoot(a, b, c, d, min) ? new[] { (float)min } : Array.Empty<float>();
 
-            for (int i = 0; i < roots.Length; i++)
-                roots[i] = NewtonPolish(a, b, c, d, roots[i]);
+            var distinctRoots = SolvePolynomialInInterval(a, b, c, d, min, max);
+            return ConvertToFloats(distinctRoots);
+        }
 
-            return roots;
+        private static IEnumerable<float> ConvertToFloats(double[] roots)
+        {
+            var result = new float[roots.Length];
+            for (var i = 0; i < roots.Length; i++)
+                result[i] = checked((float)roots[i]);
+
+            return result;
         }
 
         /// <summary>
-        /// Solves the depressed cubic t^3 + p t + q = 0.
-        /// Branches between Cardano's formula (1 real root) and the trigonometric
-        /// method (3 real roots) based on the discriminant. On the Cardano branch,
-        /// u is computed first and v is derived via v = -p/(3u) to avoid cancellation.
+        /// Solves a polynomial of degree at most three. The derivative is recursively
+        /// solved over the same interval, avoiding both monic normalization and a
+        /// discriminant calculation.
         /// </summary>
-        private static double[] SolveDepressedCubic(double p, double q)
+        private static double[] SolvePolynomialInInterval(
+            double a,
+            double b,
+            double c,
+            double d,
+            double min,
+            double max
+        )
         {
-            // p and q both ~0 -> triple root at t = 0
-            if (Math.Abs(p) < Eps && Math.Abs(q) < Eps)
+            NormalizeCoefficients(ref a, ref b, ref c, ref d);
+
+            double[] criticalPoints;
+            if (a != 0.0)
             {
-                return new[] { 0.0 };
+                criticalPoints = SolvePolynomialInInterval(0.0, 3.0 * a, 2.0 * b, c, min, max);
             }
-
-            // D = q^2/4 + p^3/27  (D > 0: 1 real root / D <= 0: 3 real roots, D = 0 includes a repeated root)
-            double D = (q * q) / 4.0 + (p * p * p) / 27.0;
-
-            if (D > Eps)
+            else if (b != 0.0)
             {
-                // ---- 1 real root: Cardano's formula (cancellation-avoiding form) ----
-                var sqrtD = Math.Sqrt(D);
-                var term = -q / 2.0 + sqrtD;
-
-                var u = CubeRoot(term);
-                double v;
-                if (Math.Abs(u) > Eps)
-                {
-                    v = -p / (3.0 * u);
-                }
-                else
-                {
-                    // Special case where u is ~0: fall back to the cube root of -q directly
-                    v = CubeRoot(-q - u * u * u);
-                }
-
-                var t0 = u + v;
-                return new [] { t0 };
+                criticalPoints = SolvePolynomialInInterval(0.0, 0.0, 2.0 * b, c, min, max);
             }
-            else if (D < -Eps)
+            else if (c != 0.0)
             {
-                // ---- 3 real roots: trigonometric method (casus irreducibilis) ----
-                // p is guaranteed to be negative here
-                var r = Math.Sqrt(-p / 3.0);
-                var cosArg = (3.0 * q) / (2.0 * p) * Math.Sqrt(-3.0 / p);
-
-                // Clamp to avoid going out of range due to floating-point error
-                cosArg = Math.Max(-1.0, Math.Min(1.0, cosArg));
-                var theta = Math.Acos(cosArg) / 3.0;
-
-                const double twoPiOver3 = 2.0 * Math.PI / 3.0;
-
-                var t0 = 2.0 * r * Math.Cos(theta);
-                var t1 = 2.0 * r * Math.Cos(theta - twoPiOver3);
-                var t2 = 2.0 * r * Math.Cos(theta - 2.0 * twoPiOver3);
-
-                return new [] { t0, t1, t2 };
+                criticalPoints = Array.Empty<double>();
             }
             else
             {
-                // D ~ 0: repeated-root case (one simple root + one double root)
-                var u = CubeRoot(-q / 2.0);
-                var t0 = 2.0 * u; // simple root
-                var t1 = -u; // double root
-                return new [] { t0, t1, t1 };
-            }
-        }
-
-        /// <summary>
-        /// Signed cube root (handles negative inputs).
-        /// </summary>
-        private static double CubeRoot(double x)
-        {
-            if (x < 0.0)
-            {
-                return -Math.Pow(-x, 1.0 / 3.0);
-            }
-
-            return Math.Pow(x, 1.0 / 3.0);
-        }
-
-        /// <summary>
-        /// Fallback for when a is essentially 0 (quadratic / linear equation).
-        /// </summary>
-        private static double[] SolveQuadraticOrLower(double b, double c, double d)
-        {
-            if (Math.Abs(b) < Eps)
-            {
-                // Linear equation: c x + d = 0
-                if (Math.Abs(c) < Eps)
-                {
-                    return Array.Empty<double>(); // No solution (or indeterminate; not handled here)
-                }
-
-                return new[] { -d / c };
-            }
-
-            // Quadratic equation: b x^2 + c x + d = 0 (cancellation-avoiding form of the quadratic formula)
-            var disc = c * c - 4.0 * b * d;
-            if (disc < 0.0)
-            {
+                // A nonzero constant has no roots. The all-zero polynomial has an
+                // indeterminate number of roots and is represented by an empty result.
                 return Array.Empty<double>();
             }
 
-            var sqrtDisc = Math.Sqrt(disc);
-
-            // Compute the addition branch matching the sign of c first, to avoid cancellation
-            var q = (c >= 0.0) ? -0.5 * (c + sqrtDisc) : -0.5 * (c - sqrtDisc);
-
-            if (Math.Abs(q) < Eps)
+            var partitions = new List<double>(criticalPoints.Length + 2) { min };
+            foreach (var criticalPoint in criticalPoints)
             {
-                var x0 = -c / (2.0 * b);
-                return new [] { x0 };
+                if (criticalPoint > min && criticalPoint < max)
+                    partitions.Add(criticalPoint);
             }
 
-            var r0 = q / b;
-            var r1 = d / q;
-            return new [] { r0, r1 };
+            partitions.Add(max);
+            partitions.Sort();
+
+            var values = new double[partitions.Count];
+            var roots = new List<double>(3);
+
+            for (var i = 0; i < partitions.Count; i++)
+            {
+                var x = partitions[i];
+                var value = Evaluate(a, b, c, d, x);
+                values[i] = value;
+
+                // This also detects even-multiplicity roots, which do not produce a
+                // sign change but must occur at a derivative root.
+                if (IsRoot(a, b, c, d, x, value))
+                    roots.Add(x);
+            }
+
+            for (var i = 0; i + 1 < partitions.Count; i++)
+            {
+                if (!HaveOppositeSigns(values[i], values[i + 1]))
+                    continue;
+
+                roots.Add(FindBracketedRoot(
+                    a,
+                    b,
+                    c,
+                    d,
+                    partitions[i],
+                    partitions[i + 1],
+                    values[i]
+                ));
+            }
+
+            return SortAndDeduplicateRoots(roots, a, b, c, d);
         }
 
-        /// <summary>
-        /// Polishes a root using Newton-Raphson iteration, stopping after a few iterations.
-        /// </summary>
-        private static double NewtonPolish(double a, double b, double c, double d, double x)
+        private static double FindBracketedRoot(
+            double a,
+            double b,
+            double c,
+            double d,
+            double left,
+            double right,
+            double leftValue
+        )
         {
-            const int maxIter = 6;
-            for (int i = 0; i < maxIter; i++)
+            var x = Midpoint(left, right);
+
+            for (var iteration = 0; iteration < MaxIterations; iteration++)
             {
-                double f = ((a * x + b) * x + c) * x + d; // Horner's method
-                double fPrime = (3.0 * a * x + 2.0 * b) * x + c;
+                var value = Evaluate(a, b, c, d, x);
+                if (IsRoot(a, b, c, d, x, value))
+                    return x;
 
-                if (Math.Abs(fPrime) < Eps)
+                if (HaveSameSign(value, leftValue))
                 {
-                    break; // Derivative is ~0 (near a repeated root); stop iterating
+                    left = x;
+                    leftValue = value;
+                }
+                else
+                {
+                    right = x;
                 }
 
-                double dx = f / fPrime;
-                x -= dx;
+                if (PositionsAreClose(left, right))
+                    return BetterRootCandidate(a, b, c, d, left, right);
 
-                if (Math.Abs(dx) < 1e-15)
-                {
-                    break; // Converged well enough
-                }
+                var derivative = EvaluateDerivative(a, b, c, x);
+                var candidate = x - value / derivative;
+
+                if (!IsFinite(candidate) || candidate <= left || candidate >= right || candidate == x)
+                    candidate = Midpoint(left, right);
+
+                // There are no representable values remaining strictly inside the bracket.
+                if (candidate == left || candidate == right)
+                    return BetterRootCandidate(a, b, c, d, left, right);
+
+                x = candidate;
             }
 
-            return x;
+            return BetterRootCandidate(a, b, c, d, left, right);
+        }
+
+        private static double[] SortAndDeduplicateRoots(
+            List<double> roots,
+            double a,
+            double b,
+            double c,
+            double d
+        )
+        {
+            if (roots.Count == 0)
+                return Array.Empty<double>();
+
+            roots.Sort();
+            var distinctRoots = new List<double>(roots.Count) { roots[0] };
+
+            for (var i = 1; i < roots.Count; i++)
+            {
+                var previousIndex = distinctRoots.Count - 1;
+                var previous = distinctRoots[previousIndex];
+                var current = roots[i];
+
+                if (!RootsAreClose(previous, current))
+                {
+                    distinctRoots.Add(current);
+                    continue;
+                }
+
+                // Multiple search paths can report the same numerical root. Keep the
+                // representative with the smaller backward error.
+                if (ScaledResidual(a, b, c, d, current) < ScaledResidual(a, b, c, d, previous))
+                    distinctRoots[previousIndex] = current;
+            }
+
+            return distinctRoots.ToArray();
+        }
+
+        private static bool IsRoot(double a, double b, double c, double d, double x)
+        {
+            return IsRoot(a, b, c, d, x, Evaluate(a, b, c, d, x));
+        }
+
+        private static bool IsRoot(double a, double b, double c, double d, double x, double value)
+        {
+            if (!IsFinite(value))
+                return false;
+
+            var scale = EvaluationScale(a, b, c, d, x);
+            if (!IsFinite(scale))
+                return false;
+
+            if (scale == 0.0)
+                return value == 0.0;
+
+            return Math.Abs(value) <= ResidualToleranceFactor * MachineEpsilon * scale;
+        }
+
+        private static double ScaledResidual(double a, double b, double c, double d, double x)
+        {
+            var value = Math.Abs(Evaluate(a, b, c, d, x));
+            var scale = EvaluationScale(a, b, c, d, x);
+
+            if (scale == 0.0)
+                return value == 0.0 ? 0.0 : double.PositiveInfinity;
+
+            return value / scale;
+        }
+
+        private static double BetterRootCandidate(
+            double a,
+            double b,
+            double c,
+            double d,
+            double first,
+            double second
+        )
+        {
+            // Scaling is necessary here: comparing raw |f(x)| would make the selected
+            // endpoint depend on an arbitrary common scale applied to the coefficients.
+            return ScaledResidual(a, b, c, d, first) <= ScaledResidual(a, b, c, d, second)
+                ? first
+                : second;
+        }
+
+        private static double Evaluate(double a, double b, double c, double d, double x)
+        {
+            return ((a * x + b) * x + c) * x + d;
+        }
+
+        private static double EvaluateDerivative(double a, double b, double c, double x)
+        {
+            return (3.0 * a * x + 2.0 * b) * x + c;
+        }
+
+        private static double EvaluationScale(double a, double b, double c, double d, double x)
+        {
+            var absX = Math.Abs(x);
+            return ((Math.Abs(a) * absX + Math.Abs(b)) * absX + Math.Abs(c)) * absX + Math.Abs(d);
+        }
+
+        private static void NormalizeCoefficients(ref double a, ref double b, ref double c, ref double d)
+        {
+            var scale = Math.Max(Math.Max(Math.Abs(a), Math.Abs(b)), Math.Max(Math.Abs(c), Math.Abs(d)));
+            if (scale == 0.0)
+                return;
+
+            a /= scale;
+            b /= scale;
+            c /= scale;
+            d /= scale;
+        }
+
+        private static bool PositionsAreClose(double first, double second)
+        {
+            var scale = Math.Max(1.0, Math.Max(Math.Abs(first), Math.Abs(second)));
+            return Math.Abs(first - second) <= PositionToleranceFactor * MachineEpsilon * scale;
+        }
+
+        private static bool RootsAreClose(double first, double second)
+        {
+            // The public result is float-valued. Treat roots separated by only a few
+            // float ULPs as one numerical root. Otherwise coefficient rounding around
+            // a repeated root can produce several adjacent float values.
+            var scale = Math.Max(1.0, Math.Max(Math.Abs(first), Math.Abs(second)));
+            return Math.Abs(first - second) <= DuplicateToleranceFactor * FloatMachineEpsilon * scale;
+        }
+
+        private static bool HaveOppositeSigns(double first, double second)
+        {
+            return (first < 0.0 && second > 0.0) || (first > 0.0 && second < 0.0);
+        }
+
+        private static bool HaveSameSign(double first, double second)
+        {
+            return (first < 0.0 && second < 0.0) || (first > 0.0 && second > 0.0);
+        }
+
+        private static double Midpoint(double first, double second)
+        {
+            // This form cannot overflow when the endpoints have large opposite signs.
+            return first * 0.5 + second * 0.5;
+        }
+
+        private static bool IsFinite(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        private static void ValidateFinite(double value, string parameterName)
+        {
+            if (!IsFinite(value))
+                throw new ArgumentOutOfRangeException(parameterName, "Cubic solver inputs must be finite.");
         }
     }
 }

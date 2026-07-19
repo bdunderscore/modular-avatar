@@ -453,7 +453,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
             public double Compute(double t) => a * t * t * t + b * t * t + c * t + d;
 
-            public double[] Solve(double value) => CubicSolver.SolveCubicDouble(a, b, c, d - value);
+            public IEnumerable<float> Solve(double value)
+            {
+                return CubicSolver.SolveCubicInterval(a, b, c, d - value, 0.0, 1.0);
+            }
         }
     }
 
