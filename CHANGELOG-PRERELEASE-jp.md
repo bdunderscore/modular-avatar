@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0-beta.1] - [2026-07-21]
+
 ### Breaking Changes
 - [#2034] `MA Blendshape Sync` のマッピングが 0-1 の代わりに 0-100 の範囲で行われるように
 
@@ -22,15 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正
 - [#2053] `Scale Adjuster` や `Mesh Cutter` のプレビュー安定性を改善
 
-### Changed
-
 ### Removed
 - [#2034] `MA Blendshape Sync` の区分的に線形ではないマッピングのサポートを削除
   - 現在はすべてのカーブをキーポイント同士を直線で繋ぐ区分的に線形なカーブとして扱いますが、将来的に区分線形ではないカーブは異なる動作となる可能性があります。
-
-### Security
-
-### Deprecated
 
 ## [0.0.0-adhoc-ci-test] - [2026-07-10]
 

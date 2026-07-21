@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0-beta.1] - [2026-07-21]
+
 ### Breaking Changes
 - [#2034] Changed `MA Blendshape Sync` remapping curve to use 0-100 range instead of 0-1
 
@@ -23,16 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2050] Fixed an issue where the `Vertex Filter - By Axis` preview could be incorrect
 - [#2053] Improved reliability of `Scale Adjuster` and `Mesh Cutter` previews
 
-### Changed
-
 ### Removed
 - [#2034] Support for `MA Blendshape Sync` remapping curve with non-piecewise linear curves
   - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently
     in the future
-
-### Security
-
-### Deprecated
 
 ## [0.0.0-adhoc-ci-test] - [2026-07-10]
 
