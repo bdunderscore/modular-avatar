@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- [#2034] Changed `MA Blendshape Sync` remapping curve to use 0-100 range instead of 0-1
+
 ### Added
 - [#2054] Add support for multi-object editing to the `MA Merge Motion` inspector
 - [#2051] Added `MA Outfit Root` to mark the base of outfits
@@ -14,12 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MA Outfit Root` or `MA Merge Armature` component inspectors.
 
 ### Fixed
+- [#2034] Fixed `MA Blendshape Sync` behavior is inconsistent for out of range values
+- [#2034] Fixed `MA Blendshape Sync` remapping curve did not create keypoints for animation curve when animation curve
+  crosses keypoints of remapping curve
 - [#2050] Fixed an issue where the `Vertex Filter - By Axis` preview could be incorrect
 - [#2053] Improved reliability of `Scale Adjuster` and `Mesh Cutter` previews
 
 ### Changed
 
 ### Removed
+- [#2034] Support for `MA Blendshape Sync` remapping curve with non-piecewise linear curves
+  - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently
+    in the future
 
 ### Security
 

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- [#2034] `MA Blendshape Sync` のマッピングが 0-1 の代わりに 0-100 の範囲で行われるように
+
 ### Added
 - [#2054] `MA Merge Motion` のインスペクターを複数選択した編集に対応
 - [#2051] 衣装のルートを示す `MA Outfit Root` を追加
@@ -14,12 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MA Outfit Root` または `MA Merge Armature` コンポーネントのインスペクターから使用できます。
 
 ### Fixed
+- [#2034] `MA Blendshape Sync` が範囲外の値を扱う際の動作が一貫していなかった問題を修正
+- [#2034] `MA Blendshape Sync` において、アニメーションカーブがマッピングのキーポイントをまたぐ場合に、必要なキーポイントが生成されない問題を修正
 - [#2050] `Vertex Filter - By Axis` のプレビューが間違っている問題を修正
 - [#2053] `Scale Adjuster` や `Mesh Cutter` のプレビュー安定性を改善
 
 ### Changed
 
 ### Removed
+- [#2034] `MA Blendshape Sync` の区分的に線形ではないマッピングのサポートを削除
+  - 現在はすべてのカーブをキーポイント同士を直線で繋ぐ区分的に線形なカーブとして扱いますが、将来的に区分線形ではないカーブは異なる動作となる可能性があります。
 
 ### Security
 
