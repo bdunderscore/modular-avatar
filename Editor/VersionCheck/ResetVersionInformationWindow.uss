@@ -1,0 +1,85 @@
+#root-box {
+    padding: 16px;
+    background-color: var(--unity-colors-window-background);
+}
+
+LogoImage {
+    margin-bottom: 12px;
+}
+
+.confirmation {
+    margin-bottom: 16px;
+    white-space: normal;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.version-summary {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 16px;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.version-entry {
+    flex-direction: column;
+    align-items: center;
+    width: 200px;
+}
+
+.version-label,
+.version-number {
+    -unity-text-align: middle-center;
+}
+
+.version-label {
+    -unity-font-style: bold;
+}
+
+.current-version {
+    color: rgb(112, 182, 232);
+}
+
+.highest-required-version {
+    color: rgb(255, 180, 80);
+}
+
+.warning {
+    margin-bottom: 20px;
+}
+
+.actions {
+    flex-direction: column;
+    align-items: center;
+}
+
+.destructive-actions {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.set-current,
+.clear-required-version,
+.cancel {
+    min-width: 120px;
+    min-height: 30px;
+}
+
+.set-current,
+.clear-required-version {
+    background-color: rgb(237, 150, 150);
+    color: rgb(70, 25, 25);
+}
+
+.clear-required-version,
+.cancel {
+    margin-left: 6px;
+}
+
+.cancel {
+    margin-top: 6px;
+    margin-left: 0;
+    background-color: rgb(210, 210, 210);
+    color: rgb(45, 45, 45);
+}

@@ -1,0 +1,42 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ma:LogoImage/>
+
+        <ui:Label text="version_mismatch.headline" class="ndmf-tr title"/>
+
+        <ui:VisualElement class="warning-row">
+            <ui:Image name="warning-icon" class="warning-icon"/>
+            <ui:Label text="version_mismatch.warning" class="ndmf-tr warning-text"/>
+        </ui:VisualElement>
+
+        <ui:Label text="version_mismatch.instructions" class="ndmf-tr instructions"/>
+        <ui:VisualElement class="version-panel">
+            <ui:VisualElement class="version-row">
+                <ui:Label text="version_mismatch.required" class="ndmf-tr version-label"/>
+                <ui:Label name="required-version" class="required-version version-number"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="version-row">
+                <ui:Label text="version_mismatch.installed" class="ndmf-tr version-label"/>
+                <ui:Label name="installed-version" class="installed-version version-number"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label text="version_mismatch.affected_assets" class="ndmf-tr affected-assets-heading"/>
+        <ui:ScrollView name="affected-assets" class="affected-assets"/>
+
+        <ui:VisualElement class="actions">
+            <ui:VisualElement class="button-row">
+                <ui:Button name="upgrade-help" text="version_mismatch.upgrade_help" class="ndmf-tr upgrade-button"/>
+                <ui:Button name="refresh-asset-database" text="version_mismatch.refresh_asset_database"
+                           class="ndmf-tr refresh-button"/>
+                <ui:Button name="close-unity" text="version_mismatch.close_unity" class="ndmf-tr close-unity-button"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="row">
+                <ui:Button name="ignore" text="version_mismatch.ignore" class="ndmf-tr ignore-link"/>
+                <ui:Label text="version_mismatch.at_your_own_risk" class="ndmf-tr ignore-risk"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ma:LanguageSwitcherElement class="language-switcher"/>
+    </ui:VisualElement>
+</UXML>

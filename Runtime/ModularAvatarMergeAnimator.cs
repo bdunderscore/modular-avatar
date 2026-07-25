@@ -66,8 +66,10 @@ namespace nadena.dev.modular_avatar.core
             // no-op
         }
 
-        private void Reset()
+        protected override void Reset()
         {
+            base.Reset();
+
             // Init settings only when added or reset manually from the Inspector.
             // Otherwise, some plugins that add this component may break in non-playmode builds.
             if (RuntimeUtil.IsResetFromInspector())
