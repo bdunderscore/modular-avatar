@@ -104,6 +104,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.Run(BoneProxyPluginPrepass.Instance);
                     seq.Run(MergeArmaturePluginPass.Instance);
                     seq.Run(BoneProxyPluginPass.Instance);
+                    seq.Run(MoveToPluginPass.Instance);
 
 #if MA_VRCSDK3_AVATARS
                     seq.Run(VisibleHeadAccessoryPluginPass.Instance);
