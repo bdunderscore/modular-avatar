@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ed:PropertyField binding-path="target" label="move_to.target" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="matchPosition" label="move_to.match_position" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="matchRotation" label="move_to.match_rotation" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="matchScale" label="move_to.match_scale" class="ndmf-tr"/>
+
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>
