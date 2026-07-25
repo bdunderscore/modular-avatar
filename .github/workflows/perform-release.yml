@@ -42,13 +42,20 @@ jobs:
       checks: write
       contents: read
     secrets: inherit
+
+  check-ci-6000:
+    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@main
+    permissions:
+      checks: write
+      contents: read
+    secrets: inherit
   
   check-docs:
     name: Build documentation (latest release)
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   
   create-release:
-    needs: [ check-gameci, check-docs ]
+    needs: [ check-gameci, check-ci-6000, check-docs ]
     runs-on: ubuntu-latest
 
     steps:

@@ -1,0 +1,264 @@
+#  MIT License
+#
+#  Copyright (c) 2022 anatawa12
+#  Copyright (c) 2022 bd_
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
+
+name: Unity CI (6000.x)
+
+on:
+  push:
+    branches: [main, dev, ci, refactor-structure]
+  # This is a bit of a radioactive event; we need to be very careful with what permissions
+  # we assign this action, as we're allowing arbitrary code execution with the context of
+  # whatever permissions we assign.
+  pull_request_target: {}
+  workflow_dispatch: {}
+  workflow_call:
+    secrets:
+      UNITY_USER:
+        required: true
+      UNITY_PASS:
+        required: true
+
+# pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
+permissions: {}
+
+jobs:
+  build-and-test:
+    name: Unit tests
+    strategy:
+      fail-fast: false
+      matrix:
+        unity_major_version: [ "6000.0" ]
+        sdk: [ vrcsdk, standalone ]
+        testmode: [ All ]
+        exclude:
+          - unity_major_version: 6000.0
+            sdk: vrcsdk
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - id: configure
+        name: Configure
+        env:
+          unity_major_version: ${{ matrix.unity_major_version }}
+        run: |
+          if [ $unity_major_version = 6000.0 ]; then
+            echo "unity_version=6000.0.60f1" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid unity_major_version: $unity_major_version"
+            exit 1
+          fi 
+      - id: setup
+        name: Setup
+        env:
+          unity_version: ${{ steps.configure.outputs.unity_version }}
+          sdk: ${{ matrix.sdk }}
+        run: |
+          set -x
+          
+          sudo apt-get update && sudo apt-get -y install libxml2-utils xmlstarlet # xmllint
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
+          # To limit the risk here, we explicitly opt out of all permissions (except for read-contents and write-checks)
+          # and expose only the unity license secret.
+          allow-unsafe-pr-checkout: 'true'
+
+      - id: prepare-project
+        name: Prepare project
+        run: |
+          mkdir .github/ProjectRoot/Packages/nadena.dev.modular-avatar -p
+          mv * .github/ProjectRoot/Packages/nadena.dev.modular-avatar
+          mv .github/ProjectRoot/* .
+          mv 'Packages/nadena.dev.modular-avatar/UnitTests~' 'Packages/nadena.dev.modular-avatar/UnitTests'
+          ls -l
+          for i in packages-lock manifest vpm-manifest; do
+            if [ -e "$i-${{ matrix.unity_major_version }}-${{ matrix.sdk }}.json" ]; then
+              mv "$i-${{ matrix.unity_major_version }}-${{ matrix.sdk }}.json" Packages/$i.json -v
+            elif [ -e "$i-${{ matrix.unity_major_version }}.json" ]; then
+              mv "$i-${{ matrix.unity_major_version }}.json" Packages/$i.json -v
+            fi
+          done
+
+      - uses: anatawa12/sh-actions/setup-vrc-get@master
+
+      - name: Resolve packages
+        run: |
+          vrc-get repo add -- "https://vpm.nadena.dev/vpm-prerelease.json" || true
+          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download" || true
+          vrc-get resolve --project .
+          vrc-get info project --project .
+
+      - name: "Debug: List project contents"
+        run: |
+          ls -lR
+          ls -lR Packages/nadena*
+          
+      - id: prepare-standalone
+        if: ${{ matrix.sdk == 'standalone' }}
+        name: Prepare standalone environment
+        run: |
+          mv Packages/nadena.dev.ndmf/Dependencies~ Packages/nadena.dev.ndmf/Dependencies
+          if ! [ -e Packages/nadena.dev.modular-avatar/UnitTests/GenericTests ]; then
+            rm -rf Packages/nadena.dev.modular-avatar/UnitTests # tests are not supported in standalone yet
+          fi
+
+      - name: "Debug: List package versions"
+        run: |
+          for i in Packages/*/package.json; do
+            echo $i
+            cat $i | jq .version
+          done
+
+      - uses: actions/cache@v6
+        with:
+          path: Library
+          key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+          restore-keys: |
+            Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+            Library-v2-${{ steps.configure.outputs.unity_version }}
+
+      - uses: buildalon/unity-setup@v2
+        id: unity-setup
+        with:
+          unity-version: ${{ steps.configure.outputs.unity_version }}
+          build-targets: StandaloneWindows64
+          cache-installation: true
+          
+      - uses: buildalon/activate-unity-license@v2
+        with:
+          license: 'Personal' # Choose license type to use [ Personal, Professional, Floating ]
+          username: ${{ secrets.UNITY_USER }}
+          password: ${{ secrets.UNITY_PASS }}
+      
+      - uses: buildalon/unity-action@v3
+        name: EditMode UnitTests
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -batchmode
+            -force-graphics
+            -logFile "test-results~/editmode.log"
+            -runTests
+            -testPlatform editmode
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -testResults "test-results~/editmode-results.xml"
+            -coverageResultsPath "test-results~/coverage"
+            -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
+            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+
+      - uses: buildalon/unity-action@v3
+        name: PlayMode UnitTests
+        if: always()
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -batchmode
+            -force-graphics
+            -logFile "test-results~/playmode.log"
+            -runTests
+            -testPlatform playmode
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -testResults "test-results~/playmode-results.xml"
+            -coverageResultsPath "test-results~/coverage"
+            -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
+            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            
+      - uses: dorny/test-reporter@v3
+        if: ${{ matrix.testmode != 'EditMode' }}
+        with:
+          reporter: dotnet-nunit
+          name: PlayMode Tests
+          fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
+          path: "test-results~/playmode-results.xml"
+
+      - uses: dorny/test-reporter@v3
+        if: ${{ matrix.testmode != 'PlayMode' }}
+        with:
+          reporter: dotnet-nunit
+          name: EditMode Tests
+          fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
+          path: "test-results~/editmode-results.xml"
+          
+      - name: Check for test completion
+        run: |
+          if ! [ -e "test-results~"/editmode-results.xml ]; then
+            echo "Edit mode test results not found"
+            exit 1
+          fi
+          if ! [ -e "test-results~"/playmode-results.xml ]; then
+            echo "Play mode test results not found"
+            exit 1
+          fi
+      
+      - name: List compile errors
+        continue-on-error: true
+        if: failure()
+        run: |
+          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+            [ -f "$log" ] || continue
+            echo "===== $log ====="
+            perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' "$log"
+          done
+
+      - name: List compiler warnings
+        if: true
+        run: |
+          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+            [ -f "$log" ] || continue
+            echo "===== $log ====="
+            grep ': warning CS' "$log" || true
+          done
+          
+      - name: List test failures (edit mode)
+        continue-on-error: true
+        if: failure()
+        run: |
+          xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/editmode-results.xml
+          
+      - name: List test failures (play mode)
+        continue-on-error: true
+        if: failure()
+        run: |
+          xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/playmode-results.xml
+
+      - uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
+          path: "test-results~/coverage"
+      - uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: Test results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
+          path: "test-results~"
