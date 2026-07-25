@@ -44,6 +44,7 @@ namespace nadena.dev.modular_avatar.core.vertex_filters
 
         private void OnValidate()
         {
+            base.OnValidate();
             SelectionMode = m_selectionMode;
         }
 
