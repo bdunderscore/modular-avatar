@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
 #if MA_VRCSDK3_AVATARS
+using System.Diagnostics.CodeAnalysis;
 using nadena.dev.modular_avatar.core.menu;
 using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -328,9 +328,11 @@ namespace nadena.dev.modular_avatar.core
 
             PortableControl._backingMenuItem = this;
         }
-        
-        private void Reset()
+
+        protected override void Reset()
         {
+            base.Reset();
+
             // Init settings only when added or reset manually from the Inspector.
             // Otherwise, some plugins that add this component may break in non-playmode builds.
             if (RuntimeUtil.IsResetFromInspector())

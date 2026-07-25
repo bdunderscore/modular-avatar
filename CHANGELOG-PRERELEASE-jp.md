@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2060] 作成されたより古い Modular Avatar でアセットを利用する時に注意を出すようになりました。
+  - なお、この機能は 1.19.x 以降で作成されたアセットが、1.18.x 以降で利用された場合に有効です。1.18.x より古いバージョンは
+    バージョン不一致判定が入っていないため、注意を表示することができません。
 
 ### Fixed
 

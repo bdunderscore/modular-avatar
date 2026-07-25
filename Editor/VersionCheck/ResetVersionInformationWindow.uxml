@@ -1,0 +1,27 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ma:LogoImage/>
+
+        <ui:Label text="version_reset.confirmation" class="ndmf-tr confirmation"/>
+        <ui:VisualElement class="version-summary">
+            <ui:VisualElement class="version-entry">
+                <ui:Label text="version_reset.current_version" class="ndmf-tr version-label"/>
+                <ui:Label name="current-version" class="version-number current-version"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="version-entry">
+                <ui:Label text="version_reset.highest_required_version" class="ndmf-tr version-label"/>
+                <ui:Label name="highest-required-version" class="version-number highest-required-version"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:HelpBox text="version_reset.warning" message-type="Warning" class="ndmf-tr warning"/>
+
+        <ui:VisualElement class="actions">
+            <ui:VisualElement class="destructive-actions">
+                <ui:Button name="set-current" text="version_reset.set_current" class="ndmf-tr set-current"/>
+                <ui:Button name="clear-required-version" text="version_reset.clear_required_version"
+                           class="ndmf-tr clear-required-version"/>
+            </ui:VisualElement>
+            <ui:Button name="cancel" text="version_reset.cancel" class="ndmf-tr cancel"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2060] Added a warning when opening assets in older versions of Modular Avatar than they were created with
+  - Note that this will only have an effect for assets created in 1.19.x+ and used in 1.18.x (or newer). Older versions
+    are missing the detection logic and cannot show the warning.
 - [#2051] Added `MA Outfit Root` to mark the base of outfits
   - [#2051] Added a feature to copy `MA Scale Adjuster` values from the base avatar to the outfit, accessible via
     `MA Outfit Root` or `MA Merge Armature` component inspectors.

@@ -36,8 +36,10 @@ namespace nadena.dev.modular_avatar.core
         public UnityEngine.Object Parameters;
         #endif
 
-        private void Reset()
+        protected override void Reset()
         {
+            base.Reset();
+
             if (RuntimeUtil.IsResetFromInspector())
             {
                 PrimaryPlatform = Platform.PC;

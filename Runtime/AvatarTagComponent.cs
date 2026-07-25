@@ -25,8 +25,6 @@
 using System;
 using nadena.dev.ndmf;
 using UnityEngine;
-#if MA_VRCSDK3_AVATARS
-#endif
 
 namespace nadena.dev.modular_avatar.core
 {
@@ -37,7 +35,10 @@ namespace nadena.dev.modular_avatar.core
     [DefaultExecutionOrder(-9999)] // run before av3emu
     public abstract class AvatarTagComponent : MonoBehaviour, INDMFEditorOnly
     {
+        [SerializeField] internal VersionTag _modularAvatarVersionTag;
+
         internal static event Action OnChangeAction;
+        internal static event Action<AvatarTagComponent> OnResetAction;
 
         protected virtual void OnValidate()
         {
@@ -56,6 +57,11 @@ namespace nadena.dev.modular_avatar.core
         /// </summary>
         public virtual void ResolveReferences()
         {
+        }
+
+        protected virtual void Reset()
+        {
+            OnResetAction?.Invoke(this);
         }
     }
     
