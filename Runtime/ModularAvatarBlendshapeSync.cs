@@ -15,6 +15,7 @@ namespace nadena.dev.modular_avatar.core
         public AvatarObjectReference ReferenceMesh;
         public string Blendshape;
         public string LocalBlendshape;
+        [HideInInspector] public bool RemapCurveIsValid;
 
         [Curve(0, 0, 100, 100)]
         public AnimationCurve RemapCurve;
@@ -106,10 +107,33 @@ namespace nadena.dev.modular_avatar.core
             RuntimeUtil.delayCall(Rebind);
 #if UNITY_EDITOR
             // limit the curve to linear curve since we cannot support non-liner curve reliably
-            foreach (var blendshapeBinding in Bindings)
+            for (int shape = 0; shape < Bindings.Count; shape++)
             {
+                var blendshapeBinding = Bindings[shape];
                 var remapCurve = blendshapeBinding.RemapCurve;
-                if (remapCurve != null)
+                if (!blendshapeBinding.RemapCurveIsValid)
+                {
+                    // Initialize curve to (0,0) and (100,100)
+                    var curve = new AnimationCurve();
+                    while (curve.keys.Length > 0)
+                    {
+                        curve.RemoveKey(0);
+                    }
+                    curve.AddKey(0, 0);
+                    curve.AddKey(100, 100);
+
+                    for (int key = 0; key < 2; key++)
+                    {
+                        AnimationUtility.SetKeyBroken(curve, key, true);
+                        AnimationUtility.SetKeyLeftTangentMode(curve, key, AnimationUtility.TangentMode.Linear);
+                        AnimationUtility.SetKeyRightTangentMode(curve, key, AnimationUtility.TangentMode.Linear);
+                    }
+
+                    blendshapeBinding.RemapCurve = curve;
+                    blendshapeBinding.RemapCurveIsValid = true;
+                    Bindings[shape] = blendshapeBinding;
+                }
+                else if (remapCurve != null)
                 {
                     if (remapCurve.length <= 1) continue;
                     // We ensure key at time = 0 and time = 100
