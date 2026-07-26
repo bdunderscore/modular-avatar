@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2068] 過去の Modular Avatar のバージョンから移行する場合、 Blendshape Sync のカーブ設定が不正になるバグを修正
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.0-rc.1] - [2026-07-26]
+
+### Fixed
+- [#2068] 過去の Modular Avatar のバージョンから移行する場合、 Blendshape Sync のカーブ設定が不正になるバグを修正
 
 ## [1.18.0-rc.0] - [2026-07-26]
 
