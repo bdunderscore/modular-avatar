@@ -409,6 +409,10 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -3887185075125053422, guid: 14ac2ad30c5d3444ca37f76cea5a7047, type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[0]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 14ac2ad30c5d3444ca37f76cea5a7047, type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[3]
       value: 100
       objectReference: {fileID: 0}
@@ -445,33 +449,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fd7cab7d93b403280f2f9da978d8a4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _modularAvatarVersionTag:
+    UpdatedAtVersion: 1.18.0-rc.0
+    MinimumVersion: 1.18.0
   Bindings:
   - ReferenceMesh:
       referencePath: BaseMesh
       targetObject: {fileID: 8665023882124279612}
     Blendshape: shape_0
     LocalBlendshape: 
+    RemapCurveIsValid: 1
     RemapCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0
+        inSlope: 1
         outSlope: 1
         tangentMode: 69
         weightedMode: 0
         inWeight: 0
-        outWeight: 0
+        outWeight: 0.33333334
       - serializedVersion: 3
         time: 100
         value: 100
         inSlope: 1
-        outSlope: 0
+        outSlope: 1
         tangentMode: 69
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.33333334
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -480,6 +488,7 @@ MonoBehaviour:
       targetObject: {fileID: 8665023882124279612}
     Blendshape: shape_1
     LocalBlendshape: 
+    RemapCurveIsValid: 1
     RemapCurve:
       serializedVersion: 2
       m_Curve:
@@ -509,6 +518,7 @@ MonoBehaviour:
       targetObject: {fileID: 8665023882124279612}
     Blendshape: missing_mesh_shape
     LocalBlendshape: 
+    RemapCurveIsValid: 1
     RemapCurve:
       serializedVersion: 2
       m_Curve:
@@ -538,6 +548,7 @@ MonoBehaviour:
       targetObject: {fileID: 8665023882124279612}
     Blendshape: missing_mesh_shape_2
     LocalBlendshape: 
+    RemapCurveIsValid: 1
     RemapCurve:
       serializedVersion: 2
       m_Curve:

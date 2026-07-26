@@ -169,7 +169,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? binding.Blendshape
                     : binding.LocalBlendshape;
 
-                dstBindings.Add((new SummaryBinding(targetSmr, targetBlendshapeName), new RemapCurve(binding.RemapCurve)));
+                dstBindings.Add((
+                    new SummaryBinding(targetSmr, targetBlendshapeName),
+                    new RemapCurve(binding.RemapCurveIsValid ? binding.RemapCurve : null)
+                ));
             }
         }
 
