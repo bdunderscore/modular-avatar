@@ -8,10 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2060] Added a warning when opening assets in older versions of Modular Avatar than they were created with
-  - Note that this will only have an effect for assets created in 1.19.x+ and used in 1.18.x (or newer). Older versions
-    are missing the detection logic and cannot show the warning.
-- [#2062] Added `MA Move To`
 
 ### Fixed
 
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.0-rc.0] - [2026-07-26]
+
+### Added
+- [#2060] Added a warning when opening assets in older versions of Modular Avatar than they were created with
+  - Note that this will only have an effect for assets created in 1.19.x+ and used in 1.18.x (or newer). Older versions
+    are missing the detection logic and cannot show the warning.
+- [#2062] Added `MA Move To`
 
 ## [1.18.0-beta.1] - [2026-07-21]
 
