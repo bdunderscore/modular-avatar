@@ -23,14 +23,14 @@ sidebar_position: 8
 ALCOM を使って更新することをお勧めします。プロジェクトリストの「管理」ボタンを押して、Modular Avatar の隣のバージョン
 ボタンを押すと更新できます。
 
-![ALCOM upgrade button](alcom-upgrade-button.png)
+![ALCOM upgrade button](alcom-update.png)
 
 ## VRChat Creator Companion
 
 VRChat Creator Companion を使っている場合は、プロジェクトの「Manage Project」ボタンを押して、Modular Avatar の隣のバージョン
 表示ボタンを押すと更新できます。
 
-![VRChat Creator Companion upgrade button](vcc-upgrade-button.png)
+![VRChat Creator Companion upgrade button](vcc-update.png)
 
 ## 更新後
 

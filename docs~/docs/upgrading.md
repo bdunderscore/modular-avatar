@@ -23,14 +23,14 @@ added in the newer version of Modular Avatar. It's best to stop and upgrade befo
 The recommended way to upgrade is using ALCOM. Click the Manage button on the project list, then click on the version
 next to Modular Avatar.
 
-![ALCOM upgrade button](alcom-upgrade-button.png)
+![ALCOM upgrade button](alcom-update.png)
 
 ## VRChat Creator Companion
 
 If you're using the VRChat Creator Companion, click "Manage Project" next to your project, then click the version
 indicator next to Modular Avatar. 
 
-![VRChat Creator Companion upgrade button](vcc-upgrade-button.png)
+![VRChat Creator Companion upgrade button](vcc-update.png)
 
 ## After updating
 
