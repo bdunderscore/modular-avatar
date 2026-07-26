@@ -80,7 +80,7 @@ jobs:
           
           sudo apt-get update && sudo apt-get -y install libxml2-utils xmlstarlet # xmllint
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
@@ -104,7 +104,7 @@ jobs:
             fi
           done
 
-      - uses: anatawa12/sh-actions/setup-vrc-get@master
+      - uses: anatawa12/sh-actions/setup-vrc-get@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd # master
 
       - name: Resolve packages
         run: |
@@ -134,7 +134,7 @@ jobs:
             cat $i | jq .version
           done
 
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Library
           key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
@@ -142,20 +142,20 @@ jobs:
             Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
             Library-v2-${{ steps.configure.outputs.unity_version }}
 
-      - uses: buildalon/unity-setup@v2
+      - uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
         id: unity-setup
         with:
           unity-version: ${{ steps.configure.outputs.unity_version }}
           build-targets: StandaloneWindows64
           cache-installation: true
           
-      - uses: buildalon/activate-unity-license@v2
+      - uses: buildalon/activate-unity-license@e0d245d0787b7b9931b56ccbde3b508f6b70f1af # v2
         with:
           license: 'Personal' # Choose license type to use [ Personal, Professional, Floating ]
           username: ${{ secrets.UNITY_USER }}
           password: ${{ secrets.UNITY_PASS }}
       
-      - uses: buildalon/unity-action@v3
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: EditMode UnitTests
         with:
           build-target: StandaloneWindows64
@@ -174,7 +174,7 @@ jobs:
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
 
-      - uses: buildalon/unity-action@v3
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: PlayMode UnitTests
         if: always()
         with:
@@ -194,7 +194,7 @@ jobs:
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
             
-      - uses: dorny/test-reporter@v3
+      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'EditMode' }}
         with:
           reporter: dotnet-nunit
@@ -202,7 +202,7 @@ jobs:
           fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
           path: "test-results~/playmode-results.xml"
 
-      - uses: dorny/test-reporter@v3
+      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'PlayMode' }}
         with:
           reporter: dotnet-nunit
@@ -252,12 +252,12 @@ jobs:
         run: |
           xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/playmode-results.xml
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: "test-results~/coverage"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
         with:
           name: Test results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}

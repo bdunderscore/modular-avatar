@@ -37,14 +37,14 @@ permissions:
 
 jobs:
   check-gameci:
-    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@main
+    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
     permissions:
       checks: write
       contents: read
     secrets: inherit
 
   check-ci-6000:
-    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@main
+    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
     permissions:
       checks: write
       contents: read
@@ -52,7 +52,7 @@ jobs:
   
   check-docs:
     name: Build documentation (latest release)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
   
   create-release:
     needs: [ check-gameci, check-ci-6000, check-docs ]
@@ -65,7 +65,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       # https://github.com/orgs/community/discussions/13836#discussioncomment-8535364
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         id: app-token
         with:
           app-id: ${{ vars.RELEASER_APP_ID }}
@@ -112,12 +112,12 @@ jobs:
           esac
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Checkout logo assets
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: ${{ github.event.inputs.release_kind != 'adhoc' }}
         with:
           repository: bdunderscore/modular-avatar-images
@@ -179,18 +179,18 @@ jobs:
           
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: CHANGELOG
           path: CHANGELOG.md
       - name: Upload CHANGELOG-PRERELEASE.md
         if: ${{ github.event.inputs.release_kind == 'prerelease' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
       - name: Upload release note
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: changelog
           path: release-note.md
@@ -216,7 +216,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: package-zip
           path: ${{ env.zipFile }}
