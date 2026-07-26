@@ -10,11 +10,11 @@ jobs:
     name: Build documentation site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Yarn 4.17.0
         run: |
@@ -27,7 +27,7 @@ jobs:
       #  id: yarn-cache-dir-path
       #  run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         if: false
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:

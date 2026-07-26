@@ -77,7 +77,7 @@ jobs:
           
           sudo apt-get update && sudo apt-get -y install libxml2-utils xmlstarlet # xmllint
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
@@ -101,7 +101,7 @@ jobs:
             fi
           done
 
-      - uses: anatawa12/sh-actions/setup-vrc-get@master
+      - uses: anatawa12/sh-actions/setup-vrc-get@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd # master
 
       - name: Resolve packages
         run: |
@@ -131,7 +131,7 @@ jobs:
             cat $i | jq .version
           done
 
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Library
           key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
@@ -139,7 +139,7 @@ jobs:
             Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
             Library-v2-${{ steps.configure.outputs.unity_version }}
 
-      - uses: game-ci/unity-test-runner@v3
+      - uses: game-ci/unity-test-runner@275df9854c669438c91b442cc3beb8bac3cbfc8c # v3
         id: gameci
         env:
           # meh, just a personal license...
@@ -152,7 +152,7 @@ jobs:
           customParameters: -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
           checkName: ${{ steps.setup.outputs.check_name }}
 
-      - uses: dorny/test-reporter@v3
+      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'EditMode' }}
         with:
           reporter: dotnet-nunit
@@ -160,7 +160,7 @@ jobs:
           fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
           path: ${{ steps.gameci.outputs.artifactsPath }}/playmode-results.xml
 
-      - uses: dorny/test-reporter@v3
+      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'PlayMode' }}
         with:
           reporter: dotnet-nunit
@@ -187,7 +187,7 @@ jobs:
             xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
           fi
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
