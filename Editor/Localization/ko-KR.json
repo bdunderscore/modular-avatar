@@ -9,7 +9,7 @@
   "menuinstall.showcontents": "메뉴 내용 표시",
   "menuinstall.showcontents.notselected": "메뉴가 선택되지 않았습니다",
   "menuinstall.devoptions": "프리팹 개발자 옵션",
-  "menuinstall.menu_icon_too_large": "메뉴에 설정된 아이콘 크기가 256×256px를 초과합니다.",
+  "menuinstall.menu_icon_too_large": "메뉴에 설정된 아이콘 크기가 256×256px을(를) 초과합니다.",
   "menuinstall.menu_icon_uncompressed": "메뉴에 설정된 아이콘이 압축되지 않았습니다.",
   "menuinstall.srcmenu": "설치할 메뉴",
   "params.syncmode.NotSynced": "Animator 전용",
