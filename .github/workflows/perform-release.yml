@@ -52,7 +52,7 @@ jobs:
   
   check-docs:
     name: Build documentation (latest release)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@c164375d065ecef46f6371c176ba5e316034b05c # main
   
   create-release:
     needs: [ check-gameci, check-ci-6000, check-docs ]
