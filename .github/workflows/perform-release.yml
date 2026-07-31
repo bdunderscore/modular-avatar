@@ -37,7 +37,7 @@ permissions:
 
 jobs:
   check-gameci:
-    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@c164375d065ecef46f6371c176ba5e316034b05c # main
     permissions:
       checks: write
       contents: read
