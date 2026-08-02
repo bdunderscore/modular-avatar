@@ -41,7 +41,7 @@ jobs:
   build-docs:
     name: Build documentation (latest release)
     # TODO - update to build-docs.yml
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
     needs:
       - snapshot-docs
     with:
@@ -50,7 +50,7 @@ jobs:
     
   build-docs-dev:
     name: Build documentation (main branch)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
     with:
       ref: main
       path: dev

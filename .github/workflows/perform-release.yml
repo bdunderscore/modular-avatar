@@ -37,14 +37,14 @@ permissions:
 
 jobs:
   check-gameci:
-    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@main
     permissions:
       checks: write
       contents: read
     secrets: inherit
 
   check-ci-6000:
-    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@main
     permissions:
       checks: write
       contents: read
@@ -52,7 +52,7 @@ jobs:
   
   check-docs:
     name: Build documentation (latest release)
-    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@8b83efda72d9bfd577f1f4c7f4129b4a1a092a64 # main
+    uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   
   create-release:
     needs: [ check-gameci, check-ci-6000, check-docs ]
