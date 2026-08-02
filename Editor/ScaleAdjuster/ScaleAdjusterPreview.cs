@@ -8,6 +8,8 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Jobs;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -102,6 +104,52 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private TransformAccessArray _srcBones;
         private TransformAccessArray _dstBones;
+        private JobHandle _priorFrameJob;
+
+        private static readonly HashSet<ScaleAdjusterPreviewNode> _activeNodes = new();
+        private static bool _transferredThisFrame;
+
+        public static void ClearCache()
+        {
+            _transferredThisFrame = false;
+        }
+
+        private static readonly ProfilerMarker _transferAllMarker = new("ScaleAdjusterPreviewNode.TransferAllBoneStates");
+        private static readonly ProfilerMarker _completeMarker = new("ScaleAdjusterPreviewNode.CompleteTransfers");
+        private static readonly ProfilerMarker _priorJobCompleteMarker = new("ScaleAdjusterPreviewNode.PriorFrameJobComplete");
+        private static readonly ProfilerMarker _readScheduleMarker = new("ScaleAdjusterPreviewNode.ReadTransforms.Schedule");
+        private static readonly ProfilerMarker _writeScheduleMarker = new("ScaleAdjusterPreviewNode.WriteBoneStates.Schedule");
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.update += () => _transferredThisFrame = false;
+        }
+
+        /// <summary>
+        ///     Runs the bone transfer for every active node, then waits for all of them at once. Scheduling every node
+        ///     before blocking lets their jobs run concurrently; blocking per-node would serialize them, as any
+        ///     main-thread transform access syncs against outstanding transform jobs.
+        /// </summary>
+        private static void TransferAllBoneStates()
+        {
+            if (_transferredThisFrame) return;
+            _transferredThisFrame = true;
+
+            using (_transferAllMarker.Auto())
+            {
+                JobHandle merged = default;
+                foreach (var node in _activeNodes)
+                    merged = JobHandle.CombineDependencies(merged, node.TransferBoneStates());
+
+                // No ScheduleBatchedJobs here: Complete flushes the pending batch itself, and there's no main-thread
+                // work in between that it could overlap with.
+                using (_completeMarker.Auto())
+                {
+                    merged.Complete();
+                }
+            }
+        }
 
         private NativeArray<bool> _boneIsValid;
         private NativeArray<BoneState> _boneStates;
@@ -120,6 +168,9 @@ namespace nadena.dev.modular_avatar.core.editor
             new();
 
         private readonly Dictionary<ModularAvatarScaleAdjuster, Vector3> _scaleAdjusterValues;
+
+        // Precomputed final smr.bones arrays, keyed by the original (non-proxy) renderer
+        private readonly Dictionary<Renderer, Transform[]> _finalRendererBones;
 
         public ScaleAdjusterPreviewNode(
             ComputeContext context,
@@ -188,7 +239,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _scaleAdjusterValues = GetScaleAdjusterValues(context);
             FindScaleAdjusters();
-            TransferBoneStates();
+            TransferBoneStates().Complete();
+
+            _activeNodes.Add(this);
+
+            _finalRendererBones = _rendererBones.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Select(b => b == null ? null : _finalBonesMap.GetValueOrDefault(b, b)).ToArray()
+            );
         }
 
         private Dictionary<Renderer, Transform[]> GetRendererBones(ComputeContext context,
@@ -352,21 +410,41 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void TransferBoneStates()
+        private void ApplyScaleAdjusterValues()
         {
-            var readTransforms = new ReadTransformsJob
-            {
-                BoneStates = _boneStates,
-                BoneIsValid = _boneIsValid
-            }.Schedule(_srcBones);
+            foreach (var (sa, xform) in _scaleAdjusters)
+                if (sa != null && xform != null)
+                    xform.localScale = sa.Scale;
+        }
 
-            var writeTransforms = new WriteBoneStatesJob
+        private JobHandle TransferBoneStates()
+        {
+            using (_priorJobCompleteMarker.Auto())
             {
-                BoneStates = _boneStates,
-                BoneIsValid = _boneIsValid
-            }.Schedule(_dstBones, readTransforms);
+                _priorFrameJob.Complete();
+            }
 
-            writeTransforms.Complete();
+            JobHandle readTransforms;
+            using (_readScheduleMarker.Auto())
+            {
+                readTransforms = new ReadTransformsJob
+                {
+                    BoneStates = _boneStates,
+                    BoneIsValid = _boneIsValid
+                }.Schedule(_srcBones);
+            }
+
+            JobHandle writeTransforms;
+            using (_writeScheduleMarker.Auto())
+            {
+                writeTransforms = new WriteBoneStatesJob
+                {
+                    BoneStates = _boneStates,
+                    BoneIsValid = _boneIsValid
+                }.Schedule(_dstBones, readTransforms);
+            }
+
+            return _priorFrameJob = writeTransforms;
         }
 
         private struct BoneState
@@ -401,6 +479,9 @@ namespace nadena.dev.modular_avatar.core.editor
         [BurstCompile]
         private struct WriteBoneStatesJob : IJobParallelForTransform
         {
+            private const float EPSILON = 0.00001f;
+            private const float SQR_EPSILON = EPSILON * EPSILON;
+
             [ReadOnly] public NativeArray<BoneState> BoneStates;
             [ReadOnly] public NativeArray<bool> BoneIsValid;
 
@@ -410,32 +491,36 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var state = BoneStates[index];
 
-                    if (!ExactlyEqual(transform.position, state.position))
+                    if (Vector3.SqrMagnitude(transform.position - state.position) > SQR_EPSILON
+                        || RotationsDiffer(transform.rotation, state.rotation)
+                        || Vector3.SqrMagnitude(transform.localScale - state.localScale) > SQR_EPSILON)
                     {
                         transform.position = state.position;
-                    }
-
-                    if (!ExactlyEqual(transform.rotation, state.rotation))
-                    {
                         transform.rotation = state.rotation;
-                    }
-
-                    if (!ExactlyEqual(transform.localScale, state.localScale))
-                    {
                         transform.localScale = state.localScale;
                     }
                 }
             }
 
-            private static bool ExactlyEqual(Vector3 left, Vector3 right)
+            private static bool RotationsDiffer(Quaternion lhs, Quaternion rhs)
             {
-                return left.x == right.x && left.y == right.y && left.z == right.z;
-            }
+                // q and -q represent the same rotation. Comparing their component distance avoids the loss of
+                // precision incurred by subtracting a small tolerance from a dot product near one.
+                var sameX = lhs.x - rhs.x;
+                var sameY = lhs.y - rhs.y;
+                var sameZ = lhs.z - rhs.z;
+                var sameW = lhs.w - rhs.w;
+                var sameDistanceSquared = sameX * sameX + sameY * sameY + sameZ * sameZ + sameW * sameW;
 
-            private static bool ExactlyEqual(Quaternion left, Quaternion right)
-            {
-                return (left.x == right.x && left.y == right.y && left.z == right.z && left.w == right.w)
-                       || (left.x == -right.x && left.y == -right.y && left.z == -right.z && left.w == -right.w);
+                var negatedX = lhs.x + rhs.x;
+                var negatedY = lhs.y + rhs.y;
+                var negatedZ = lhs.z + rhs.z;
+                var negatedW = lhs.w + rhs.w;
+                var negatedDistanceSquared = negatedX * negatedX + negatedY * negatedY
+                                             + negatedZ * negatedZ + negatedW * negatedW;
+
+                // For unit quaternions, min(|q1-q2|^2, |q1+q2|^2) = 2 * (1 - abs(dot(q1,q2))).
+                return Mathf.Min(sameDistanceSquared, negatedDistanceSquared) > 2 * SQR_EPSILON;
             }
         }
 
@@ -445,13 +530,12 @@ namespace nadena.dev.modular_avatar.core.editor
         public void OnFrameGroup()
         {
             // Keep the visible preview moving while downstream nodes rebuild from a replacement node.
-            TransferBoneStates();
+            // This covers every active node, not just this one, so the first call each frame does all the work.
+            TransferAllBoneStates();
 
-            foreach (var (sa, xform) in _scaleAdjusters)
-                if (sa != null && xform != null)
-                    xform.localScale = sa.Scale;
+            ApplyScaleAdjusterValues();
         }
-        
+
         public void OnFrame(Renderer original, Renderer proxy)
         {
             if (proxy == null) return;
@@ -459,11 +543,17 @@ namespace nadena.dev.modular_avatar.core.editor
             var smr = proxy as SkinnedMeshRenderer;
             if (smr == null) return;
 
-            smr.bones = smr.bones.Select(b => b == null ? null : _finalBonesMap.GetValueOrDefault(b, b)).ToArray();
+            if (_finalRendererBones.TryGetValue(original, out var bones))
+            {
+                smr.bones = bones;
+            }
         }
-        
+
         public void Dispose()
         {
+            _activeNodes.Remove(this);
+            _priorFrameJob.Complete();
+
             Object.DestroyImmediate(VirtualAvatarRoot);
 
             _srcBones.Dispose();

@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2077] `Scale Adjuster` のプレビュー処理を高速化
 
 ### Changed
 

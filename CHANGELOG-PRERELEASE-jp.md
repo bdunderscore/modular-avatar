@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2077] `Scale Adjuster` のプレビュー処理を高速化
 
 ### Changed
 
@@ -54,8 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - [#2034] `MA Blendshape Sync` の区分的に線形ではないマッピングのサポートを削除
   - 現在はすべてのカーブをキーポイント同士を直線で繋ぐ区分的に線形なカーブとして扱いますが、将来的に区分線形ではないカーブは異なる動作となる可能性があります。
-
-## [0.0.0-adhoc-ci-test] - [2026-07-10]
 
 ## [1.18.0-beta.0] - [2026-06-29]
 

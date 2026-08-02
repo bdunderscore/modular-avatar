@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2077] Improved performance of `Scale Adjuster` previews
 
 ### Changed
 
@@ -56,8 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2034] Support for `MA Blendshape Sync` remapping curve with non-piecewise linear curves
   - All curves are treated as piecewise linear curves for now, but non-piecewise linear curves will behave differently
     in the future
-
-## [0.0.0-adhoc-ci-test] - [2026-07-10]
 
 ## [1.18.0-beta.0] - [2026-06-29]
 
