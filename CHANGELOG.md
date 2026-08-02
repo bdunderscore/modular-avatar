@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.0] - [2026-08-02]
+
+### Added
 - [#2060] Added a warning when opening assets in older versions of Modular Avatar than they were created with
   - Note that this will only have an effect for assets created in 1.19.x+ and used in 1.18.x (or newer). Older versions
     are missing the detection logic and cannot show the warning.
@@ -50,12 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#1980] Adjusted preview logic for Mesh Deleter to improve compatibility with other plugins.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.17.1] - [2026-05-14]
 
