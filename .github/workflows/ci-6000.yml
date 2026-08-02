@@ -148,6 +148,7 @@ jobs:
           unity-version: ${{ steps.configure.outputs.unity_version }}
           build-targets: StandaloneWindows64
           cache-installation: true
+          hub-version: '3.19.5'
           
       - uses: buildalon/activate-unity-license@e0d245d0787b7b9931b56ccbde3b508f6b70f1af # v2
         with:
