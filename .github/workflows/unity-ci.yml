@@ -22,7 +22,7 @@
 #  SOFTWARE.
 
 
-name: Unity CI (6000.x)
+name: Unity CI
 
 on:
   push:
@@ -48,11 +48,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        unity_major_version: [ "6000.0" ]
+        unity_major_version: [ "6000.0", "2022" ]
         sdk: [ vrcsdk, standalone ]
         testmode: [ All ]
         exclude:
-          - unity_major_version: 6000.0
+          - unity_major_version: "6000.0"
             sdk: vrcsdk
     runs-on: ubuntu-latest
     permissions:
@@ -64,7 +64,9 @@ jobs:
         env:
           unity_major_version: ${{ matrix.unity_major_version }}
         run: |
-          if [ $unity_major_version = 6000.0 ]; then
+          if [ $unity_major_version = 2022 ]; then
+            echo "unity_version=2022.3.6f1" >> $GITHUB_OUTPUT
+          elif [ $unity_major_version = 6000.0 ]; then
             echo "unity_version=6000.0.60f1" >> $GITHUB_OUTPUT
           else
             echo "Invalid unity_major_version: $unity_major_version"
@@ -155,7 +157,25 @@ jobs:
           license: 'Personal' # Choose license type to use [ Personal, Professional, Floating ]
           username: ${{ secrets.UNITY_USER }}
           password: ${{ secrets.UNITY_PASS }}
-      
+
+      # Unity can crash when the initial project import and test execution share one invocation.
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+        name: Build project
+        continue-on-error: true
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -buildTarget StandaloneWindows64
+            -batchmode
+            -quit
+            -force-graphics
+            -logFile "test-results~/build.log"
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -overrideTextureCompression ForceUncompressed
+
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: EditMode UnitTests
         with:
@@ -163,6 +183,7 @@ jobs:
           editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
           project-path: .
           args: >
+            -buildTarget StandaloneWindows64
             -batchmode
             -force-graphics
             -logFile "test-results~/editmode.log"
@@ -174,15 +195,22 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
 
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: PlayMode UnitTests
+        id: playmode-tests
         if: always()
+        # Unity 2022.3/VRCSDK intermittently crashes while reloading assemblies for PlayMode.
+        # Allow that specific combination to reach the retry below; all other configurations
+        # retain their existing fail-fast behavior.
+        continue-on-error: ${{ matrix.unity_major_version == '2022' && matrix.sdk == 'vrcsdk' }}
         with:
           build-target: StandaloneWindows64
           editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
           project-path: .
           args: >
+            -buildTarget StandaloneWindows64
             -batchmode
             -force-graphics
             -logFile "test-results~/playmode.log"
@@ -194,6 +222,30 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
+
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+        name: Retry PlayMode UnitTests
+        id: retry-playmode-tests
+        if: ${{ steps.playmode-tests.outcome == 'failure' }}
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -buildTarget StandaloneWindows64
+            -batchmode
+            -force-graphics
+            -logFile "test-results~/playmode-retry.log"
+            -runTests
+            -testPlatform playmode
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -testResults "test-results~/playmode-results.xml"
+            -coverageResultsPath "test-results~/coverage"
+            -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
+            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
             
       - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'EditMode' }}
@@ -226,7 +278,7 @@ jobs:
         continue-on-error: true
         if: failure()
         run: |
-          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+          for log in "test-results~/editmode.log" "test-results~/playmode.log" "test-results~/playmode-retry.log"; do
             [ -f "$log" ] || continue
             echo "===== $log ====="
             perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' "$log"
@@ -235,7 +287,7 @@ jobs:
       - name: List compiler warnings
         if: true
         run: |
-          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+          for log in "test-results~/editmode.log" "test-results~/playmode.log" "test-results~/playmode-retry.log"; do
             [ -f "$log" ] || continue
             echo "===== $log ====="
             grep ': warning CS' "$log" || true

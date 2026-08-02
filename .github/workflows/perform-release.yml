@@ -36,15 +36,8 @@ permissions:
   checks: write
 
 jobs:
-  check-gameci:
-    uses: bdunderscore/modular-avatar/.github/workflows/gameci.yml@main
-    permissions:
-      checks: write
-      contents: read
-    secrets: inherit
-
-  check-ci-6000:
-    uses: bdunderscore/modular-avatar/.github/workflows/ci-6000.yml@main
+  check-unity-ci:
+    uses: bdunderscore/modular-avatar/.github/workflows/unity-ci.yml@main
     permissions:
       checks: write
       contents: read
@@ -55,7 +48,7 @@ jobs:
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   
   create-release:
-    needs: [ check-gameci, check-ci-6000, check-docs ]
+    needs: [ check-unity-ci, check-docs ]
     runs-on: ubuntu-latest
 
     steps:
