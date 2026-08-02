@@ -97,6 +97,7 @@ namespace UnitTests.ScaleAdjusterTests
             try
             {
                 Assert.That(node.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
+                ScaleAdjusterPreviewNode.ClearCache();
                 node.OnFrameGroup();
                 node.OnFrame(original, proxy);
 
@@ -108,10 +109,12 @@ namespace UnitTests.ScaleAdjusterTests
 
                 var transferredBone = adjustedBone.parent;
                 transferredBone.hasChanged = false;
+                ScaleAdjusterPreviewNode.ClearCache();
                 node.OnFrameGroup();
                 Assert.That(transferredBone.hasChanged, Is.False);
 
                 bone.transform.localRotation = Quaternion.AngleAxis(0.01f, Vector3.right);
+                ScaleAdjusterPreviewNode.ClearCache();
                 node.OnFrameGroup();
                 Assert.That(bone.transform.rotation.x, Is.Not.EqualTo(0));
                 Assert.That(transferredBone.hasChanged, Is.True);
