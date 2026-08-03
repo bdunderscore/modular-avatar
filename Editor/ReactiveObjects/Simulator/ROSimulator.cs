@@ -264,6 +264,12 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 return;
             }
 
+            // OpenDebugger can run before OnEnable's delayCall initializes these to Empty.
+            if (PropertyOverrides.Value == null)
+                PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+            if (MenuItemOverrides.Value == null)
+                MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem>.Empty;
+
             _btn_clear.SetEnabled(PropertyOverrides.Value?.IsEmpty == false || MenuItemOverrides.Value?.IsEmpty == false);
             
             e_debugInfo.style.display = DisplayStyle.Flex;

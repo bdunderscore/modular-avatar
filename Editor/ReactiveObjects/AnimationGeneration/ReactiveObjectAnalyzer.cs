@@ -270,8 +270,9 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<string, float> propStates = new();
             Dictionary<string, float> nextPropStates = new();
             int loopLimit = 5;
+            var forceOverrides = ForcePropertyOverrides ?? ImmutableDictionary<string, float>.Empty;
             
-            foreach (var kvp in ForcePropertyOverrides)
+            foreach (var kvp in forceOverrides)
             {
                 propStates[kvp.Key] = kvp.Value;
             }
@@ -324,7 +325,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
                 
-                foreach (var kvp in ForcePropertyOverrides)
+                foreach (var kvp in forceOverrides)
                 {
                     nextPropStates[kvp.Key] = kvp.Value;
                 }
