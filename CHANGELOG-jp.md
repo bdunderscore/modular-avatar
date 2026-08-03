@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2079] Reaction Debugger を開いた際に、オーバーライド状態の初期化前に `NullReferenceException` が発生する問題を修正
 - [#2077] `Scale Adjuster` のプレビュー処理を高速化
 
 ### Changed

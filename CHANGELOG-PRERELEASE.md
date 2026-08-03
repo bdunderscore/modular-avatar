@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2079] Fixed a `NullReferenceException` when opening the Reaction Debugger before its override state was initialized
 - [#2077] Improved performance of `Scale Adjuster` previews
 
 ### Changed
