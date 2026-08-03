@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2079] Fixed a `NullReferenceException` when opening the Reaction Debugger before its override state was initialized
-- [#2077] Improved performance of `Scale Adjuster` previews
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.1] - [2026-08-03]
+
+### Fixed
+- [#2079] Fixed a `NullReferenceException` when opening the Reaction Debugger before its override state was initialized
+- [#2077] Improved performance of `Scale Adjuster` previews
 
 ## [1.18.0] - [2026-08-02]
 

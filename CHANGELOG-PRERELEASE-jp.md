@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2079] Reaction Debugger を開いた際に、オーバーライド状態の初期化前に `NullReferenceException` が発生する問題を修正
-- [#2077] `Scale Adjuster` のプレビュー処理を高速化
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.1] - [2026-08-03]
+
+### Fixed
+- [#2079] Reaction Debugger を開いた際に、オーバーライド状態の初期化前に `NullReferenceException` が発生する問題を修正
+- [#2077] `Scale Adjuster` のプレビュー処理を高速化
 
 ## [1.18.0] - [2026-08-02]
 
