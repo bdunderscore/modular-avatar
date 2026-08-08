@@ -140,6 +140,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         _resetOptions.ConvertATPose = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.convert_atpose"),
                             _resetOptions.ConvertATPose);
+                        _resetOptions.AdjustPosition = EditorGUILayout.ToggleLeft(
+                            G("merge_armature.reset_pos.adjust_position"),
+                            _resetOptions.AdjustPosition);
                         _resetOptions.AdjustRotation = EditorGUILayout.ToggleLeft(
                             G("merge_armature.reset_pos.adjust_rotation"),
                             _resetOptions.AdjustRotation);

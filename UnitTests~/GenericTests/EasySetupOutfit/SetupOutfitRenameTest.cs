@@ -194,6 +194,7 @@ public class SetupOutfitRenameTest : TestBase
         {
             ConvertATPose = false,
             HeuristicRootScale = false,
+            AdjustPosition = true,
             AdjustRotation = true,
             AdjustScale = true
         };

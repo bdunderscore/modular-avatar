@@ -9,6 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal sealed class MergeArmaturePositionResetOptions
     {
         public bool ConvertATPose = true;
+        public bool AdjustPosition = true;
         public bool AdjustRotation;
         public bool AdjustScale;
         public bool HeuristicRootScale = true;
@@ -141,7 +142,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 Debug.Log("Merge: " + mergeTransform.gameObject.name + " => " + targetTransform.gameObject.name);
 
-                mergeTransform.position = targetTransform.position;
+                if (options.AdjustPosition)
+                {
+                    mergeTransform.position = targetTransform.position;
+                }
+
                 if (options.AdjustScale)
                 {
                     if (!options.HeuristicRootScale || mergeTransform != mergeArmature.transform)
