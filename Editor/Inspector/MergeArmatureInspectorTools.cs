@@ -120,6 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void AdjustRootScale()
             {
+                Undo.RecordObject(mergeArmature.transform, "Reset position to base avatar");
                 // Adjust the overall scale of the avatar based on wingspan (arm length)
                 if (!boneToTransform.TryGetValue(HumanBodyBones.LeftHand, out var targetHand)) return;
 
