@@ -79,6 +79,8 @@ namespace nadena.dev.modular_avatar.core.editor
             armatureRootField.tooltip = Localization.S("outfit_root.armature_root.tooltip");
             adjustNames.tooltip = Localization.S("merge_armature.adjust_names.tooltip");
             heuristicScale.tooltip = Localization.S("merge_armature.reset_pos.heuristic_scale.tooltip");
+            adjustRotation.tooltip = Localization.S("merge_armature.reset_pos.adjust_rotation.tooltip");
+            adjustScale.tooltip = Localization.S("merge_armature.reset_pos.adjust_scale.tooltip");
             matchScaleAdjusters.tooltip =
                 Localization.S("merge_armature.match_scale_adjusters.tooltip");
             root.Bind(serializedObject);
