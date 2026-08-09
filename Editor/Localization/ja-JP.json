@@ -91,7 +91,7 @@
   "merge_armature.reset_pos.adjust_rotation": "回転を合わせる",
   "merge_armature.reset_pos.adjust_rotation.tooltip": "衣装のボーンのローカル回転をアバターに合わせます。軸の設定がアバターと異なる場合、異なる方向を向くことがあります。",
   "merge_armature.reset_pos.adjust_scale": "スケールを合わせる",
-  "merge_armature.reset_pos.adjust_scale.tooltip": "ボーンのローカルスケールを合わせます。「衣装の全体的なスケールをアバターに合わせる」が有効な場合は、そちらが優先されます。",
+  "merge_armature.reset_pos.adjust_scale.tooltip": "衣装のボーンのローカルスケールを合わせます。「衣装の全体的なスケールをアバターに合わせる」が有効な場合は、そちらが優先されます。",
   "merge_armature.match_scale_adjusters": "Scale Adjuster を元アバターに合わせる",
   "merge_armature.match_scale_adjusters.tooltip": "元アバターのプロポーションを調整するためのScale Adjusterコンポーネントがついている場合、一括で衣装を合わせます。",
   "merge_armature.reset_pos.execute": "実行",
