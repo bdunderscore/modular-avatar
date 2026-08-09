@@ -139,7 +139,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void Walk(Transform mergeTransform, Transform targetTransform)
             {
-                Undo.RecordObject(mergeTransform, "Merge Armature: Force outfit position");
+                Undo.RecordObject(mergeTransform, "Reset position to base avatar");
 
                 Debug.Log("Merge: " + mergeTransform.gameObject.name + " => " + targetTransform.gameObject.name);
 
