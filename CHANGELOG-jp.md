@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2090] VRCSDK 3.7.0 環境でコンパイルエラーになる問題
 
 ### Changed
 
