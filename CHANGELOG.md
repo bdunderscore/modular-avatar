@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2090] Compile error with VRCSDK 3.7.0
 
 ### Changed
 

@@ -29,7 +29,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
 #if MA_VRCSDK3_AVATARS
                     var c = target.gameObject.AddComponent<VRCScaleConstraint>();
-                    c.Sources.Add(new VRCConstraintSource(fixedPrefab.transform, 1));
+                    c.Sources.Add(new VRCConstraintSource(fixedPrefab.transform, 1, Vector3.zero, Vector3.zero));
                     c.Locked = true;
                     c.IsActive = true;
 #else
