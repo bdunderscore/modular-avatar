@@ -1,4 +1,6 @@
-﻿#if MA_VRCSDK3_AVATARS
+#nullable enable
+
+#if MA_VRCSDK3_AVATARS
 using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf;
@@ -41,11 +43,11 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private bool TryGetRegisteredParam(ModularAvatarMenuItem mami, string paramName,
-            out ProvidedParameter providedParameter)
+            out ProvidedParameter? providedParameter)
         {
-            providedParameter = default;
+            providedParameter = null;
 
-            if (string.IsNullOrWhiteSpace(mami.Control?.parameter?.name)) return false;
+            if (string.IsNullOrWhiteSpace(mami.PortableControl.Parameter)) return false;
 
             var remaps = _info.GetParameterRemappingsAt(mami.gameObject);
 
@@ -58,9 +60,10 @@ namespace nadena.dev.modular_avatar.core.editor
         public bool IsEnabledForPreview(ModularAvatarMenuItem mami)
         {
             _context.ObservePath(mami.transform);
-            if (_context.Observe(mami, _ => mami.Control == null)) return false;
+            if (_context.Observe(mami, m => string.IsNullOrWhiteSpace(m.PortableControl.Parameter))) return false;
 
-            var (paramName, value) = _context.Observe(mami, m => (m.Control.parameter.name, m.Control.value));
+            var (paramName, value) =
+                _context.Observe(mami, m => (m.PortableControl.Parameter, m.PortableControl.Value));
 
             if (TryGetRegisteredParam(mami, paramName, out var providedParameter))
             {

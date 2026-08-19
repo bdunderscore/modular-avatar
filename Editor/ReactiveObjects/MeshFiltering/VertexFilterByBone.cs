@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return selectionMode == VertexSelectionMode.Centroid ? VertexSelectionMode.AnyVertex : selectionMode;
         }
 
-        public bool Equals(IMeshSelector other)
+        public bool Equals(IMeshSelector? other)
         {
             return other is VertexFilterByBone filter
                    && filter._bone == _bone

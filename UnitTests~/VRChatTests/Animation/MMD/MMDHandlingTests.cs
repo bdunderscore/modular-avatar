@@ -44,18 +44,49 @@ namespace modular_avatar_tests.MMD
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
 
-            // dummy, dummy, MMD, RC, L0, L1, L2
-            // L0 (the avatar's original first layer) is displaced by the Merge Blend Tree layer, but must not be
+            // dummy, dummy, MMD, RC base, L0, L1, L2, RC apply
+            // L0 (the avatar's original first layer) is displaced by the RC base layer, but must not be
             // disabled in MMD mode, since MMD worlds can't disable the first layer of an unprocessed avatar (#1922).
             AssertMMDModeHandling(fxc, 5, 6);
-            
+
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
+            Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
+            Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
+            Assert.AreEqual("MA/RC Base", fxc.layers[3].name);
+            Assert.AreEqual("L0", fxc.layers[4].name);
+            Assert.AreEqual("L1", fxc.layers[5].name);
+            Assert.AreEqual("L2", fxc.layers[6].name);
+            Assert.AreEqual("MA/RC Apply", fxc.layers[7].name);
+        }
+
+        [Test]
+        public void MMDMode_ReactiveComponentWithMergeBlendTree()
+        {
+            var prefab = CreatePrefab("MMDMode_Reactive.prefab");
+            var mergeBlendTree = prefab.AddComponent<ModularAvatarMergeBlendTree>();
+            var blendTree = new BlendTree { blendType = BlendTreeType.Direct };
+            blendTree.AddChild(new AnimationClip());
+            mergeBlendTree.BlendTree = blendTree;
+            mergeBlendTree.PathMode = MergeAnimatorPathMode.Relative;
+
+            AvatarProcessor.ProcessAvatar(prefab);
+
+            var fx = FindFxController(prefab);
+            var fxc = (AnimatorController)fx.animatorController;
+
+            // dummy, dummy, MMD, Merge Blend Tree, RC base, L0, L1, L2, RC apply
+            // L0 is displaced by the Merge Blend Tree layer, but must not be disabled in MMD mode (#1922).
+            AssertMMDModeHandling(fxc, 6, 7);
+
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
             Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[3].name);
-            Assert.AreEqual("L0", fxc.layers[4].name);
-            Assert.AreEqual("L1", fxc.layers[5].name);
-            Assert.AreEqual("L2", fxc.layers[6].name);
+            Assert.AreEqual("MA/RC Base", fxc.layers[4].name);
+            Assert.AreEqual("L0", fxc.layers[5].name);
+            Assert.AreEqual("L1", fxc.layers[6].name);
+            Assert.AreEqual("L2", fxc.layers[7].name);
+            Assert.AreEqual("MA/RC Apply", fxc.layers[8].name);
         }
 
         [Test]
@@ -254,7 +285,7 @@ namespace modular_avatar_tests.MMD
                     }
                 }
                 
-                Assert.That(actualLayers, Is.EquivalentTo(expectedLayers));
+                Assert.That(actualLayers, Is.EquivalentTo(expectedLayers), "Unexpected MMD layer configuration. Layer list: " + string.Join(", ", fxc.layers.Select(l => l.name)));
             }
         }
     }

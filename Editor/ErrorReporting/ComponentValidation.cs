@@ -1,20 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
-
+using UnityEngine;
 #if MA_VRCSDK3_AVATARS
 using nadena.dev.modular_avatar.core.menu;
 #endif
-
-using UnityEngine;
 
 namespace nadena.dev.modular_avatar.editor.ErrorReporting
 {
     internal static class ComponentValidation
     {
-        // For testing: allows simulation of legacy VRCFury presence
-        internal static bool ForceEnableLegacyVRCFuryWarning = false;
+        internal static bool ForceEnableLegacyVRCFuryError = false;
         
         /// <summary>
         /// Validates the provided tag component.
@@ -65,31 +62,17 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
 #if LEGACY_VRCFURY
             bool hasLegacyVRCFury = true;
 #else
-            bool hasLegacyVRCFury = ForceEnableLegacyVRCFuryWarning;
+            var hasLegacyVRCFury = ForceEnableLegacyVRCFuryError;
 #endif
-            
+
             if (!hasLegacyVRCFury) return;
-            
-            bool hasMeshCutterOrShapeChangerWithDelete = false;
 
-            // Check for Mesh Cutter components
-            var meshCutters = root.GetComponentsInChildren<ModularAvatarMeshCutter>(true);
-            if (meshCutters.Length > 0)
-            {
-                hasMeshCutterOrShapeChangerWithDelete = true;
-            }
+            var analysis = new ReactiveObjectAnalyzer().Analyze(root);
+            var hasReactiveActions = analysis.Shapes.Values.Any(property => property.actionGroups.Count > 0);
 
-            // Check for Shape Changer components with Delete mode
-            if (!hasMeshCutterOrShapeChangerWithDelete)
+            if (hasReactiveActions)
             {
-                var shapeChangers = root.GetComponentsInChildren<ModularAvatarShapeChanger>(true);
-                hasMeshCutterOrShapeChangerWithDelete = shapeChangers.Any(shapeChanger => 
-                    shapeChanger.Shapes?.Any(shape => shape.ChangeType == ShapeChangeType.Delete) == true);
-            }
-
-            if (hasMeshCutterOrShapeChangerWithDelete)
-            {
-                BuildReport.Log(ErrorSeverity.NonFatal, "validation.legacy_vrcfury_warning");
+                BuildReport.LogFatal("validation.legacy_vrcfury_error");
             }
         }
 

@@ -21,6 +21,9 @@
         
         internal const string GameObject_ShowReactionDebugger = "GameObject/Modular Avatar/Show Reaction Debugger";
         internal const int GameObject_ShowReactionDebuggerOrder = GameObject_EnableInfoOrder + 1;
+
+        internal const string GameObject_DumpRCBlendTree = "GameObject/Modular Avatar/Dump RC Blend Tree";
+        internal const int GameObject_DumpRCBlendTreeOrder = GameObject_ShowReactionDebuggerOrder + 1;
         
         internal const string GameObject_OpenFitPreview = "GameObject/Modular Avatar/Show Fit Preview";
         internal const int GameObject_OpenFitPreviewOrder = GameObject_EnableInfoOrder + 2;
