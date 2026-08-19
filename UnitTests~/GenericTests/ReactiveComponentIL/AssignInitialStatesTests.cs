@@ -240,6 +240,26 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
+        public void Chain_ExceedingTenDependencies_PropagatesToEnd()
+        {
+            const int dependencyCount = 11;
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("P0", true)));
+
+            for (var i = 1; i <= dependencyCount; i++)
+            {
+                graph.AddNode(new ReactionNode(
+                    new InternalParameterCondition($"P{i - 1}"),
+                    new DriveInternalParameter($"P{i}", true)
+                ));
+            }
+
+            AssignInitialStates.ProcessGraph(_bakeContext, graph);
+
+            Assert.AreEqual(1f, ContextValue($"P{dependencyCount}"));
+        }
+
+        [Test]
         public void Chain_InvertedState_PropagatesCorrectly()
         {
             // B: Constant(true) → DriveInternalParameter("B", true)   → B = 1

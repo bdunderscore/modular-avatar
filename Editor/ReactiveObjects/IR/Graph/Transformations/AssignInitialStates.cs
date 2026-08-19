@@ -20,8 +20,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     n.Effects.OfType<DriveInternalParameter>().Select(e => (expr: n.Expression, effect: e)))
                 .ToList();
 
+            if (drivers.Count == 0) return;
+
+            var iterationLimit = CalculateGraphDiameter(drivers) + 1;
             var changed = false;
-            var iterationLimit = 10;
 
             do
             {
@@ -101,6 +103,78 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
             // TODO - update:
             // base unity state (must contain the state driven by the current active motion/effect)
+        }
+
+        private static int CalculateGraphDiameter(List<(IExpression expr, DriveInternalParameter effect)> drivers)
+        {
+            var parameters = new HashSet<ParameterTarget>();
+            var edges = new Dictionary<ParameterTarget, HashSet<ParameterTarget>>();
+
+            foreach (var (expr, effect) in drivers)
+            {
+                var target = new ParameterTarget(effect.ParameterName);
+                parameters.Add(target);
+                AddDependencyEdges(expr, target, parameters, edges);
+            }
+
+            // Each pass advances state through one dependency edge. Limit the relaxation to one visit per parameter
+            // so feedback cycles are bounded while every acyclic path can propagate to its terminal parameter.
+            var distances = parameters.ToDictionary(parameter => parameter, _ => 0);
+            for (var iteration = 1; iteration < parameters.Count; iteration++)
+            {
+                var nextDistances = new Dictionary<ParameterTarget, int>(distances);
+                foreach (var (source, targets) in edges)
+                {
+                    foreach (var target in targets)
+                    {
+                        nextDistances[target] = System.Math.Max(nextDistances[target], distances[source] + 1);
+                    }
+                }
+
+                distances = nextDistances;
+            }
+
+            return distances.Values.Max();
+        }
+
+        private static void AddDependencyEdges(
+            IExpression expr,
+            ParameterTarget target,
+            HashSet<ParameterTarget> parameters,
+            Dictionary<ParameterTarget, HashSet<ParameterTarget>> edges
+        )
+        {
+            switch (expr)
+            {
+                case InternalParameterCondition condition:
+                {
+                    var source = new ParameterTarget(condition.ParameterName);
+                    parameters.Add(source);
+                    if (!edges.TryGetValue(source, out var targets))
+                    {
+                        targets = new HashSet<ParameterTarget>();
+                        edges[source] = targets;
+                    }
+
+                    targets.Add(target);
+                    break;
+                }
+                case AndNode and:
+                    foreach (var child in and.Children)
+                    {
+                        AddDependencyEdges(child, target, parameters, edges);
+                    }
+                    break;
+                case OrNode or:
+                    foreach (var child in or.Children)
+                    {
+                        AddDependencyEdges(child, target, parameters, edges);
+                    }
+                    break;
+                case NotNode not:
+                    AddDependencyEdges(not.Inner, target, parameters, edges);
+                    break;
+            }
         }
 
         private static bool VirtualEvaluate(
