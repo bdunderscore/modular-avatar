@@ -35,14 +35,22 @@ namespace UnitTests.SharedInterfaces
         
         public static string[] TestNames(string name)
         {
-            Debug.Log("Test class names: " + AllTestClasses.Select(t => t.Name).Aggregate((a, b) => a + ", " + b));
-            
-            return AllTestClasses.First(t => t.Name == name)
-                ?.GetMethods()
-                ?.Where(m => m.GetCustomAttribute<RCILTest>() != null)
-                ?.Select(m => m.Name)
-                ?.ToArray()
-                ?? new string[] { "foo" };
+            var testClass = AllTestClasses.SingleOrDefault(t => t.Name == name);
+            if (testClass == null)
+            {
+                throw new ArgumentException($"No RCIL test class named '{name}' was found.", nameof(name));
+            }
+
+            var testNames = testClass.GetMethods()
+                .Where(method => method.GetCustomAttribute<RCILTest>() != null)
+                .Select(method => method.Name)
+                .ToArray();
+            if (testNames.Length == 0)
+            {
+                throw new InvalidOperationException($"RCIL test class '{name}' has no tests.");
+            }
+
+            return testNames;
         }
 
         public static IEnumerator InvokeTest(String name, string testName)

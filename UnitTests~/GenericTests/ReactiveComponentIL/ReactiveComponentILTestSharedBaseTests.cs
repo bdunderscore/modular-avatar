@@ -28,6 +28,16 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
+        public void TestNames_UnknownClass_ThrowsClearException()
+        {
+            var exception = Assert.Throws<System.ArgumentException>(
+                () => ReactiveComponentILTestSharedBase.TestNames("MissingRCILTestClass")
+            );
+
+            StringAssert.Contains("No RCIL test class", exception.Message);
+        }
+
+        [Test]
         public void TearDown_DestroysCreatedAvatar()
         {
             var fixture = new AvatarLifecycleProbe();

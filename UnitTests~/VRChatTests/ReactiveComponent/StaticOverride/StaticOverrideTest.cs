@@ -30,7 +30,6 @@ public class StaticOverrideTest : TestBase
             var curve = AnimationUtility.GetEditorCurve(clip, binding);
             if (curve != null)
             {
-                Debug.Log($"Found curve in layer {layer.name} with value {curve.keys[0].value}");
                 foundValue = curve.keys[0].value;
             }
         }
