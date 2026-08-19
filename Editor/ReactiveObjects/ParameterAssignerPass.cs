@@ -1,9 +1,10 @@
 #nullable enable
 
-#if MA_VRCSDK3_AVATARS
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
+
+#if MA_VRCSDK3_AVATARS
 using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;

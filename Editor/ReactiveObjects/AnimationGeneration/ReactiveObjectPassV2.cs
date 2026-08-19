@@ -8,10 +8,14 @@ using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.platform;
 using UnityEditor;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -38,33 +42,32 @@ namespace nadena.dev.modular_avatar.core.editor
 
             PreProcessMeshDeletion(shapes, initialStates);
 
-            // Drop constant shapes that have no preexisting foreign animations (apply their value
-            // directly to the scene object). Shapes that DO have foreign animations must be kept so
-            // the apply layer can override them.
-#if MA_VRCSDK3_AVATARS
-            RemoveRedundantConstantShapes(shapes, initialStates);
-#endif
-
-            var hasAnimatableShapes = shapes.Values.Any(p => p.actionGroups.Count > 0);
-
-#if MA_VRCSDK3_AVATARS
-            if (hasAnimatableShapes)
+            if (context.PlatformProvider.QualifiedName == WellKnownPlatforms.VRChatAvatar30)
             {
-                var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-                _bakeContext = new BakeContext(context, controller);
-                ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+                // Drop constant shapes that have no preexisting foreign animations (apply their value
+                // directly to the scene object). Shapes that DO have foreign animations must be kept so
+                // the apply layer can override them.
+                RemoveRedundantConstantShapes(shapes, initialStates);
+
+                var hasAnimatableShapes = shapes.Values.Any(p => p.actionGroups.Count > 0);
+                if (hasAnimatableShapes)
+                {
+#if MA_VRCSDK3_AVATARS
+                    var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+                    _bakeContext = new BakeContext(context, controller);
+                    ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+#endif
+                }
             }
 
             // Apply the initially-active state to scene objects for all remaining (non-constant)
             // props. This must run after ILBuild so that SetBaseState has already read the original
             // scene values into BaseLayerClip before we overwrite them here.
             ApplyInitialSceneStates(shapes, initialStates);
-#endif
 
             ApplyStaticStateOverrides(shapes);
         }
 
-#if MA_VRCSDK3_AVATARS
         private void RemoveRedundantConstantShapes(
             Dictionary<TargetProp, AnimatedProperty> shapes,
             Dictionary<TargetProp, object?> initialStates)
@@ -150,7 +153,6 @@ namespace nadena.dev.modular_avatar.core.editor
 
             so.ApplyModifiedPropertiesWithoutUndo();
         }
-#endif
 
         private void ApplyStaticStateOverrides(Dictionary<TargetProp, AnimatedProperty> shapes)
         {

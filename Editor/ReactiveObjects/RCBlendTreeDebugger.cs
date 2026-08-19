@@ -1,5 +1,6 @@
 #nullable enable
 
+#if MA_VRCSDK3_AVATARS
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -539,3 +540,4 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         }
     }
 }
+#endif
