@@ -23,6 +23,17 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public VirtualMotion Bake(BakeContext context)
         {
+            var (executionTree, sumTree) = BakeTrees(context);
+            sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                DirectBlendParameter = BakeContext.ALWAYS_ONE,
+                Motion = executionTree
+            });
+            return sumTree;
+        }
+
+        private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) BakeTrees(BakeContext context)
+        {
             // Because we need a buffer zone between entries, we can't use every bit. In particular, we want to ensure
             // that we leave two floats between ranges. This means we need to avoid using the low two bits. As such,
             // we can encode up to 20 conditions per node.
@@ -41,7 +52,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                 Conditions.RemoveRange(19, Conditions.Count - 19);
 
-                (subExecution, subSum) = subNode.ConstructTrees(context);
+                (subExecution, subSum) = subNode.BakeTrees(context);
 
                 DefaultMotion = new MotionNode(subExecution);
             }
@@ -57,13 +68,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 });
             }
 
-            sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
-            {
-                DirectBlendParameter = BakeContext.ALWAYS_ONE,
-                Motion = executionTree
-            });
 
-            return sumTree;
+
+            return (executionTree, sumTree);
         }
 
         private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) ConstructTrees(BakeContext context)

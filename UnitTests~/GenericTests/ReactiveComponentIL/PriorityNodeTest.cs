@@ -358,6 +358,53 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [RCILTest]
+        public IEnumerator TestFortyFourConditions()
+        {
+            const int numConditions = 44;
+            var motions = new MotionNode[numConditions];
+            var testFuncs = new System.Func<bool>[numConditions];
+            CreateSensor("default", out var defaultMotion, out var testDefault);
+
+            for (var i = 0; i < numConditions; i++)
+            {
+                CreateSensor($"motion{i}", out motions[i], out testFuncs[i]);
+                AddParameter($"cond{i}", 0);
+            }
+
+            var priority = new PriorityNode { DefaultMotion = defaultMotion };
+            for (var i = 0; i < numConditions; i++)
+            {
+                var condIndex = i;
+                priority.Conditions.Add((
+                    ProxyCondition.FromInner(false,
+                        (onFalse, onTrue) => new BranchNode($"cond{condIndex}", onFalse, onTrue)),
+                    motions[i]
+                ));
+            }
+
+            BakeConditions(priority);
+            yield return null;
+            yield return null;
+            yield return null;
+
+            animator.SetFloat("cond43", 1);
+            yield return null;
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(testFuncs[43]());
+            Assert.IsFalse(testDefault());
+
+            animator.SetFloat("cond42", 1);
+            yield return null;
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(testFuncs[42]());
+            Assert.IsFalse(testFuncs[43]());
+        }
+
+        [RCILTest]
         public IEnumerator TestInitialStateFrame()
         {
             CreateSensor("motion0", out var motion0, out var test0);
