@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+#nullable enable
+
+using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -21,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return Equals(TargetObject, other.TargetObject) && PropertyName == other.PropertyName;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TargetProp other && Equals(other);
         }

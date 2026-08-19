@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using nadena.dev.ndmf.preview;
 using Unity.Collections;
@@ -5,7 +7,7 @@ using Unity.Jobs;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal interface IMeshSelector : IEquatable<IMeshSelector>
+    internal interface IMeshSelector : IEquatable<IMeshSelector?>
     {
         /// <summary>
         ///     Sets filtered[i] to true for each primitive (tri or quad) in the mesh that is selected by this IMeshSelector.

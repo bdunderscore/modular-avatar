@@ -70,7 +70,7 @@
         },
         {
             "name": "com.vrcfury.vrcfury",
-            "expression": "(,1.1250.0)",
+          "expression": "(,1.1373.0)",
             "define": "LEGACY_VRCFURY"
         }
     ],

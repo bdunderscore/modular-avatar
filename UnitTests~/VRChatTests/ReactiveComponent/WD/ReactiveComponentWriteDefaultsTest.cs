@@ -29,9 +29,10 @@ public class ReactiveComponentWriteDefaultsTest : TestBase
 
         AvatarProcessor.ProcessAvatar(root);
 
-        var fx = findFxLayer(root, "MA Responsive: GameObject");
+        var fx = findFxLayer(root, "MA/RC Apply");
+        // Blend trees must be set with WD on, regardless of what the rest of the avatar is doing.
         Assert.AreEqual(
-            controllerPath.StartsWith("rc_wd_on"),
+            true,
             fx.stateMachine.defaultState.writeDefaultValues
         );
     }

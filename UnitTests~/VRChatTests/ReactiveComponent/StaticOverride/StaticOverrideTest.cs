@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
@@ -20,21 +22,19 @@ public class StaticOverrideTest : TestBase
         var avDesc = prefab.GetComponent<VRCAvatarDescriptor>();
         var fx = (AnimatorController) FindFxController(prefab).animatorController;
 
+        var binding = EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom");
         float? foundValue = null;
-        foreach (var layer in fx.layers)
+        foreach (var layer in fx.layers.Where(l => l.name == BakeContext.APPLY_LAYER_NAME))
+        foreach (var clip in CollectClips(layer.stateMachine.defaultState.motion))
         {
-            var defaultState = layer.stateMachine.defaultState;
-            if (defaultState.motion is not AnimationClip clip) continue;
-            
-            var curve = AnimationUtility.GetEditorCurve(clip,
-                EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom")
-            );
+            var curve = AnimationUtility.GetEditorCurve(clip, binding);
             if (curve != null)
             {
+                Debug.Log($"Found curve in layer {layer.name} with value {curve.keys[0].value}");
                 foundValue = curve.keys[0].value;
             }
         }
-        
+
         Assert.AreEqual(50.0f, foundValue);
     }
 
@@ -53,22 +53,29 @@ public class StaticOverrideTest : TestBase
         
         var fx = (AnimatorController) FindFxController(prefab).animatorController;
 
+        var binding = EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom");
         float? foundValue = null;
-        foreach (var layer in fx.layers)
+        foreach (var layer in fx.layers.Where(l => l.name == BakeContext.APPLY_LAYER_NAME))
+        foreach (var clip in CollectClips(layer.stateMachine.defaultState.motion))
         {
-            var defaultState = layer.stateMachine.defaultState;
-            if (defaultState.motion is not AnimationClip clip) continue;
-            
-            var curve = AnimationUtility.GetEditorCurve(clip,
-                EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom")
-            );
-            if (curve != null)
-            {
-                foundValue = curve.keys[0].value;
-            }
+            var curve = AnimationUtility.GetEditorCurve(clip, binding);
+            if (curve != null) foundValue = curve.keys[0].value;
         }
-        
+
         Assert.IsNull(foundValue);
     }
-    
+
+    private static IEnumerable<AnimationClip> CollectClips(Motion motion)
+    {
+        if (motion is AnimationClip clip)
+        {
+            yield return clip;
+        }
+        else if (motion is BlendTree bt)
+        {
+            foreach (var child in bt.children)
+            foreach (var c in CollectClips(child.motion))
+                yield return c;
+        }
+    }
 }
