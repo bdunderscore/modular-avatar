@@ -38,14 +38,16 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             vbt.UseAutomaticThresholds = false;
             vbt.NormalizedBlendValues = false;
             vbt.Children = ImmutableList.Create(
-                // Ensure this is a hard transition by having no floats in between the false and true values
+                // ParameterExpression uses the same strict Greater semantics as AnimatorConditionMode.Greater.
+                // Put the false sample at the threshold and the true sample at the next representable float so
+                // equality remains false while there are no float values between the two samples to interpolate.
                 new VirtualBlendTree.VirtualChildMotion
                 {
-                    Motion = onLess, Threshold = Threshold.NextSmallest()
+                    Motion = onLess, Threshold = Threshold
                 },
                 new VirtualBlendTree.VirtualChildMotion
                 {
-                    Motion = onGreater, Threshold = Threshold
+                    Motion = onGreater, Threshold = Threshold.NextLargest()
                 }
             );
 

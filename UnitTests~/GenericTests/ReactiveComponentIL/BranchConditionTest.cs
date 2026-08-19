@@ -31,5 +31,29 @@ namespace UnitTestsReactiveComponentIL
             yield return null;
             Assert.IsTrue(testTrue());
         }
+
+        [RCILTest]
+        public IEnumerator TestBranchNodeGreaterConditionIsStrictAtThreshold()
+        {
+            const float threshold = 0.5f;
+            CreateSensor("true", out var motionTrue, out var testTrue);
+            CreateSensor("false", out var motionFalse, out var testFalse);
+            AddParameter("test", threshold);
+
+            var branch = new BranchNode("test")
+            {
+                Threshold = threshold,
+                OnGreaterEquals = motionTrue,
+                OnLessThan = motionFalse
+            };
+
+            BakeConditions(branch);
+            Assert.IsNotNull(animator.runtimeAnimatorController);
+
+            yield return null;
+
+            Assert.IsTrue(testFalse(), "A value equal to the threshold must take the false branch");
+            Assert.IsFalse(testTrue(), "The strict greater-than branch must not activate at equality");
+        }
     }
 }
