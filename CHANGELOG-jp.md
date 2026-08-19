@@ -13,6 +13,11 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Fixed
 
 ### Changed
+- [#2095] Reactive Component の生成処理をブレンドツリー方式に刷新し、アニメーターの処理負荷を軽減するとともに、
+  同じトリガーに対して複数の Reactive Component の反応タイミングがずれる問題を修正しました。
+  - 互換性に関する注意：Reactive Component の反応タイミングが以前のバージョンからわずかに変わる場合があります。
+  - 互換性に関する注意：VRCFury 1.1373 未満との共存はサポートされなくなりました。Modular Avatar を更新する前に
+    VRCFury を更新してください。
 
 ### Removed
 

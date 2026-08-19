@@ -1,3 +1,5 @@
+#nullable enable
+
 #region
 
 using System;

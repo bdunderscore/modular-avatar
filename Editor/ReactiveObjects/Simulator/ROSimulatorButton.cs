@@ -1,10 +1,11 @@
-﻿using nadena.dev.modular_avatar.core.editor;
-#if MA_VRCSDK3_AVATARS
-using nadena.dev.modular_avatar.core.editor.Simulator;
-#endif
+﻿#nullable enable
+
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if MA_VRCSDK3_AVATARS
+using nadena.dev.modular_avatar.core.editor.Simulator;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -24,9 +25,9 @@ namespace nadena.dev.modular_avatar.core.editor
 #endif
 
         private Button btn;
-        public UnityEngine.Object ReferenceObject;
-        
-        public static void BindRefObject(VisualElement elem, UnityEngine.Object obj)
+        public Object? ReferenceObject;
+
+        public static void BindRefObject(VisualElement elem, Object? obj)
         {
             var button = elem.Q<ROSimulatorButton>();
             

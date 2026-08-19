@@ -308,7 +308,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 #endif
 
-        public bool Equals(IMeshSelector other)
+        public bool Equals(IMeshSelector? other)
         {
             return other is VertexFilterByMask filter
                    && filter._materialIndex == _materialIndex
@@ -321,7 +321,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    && filter._uvChannel == _uvChannel;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as IMeshSelector);
         }

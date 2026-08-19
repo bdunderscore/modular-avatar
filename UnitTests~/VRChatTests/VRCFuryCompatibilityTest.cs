@@ -14,171 +14,79 @@ namespace modular_avatar_tests
         public override void Setup()
         {
             base.Setup();
-            // Reset the test flag
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = false;
+            ComponentValidation.ForceEnableLegacyVRCFuryError = false;
         }
-        
+
         public override void Teardown()
         {
-            // Reset the test flag to avoid breaking subsequent tests
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = false;
+            ComponentValidation.ForceEnableLegacyVRCFuryError = false;
             base.Teardown();
         }
-        
+
         [Test]
-        public void TestVRCFuryWarningWithMeshCutter()
+        public void LegacyVRCFuryWithReactiveActionReportsFatalError()
         {
-            // Simulate legacy VRCFury presence
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
-            
+            ComponentValidation.ForceEnableLegacyVRCFuryError = true;
+
             var avatarRoot = CreateRoot("root");
-            var child = new GameObject("TestObject");
-            child.transform.SetParent(avatarRoot.transform);
-            
-            // Add a MeshCutter component
-            var meshCutter = child.AddComponent<ModularAvatarMeshCutter>();
-            meshCutter.Object = new AvatarObjectReference();
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should have the VRCFury warning
-            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
-        }
-        
-        [Test]
-        public void TestVRCFuryWarningWithShapeChangerDelete()
-        {
-            // Simulate legacy VRCFury presence
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
-            
-            var avatarRoot = CreateRoot("root");
-            var child = new GameObject("TestObject");
-            child.transform.SetParent(avatarRoot.transform);
-            
-            // Add a ShapeChanger component with Delete mode
-            var shapeChanger = child.AddComponent<ModularAvatarShapeChanger>();
-            shapeChanger.Shapes = new System.Collections.Generic.List<ChangedShape>
-            {
-                new ChangedShape
+            AddReactiveAction(avatarRoot);
+
+            var errors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(avatarRoot));
+
+            Assert.IsTrue(errors.Any(error =>
+                error.TheError is SimpleError
                 {
-                    Object = new AvatarObjectReference(),
-                    ShapeName = "TestShape",
-                    ChangeType = ShapeChangeType.Delete,
-                    Value = 1.0f
+                    TitleKey: "validation.legacy_vrcfury_error",
+                    Severity: ErrorSeverity.Error
+                }));
+        }
+
+        [Test]
+        public void LegacyVRCFuryWithoutDetectedActionsDoesNotReportError()
+        {
+            ComponentValidation.ForceEnableLegacyVRCFuryError = true;
+
+            var avatarRoot = CreateRoot("root");
+            avatarRoot.AddComponent<ModularAvatarObjectToggle>();
+
+            var errors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(avatarRoot));
+
+            Assert.IsFalse(errors.Any(error =>
+                (error.TheError as SimpleError)?.TitleKey == "validation.legacy_vrcfury_error"));
+        }
+
+        [Test]
+        public void CurrentVRCFuryWithReactiveActionDoesNotReportError()
+        {
+            var avatarRoot = CreateRoot("root");
+            AddReactiveAction(avatarRoot);
+
+            var errors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(avatarRoot));
+
+            Assert.IsFalse(errors.Any(error =>
+                (error.TheError as SimpleError)?.TitleKey == "validation.legacy_vrcfury_error"));
+        }
+
+        private static void AddReactiveAction(GameObject avatarRoot)
+        {
+            var target = new GameObject("target");
+            target.transform.SetParent(avatarRoot.transform);
+
+            var controller = new GameObject("controller");
+            controller.transform.SetParent(avatarRoot.transform);
+
+            var targetReference = new AvatarObjectReference();
+            targetReference.Set(target);
+
+            var objectToggle = controller.AddComponent<ModularAvatarObjectToggle>();
+            objectToggle.Objects = new()
+            {
+                new ToggledObject
+                {
+                    Object = targetReference,
+                    Active = false
                 }
             };
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should have the VRCFury warning
-            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
-        }
-        
-        [Test]
-        public void TestNoVRCFuryWarningWithShapeChangerSet()
-        {
-            // Simulate legacy VRCFury presence
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
-            
-            var avatarRoot = CreateRoot("root");
-            var child = new GameObject("TestObject");
-            child.transform.SetParent(avatarRoot.transform);
-            
-            // Add a ShapeChanger component with Set mode (should not trigger warning)
-            var shapeChanger = child.AddComponent<ModularAvatarShapeChanger>();
-            shapeChanger.Shapes = new System.Collections.Generic.List<ChangedShape>
-            {
-                new ChangedShape
-                {
-                    Object = new AvatarObjectReference(),
-                    ShapeName = "TestShape",
-                    ChangeType = ShapeChangeType.Set,
-                    Value = 1.0f
-                }
-            };
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should not have the VRCFury warning even when legacy VRCFury is simulated
-            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
-        }
-        
-        [Test]
-        public void TestNoVRCFuryWarningWithEmptyShapeChanger()
-        {
-            // Simulate legacy VRCFury presence
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
-            
-            var avatarRoot = CreateRoot("root");
-            var child = new GameObject("TestObject");
-            child.transform.SetParent(avatarRoot.transform);
-            
-            // Add a ShapeChanger component with null shapes (should not trigger warning)
-            var shapeChanger = child.AddComponent<ModularAvatarShapeChanger>();
-            shapeChanger.Shapes = null;
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should not have the VRCFury warning
-            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
-        }
-        
-        [Test]
-        public void TestNoVRCFuryWarningWhenNotLegacy()
-        {
-            // Don't simulate legacy VRCFury (modern VRCFury or no VRCFury)
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = false;
-            
-            var avatarRoot = CreateRoot("root");
-            var child = new GameObject("TestObject");
-            child.transform.SetParent(avatarRoot.transform);
-            
-            // Add a MeshCutter component that would normally trigger the warning
-            var meshCutter = child.AddComponent<ModularAvatarMeshCutter>();
-            meshCutter.Object = new AvatarObjectReference();
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should not have the VRCFury warning when legacy VRCFury is not present
-            Assert.IsFalse(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
-        }
-        
-        [Test]
-        public void TestVRCFuryWarningOnlyWhenBothConditionsMet()
-        {
-            // Simulate legacy VRCFury presence
-            ComponentValidation.ForceEnableLegacyVRCFuryWarning = true;
-            
-            var avatarRoot = CreateRoot("root");
-            var child1 = new GameObject("TestObject1");
-            child1.transform.SetParent(avatarRoot.transform);
-            
-            // Test case: only MeshCutter, should trigger warning
-            var meshCutter = child1.AddComponent<ModularAvatarMeshCutter>();
-            meshCutter.Object = new AvatarObjectReference();
-            
-            var errors = ErrorReport.CaptureErrors(() =>
-            {
-                ComponentValidation.ValidateAll(avatarRoot);
-            });
-            
-            // Should trigger warning when legacy VRCFury is simulated and MeshCutter is present
-            Assert.IsTrue(errors.Any(e => ((SimpleError)e.TheError).TitleKey == "validation.legacy_vrcfury_warning"));
         }
     }
 }

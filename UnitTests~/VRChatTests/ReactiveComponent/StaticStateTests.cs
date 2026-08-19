@@ -1,9 +1,11 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.core.editor.rc;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -35,11 +37,10 @@ namespace UnitTests.ReactiveComponent
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-            var baseBlend = (BlendTree) BaseLayer(fxc).stateMachine.defaultState.motion;
-            var subBlend = (BlendTree) baseBlend.children[0].motion;
-            var animStateMotion = (AnimationClip) subBlend.children[0].motion;
+            var rootMotion = BaseLayer(fxc).stateMachine.defaultState.motion;
 
-            foreach (var key in AnimationUtility.GetCurveBindings(animStateMotion))
+            foreach (var clip in CollectClips(rootMotion))
+            foreach (var key in AnimationUtility.GetCurveBindings(clip))
             {
                 Assert.IsFalse(key.path.StartsWith("Uncontrolled"));
             }
@@ -70,24 +71,38 @@ namespace UnitTests.ReactiveComponent
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-            var baseBlend = (BlendTree) BaseLayer(fxc).stateMachine.defaultState.motion;
-            var subBlend = (BlendTree) baseBlend.children[0].motion;
-            var animStateMotion = (AnimationClip) subBlend.children[0].motion;
+            var rootMotion = BaseLayer(fxc).stateMachine.defaultState.motion;
 
             var binding = EditorCurveBinding.FloatCurve(name, componentType, "m_Enabled");
-            var curve = AnimationUtility.GetEditorCurve(animStateMotion, binding);
-            
+            var curve = CollectClips(rootMotion)
+                .Select(c => AnimationUtility.GetEditorCurve(c, binding))
+                .FirstOrDefault(c => c != null);
+
             Assert.AreEqual(animState == null, curve == null);
             if (animState == null) return;
-            
+
             var value = curve.keys[0].value;
-            
+
             Assert.AreEqual(animState, value > 0.5f);
         }
 
         private AnimatorControllerLayer BaseLayer(AnimatorController ac)
         {
-            return ac.layers.First(l => l.name == MergeBlendTreePass.BlendTreeLayerName);
+            return ac.layers.First(l => l.name == BakeContext.BASE_LAYER_NAME);
+        }
+
+        private static IEnumerable<AnimationClip> CollectClips(Motion motion)
+        {
+            if (motion is AnimationClip clip)
+            {
+                yield return clip;
+            }
+            else if (motion is BlendTree bt)
+            {
+                foreach (var child in bt.children)
+                foreach (var c in CollectClips(child.motion))
+                    yield return c;
+            }
         }
     }
 }

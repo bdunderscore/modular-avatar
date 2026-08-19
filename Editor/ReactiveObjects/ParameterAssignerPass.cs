@@ -1,10 +1,13 @@
-﻿#if MA_VRCSDK3_AVATARS
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
+
+#if MA_VRCSDK3_AVATARS
+using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
-using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -15,12 +18,15 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         internal const string AUTOMATIC_PARAMETER_PREFIX = "__MA/AutoParam/";
 
-        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
+        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem? item)
         {
-            switch (item?.Control?.type)
+            if (item == null) return false;
+
+            var control = item.PortableControl;
+            switch (control.Type)
             {
-                case VRCExpressionsMenu.Control.ControlType.Button:
-                case VRCExpressionsMenu.Control.ControlType.Toggle:
+                case PortableControlType.Button:
+                case PortableControlType.Toggle:
                     // ok
                     break;
                 default:
@@ -66,19 +72,17 @@ namespace nadena.dev.modular_avatar.core.editor
             Dictionary<string, List<ModularAvatarMenuItem>> _mamiByParam = new();
             foreach (var mami in context.AvatarRootTransform.GetComponentsInChildren<ModularAvatarMenuItem>(true))
             {
-                if (string.IsNullOrWhiteSpace(mami.Control?.parameter?.name))
+                var control = mami.PortableControl;
+                if (string.IsNullOrWhiteSpace(control.Parameter))
                 {
                     if (!ShouldAssignParametersToMami(mami)) continue;
-                    
-                    if (mami.Control == null) mami.Control = new VRCExpressionsMenu.Control();
-                    mami.Control.parameter = new VRCExpressionsMenu.Control.Parameter
-                    {
-                        name = mappings.Remap(mami, ParameterNamespace.Animator,
-                            AUTOMATIC_PARAMETER_PREFIX + mami.gameObject.name)
-                    };
+
+                    control.Parameter = mappings.Remap(mami, ParameterNamespace.Animator,
+                        AUTOMATIC_PARAMETER_PREFIX + mami.gameObject.name);
                 }
-                
-                var paramName = mami.Control.parameter.name;
+
+                var paramName = control.Parameter;
+                if (string.IsNullOrWhiteSpace(paramName)) continue;
 
                 if (!_mamiByParam.TryGetValue(paramName, out var mamiList))
                 {
@@ -99,7 +103,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 else
                 {
-                    var floatDefault = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Control?.value;
+                    var floatDefault = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.PortableControl
+                        .Value;
                     if (floatDefault.HasValue) defaultValue = (int) floatDefault.Value;
 
                     if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
@@ -115,8 +120,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     if (!item.automaticValue)
                     {
-                        usedValues.Add((int)item.Control.value);
-                        item.isDefault = defaultValue.HasValue && (int)item.Control.value == defaultValue;
+                        usedValues.Add((int)item.PortableControl.Value);
+                        item.isDefault = defaultValue.HasValue && (int)item.PortableControl.Value == defaultValue;
                     }
                 }
 
@@ -141,17 +146,18 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 foreach (var mami in list)
                 {
+                    var control = mami.PortableControl;
                     if (mami.automaticValue)
                     {
                         if (mami.isDefault)
                         {
-                            mami.Control.value = defaultValue.GetValueOrDefault();
+                            control.Value = defaultValue.GetValueOrDefault();
                         }
                         else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
                         {
                             // For a float or bool value, we don't really have a lot of good choices, so just set it to
                             // 1
-                            mami.Control.value = 1;
+                            control.Value = 1;
                         }
                         else
                         {
@@ -163,7 +169,7 @@ namespace nadena.dev.modular_avatar.core.editor
                                 break;
                             }
 
-                            mami.Control.value = nextValue;
+                            control.Value = nextValue;
                             usedValues.Add(nextValue);
                         }
                     }
@@ -205,40 +211,44 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        internal static ControlCondition AssignMenuItemParameter(
-            ModularAvatarMenuItem mami,
-            Dictionary<string, float> simulationInitialStates = null,
-            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null,
+        internal static ControlCondition? AssignMenuItemParameter(
+            ModularAvatarMenuItem? mami,
+            Dictionary<string, float>? simulationInitialStates = null,
+            IDictionary<string, ModularAvatarMenuItem?>? isDefaultOverrides = null,
             bool? forceSimulation = null
             )
         {
             var isSimulation = (simulationInitialStates != null || forceSimulation == true);
-            
-            var paramName = mami?.Control?.parameter?.name;
-            if (mami?.Control != null && isSimulation && ShouldAssignParametersToMami(mami))
+
+            var control = mami?.PortableControl;
+            var paramName = control?.Parameter;
+            if (mami != null && control != null && isSimulation && ShouldAssignParametersToMami(mami))
             {
-                paramName = mami.Control?.parameter?.name;
-                if (string.IsNullOrEmpty(paramName)) paramName = "___AutoProp/" + mami.GetEntityId().ToString();
+                var simulationParamName = control.Parameter;
+                if (simulationParamName.Length == 0)
+                    simulationParamName = "___AutoProp/" + mami.GetEntityId().ToString();
+                paramName = simulationParamName;
 
                 if (simulationInitialStates != null)
                 {
                     var isDefault = mami.isDefault;
-                    ModularAvatarMenuItem target = null;
-                    if (isDefaultOverrides?.TryGetValue(paramName, out target) == true)
+                    ModularAvatarMenuItem? target = null;
+                    if (isDefaultOverrides?.TryGetValue(simulationParamName, out target) == true)
                         isDefault = ReferenceEquals(mami, target);
 
                     if (isDefault)
                     {
-                        simulationInitialStates[paramName] = mami.Control.value;
+                        simulationInitialStates[simulationParamName] = control.Value;
                     }
                     else
                     {
-                        simulationInitialStates.TryAdd(paramName, -999);
+                        simulationInitialStates.TryAdd(simulationParamName, -999);
                     }
                 }
             }
             
             if (string.IsNullOrWhiteSpace(paramName)) return null;
+            if (mami == null || control == null) return null;
             
             return new ControlCondition
             {
@@ -248,9 +258,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Note: This slightly odd-looking value is key to making the Auto checkbox work for editor previews;
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
-                InitialValue = mami.isDefault ? mami.Control.value : -999,
-                ParameterValueLo = mami.Control.value - 0.005f,
-                ParameterValueHi = mami.Control.value + 0.005f,
+                InitialValue = mami.isDefault ? control.Value : -999,
+                ParameterValueLo = control.Value - 0.005f,
+                ParameterValueHi = control.Value + 0.005f,
                 DebugReference = mami,
             };
         }
@@ -279,15 +289,15 @@ namespace nadena.dev.modular_avatar.core.editor
             Execute(context);
         }
         
-        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem item)
+        internal static bool ShouldAssignParametersToMami(ModularAvatarMenuItem? item)
         {
             return false;
         }
 
-        internal static ControlCondition AssignMenuItemParameter(
-            ModularAvatarMenuItem mami,
-            Dictionary<string, float> simulationInitialStates = null,
-            IDictionary<string, ModularAvatarMenuItem> isDefaultOverrides = null,
+        internal static ControlCondition? AssignMenuItemParameter(
+            ModularAvatarMenuItem? mami,
+            Dictionary<string, float>? simulationInitialStates = null,
+            IDictionary<string, ModularAvatarMenuItem?>? isDefaultOverrides = null,
             bool? forceSimulation = null
         )
         {
