@@ -222,6 +222,21 @@ namespace UnitTestsReactiveComponentIL
             var expected = new OrNode(e1, new NotNode(e1));
             Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
+
+        [Test]
+        public void SelfDrivingNode_PreservesObjectActiveState()
+        {
+            var obj = CreateRoot("obj");
+            var objectActiveState = new ObjectActiveState(obj, ObjectActiveState.State.Active);
+            var expression = new AndNode(objectActiveState, new ParameterExpression("p1"));
+            var node = new ReactionNode(expression, new DriveActiveState(obj, true));
+            var graph = new ReactionGraph();
+            graph.AddNode(node);
+
+            ForwardObjectActiveDriversTransform.Apply(graph);
+
+            Assert.AreSame(objectActiveState, ((AndNode)node.Expression).Children[0]);
+        }
     }
 }
 

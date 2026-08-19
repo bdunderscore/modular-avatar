@@ -33,6 +33,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     if (!driversByObject.TryGetValue(targetOas.TargetObject, out var drivers) || drivers.Count == 0)
                         continue;
 
+                    // Forwarding this node's own expression would insert it into one of its descendants.
+                    if (drivers.Any(d => d.node == node))
+                        continue;
+
                     // Only forward when at most two drivers, except for the "all opposite" shortcut
                     var driverCount = drivers.Count;
                     var wantActive = targetOas.StateMode == ObjectActiveState.State.Active;
