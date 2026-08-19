@@ -54,7 +54,11 @@ namespace UnitTests.SharedInterfaces
             inst.SetUp();
             try
             {
-                return (IEnumerator)t.GetMethod(testName)!.Invoke(inst, Array.Empty<object>());
+                var test = (IEnumerator)t.GetMethod(testName)!.Invoke(inst, Array.Empty<object>());
+                while (test.MoveNext())
+                {
+                    yield return test.Current;
+                }
             }
             finally
             {

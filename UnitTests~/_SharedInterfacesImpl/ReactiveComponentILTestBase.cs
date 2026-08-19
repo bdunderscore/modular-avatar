@@ -42,7 +42,10 @@ namespace UnitTests.SharedInterfacesImpl
 
         public override void TearDown()
         {
-            
+            if (avatar != null)
+            {
+                UnityEngine.Object.DestroyImmediate(avatar);
+            }
         }
         
         protected GameObject CreateRoot(string name)
