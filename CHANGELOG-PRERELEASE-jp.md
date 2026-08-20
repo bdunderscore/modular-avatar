@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2100] スケール違いの素体と衣装に NaNimation が適用されるとメッシュが歪むのを修正
 
 ### Changed
 
