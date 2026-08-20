@@ -189,7 +189,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var curve = clip.GetFloatCurve(binding)!;
                 foreach (var (dst, remapCurve) in dstBindings)
                 {
-                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), MapCurve(NormalizeCurveToFreeTangents(curve), remapCurve));
+                    clip.SetFloatCurve(dst.ToEditorCurveBinding(asc), MapCurve(curve, remapCurve));
                 }
             }
         }
@@ -219,12 +219,7 @@ namespace nadena.dev.modular_avatar.core.editor
             if (remapCurve.IsIdentity)
                 return curve;
 
-            // We expect the curve to be in Free mode.
-            for (var i = 0; i < curve.length; i++)
-            {
-                Debug.Assert(AnimationUtility.GetKeyLeftTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
-                Debug.Assert(AnimationUtility.GetKeyRightTangentMode(curve, i) == AnimationUtility.TangentMode.Free);
-            }
+            curve = NormalizeCurveToFreeTangents(curve);
 
             var outputKeyframes = new List<Keyframe>(curve.length);
 
