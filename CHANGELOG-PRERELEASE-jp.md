@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
 
 ### Removed
 

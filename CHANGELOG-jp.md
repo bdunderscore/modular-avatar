@@ -13,6 +13,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Fixed
 
 ### Changed
+- [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
 
 ### Removed
 
