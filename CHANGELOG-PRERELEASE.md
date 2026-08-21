@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2100] Fixed mesh distortion when NaNimation is applied to a body and outfit with different scales.
+- [#2100] Fixed mesh distortion when Mesh Cutter or Shape Changer is applied to a body and outfit with different scales.
 - [#2097] Improved BlendShape Sync Animation compatibility with tools depending on pre-1.18 behavior
+- [#2102] Fixed an issue where Mesh Cutter or Shape Changer might not be applied correctly in play mode
 
 ### Changed
 

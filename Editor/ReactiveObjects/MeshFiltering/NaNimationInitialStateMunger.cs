@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿#if MA_VRCSDK3_AVATARS
+
+using System.Collections.Generic;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
-
-#if MA_VRCSDK3_AVATARS
-using VRC.SDK3.Dynamics.Constraint.Components;
 using VRC.Dynamics;
+using VRC.SDK3.Dynamics.Constraint.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -35,7 +34,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     SourceTransform = constraint.transform,
                     Weight = float.NaN
                 });
-                constraint.GlobalWeight = 1.0f;
+                constraint.GlobalWeight = float.NaN;
                 constraint.Locked = true;
                 constraint.IsActive = true;
 
@@ -44,6 +43,15 @@ namespace nadena.dev.modular_avatar.core.editor
                         RuntimeUtil.AvatarRootPath(constraint.gameObject),
                         typeof(VRCScaleConstraint),
                         "IsActive"
+                    ),
+                    // Disable the constraint when animations are active
+                    AnimationCurve.Constant(0, 1, 0.0f)
+                );
+                baseStateClip.SetFloatCurve(
+                    EditorCurveBinding.FloatCurve(
+                        RuntimeUtil.AvatarRootPath(constraint.gameObject),
+                        typeof(VRCScaleConstraint),
+                        "GlobalWeight"
                     ),
                     // Disable the constraint when animations are active
                     AnimationCurve.Constant(0, 1, 0.0f)
