@@ -26,6 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var resetSection = root.Q<VisualElement>("reset-position");
             var heuristicScale = root.Q<Toggle>("heuristic-scale");
             var convertATPose = root.Q<Toggle>("convert-at-pose");
+            var adjustPosition = root.Q<Toggle>("adjust-position");
             var adjustRotation = root.Q<Toggle>("adjust-rotation");
             var adjustScale = root.Q<Toggle>("adjust-scale");
             var executeReset = root.Q<Button>("execute-reset");
@@ -48,6 +49,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 value => _resetOptions.HeuristicRootScale = value);
             BindToggle(convertATPose, _resetOptions.ConvertATPose,
                 value => _resetOptions.ConvertATPose = value);
+            BindToggle(adjustPosition, _resetOptions.AdjustPosition,
+                value => _resetOptions.AdjustPosition = value);
             BindToggle(adjustRotation, _resetOptions.AdjustRotation,
                 value => _resetOptions.AdjustRotation = value);
             BindToggle(adjustScale, _resetOptions.AdjustScale,
@@ -76,6 +79,8 @@ namespace nadena.dev.modular_avatar.core.editor
             armatureRootField.tooltip = Localization.S("outfit_root.armature_root.tooltip");
             adjustNames.tooltip = Localization.S("merge_armature.adjust_names.tooltip");
             heuristicScale.tooltip = Localization.S("merge_armature.reset_pos.heuristic_scale.tooltip");
+            adjustRotation.tooltip = Localization.S("merge_armature.reset_pos.adjust_rotation.tooltip");
+            adjustScale.tooltip = Localization.S("merge_armature.reset_pos.adjust_scale.tooltip");
             matchScaleAdjusters.tooltip =
                 Localization.S("merge_armature.match_scale_adjusters.tooltip");
             root.Bind(serializedObject);

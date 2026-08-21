@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2084] Add option for disabling position adjustment by `Reset position to base avatar`
 
 ### Fixed
+- [#2084] Fixed an issue that unable to undo a scale modification by `Reset position to base avatar` when `Adjust outfit overall scale to match base avatar` option is enabled
 
 ### Changed
+- [#2084] Update the options' name and tooltip for `Reset position to base avatar`
 
 ### Removed
 

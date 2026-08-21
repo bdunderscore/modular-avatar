@@ -19,6 +19,8 @@
                        class="ndmf-tr reset-option"/>
             <ui:Toggle name="convert-at-pose" text="merge_armature.reset_pos.convert_atpose"
                        class="ndmf-tr reset-option"/>
+            <ui:Toggle name="adjust-position" text="merge_armature.reset_pos.adjust_position"
+                       class="ndmf-tr reset-option"/>
             <ui:Toggle name="adjust-rotation" text="merge_armature.reset_pos.adjust_rotation"
                        class="ndmf-tr reset-option"/>
             <ui:Toggle name="adjust-scale" text="merge_armature.reset_pos.adjust_scale"

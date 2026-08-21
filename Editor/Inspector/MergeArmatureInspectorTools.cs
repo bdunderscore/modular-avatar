@@ -9,6 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal sealed class MergeArmaturePositionResetOptions
     {
         public bool ConvertATPose = true;
+        public bool AdjustPosition = true;
         public bool AdjustRotation;
         public bool AdjustScale;
         public bool HeuristicRootScale = true;
@@ -119,6 +120,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void AdjustRootScale()
             {
+                Undo.RecordObject(mergeArmature.transform, "Reset position to base avatar");
                 // Adjust the overall scale of the avatar based on wingspan (arm length)
                 if (!boneToTransform.TryGetValue(HumanBodyBones.LeftHand, out var targetHand)) return;
 
@@ -129,19 +131,23 @@ namespace nadena.dev.modular_avatar.core.editor
                 var mergeHand = mergeArmature.transform.Find(handPath);
                 if (mergeHand == null) return;
 
-var targetWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(targetHand.position).x);
-var mergeWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(mergeHand.position).x);
-if (mergeWingspan <= Mathf.Epsilon) return;
-mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
+                var targetWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(targetHand.position).x);
+                var mergeWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(mergeHand.position).x);
+                if (mergeWingspan <= Mathf.Epsilon) return;
+                mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
             }
 
             void Walk(Transform mergeTransform, Transform targetTransform)
             {
-                Undo.RecordObject(mergeTransform, "Merge Armature: Force outfit position");
+                Undo.RecordObject(mergeTransform, "Reset position to base avatar");
 
                 Debug.Log("Merge: " + mergeTransform.gameObject.name + " => " + targetTransform.gameObject.name);
 
-                mergeTransform.position = targetTransform.position;
+                if (options.AdjustPosition)
+                {
+                    mergeTransform.position = targetTransform.position;
+                }
+
                 if (options.AdjustScale)
                 {
                     if (!options.HeuristicRootScale || mergeTransform != mergeArmature.transform)
@@ -162,11 +168,11 @@ mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
                 {
                     foreach (Transform child in traversalQueue.Dequeue())
                     {
-var childMergeArmature = child.GetComponent<ModularAvatarMergeArmature>();
-if (childMergeArmature != null)
-{
-    continue;
-}
+                        var childMergeArmature = child.GetComponent<ModularAvatarMergeArmature>();
+                        if (childMergeArmature != null)
+                        {
+                            continue;
+                        }
 
                         if (TryMatchChildBone(targetTransform, child, out var targetChild))
                         {
