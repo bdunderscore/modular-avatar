@@ -111,9 +111,32 @@ public class ShapeDeletionAnalysis : TestBase
             .FirstOrDefault(c => c.gameObject.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix));
         Assert.IsNotNull(createdBone);
         // #1869
-        Assert.AreEqual(NaNimationFilter.NaNimatedBufferPrefix, createdBone.transform.parent.gameObject.name);
+        Assert.IsTrue(createdBone.parent.gameObject.name.StartsWith(NaNimationFilter.NaNimatedBufferPrefix));
     }
     
+
+    [Test]
+    public void PreventMergingNaNimationBuffers()
+    {
+        var root = CreatePrefab("DeletionTest/PreventMergingNaNimationBuffers/PreventMergingNaNimationBuffers.prefab");
+
+        AvatarProcessor.ProcessAvatar(root);
+
+        CheckNaNimationBoneScalesRecursive(root.transform);
+
+        static void CheckNaNimationBoneScalesRecursive(Transform root)
+        {
+            if (root.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix))
+            {
+                Assert.AreEqual(Vector3.one, root.localScale);
+            }
+
+            foreach (Transform transform in root.transform)
+            {
+                CheckNaNimationBoneScalesRecursive(transform);
+            }
+        }
+    }
     private static void AssertBuildDeletion(SkinnedMeshRenderer mesh, GameObject root)
     {
         var originalSharedMesh = mesh.sharedMesh;
