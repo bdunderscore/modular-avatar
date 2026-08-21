@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2100] スケール違いの素体と衣装に `Mesh Cutter` や `Shape Changer` を適用するとメッシュが歪む問題を修正
-- [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
-- [#2102] プレイモードで `Mesh Cutter` や `Shape Changer` が正しく適用されない問題を修正
 
 ### Changed
 
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.3] - [2026-08-21]
+
+### Fixed
+- [#2100] スケール違いの素体と衣装に `Mesh Cutter` や `Shape Changer` を適用するとメッシュが歪む問題を修正
+- [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
+- [#2102] プレイモードで `Mesh Cutter` や `Shape Changer` が正しく適用されない問題を修正
 
 ## [1.18.2] - [2026-08-18]
 
