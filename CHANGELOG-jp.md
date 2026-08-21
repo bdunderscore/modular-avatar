@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2100] スケール違いの素体と衣装に NaNimation が適用されるとメッシュが歪むのを修正
 
 ### Changed
 

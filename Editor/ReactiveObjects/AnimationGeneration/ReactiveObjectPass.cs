@@ -540,7 +540,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (!parentToBuffer.TryGetValue(bonesArray[bone.originalBoneIndex], out var bufferTransform))
                 {
-                    var bufferObj = new GameObject(NaNimationFilter.NaNimatedBufferPrefix);
+                    var bufferObj = new GameObject(NaNimationFilter.NaNimatedBufferPrefix + "$" + Guid.NewGuid());
                     bufferTransform = bufferObj.transform;
                     bufferTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
                     bufferTransform.localPosition = Vector3.zero;
