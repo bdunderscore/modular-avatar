@@ -23,6 +23,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
@@ -71,6 +72,60 @@ namespace nadena.dev.modular_avatar.core
         public static string RelativePath(GameObject root, GameObject child)
         {
             return ndmf.runtime.RuntimeUtil.RelativePath(root, child);
+        }
+
+        [CanBeNull]
+        public static Transform ResolveParentAllowedRelativePath(Transform root, string path, Transform limit = null)
+        {
+            if (root == null || string.IsNullOrEmpty(path)) return null;
+
+            var current = root;
+            var parts = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var raw in parts)
+            {
+                if (raw == "..")
+                {
+                    if (limit != null && current == limit) return null;
+                    current = current.parent;
+                    if (current == null) return null;
+                    continue;
+                }
+
+                current = current.Find(raw);
+                if (current == null) return null;
+            }
+
+            if (limit != null && !current.IsChildOf(limit) && current != limit) return null;
+            return current;
+        }
+
+        [CanBeNull]
+        public static string ParentAllowedRelativePath(Transform root, Transform target, Transform limit = null)
+        {
+            if (root == null || target == null) return "";
+            if (root == target) return "";
+
+            if (limit != null)
+            {
+                if (!root.IsChildOf(limit) && root != limit) return "";
+                if (!target.IsChildOf(limit) && target != limit) return "";
+            }
+
+            var common = root;
+            while (common != null && (limit == null || common != limit.parent) && !target.IsChildOf(common)) common = common.parent;
+            if (common == null || (limit != null && common == limit.parent)) return "";
+
+            int up = 0;
+            for (var t = root; t != common; t = t.parent) up++;
+
+            var stack = new List<string>();
+            for (var t = target; t != common; t = t.parent) stack.Add(t.name);
+            stack.Reverse();
+
+            var prefix = "";
+            for (int i = 0; i < up; i++) prefix += "../";
+
+            return prefix + string.Join("/", stack);
         }
 
         [CanBeNull]
