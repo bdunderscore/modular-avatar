@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 Modular Avatarの主な変更点をこのファイルで記録しています。
 なお、プレリリース版の変更点は `CHANGELOG-PRERELEASE.md` に記録されます。
@@ -11,8 +11,9 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
-- [#2100] スケール違いの素体と衣装に NaNimation が適用されるとメッシュが歪むのを修正
+- [#2100] スケール違いの素体と衣装に `Mesh Cutter` や `Shape Changer` を適用するとメッシュが歪む問題を修正
 - [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
+- [#2102] プレイモードで `Mesh Cutter` や `Shape Changer` が正しく適用されない問題を修正
 
 ### Changed
 
