@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2100] スケール違いの素体と衣装に NaNimation が適用されるとメッシュが歪むのを修正
+- [#2097] 1.18より前の BlendShape Sync のアニメーション生成に依存するツールとの互換性の改善
 
 ### Changed
 
