@@ -176,12 +176,15 @@ namespace nadena.dev.modular_avatar.core
             _editorBindings = new List<EditorBlendshapeBinding>();
 
             var localRenderer = GetComponent<SkinnedMeshRenderer>();
+            if (localRenderer == null) return;
+
             var localMesh = localRenderer.sharedMesh;
             if (localMesh == null)
                 return;
 
             foreach (var binding in Bindings)
             {
+                if (binding.ReferenceMesh == null) continue;
                 var obj = binding.ReferenceMesh.Get(this);
                 if (obj == null)
                     continue;
@@ -220,10 +223,10 @@ namespace nadena.dev.modular_avatar.core
 
             if (_editorBindings == null) return;
             var localRenderer = GetComponent<SkinnedMeshRenderer>();
-            if (localRenderer == null) return;
+            if (localRenderer == null || localRenderer.sharedMesh == null) return;
             foreach (var binding in _editorBindings)
             {
-                if (binding.TargetMesh == null) continue;
+                if (binding.TargetMesh == null || binding.TargetMesh.sharedMesh == null) continue;
                 var weight = binding.TargetMesh.GetBlendShapeWeight(binding.RemoteBlendshapeIndex);
                 if (binding.RemapCurve != null)
                 {

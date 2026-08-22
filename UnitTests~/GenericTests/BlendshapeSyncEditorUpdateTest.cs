@@ -66,5 +66,39 @@ namespace modular_avatar_tests
             Assert.AreEqual(77f, localSmr.GetBlendShapeWeight(1), 0.001f,
                 "EditorUpdate must skip null-TargetMesh bindings and still sync subsequent valid ones");
         }
+
+        [Test]
+        public void Rebind_SkipsNullReferenceMesh_AndProcessesValidBindings()
+        {
+            var root = CreateRoot("root");
+            var localGo = CreateChild(root, "local");
+            var localMesh = TrackObject(CreateMeshWithBlendshapes("shape_a", "shape_b"));
+            var localSmr = localGo.AddComponent<SkinnedMeshRenderer>();
+            localSmr.sharedMesh = localMesh;
+
+            var sourceGo = CreateChild(root, "source");
+            var sourceMesh = TrackObject(CreateMeshWithBlendshapes("shape_b"));
+            var sourceSmr = sourceGo.AddComponent<SkinnedMeshRenderer>();
+            sourceSmr.sharedMesh = sourceMesh;
+            sourceSmr.SetBlendShapeWeight(0, 77f);
+
+            var sync = localGo.AddComponent<ModularAvatarBlendshapeSync>();
+            sync.Bindings.Add(new BlendshapeBinding
+            {
+                Blendshape = "shape_a",
+            });
+            sync.Bindings.Add(new BlendshapeBinding
+            {
+                ReferenceMesh = new AvatarObjectReference(sourceGo),
+                Blendshape = "shape_b",
+                LocalBlendshape = "shape_b",
+                RemapCurveIsValid = true,
+                RemapCurve = AnimationCurve.Linear(0, 0, 100, 100),
+            });
+
+            Assert.DoesNotThrow(sync.Rebind);
+            Assert.That(sync._editorBindings, Has.Count.EqualTo(1));
+            Assert.AreEqual(77f, localSmr.GetBlendShapeWeight(1), 0.001f);
+        }
     }
 }
