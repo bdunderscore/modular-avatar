@@ -2,7 +2,9 @@
 
 using System.Runtime.CompilerServices;
 using Unity.Burst;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 #endregion

@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 #endregion
