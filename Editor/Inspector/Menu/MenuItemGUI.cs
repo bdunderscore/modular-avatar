@@ -620,25 +620,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorGUI.BeginChangeCheck();
                 DrawHorizontalToggleProp(_prop_isSaved, G("menuitem.prop.is_saved"), savedIsMixed);
                 if (EditorGUI.EndChangeCheck() && siblings != null)
-                    foreach (var sibling in siblings)
-                    {
-                        sibling.isSaved = _prop_isSaved.boolValue;
-                        EditorUtility.SetDirty(sibling);
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
-                    }
+                    PropagateSavedState(siblings, _prop_isSaved.boolValue);
 
                 GUILayout.FlexibleSpace();
                 EditorGUI.BeginChangeCheck();
                 DrawHorizontalToggleProp(_prop_isSynced, G("menuitem.prop.is_synced"), syncedIsMixed,
                     forceSyncedValue);
                 if (EditorGUI.EndChangeCheck() && siblings != null)
-                    foreach (var sibling in siblings)
-                    {
-                        sibling.isSynced = _prop_isSynced.boolValue;
-                        EditorUtility.SetDirty(sibling);
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
-                    }
+                    PropagateSyncedState(siblings, _prop_isSynced.boolValue);
             }
+
 
             if (controllerIsElsewhere)
             {
@@ -674,6 +665,27 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+        internal static void PropagateSavedState(IEnumerable<ModularAvatarMenuItem> siblings, bool value)
+        {
+            foreach (var sibling in siblings)
+            {
+                Undo.RegisterCompleteObjectUndo(sibling, "Set menu item saved state");
+                sibling.isSaved = value;
+                EditorUtility.SetDirty(sibling);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
+            }
+        }
+
+        internal static void PropagateSyncedState(IEnumerable<ModularAvatarMenuItem> siblings, bool value)
+        {
+            foreach (var sibling in siblings)
+            {
+                Undo.RegisterCompleteObjectUndo(sibling, "Set menu item synced state");
+                sibling.isSynced = value;
+                EditorUtility.SetDirty(sibling);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(sibling);
+            }
         }
 
         private void DoValueField()

@@ -234,7 +234,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 // confusion in Unity's humanoid armature matching system. Fortunately, we can avoid this by
                 // renaming a bone close to the root; this will ensure the number of matching bones is small, and
                 // Unity's heuristics (apparently) will choose the base avatar's armature as the "true" armature.
+                Undo.RecordObject(outfitArmature.gameObject, "");
                 outfitArmature.name += ".1";
+                PrefabUtility.RecordPrefabInstancePropertyModifications(outfitArmature.gameObject);
 
                 // Also make sure to refresh the avatar's animator humanoid bone cache.
                 var humanDescription = avatarAnimator.avatar;

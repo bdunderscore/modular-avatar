@@ -121,6 +121,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     detectedParameters.RemoveAt(i);
 
                     var target = (ModularAvatarParameters)this.target;
+                    Undo.RecordObject(target, "Add detected parameter");
                     target.parameters.Add(new ParameterConfig()
                     {
                         internalParameter = false,
@@ -196,6 +197,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
             
+            var importedAny = false;
+
             foreach (var parameter in source.parameters)
             {
                 if (!known.Contains(parameter.name))
@@ -221,8 +224,16 @@ namespace nadena.dev.modular_avatar.core.editor
                         defaultValue = parameter.defaultValue,
                         saved = parameter.saved,
                     });
+                    importedAny = true;
                 }
             }
+
+            if (importedAny)
+            {
+                EditorUtility.SetDirty(target);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+            }
+
         }
 
         private void DetectParameters()

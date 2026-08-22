@@ -132,7 +132,9 @@ namespace nadena.dev.modular_avatar.core.editor
 var targetWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(targetHand.position).x);
 var mergeWingspan = Mathf.Abs(rootAnimator.transform.InverseTransformPoint(mergeHand.position).x);
 if (mergeWingspan <= Mathf.Epsilon) return;
-mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
+                Undo.RecordObject(mergeArmature.transform, "Merge Armature: Adjust heuristic scale");
+                mergeArmature.transform.localScale *= targetWingspan / mergeWingspan;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(mergeArmature.transform);
             }
 
             void Walk(Transform mergeTransform, Transform targetTransform)
