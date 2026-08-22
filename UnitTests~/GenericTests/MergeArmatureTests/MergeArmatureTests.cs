@@ -243,6 +243,40 @@ public class MergeArmatureTests : TestBase
         Assert.IsNull(result);
     }
 
+    [Test]
+    public void ForcePositionHeuristicRootScaleUsesAvatarRelativeWingspanAndCanBeUndone()
+    {
+        var root = CreateCommonPrefab("shapell.fbx");
+        AddMinimalAvatarComponents(root);
+        var targetArmature = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
+
+        var outfit = CreateCommonPrefab("shapell.fbx");
+        outfit.transform.SetParent(root.transform, false);
+        var mergeArmatureTransform = outfit.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
+        mergeArmatureTransform.localScale = Vector3.one * 0.5f;
+        var mergeArmature = mergeArmatureTransform.gameObject.AddComponent<ModularAvatarMergeArmature>();
+        mergeArmature.mergeTarget.Set(targetArmature.gameObject);
+
+        Undo.IncrementCurrentGroup();
+        var undoGroup = Undo.GetCurrentGroup();
+        MergeArmatureInspectorTools.ForcePositionToBaseAvatar(
+            mergeArmature,
+            new MergeArmaturePositionResetOptions
+            {
+                ConvertATPose = false,
+                AdjustScale = true,
+                HeuristicRootScale = true,
+            }
+        );
+        Undo.CollapseUndoOperations(undoGroup);
+
+        Assert.AreEqual(Vector3.one, mergeArmatureTransform.localScale);
+
+        Undo.PerformUndo();
+
+        Assert.AreEqual(Vector3.one * 0.5f, mergeArmatureTransform.localScale);
+    }
+
     private static GameObject LoadShapell()
     {
         return GameObject.Instantiate(

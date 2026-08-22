@@ -30,6 +30,29 @@ public class SetupOutfitRenameTest : TestBase
     }
 
     [Test]
+    public void SetupOutfitArmatureRenameCanBeUndone()
+    {
+        var root = CreateCommonPrefab("shapell.fbx");
+        AddMinimalAvatarComponents(root);
+
+        var outfit = CreateCommonPrefab("shapell.fbx");
+        outfit.transform.SetParent(root.transform);
+        var outfitArmature = outfit.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
+        var originalName = outfitArmature.name;
+
+        Undo.IncrementCurrentGroup();
+        var undoGroup = Undo.GetCurrentGroup();
+        SetupOutfit.SetupOutfitUI(outfit);
+        Undo.CollapseUndoOperations(undoGroup);
+
+        Assert.AreEqual(originalName + ".1", outfitArmature.name);
+
+        Undo.PerformUndo();
+
+        Assert.AreEqual(originalName, outfitArmature.name);
+    }
+
+    [Test]
     public void SetupOutfitCanBeRunTwiceWithoutAddingDuplicateComponents()
     {
         var root = CreateCommonPrefab("shapell.fbx");

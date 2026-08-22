@@ -1,3 +1,7 @@
+using System.Reflection;
+using nadena.dev.modular_avatar.core.editor;
+using UnityEditor;
+
 #nullable enable
 
 using System.Collections;
@@ -212,4 +216,45 @@ public class MenuItemSerializationTest : TestBase
         Assert.IsNotNull(menuItem.Control);
         #endif
     }
+
+    [Test]
+    public void MenuItemInspectorPropagatesSavedAndSyncedStateToSiblingsWithUndo()
+    {
+        var root = CreateRoot("root");
+        var primary = CreateMenuItem(root, "Primary");
+        var sibling = CreateMenuItem(root, "Sibling");
+        sibling.isSaved = false;
+        sibling.isSynced = false;
+        Undo.ClearAll();
+
+        Undo.IncrementCurrentGroup();
+        var undoGroup = Undo.GetCurrentGroup();
+        MenuItemCoreGUI.PropagateSavedState(new[] { sibling }, true);
+        Undo.CollapseUndoOperations(undoGroup);
+
+        Assert.True(sibling.isSaved);
+
+        Undo.RevertAllDownToGroup(undoGroup);
+
+        Assert.False(sibling.isSaved);
+
+        Undo.IncrementCurrentGroup();
+        undoGroup = Undo.GetCurrentGroup();
+        MenuItemCoreGUI.PropagateSyncedState(new[] { sibling }, true);
+        Undo.CollapseUndoOperations(undoGroup);
+
+        Assert.True(sibling.isSynced);
+
+        Undo.RevertAllDownToGroup(undoGroup);
+
+        Assert.False(sibling.isSynced);
+    }
+
+    private ModularAvatarMenuItem CreateMenuItem(GameObject root, string name)
+    {
+        var item = CreateChild(root, name).AddComponent<ModularAvatarMenuItem>();
+        item.PortableControl.Parameter = "Shared";
+        return item;
+    }
+
 }
