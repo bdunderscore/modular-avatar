@@ -26,7 +26,9 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS
