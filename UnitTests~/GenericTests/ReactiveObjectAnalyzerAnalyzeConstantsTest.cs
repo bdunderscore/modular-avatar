@@ -1,10 +1,15 @@
+using System.Collections;
 using System.Collections.Generic;
 using nadena.dev.modular_avatar.animation;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.preview;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace modular_avatar_tests
 {
@@ -71,6 +76,68 @@ namespace modular_avatar_tests
                 $"Expected 1 action group remaining after pruning, but found {animatedProperty.actionGroups.Count}. " +
                 "The off-by-one in RemoveRange leaves a redundant dead group.");
         }
+
+        [UnityTest]
+        public IEnumerator CachedAnalyze_InvalidatesWhenRendererSharedMeshChanges()
+        {
+            var root = CreateRoot("root");
+            var rendererObject = CreateChild(root, "renderer");
+            var renderer = rendererObject.AddComponent<SkinnedMeshRenderer>();
+            var changer = root.AddComponent<ModularAvatarShapeChanger>();
+            changer.Shapes.Add(new ChangedShape
+            {
+                Object = new AvatarObjectReference(rendererObject),
+                ShapeName = "new_shape",
+                ChangeType = ShapeChangeType.Set,
+                Value = 100,
+            });
+
+            var target = new TargetProp
+            {
+                TargetObject = renderer,
+                PropertyName = ReactiveObjectAnalyzer.BlendshapePrefix + "new_shape",
+            };
+            var context = new ComputeContext("sharedMesh invalidation test");
+            try
+            {
+                var initialAnalysis = ReactiveObjectAnalyzer.CachedAnalyze(context, root);
+                Assert.IsFalse(initialAnalysis.Shapes.ContainsKey(target));
+
+                var mesh = TrackObject(new Mesh());
+                mesh.vertices = new[] { Vector3.zero, Vector3.right, Vector3.up };
+                mesh.triangles = new[] { 0, 1, 2 };
+                var deltas = new[] { Vector3.up, Vector3.up, Vector3.up };
+                mesh.AddBlendShapeFrame("new_shape", 100, deltas, new Vector3[3], new Vector3[3]);
+
+                var serializedRenderer = new SerializedObject(renderer);
+                serializedRenderer.FindProperty("m_Mesh").objectReferenceValue = mesh;
+                serializedRenderer.ApplyModifiedProperties();
+                yield return null;
+                ComputeContext.FlushInvalidates();
+
+                Assert.IsTrue(context.IsInvalidated,
+                    "Changing a renderer's sharedMesh must invalidate the cached reactive analysis.");
+
+                var refreshedContext = new ComputeContext("sharedMesh refreshed analysis test");
+                try
+                {
+                    var refreshedAnalysis = ReactiveObjectAnalyzer.CachedAnalyze(refreshedContext, root);
+                    Assert.IsTrue(refreshedAnalysis.Shapes.ContainsKey(target),
+                        "The refreshed analysis must register the shape provided by the new mesh.");
+                }
+                finally
+                {
+                    refreshedContext.Invalidate();
+                    ComputeContext.FlushInvalidates();
+                }
+            }
+            finally
+            {
+                context.Invalidate();
+                ComputeContext.FlushInvalidates();
+            }
+        }
+
 
         private ReactionRule CreateRuleWithCondition(bool isConstant, bool initiallyActive, bool inverted)
         {
