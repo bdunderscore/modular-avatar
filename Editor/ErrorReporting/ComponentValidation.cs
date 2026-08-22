@@ -99,11 +99,12 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
             if (localMesh == null)
             {
                 BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_local_renderer", bs);
+                return;
             }
-
             if (localMesh.sharedMesh == null)
             {
                 BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_local_mesh", bs);
+                return;
             }
 
             if (bs.Bindings == null || bs.Bindings.Count == 0)
@@ -121,6 +122,12 @@ namespace nadena.dev.modular_avatar.editor.ErrorReporting
                 {
                     BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.missing_local_shape",
                         localShape, bs);
+                }
+
+                if (binding.ReferenceMesh == null)
+                {
+                    BuildReport.Log(ErrorSeverity.NonFatal, "validation.blendshape_sync.no_target", bs);
+                    continue;
                 }
 
                 var targetObj = binding.ReferenceMesh.Get(bs.transform);
