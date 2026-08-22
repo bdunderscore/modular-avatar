@@ -124,6 +124,22 @@ namespace UnitTests.SyncParameterSequence
                 IsWarningKey(e, "validation.syncparamsequence.no_primary_record")));
         }
 
+        [Test]
+        public void DoesNotUsePrimaryTargetFromAnotherAvatar()
+        {
+            var primaryTarget = CreateConfiguredRoot(Platform.PC);
+            primaryTarget.AddComponent<ModularAvatarSyncParameterSequence>();
+            var otherAvatar = CreateRoot("OtherAvatar");
+            var context = CreateContext(otherAvatar, WellKnownPlatforms.VRChatAvatar30);
+
+            SyncParameterSequencePass.LastPrimaryTarget.Value = primaryTarget;
+
+            var errors = ErrorReport.CaptureErrors(() => SyncParameterSequencePass.ExecuteStatic(context));
+
+            Assert.IsFalse(errors.Any(e => e.TheError.Severity == ErrorSeverity.Error));
+            Assert.AreEqual(primaryTarget, SyncParameterSequencePass.LastPrimaryTarget.Value);
+        }
+
         private GameObject CreateConfiguredRoot(Platform primaryPlatform)
         {
             var root = CreateRoot("SyncParameterSequenceTest");
