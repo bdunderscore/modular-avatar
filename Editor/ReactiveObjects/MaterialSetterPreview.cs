@@ -27,21 +27,21 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private const string PREFIX = "m_Materials.Array.data[";
         
-        private PropCache<Renderer, ImmutableList<(int, Material)>> _cache = new(
+        private PropCache<Renderer, ImmutableList<(int, Material?)>> _cache = new(
             "GetMaterialOverridesForRenderer", GetMaterialOverridesForRenderer, Enumerable.SequenceEqual
         );
 
-        private static ImmutableList<(int, Material)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)
+        private static ImmutableList<(int, Material?)> GetMaterialOverridesForRenderer(ComputeContext ctx, Renderer r)
         {
             if (r == null)
             {
-                return ImmutableList<(int, Material)>.Empty;
+                return ImmutableList<(int, Material?)>.Empty;
             }
 
             var avatar = ctx.GetAvatarRoot(r.gameObject);
             var analysis = ReactiveObjectAnalyzer.CachedAnalyze(ctx, avatar);
 
-            var materials = ImmutableList<(int, Material)>.Empty;
+            var materials = ImmutableList<(int, Material?)>.Empty;
             
             foreach (var prop in analysis.Shapes.Values)
             {
@@ -52,9 +52,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
                 var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not Material mat) continue;
-                
-                materials = materials.Add((index, mat));
+                if (activeRule == null || activeRule.Value is not null and not Material) continue;
+
+                materials = materials.Add((index, activeRule.Value as Material));
             }
 
             return materials.OrderBy(kv => kv.Item1).ToImmutableList();
@@ -76,7 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var index = int.Parse(target.PropertyName.Substring(PREFIX.Length, target.PropertyName.IndexOf(']') - PREFIX.Length));
                 
                 var activeRule = prop.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not Material mat) continue;
+                if (activeRule == null || activeRule.Value is not null and not Material) continue;
 
                 renderers.Add(r);
             }
@@ -100,12 +100,12 @@ namespace nadena.dev.modular_avatar.core.editor
         private class Node : IRenderFilterNode
         {
             private readonly Renderer _target;
-            private readonly PropCache<Renderer, ImmutableList<(int, Material)>> _cache;
-            private ImmutableList<(int, Material)> _materials = ImmutableList<(int, Material)>.Empty;
-            
+            private readonly PropCache<Renderer, ImmutableList<(int, Material?)>> _cache;
+            private ImmutableList<(int, Material?)> _materials = ImmutableList<(int, Material?)>.Empty;
+
             public RenderAspects WhatChanged { get; private set; } = RenderAspects.Material;
-            
-            public Node(PropCache<Renderer, ImmutableList<(int, Material)>> cache, Renderer renderer)
+
+            public Node(PropCache<Renderer, ImmutableList<(int, Material?)>> cache, Renderer renderer)
             {
                 _cache = cache;
                 _target = renderer;
