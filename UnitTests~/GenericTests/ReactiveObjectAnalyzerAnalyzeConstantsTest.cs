@@ -139,6 +139,33 @@ namespace modular_avatar_tests
         }
 
 
+        [Test]
+        public void Analyze_IgnoresNegativeMaterialSetterSlot()
+        {
+            var root = CreateRoot("root");
+            var rendererObject = CreateChild(root, "renderer");
+            var renderer = rendererObject.AddComponent<MeshRenderer>();
+            renderer.sharedMaterials = new Material[1];
+
+            var setter = root.AddComponent<ModularAvatarMaterialSetter>();
+            setter.Objects.Add(new MaterialSwitchObject
+            {
+                Object = new AvatarObjectReference(rendererObject),
+                MaterialIndex = -1,
+            });
+
+            ReactiveObjectAnalyzer.AnalysisResult analysis = default;
+            Assert.DoesNotThrow(() => analysis = new ReactiveObjectAnalyzer().Analyze(root));
+
+            var invalidTarget = new TargetProp
+            {
+                TargetObject = renderer,
+                PropertyName = "m_Materials.Array.data[-1]",
+            };
+            Assert.IsFalse(analysis.Shapes.ContainsKey(invalidTarget),
+                "A negative material slot must not generate a material animation action.");
+        }
+
         private ReactionRule CreateRuleWithCondition(bool isConstant, bool initiallyActive, bool inverted)
         {
             var targetProp = new TargetProp { TargetObject = null, PropertyName = "test" };
