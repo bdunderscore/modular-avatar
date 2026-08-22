@@ -6,6 +6,16 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+
+#if UNITY_6000_2_OR_NEWER
+using TreeViewCompat = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TreeViewItemCompat = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+using TreeViewStateCompat = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+#else
+using TreeViewCompat = UnityEditor.IMGUI.Controls.TreeView;
+using TreeViewItemCompat = UnityEditor.IMGUI.Controls.TreeViewItem;
+using TreeViewStateCompat = UnityEditor.IMGUI.Controls.TreeViewState;
+#endif
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -122,7 +132,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 if (_tree == null)
                 {
-                    _tree = new ParameterTree(new TreeViewState(), _target);
+                    _tree = new ParameterTree(new TreeViewStateCompat(), _target);
                     _tree.OnSelect = (s) =>
                     {
                         _prop.stringValue = s;
@@ -150,24 +160,24 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private class ParameterTree : TreeView
+        private class ParameterTree : TreeViewCompat
         {
             private List<string> _items;
             public Action<string> OnSelect, OnCommit;
 
             private GameObject _obj;
 
-            private class SourceItem : TreeViewItem
+            private class SourceItem : TreeViewItemCompat
             {
                 public GameObject source;
             }
 
-            private class ParamItem : TreeViewItem
+            private class ParamItem : TreeViewItemCompat
             {
                 public GameObject source;
             }
 
-            public ParameterTree(TreeViewState state, GameObject obj) : base(state)
+            public ParameterTree(TreeViewStateCompat state, GameObject obj) : base(state)
             {
                 _obj = obj;
             }
@@ -224,13 +234,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            protected override TreeViewItem BuildRoot()
+            protected override TreeViewItemCompat BuildRoot()
             {
-                List<TreeViewItem> treeItems = new List<TreeViewItem>();
+                List<TreeViewItemCompat> treeItems = new List<TreeViewItemCompat>();
                 _items = new List<string>();
 
                 _items.Add("");
-                var root = new TreeViewItem {id = 0, depth = -1, displayName = "Root"};
+                var root = new TreeViewItemCompat {id = 0, depth = -1, displayName = "Root"};
 
                 GameObject priorNode = null;
 

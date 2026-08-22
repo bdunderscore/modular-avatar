@@ -218,7 +218,14 @@ namespace nadena.dev.modular_avatar.core.editor
             if (mami?.Control != null && isSimulation && ShouldAssignParametersToMami(mami))
             {
                 paramName = mami.Control?.parameter?.name;
-                if (string.IsNullOrEmpty(paramName)) paramName = "___AutoProp/" + mami.GetInstanceID();
+                if (string.IsNullOrEmpty(paramName))
+                {
+#if UNITY_6000_4_OR_NEWER
+                    paramName = "___AutoProp/" + mami.GetEntityId();
+#else
+                    paramName = "___AutoProp/" + mami.GetInstanceID();
+#endif
+                }
 
                 if (simulationInitialStates != null)
                 {

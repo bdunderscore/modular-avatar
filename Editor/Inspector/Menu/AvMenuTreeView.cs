@@ -10,6 +10,16 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+
+#if UNITY_6000_2_OR_NEWER
+using TreeViewCompat = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TreeViewItemCompat = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+using TreeViewStateCompat = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+#else
+using TreeViewCompat = UnityEditor.IMGUI.Controls.TreeView;
+using TreeViewItemCompat = UnityEditor.IMGUI.Controls.TreeViewItem;
+using TreeViewStateCompat = UnityEditor.IMGUI.Controls.TreeViewState;
+#endif
 using VRC.SDK3.Avatars.ScriptableObjects;
 using static nadena.dev.modular_avatar.core.editor.Localization;
 
@@ -38,7 +48,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void Awake()
         {
-            _treeView = new AvMenuTreeView(new TreeViewState());
+            _treeView = new AvMenuTreeView(new TreeViewStateCompat());
             _treeView.OnSelect = (menu) => OnMenuSelected.Invoke(menu);
             _treeView.OnDoubleclickSelect = Close;
             _cacheIndex = -1;
@@ -85,7 +95,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
     }
 
-    class AvMenuTreeView : TreeView
+    class AvMenuTreeView : TreeViewCompat
     {
         private VRCAvatarDescriptor _avatar;
 
@@ -120,7 +130,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private VirtualMenu _menuTree;
         private Stack<object> _visitedMenuStack = new Stack<object>();
 
-        public AvMenuTreeView(TreeViewState state) : base(state)
+        public AvMenuTreeView(TreeViewStateCompat state) : base(state)
         {
         }
 
@@ -149,7 +159,7 @@ namespace nadena.dev.modular_avatar.core.editor
             OnDoubleclickSelect.Invoke();
         }
 
-        protected override TreeViewItem BuildRoot()
+        protected override TreeViewItemCompat BuildRoot()
         {
             _nodeKeys.Clear();
             _visitedMenuStack.Clear();
@@ -168,10 +178,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 rootName = $"({menu.name})";
             }
 
-            var root = new TreeViewItem(-1, -1, "<root>");
-            List<TreeViewItem> treeItems = new List<TreeViewItem>
+            var root = new TreeViewItemCompat(-1, -1, "<root>");
+            List<TreeViewItemCompat> treeItems = new List<TreeViewItemCompat>
             {
-                new TreeViewItem
+                new TreeViewItemCompat
                 {
                     id = 0,
                     depth = 0,
@@ -208,7 +218,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return menuTree.RootMenuKey;
         }
 
-        private void TraverseMenu(int depth, List<TreeViewItem> items, VirtualMenuNode node)
+        private void TraverseMenu(int depth, List<TreeViewItemCompat> items, VirtualMenuNode node)
         {
             IEnumerable<VirtualControl> children = node.Controls
                 .Where(control => control.type == VRCExpressionsMenu.Control.ControlType.SubMenu &&
@@ -219,7 +229,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 string displayName = child.name;
 
                 items.Add(
-                    new TreeViewItem
+                    new TreeViewItemCompat
                     {
                         id = items.Count,
                         depth = depth,

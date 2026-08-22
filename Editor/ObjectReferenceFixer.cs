@@ -5,15 +5,21 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
+#if UNITY_6000_4_OR_NEWER
+using ObjectId = UnityEngine.EntityId;
+#else
+using ObjectId = System.Int32;
+#endif
+
 namespace nadena.dev.modular_avatar.core
 {
     public static class ObjectReferenceFixer
     {
         private static ComputeContext _context;
 
-        private static int? _lastStage;
+        private static ObjectId? _lastStage;
 
-        private static int? GetCurrentContentsRootId(out GameObject contentsRoot)
+        private static ObjectId? GetCurrentContentsRootId(out GameObject contentsRoot)
         {
             contentsRoot = null;
 
@@ -22,7 +28,11 @@ namespace nadena.dev.modular_avatar.core
 
             contentsRoot = stage.prefabContentsRoot;
 
+            #if UNITY_6000_4_OR_NEWER
+            return stage.prefabContentsRoot.GetEntityId();
+#else
             return stage.prefabContentsRoot.GetInstanceID();
+#endif
         }
         
         [InitializeOnLoadMethod]
