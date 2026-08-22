@@ -19,6 +19,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public static Mesh RemoveVertices(Renderer renderer, Mesh original,
             IEnumerable<(TargetProp, IMeshSelector)> targets)
         {
+            if (original.vertexCount == 0) return Object.Instantiate(original);
+
             var mesh = new Mesh();
             mesh.indexFormat = original.indexFormat;
             mesh.bounds = original.bounds;

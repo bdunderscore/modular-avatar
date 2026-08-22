@@ -202,6 +202,19 @@ public class RemoveVerticesFromMeshTest : TestBase
     }
 
     [Test]
+    public void EmptyMeshIsClonedWithoutRetainingANonexistentVertex()
+    {
+        var original = new Mesh { subMeshCount = 1 };
+
+        var result = RemoveVerticesFromMesh.RemoveVertices(null!, original,
+            Array.Empty<(TargetProp, IMeshSelector)>());
+
+        Assert.AreNotSame(original, result);
+        Assert.AreEqual(0, result.vertexCount);
+        Assert.AreEqual(1, result.subMeshCount);
+    }
+
+    [Test]
     public void TestHighDimensionalUVPreservation()
     {
         var mesh = new Mesh();
