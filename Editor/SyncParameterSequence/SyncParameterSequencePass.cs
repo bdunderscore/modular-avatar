@@ -46,7 +46,10 @@ namespace nadena.dev.modular_avatar.core.editor.SyncParameterSequence
 
         internal static void ExecuteStatic(ndmf.BuildContext context)
         {
-            var refObj = LastPrimaryTarget.Value ?? context.AvatarRootObject;
+            var primaryTarget = LastPrimaryTarget.Value;
+            var refObj = primaryTarget != null && primaryTarget == context.AvatarRootObject
+                ? primaryTarget
+                : context.AvatarRootObject;
             var target = OverrideBuildTarget ?? EditorUserBuildSettings.activeBuildTarget;
             var targetDesc = context.VRChatAvatarDescriptor();
             var debugContext = SyncParameterSequenceDebugLog.CreateContext(

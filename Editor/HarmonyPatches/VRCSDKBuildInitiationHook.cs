@@ -26,7 +26,8 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
                 {
                     harmony.Patch(
                         method,
-                        new HarmonyMethod(typeof(VRCSDKBuildInitiationHook), nameof(BeforeBuild))
+                        new HarmonyMethod(typeof(VRCSDKBuildInitiationHook), nameof(BeforeBuild)),
+                        new HarmonyMethod(typeof(VRCSDKBuildInitiationHook), nameof(AfterBuild))
                     );
                 }
             }
@@ -36,6 +37,11 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
         {
             SyncParameterSequencePass.LastPrimaryTarget.Value = target;
             return true;
+        }
+
+        private static void AfterBuild()
+        {
+            SyncParameterSequencePass.LastPrimaryTarget.Value = null;
         }
     }
 }
