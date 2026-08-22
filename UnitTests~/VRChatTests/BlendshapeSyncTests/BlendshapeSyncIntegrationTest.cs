@@ -5,6 +5,7 @@ using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
@@ -109,6 +110,37 @@ namespace modular_avatar_tests
             int syncedShape1 = syncedMesh.sharedMesh.GetBlendShapeIndex("shape_1");
             Assert.AreEqual(42.5f, syncedMesh.GetBlendShapeWeight(syncedShape0Local));
             Assert.AreEqual(13.7f, syncedMesh.GetBlendShapeWeight(syncedShape1));
+        }
+
+        [Test]
+        public void BlendshapeSync_MissingSharedMeshes_AreDiagnosedAndDoNotPreventValidBindingProcessing()
+        {
+            var missingLocalRoot = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
+            var missingLocalRenderer = missingLocalRoot.transform.Find("SyncedMesh")
+                .GetComponent<SkinnedMeshRenderer>();
+            missingLocalRenderer.sharedMesh = null;
+
+            var localErrors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(missingLocalRoot));
+            Assert.That(localErrors.Select(e => e.TheError as SimpleError)
+                .Any(e => e?.TitleKey == "validation.blendshape_sync.no_local_mesh"), Is.True);
+
+            var missingSourceRoot = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
+            var missingSourceRenderer = missingSourceRoot.transform.Find("BaseMesh")
+                .GetComponent<SkinnedMeshRenderer>();
+            missingSourceRenderer.sharedMesh = null;
+
+            var sourceErrors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(missingSourceRoot));
+            Assert.That(sourceErrors.Select(e => e.TheError as SimpleError)
+                .Any(e => e?.TitleKey == "validation.blendshape_sync.missing_target_mesh"), Is.True);
+
+            var validRoot = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
+            AvatarProcessor.ProcessAvatar(validRoot);
+
+            var clip = findFxClip(validRoot, "Base Layer");
+            var syncedShape = AnimationUtility.GetCurveBindings(clip)
+                .Single(binding => binding.path == "SyncedMesh"
+                                   && binding.propertyName == "blendShape.shape_0_local");
+            Assert.That(AnimationUtility.GetEditorCurve(clip, syncedShape).keys[0].value, Is.EqualTo(0.1f));
         }
 
         [Test]

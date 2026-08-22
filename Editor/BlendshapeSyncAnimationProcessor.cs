@@ -109,7 +109,7 @@ namespace nadena.dev.modular_avatar.core.editor
             foreach (var (source, targets) in _bindingMappings)
             {
                 var smr = source.Renderer;
-                if (smr == null) continue;
+                if (smr == null || smr.sharedMesh == null) continue;
 
                 var srcIndex = smr.sharedMesh.GetBlendShapeIndex(source.BlendshapeName);
                 if (srcIndex < 0) continue;
@@ -119,7 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 foreach (var (target, remapCurve) in targets)
                 {
                     var targetSmr = target.Renderer;
-                    if (targetSmr == null) continue;
+                    if (targetSmr == null || targetSmr.sharedMesh == null) continue;
 
                     var targetIndex = targetSmr.sharedMesh.GetBlendShapeIndex(target.BlendshapeName);
                     if (targetIndex < 0) continue;
@@ -148,14 +148,16 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessComponent(GameObject avatarGameObject, ModularAvatarBlendshapeSync component)
         {
             var targetSmr = component.gameObject.GetComponent<SkinnedMeshRenderer>();
-            if (targetSmr == null) return;
+            if (targetSmr == null || targetSmr.sharedMesh == null) return;
 
             foreach (var binding in component.Bindings)
             {
+                if (binding.ReferenceMesh == null) continue;
+
                 var refObj = binding.ReferenceMesh.Get(component);
                 if (refObj == null) continue;
                 var refSmr = refObj.GetComponent<SkinnedMeshRenderer>();
-                if (refSmr == null) continue;
+                if (refSmr == null || refSmr.sharedMesh == null) continue;
 
                 var srcBinding = new SummaryBinding(refSmr, binding.Blendshape);
 
