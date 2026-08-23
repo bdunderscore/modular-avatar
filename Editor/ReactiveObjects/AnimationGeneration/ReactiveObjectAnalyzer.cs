@@ -381,12 +381,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     shapes.Remove(key);
                 }
-                // if all states are null, also drop the shape
-                else if (info.actionGroups.All(ag => ag.Value == null) && info.overrideStaticState == null)
+                // Null is a valid value for serialized object-reference properties.
+                else if (info.actionGroups.All(ag => ag.Value == null) &&
+                         info.overrideStaticState == null &&
+                         !IsObjectReferenceProperty(key))
                 {
                     shapes.Remove(key);
                 }
             }
+        }
+
+        private static bool IsObjectReferenceProperty(TargetProp key)
+        {
+            var property = new SerializedObject(key.TargetObject).FindProperty(key.PropertyName);
+            return property?.propertyType == SerializedPropertyType.ObjectReference;
         }
     }
 }
