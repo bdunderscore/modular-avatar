@@ -124,36 +124,45 @@ namespace UnitTestsReactiveComponentIL
             // Node2 reads param1, has AND condition with param2, drives param2
             // Node1 reads param2 -> creates loop
             var graph = new ReactionGraph();
-            
+
             var node1 = new ReactionNode(
                 new InternalParameterCondition("param2"),
                 new DriveInternalParameter("param1", true)
-            );
-            
+            )
+            {
+                Priority = 0
+            };
+
             var andExpr = new AndNode(
                 new InternalParameterCondition("param1"),
                 new InternalParameterCondition("param2")
             );
-            
+
             var node2 = new ReactionNode(
                 andExpr,
                 new DriveInternalParameter("param2", true)
-            );
-            
+            )
+            {
+                // Explicitly set priority to control which edge is broken (highest value first)
+                Priority = 1
+            };
+
             graph.AddNode(node1);
             graph.AddNode(node2);
 
             BreakLoopsTransform.Apply(graph);
 
-            // At least one parameter should have been broken
-            bool hasBrokenEdge = 
-                node1.Effects[0] is DriveParameter ||
-                node2.Effects[0] is DriveParameter;
-            Assert.IsTrue(hasBrokenEdge);
-            
-            // All InternalParameterConditions should be converted to ParameterExpressions
-            // if their corresponding edge was broken
-            AssertNoInternalParameterConditions(graph);
+            Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0]);
+            Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
+
+            foreach (var node in graph.Nodes)
+            {
+                Assert.IsFalse(ContainsInternalParameterConditionForParam(node.Expression, "param2"),
+                    "All references to the broken parameter should be converted");
+            }
+
+            Assert.IsTrue(ContainsInternalParameterConditionForParam(node2.Expression, "param1"),
+                "References to an unbroken parameter should remain internal");
         }
 
         [Test]
@@ -589,38 +598,6 @@ namespace UnitTestsReactiveComponentIL
             return found;
         }
 
-        /// <summary>
-        ///     Helper method to assert that there are no InternalParameterConditions remaining in the graph.
-        ///     This is useful for verifying that all broken parameters have been properly converted.
-        /// </summary>
-        private void AssertNoInternalParameterConditions(ReactionGraph graph)
-        {
-            foreach (var node in graph.Nodes)
-            {
-                var hasInternal = ContainsInternalParameterCondition(node.Expression);
-                Assert.IsFalse(hasInternal,
-                    "All InternalParameterConditions in a loop with multiple parameter references should be converted");
-            }
-        }
-
-        private bool ContainsInternalParameterCondition(IExpression expr)
-        {
-            if (expr is InternalParameterCondition)
-                return true;
-
-            bool found = false;
-            void Visit(ref IExpression e)
-            {
-                if (e is InternalParameterCondition)
-                    found = true;
-                else
-                    e.Walk(Visit);
-            }
-
-            var tmp = expr;
-            Visit(ref tmp);
-            return found;
-        }
 
         [Test]
         public void SimpleCycle_OnlyBreaksHighestPriorityParameter()

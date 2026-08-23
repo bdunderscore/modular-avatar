@@ -80,9 +80,9 @@ namespace UnitTestsReactiveComponentIL
                 ParameterValueHi = float.PositiveInfinity,
                 InitialValue = 1.0f,
             };
-            var rule = new ReactionRule(targetProp, true);
+            var rule = new ReactionRule(targetProp, 1.0f);
             rule.ControllingConditions.Add(condition);
-            var property = new AnimatedProperty(targetProp, false);
+            var property = new AnimatedProperty(targetProp, 0.0f);
             property.actionGroups.Add(rule);
 
             var shapeToGraph = typeof(ReactiveObjectPassV2)
