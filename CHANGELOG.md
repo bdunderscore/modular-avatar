@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2103] Fixed avatar builds failing when an `MA Material Setter` contains a negative material slot index.
 - [#2103] Fixed `MA Shape Changer` and `MA Mesh Cutter` previews not updating after the target renderer's mesh is assigned or changed.
 - [#2103] Fixed `Sync Parameter Sequence` using settings from a previously built avatar when performing manual bake operations.
+- [#2104] Fixed `MA Material Setter` previews not showing material slots cleared by a reactive component.
+- [#2104] Fixed reactive components failing to apply an initial `None` value to object-reference properties.
 
 ### Changed
 
