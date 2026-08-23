@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2103] 一部の Modular Avatar エディター操作で元に戻せない、または Prefab インスタンスへの変更が保存されない問題を修正しました。
+- [#2103] `MA Blendshape Sync` に関する軽微な修正：
+  - ローカルまたは参照先の Renderer にメッシュがない場合にビルドエラーが発生する問題を修正しました。
+  - 参照メッシュが未設定のバインディングがある場合にエディタープレビューでエラーが発生し、他の有効なバインディングが更新されなくなる問題を修正しました。
+- [#2103] 空のメッシュを含むアバターで `MA Mesh Cutter` を使用するとビルドに失敗する問題を修正しました。
+- [#2103] `MA Material Setter` でマテリアルスロットに負のインデックスが設定されている場合、アバタービルドが失敗する問題を修正しました。
+- [#2103] 対象 Renderer の Mesh が割り当て・変更された後に、`MA Shape Changer` と `MA Mesh Cutter` のプレビューが更新されない問題を修正しました。
+- [#2103] 手動ベイク操作時に `Sync Parameter Sequence` が直前にビルドした別のアバターの設定を使用する問題を修正しました。
 
 ### Changed
 
