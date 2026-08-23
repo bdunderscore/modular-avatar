@@ -25,7 +25,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             BooleanSimplifyTransform.Apply(graph);
             ConvertToInternalParametersTransform.Apply(graph, context);
             BooleanSimplifyTransform.Apply(graph);
-            AssertDecomposed(graph);
 
             // ConvertToInternalParameters introduces new effects on existing nodes, so we need to decompose again
             DecomposeTransform.Apply(graph);
