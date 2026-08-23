@@ -23,7 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 
         public override bool Equals(object? obj)
         {
-            return ReferenceEquals(this, obj) || (obj is ParameterTarget other && Equals(other));
+            return obj is ParameterTarget other && Equals(other);
         }
 
         public override int GetHashCode()
