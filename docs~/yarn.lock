@@ -11251,7 +11251,7 @@ __metadata:
     react: "npm:^19.2.7"
     react-dom: "npm:^19.2.7"
     react-loadable: "npm:^5.5.0"
-    react-medium-image-zoom: "npm:^5.4.8"
+    react-medium-image-zoom: "npm:^5.4.9"
     react-modal: "npm:^3.16.3"
     react-player: "npm:^3.4.0"
     search-insights: "npm:^2.17.3"
@@ -13029,13 +13029,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-medium-image-zoom@npm:^5.4.8":
-  version: 5.4.8
-  resolution: "react-medium-image-zoom@npm:5.4.8"
+"react-medium-image-zoom@npm:^5.4.9":
+  version: 5.4.9
+  resolution: "react-medium-image-zoom@npm:5.4.9"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/e721e90ff85f9236431eeb36e4f5ca1ab7c47b4e08bec5f799f299101eaa83a0c6c6d5cecd11bc3d899956dde49c5d8322d338d6ac0bbd3e9718180794a30415
+  checksum: 10c0/3b4015d30b73318f6c774a7f67cc471a574e046b5e74b0347e22fe315a5ba8e3702e75a67714e44b7e3c0a2ab183fb4e2106b49f4573056f62eda7ed753c615e
   languageName: node
   linkType: hard
 
