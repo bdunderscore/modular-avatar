@@ -7,10 +7,14 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    public class LogoImage : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    public partial class LogoImage : VisualElement
     {
         VisualElement _inner;
 
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<LogoImage, UxmlTraits>
         {
         }
@@ -18,6 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
+#endif
 
         public LogoImage()
         {
@@ -46,7 +51,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 EditorApplication.delayCall += () => SetImageSize(image, maxTries - 1);
                 targetHeight = 45;
             }
-            
+
             image.style.width = new Length(LogoDisplay.ImageWidth(targetHeight), LengthUnit.Pixel);
             image.style.height = new Length(targetHeight, LengthUnit.Pixel);
         }

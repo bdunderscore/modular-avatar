@@ -30,7 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor
             var name = _component.Control?.parameter?.name;
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetInstanceID()}";
+                name = $"__MA/AutoParam/{_component.gameObject.name}${_component.GetEntityId().ToString()}";
                 hidden = true;
             }
 
@@ -113,7 +113,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        remapTo = p.nameOrPrefix + "$" + _component.GetInstanceID();
+                        remapTo = p.nameOrPrefix + "$" + _component.GetEntityId().ToString();
                     }
                 }
                 else if (string.IsNullOrEmpty(p.remapTo))

@@ -6,6 +6,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+#if UNITY_6000_2_OR_NEWER
+using TreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -277,7 +282,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             var path = RuntimeUtil.RelativePath(_avatarRoot, smr.gameObject);
             var mesh = smr.sharedMesh;
-            
+
             CreateBlendshapes(items, mesh, path, createdDepth);
 
             createdDepth--;

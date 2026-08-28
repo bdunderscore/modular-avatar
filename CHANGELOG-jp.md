@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2015] Unity 6.1~6.7 に対する実験的な対応
 
 ### Fixed
 - [#2103] 一部の Modular Avatar エディター操作で元に戻せない、または Prefab インスタンスへの変更が保存されない問題を修正しました。
