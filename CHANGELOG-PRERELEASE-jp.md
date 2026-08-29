@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.4] - [2026-08-29]
+
+### Added
 - [#2015] Unity 6.1~6.7 に対する実験的な対応
   - [#2106] Mesh Cutterに置けるUnity 6.2以上のMeshLODの取り扱いを修正
 
@@ -20,14 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2103] `MA Material Setter` でマテリアルスロットに負のインデックスが設定されている場合、アバタービルドが失敗する問題を修正しました。
 - [#2103] 対象 Renderer の Mesh が割り当て・変更された後に、`MA Shape Changer` と `MA Mesh Cutter` のプレビューが更新されない問題を修正しました。
 - [#2103] 手動ベイク操作時に `Sync Parameter Sequence` が直前にビルドした別のアバターの設定を使用する問題を修正しました。
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.18.3] - [2026-08-21]
 

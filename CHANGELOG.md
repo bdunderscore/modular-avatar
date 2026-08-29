@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.18.4] - [2026-08-29]
+
+### Added
 - [#2015] Experimental support for Unity 6.1~6.7
   - [#2106] Fixed MeshLOD handling in Mesh Cutter for Unity 6.2+
 
@@ -23,14 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2103] Fixed avatar builds failing when an `MA Material Setter` contains a negative material slot index.
 - [#2103] Fixed `MA Shape Changer` and `MA Mesh Cutter` previews not updating after the target renderer's mesh is assigned or changed.
 - [#2103] Fixed `Sync Parameter Sequence` using settings from a previously built avatar when performing manual bake operations.
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.18.3] - [2026-08-21]
 
