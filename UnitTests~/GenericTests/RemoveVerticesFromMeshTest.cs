@@ -8,6 +8,9 @@ using NUnit.Framework;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
+#if UNITY_6000_2_OR_NEWER
+using UnityEditor;
+#endif
 using UnityEngine.Rendering;
 
 public class RemoveVerticesFromMeshTest : TestBase
@@ -87,6 +90,127 @@ public class RemoveVerticesFromMeshTest : TestBase
 
         Assert.That(vertices.Length, Is.EqualTo(expectedVertices.Count), "Vertex count should match");
     }
+
+#if UNITY_6000_2_OR_NEWER
+    [Test]
+    public void TestMeshSelectorJobWithMeshLods(
+        [Values(IndexFormat.UInt16, IndexFormat.UInt32)] IndexFormat indexFormat
+    )
+    {
+        var mesh = CreateMeshWithLods(indexFormat);
+        const int selectedVertex = 40;
+        var lod0Indices = mesh.GetIndices(0, 0);
+        var primitiveCount = lod0Indices.Length / 3;
+
+        using var selectorJob = new MeshSelectorJob(null!, mesh);
+        using var primitiveMask = new NativeArray<bool>(primitiveCount, Allocator.TempJob);
+        var filter = new SpecificVertexFilter(new[] { selectedVertex });
+        filter.MarkFilteredPrimitives(selectorJob, 0, primitiveMask).Complete();
+
+        var expectedMask = Enumerable.Range(0, primitiveCount)
+            .Select(primitive => lod0Indices[primitive * 3] == selectedVertex
+                                 || lod0Indices[primitive * 3 + 1] == selectedVertex
+                                 || lod0Indices[primitive * 3 + 2] == selectedVertex)
+            .ToArray();
+
+        Assert.That(primitiveMask.ToArray(), Is.EqualTo(expectedMask),
+            "MeshSelectorJob must filter primitives from the LOD0 index range");
+    }
+
+    [Test]
+    public void TestMeshLodHandling(
+        [Values(IndexFormat.UInt16, IndexFormat.UInt32)] IndexFormat indexFormat
+    )
+    {
+        var mesh = CreateMeshWithLods(indexFormat);
+        const int removedVertex = 40;
+
+        var lod0Indices = mesh.GetIndices(0, 0);
+        var expectedTriangles = new List<int>();
+        for (var index = 0; index < lod0Indices.Length; index += 3)
+        {
+            if (lod0Indices[index] == removedVertex
+                || lod0Indices[index + 1] == removedVertex
+                || lod0Indices[index + 2] == removedVertex) continue;
+
+            expectedTriangles.Add(lod0Indices[index]);
+            expectedTriangles.Add(lod0Indices[index + 1]);
+            expectedTriangles.Add(lod0Indices[index + 2]);
+        }
+
+        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new[]
+        {
+            (new TargetProp(), (IMeshSelector) new SpecificVertexFilter(new[] { removedVertex }))
+        });
+
+        var originalVertexByPosition = mesh.vertices
+            .Select((position, index) => (position, index))
+            .ToDictionary(pair => pair.position, pair => pair.index);
+        var newVertices = newMesh.vertices;
+        var actualTriangles = newMesh.GetIndices(0, 0)
+            .Select(index => originalVertexByPosition[newVertices[index]])
+            .ToArray();
+
+        Assert.That(CanonicalizeTriangles(actualTriangles),
+            Is.EquivalentTo(CanonicalizeTriangles(expectedTriangles)),
+            "Vertex removal must operate on the LOD0 index range");
+        Assert.That(newMesh.lodCount, Is.GreaterThan(1),
+            "Mesh LODs must be regenerated after vertex removal");
+    }
+
+    // Generating LODs shuffles the primitive order within the LOD0 index buffer, sort into a consistent
+    // order so we can test for equivalence.
+    private static List<Vector3Int> CanonicalizeTriangles(IReadOnlyList<int> indices)
+    {
+        var triangles = new List<Vector3Int>(indices.Count / 3);
+        for (var index = 0; index < indices.Count; index += 3)
+        {
+            var a = indices[index];
+            var b = indices[index + 1];
+            var c = indices[index + 2];
+
+            if (a > b) (a, b) = (b, a);
+            if (b > c) (b, c) = (c, b);
+            if (a > b) (a, b) = (b, a);
+
+            triangles.Add(new Vector3Int(a, b, c));
+        }
+
+        return triangles;
+    }
+
+    private static Mesh CreateMeshWithLods(IndexFormat indexFormat)
+    {
+        const int sideLength = 17;
+        var mesh = new Mesh { indexFormat = indexFormat };
+        mesh.vertices = Enumerable.Range(0, sideLength * sideLength)
+            .Select(index => new Vector3(index % sideLength, index / sideLength, 0))
+            .ToArray();
+
+        var triangles = new List<int>();
+        for (var y = 0; y < sideLength - 1; y++)
+        {
+            for (var x = 0; x < sideLength - 1; x++)
+            {
+                var bottomLeft = y * sideLength + x;
+                triangles.AddRange(new[]
+                {
+                    bottomLeft, bottomLeft + sideLength, bottomLeft + 1,
+                    bottomLeft + 1, bottomLeft + sideLength, bottomLeft + sideLength + 1
+                });
+            }
+        }
+
+        mesh.SetIndices(triangles, MeshTopology.Triangles, 0);
+        MeshLodUtility.GenerateMeshLods(mesh, 2);
+        Assert.That(mesh.lodCount, Is.GreaterThan(1), "Failed to generate Mesh LOD test data");
+        var lod0 = mesh.GetLod(0, 0);
+        var submesh = mesh.GetSubMesh(0);
+        Assert.That(lod0.indexStart != submesh.indexStart || lod0.indexCount != submesh.indexCount, Is.True,
+            "Test mesh must store LOD0 separately from the full submesh index range");
+        return mesh;
+    }
+#endif
 
     [Test]
     public void TestVertexDataPreservation()

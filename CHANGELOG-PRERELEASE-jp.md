@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2015] Unity 6.1~6.7 に対する実験的な対応
+  - [#2106] Mesh Cutterに置けるUnity 6.2以上のMeshLODの取り扱いを修正
 
 ### Fixed
 - [#2103] 一部の Modular Avatar エディター操作で元に戻せない、または Prefab インスタンスへの変更が保存されない問題を修正しました。

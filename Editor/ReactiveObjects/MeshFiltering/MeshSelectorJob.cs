@@ -35,13 +35,13 @@ namespace nadena.dev.modular_avatar.core.editor
         private Mesh? _bakedMesh;
         private JobHandle _allDependencies;
         private List<IDisposable> _disposables;
-        
+
         private Dictionary<object, (IDisposable, JobHandle)> _tempResources;
-        
+
         private (NativeArray<int>, JobHandle)[] _submeshIndexBuffers = null;
 
         private (NativeArray<float3>, JobHandle)? _vertexPositions;
-        private (NativeArray<float2>, JobHandle)?[] _uv; 
+        private (NativeArray<float2>, JobHandle)?[] _uv;
 
         public MeshSelectorJob(Renderer referenceRenderer, Mesh mesh)
             : this(referenceRenderer, mesh, ResolveOriginalRenderer(referenceRenderer))
@@ -71,7 +71,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 MeshPositionToOriginalRenderer = float4x4.identity;
             }
-            
+
             _submeshIndexBuffers = new (NativeArray<int>, JobHandle)[MeshData.subMeshCount];
 
             if (MeshData.indexFormat == IndexFormat.UInt16)
@@ -80,14 +80,15 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var desc = MeshData.GetSubMesh(i);
                     var indexBuffer = MeshData.GetIndexData<ushort>();
-                    var decompressedBuffer = new NativeArray<int>(desc.indexCount, Allocator.TempJob);
+                    var (indexStart, indexCount) = mesh.GetSubmeshIndexRange(i);
+                    var decompressedBuffer = new NativeArray<int>(indexCount, Allocator.TempJob);
                     var jobHandle = new DecompressIndexBuffer
                     {
                         IndexBuffer = indexBuffer,
                         DecompressedIndexBuffer = decompressedBuffer,
-                        InputIndexStart = desc.indexStart,
+                        InputIndexStart = indexStart,
                         BaseIndex = desc.baseVertex
-                    }.Schedule(desc.indexCount, 64);
+                    }.Schedule(indexCount, 64);
 
                     _allDependencies = JobHandle.CombineDependencies(_allDependencies, jobHandle);
                     _submeshIndexBuffers[i] = (decompressedBuffer, jobHandle);
@@ -99,14 +100,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var desc = MeshData.GetSubMesh(i);
                     var indexBuffer = MeshData.GetIndexData<int>();
-                    var decompressedBuffer = new NativeArray<int>(desc.indexCount, Allocator.TempJob);
+                    var (indexStart, indexCount) = mesh.GetSubmeshIndexRange(i);
+
+                    var decompressedBuffer = new NativeArray<int>(indexCount, Allocator.TempJob);
                     var jobHandle = new AdjustIndexBuffer
                     {
                         IndexBuffer = indexBuffer,
                         DecompressedIndexBuffer = decompressedBuffer,
-                        InputIndexStart = desc.indexStart,
+                        InputIndexStart = indexStart,
                         BaseIndex = desc.baseVertex
-                    }.Schedule(desc.indexCount, 64);
+                    }.Schedule(indexCount, 64);
 
                     _allDependencies = JobHandle.CombineDependencies(_allDependencies, jobHandle);
                     _submeshIndexBuffers[i] = (decompressedBuffer, jobHandle);
@@ -149,7 +152,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 throw new NotSupportedException($"Unsupported vertex position dimension {vertDim} in mesh {ReferenceRenderer.name}");
             }
-            
+
             var vertPositions = ConvertVertexStreamData.Convert(
                 out var convertJobHandle,
                 positionMeshData.GetVertexData<byte>(vertStream),
@@ -164,7 +167,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 VertexPositions = vertPositions,
                 Transform = MeshPositionToOriginalRenderer
             }.Schedule(vertCount, 64, convertJobHandle);
-            
+
             _vertexPositions = (vertPositions, transformJob);
 
             _allDependencies = JobHandle.CombineDependencies(_allDependencies, convertJobHandle, transformJob);
@@ -225,7 +228,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 smr.sharedMesh = oldMesh;
             }
         }
-        
+
         [BurstCompile]
         struct TransformVertexJob : IJobParallelFor
         {
@@ -281,7 +284,7 @@ namespace nadena.dev.modular_avatar.core.editor
             dependency = JobHandle.CombineDependencies(dependency, convertJobHandle);
             return uvData;
         }
-        
+
         public (T, JobHandle) GetTempResource<T>(object contextKey, Func<(T, JobHandle)> factory) where T : IDisposable
         {
             if (_tempResources.TryGetValue(contextKey, out var pair))
@@ -309,7 +312,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 buf.Item1.Dispose();
             }
-            
+
             foreach (var (resource, handle) in _tempResources.Values)
             {
                 handle.Complete(); // should be done by now, but just in case
@@ -396,7 +399,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 throw new ArgumentException("Centroid mode not supported for vertex index-based selection");
             }
-            
+
             var (arr, maskJobHandle) = this.GetTempResource(filterKey, vertexMaskFactory);
             var (submeshIndexBuffer, indexJobHandle) = _submeshIndexBuffers[submesh];
 
@@ -404,7 +407,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
             int vertsPerPrim = VertsPerPrim(MeshData.GetSubMesh(submesh).topology);
             int threshold = mode == VertexSelectionMode.AnyVertex ? 1 : vertsPerPrim;
-            
+
             var job = new MarkPrimsFromVertMask
             {
                 IndexBuffer = submeshIndexBuffer,
@@ -511,8 +514,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 DecompressedIndexBuffer[index] = (int)(IndexBuffer[InputIndexStart + index] + (uint)BaseIndex);
             }
         }
-        
-        
+
+
         [BurstCompile]
         private struct AdjustIndexBuffer : IJobParallelFor
         {
@@ -527,8 +530,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 DecompressedIndexBuffer[index] = IndexBuffer[InputIndexStart + index] + BaseIndex;
             }
         }
-        
-        
+
+
         [BurstCompile]
         private struct MarkPrimsFromVertMask : IJobParallelFor
         {
@@ -552,7 +555,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (matches >= Threshold) PrimitiveMask[index] = true;
             }
         }
-        
+
         [BurstCompile]
         private struct MarkPrimsFromVertPos<TCond> : IJobParallelFor
             where TCond: struct, IPositionFilter
@@ -580,8 +583,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (matches >= Threshold) PrimitiveMask[index] = true;
             }
         }
-        
-        
+
+
         [BurstCompile]
         private struct MarkPrimsFromVertCentroid<TCond> : IJobParallelFor
             where TCond: struct, IPositionFilter
@@ -670,7 +673,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        
+
     }
 
 }

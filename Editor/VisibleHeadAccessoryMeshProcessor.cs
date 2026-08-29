@@ -37,6 +37,10 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!NeedsRetargeting()) return;
 
+            // TODO: This function does not yet support MeshLODs
+            // (but is also not reachable except on VRChat builds, which are on a Unity version without
+            // MeshLODs)
+
             var originalMesh = _renderer.sharedMesh;
             var vertexCount = originalMesh.vertexCount;
             var boneWeights = originalMesh.GetAllBoneWeights();
