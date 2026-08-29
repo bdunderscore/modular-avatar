@@ -6,6 +6,7 @@ using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -32,7 +33,7 @@ namespace nadena.dev.modular_avatar.core.editor
             try
             {
                 using var selectorJob = new MeshSelectorJob(renderer, original);
-                
+
                 var selectors = targets.Select(t => t.Item2).ToList();
                 IMeshSelector combinedSelector = selectors.Count == 0 ? null
                     : selectors.Count == 1 ? selectors[0]
@@ -44,7 +45,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var desc = selectorJob.MeshData.GetSubMesh(sm);
                     int vertsPerPrim = VertsPerPrim(desc.topology);
-                    primitiveMasks[sm] = new NativeArray<bool>(desc.indexCount / vertsPerPrim, Allocator.TempJob);
+                    var (_, indexCount) = original.GetSubmeshIndexRange(sm);
+                    primitiveMasks[sm] = new NativeArray<bool>(indexCount / vertsPerPrim, Allocator.TempJob);
                     if (combinedSelector != null)
                         primMaskHandles[sm] = combinedSelector.MarkFilteredPrimitives(
                             selectorJob, sm, primitiveMasks[sm]);
@@ -77,6 +79,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 mesh.bindposes = original.bindposes;
                 TransferShapes(mesh, original, newToOrigVertIndex);
                 UpdateTriangles(mesh, selectorJob, primitiveMasks, origToNewVertIndex);
+
+                // Restore meshLODs if any
+#if UNITY_6000_2_OR_NEWER
+
+                var maxLods = Enumerable.Range(0, original.subMeshCount).Select(sm => original.GetLods(sm).Length).Max();
+                if (maxLods > 1)
+                {
+                    MeshLodUtility.GenerateMeshLods(mesh, maxLods);
+                }
+#endif
             }
             finally
             {
@@ -112,7 +124,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var desc = selectorJob.MeshData.GetSubMesh(sm);
                     var vertsPerPrim = VertsPerPrim(desc.topology);
-                    primitiveMasks[sm] = new NativeArray<bool>(desc.indexCount / vertsPerPrim, Allocator.TempJob);
+                    var (_, indexCount) = original.GetSubmeshIndexRange(sm);
+                    primitiveMasks[sm] = new NativeArray<bool>(indexCount / vertsPerPrim, Allocator.TempJob);
                     if (combinedSelector != null)
                         primMaskHandles[sm] = combinedSelector.MarkFilteredPrimitives(
                             selectorJob, sm, primitiveMasks[sm]);
