@@ -59,6 +59,49 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
+        public void Build_InactiveObjectDrivenActiveByAlwaysOnNode_ObservedObjActiveStartsActive()
+        {
+            var objA = CreateChild(_root, "A");
+            objA.SetActive(false);
+            var objB = CreateChild(_root, "B");
+            objB.SetActive(false);
+
+            // ForwardObjectActiveDriversTransform forwards ObjectActiveState expressions with at
+            // most two drivers. Three drivers keep ObjActive/A observable through the downstream
+            // rule. Use initially-false external conditions rather than Constant(false), since
+            // boolean simplification may remove constant driver nodes.
+            _bakeContext.EnsureParameterPresent("FalseDriver1", 0f);
+            _bakeContext.EnsureParameterPresent("FalseDriver2", 0f);
+
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(objA, true)));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression(
+                    "FalseDriver1", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveActiveState(objA, false)
+            ));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression(
+                    "FalseDriver2", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                new DriveActiveState(objA, false)
+            ));
+            graph.AddNode(new ReactionNode(
+                new ObjectActiveState(objA, ObjectActiveState.State.Active),
+                new DriveActiveState(objB, true)
+            ));
+
+            ILBuild.Build(_bakeContext, graph);
+
+            var objActiveAName = _vac.Parameters.Keys.Single(key => key.Contains("ObjActive/A"));
+            Assert.AreEqual(1f, _vac.Parameters[objActiveAName].defaultFloat,
+                "The observed ObjActive/A parameter must start from A's computed active state");
+            Assert.AreEqual(1f, _bakeContext.GetParameterInitialValue(objActiveAName));
+            Assert.IsTrue(objA.activeSelf);
+            Assert.IsTrue(objB.activeSelf,
+                "The downstream observer must see A's computed initial active state");
+        }
+
+        [Test]
         public void Build_InactiveObjectDrivenByExternalParamWithDefault_StartsActive()
         {
             // Regression: ConvertCondition must pass ControlCondition.InitialValue to
