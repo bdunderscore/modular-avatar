@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2107] Floor adjuster would break when used on an avatar where non-critical humanoid bone references are broken
-  (e.g. with Secret Talk System)
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.5] - [2026-08-30]
+
+### Fixed
+- [#2107] Floor adjuster would break when used on an avatar where non-critical humanoid bone references are broken
+  (e.g. with Secret Talk System)
 
 ## [1.18.4] - [2026-08-29]
 

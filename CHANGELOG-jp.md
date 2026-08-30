@@ -11,8 +11,6 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
-- [#2107] Secret Talk System 利用時など、重要度の低いヒューマノイドボーンの参照が壊れた場合、Floor Adjuster が
-  正しく動作しないバグを修正
 
 ### Changed
 
@@ -21,6 +19,12 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Security
 
 ### Deprecated
+
+## [1.18.5] - [2026-08-30]
+
+### Fixed
+- [#2107] Secret Talk System 利用時など、重要度の低いヒューマノイドボーンの参照が壊れた場合、Floor Adjuster が
+  正しく動作しないバグを修正
 
 ## [1.18.4] - [2026-08-29]
 
