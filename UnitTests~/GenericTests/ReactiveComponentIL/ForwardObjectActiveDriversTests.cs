@@ -166,19 +166,28 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
-        public void MultipleObjectActiveStatesDifferentObjects_NoForwarding()
+        public void MultipleObjectActiveStatesDifferentObjects_ForwardsDrivenObjectOnly()
         {
             var obj1 = CreateRoot("obj1");
             var obj2 = CreateRoot("obj2");
-            var expr = new AndNode(new ObjectActiveState(obj1, ObjectActiveState.State.Active), new ObjectActiveState(obj2, ObjectActiveState.State.Active));
+            var e1 = new ParameterExpression("p1");
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(expr, new NullAction(new object())));
-            graph.AddNode(new ReactionNode(new ParameterExpression("p1"), new DriveActiveState(obj1, true)));
+            graph.AddNode(new ReactionNode(
+                new AndNode(
+                    new ObjectActiveState(obj1, ObjectActiveState.State.Active),
+                    new ObjectActiveState(obj2, ObjectActiveState.State.Active)
+                ),
+                new NullAction(new object())
+            ));
+            graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj1, true)));
 
             ForwardObjectActiveDriversTransform.Apply(graph);
 
-            // Should not forward since expressions reference different objects
-            Assert.AreEqual(expr, graph.Nodes[0].Expression);
+            var expected = new AndNode(
+                e1,
+                new ObjectActiveState(obj2, ObjectActiveState.State.Active)
+            );
+            Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
 
         [Test]
