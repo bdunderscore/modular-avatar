@@ -355,8 +355,8 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(branch);
             Assert.AreEqual("p", branch.Parameter);
             Assert.AreEqual(0.5f, branch.Threshold, 1e-5f);
-            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterEquals), "p >= 0.5 → condition true → effect");
-            Assert.IsTrue(ResolvesToEmpty(branch.OnLessThan), "p < 0.5 → condition false → empty");
+            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterEquals), "p > 0.5 → condition true → effect");
+            Assert.IsTrue(ResolvesToEmpty(branch.OnLessThan), "p <= 0.5 → condition false → empty");
         }
 
         [Test]
