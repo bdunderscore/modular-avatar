@@ -1,5 +1,7 @@
 using System;
+using JetBrains.Annotations;
 using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core
@@ -7,6 +9,13 @@ namespace nadena.dev.modular_avatar.core
 
     public static class UnityObjectIDHelper
     {
+        [UsedImplicitly]
+        private static void PreventAutoUsingCleanup(SkinnedMeshRenderer ignored)
+        {
+            // The above SkinnedMeshRenderer reference stops rider, on unity 2022, from replacing
+            // using UnityEngine with `using Object = UnityEngine.Object`.
+            // We need to keep that using statement, as on 6000.x this provides EntityId.
+        }
 
 #if !UNITY_6000_2_OR_NEWER
         public static EntityId GetEntityId(this Object unityObject)
