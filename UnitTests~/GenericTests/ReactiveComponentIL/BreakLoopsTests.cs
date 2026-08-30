@@ -1,4 +1,5 @@
 ﻿using modular_avatar_tests;
+using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -166,36 +167,55 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
-        public void HigherPriorityNodeBrokenFirst()
+        public void HigherExplicitPriorityWinsEvenWhenEarlierInGraphOrder()
         {
-            // Create a scenario where we have two separate loops that could be broken
-            // and verify that the higher priority node (later in list) is broken first
             var graph = new ReactionGraph();
-            
-            // Node0 (lower priority)
-            var node0 = new ReactionNode(
-                new InternalParameterCondition("param1"),
-                new DriveInternalParameter("param1", true)
-            );
-            
-            // Node1 (higher priority)
-            var node1 = new ReactionNode(
-                new InternalParameterCondition("param2"),
-                new DriveInternalParameter("param2", true)
-            );
-            
-            graph.AddNode(node0);
-            graph.AddNode(node1);
+            var higherPriorityNode = new ReactionNode(
+                new InternalParameterCondition("paramA"),
+                new DriveInternalParameter("paramB", true)
+            ) { Priority = 100 };
+            var lowerPriorityNode = new ReactionNode(
+                new InternalParameterCondition("paramB"),
+                new DriveInternalParameter("paramA", true)
+            ) { Priority = 0 };
+            graph.AddNode(higherPriorityNode);
+            graph.AddNode(lowerPriorityNode);
 
             BreakLoopsTransform.Apply(graph);
 
-            // Both should have their loops broken
-            Assert.IsInstanceOf<DriveParameter>(node0.Effects[0]);
-            Assert.IsInstanceOf<DriveParameter>(node1.Effects[0]);
-            
-            // Both expressions should be converted
-            Assert.IsInstanceOf<ParameterExpression>(node0.Expression);
-            Assert.IsInstanceOf<ParameterExpression>(node1.Expression);
+            Assert.IsInstanceOf<DriveParameter>(higherPriorityNode.Effects.Single());
+            Assert.AreEqual("paramB",
+                ((DriveParameter)higherPriorityNode.Effects.Single()).ParameterName);
+            Assert.IsInstanceOf<DriveInternalParameter>(lowerPriorityNode.Effects.Single());
+            Assert.AreEqual("paramB",
+                ((ParameterExpression)lowerPriorityNode.Expression).ParameterName);
+            Assert.AreEqual("paramA",
+                ((InternalParameterCondition)higherPriorityNode.Expression).ParameterName);
+        }
+
+        [Test]
+        public void EqualPriorityFallsBackToLaterGraphNode()
+        {
+            var graph = new ReactionGraph();
+            var firstNode = new ReactionNode(
+                new InternalParameterCondition("paramA"),
+                new DriveInternalParameter("paramB", true)
+            ) { Priority = 10 };
+            var laterNode = new ReactionNode(
+                new InternalParameterCondition("paramB"),
+                new DriveInternalParameter("paramA", true)
+            ) { Priority = 10 };
+            graph.AddNode(firstNode);
+            graph.AddNode(laterNode);
+
+            BreakLoopsTransform.Apply(graph);
+
+            Assert.IsInstanceOf<DriveInternalParameter>(firstNode.Effects.Single());
+            Assert.IsInstanceOf<DriveParameter>(laterNode.Effects.Single());
+            Assert.AreEqual("paramA", ((DriveParameter)laterNode.Effects.Single()).ParameterName);
+            Assert.AreEqual("paramA", ((ParameterExpression)firstNode.Expression).ParameterName);
+            Assert.AreEqual("paramB",
+                ((InternalParameterCondition)laterNode.Expression).ParameterName);
         }
 
         [Test]
