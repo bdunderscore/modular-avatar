@@ -24,6 +24,7 @@ namespace UnitTests.ReactiveComponent
             var controller = CreateChild(root, "controller");
             var menuItem = controller.AddComponent<ModularAvatarMenuItem>();
             menuItem.PortableControl.Parameter = "ReactiveInput";
+            menuItem.isDefault = true;
             var toggle = controller.AddComponent<ModularAvatarObjectToggle>();
             toggle.Objects = new()
             {
@@ -40,7 +41,7 @@ namespace UnitTests.ReactiveComponent
 
             new ReactiveObjectPassV2(context).Execute();
 
-            Assert.That(target.activeSelf, Is.EqualTo(!active));
+            Assert.That(target.activeSelf, Is.EqualTo(active));
             Assert.That(root.GetComponent<Animator>().runtimeAnimatorController, Is.Null);
         }
     }
