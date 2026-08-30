@@ -166,6 +166,23 @@ namespace modular_avatar_tests
                 "A negative material slot must not generate a material animation action.");
         }
 
+        [Test]
+        public void ActiveSelfProxiesAreUniquePerGameObject()
+        {
+            var root = CreateRoot("root");
+            var activeObject = CreateChild(root, "active");
+            var inactiveObject = CreateChild(root, "inactive");
+            inactiveObject.SetActive(false);
+
+            var analyzer = new ReactiveObjectAnalyzer();
+
+            Assert.AreNotEqual(
+                analyzer.GetGameObjectStateProperty(activeObject),
+                analyzer.GetGameObjectStateProperty(inactiveObject),
+                "Distinct GameObjects must not share an ActiveSelf proxy parameter."
+            );
+        }
+
         private ReactionRule CreateRuleWithCondition(bool isConstant, bool initiallyActive, bool inverted)
         {
             var targetProp = new TargetProp { TargetObject = null, PropertyName = "test" };
