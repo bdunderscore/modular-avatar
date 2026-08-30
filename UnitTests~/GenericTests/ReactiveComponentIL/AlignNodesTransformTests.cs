@@ -508,16 +508,11 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void AndGateGraph_InsertsDelayNodesForLatencyOneGroups()
         {
-            // Bug repro: ParameterExpression references to internal parameters should be tracked
-            // as dependency edges, just like InternalParameterCondition references.
-            //
-            // A_OFF/B_OFF/C_OFF are internal parameters driven by Constant nodes.
-            // All consumer groups check them via ParameterExpression (float range checks).
+            // ParameterExpression references must be aligned across effect groups with different latencies.
             // AND has 3 nodes (latency=2); NOT_A/A_OBJ/B_OBJ/C_OBJ have 1 node (latency=1).
             //
-            // Expected: A_OFF depth=2, delay nodes A_OFF$d1/B_OFF$d1/C_OFF$d1 at depth=1,
-            // and the latency-1 nodes' ParameterExpression names rewritten to $d1 versions.
-            // Currently fails because AlignNodesTransform only tracks InternalParameterCondition.
+            // Expected: the latency-2 AND group reads the external parameters directly. The latency-1
+            // groups read A_OFF$d1/B_OFF$d1/C_OFF$d1, forwarded from the corresponding external parameters.
 
             var graph = new ReactionGraph();
 
