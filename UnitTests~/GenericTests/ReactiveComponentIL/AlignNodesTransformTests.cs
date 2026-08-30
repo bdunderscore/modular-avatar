@@ -253,14 +253,10 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void DelayNodesCreatedForAllMisalignedParameters()
         {
-            // Test that delay nodes are created for all parameters that need them
-            // A reads B and C
-            // B reads D (needs to be delayed for A's consumption)
-            // C reads D (reads at same depth as B, no delay needed)
-            // D is constant
-            
+            // A reads B and C; B and C read D. D is driven by an external parameter, and a
+            // lower-latency external effect also reads D.
             var graph = new ReactionGraph();
-            
+
             graph.AddNode(new ReactionNode(
                 new AndNode(
                     new InternalParameterCondition("B"),
@@ -268,41 +264,49 @@ namespace UnitTestsReactiveComponentIL
                 ),
                 new DriveInternalParameter("A", true)
             ));
-            
+
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("D"),
                 new DriveInternalParameter("B", true)
             ));
-            
+
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("D"),
                 new DriveInternalParameter("C", true)
             ));
-            
+
             graph.AddNode(new ReactionNode(
-                new Constant(true),
+                new ParameterExpression("input"),
                 new DriveInternalParameter("D", true)
+            ));
+
+            graph.AddNode(new ReactionNode(
+                new InternalParameterCondition("D"),
+                new NullAction("dOutput")
             ));
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            var aGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
-            var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
-            var cGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
-            var dGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("D")));
-            
+            var aGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
+            var bGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
+            var cGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
+            var dGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("D")));
+            var dOutputGroup = groups.Single(g => Equals(g.TargetKey, "dOutput"));
+
             Assert.IsNotNull(aGroup);
-            Assert.IsNotNull(bGroup);
-            Assert.IsNotNull(cGroup);
             Assert.IsNotNull(dGroup);
-            
-            // Check alignment: all parameters referenced by B must exist as groups or be delay params
-            foreach (var bRef in GetParameterReferencesFromExpression(bGroup.Nodes[0].Expression))
-            {
-                var paramTarget = new InternalParameterTarget(bRef);
-                Assert.That(groups.Any(g => g.TargetKey.Equals(paramTarget)) || AlignNodesTransform.IsDelayParam(bRef),
-                    $"Parameter {bRef} referenced by B should exist as a group or be a delay param");
-            }
+
+            var delayD1 = AlignNodesTransform.DelayParamName("D", 1);
+            ValidateDelayForward(delayD1, "D");
+            Assert.That(GetParameterReferencesFromExpression(dOutputGroup.Nodes.Single().Expression),
+                Is.EquivalentTo(new[] { delayD1 }),
+                "The lower-latency external consumer of D must read D's one-frame delay parameter");
+            Assert.That(GetParameterReferencesFromExpression(bGroup.Nodes.Single().Expression),
+                Is.EquivalentTo(new[] { "D" }),
+                "B is already aligned with D and must read D directly");
+            Assert.That(GetParameterReferencesFromExpression(cGroup.Nodes.Single().Expression),
+                Is.EquivalentTo(new[] { "D" }),
+                "C is already aligned with D and must read D directly");
         }
 
         [Test]
