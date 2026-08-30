@@ -386,6 +386,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(graph.Nodes.All(n => n.Effects.Count == 1), "All nodes must be single-effect");
             Assert.AreEqual(1, graph.Nodes.Count(n => n.Effects[0] is DriveActiveState));
             Assert.AreEqual(3, graph.Nodes.Count(n => n.Effects[0] is DriveInternalParameter));
+            CollectionAssert.AreEqual(
+                Enumerable.Range(0, graph.Nodes.Count).ToList(),
+                graph.Nodes.Select(node => node.Priority).ToList());
         }
     }
 }

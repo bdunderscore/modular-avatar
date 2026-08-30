@@ -37,20 +37,22 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
             var expr = new Constant(true);
-            var node = new ReactionNode(expr, new DriveInternalParameter("p1", true));
-            node.Effects.Add(new DriveInternalParameter("p2", false));
-            node.Effects.Add(new DriveInternalParameter("p3", true));
+            var effect1 = new DriveInternalParameter("p1", true);
+            var effect2 = new DriveInternalParameter("p2", false);
+            var effect3 = new DriveInternalParameter("p3", true);
+            var node = new ReactionNode(expr, effect1);
+            node.Effects.Add(effect2);
+            node.Effects.Add(effect3);
             graph.AddNode(node);
 
             DecomposeTransform.Apply(graph);
 
             Assert.AreEqual(3, graph.Nodes.Count);
             Assert.IsTrue(graph.Nodes.All(n => n.Effects.Count == 1));
-            // All split nodes share the same expression
             Assert.IsTrue(graph.Nodes.All(n => n.Expression == expr));
-            // Each effect appears exactly once
-            var paramNames = graph.Nodes.Select(n => ((DriveInternalParameter)n.Effects[0]).ParameterName).ToList();
-            CollectionAssert.AreEquivalent(new[] { "p1", "p2", "p3" }, paramNames);
+            CollectionAssert.AreEquivalent(
+                new[] { effect1, effect2, effect3 },
+                graph.Nodes.Select(n => n.Effects.Single()).ToList());
         }
 
         [Test]
@@ -72,26 +74,49 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
 
-            var nodeA = new ReactionNode(new Constant(true), new DriveInternalParameter("a1", true));
-            nodeA.Effects.Add(new DriveInternalParameter("a2", false));
+            var expressionA = new Constant(true);
+            var effectA1 = new DriveInternalParameter("a1", true);
+            var effectA2 = new DriveInternalParameter("a2", false);
+            var nodeA = new ReactionNode(expressionA, effectA1);
+            nodeA.Effects.Add(effectA2);
             graph.AddNode(nodeA);
 
-            graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("b1", true)));
+            var expressionB = new Constant(false);
+            var effectB1 = new DriveInternalParameter("b1", true);
+            graph.AddNode(new ReactionNode(expressionB, effectB1));
 
-            var nodeC = new ReactionNode(new ParameterExpression("x"), new DriveInternalParameter("c1", true));
-            nodeC.Effects.Add(new DriveInternalParameter("c2", true));
-            nodeC.Effects.Add(new DriveInternalParameter("c3", false));
+            var expressionC = new ParameterExpression("x");
+            var effectC1 = new DriveInternalParameter("c1", true);
+            var effectC2 = new DriveInternalParameter("c2", true);
+            var effectC3 = new DriveInternalParameter("c3", false);
+            var nodeC = new ReactionNode(expressionC, effectC1);
+            nodeC.Effects.Add(effectC2);
+            nodeC.Effects.Add(effectC3);
             graph.AddNode(nodeC);
 
             DecomposeTransform.Apply(graph);
 
-            // 2 + 1 + 3 = 6 nodes total
             Assert.AreEqual(6, graph.Nodes.Count);
             Assert.IsTrue(graph.Nodes.All(n => n.Effects.Count == 1));
 
-            // Priorities are 0..5 contiguously
-            var priorities = graph.Nodes.Select(n => n.Priority).OrderBy(p => p).ToList();
-            CollectionAssert.AreEqual(Enumerable.Range(0, 6).ToList(), priorities);
+            var expectedPairs = new (IAction effect, IExpression expression)[]
+            {
+                (effectA1, expressionA),
+                (effectA2, expressionA),
+                (effectB1, expressionB),
+                (effectC1, expressionC),
+                (effectC2, expressionC),
+                (effectC3, expressionC),
+            };
+            foreach (var (effect, expression) in expectedPairs)
+            {
+                var splitNode = graph.Nodes.Single(n => ReferenceEquals(n.Effects.Single(), effect));
+                Assert.AreSame(expression, splitNode.Expression);
+            }
+
+            CollectionAssert.AreEqual(
+                Enumerable.Range(0, 6).ToList(),
+                graph.Nodes.Select(n => n.Priority).ToList());
         }
 
         [Test]
@@ -112,16 +137,26 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void AppliedTwice_IdempotentOnSingleEffectGraph()
         {
-            // After the first decompose all nodes are single-effect; a second pass must be a no-op.
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p1", true)));
             graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("p2", false)));
 
             DecomposeTransform.Apply(graph);
-            var countAfterFirst = graph.Nodes.Count;
+            var effectsAfterFirst = graph.Nodes.Select(node => node.Effects.Single()).ToList();
+            var expressionsAfterFirst = graph.Nodes.Select(node => node.Expression).ToList();
+            var prioritiesAfterFirst = graph.Nodes.Select(node => node.Priority).ToList();
+
             DecomposeTransform.Apply(graph);
 
-            Assert.AreEqual(countAfterFirst, graph.Nodes.Count);
+            CollectionAssert.AreEqual(
+                effectsAfterFirst,
+                graph.Nodes.Select(node => node.Effects.Single()).ToList());
+            CollectionAssert.AreEqual(
+                expressionsAfterFirst,
+                graph.Nodes.Select(node => node.Expression).ToList());
+            CollectionAssert.AreEqual(
+                prioritiesAfterFirst,
+                graph.Nodes.Select(node => node.Priority).ToList());
         }
     }
 }
