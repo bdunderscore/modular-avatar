@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2110] Reactive component previews did not respond reliably to object active states
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.6] - [2026-08-30]
+
+### Fixed
+- [#2110] Reactive component previews did not respond reliably to object active states
 
 ## [1.18.5] - [2026-08-30]
 
