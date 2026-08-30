@@ -165,45 +165,60 @@ namespace UnitTestsReactiveComponentIL
         {
             var obj = CreateChild(_root, "obj1");
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new ObjectActiveState(obj), new NullAction()));
-            graph.AddNode(new ReactionNode(new ObjectActiveState(obj), new NullAction()));
-            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+            var node1 = new ReactionNode(new ObjectActiveState(obj), new NullAction());
+            var node2 = new ReactionNode(new ObjectActiveState(obj), new NullAction());
+            var node3 = new ReactionNode(new Constant(true), new NullAction());
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
 
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
-            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
-            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+            var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
+            CollectionAssert.AreEquivalent(new[] { node1, node2 }, grouped.Nodes);
+            CollectionAssert.AreEquivalent(new[] { node3 },
+                subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
 
         [Test]
         public void SplitIntoSubgraphs_GroupsByParameterName()
         {
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new ParameterExpression("p"), new NullAction()));
-            graph.AddNode(new ReactionNode(new InternalParameterCondition("p"), new NullAction()));
-            graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
+            var node1 = new ReactionNode(new ParameterExpression("p"), new NullAction());
+            var node2 = new ReactionNode(new InternalParameterCondition("p"), new NullAction());
+            var node3 = new ReactionNode(new Constant(true), new NullAction());
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
 
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
-            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
-            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+            var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
+            CollectionAssert.AreEquivalent(new[] { node1, node2 }, grouped.Nodes);
+            CollectionAssert.AreEquivalent(new[] { node3 },
+                subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
 
         [Test]
         public void SplitIntoSubgraphs_GroupsByActionTarget()
         {
             var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p1", 1f)));
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p2", true)));
-            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p1", 1f)));
+            var node1 = new ReactionNode(new Constant(true), new DriveParameter("p1", 1f));
+            var node2 = new ReactionNode(new Constant(true), new DriveInternalParameter("p2", true));
+            var node3 = new ReactionNode(new Constant(true), new DriveParameter("p1", 1f));
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
 
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
 
             Assert.AreEqual(2, subgraphs.Count);
-            Assert.AreEqual(2, subgraphs[0].Nodes.Count);
-            Assert.AreEqual(1, subgraphs[1].Nodes.Count);
+            var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
+            CollectionAssert.AreEquivalent(new[] { node1, node3 }, grouped.Nodes);
+            CollectionAssert.AreEquivalent(new[] { node2 },
+                subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
 
         [Test]
