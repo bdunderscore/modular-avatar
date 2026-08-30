@@ -45,6 +45,24 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
+            // It's possible that human bones can be lost in various manipulations - strip anything that
+            // is unmapped from the human description
+            var validBones = humanProxy.GetComponentsInChildren<Transform>()
+                .Skip(1) // skip the avatar root
+                .Select(t => t.gameObject.name)
+                .ToHashSet();
+            
+            var newHumanArray = humanDescription.human.Where(hb => validBones.Contains(hb.boneName)).ToArray();
+            humanDescription.human = newHumanArray;
+
+            foreach (var m in mappings)
+            {
+                if (m.NewBone == null)
+                {
+                    m.HumanBoneEnum = null;
+                }
+            }
+
             try
             {
                 foreach (var hbm in mappings)
@@ -69,18 +87,35 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private IEnumerable<Transform> ParentsOf(Transform start, Transform root)
+        {
+            while (start != root)
+            {
+                yield return start;
+                start = start.parent;
+            }
+        }
+
         private GameObject? BuildHumanProxy(Transform root, List<HumanBoneMapping> mappings)
         {
+            Dictionary<Transform, Transform> newToOld = new(); 
+            
             var humanBodyBones = mappings
-                .Where(m => m.HumanBoneEnum != null && m.Bone != null)
-                .Select(m => m.Bone!)
-                .ToHashSet();
+                .Where(m => m.Bone != null)
+                .ToDictionary(m => m.Bone!, m => m);
 
             return CloneObject(root, root);
 
             GameObject? CloneObject(Transform parent, Transform original)
             {
-                if (!humanBodyBones.Any(hbb => hbb == original || hbb.IsChildOf(original)))
+                // Only clone bones which are in the original mapping and a parent of a human body bone
+                if (!humanBodyBones.TryGetValue(original, out var bone) || !humanBodyBones.Any(hbb => hbb.Value.HumanBoneEnum != null && hbb.Key.IsChildOf(original)))
+                {
+                    return null;
+                }
+                
+                // Parent mismatches break mechanim matching
+                if (newToOld.TryGetValue(parent, out var oldParent) != original.transform.parent)
                 {
                     return null;
                 }
@@ -90,6 +125,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 xform.SetParent(parent);
                 xform.SetLocalPositionAndRotation(original.localPosition, original.localRotation);
                 xform.localScale = original.localScale;
+                bone.NewBone = obj.transform;
+                newToOld[xform] = original;
 
                 foreach (Transform child in original)
                 {
@@ -178,7 +215,7 @@ namespace nadena.dev.modular_avatar.core.editor
         internal class HumanBoneMapping
         {
             public HumanBodyBones? HumanBoneEnum;
-            public Transform? Bone;
+            public Transform? Bone, NewBone;
             public int BoneIndex;
 
             public List<HumanBoneMapping> Children = new();
