@@ -502,11 +502,11 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            // Should have only the original node groups, no delay nodes
             Assert.AreEqual(1, groups.Count);
-            var param1Group = groups[0];
+            var param1Group = groups.Single();
             Assert.AreEqual(new InternalParameterTarget("param1"), param1Group.TargetKey);
-            Assert.AreEqual(1, param1Group.Nodes.Count);
+            AssertExpressionReferences(param1Group.Nodes.Single().Expression, "externalParam");
+            ValidateNoDelayForwards();
         }
 
         [Test]
@@ -719,10 +719,10 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            var group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("internalParam")));
-            Assert.IsNotNull(group);
-            Assert.That(groups.All(g => !AlignNodesTransform.IsDelayParam(g.TargetKey.ToString())),
-                "No delay nodes should be created for a constant-driven parameter");
+            var group = groups.Single(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("internalParam")));
+            AssertExpressionReferences(group.Nodes.Single().Expression);
+            ValidateNoDelayForwards();
         }
 
         [Test]
@@ -743,13 +743,12 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param1")));
-            var param2Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param2")));
-
-            Assert.IsNotNull(param1Group);
-            Assert.IsNotNull(param2Group);
-            Assert.That(groups.All(g => !AlignNodesTransform.IsDelayParam(g.TargetKey.ToString())),
-                "No delay nodes should be needed in a simple linear chain");
+            var param1Group = groups.Single(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param1")));
+            Assert.That(groups.Any(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param2"))));
+            AssertExpressionReferences(param1Group.Nodes.Single().Expression, "param2");
+            ValidateNoDelayForwards();
         }
 
         [Test]
@@ -784,18 +783,16 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param1")));
-            var param2Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param2")));
-            
-            Assert.IsNotNull(param1Group);
-            Assert.IsNotNull(param2Group);
+            var param1Group = groups.Single(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param1")));
+            var param2Group = groups.Single(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param2")));
 
-            // param1 has latency 1 (2 nodes), param2 has latency 2 (3 nodes)
             Assert.AreEqual(1, param1Group.Latency);
             Assert.AreEqual(2, param2Group.Latency);
-            // No delay nodes needed: param2 is already at the right depth for param1 to read it
-            Assert.That(groups.All(g => !AlignNodesTransform.IsDelayParam(g.TargetKey.ToString())),
-                "No delay nodes should be needed when latency accounts for the depth difference");
+            foreach (var node in param1Group.Nodes)
+                AssertExpressionReferences(node.Expression, "param2");
+            ValidateNoDelayForwards();
         }
 
         #endregion
@@ -871,17 +868,15 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.Apply(_bakeContext, graph);
 
-            var outputGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("output")));
-            var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param1")));
-            var param2Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param2")));
-            
-            Assert.IsNotNull(outputGroup);
-            Assert.IsNotNull(param1Group);
-            Assert.IsNotNull(param2Group);
-            
-            // Both param1 and param2 have the same latency path to output, so no delay nodes needed
-            Assert.That(groups.All(g => !AlignNodesTransform.IsDelayParam(g.TargetKey.ToString())),
-                "No delay nodes should be needed when both inputs have equal latency paths");
+            var outputGroup = groups.Single(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("output")));
+            Assert.That(groups.Any(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param1"))));
+            Assert.That(groups.Any(g =>
+                g.TargetKey.Equals(new InternalParameterTarget("param2"))));
+
+            AssertExpressionReferences(outputGroup.Nodes.Single().Expression, "param1", "param2");
+            ValidateNoDelayForwards();
         }
 
         #endregion
@@ -1064,15 +1059,37 @@ namespace UnitTestsReactiveComponentIL
 
             void Visit(ref IExpression e)
             {
-                if (e is InternalParameterCondition condition)
+                switch (e)
                 {
-                    references.Add(condition.ParameterName);
-                }
-                else
-                {
-                    e.Walk(Visit);
+                    case InternalParameterCondition condition:
+                        references.Add(condition.ParameterName);
+                        return;
+                    case ParameterExpression parameter:
+                        references.Add(parameter.ParameterName);
+                        return;
+                    default:
+                        e.Walk(Visit);
+                        return;
                 }
             }
+        }
+
+        private void AssertExpressionReferences(IExpression expression, params string[] expected)
+        {
+            Assert.That(GetParameterReferencesFromExpression(expression), Is.EquivalentTo(expected));
+        }
+
+        private void ValidateNoDelayForwards()
+        {
+            var delayCurveBindings = _bakeContext.RootTree.Children
+                .Select(child => child.Motion as VirtualClip)
+                .Where(clip => clip != null)
+                .SelectMany(clip => clip.GetFloatCurveBindings())
+                .Where(binding => binding.type == typeof(Animator)
+                                  && AlignNodesTransform.IsDelayParam(binding.propertyName));
+
+            Assert.That(delayCurveBindings, Is.Empty,
+                "An aligned graph must not emit RootTree delay forwarding clips");
         }
 
         /// <summary>
