@@ -379,8 +379,8 @@ namespace UnitTestsReactiveComponentIL
             var root = MakeGroup(new ParameterExpression("p", 0.75f)).Emit();
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch);
-            Assert.AreEqual(0.75f, branch.Threshold, 1e-5f,
-                "Custom threshold must be forwarded to BranchNode");
+            Assert.AreEqual(0.75f, branch.Threshold,
+                "Custom threshold must be forwarded to BranchNode exactly");
         }
     }
 }
