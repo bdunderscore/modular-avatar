@@ -43,6 +43,7 @@ namespace UnitTestsReactiveComponentIL
             var fixture = new AvatarLifecycleProbe();
             fixture.SetUp();
             var avatar = fixture.Avatar;
+            Assert.IsNotNull(avatar);
 
             fixture.TearDown();
 
