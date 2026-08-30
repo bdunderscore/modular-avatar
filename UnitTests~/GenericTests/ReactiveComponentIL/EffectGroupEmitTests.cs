@@ -48,6 +48,18 @@ namespace UnitTestsReactiveComponentIL
         private bool ResolvesToEffect(IMotionNode node) => Resolve(node) is MotionNode;
         private bool ResolvesToEmpty(IMotionNode node) => Resolve(node) is EmptyNode;
 
+        private float EffectValue(IMotionNode node)
+        {
+            var motion = Resolve(node) as MotionNode;
+            Assert.IsNotNull(motion, "Expected an emitted MotionNode");
+            var clip = motion.Motion as VirtualClip;
+            Assert.IsNotNull(clip, "Effect MotionNode must contain a VirtualClip");
+
+            var curve = clip.GetFloatCurve("", typeof(UnityEngine.Animator), "effect");
+            Assert.IsNotNull(curve, "Effect MotionNode must animate the effect parameter");
+            return curve.Evaluate(0f);
+        }
+
         private EffectGroup MakeGroup(IExpression condition)
         {
             var graph = new ReactionGraph();
@@ -66,6 +78,18 @@ namespace UnitTestsReactiveComponentIL
 
             var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
             return groups[new InternalParameterTarget("effect")];
+        }
+
+        private EffectGroup MakeGroup(params (IExpression condition, IAction effect)[] nodes)
+        {
+            var graph = new ReactionGraph();
+            foreach (var (condition, effect) in nodes)
+            {
+                graph.AddNode(new ReactionNode(condition, effect));
+            }
+
+            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            return groups[new ParameterTarget("effect")];
         }
 
         private void AssertBranchCondition(
@@ -92,25 +116,23 @@ namespace UnitTestsReactiveComponentIL
         public void TwoNodes_LastNodeWins_SecondConditionCheckedFirst()
         {
             var group = MakeGroup(
-                new InternalParameterCondition("first"),
-                new InternalParameterCondition("second")
+                (new InternalParameterCondition("first"), new DriveParameter("effect", 1f)),
+                (new InternalParameterCondition("second"), new DriveParameter("effect", 2f))
             );
             var root = group.Emit();
 
-            // Root must check "second" first so it can win over "first".
             var outerBranch = Resolve(root) as BranchNode;
             Assert.IsNotNull(outerBranch, "Root should be a BranchNode");
             Assert.AreEqual("second", outerBranch.Parameter,
                 "Last condition must be checked first so it wins when both are true");
+            Assert.AreEqual(2f, EffectValue(outerBranch.OnGreaterEquals),
+                "second=true must select the second effect");
 
-            Assert.IsTrue(ResolvesToEffect(outerBranch.OnGreaterEquals),
-                "second=true → second's effect");
-
-            // second=false path must fall through to check "first".
             var innerBranch = Resolve(outerBranch.OnLessThan) as BranchNode;
             Assert.IsNotNull(innerBranch, "second=false path should check 'first'");
             Assert.AreEqual("first", innerBranch.Parameter);
-            Assert.IsTrue(ResolvesToEffect(innerBranch.OnGreaterEquals), "first=true → first's effect");
+            Assert.AreEqual(1f, EffectValue(innerBranch.OnGreaterEquals),
+                "first=true must select the first effect");
             Assert.IsTrue(ResolvesToEmpty(innerBranch.OnLessThan), "both false → empty");
         }
 
@@ -120,19 +142,17 @@ namespace UnitTestsReactiveComponentIL
         public void ThreeNodes_EmitUsesPriorityNodeAndFillsEachProxyCondition()
         {
             var root = MakeGroup(
-                new InternalParameterCondition("first"),
-                new InternalParameterCondition("second"),
-                new InternalParameterCondition("third")
+                (new InternalParameterCondition("first"), new DriveParameter("effect", 1f)),
+                (new InternalParameterCondition("second"), new DriveParameter("effect", 2f)),
+                (new InternalParameterCondition("third"), new DriveParameter("effect", 3f))
             ).Emit();
 
             var priority = root as PriorityNode;
             Assert.IsNotNull(priority, "Three or more effects should emit through a PriorityNode");
             Assert.AreEqual(3, priority.Conditions.Count);
-
-            foreach (var (_, motion) in priority.Conditions)
-            {
-                Assert.IsInstanceOf<MotionNode>(motion, "Each priority entry should keep its effect motion");
-            }
+            Assert.AreEqual(3f, EffectValue(priority.Conditions[0].Item2));
+            Assert.AreEqual(2f, EffectValue(priority.Conditions[1].Item2));
+            Assert.AreEqual(1f, EffectValue(priority.Conditions[2].Item2));
 
             AssertBranchCondition(
                 priority.Conditions[0].Item1,
