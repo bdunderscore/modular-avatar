@@ -102,20 +102,13 @@ namespace UnitTestsReactiveComponentIL
 
             BreakLoopsTransform.Apply(graph);
 
-            // The cycle should be broken. Since both nodes form a cycle, both edges should be broken.
-            // But we prefer higher priority (later in list), so Node2 should be broken first.
-            // After breaking Node2, the cycle is already broken, so Node1 might not be broken.
-            // However, we still need to convert all references to the broken parameters.
-            
-            // At least one edge should be broken
-            var node1HasDriveParam = node1.Effects[0] is DriveParameter;
-            var node2HasDriveParam = node2.Effects[0] is DriveParameter;
-            Assert.IsTrue(node1HasDriveParam || node2HasDriveParam, "At least one edge should be broken");
-            
-            // Check that expressions are converted appropriately
-            var node1IsConverted = node1.Expression is ParameterExpression || node1.Expression is InternalParameterCondition;
-            var node2IsConverted = node2.Expression is ParameterExpression || node2.Expression is InternalParameterCondition;
-            Assert.IsTrue(node1IsConverted && node2IsConverted);
+            // Equal priorities fall back to graph order, so the later node's param2 drive is externalized.
+            Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects.Single());
+            Assert.IsInstanceOf<DriveParameter>(node2.Effects.Single());
+            Assert.AreEqual("param2", ((DriveParameter)node2.Effects.Single()).ParameterName);
+            Assert.AreEqual("param2", ((ParameterExpression)node1.Expression).ParameterName);
+            Assert.AreEqual("param1",
+                ((InternalParameterCondition)node2.Expression).ParameterName);
         }
 
         [Test]
@@ -250,11 +243,18 @@ namespace UnitTestsReactiveComponentIL
 
             BreakLoopsTransform.Apply(graph);
 
-            // At least some loop should be broken
-            bool hasBrokenEdge = 
-                node1.Effects[0] is DriveParameter ||
-                node2.Effects[0] is DriveParameter;
-            Assert.IsTrue(hasBrokenEdge);
+            Assert.IsInstanceOf<DriveParameter>(node1.Effects.Single());
+            Assert.AreEqual("param1", ((DriveParameter)node1.Effects.Single()).ParameterName);
+            Assert.IsInstanceOf<DriveInternalParameter>(node2.Effects.Single());
+            Assert.AreEqual("param1", ((ParameterExpression)node2.Expression).ParameterName);
+
+            var or = (OrNode)node1.Expression;
+            var and = (AndNode)or.Children[0];
+            var not = (NotNode)or.Children[1];
+            Assert.AreEqual("param1", ((ParameterExpression)and.Children[0]).ParameterName);
+            Assert.AreEqual("param2",
+                ((InternalParameterCondition)and.Children[1]).ParameterName);
+            Assert.AreEqual("param3", ((InternalParameterCondition)not.Inner).ParameterName);
         }
 
         [Test]
