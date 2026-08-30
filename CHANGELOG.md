@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2110] Reactive component previews did not respond reliably to object active states
 
 ### Changed
 

@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
+
 namespace nadena.dev.modular_avatar.core
 {
 
@@ -8,13 +9,13 @@ namespace nadena.dev.modular_avatar.core
     {
 
 #if !UNITY_6000_2_OR_NEWER
-        public static EntityId GetEntityId(this UnityEngine.Object unityObject)
+        public static EntityId GetEntityId(this Object unityObject)
         {
             return new(unityObject.GetInstanceID());
         }
 #endif
 
-        public static UnityEngine.Object EntityIdToObject(EntityId entityId)
+        public static Object EntityIdToObject(EntityId entityId)
         {
 #if UNITY_6000_3_OR_NEWER
             return EditorUtility.EntityIdToObject(entityId);
@@ -60,6 +61,11 @@ namespace nadena.dev.modular_avatar.core
 
         public static bool operator ==(EntityId left, EntityId right) => left.Equals(right);
         public static bool operator !=(EntityId left, EntityId right) => !left.Equals(right);
+
+        public override string ToString()
+        {
+            return $"{InstanceID}";
+        }
     }
 #endif
 }

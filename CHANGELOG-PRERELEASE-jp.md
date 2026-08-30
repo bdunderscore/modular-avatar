@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2110] リアクティブコンポーネントのプレビューがオブジェクトのアクティブ状態を正しく反映しない問題を修正
 
 ### Changed
 
