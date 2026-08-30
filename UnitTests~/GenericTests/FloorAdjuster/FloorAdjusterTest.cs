@@ -98,6 +98,39 @@ namespace UnitTests.GenericTests
         }
 
         [Test]
+        public void WhenHeadIsReplaced_RebuildsHumanoidAvatarWithoutEyes()
+        {
+            var root = CreatePrefab("FloorAdjusterBaseGenericHuman.prefab");
+            AddAdjuster(root, Vector3.up * -0.2f);
+
+            var animator = root.GetComponent<Animator>();
+            var hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+            var expectedHipsPosition = hips.position + Vector3.up * 0.2f;
+            var originalHead = animator.GetBoneTransform(HumanBodyBones.Head);
+            var leftEye = animator.GetBoneTransform(HumanBodyBones.LeftEye);
+            var rightEye = animator.GetBoneTransform(HumanBodyBones.RightEye);
+
+            var originalHeadName = originalHead.gameObject.name;
+            originalHead.gameObject.name = "RenamedHead";
+
+            var replacementHead = CreateChild(originalHead.parent.gameObject, originalHeadName);
+            replacementHead.transform.SetLocalPositionAndRotation(originalHead.localPosition, originalHead.localRotation);
+            replacementHead.transform.localScale = originalHead.localScale;
+
+            FloorAdjusterPass.TestExecute(CreateContext(root, WellKnownPlatforms.Generic));
+
+            var hipsDescriptor = animator.avatar.humanDescription.skeleton
+                .First(b => b.name == hips.gameObject.name);
+            Assert.That(Vector3.Distance(hips.position, expectedHipsPosition), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(hips.localPosition, hipsDescriptor.position), Is.LessThan(0.001f));
+            Assert.That(animator.GetBoneTransform(HumanBodyBones.Head), Is.SameAs(replacementHead.transform));
+            Assert.That(animator.GetBoneTransform(HumanBodyBones.LeftEye), Is.Null);
+            Assert.That(animator.GetBoneTransform(HumanBodyBones.RightEye), Is.Null);
+            Assert.That(leftEye.parent, Is.SameAs(originalHead));
+            Assert.That(rightEye.parent, Is.SameAs(originalHead));
+        }
+        
+        [Test]
         public void WhenUsedOnGenericAvatar_DoesNotCrash()
         {
             var root = CreateCommonPrefab("MinimalAvatar.prefab");

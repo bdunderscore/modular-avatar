@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2107] Secret Talk System 利用時など、重要度の低いヒューマノイドボーンの参照が壊れた場合、Floor Adjuster が
+  正しく動作しないバグを修正
 
 ### Changed
 
