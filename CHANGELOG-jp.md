@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2112] `Shape Changer` と併用する場合、 `Mesh Cutter` のプレビュー処理が実際の挙動と違っていた問題を修正
 
 ### Changed
 

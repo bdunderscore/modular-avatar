@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     seq.WithRequiredExtension(typeof(ReadablePropertyExtension), _s3 =>
                     {
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPass(ctx).Execute())
-                            .PreviewingWith(new ShapeChangerPreview(), new MeshDeleterPreview(),
+                            .PreviewingWith(new MeshDeleterPreview(), new ShapeChangerPreview(),
                                 new ObjectSwitcherPreview(), new MaterialSetterPreview());
                     })
 ;
