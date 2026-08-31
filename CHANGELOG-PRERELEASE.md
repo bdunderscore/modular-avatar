@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#2112] Mesh Cutter previews show incorrect results when used in combination with Shape Changer
 - [#2113] Fixed NaNimation unnecessarily duplicating vertices when all primitives are selected.
+- [#2115] Reactive components might have the wrong non-animated state when their parameter's default is controlled
+  by an expressions parameters asset or `MA Parameters` component.
 
 ### Changed
 
