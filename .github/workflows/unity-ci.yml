@@ -22,7 +22,7 @@
 #  SOFTWARE.
 
 
-name: Unity CI (6000.x)
+name: Unity tests
 
 on:
   push:
@@ -42,19 +42,22 @@ on:
 # pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
 permissions: {}
 
+env:
+  LIBRARY_CACHE_PREFIX: 'Library-v5'
+
 jobs:
   build-and-test:
     name: Unit tests
     strategy:
       fail-fast: false
       matrix:
-        unity_major_version: [ "6000.0", "6000.5" ]
+        unity_major_version: [ "2022", "6000.0", "6000.5" ]
         sdk: [ vrcsdk, standalone ]
         testmode: [ All ]
         exclude:
-          - unity_major_version: 6000.0
+          - unity_major_version: "6000.0"
             sdk: vrcsdk
-          - unity_major_version: 6000.5
+          - unity_major_version: "6000.5"
             sdk: vrcsdk
     runs-on: ubuntu-latest
     permissions:
@@ -66,7 +69,9 @@ jobs:
         env:
           unity_major_version: ${{ matrix.unity_major_version }}
         run: |
-          if [ $unity_major_version = 6000.0 ]; then
+          if [ $unity_major_version = 2022 ]; then
+            echo "unity_version=2022.3.6f1" >> $GITHUB_OUTPUT
+          elif [ $unity_major_version = 6000.0 ]; then
             echo "unity_version=6000.0.60f1" >> $GITHUB_OUTPUT
           elif [ $unity_major_version = 6000.5 ]; then
             echo "unity_version=6000.5.9f1" >> $GITHUB_OUTPUT
@@ -126,9 +131,11 @@ jobs:
         if: ${{ matrix.sdk == 'standalone' }}
         name: Prepare standalone environment
         run: |
-          mv Packages/nadena.dev.ndmf/Dependencies~ Packages/nadena.dev.ndmf/Dependencies
-          if ! [ -e Packages/nadena.dev.modular-avatar/UnitTests/GenericTests ]; then
-            rm -rf Packages/nadena.dev.modular-avatar/UnitTests # tests are not supported in standalone yet
+          cd Packages/nadena.dev.ndmf
+          ln -s 'Dependencies~' Dependencies
+          cd ../nadena.dev.modular-avatar
+          if ! [ -e UnitTests/GenericTests ]; then
+            rm -rf UnitTests # tests are not supported in standalone yet
           fi
 
       - name: "Debug: List package versions"
@@ -141,10 +148,10 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Library
-          key: Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+          key: ${{ env.LIBRARY_CACHE_PREFIX }}-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
           restore-keys: |
-            Library-v2-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
-            Library-v2-${{ steps.configure.outputs.unity_version }}
+            ${{ env.LIBRARY_CACHE_PREFIX }}-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
+            ${{ env.LIBRARY_CACHE_PREFIX }}-${{ steps.configure.outputs.unity_version }}
 
       - uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2
         id: unity-setup
@@ -159,6 +166,25 @@ jobs:
           license: 'Personal' # Choose license type to use [ Personal, Professional, Floating ]
           username: ${{ secrets.UNITY_USER }}
           password: ${{ secrets.UNITY_PASS }}
+
+      # Import the project separately. Unity 2022.3.6f1 can fail when the initial import and
+      # test run happen in the same editor process.
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+        name: Build project
+        continue-on-error: true
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -buildTarget StandaloneWindows64
+            -batchmode
+            -quit
+            -force-graphics
+            -logFile "test-results~/build.log"
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -overrideTextureCompression ForceUncompressed
       
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: EditMode UnitTests
@@ -167,6 +193,7 @@ jobs:
           editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
           project-path: .
           args: >
+            -buildTarget StandaloneWindows64
             -batchmode
             -force-graphics
             -logFile "test-results~/editmode.log"
@@ -178,6 +205,7 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
 
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: PlayMode UnitTests
@@ -187,6 +215,7 @@ jobs:
           editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
           project-path: .
           args: >
+            -buildTarget StandaloneWindows64
             -batchmode
             -force-graphics
             -logFile "test-results~/playmode.log"
@@ -198,6 +227,7 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
             
       - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'EditMode' }}
@@ -249,13 +279,19 @@ jobs:
         continue-on-error: true
         if: failure()
         run: |
-          xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/editmode-results.xml
+          if [ -f "test-results~/editmode-results.xml" ]; then
+            xmllint --pretty 2 --nocompact --xpath '//test-case[@result!="Passed"]' \
+              "test-results~/editmode-results.xml" || true
+          fi
           
       - name: List test failures (play mode)
         continue-on-error: true
         if: failure()
         run: |
-          xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/playmode-results.xml
+          if [ -f "test-results~/playmode-results.xml" ]; then
+            xmllint --pretty 2 --nocompact --xpath '//test-case[@result!="Passed"]' \
+              "test-results~/playmode-results.xml" || true
+          fi
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
