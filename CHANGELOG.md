@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2112] Mesh Cutter previews show incorrect results when used in combination with Shape Changer
+- [#2113] Fixed NaNimation unnecessarily duplicating vertices when all primitives are selected.
 
 ### Changed
 
