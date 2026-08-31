@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2112] `Shape Changer` と併用する場合、 `Mesh Cutter` のプレビュー処理が実際の挙動と違っていた問題を修正
 
 ### Changed
 
