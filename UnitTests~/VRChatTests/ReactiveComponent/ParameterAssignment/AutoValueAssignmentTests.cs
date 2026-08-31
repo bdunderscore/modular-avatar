@@ -201,6 +201,51 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             
         }
         
+        [Test]
+        public void IntDefaultMatchesObjectToggleValue()
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "x",
+                    valueType = VRCExpressionParameters.ValueType.Int,
+                    defaultValue = 1
+                }
+            };
+
+            var obj = CreateChild(root, "obj");
+            obj.AddComponent<MeshRenderer>();
+
+            var toggle = CreateChild(root, "toggle");
+            var menuItem = toggle.AddComponent<ModularAvatarMenuItem>();
+            menuItem.automaticValue = false;
+            menuItem.Control = new VRCExpressionsMenu.Control
+            {
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = "x" },
+                value = 1
+            };
+
+            var objectToggle = toggle.AddComponent<ModularAvatarObjectToggle>();
+            objectToggle.Objects = new()
+            {
+                new()
+                {
+                    Active = false,
+                    Object = new AvatarObjectReference(obj)
+                }
+            };
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.IsFalse(obj.activeSelf);
+        }
+
+        
         void TestAssignments(
             (bool, float)[] assignments,
             float[] expectedAssignments,

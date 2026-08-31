@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using nadena.dev.ndmf;
-
-#if MA_VRCSDK3_AVATARS
+﻿#if MA_VRCSDK3_AVATARS
+using System.Collections.Generic;
 using System.Linq;
-using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
+using nadena.dev.ndmf;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -117,6 +116,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (!item.automaticValue)
                     {
                         usedValues.Add((int)item.Control.value);
+                        item.isDefault = defaultValue.HasValue && (int)item.Control.value == defaultValue;
                     }
                 }
 
@@ -257,7 +257,8 @@ namespace nadena.dev.modular_avatar.core.editor
     }
 }
 #else
-
+using System.Collections.Generic;
+using nadena.dev.ndmf;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
