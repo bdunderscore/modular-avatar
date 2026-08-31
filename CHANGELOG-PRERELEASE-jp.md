@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2112] `Shape Changer` と併用する場合、 `Mesh Cutter` のプレビュー処理が実際の挙動と違っていた問題を修正
+- [#2113] すべてのプリミティブを選択した場合に、NaNimation が不要な頂点の複製を行う問題を修正
 
 ### Changed
 

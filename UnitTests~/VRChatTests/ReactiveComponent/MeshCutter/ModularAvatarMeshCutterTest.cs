@@ -332,7 +332,7 @@ public class ModularAvatarMeshCutterTest : TestBase
         var smrBones = meshRenderer.bones;
         Assert.AreEqual(2, smrBones.Length, "SkinnedMeshRenderer should have two bones for NaNimation");
         
-        // NaNimation duplicates vertices for the selected primitives but does not delete any.
+        // NaNimation preserves all primitives and clones vertices only when hide keys conflict.
         Assert.GreaterOrEqual(processedMesh.vertexCount, originalVertexCount,
             "Vertex count should be at least original with NaNimation (clone vertices may be added)");
         Assert.AreEqual(originalTriangleCount, processedMesh.triangles.Length,
@@ -377,10 +377,9 @@ public class ModularAvatarMeshCutterTest : TestBase
         
         if (affectedVertices.Any(a => a) && boneWeights.Length > 0)
         {
-            // After NaNimation, selected primitives contain clone vertices (index >= originalVertexCount).
-            // Clone vertices are weighted to new NaN bones and have the same position as their original.
-            // We check that at least one primitive has a vertex (clone or original) weighted to a new bone
-            // whose position was originally in the affected zone.
+            // After NaNimation, selected primitives contain a vertex weighted to a new NaN bone.
+            // The weighted vertex may be an original vertex or a clone at the same position.
+            // Check that at least one such vertex was originally in the affected zone.
             var triangles = processedMesh.triangles;
             bool foundAffectedTriangleWithNewBone = false;
 

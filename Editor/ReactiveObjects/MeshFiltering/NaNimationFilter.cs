@@ -193,10 +193,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // ── Phase B+C: Compute hide keys & build vertex duplication plan ──
 
+                var emptyKey = makeHideKey(new List<int>());
                 var newToOrig = new List<int>(originalVertexCount + 16);
-                for (var i = 0; i < originalVertexCount; i++) newToOrig.Add(i);
+                var vertHideKey = new List<THideKey>(originalVertexCount + 16);
 
-                var cloneHideKeys = new List<THideKey>(); // index = (newVertIdx - originalVertexCount)
+                for (var i = 0; i < originalVertexCount; i++)
+                {
+                    newToOrig.Add(i);
+                    vertHideKey.Add(emptyKey);
+                }
+                
                 var cloneMap = new Dictionary<(int, THideKey), int>();
 
                 var newIndexBuffers = new int[submeshCount][];
@@ -214,11 +220,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var shapeIndicesScratch = new List<int>(targets.Count);
 
+                // submesh, prim index
+                var vertToSharedKeys = new Dictionary<THideKey, HashSet<(int, int)>>[originalVertexCount];
+                
                 for (var sm = 0; sm < submeshCount; sm++)
                 {
                     var vpp = vertsPerPrim[sm];
                     var primCount = origIndexBuffers[sm].Length / vpp;
+                    var primToHideKey = new THideKey[primCount];
 
+                    // Count hidekeys referencing each vertex
                     for (var p = 0; p < primCount; p++)
                     {
                         // Build hide key: sorted set of shape indices that select this primitive
@@ -227,62 +238,101 @@ namespace nadena.dev.modular_avatar.core.editor
                             if (primitiveMasks[s][sm][p])
                                 shapeIndicesScratch.Add(s);
 
-                        if (shapeIndicesScratch.Count == 0) continue;
-
                         var hideKey = makeHideKey(shapeIndicesScratch);
-
-                        // Check if any vertex in this primitive already has a clone for this hideKey
-                        var existingCloneVert = -1;
-                        var existingSlot = -1;
+                        primToHideKey[p] = hideKey;
+                        
                         for (var vi = 0; vi < vpp; vi++)
                         {
                             var origVert = origIndexBuffers[sm][p * vpp + vi];
-                            if (cloneMap.TryGetValue((origVert, hideKey), out var cloneVert))
+                            if (vertToSharedKeys[origVert] == null)
+                                vertToSharedKeys[origVert] = new Dictionary<THideKey, HashSet<(int, int)>>();
+                            if (!vertToSharedKeys[origVert].TryGetValue(hideKey, out var prims))
                             {
-                                existingCloneVert = cloneVert;
-                                existingSlot = vi;
-                                break;
-                            }
-                        }
-
-                        if (existingCloneVert >= 0)
-                        {
-                            // Reuse existing clone — update only this slot
-                            newIndexBuffers[sm][p * vpp + existingSlot] = existingCloneVert;
-                        }
-                        else
-                        {
-                            // Need to clone a vertex for this primitive.
-                            // Heuristic: prefer a slot that already has a clone for any shape in hideKey,
-                            // so ComputeNaNPlanForShape can build on an existing NaN bone redirect.
-                            var chosenSlot = 0;
-                            for (var vi = 0; vi < vpp; vi++)
-                            {
-                                var origVert = origIndexBuffers[sm][p * vpp + vi];
-                                foreach (var s in shapeIndicesScratch)
-                                {
-                                    if (cloneMap.ContainsKey((origVert, singleShapeKeys[s])))
-                                    {
-                                        chosenSlot = vi;
-                                        goto doneChoosingSlot;
-                                    }
-                                }
+                                prims = new HashSet<(int, int)>();
+                                vertToSharedKeys[origVert][hideKey] = prims;
                             }
 
-                            doneChoosingSlot:
+                            prims.Add((sm, p));
+                        }
+                    }
 
-                            var chosenOrigVert = origIndexBuffers[sm][p * vpp + chosenSlot];
-                            var newVertIdx = newToOrig.Count;
-                            newToOrig.Add(chosenOrigVert);
-                            cloneHideKeys.Add(hideKey);
-                            cloneMap[(chosenOrigVert, hideKey)] = newVertIdx;
-                            newIndexBuffers[sm][p * vpp + chosenSlot] = newVertIdx;
+                    // Select preferred vertex to use for each primitive, and mark that vertex as
+                    // unshared (if necessary) to force duplication
+                    for (var p = 0; p < primCount; p++)
+                    {
+                        var hideKey = primToHideKey[p];
+                        if (hideKey.IsEmpty)
+                        {
+                            continue; // we'll always use the base vertex
+                        }
+
+                        var preference = -999999;
+                        var selectedVert = -1;
+                        for (var vi = 0; vi < vpp; vi++)
+                        {
+                            var origVert = origIndexBuffers[sm][p * vpp + vi];
+
+                            if (!vertToSharedKeys[origVert].ContainsKey(hideKey))
+                            {
+                                // Already duplicated; no need to duplicate another vert
+                                goto nextPrim;
+                            }
+
+                            if (vertToSharedKeys[origVert].Count == 1)
+                            {
+                                // This is the only (remaining) group using this key, so we don't need to
+                                // duplicate, and can assign the hide key in-place.
+                                vertHideKey[origVert] = hideKey;
+                                goto nextPrim;
+                            }
+
+                            var candidatePref = vertToSharedKeys[origVert][hideKey].Count;
+                            if (candidatePref < preference) continue;
+                            preference = candidatePref;
+                            selectedVert = origVert;
+                        }
+
+                        // We need to force a new duplication
+                        var newVertIdx = newToOrig.Count;
+                        newToOrig.Add(selectedVert);
+                        vertHideKey.Add(hideKey);
+                        cloneMap[(selectedVert, hideKey)] = newVertIdx;
+
+                        // Unshare this vertex so other primitives sharing it won't duplicate another
+                        // instead.
+                        vertToSharedKeys[selectedVert].Remove(hideKey);
+
+                        nextPrim:
+                        continue;
+                    }
+
+                    // Apply index buffer updates
+                    for (var p = 0; p < primCount; p++)
+                    {
+                        var hideKey = primToHideKey[p];
+                        if (hideKey.IsEmpty)
+                        {
+                            continue; // we'll always use the base vertex
+                        }
+
+                        for (var vi = 0; vi < vpp; vi++)
+                        {
+                            var origVert = origIndexBuffers[sm][p * vpp + vi];
+                            if (cloneMap.TryGetValue((origVert, hideKey), out var newVertIdx))
+                            {
+                                newIndexBuffers[sm][p * vpp + vi] = newVertIdx;
+                            }
+                            else
+                            {
+                                newIndexBuffers[sm][p * vpp + vi] = origVert;
+                            }
                         }
                     }
                 }
 
                 // No primitives selected by any shape — leave mesh unchanged
-                if (cloneMap.Count == 0) return new Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>();
+                if (vertHideKey.All(k => k.IsEmpty))
+                    return new Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>();
 
                 var newVertCount = newToOrig.Count;
                 var newToOrigArray = newToOrig.ToArray();
@@ -386,10 +436,10 @@ namespace nadena.dev.modular_avatar.core.editor
                 for (var s = 0; s < targets.Count; s++)
                 {
                     Array.Fill(vertexMask, false);
-                    for (var ci = 0; ci < cloneCount; ci++)
+                    for (var vi = 0; vi < vertHideKey.Count; vi++)
                     {
-                        if (cloneHideKeys[ci].Contains(s))
-                            vertexMask[originalVertexCount + ci] = true;
+                        if (vertHideKey[vi].Contains(s))
+                            vertexMask[vi] = true;
                     }
 
                     if (!vertexMask.Any(b => b)) continue;
