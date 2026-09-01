@@ -12,17 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different
-  RCs might respond at different times to the same trigger.
-  - Compatibility note: Reactive Component response timing may be slightly different from prior versions.
-  - Compatibility note: Modular Avatar no longer supports co-existence with VRCFury versions older than 1.1373.
-    Update VRCFury before upgrading Modular Avatar.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.19.0-alpha.0] - [2026-09-01]
+
+### Changed
+- [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different
+  RCs might respond at different times to the same trigger.
+  - Compatibility note: Reactive Component response timing may be slightly different from prior versions.
+  - Compatibility note: Modular Avatar no longer supports co-existence with VRCFury versions older than 1.1373.
+    Update VRCFury before upgrading Modular Avatar.
 
 ## [1.18.7] - [2026-09-01]
 
