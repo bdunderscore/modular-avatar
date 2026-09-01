@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -501,6 +503,72 @@ namespace nadena.dev.modular_avatar.core.editor
                 case MeshTopology.Quads: return 4;
                 default: return 1;
             }
+        }
+
+        public static Dictionary<(TargetProp, IMeshSelector), List<GameObject>> GenerateNaNimatedBones(
+            SkinnedMeshRenderer renderer,
+            Dictionary<(TargetProp, IMeshSelector), List<AddedBone>> plan)
+        {
+            Dictionary<Transform, Transform> parentToBuffer = new();
+
+            List<(AddedBone, (TargetProp, IMeshSelector))> createdBones =
+                plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
+                    .OrderBy(b => b.bone.newBoneIndex)
+                    .ToList();
+
+            var maxNewBoneIndex = createdBones[^1].Item1.newBoneIndex;
+            var bonesArray = new Transform[maxNewBoneIndex + 1];
+            var curBonesArray = renderer.bones;
+            Array.Copy(curBonesArray, 0, bonesArray, 0, curBonesArray.Length);
+
+            // Special case for meshes with no bones; we need to create a bone 0
+            if (curBonesArray.Length == 0)
+            {
+                bonesArray[0] = renderer.transform;
+            }
+
+            foreach (var pair in createdBones)
+            {
+                var bone = pair.Item1;
+                var shape = pair.Item2;
+
+                if (bonesArray[bone.originalBoneIndex] == null) continue;
+
+                // When we merge armature after generating NaNimated bones, we can end up changing the localScale of
+                // the nanimated bones, which is a problem, since we've baked that scale into our animation curves.
+                //
+                // To help avoid this, we add a buffer object - the buffer object will take the base scale change,
+                // while NaNimated object goes between scale (1,1,1) and (NaN, NaN, NaN)
+                //
+                // See github bug: https://github.com/bdunderscore/modular-avatar/issues/1869
+
+                if (!parentToBuffer.TryGetValue(bonesArray[bone.originalBoneIndex], out var bufferTransform))
+                {
+                    var bufferObj = new GameObject(NaNimatedBufferPrefix + "$" + Guid.NewGuid());
+                    bufferTransform = bufferObj.transform;
+                    bufferTransform.SetParent(bonesArray[bone.originalBoneIndex], false);
+                    bufferTransform.localPosition = Vector3.zero;
+                    bufferTransform.localRotation = Quaternion.identity;
+                    bufferTransform.localScale = Vector3.one;
+                    bufferObj.AddComponent<ModularAvatarPBBlocker>();
+
+                    parentToBuffer.Add(bonesArray[bone.originalBoneIndex], bufferTransform);
+                }
+
+                var newBone = new GameObject(NaNimatedBonePrefix + shape.Item1.ToString().Replace('/', '_'));
+                var newBoneTransform = newBone.transform;
+                newBoneTransform.SetParent(bufferTransform, false);
+                newBoneTransform.localPosition = Vector3.zero;
+                newBoneTransform.localRotation = Quaternion.identity;
+                newBoneTransform.localScale = Vector3.one;
+
+                bonesArray[bone.newBoneIndex] = newBoneTransform;
+            }
+
+            renderer.bones = bonesArray;
+
+            return plan.ToDictionary(kv => kv.Key,
+                kv => kv.Value.Select(b => bonesArray[b.newBoneIndex].gameObject).ToList());
         }
 
         private static List<AddedBone> ComputeNaNPlanForShape(

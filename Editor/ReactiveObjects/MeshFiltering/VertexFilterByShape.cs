@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -98,7 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor
             return (vertexMask, default);
         }
 
-        public bool Equals(IMeshSelector other)
+        public bool Equals(IMeshSelector? other)
         {
             return other is VertexFilterByShape filter
                    && filter.Shapes.SetEquals(Shapes)
@@ -106,7 +108,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    && filter._selectionMode == _selectionMode;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as IMeshSelector);
         }

@@ -1,0 +1,248 @@
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
+using UnityEngine;
+
+namespace nadena.dev.modular_avatar.core.editor.rc
+{
+    public sealed class BakeContext
+    {
+        public const string ALWAYS_ONE = "$$MA/RC/AlwaysOne";
+        internal const string BASE_LAYER_NAME = "MA/RC Base";
+        internal const string APPLY_LAYER_NAME = "MA/RC Apply";
+        public AnimationIndex AnimationIndex { get; private set; }
+        public ObjectPathRemapper ObjectPathRemapper { get; private set; }
+        public VirtualMotion EmptyMotion { get; private set; }
+        public VirtualClip AlwaysOnClip { get; }
+        public VirtualBlendTree RootTree { get; }
+        public VirtualLayer BaseLayer { get; }
+        public VirtualClip BaseLayerClip { get; }
+        private readonly VirtualAnimatorController _vac;
+        private int _counter;
+
+        public int Latency { get; private set; }
+        public int LatencyHorizon { get; private set; }
+
+        public BakeContext(ndmf.BuildContext buildContext, VirtualAnimatorController vac)
+        {
+            var asc = buildContext.Extension<AnimatorServicesContext>();
+            AnimationIndex = asc.AnimationIndex;
+            ObjectPathRemapper = asc.ObjectPathRemapper;
+            
+            EmptyMotion = VirtualClip.Create("Empty");
+            _vac = vac;
+
+            AlwaysOnClip = VirtualClip.Create("Base");
+
+            vac.Parameters = vac.Parameters.Add(ALWAYS_ONE, new AnimatorControllerParameter
+            {
+                name = ALWAYS_ONE,
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1
+            });
+
+            RootTree = VirtualBlendTree.Create("Root");
+            RootTree.BlendType = BlendTreeType.Direct;
+            RootTree.NormalizedBlendValues = false;
+            RootTree.UseAutomaticThresholds = false;
+
+            RootTree.Children = RootTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = AlwaysOnClip,
+                DirectBlendParameter = ALWAYS_ONE
+            });
+
+            // Base layer at lowest priority to hold initial active-state defaults
+            var baseBlendTree = VirtualBlendTree.Create("BaseLayerTree");
+            BaseLayerClip = VirtualClip.Create("BaseLayerClip");
+            baseBlendTree.BlendType = BlendTreeType.Direct;
+            baseBlendTree.NormalizedBlendValues = false;
+            baseBlendTree.UseAutomaticThresholds = false;
+            baseBlendTree.Children = baseBlendTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = BaseLayerClip,
+                DirectBlendParameter = ALWAYS_ONE
+            });
+
+            BaseLayer = vac.AddLayer(new LayerPriority(int.MinValue), BASE_LAYER_NAME);
+            BaseLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
+            BaseLayer.DefaultWeight = 1;
+            var sm = BaseLayer.StateMachine ??
+                     throw new InvalidOperationException("Base animator layer was created without a state machine");
+            var state = sm.AddState("Base");
+            sm.DefaultState = state;
+            state.Motion = baseBlendTree;
+
+            var animLayer = vac.AddLayer(new LayerPriority(1), APPLY_LAYER_NAME);
+            animLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
+            animLayer.DefaultWeight = 1;
+            sm = animLayer.StateMachine ??
+                 throw new InvalidOperationException("Apply animator layer was created without a state machine");
+            state = sm.AddState("Apply");
+            sm.DefaultState = state;
+            state.Motion = RootTree;
+        }
+
+        private void SetLatencyHorizon(IMotionNode root)
+        {
+            var highWaterMark = 0;
+            var latency = 0;
+
+            void Walk(ref IMotionNode node)
+            {
+                latency += node.Latency;
+                highWaterMark = Math.Max(highWaterMark, latency);
+                node.WalkTree(Walk);
+                latency -= node.Latency;
+            }
+
+            Walk(ref root);
+            LatencyHorizon = highWaterMark;
+        }
+
+        public void Bake(IMotionNode root)
+        {
+            SetLatencyHorizon(root);
+            var rootMotion = root.Bake(this);
+
+            RootTree.Children = RootTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = rootMotion,
+                DirectBlendParameter = ALWAYS_ONE
+            });
+        }
+        
+        public string AddParameter(string prefix, float value)
+        {
+            var name = "$$MA/RC/" + prefix + "$" + _counter++;
+
+            SetParameter(name, value);
+
+            return name;
+        }
+
+        public void SetParameter(string name, float value)
+        {
+            var template = new AnimatorControllerParameter
+            {
+                name = name,
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = value
+            };
+
+            _vac.SetParameter(name, template);
+        }
+
+        public IDisposable LatencyScope(int frames)
+        {
+            var scope = new LatencyDisposable(this);
+            Latency += frames;
+            return scope;
+        }
+
+        private class LatencyDisposable : IDisposable
+        {
+            private readonly BakeContext _context;
+            private readonly int _originalLatency;
+
+            public LatencyDisposable(BakeContext context)
+            {
+                _context = context;
+                _originalLatency = context.Latency;
+            }
+
+            public void Dispose()
+            {
+                _context.Latency = _originalLatency;
+            }
+        }
+
+        public float GetParameterInitialValue(string parameterName)
+        {
+            if (!_vac.Parameters.TryGetValue(parameterName, out var parameter))
+            {
+                return 0;
+            }
+
+            return parameter.type switch
+            {
+                AnimatorControllerParameterType.Bool => parameter.defaultBool ? 1 : 0,
+                AnimatorControllerParameterType.Int => parameter.defaultInt,
+                _ => parameter.defaultFloat
+            };
+        }
+
+        public void EnsureParameterPresent(string parameterName, float defaultValue = 0)
+        {
+            if (!_vac.Parameters.TryGetValue(parameterName, out var parameter))
+            {
+                SetParameter(parameterName, defaultValue);
+            }
+            else if (parameter.type != AnimatorControllerParameterType.Float)
+            {
+                SetParameter(parameterName, GetParameterInitialValue(parameterName));
+            }
+        }
+
+        /// <summary>
+        ///     Removes internal RC parameters from the VAC that are no longer referenced by any
+        ///     node in the graph after pruning. This prevents orphaned parameters (e.g. ObjActive/X
+        ///     parameters whose EffectGroups were removed by PruneUnusedInternalParametersTransform)
+        ///     from remaining in the animator with stale or incorrect default values.
+        /// </summary>
+        internal void PruneOrphanedInternalParameters(ReactionGraph graph)
+        {
+            const string rcPrefix = "$$MA/RC/";
+
+            // Collect all RC parameter names still referenced by the graph — either as
+            // InternalParameterTarget/ParameterTarget effect targets, or as ParameterExpression
+            // references inside surviving node conditions (e.g. ActiveSelf params created by
+            // ProcessExternalObjectStateInputsTransform have no driver nodes, only condition refs).
+            var survivingNames = new HashSet<string>(
+                graph.Nodes.Select(n => n.Effects[0].TargetKey).Select(tk => tk switch
+                {
+                    InternalParameterTarget ipt => ipt.ParameterName,
+                    ParameterTarget pt => pt.ParameterName,
+                    _ => null
+                }).Where(name => name != null)!
+            );
+
+            foreach (var node in graph.Nodes)
+            {
+                CollectRcParameterExpressions(node.Expression, rcPrefix, survivingNames);
+            }
+
+            const string delayPrefix = "$$MA/RC/DELAY/";
+            var orphans = _vac.Parameters.Keys
+                .Where(k => k.StartsWith(rcPrefix)
+                            && !k.StartsWith(delayPrefix)
+                            && k != ALWAYS_ONE
+                            && !survivingNames.Contains(k))
+                .ToList();
+
+            // Build the pruned dictionary first, then assign once.
+            // Assigning to _vac.Parameters is O(n) (it triggers a parameter-change callback),
+            // so we batch all removals through Aggregate before the single assignment.
+            _vac.Parameters = orphans.Aggregate(_vac.Parameters, (dict, name) => dict.Remove(name));
+        }
+
+        private static void CollectRcParameterExpressions(IExpression expr, string rcPrefix, HashSet<string> names)
+        {
+            switch (expr)
+            {
+                case ParameterExpression pe when pe.ParameterName.StartsWith(rcPrefix):
+                    names.Add(pe.ParameterName);
+                    break;
+                default:
+                    expr.Walk((ref IExpression child) => CollectRcParameterExpressions(child, rcPrefix, names));
+                    break;
+            }
+        }
+    }
+}

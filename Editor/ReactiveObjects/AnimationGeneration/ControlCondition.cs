@@ -1,4 +1,7 @@
-﻿using System;
+#nullable enable
+
+
+using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -6,16 +9,15 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ControlCondition
     {
-        public string Parameter;
-        public Object DebugReference;
-        
-        public string DebugName;
+        public string Parameter = "";
+        public Object? DebugReference;
+
+        public string DebugName = "";
         public bool IsConstant;
         public float ParameterValueLo, ParameterValueHi, InitialValue;
         public bool InitiallyActive => InitialValue > ParameterValueLo && InitialValue < ParameterValueHi;
-        public bool IsConstantActive => InitiallyActive && IsConstant;
 
-        public GameObject ReferenceObject;
+        public GameObject? ReferenceObject;
 
         protected bool Equals(ControlCondition other)
         {
@@ -29,7 +31,7 @@ namespace nadena.dev.modular_avatar.core.editor
                    && Equals(ReferenceObject, other.ReferenceObject);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
