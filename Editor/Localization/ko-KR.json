@@ -236,8 +236,6 @@
   "validation.merge_armature.target_is_child:hint": "자식 오브젝트는 사용할 수 없습니다. 다른 오브젝트를 지정하세요.",
   "validation.platform_filter.mixed_include_exclude": "[MA-0013] 하나의 GameObject에서 Platform Filter의 '포함'과 '제외' 설정을 함께 사용할 수 없습니다",
   "validation.platform_filter.mixed_include_exclude:description": "'포함' 모드를 사용하는 경우 포함할 플랫폼만 지정하세요.",
-  "validation.legacy_vrcfury_warning": "[MA-1600] VRCFury 버전이 너무 오래되어 Mesh Cutter와 Shape Changer 삭제 모드를 사용할 수 없습니다",
-  "validation.legacy_vrcfury_warning:hint": "삭제 모드를 사용하려면 VRCFury 1.1250.0 이상이 필요합니다. 최신 버전으로 업데이트하세요.",
   "submenu_source.Children": "자식 오브젝트에서 생성",
   "submenu_source.MenuAsset": "Expressions Menu 에셋 지정",
   "menuitem.showcontents": "메뉴 내용 표시",
