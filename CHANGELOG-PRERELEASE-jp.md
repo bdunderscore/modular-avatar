@@ -10,10 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2112] `Shape Changer` と併用する場合、 `Mesh Cutter` のプレビュー処理が実際の挙動と違っていた問題を修正
-- [#2113] すべてのプリミティブを選択した場合に、NaNimation が不要な頂点の複製を行う問題を修正
-- [#2115] パラメーターの初期値が Expressions Parameters のアセット、または `MA Parameters` コンポーネントで決定される
-  場合、リアクティブコンポーネントのアニメーターなしの初期状態が正しくない問題を修正
 
 ### Changed
 
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.18.7] - [2026-09-01]
+
+### Fixed
+- [#2112] `Shape Changer` と併用する場合、 `Mesh Cutter` のプレビュー処理が実際の挙動と違っていた問題を修正
+- [#2113] すべてのプリミティブを選択した場合に、NaNimation が不要な頂点の複製を行う問題を修正
+- [#2115] パラメーターの初期値が Expressions Parameters のアセット、または `MA Parameters` コンポーネントで決定される
+  場合、リアクティブコンポーネントのアニメーターなしの初期状態が正しくない問題を修正
 
 ## [1.18.6] - [2026-08-30]
 
