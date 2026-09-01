@@ -8,6 +8,15 @@ namespace nadena.dev.modular_avatar
     [Serializable]
     internal struct VersionTag
     {
+        private static readonly Dictionary<string, string> CompatibilityVersionOverrideMappings;
+
+        static VersionTag()
+        {
+            CompatibilityVersionOverrideMappings = new Dictionary<string, string>();
+            // No serialization changes in this version
+            CompatibilityVersionOverrideMappings["1.19.0-alpha.0"] = "1.18.0";
+        }
+        
         public string? UpdatedAtVersion;
         public string? MinimumVersion;
 
@@ -22,6 +31,11 @@ namespace nadena.dev.modular_avatar
             var minimumVersion = versionParts.Length >= 2
                 ? $"{versionParts[0]}.{versionParts[1]}.0"
                 : version;
+
+            if (CompatibilityVersionOverrideMappings.TryGetValue(version, out var overrideVersion))
+            {
+                minimumVersion = overrideVersion;
+            }
 
             Current = new VersionTag
             {
