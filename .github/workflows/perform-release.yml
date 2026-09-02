@@ -47,8 +47,38 @@ jobs:
     name: Build documentation (latest release)
     uses: bdunderscore/modular-avatar/.github/workflows/build-test-docs.yml@main
   
+  check-version:
+    name: Validate release version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Check semver syntax
+        run: |
+          chmod +x .github/workflows/check-semver-syntax.sh
+          .github/workflows/check-semver-syntax.sh "${{ github.event.inputs.version }}"
+
+      - name: Validate prerelease version
+        if: ${{ github.event.inputs.release_kind == 'prerelease' && !contains(github.event.inputs.version, '-') }}
+        run: |
+          echo "Prerelease version must contain a hyphen"
+          exit 1
+
+      - name: Validate stable version
+        if: ${{ github.event.inputs.release_kind == 'stable' && contains(github.event.inputs.version, '-') }}
+        run: |
+          echo "Stable version must not contain a hyphen"
+          exit 1
+
+      - name: Validate adhoc
+        if: ${{ github.event.inputs.release_kind == 'adhoc' && github.event.inputs.publish == 'true' }}
+        run: |
+          echo "Adhoc release cannot be published"
+          exit 1
+  
   create-release:
-    needs: [ check-unity-ci, check-docs ]
+    needs: [ check-unity-ci, check-docs, check-version ]
     runs-on: ubuntu-latest
 
     steps:
@@ -63,27 +93,6 @@ jobs:
         with:
           app-id: ${{ vars.RELEASER_APP_ID }}
           private-key: ${{ secrets.RELEASER_PRIVATE_KEY }}
-
-      - name: Validate prerelease version
-        id: check-version
-        if: ${{ github.event.inputs.release_kind == 'prerelease' && !contains(github.event.inputs.version, '-') }}
-        run: |
-          echo "Prerelease version must contain a hyphen"
-          exit 1
-
-      - name: Validate stable version
-        id: check-version-stable
-        if: ${{ github.event.inputs.release_kind == 'stable' && contains(github.event.inputs.version, '-') }}
-        run: |
-          echo "Stable version must not contain a hyphen"
-          exit 1
-
-      - name: Validate adhoc
-        id: validate-adhoc
-        if: ${{ github.event.inputs.release_kind == 'adhoc' && github.event.inputs.publish == 'true' }}
-        run: |
-          echo "Adhoc release cannot be published"
-          exit 1
 
       - name: Set Environment Variables
         run: |
@@ -120,13 +129,6 @@ jobs:
         run: |
           cp -f .github/image-assets/img/logo/ma_logo.png Editor/Images/logo.png
           cp -f .github/image-assets/img/logo/ma_icon.png Runtime/Icons/Icon_MA_Script.png
-
-      - name: Check semver syntax
-        if: steps.check-tag.outputs.need-new-tag == 'true'
-        id: semver-check
-        run: |
-          chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ github.event.inputs.version }}
 
       - name: Set git user and email
         id: git-config
