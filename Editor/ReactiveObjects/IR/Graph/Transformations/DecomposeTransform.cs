@@ -8,7 +8,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     /// <summary>
     ///     Breaks down all multi-effect nodes into single-effect nodes
     /// </summary>
-    public static class DecomposeTransform
+    internal static class DecomposeTransform
     {
         public static void Apply(ReactionGraph graph)
         {

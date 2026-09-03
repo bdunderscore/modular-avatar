@@ -4,7 +4,7 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public class MotionNode : IMotionNode
+    internal class MotionNode : IMotionNode
     {
         public VirtualMotion Motion { get; }
 
@@ -13,7 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             Motion = motion;
         }
 
-        public VirtualMotion Bake(BakeContext context)
+        public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
             return Motion;
         }

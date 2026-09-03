@@ -9,7 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     ///     This can be used, for example, to use a BranchNode as a virtual boolean expression; at bake time, the containing
     ///     node will fill in the OnTrue or OnFalse branches, then bake the node to an actual Motion.
     /// </summary>
-    public class ProxyCondition
+    internal class ProxyCondition
     {
         // Private backing fields used for ref-passing
         private ProxyNode _onFalseProxy;

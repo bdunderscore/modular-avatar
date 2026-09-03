@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     expression with a boolean condition built from the expressions of the driving node.
     ///     Each ObjectActiveState is processed independently by (object, StateMode) pair.
     /// </summary>
-    public static class ForwardObjectActiveDriversTransform
+    internal static class ForwardObjectActiveDriversTransform
     {
         public static void Apply(ReactionGraph graph)
         {

@@ -10,7 +10,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
     ///     A reaction node is a point which can be enabled or disabled, has a particular priority, and
     ///     triggers some set of reactions (potentially including enabling/disabling objects)
     /// </summary>
-    public class ReactionNode
+    internal class ReactionNode
     {
         public int Priority { get; set; } = 0;
         public List<IAction> Effects = new();

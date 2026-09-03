@@ -5,7 +5,6 @@ using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
-using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -13,10 +12,7 @@ namespace UnitTestsReactiveComponentIL
 {
     public class ConvertToInternalParametersTests : TestBase
     {
-        private BakeContext _bakeContext;
         private GameObject _root;
-        private AnimatorServicesContext _asc;
-        private VirtualAnimatorController _vac;
 
         [SetUp]
         public override void Setup()
@@ -24,14 +20,10 @@ namespace UnitTestsReactiveComponentIL
             base.Setup();
 
             _root = CreateRoot("root");
-            var bc = CreateContext(_root);
-            _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            _vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(bc, _vac);
         }
         private void ConvertAndSimplify(ReactionGraph graph)
         {
-            ConvertToInternalParametersTransform.Apply(graph, _bakeContext);
+            ConvertToInternalParametersTransform.Apply(new TestReactionBackend(graph.Parameters), graph);
             BooleanSimplifyTransform.Apply(graph);
         }
 
@@ -55,11 +47,9 @@ namespace UnitTestsReactiveComponentIL
 
             // Check that the parameter was created in the context
             Assert.IsTrue(ipc.ParameterName.StartsWith("$$MA/RC/ObjActive/obj$"));
-
-            // Check that the parameter was added to the controller
-            Assert.IsTrue(_vac.Parameters.ContainsKey(ipc.ParameterName));
-            var param = _vac.Parameters[ipc.ParameterName];
-            Assert.AreEqual(obj.activeSelf ? 1 : 0, param.defaultFloat);
+            // Check that the parameter was added to the graph.
+            Assert.IsTrue(graph.Parameters.ParameterDefaults.ContainsKey(ipc.ParameterName));
+            Assert.AreEqual(obj.activeSelf ? 1 : 0, graph.Parameters.ParameterDefaults[ipc.ParameterName]);
         }
 
         [Test]
@@ -237,10 +227,9 @@ namespace UnitTestsReactiveComponentIL
 
             ConvertAndSimplify(graph);
 
-            // Check that the parameter default value matches the object's initial state
+            // Check that the parameter default value matches the object's initial state.
             var ipc = (InternalParameterCondition)graph.Nodes[0].Expression;
-            var param = _vac.Parameters[ipc.ParameterName];
-            Assert.AreEqual(0, param.defaultFloat);
+            Assert.AreEqual(0, graph.Parameters.ParameterDefaults[ipc.ParameterName]);
         }
 
         [Test]
@@ -310,7 +299,7 @@ namespace UnitTestsReactiveComponentIL
             ConvertAndSimplify(graph);
 
             Assert.AreEqual(new Constant(true), graph.Nodes[0].Expression);
-            Assert.IsFalse(_vac.Parameters.Keys.Any(name => name.Contains("ObjDriven/obj")));
+            Assert.IsFalse(graph.Parameters.ParameterDefaults.Keys.Any(name => name.Contains("ObjDriven/obj")));
         }
 
         [Test]

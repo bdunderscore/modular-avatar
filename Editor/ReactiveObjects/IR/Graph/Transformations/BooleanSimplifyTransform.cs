@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     3. Collapsing single-element AND and OR nodes
     ///     4. Collapsing nested NOT nodes, and constant-in-NOT nodes
     /// </summary>
-    public static class BooleanSimplifyTransform
+    internal static class BooleanSimplifyTransform
     {
         public static void Apply(ReactionGraph graph)
         {

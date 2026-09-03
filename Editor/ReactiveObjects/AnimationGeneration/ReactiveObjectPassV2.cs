@@ -24,7 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly ndmf.BuildContext context;
         private readonly AnimatorServicesContext asc;
-        private BakeContext? _bakeContext;
+        private UnityBlendTreeBackend? _blendTreeBackend;
         private readonly Dictionary<TargetProp, List<GameObject>> _nanBonesForProp = new();
 
         public ReactiveObjectPassV2(ndmf.BuildContext context)
@@ -54,14 +54,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
 #if MA_VRCSDK3_AVATARS
                     var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-                    _bakeContext = new BakeContext(context, controller);
-                    ILBuild.Build(_bakeContext, ShapeToGraph(shapes));
+                    var innerBackend = new UnityBlendTreeBackend(context, controller);
+                    _blendTreeBackend = innerBackend;
+                    IReactionBackend backend = new VRChatBlendTreeBackend(controller, innerBackend);
+                    var graph = ShapeToGraph(shapes);
+                    backend.PreprocessGraph(graph);
+                    backend.Build(ILBuild.Optimize(backend, graph));
 #endif
                 }
             }
 
             // Apply the initially-active state to scene objects for all remaining (non-constant)
-            // props. This must run after ILBuild so that SetBaseState has already read the original
+            // props. This must run after backend generation so base-state capture has already read the original
             // scene values into BaseLayerClip before we overwrite them here.
             ApplyInitialSceneStates(shapes, initialStates);
 
@@ -156,6 +160,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private void ApplyStaticStateOverrides(Dictionary<TargetProp, AnimatedProperty> shapes)
         {
+            // TODO - this function as a whole is a unity/vrchat-specific concern. However, the current
+            // hack of using overrideStaticState disappears in ReactionGraph, so we need to handle it here.
+            // In the future, we'll use higher level IActions in an initial portable graph representation,
+            // and derive static state overrides inside the VRChat backend from those high level actions.
             foreach (var (key, prop) in shapes)
             {
                 if (prop.overrideStaticState == null) continue;
@@ -181,20 +189,9 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 so.ApplyModifiedPropertiesWithoutUndo();
 
-                // For no-action-group shapes, SetBaseState was never called, so we must record
-                // the original value in BaseLayerClip so animations restore it when the object
-                // is active (e.g., AudioSource re-enabled when its parent GameObject is toggled on).
-                if (prop.actionGroups.Count == 0 && _bakeContext != null &&
-                    key.TargetObject is Component c)
+                if (prop.actionGroups.Count == 0 && _blendTreeBackend != null)
                 {
-                    _bakeContext.BaseLayerClip.SetFloatCurve(
-                        EditorCurveBinding.FloatCurve(
-                            _bakeContext.ObjectPathRemapper.GetVirtualPathForObject(c.gameObject),
-                            key.TargetObject.GetType(),
-                            key.PropertyName
-                        ),
-                        AnimationCurve.Constant(0, 1, originalValue)
-                    );
+                    _blendTreeBackend.ApplyBaseState(key, originalValue);
                 }
             }
         }
@@ -364,7 +361,9 @@ namespace nadena.dev.modular_avatar.core.editor
                         action = new PropAction(rule.TargetProp, rule.Value);
                     }
 
-                    var conditions = rule.ControllingConditions.Select(ConvertCondition).ToArray();
+                    var conditions = rule.ControllingConditions
+                        .Select(condition => ConvertCondition(graph, condition))
+                        .ToArray();
                     IExpression expr = new AndNode(conditions);
                     if (rule.Inverted)
                     {
@@ -378,17 +377,14 @@ namespace nadena.dev.modular_avatar.core.editor
             return graph;
         }
 
-        private IExpression ConvertCondition(ControlCondition arg)
+        private IExpression ConvertCondition(ReactionGraph graph, ControlCondition arg)
         {
             if (arg.ReferenceObject != null)
             {
                 return new ObjectActiveState(arg.ReferenceObject, ObjectActiveState.State.Active);
             }
 
-            if (_bakeContext == null)
-                throw new InvalidOperationException(
-                    "ReactiveObjectPassV2 condition conversion requires an active bake context");
-            _bakeContext.EnsureParameterPresent(arg.Parameter, arg.InitialValue);
+            graph.Parameters.EnsureParameter(arg.Parameter, arg.InitialValue);
 
             if (!float.IsFinite(arg.ParameterValueHi))
             {
@@ -411,5 +407,6 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return value == null ? "null" : value.GetType().FullName;
         }
+
     }
 }

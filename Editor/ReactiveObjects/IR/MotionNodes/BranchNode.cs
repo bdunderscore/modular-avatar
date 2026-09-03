@@ -9,7 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// <summary>
     ///     Implements a simple true/false branch
     /// </summary>
-    public sealed class BranchNode : IMotionNode
+    internal sealed class BranchNode : IMotionNode
     {
         public string Parameter { get; set; }
         public float Threshold = 0.99f;
@@ -24,14 +24,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             OnGreaterEquals = onGreaterEquals ?? EmptyNode.Instance;
         }
 
-        public VirtualMotion Bake(BakeContext context)
+        public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
-            var empty = context.EmptyMotion;
+            var empty = backend.EmptyMotion;
 
             var vbt = VirtualBlendTree.Create("BoolParam " + Parameter);
 
-            var onLess = OnLessThan?.Bake(context) ?? empty;
-            var onGreater = OnGreaterEquals?.Bake(context) ?? empty;
+            var onLess = OnLessThan?.Bake(backend) ?? empty;
+            var onGreater = OnGreaterEquals?.Bake(backend) ?? empty;
 
             vbt.BlendType = BlendTreeType.Simple1D;
             vbt.BlendParameter = Parameter;

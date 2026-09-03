@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
@@ -10,17 +11,22 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 {
     internal static class AssignInitialStates
     {
-        public static void ProcessGraph(BakeContext context, ReactionGraph groups)
+        public static void ProcessGraph(IReactionBackend backend, ReactionGraph graph)
         {
             Dictionary<ParameterTarget, bool> currentValues = new();
             Dictionary<ParameterTarget, bool> nextValues = new();
 
-            var drivers = groups.Nodes
+            var drivers = graph.Nodes
                 .SelectMany(n =>
                     n.Effects.OfType<DriveInternalParameter>().Select(e => (expr: n.Expression, effect: e)))
                 .ToList();
 
             if (drivers.Count == 0) return;
+
+            Func<string, float> getParameterInitialValue = parameterName =>
+                currentValues.TryGetValue(new ParameterTarget(parameterName), out var value)
+                    ? (value ? 1.0f : 0.0f)
+                    : backend.GetParameterInitialValue(parameterName);
 
             var iterationLimit = CalculateGraphDiameter(drivers) + 1;
             var changed = false;
@@ -34,7 +40,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     var target = new ParameterTarget(driver.ParameterName);
                     bool? state = null;
 
-                    var exprValue = VirtualEvaluate(context, currentValues, expr);
+                    var exprValue = expr.Evaluate(getParameterInitialValue);
                     if (exprValue)
                     {
                         state = driver.State;
@@ -68,41 +74,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 
             foreach (var (k, v) in currentValues)
             {
-                context.SetParameter(k.ParameterName, v ? 1.0f : 0.0f);
+                backend.SetParameterInitialValue(k.ParameterName, v ? 1.0f : 0.0f);
             }
-        }
-
-        public static void ProcessGroups(BakeContext context, List<EffectGroup> groups)
-        {
-            // We've baked the values into the context now, so we can leave this dictionary empty
-            Dictionary<ParameterTarget, bool> currentValues = new();
-
-            foreach (var group in groups)
-            {
-                foreach (var (node, index) in group.Nodes.Select((n, i) => (n, i)))
-                {
-                    if (VirtualEvaluate(context, currentValues, node.Expression))
-                    {
-                        group.DefaultNode = index;
-                    }
-                }
-
-                if (group.DefaultNode.HasValue)
-                {
-                    var defaultNode = group.DefaultNode.Value;
-                    group.Nodes[defaultNode].Effects.First(e => e.TargetKey.Equals(group.TargetKey))
-                        .SetBaseState(context, true);
-                }
-                else
-                {
-                    group.Nodes.SelectMany(n => n.Effects)
-                        .First(e => e.TargetKey.Equals(group.TargetKey))
-                        .SetBaseState(context, false);
-                }
-            }
-
-            // TODO - update:
-            // base unity state (must contain the state driven by the current active motion/effect)
         }
 
         private static int CalculateGraphDiameter(List<(IExpression expr, DriveInternalParameter effect)> drivers)
@@ -174,43 +147,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 case NotNode not:
                     AddDependencyEdges(not.Inner, target, parameters, edges);
                     break;
-            }
-        }
-
-        private static bool VirtualEvaluate(
-            BakeContext bakeContext,
-            Dictionary<ParameterTarget, bool> stateOverrides,
-            IExpression expr
-        )
-        {
-            switch (expr)
-            {
-                case InternalParameterCondition ipc:
-                {
-                    if (stateOverrides.TryGetValue(new ParameterTarget(ipc.ParameterName), out var state))
-                    {
-                        return state;
-                    }
-
-                    return bakeContext.GetParameterInitialValue(ipc.ParameterName) > 0.5f;
-                }
-                case AndNode and:
-                    return and.Children.All(e => VirtualEvaluate(bakeContext, stateOverrides, e));
-                case OrNode or:
-                    return or.Children.Any(e => VirtualEvaluate(bakeContext, stateOverrides, e));
-                case NotNode not:
-                    return !VirtualEvaluate(bakeContext, stateOverrides, not.Inner);
-                case Constant c:
-                    return c.Value;
-                case ParameterExpression pe:
-                {
-                    var value = bakeContext.GetParameterInitialValue(pe.ParameterName);
-                    return pe.Mode == ParameterExpression.ConditionMode.GreaterThan
-                        ? value > pe.Threshold
-                        : value < pe.Threshold;
-                }
-                default:
-                    return false;
             }
         }
     }

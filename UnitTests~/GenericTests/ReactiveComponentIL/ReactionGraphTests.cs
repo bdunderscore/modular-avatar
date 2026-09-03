@@ -16,7 +16,7 @@ namespace UnitTestsReactiveComponentIL
 {
     public class ReactionGraphTests : TestBase
     {
-        private BakeContext _bakeContext;
+        private UnityBlendTreeBackend _blendTreeBackend;
         private GameObject _root;
         private AnimatorServicesContext _asc;
 
@@ -29,7 +29,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(bc, vac);
+            _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
         }
 
         [Test]
@@ -86,7 +86,7 @@ namespace UnitTestsReactiveComponentIL
                 ));
             }
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
+            _blendTreeBackend.PreprocessGraph(graph);
 
             var targetRule = graph.Nodes[0].Expression;
             if (targetRule is not OrNode orNode)
@@ -132,12 +132,12 @@ namespace UnitTestsReactiveComponentIL
 
                 // Base layer should seed initial active state and parameter defaults
                 var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
-                var baseActiveCurve = _bakeContext.BaseLayerClip.GetFloatCurve(
+                var baseActiveCurve = _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
                 Assert.IsNotNull(baseActiveCurve, "Base layer missing active-state default curve");
                 Assert.AreEqual(obj.activeSelf ? 1 : 0, baseActiveCurve.keys[0].value);
 
-                var baseParamCurve = _bakeContext.BaseLayerClip.GetFloatCurve(
+                var baseParamCurve = _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve("", typeof(Animator), pe.ParameterName));
                 Assert.IsNotNull(baseParamCurve, "Base layer missing parameter default curve");
                 Assert.AreEqual(obj.activeSelf ? 1 : 0, baseParamCurve.keys[0].value);
@@ -158,6 +158,35 @@ namespace UnitTestsReactiveComponentIL
                 Assert.AreEqual(new Constant(false), orNode.Children[1],
                     "initial expression should be missing: " + targetRule);
             }
+        }
+
+        [Test]
+        public void PreprocessGraph_EnrichesExistingParametersAndRewritesMultiActionNodeOnce()
+        {
+            var first = CreateChild(_root, "first");
+            var second = CreateChild(_root, "second");
+            var graph = new ReactionGraph();
+            var parameters = graph.Parameters;
+            graph.Parameters.EnsureParameter("P", 0.25f);
+            var node = new ReactionNode(
+                new AndNode(
+                    new ObjectActiveState(second, ObjectActiveState.State.Active),
+                    new ParameterExpression("P")
+                ),
+                new DriveActiveState(first, true)
+            );
+            node.Effects.Add(new DriveActiveState(second, false));
+            graph.AddNode(node);
+
+            _blendTreeBackend.PreprocessGraph(graph);
+
+            Assert.AreSame(parameters, graph.Parameters);
+            Assert.AreEqual(0.25f, graph.Parameters.GetParameterInitialValue("P"));
+            var rewritten = graph.Nodes[0].Expression as AndNode;
+            Assert.IsNotNull(rewritten,
+                "Preprocessing must rewrite the node expression once even when it has multiple actions.");
+            Assert.IsFalse(rewritten.Children[0] is ObjectActiveState,
+                "Preprocessing must recognize every DriveActiveState on the node, including later actions.");
         }
 
         [Test]
@@ -260,17 +289,17 @@ namespace UnitTestsReactiveComponentIL
                 "Writer and reader of the same internal parameter must be in the same subgraph");
         }
 
-        // ── ProcessExternalObjectStateInputsTransform additional cases ────────
+        // ── Unity backend external-object preprocessing cases ────────────────
 
         [Test]
-        public void ProcessExternalOAS_NotDrivenMode_ExpressionPassedThrough()
+        public void PreprocessGraph_NotDrivenMode_ExpressionPassedThrough()
         {
             var obj = CreateChild(_root, "obj");
             var graph = new ReactionGraph();
             var expr = new ObjectActiveState(obj, ObjectActiveState.State.NotDriven);
             graph.AddNode(new ReactionNode(expr, new NullAction()));
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
+            _blendTreeBackend.PreprocessGraph(graph);
 
             Assert.AreEqual(expr, graph.Nodes[0].Expression,
                 "NotDriven OAS must not be substituted — it represents the RC-controlled state");
@@ -286,11 +315,11 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction()
             ));
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
+            _blendTreeBackend.PreprocessGraph(graph);
 
             var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
             Assert.IsNull(
-                _bakeContext.BaseLayerClip.GetFloatCurve(
+                _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive")),
                 "Base layer clip must not be written when no external animation drives the object");
         }
@@ -318,11 +347,11 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
+            _blendTreeBackend.PreprocessGraph(graph);
 
             var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
             Assert.IsNull(
-                _bakeContext.BaseLayerClip.GetFloatCurve(
+                _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive")),
                 "Base layer clip must not be written for objects never referenced by OAS");
         }
@@ -356,7 +385,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj2, ObjectActiveState.State.Active),
                 new NullAction()));
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, _bakeContext);
+            _blendTreeBackend.PreprocessGraph(graph);
 
             // Both should be rewritten to OrNode at the top level.
             var or0 = graph.Nodes[0].Expression as OrNode;

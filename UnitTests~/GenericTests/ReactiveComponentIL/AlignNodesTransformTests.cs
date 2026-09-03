@@ -17,7 +17,7 @@ namespace UnitTestsReactiveComponentIL
     public class AlignNodesTransformTests : TestBase
     {
         private GameObject _root;
-        private BakeContext _bakeContext;
+        private UnityBlendTreeBackend _blendTreeBackend;
         private AnimatorServicesContext _asc;
 
         [SetUp]
@@ -28,7 +28,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(bc, vac);
+            _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
         }
 
         #region Effect Group Tests
@@ -43,7 +43,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(1, groups[0].Nodes.Count);
@@ -64,7 +64,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", false)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(2, groups.Count);
             
@@ -93,7 +93,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(2, groups[0].Nodes.Count);
@@ -116,8 +116,8 @@ namespace UnitTestsReactiveComponentIL
             node.Effects.Add(new DriveInternalParameter("second", true));
             graph.AddNode(node);
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
-            AlignNodesTransform.Apply(_bakeContext, groups);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            AlignNodesTransform.Apply(_blendTreeBackend, groups);
 
             var firstCondition = ((AndNode)groups[new InternalParameterTarget("first")].Nodes.Single().Expression)
                 .Children.OfType<InternalParameterCondition>().Single();
@@ -151,7 +151,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("pair1", false)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var singleGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("single")));
             var pairGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("pair1")));
@@ -178,7 +178,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(3, groups[0].Nodes.Count);
@@ -235,7 +235,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("D", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var aGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
             var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
@@ -285,7 +285,7 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction("dOutput")
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var aGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
             var bGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
@@ -359,7 +359,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             // Find the original and delay node groups
             var cGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
@@ -450,7 +450,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("A", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var xGroup = groups.FirstOrDefault(g => g.TargetKey as string == "x");
             var yGroup = groups.FirstOrDefault(g => g.TargetKey as string == "y");
@@ -500,7 +500,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(1, groups.Count);
             var param1Group = groups.Single();
@@ -538,8 +538,8 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(bObjNode);
             graph.AddNode(cObjNode);
 
-            var byEffect = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
-            var aligned = AlignNodesTransform.Apply(_bakeContext, byEffect);
+            var byEffect = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var aligned = AlignNodesTransform.Apply(_blendTreeBackend, byEffect);
 
             // Locate groups
             var andGroup  = aligned.FirstOrDefault(g => g.TargetKey as string == "AND");
@@ -624,11 +624,11 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("D", true)
             ));
 
-            AlignNodesTransform.Apply(_bakeContext, graph);
+            AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             // C is 2 hops from the external effect via A; when read by A (1 hop away),
             // C must be delayed by 1 frame. Verify the blend tree forwarding entry was created.
-            Assert.IsNotEmpty(_bakeContext.RootTree.Children, "Should have created at least one delay forwarding entry");
+            Assert.IsNotEmpty(_blendTreeBackend.RootTree.Children, "Should have created at least one delay forwarding entry");
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
         }
 
@@ -661,7 +661,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            AlignNodesTransform.Apply(_bakeContext, graph);
+            AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
         }
@@ -696,7 +696,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            AlignNodesTransform.Apply(_bakeContext, graph);
+            AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("B", 1));
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
@@ -717,7 +717,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("internalParam", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("internalParam")));
@@ -741,7 +741,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var param1Group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param1")));
@@ -781,7 +781,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var param1Group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param1")));
@@ -822,7 +822,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param1", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             // Verify we got the correct groups
             Assert.That(groups.Any(g => g.TargetKey.Equals(new InternalParameterTarget("output"))));
@@ -866,7 +866,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("param2", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             var outputGroup = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("output")));
@@ -895,7 +895,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("effect", true)
             ));
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
             var eg = groups[new InternalParameterTarget("effect")];
 
             var rootNode = eg.Emit();
@@ -924,7 +924,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(0, groups.Count);
         }
@@ -938,7 +938,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("output", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             Assert.AreEqual(1, groups.Count);
         }
@@ -959,7 +959,7 @@ namespace UnitTestsReactiveComponentIL
             ));
 
             // Should throw an exception due to invalid edge depth
-            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_bakeContext, graph));
+            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_blendTreeBackend, graph));
         }
 
         [Test]
@@ -974,7 +974,7 @@ namespace UnitTestsReactiveComponentIL
             ));
 
             // Should throw an exception due to invalid edge depth
-            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_bakeContext, graph));
+            Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_blendTreeBackend, graph));
         }
 
         #endregion
@@ -1018,7 +1018,7 @@ namespace UnitTestsReactiveComponentIL
                 new DriveInternalParameter("C", true)
             ));
 
-            var groups = AlignNodesTransform.Apply(_bakeContext, graph);
+            var groups = AlignNodesTransform.Apply(_blendTreeBackend, graph);
 
             // Validate the delay forwarding structure
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
@@ -1081,7 +1081,7 @@ namespace UnitTestsReactiveComponentIL
 
         private void ValidateNoDelayForwards()
         {
-            var delayCurveBindings = _bakeContext.RootTree.Children
+            var delayCurveBindings = _blendTreeBackend.RootTree.Children
                 .Select(child => child.Motion as VirtualClip)
                 .Where(clip => clip != null)
                 .SelectMany(clip => clip.GetFloatCurveBindings())
@@ -1101,7 +1101,7 @@ namespace UnitTestsReactiveComponentIL
         /// </summary>
         private void ValidateDelayForward(string delayParamName, string sourceParamName)
         {
-            var forwardingClip = _bakeContext.RootTree.Children
+            var forwardingClip = _blendTreeBackend.RootTree.Children
                 .Where(c => c.DirectBlendParameter == sourceParamName)
                 .Select(c => c.Motion as VirtualClip)
                 .FirstOrDefault(clip => clip != null &&
@@ -1119,7 +1119,7 @@ namespace UnitTestsReactiveComponentIL
         /// </summary>
         private void ValidateDelayBaseCurve(string delayParamName)
         {
-            var curve = _bakeContext.AlwaysOnClip.GetFloatCurve("", typeof(Animator), delayParamName);
+            var curve = _blendTreeBackend.AlwaysOnClip.GetFloatCurve("", typeof(Animator), delayParamName);
             Assert.IsNotNull(curve,
                 $"AlwaysOnClip should have a base curve for {delayParamName} to reset it to 0 when not driven");
             Assert.AreEqual(0f, curve.Evaluate(0f),

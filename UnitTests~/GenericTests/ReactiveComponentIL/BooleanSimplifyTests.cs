@@ -380,7 +380,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void OrNode_AllChildrenSimplifyToFalse_CollapsesToFalse()
         {
-            // Mirrors what ProcessExternalObjectStateInputsTransform emits for an inactive, undriven, clip-free object.
+            // Mirrors backend preprocessing for an inactive, undriven, clip-free object.
             // AndNode(Constant(false), Constant(true)) short-circuits to Constant(false).
             // OrNode then has [Constant(false), Constant(false)] → should collapse to Constant(false).
             var expr = new OrNode(

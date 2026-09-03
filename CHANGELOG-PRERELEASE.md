@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
+- [#2122] Removed (made non-public) a number of APIs introduced in 1.19.0-alpha.0 which were not intended to be made
+public (yet).
 
 ### Security
 

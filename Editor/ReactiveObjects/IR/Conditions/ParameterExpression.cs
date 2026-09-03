@@ -4,7 +4,7 @@ using System;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
-    public sealed class ParameterExpression : IExpression
+    internal sealed class ParameterExpression : IExpression
     {
         public enum ConditionMode
         {
@@ -29,6 +29,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
         public IExpression DeepClone()
         {
             return new ParameterExpression(ParameterName, Threshold, Mode);
+        }
+
+        public bool Evaluate(Func<string, float> getParameter)
+        {
+            var value = getParameter(ParameterName);
+            return Mode == ConditionMode.GreaterThan
+                ? value > Threshold
+                : value < Threshold;
         }
 
         public void Walk(ExpressionVisitor visitor)

@@ -15,7 +15,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// </summary>
     internal class EffectGroup
     {
-        public EffectGroup(BakeContext context, object targetKey, List<ReactionNode> nodes)
+        public EffectGroup(UnityBlendTreeBackend context, object targetKey, List<ReactionNode> nodes)
         {
             TargetKey = targetKey;
             Nodes = nodes;
@@ -25,13 +25,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             foreach (var node in nodes)
             {
                 var effect = node.Effects.First(e => e.TargetKey.Equals(targetKey));
-                var motion = VirtualClip.Create("Effect " + effect);
-                effect.ToMotion(context, motion);
+                var motion = context.EmitAction(effect);
 
                 var proxyCondition = ProxyCondition.Always();
                 _proxyConditions.Add(proxyCondition);
 
-                conditions.Add((proxyCondition, new MotionNode(motion)));
+                conditions.Add((proxyCondition, motion));
             }
 
             if (conditions.Count <= 2)

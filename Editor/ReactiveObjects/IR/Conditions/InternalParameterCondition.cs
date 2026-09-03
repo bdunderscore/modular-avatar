@@ -1,8 +1,10 @@
 #nullable enable
 
+using System;
+
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
-    public class InternalParameterCondition : IExpression
+    internal class InternalParameterCondition : IExpression
     {
         public string ParameterName { get; set; }
 
@@ -14,6 +16,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
         public IExpression DeepClone()
         {
             return new InternalParameterCondition(ParameterName);
+        }
+
+        public bool Evaluate(Func<string, float> getParameter)
+        {
+            return getParameter(ParameterName) > 0.5f;
         }
 
         public void Walk(ExpressionVisitor visitor)

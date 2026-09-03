@@ -71,6 +71,12 @@ namespace UnitTests.ReactiveComponent
 
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
+            var baseLayers = fxc.layers.Where(layer => layer.name == VRChatBlendTreeBackend.BaseLayerName).ToList();
+            var applyLayers = fxc.layers.Where(layer => layer.name == VRChatBlendTreeBackend.ApplyLayerName).ToList();
+            Assert.AreEqual(1, baseLayers.Count, "FX must contain exactly one generated RC base layer.");
+            Assert.AreEqual(1, applyLayers.Count, "FX must contain exactly one generated RC apply layer.");
+            Assert.IsNotNull(baseLayers[0].stateMachine.defaultState.motion);
+            Assert.IsNotNull(applyLayers[0].stateMachine.defaultState.motion);
             var rootMotion = BaseLayer(fxc).stateMachine.defaultState.motion;
 
             var binding = EditorCurveBinding.FloatCurve(name, componentType, "m_Enabled");
@@ -88,7 +94,7 @@ namespace UnitTests.ReactiveComponent
 
         private AnimatorControllerLayer BaseLayer(AnimatorController ac)
         {
-            return ac.layers.First(l => l.name == BakeContext.BASE_LAYER_NAME);
+            return ac.layers.First(l => l.name == VRChatBlendTreeBackend.BaseLayerName);
         }
 
         private static IEnumerable<AnimationClip> CollectClips(Motion motion)

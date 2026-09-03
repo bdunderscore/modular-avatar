@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     When breaking loops, we prefer to break edges associated with actions on nodes that have a
     ///     higher priority number (nodes which are last in the list) first.
     /// </summary>
-    public static class BreakLoopsTransform
+    internal static class BreakLoopsTransform
     {
         // Step 8 of the transformation pipeline: detects and breaks cycles in the reaction graph
         public static void Apply(ReactionGraph graph)

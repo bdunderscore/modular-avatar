@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 {
-    public sealed class ObjectActiveTarget
+    internal sealed class ObjectActiveTarget
     {
         public GameObject Target { get; }
 
