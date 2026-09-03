@@ -1,8 +1,10 @@
 ﻿#nullable enable
 
+using System;
+
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
-    public sealed class Constant : IExpression
+    internal sealed class Constant : IExpression
     {
         public bool Value { get; set; }
 
@@ -19,6 +21,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
         public IExpression DeepClone()
         {
             return new Constant(Value);
+        }
+
+        public bool Evaluate(Func<string, float> getParameter)
+        {
+            return Value;
         }
 
         public void Walk(ExpressionVisitor visitor)

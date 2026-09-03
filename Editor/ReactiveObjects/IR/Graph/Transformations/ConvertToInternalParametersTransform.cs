@@ -14,9 +14,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     ObjectActiveDriver nodes (DriveActiveState actions) into InternalParameterDrivers
     ///     (DriveInternalParameter actions). This is step 7 in the transformation pipeline.
     /// </summary>
-    public static class ConvertToInternalParametersTransform
+    internal static class ConvertToInternalParametersTransform
     {
-        public static void Apply(ReactionGraph graph, BakeContext context)
+        public static void Apply(IReactionBackend backend, ReactionGraph graph)
         {
             // Map each object to a unique internal parameter name
             var objectToParameter = new Dictionary<GameObject, string>();
@@ -29,15 +29,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             foreach (var node in graph.Nodes)
             {
                 // Collect objects from expressions
-                CollectObjectsFromExpression(node.Expression, objectToParameter, context);
+                CollectObjectsFromExpression(node.Expression, objectToParameter, backend);
 
                 // Collect objects from actions
                 foreach (var effect in node.Effects)
                 {
                     if (effect is DriveActiveState das)
                     {
-                        EnsureParameter(das.Target, objectToParameter, context);
-                        EnsureDrivenParameter(das.Target, objectToDrivenParameter, context);
+                        EnsureParameter(das.Target, objectToParameter, backend);
+                        EnsureDrivenParameter(das.Target, objectToDrivenParameter, backend);
                         if (!driverConditions.TryGetValue(das.Target, out var conditions))
                         {
                             conditions = new List<IExpression>();
@@ -82,13 +82,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         private static void CollectObjectsFromExpression(
             IExpression expr,
             Dictionary<GameObject, string> objectToParameter,
-            BakeContext context)
+            IReactionBackend backend)
         {
             void Visit(ref IExpression e)
             {
                 if (e is ObjectActiveState oas)
                 {
-                    EnsureParameter(oas.TargetObject, objectToParameter, context);
+                    EnsureParameter(oas.TargetObject, objectToParameter, backend);
                 }
                 else
                 {
@@ -103,11 +103,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         private static void EnsureParameter(
             GameObject obj,
             Dictionary<GameObject, string> objectToParameter,
-            BakeContext context)
+            IReactionBackend backend)
         {
             if (!objectToParameter.ContainsKey(obj))
             {
-                var paramName = context.AddParameter($"ObjActive/{obj.name}", obj.activeSelf ? 1 : 0);
+                var paramName = backend.AddParameter($"ObjActive/{obj.name}", obj.activeSelf ? 1 : 0);
                 objectToParameter[obj] = paramName;
             }
         }
@@ -116,11 +116,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         private static void EnsureDrivenParameter(
             GameObject obj,
             Dictionary<GameObject, string> objectToDrivenParameter,
-            BakeContext context)
+            IReactionBackend backend)
         {
             if (!objectToDrivenParameter.ContainsKey(obj))
             {
-                objectToDrivenParameter[obj] = context.AddParameter($"ObjDriven/{obj.name}", 0);
+                objectToDrivenParameter[obj] = backend.AddParameter($"ObjDriven/{obj.name}", 0);
             }
         }
         private static IExpression ReplaceObjectActiveStates(

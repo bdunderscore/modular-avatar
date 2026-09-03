@@ -22,7 +22,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     /// </summary>
     internal class AlignNodesTransform
     {
-        private readonly BakeContext context;
+        private readonly UnityBlendTreeBackend context;
 
         // Edges from high delay to low delay - ie, from data source to sink
         private readonly Dictionary<object, HashSet<object>> _fwdEdges = new();
@@ -37,7 +37,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         private readonly Dictionary<object, int> _assignedDepths = new();
         private readonly HashSet<string> _createdDelayParameters = new();
 
-        private AlignNodesTransform(BakeContext context)
+        private AlignNodesTransform(UnityBlendTreeBackend context)
         {
             this.context = context;
 
@@ -73,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             _revEdges[to].Add(from);
         }
 
-        internal static Dictionary<object, EffectGroup> CreateEffectGroups(BakeContext context, ReactionGraph graph)
+        internal static Dictionary<object, EffectGroup> CreateEffectGroups(UnityBlendTreeBackend context, ReactionGraph graph)
         {
             // TODO: group multiple effects that always activate together into the same condition nodes
             return graph.Nodes.SelectMany(n => n.Effects.Select(e =>
@@ -83,7 +83,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 .ToDictionary(kv => kv.TargetKey, kv => kv);
         }
 
-        public static List<EffectGroup> Apply(BakeContext context, ReactionGraph graph)
+        public static List<EffectGroup> Apply(UnityBlendTreeBackend context, ReactionGraph graph)
         {
             return Apply(context, CreateEffectGroups(context, graph));
         }
@@ -190,7 +190,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             }
         }
 
-        internal static List<EffectGroup> Apply(BakeContext context, Dictionary<object, EffectGroup> byEffect)
+        internal static List<EffectGroup> Apply(UnityBlendTreeBackend context, Dictionary<object, EffectGroup> byEffect)
         {
             // Our high level algorithm is as follows: We will create a dataflow graph containing all externally
             // visible effects, condition nodes, and parameters. We will then perform a topological sort, assigning
@@ -314,7 +314,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     break;
                 }
 
-                context.SetParameter(delayedName, context.GetParameterInitialValue(ipParameterName));
+                context.SetParameterInitialValue(delayedName, context.GetParameterInitialValue(ipParameterName));
 
                 // Base curve zeroes the parameter so it resets when prevDelay drops to 0
                 context.AlwaysOnClip.SetFloatCurve(

@@ -17,9 +17,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     only need to consider effects from within the RC framework.
     ///     This pass also replaces undriven object state nodes with constant nodes.
     /// </summary>
-    public static class ProcessExternalObjectStateInputsTransform
+    internal static class ProcessExternalObjectStateInputsTransform
     {
-        public static void Apply(ReactionGraph graph, BakeContext context)
+        internal static void Apply(ReactionGraph graph, UnityBlendTreeBackend context)
         {
             Dictionary<GameObject, string?> objectToParameter = new();
             HashSet<GameObject> drivenObjects = new();
@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             }
         }
 
-        private static string? MaybeSubstituteObject(BakeContext context, GameObject target)
+        private static string? MaybeSubstituteObject(UnityBlendTreeBackend context, GameObject target)
         {
             var objectPath = context.ObjectPathRemapper.GetVirtualPathForObject(target);
             var binding = EditorCurveBinding.FloatCurve(objectPath, typeof(GameObject), "m_IsActive");

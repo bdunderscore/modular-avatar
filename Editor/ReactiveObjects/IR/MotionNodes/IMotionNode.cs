@@ -4,18 +4,13 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public delegate void MotionNodeVisitor(ref IMotionNode node);
+    internal delegate void MotionNodeVisitor(ref IMotionNode node);
 
-    public interface IMotionNode
+    internal interface IMotionNode
     {
-        /// <summary>
-        ///     Returns the maximum amount of latency introduced between this node and any downstream nodes.
-        ///     Zero means that we take effect the frame after our conditions change.
-        /// </summary>
+        /// <summary>Returns the maximum latency between this node and its downstream nodes.</summary>
         public virtual int Latency => 0;
-
-        public VirtualMotion Bake(BakeContext context);
-
+        public VirtualMotion Bake(UnityBlendTreeBackend backend);
         public void WalkTree(MotionNodeVisitor visitor);
     }
 }

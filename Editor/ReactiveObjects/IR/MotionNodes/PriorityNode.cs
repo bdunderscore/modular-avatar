@@ -21,18 +21,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         // 1 frame for the summation
         public int Latency => 1;
 
-        public VirtualMotion Bake(BakeContext context)
+        public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
-            var (executionTree, sumTree) = BakeTrees(context);
+            var (executionTree, sumTree) = BakeTrees(backend);
             sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
-                DirectBlendParameter = BakeContext.ALWAYS_ONE,
+                DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
                 Motion = executionTree
             });
             return sumTree;
         }
 
-        private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) BakeTrees(BakeContext context)
+        private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) BakeTrees(UnityBlendTreeBackend backend)
         {
             // Because we need a buffer zone between entries, we can't use every bit. In particular, we want to ensure
             // that we leave two floats between ranges. This means we need to avoid using the low two bits. As such,
@@ -52,18 +52,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                 Conditions.RemoveRange(19, Conditions.Count - 19);
 
-                (subExecution, subSum) = subNode.BakeTrees(context);
+                (subExecution, subSum) = subNode.BakeTrees(backend);
 
                 DefaultMotion = new MotionNode(subExecution);
             }
 
-            var (executionTree, sumTree) = ConstructTrees(context);
+            var (executionTree, sumTree) = ConstructTrees(backend);
 
             if (subSum != null)
             {
                 sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
                 {
-                    DirectBlendParameter = BakeContext.ALWAYS_ONE,
+                    DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
                     Motion = subSum
                 });
             }
@@ -73,7 +73,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             return (executionTree, sumTree);
         }
 
-        private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) ConstructTrees(BakeContext context)
+        private (VirtualBlendTree executionTree, VirtualBlendTree sumTree) ConstructTrees(UnityBlendTreeBackend backend)
         {
             // We make use of the representation of floats here to implement our first-selected logic. Specifically,
             // IEEE floats store their fraction in the low 22 bits of their representation, with the leading bit removed.
@@ -105,7 +105,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             // We now construct the functional blend tree. This has two components: A direct blend tree, which
             // sums the conditions, and which then references a 1D blend tree which selects between them.
-            var sumParam = context.AddParameter("PriorityNode", initialState ?? 1f);
+            var sumParam = backend.AddParameter("PriorityNode", initialState ?? 1f);
             var sumTree = VirtualBlendTree.Create("PriorityNode sum");
             sumTree.BlendType = BlendTreeType.Direct;
             sumTree.NormalizedBlendValues = false;
@@ -118,7 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             );
             sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
-                DirectBlendParameter = BakeContext.ALWAYS_ONE,
+                DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
                 Motion = baseMotion
             });
 
@@ -133,16 +133,16 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 );
 
                 var motion = Conditions[i].Item1.Flatten(EmptyNode.Instance, new MotionNode(sumCondition))
-                    .Bake(context);
+                    .Bake(backend);
                 sumTree.Children = sumTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
                 {
                     // TODO: Can we optimize this when our parameter is a bool to avoid the extra blendtree layer?
-                    DirectBlendParameter = BakeContext.ALWAYS_ONE,
+                    DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
                     Motion = motion
                 });
             }
 
-            using var _scope = context.LatencyScope(1);
+            using var _scope = backend.LatencyScope(1);
 
             // Now construct the execution blendtree
             var executionTree = VirtualBlendTree.Create("Execution");
@@ -151,7 +151,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             executionTree.UseAutomaticThresholds = false;
 
             // If nothing is selected, we pull in the default condition
-            var defaultMotion = DefaultMotion.Bake(context);
+            var defaultMotion = DefaultMotion.Bake(backend);
             executionTree.Children = executionTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
                 Threshold = 0,
@@ -166,7 +166,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 var (rangeStart, rangeEnd, _) = ranges[i];
 
-                var conditionMotion = Conditions[i].Item2.Bake(context);
+                var conditionMotion = Conditions[i].Item2.Bake(backend);
 
                 executionTree.Children = executionTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
                 {

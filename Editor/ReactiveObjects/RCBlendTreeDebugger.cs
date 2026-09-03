@@ -287,9 +287,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             AnimatorControllerLayer? applyLayer = null;
             foreach (var layer in controller.layers)
-                if (layer.name == BakeContext.APPLY_LAYER_NAME) { applyLayer = layer; break; }
+                if (layer.name == VRChatBlendTreeBackend.ApplyLayerName) { applyLayer = layer; break; }
             if (applyLayer == null)
-                return (null, new[] { $"No '{BakeContext.APPLY_LAYER_NAME}' layer found in the controller." });
+                return (null, new[] { $"No '{VRChatBlendTreeBackend.ApplyLayerName}' layer found in the controller." });
 
             var paramLines = BuildParamLines(controller, getParam);
 
@@ -303,7 +303,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private static string[] BuildParamLines(AnimatorController controller, Func<string, float> getParam)
         {
-            var lines = new List<string> { $"=== {BakeContext.APPLY_LAYER_NAME} ===", "RC parameters:" };
+            var lines = new List<string> { $"=== {VRChatBlendTreeBackend.ApplyLayerName} ===", "RC parameters:" };
             bool any = false;
             foreach (var p in controller.parameters)
             {

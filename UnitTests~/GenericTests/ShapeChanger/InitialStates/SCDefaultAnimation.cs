@@ -29,7 +29,7 @@ namespace ShapeChangerTests
             AvatarProcessor.ProcessAvatar(root);
 
             var fx = (AnimatorController) FindFxController(root).animatorController;
-            var baseLayer = fx.layers.FirstOrDefault(l => l.name == BakeContext.BASE_LAYER_NAME);
+            var baseLayer = fx.layers.FirstOrDefault(l => l.name == VRChatBlendTreeBackend.BaseLayerName);
             var allClips = baseLayer?.stateMachine?.defaultState?.motion == null ? new List<AnimationClip>() : CollectClips(baseLayer.stateMachine.defaultState.motion).ToList();
 
             var smr = root.transform.Find("test mesh").GetComponent<SkinnedMeshRenderer>();
@@ -69,7 +69,7 @@ namespace ShapeChangerTests
             AvatarProcessor.ProcessAvatar(root);
 
             var fx = (AnimatorController) FindFxController(root).animatorController;
-            var baseLayer = fx.layers.FirstOrDefault(l => l.name == BakeContext.BASE_LAYER_NAME);
+            var baseLayer = fx.layers.FirstOrDefault(l => l.name == VRChatBlendTreeBackend.BaseLayerName);
             var allClips = baseLayer?.stateMachine?.defaultState?.motion == null ? new List<AnimationClip>() : CollectClips(baseLayer.stateMachine.defaultState.motion).ToList();
 
             var smr = root.transform.Find("test mesh").GetComponent<SkinnedMeshRenderer>();

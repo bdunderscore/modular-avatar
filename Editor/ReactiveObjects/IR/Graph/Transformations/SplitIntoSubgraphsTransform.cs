@@ -16,7 +16,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     2. They contain a ParameterCondition for the same parameter name
     ///     3. They have the same target for their action
     /// </summary>
-    public static class SplitIntoSubgraphsTransform
+    internal static class SplitIntoSubgraphsTransform
     {
         public static List<ReactionGraph> Apply(ReactionGraph graph)
         {
@@ -117,7 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             var subgraphs = new List<ReactionGraph>();
             foreach (var comp in components.Values)
             {
-                var subgraph = new ReactionGraph
+                var subgraph = new ReactionGraph(graph.Parameters)
                 {
                     Nodes = comp
                         .Select(idx => graph.Nodes[idx])

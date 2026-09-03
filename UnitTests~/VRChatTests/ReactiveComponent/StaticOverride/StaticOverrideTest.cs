@@ -24,7 +24,7 @@ public class StaticOverrideTest : TestBase
 
         var binding = EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom");
         float? foundValue = null;
-        foreach (var layer in fx.layers.Where(l => l.name == BakeContext.APPLY_LAYER_NAME))
+        foreach (var layer in fx.layers.Where(l => l.name == VRChatBlendTreeBackend.ApplyLayerName))
         foreach (var clip in CollectClips(layer.stateMachine.defaultState.motion))
         {
             var curve = AnimationUtility.GetEditorCurve(clip, binding);
@@ -54,7 +54,7 @@ public class StaticOverrideTest : TestBase
 
         var binding = EditorCurveBinding.FloatCurve("mesh", typeof(SkinnedMeshRenderer), "blendShape.bottom");
         float? foundValue = null;
-        foreach (var layer in fx.layers.Where(l => l.name == BakeContext.APPLY_LAYER_NAME))
+        foreach (var layer in fx.layers.Where(l => l.name == VRChatBlendTreeBackend.ApplyLayerName))
         foreach (var clip in CollectClips(layer.stateMachine.defaultState.motion))
         {
             var curve = AnimationUtility.GetEditorCurve(clip, binding);

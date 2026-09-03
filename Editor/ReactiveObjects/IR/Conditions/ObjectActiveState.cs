@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
-    public sealed class ObjectActiveState : IExpression
+    internal sealed class ObjectActiveState : IExpression
     {
         public enum State
         {
@@ -26,6 +26,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
         public IExpression DeepClone()
         {
             return new ObjectActiveState(TargetObject, StateMode);
+        }
+
+        public bool Evaluate(Func<string, float> getParameter)
+        {
+            return StateMode switch
+            {
+                State.Active => TargetObject.activeSelf,
+                State.Inactive => !TargetObject.activeSelf,
+                // NotDriven should be rewritten to parameter-based conditions before evaluation.
+                State.NotDriven => false,
+                _ => TargetObject.activeSelf
+            };
         }
 
         public void Walk(ExpressionVisitor visitor)

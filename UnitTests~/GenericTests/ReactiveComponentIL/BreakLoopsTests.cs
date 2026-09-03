@@ -13,21 +13,11 @@ namespace UnitTestsReactiveComponentIL
 {
     public class BreakLoopsTests : TestBase
     {
-        private BakeContext _bakeContext;
-        private GameObject _root;
-        private AnimatorServicesContext _asc;
-        private VirtualAnimatorController _vac;
 
         [SetUp]
         public override void Setup()
         {
             base.Setup();
-
-            _root = CreateRoot("root");
-            var bc = CreateContext(_root);
-            _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            _vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(bc, _vac);
         }
 
         [Test]

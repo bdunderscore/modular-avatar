@@ -1,5 +1,6 @@
 ﻿using System;
 using nadena.dev.modular_avatar.core.editor.rc;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.platform;
@@ -61,7 +62,7 @@ namespace UnitTests.SharedInterfacesImpl
         /// <param name="motionName">Name of the motion/clip</param>
         /// <param name="motionNode">Output: the MotionNode that moves the cube</param>
         /// <param name="testFunc">Output: a function that returns true if the cube has been moved</param>
-        protected void CreateSensor(string motionName, out MotionNode motionNode, out Func<bool> testFunc)
+        private protected void CreateSensor(string motionName, out MotionNode motionNode, out Func<bool> testFunc)
         {
             var prim = GameObject.CreatePrimitive(PrimitiveType.Cube);
             var uniqueName = $"{motionName}_sensor_{_sensorCounter++}";
@@ -102,16 +103,24 @@ namespace UnitTests.SharedInterfacesImpl
         /// Bakes a root node into a new layer and deactivates the extension context.
         /// </summary>
         /// <param name="rootNode">The node to bake</param>
-        protected void BakeConditions(IMotionNode rootNode)
+        private protected void BakeConditions(IMotionNode rootNode)
         {
-            var bakeContext = new BakeContext(buildContext, vac);
+            var blendTreeBackend = new UnityBlendTreeBackend(buildContext, vac);
             MaxLatency = rootNode.Latency;
-            bakeContext.Bake(rootNode);
+            var motion = blendTreeBackend.BakeMotion(rootNode);
+            blendTreeBackend.RootTree.Children = blendTreeBackend.RootTree.Children.Add(
+                new VirtualBlendTree.VirtualChildMotion
+                {
+                    Motion = motion,
+                    DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
+                }
+            );
+            blendTreeBackend.Build(System.Array.Empty<ReactionGraph>());
 
             var layer = vac.AddLayer(LayerPriority.Default, "test");
             layer.DefaultWeight = 1;
             var sm = layer.StateMachine;
-            sm.DefaultState = sm.AddState("test", motion: bakeContext.RootTree);
+            sm.DefaultState = sm.AddState("test", motion: blendTreeBackend.RootTree);
             
             buildContext.DeactivateAllExtensionContexts();
         }

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
+- [#2122] 1.19.0-alpha.0に間違えて導入したパブリックAPIを幾つか非公開にした
 
 ### Security
 

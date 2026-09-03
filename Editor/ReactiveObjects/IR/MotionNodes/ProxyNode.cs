@@ -5,7 +5,7 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public class ProxyNode : IMotionNode
+    internal class ProxyNode : IMotionNode
     {
         public ProxyNode(IMotionNode? target = null)
         {
@@ -31,9 +31,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public int Latency => Target?.Latency ?? 0;
 
-        public VirtualMotion Bake(BakeContext context)
+        public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
-            return Target?.Bake(context) ?? context.EmptyMotion;
+            return Target?.Bake(backend) ?? backend.EmptyMotion;
         }
     }
 }

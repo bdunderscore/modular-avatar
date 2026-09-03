@@ -1,11 +1,13 @@
 ﻿#nullable enable
 
+using System;
+
 using System.Collections.Generic;
 using System.Linq;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
-    public sealed class AndNode : IExpression
+    internal sealed class AndNode : IExpression
     {
         public List<IExpression> Children { get; set; } = new();
 
@@ -22,6 +24,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
         public IExpression DeepClone()
         {
             return new AndNode(Children.Select(c => c.DeepClone()).ToArray());
+        }
+
+        public bool Evaluate(Func<string, float> getParameter)
+        {
+            return Children.All(child => child.Evaluate(getParameter));
         }
 
         public void Walk(ExpressionVisitor visitor)

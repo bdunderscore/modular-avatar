@@ -4,13 +4,13 @@ using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
-    public sealed class EmptyNode : IMotionNode
+    internal sealed class EmptyNode : IMotionNode
     {
         public static EmptyNode Instance = new();
 
-        public VirtualMotion Bake(BakeContext context)
+        public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
-            return context.EmptyMotion;
+            return backend.EmptyMotion;
         }
 
         public void WalkTree(MotionNodeVisitor visitor)

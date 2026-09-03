@@ -24,7 +24,7 @@ namespace UnitTestsReactiveComponentIL
     /// </summary>
     public class EffectGroupEmitTests : TestBase
     {
-        private BakeContext _bakeContext;
+        private UnityBlendTreeBackend _blendTreeBackend;
 
         [SetUp]
         public override void Setup()
@@ -34,7 +34,7 @@ namespace UnitTestsReactiveComponentIL
             var bc = CreateContext(root);
             var asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(asc.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(bc, vac);
+            _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
         }
 
         // ── helpers ───────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(condition, new DriveInternalParameter("effect", true)));
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
             return groups[new InternalParameterTarget("effect")];
         }
 
@@ -76,7 +76,7 @@ namespace UnitTestsReactiveComponentIL
                 graph.AddNode(new ReactionNode(condition, new DriveInternalParameter("effect", true)));
             }
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
             return groups[new InternalParameterTarget("effect")];
         }
 
@@ -88,7 +88,7 @@ namespace UnitTestsReactiveComponentIL
                 graph.AddNode(new ReactionNode(condition, effect));
             }
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_bakeContext, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
             return groups[new ParameterTarget("effect")];
         }
 

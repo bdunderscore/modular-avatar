@@ -9,7 +9,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     Removes EffectGroups (reaction nodes) that drive internal parameters which are not transitively
     ///     reachable from any node with an externally-visible (non-InternalParameter) target.
     /// </summary>
-    public static class PruneUnusedInternalParametersTransform
+    internal static class PruneUnusedInternalParametersTransform
     {
         public static void Apply(ReactionGraph graph)
         {

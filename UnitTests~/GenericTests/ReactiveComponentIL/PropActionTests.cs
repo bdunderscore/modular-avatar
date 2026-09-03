@@ -6,13 +6,19 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace UnitTestsReactiveComponentIL
 {
     public class PropActionTests : TestBase
     {
-        private BakeContext _bakeContext;
+        private UnityBlendTreeBackend _blendTreeBackend;
         private GameObject _root;
+
+        private sealed class UnknownAction : IAction
+        {
+            public object TargetKey => this;
+        }
 
         [SetUp]
         public override void Setup()
@@ -23,7 +29,25 @@ namespace UnitTestsReactiveComponentIL
             var buildContext = CreateContext(_root);
             var animatorServices = buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
-            _bakeContext = new BakeContext(buildContext, controller);
+            _blendTreeBackend = new UnityBlendTreeBackend(buildContext, controller);
+        }
+
+        [Test]
+        public void UnknownAction_EmitAction_LogsWarningWithoutThrowing()
+        {
+            var action = new UnknownAction();
+            LogAssert.Expect(LogType.Warning, $"Unsupported action type: {action.GetType().FullName}");
+
+            Assert.DoesNotThrow(() => _blendTreeBackend.EmitAction(action));
+        }
+
+        [Test]
+        public void UnknownAction_ApplyBaseState_LogsWarningWithoutThrowing()
+        {
+            var action = new UnknownAction();
+            LogAssert.Expect(LogType.Warning, $"Unsupported action type: {action.GetType().FullName}");
+
+            Assert.DoesNotThrow(() => _blendTreeBackend.ApplyBaseState(action, actionStartsActive: false));
         }
 
         [Test]
@@ -35,10 +59,9 @@ namespace UnitTestsReactiveComponentIL
                 TargetObject = meshFilter,
                 PropertyName = "m_Mesh",
             });
-            var motion = VirtualClip.Create("motion");
+            var motion = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(action)) as VirtualClip;
+            Assert.IsNotNull(motion);
             var binding = ObjectBindingFor(meshFilter);
-
-            action.ToMotion(_bakeContext, motion);
 
             var keys = motion.GetObjectCurve(binding);
             Assert.IsNotNull(keys, "A null object reference must still produce an object-reference curve.");
@@ -58,9 +81,9 @@ namespace UnitTestsReactiveComponentIL
             });
             var binding = ObjectBindingFor(meshFilter);
 
-            action.SetBaseState(_bakeContext, actionStartsActive: false);
+            _blendTreeBackend.ApplyBaseState(action, actionStartsActive: false);
 
-            var keys = _bakeContext.BaseLayerClip.GetObjectCurve(binding);
+            var keys = _blendTreeBackend.BaseLayerClip.GetObjectCurve(binding);
             Assert.IsNotNull(keys, "The base layer must preserve a null object-reference default as a curve.");
             Assert.AreEqual(1, keys.Length);
             Assert.AreEqual(0f, keys[0].time);
@@ -70,7 +93,7 @@ namespace UnitTestsReactiveComponentIL
         private EditorCurveBinding ObjectBindingFor(MeshFilter meshFilter)
         {
             return EditorCurveBinding.PPtrCurve(
-                _bakeContext.ObjectPathRemapper.GetVirtualPathForObject(meshFilter.gameObject),
+                _blendTreeBackend.ObjectPathRemapper.GetVirtualPathForObject(meshFilter.gameObject),
                 typeof(MeshFilter),
                 "m_Mesh"
             );

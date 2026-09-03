@@ -2,7 +2,7 @@
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 {
-    public readonly struct ParameterTarget
+    internal readonly struct ParameterTarget
     {
         public string ParameterName { get; }
 
