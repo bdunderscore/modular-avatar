@@ -226,8 +226,6 @@
   "validation.merge_armature.target_is_child:hint": "Merge Armature 不能合并骨架到其自身。请将“合并目标”设置为其他对象。",
   "validation.platform_filter.mixed_include_exclude": "[MA-0013] 单个 GameObject 不能在平台过滤组件中同时被包含与排除。",
   "validation.platform_filter.mixed_include_exclude:description": "由于你正在使用“包含模式”，请尝试只指定你想要包含的平台。",
-  "validation.legacy_vrcfury_warning": "[MA-1600] VRCFury 版本过旧，因此无法支持 Mesh Cutter 与 Shape Changer 的删除模式",
-  "validation.legacy_vrcfury_warning:hint": "请将 VRCFury 更新至最新版本。使用 Mesh Cutter 或 Shape Changer 的删除模式时，需使用 VRCFury 1.1250.0 及以上版本。",
   "submenu_source.Children": "子对象",
   "submenu_source.MenuAsset": "菜单资源文件 (Expressions Menu)",
   "menuitem.showcontents": "显示菜单内容",
