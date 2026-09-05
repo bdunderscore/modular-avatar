@@ -362,6 +362,8 @@
   "ro_sim.effect_group.target_component.tooltip": "Reactive Componentに影響されるコンポーネント",
   "ro_sim.effect_group.property": "プロパティ",
   "ro_sim.effect_group.property.tooltip": "設定されるプロパティ",
+  "ro_sim.effect.shape_key": "シェイプキー {0}",
+  "ro_sim.effect.material_slot": "マテリアルスロット {0}",
   "ro_sim.effect_group.value": "値",
   "ro_sim.effect_group.value.tooltip": "上記の Reactive Component がアクティブな時に設定される値",
   "ro_sim.effect_group.material": "マテリアル",

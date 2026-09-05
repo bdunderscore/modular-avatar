@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
@@ -12,10 +14,10 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     partial class ReactiveObjectAnalyzer
     {
-        private ReactionRule ObjectRule(TargetProp key, Component controllingObject, object? value,
+        private ReactionRule ObjectRule(IAction action, Component controllingObject,
             GameObject? affectedObject = null)
         {
-            var rule = new ReactionRule(key, value);
+            var rule = new ReactionRule(action);
 
             BuildConditions(controllingObject, rule, affectedObject);
             
@@ -173,11 +175,11 @@ namespace nadena.dev.modular_avatar.core.editor
             rule.ControllingConditions = conditions;
         }
 
-        private Dictionary<TargetProp, AnimatedProperty> FindShapes(GameObject root)
+        private Dictionary<object, AnimatedProperty> FindShapes(GameObject root)
         {
             var changers = _computeContext.GetComponentsInChildren<ModularAvatarShapeChanger>(root, true);
 
-            Dictionary<TargetProp, AnimatedProperty> shapeKeys = new();
+            Dictionary<object, AnimatedProperty> shapeKeys = new();
 
             foreach (var changer in changers)
             {
@@ -201,25 +203,14 @@ namespace nadena.dev.modular_avatar.core.editor
                     var shapeId = mesh.GetBlendShapeIndex(shape.ShapeName);
                     if (shapeId < 0) continue;
 
-                    var key = new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = BlendshapePrefix + shape.ShapeName
-                    };
-
-                    var currentValue = renderer.GetBlendShapeWeight(shapeId);
+                    var key = new ShapeKeyTarget(renderer, shape.ShapeName);
+                    var deleteTarget = MeshSectionTarget.ForShape(renderer, shape.ShapeName);
                     var value = shape.ChangeType == ShapeChangeType.Delete ? 100 : shape.Value;
-
-                    var deleteKey = new TargetProp
-                    {
-                        TargetObject = renderer,
-                        PropertyName = DeletedShapePrefix + shape.ShapeName
-                    };
 
                     if (shape.ChangeType != ShapeChangeType.Delete)
                     {
-                        RegisterAction(key, currentValue, value, changer);
-                        RegisterAction(deleteKey, null, null, changer);
+                        RegisterAction(key, new SetShapeKey(renderer, shape.ShapeName, value), changer);
+                        RegisterAction(deleteTarget, HideMeshSection.Retain(deleteTarget), changer);
 
                         if (_blendshapeSyncMappings.TryGetValue((renderer, shape.ShapeName), out var bindings))
                         {
@@ -228,11 +219,7 @@ namespace nadena.dev.modular_avatar.core.editor
                             // base model while retaining outerwear that matches the breast size.
                             foreach (var binding in bindings)
                             {
-                                var bindingKey = new TargetProp
-                                {
-                                    TargetObject = binding.Item1,
-                                    PropertyName = BlendshapePrefix + binding.Item2
-                                };
+                                var bindingKey = new ShapeKeyTarget(binding.Item1, binding.Item2);
                                 var bindingRenderer = binding.Item1;
 
                                 var bindingMesh = bindingRenderer.sharedMesh;
@@ -241,34 +228,33 @@ namespace nadena.dev.modular_avatar.core.editor
                                 var bindingShapeIndex = bindingMesh.GetBlendShapeIndex(binding.Item2);
                                 if (bindingShapeIndex < 0) continue;
 
-                                var bindingInitialState = bindingRenderer.GetBlendShapeWeight(bindingShapeIndex);
-
-                                RegisterAction(bindingKey, bindingInitialState, value, changer);
+                                RegisterAction(bindingKey,
+                                    new SetShapeKey(bindingRenderer, binding.Item2, value), changer);
                             }
                         }
                     }
 
                     if (shape.ChangeType == ShapeChangeType.Delete)
                     {
-                        RegisterAction(deleteKey, null, new VertexFilterByShape(shape.ShapeName, threshold), changer);
+                        RegisterAction(deleteTarget,
+                            new HideMeshSection(deleteTarget, new VertexFilterByShape(shape.ShapeName, threshold)),
+                            changer);
                     }
                 }
             }
 
             return shapeKeys;
 
-            void RegisterAction(TargetProp key, float? currentValue, object? value, ModularAvatarShapeChanger changer)
+            void RegisterAction(object key, IAction reactionAction, ModularAvatarShapeChanger changer)
             {
                 if (!shapeKeys.TryGetValue(key, out var info))
                 {
-                    info = new AnimatedProperty(key, currentValue);
+                    info = new AnimatedProperty(key);
                     shapeKeys[key] = info;
                 }
 
-                var action = ObjectRule(key, changer, value);
+                var action = ObjectRule(reactionAction, changer);
                 action.Inverted = _computeContext.Observe(changer, c => c.Inverted);
-                
-                info.currentState = currentValue;
 
                 if (info.actionGroups.Count == 0)
                 {
@@ -280,8 +266,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
         }
-        
-        private void FindMeshCutter(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+
+        private void FindMeshCutter(Dictionary<object, AnimatedProperty> objectGroups, GameObject root)
         {
             var deleters = _computeContext.GetComponentsInChildren<ModularAvatarMeshCutter>(root, true);
 
@@ -331,19 +317,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
                 meshSelector.Observe(_computeContext);
 
-                var key = new TargetProp
-                {
-                    TargetObject = renderer,
-                    PropertyName = "deletedMeshByMask." + meshSelector
-                };
+                var key = MeshSectionTarget.ForMask(renderer, meshSelector);
 
                 if (!objectGroups.TryGetValue(key, out var group))
                 {
-                    group = new AnimatedProperty(key, null);
+                    group = new AnimatedProperty(key);
                     objectGroups[key] = group;
                 }
 
-                var action = ObjectRule(key, deleter, meshSelector, renderer.gameObject);
+                var action = ObjectRule(
+                    new HideMeshSection(MeshSectionTarget.ForMask(renderer, meshSelector), meshSelector),
+                    deleter, renderer.gameObject);
                 action.Inverted = _computeContext.Observe(deleter, c => c.Inverted);
 
                 if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
@@ -353,7 +337,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void FindMaterialChangers(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+        private void FindMaterialChangers(Dictionary<object, AnimatedProperty> objectGroups, GameObject root)
         {
             var changers = _computeContext.GetComponentsInChildren<IModularAvatarMaterialChanger>(root, true);
             var renderers = _computeContext.GetComponentsInChildren<Renderer>(root, true);
@@ -462,19 +446,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
             void RegisterAction(ReactiveComponent component, Renderer renderer, int index, Material? material)
             {
-                var key = new TargetProp
-                {
-                    TargetObject = renderer,
-                    PropertyName = "m_Materials.Array.data[" + index + "]",
-                };
+                var key = new MaterialSlotTarget(renderer, index);
 
                 if (!objectGroups.TryGetValue(key, out var group))
                 {
-                    group = new(key, renderer.sharedMaterials[index]);
+                    group = new AnimatedProperty(key);
                     objectGroups[key] = group;
                 }
 
-                var action = ObjectRule(key, component, material);
+                var action = ObjectRule(new SetMaterial(renderer, index, material), component);
                 action.Inverted = _computeContext.Observe(component, c => c.Inverted);
 
                 if (group.actionGroups.Count == 0)
@@ -482,8 +462,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 else if (!group.actionGroups[^1].TryMerge(action)) group.actionGroups.Add(action);
             }
         }
-        
-        private void FindObjectToggles(Dictionary<TargetProp, AnimatedProperty> objectGroups, GameObject root)
+
+        private void FindObjectToggles(Dictionary<object, AnimatedProperty> objectGroups, GameObject root)
         {
             var toggles = _computeContext.GetComponentsInChildren<ModularAvatarObjectToggle>(root, true);
 
@@ -496,22 +476,16 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     var target = obj.Object.Get(toggle);
                     if (target == null) continue;
-                    
-                    var key = new TargetProp
-                    {
-                        TargetObject = target,
-                        PropertyName = "m_IsActive"
-                    };
+
+                    var key = new ObjectActiveTarget(target);
 
                     if (!objectGroups.TryGetValue(key, out var group))
                     {
-                        var active = _computeContext.Observe(target, t => t.activeSelf);
-                        group = new AnimatedProperty(key, active ? 1f : 0f);
+                        group = new AnimatedProperty(key);
                         objectGroups[key] = group;
                     }
 
-                    var value = obj.Active ? 1f : 0f;
-                    var action = ObjectRule(key, toggle, value);
+                    var action = ObjectRule(new DriveActiveState(target, obj.Active), toggle);
                     action.Inverted = _computeContext.Observe(toggle, c => c.Inverted);
 
                     if (group.actionGroups.Count == 0)

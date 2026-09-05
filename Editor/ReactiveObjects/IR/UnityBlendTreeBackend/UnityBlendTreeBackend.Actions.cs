@@ -4,11 +4,6 @@ using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
-#if MA_VRCSDK3_AVATARS
-using VRC.Dynamics;
-using VRC.SDK3.Dynamics.Constraint.Components;
-#endif
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
@@ -22,11 +17,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 case DriveActiveState active: EmitDriveActiveState(active, clip); break;
                 case DriveParameter parameter: EmitDriveParameter(parameter, clip); break;
                 case DriveInternalParameter internalParameter: EmitDriveInternalParameter(internalParameter, clip); break;
-                case PropAction prop: EmitPropAction(prop, clip); break;
+                case FloatPropAction prop: prop.Emit(ObjectPathRemapper, clip); break;
+                case ObjectPropAction prop: prop.Emit(ObjectPathRemapper, clip); break;
                 case NullAction: break;
-#if MA_VRCSDK3_AVATARS
-                case NaNimationAction nanimation: EmitNaNimationAction(nanimation, clip); break;
-#endif
                 default:
                     Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
                     break;
@@ -41,28 +34,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 case DriveActiveState active: ApplyDriveActiveState(active, actionStartsActive); break;
                 case DriveParameter parameter: ApplyDriveParameter(parameter, actionStartsActive); break;
                 case DriveInternalParameter: break;
-                case PropAction prop: ApplyPropAction(prop); break;
+                case FloatPropAction prop: ApplyFloatPropAction(prop, actionStartsActive); break;
+                case ObjectPropAction prop: ApplyObjectPropAction(prop, actionStartsActive); break;
                 case NullAction: break;
-#if MA_VRCSDK3_AVATARS
-                case NaNimationAction nanimation: ApplyNaNimationAction(nanimation, actionStartsActive); break;
-#endif
                 default:
                     Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
                     break;
             }
         }
 
-        internal void ApplyBaseState(TargetProp prop, float value)
-        {
-            if (prop.TargetObject is not Component component) return;
-
-            BaseLayerClip.SetFloatCurve(
-                EditorCurveBinding.FloatCurve(
-                    ObjectPathRemapper.GetVirtualPathForObject(component.gameObject),
-                    prop.TargetObject.GetType(),
-                    prop.PropertyName),
-                AnimationCurve.Constant(0, 1, value));
-        }
 
         private void EmitDriveActiveState(DriveActiveState action, VirtualClip clip) => clip.SetFloatCurve(
             EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(action.Target), typeof(GameObject), "m_IsActive"),
@@ -87,91 +67,80 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private static void EmitDriveInternalParameter(DriveInternalParameter action, VirtualClip clip) => clip.SetFloatCurve(
             EditorCurveBinding.FloatCurve("", typeof(Animator), action.ParameterName), AnimationCurve.Constant(0, 1, action.State ? 1 : 0));
 
-        private void EmitPropAction(PropAction action, VirtualClip clip)
-        {
-            var binding = GetCurveBinding(action);
-            if (!binding.HasValue) return;
-            if (action.Value is float value) clip.SetFloatCurve(binding.Value, AnimationCurve.Constant(0, 1, value));
-            else clip.SetObjectCurve(binding.Value, new[] { new ObjectReferenceKeyframe { time = 0, value = action.Value as Object } });
-        }
 
-        private EditorCurveBinding? GetCurveBinding(PropAction action)
+        private void ApplyFloatPropAction(FloatPropAction action, bool startsActive)
         {
-            var targetObject = action.Prop.TargetObject;
-            var gameObject = targetObject switch { GameObject go => go, Component component => component.gameObject, _ => null };
-            if (gameObject == null) return null;
-            return action.Value is float
-                ? EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(gameObject), targetObject.GetType(), action.Prop.PropertyName)
-                : EditorCurveBinding.PPtrCurve(ObjectPathRemapper.GetVirtualPathForObject(gameObject), targetObject.GetType(), action.Prop.PropertyName);
-        }
-
-        private void ApplyPropAction(PropAction action)
-        {
-            var binding = GetCurveBinding(action);
+            var binding = FloatPropAction.GetCurveBinding(action.Prop, ObjectPathRemapper);
             if (!binding.HasValue) return;
-            object? originalValue = null;
-            var hasOriginalValue = false;
+
             var targetObject = action.Prop.TargetObject;
             if (targetObject is SkinnedMeshRenderer smr && action.Prop.PropertyName.StartsWith("blendShape."))
             {
                 var mesh = smr.sharedMesh;
-                if (mesh != null)
-                {
-                    var index = mesh.GetBlendShapeIndex(action.Prop.PropertyName[11..]);
-                    if (index >= 0)
-                    {
-                        originalValue = smr.GetBlendShapeWeight(index);
-                        hasOriginalValue = true;
-                    }
-                }
+                if (mesh == null) return;
+
+                var index = mesh.GetBlendShapeIndex(action.Prop.PropertyName[11..]);
+                if (index < 0) return;
+
+                BaseLayerClip.SetFloatCurve(binding.Value,
+                    AnimationCurve.Constant(0, 1, smr.GetBlendShapeWeight(index)));
+                if (startsActive && !float.IsNaN(action.Value))
+                    smr.SetBlendShapeWeight(index, action.Value);
+                return;
             }
-            else
+
+            if (targetObject == null) return;
+
+            var serializedObject = new SerializedObject(targetObject);
+            var property = serializedObject.FindProperty(action.Prop.PropertyName);
+            if (property == null) return;
+
+            var changed = false;
+            switch (property.propertyType)
             {
-                var property = new SerializedObject(targetObject).FindProperty(action.Prop.PropertyName);
-                if (property != null)
-                {
-                    switch (property.propertyType)
+                case SerializedPropertyType.Boolean:
+                    BaseLayerClip.SetFloatCurve(binding.Value,
+                        AnimationCurve.Constant(0, 1, property.boolValue ? 1 : 0));
+                    if (startsActive)
                     {
-                        case SerializedPropertyType.Boolean: originalValue = property.boolValue ? 1.0f : 0.0f; hasOriginalValue = true; break;
-                        case SerializedPropertyType.Float: originalValue = property.floatValue; hasOriginalValue = true; break;
-                        case SerializedPropertyType.ObjectReference: originalValue = property.objectReferenceValue; hasOriginalValue = true; break;
-                        default: return;
+                        property.boolValue = action.Value != 0;
+                        changed = true;
                     }
-                }
+
+                    break;
+                case SerializedPropertyType.Float:
+                    BaseLayerClip.SetFloatCurve(binding.Value,
+                        AnimationCurve.Constant(0, 1, property.floatValue));
+                    if (startsActive && !float.IsNaN(action.Value))
+                    {
+                        property.floatValue = action.Value;
+                        changed = true;
+                    }
+
+                    break;
+                default:
+                    return;
             }
-            if (originalValue is float value) BaseLayerClip.SetFloatCurve(binding.Value, AnimationCurve.Constant(0, 1, value));
-            else if (hasOriginalValue) BaseLayerClip.SetObjectCurve(binding.Value, new[] { new ObjectReferenceKeyframe { time = 0, value = originalValue as Object } });
+
+            if (changed) serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
-#if MA_VRCSDK3_AVATARS
-        private void EmitNaNimationAction(NaNimationAction action, VirtualClip clip)
+        private void ApplyObjectPropAction(ObjectPropAction action, bool startsActive)
         {
-            var curve = new AnimationCurve();
-            curve.AddKey(new Keyframe(0, action.ShouldDelete ? float.NaN : 1.0f));
-            foreach (var bone in action.Bones)
-            foreach (var dimension in new[] { "x", "y", "z" })
-                clip.SetFloatCurve(EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(bone), typeof(Transform), $"m_LocalScale.{dimension}"), curve);
-            if (action.ShouldDelete && action.TargetProp.TargetObject is SkinnedMeshRenderer smr)
-                clip.SetFloatCurve(EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(smr.gameObject), typeof(SkinnedMeshRenderer), "m_UpdateWhenOffscreen"), AnimationCurve.Constant(0, 1, 0));
+            var binding = ObjectPropAction.GetCurveBinding(action.Prop, ObjectPathRemapper);
+            if (!binding.HasValue || action.Prop.TargetObject == null) return;
+
+            var serializedObject = new SerializedObject(action.Prop.TargetObject);
+            var property = serializedObject.FindProperty(action.Prop.PropertyName);
+            if (property is not { propertyType: SerializedPropertyType.ObjectReference }) return;
+
+            BaseLayerClip.SetObjectCurve(binding.Value,
+                new[] { new ObjectReferenceKeyframe { time = 0, value = property.objectReferenceValue } });
+            if (!startsActive) return;
+
+            property.objectReferenceValue = action.Value;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private void ApplyNaNimationAction(NaNimationAction action, bool startsActive)
-        {
-            var retain = AnimationCurve.Constant(0, 1, 1.0f);
-            foreach (var bone in action.Bones)
-            {
-                var path = ObjectPathRemapper.GetVirtualPathForObject(bone);
-                foreach (var dimension in new[] { "x", "y", "z" }) BaseLayerClip.SetFloatCurve(EditorCurveBinding.FloatCurve(path, typeof(Transform), $"m_LocalScale.{dimension}"), retain);
-                if (!startsActive) continue;
-                var constraint = bone.AddComponent<VRCScaleConstraint>();
-                constraint.Sources.Add(new VRCConstraintSource { SourceTransform = constraint.transform, Weight = float.NaN });
-                constraint.GlobalWeight = float.NaN;
-                constraint.Locked = true;
-                constraint.IsActive = true;
-                BaseLayerClip.SetFloatCurve(EditorCurveBinding.FloatCurve(path, typeof(VRCScaleConstraint), "IsActive"), AnimationCurve.Constant(0, 1, 0));
-                BaseLayerClip.SetFloatCurve(EditorCurveBinding.FloatCurve(path, typeof(VRCScaleConstraint), "GlobalWeight"), AnimationCurve.Constant(0, 1, 0));
-            }
-        }
-#endif
     }
 }

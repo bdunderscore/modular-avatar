@@ -29,6 +29,7 @@ namespace UnitTestsReactiveComponentIL
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
             _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
+            _blendTreeBackend.Parameters = new();
         }
 
         #region Effect Group Tests

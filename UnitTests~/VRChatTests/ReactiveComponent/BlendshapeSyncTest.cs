@@ -3,6 +3,8 @@
 using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -17,39 +19,36 @@ namespace UnitTests.ReactiveComponent
 
             var analysis = new ReactiveObjectAnalyzer().Analyze(root);
 
-            var m1 = analysis.Shapes[new TargetProp()
-            {
-                TargetObject = root.transform.Find("m1").GetComponent<SkinnedMeshRenderer>(),
-                PropertyName = "blendShape.bottom"
-            }];
-            var m2 = analysis.Shapes[new TargetProp()
-            {
-                TargetObject = root.transform.Find("m2").GetComponent<SkinnedMeshRenderer>(),
-                PropertyName = "blendShape.bottom"
-            }];
-            var m3 = analysis.Shapes[new TargetProp()
-            {
-                TargetObject = root.transform.Find("m3").GetComponent<SkinnedMeshRenderer>(),
-                PropertyName = "blendShape.top"
-            }];
+            var m1 = analysis.Shapes[new ShapeKeyTarget(
+                root.transform.Find("m1").GetComponent<SkinnedMeshRenderer>(), "bottom")];
+            var m2 = analysis.Shapes[new ShapeKeyTarget(
+                root.transform.Find("m2").GetComponent<SkinnedMeshRenderer>(), "bottom")];
+            var m3 = analysis.Shapes[new ShapeKeyTarget(
+                root.transform.Find("m3").GetComponent<SkinnedMeshRenderer>(), "top")];
             
-            foreach (var ag in m1.actionGroups)
+            AssertActionGroupsEqualIgnoringRenderer(m1.actionGroups, m2.actionGroups);
+            AssertActionGroupsEqualIgnoringRenderer(m1.actionGroups, m3.actionGroups);
+        }
+
+        private static void AssertActionGroupsEqualIgnoringRenderer(
+            System.Collections.Generic.IReadOnlyList<ReactionRule> expected,
+            System.Collections.Generic.IReadOnlyList<ReactionRule> actual)
+        {
+            Assert.AreEqual(expected.Count, actual.Count);
+
+            for (var i = 0; i < expected.Count; i++)
             {
-                ag.TargetProp = new TargetProp();
+                var expectedRule = expected[i];
+                var actualRule = actual[i];
+                CollectionAssert.AreEqual(expectedRule.ControllingConditions, actualRule.ControllingConditions);
+                Assert.AreEqual(expectedRule.Inverted, actualRule.Inverted);
+
+                Assert.That(expectedRule.Action, Is.TypeOf<SetShapeKey>());
+                Assert.That(actualRule.Action, Is.TypeOf<SetShapeKey>());
+                var expectedAction = (SetShapeKey) expectedRule.Action;
+                var actualAction = (SetShapeKey) actualRule.Action;
+                Assert.AreEqual(expectedAction.Value, actualAction.Value);
             }
-            
-            foreach (var ag in m2.actionGroups)
-            {
-                ag.TargetProp = new TargetProp();
-            }
-            
-            foreach (var ag in m3.actionGroups)
-            {
-                ag.TargetProp = new TargetProp();
-            }
-            
-            Assert.AreEqual(m2.actionGroups, m1.actionGroups);
-            Assert.AreEqual(m3.actionGroups, m1.actionGroups);
         }
     }
 }

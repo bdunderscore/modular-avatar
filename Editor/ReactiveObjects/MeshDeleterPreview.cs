@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -45,15 +46,12 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var property in analysis.Shapes.Values)
             {
-                var prop = property.TargetProp;
-                if (prop.TargetObject != renderer) continue;
-                if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!property.actionGroups.Any(x => x.Value is IMeshSelector)) continue;
+                var activeAction = property.actionGroups.LastOrDefault(r => r.InitiallyActive)?.Action;
+                if (activeAction is not HideMeshSection { ShouldHide: true } hide ||
+                    hide.Target.Renderer != renderer) continue;
+                if (hide.Target.Renderer.sharedMesh == null) continue;
 
-                var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not IMeshSelector filter) continue;
-
-                filters = filters.Add(filter);
+                filters = filters.Add(hide.Selector);
             }
 
             return filters;
@@ -66,14 +64,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var property in analysis.Shapes.Values)
             {
-                var prop = property.TargetProp;
-                if (prop.TargetObject is not SkinnedMeshRenderer smr || smr.sharedMesh == null) continue;
-                if (!property.actionGroups.Any(x => x.Value is IMeshSelector)) continue;
+                var activeAction = property.actionGroups.LastOrDefault(r => r.InitiallyActive)?.Action;
+                if (activeAction is not HideMeshSection { ShouldHide: true } hide ||
+                    hide.Target.Renderer.sharedMesh == null) continue;
 
-                var activeRule = property.actionGroups.LastOrDefault(r => r.InitiallyActive);
-                if (activeRule == null || activeRule.Value is not IMeshSelector) continue;
-
-                renderers.Add(smr);
+                renderers.Add(hide.Target.Renderer);
             }
 
             return renderers.Select(RenderGroup.For);

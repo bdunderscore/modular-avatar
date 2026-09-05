@@ -5,6 +5,13 @@ using NUnit.Framework;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.vertex_filters;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.core.editor.rc;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.ndmf.animator;
+using UnityEditor;
+using VRC.SDK3.Dynamics.Constraint.Components;
 using nadena.dev.ndmf;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 using Object = UnityEngine.Object;
@@ -423,6 +430,123 @@ public class ModularAvatarMeshCutterTest : TestBase
         }
     }
     
+    [Test]
+    public void Build_ConditionalMeshHide_LowersToNaNimationPropsAndInitializesBones()
+    {
+        var context = CreateContext(avatarRoot);
+        var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+        var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
+        controller.Parameters = controller.Parameters.Add("P", new AnimatorControllerParameter
+        {
+            name = "P",
+            type = AnimatorControllerParameterType.Float,
+            defaultFloat = 1f
+        });
+        var unityBackend = new UnityBlendTreeBackend(context, controller);
+        var backend = new VRChatBlendTreeBackend(controller, unityBackend);
+        var selector = new VertexFilterByShape("Positive", 0.001f);
+        var target = MeshSectionTarget.ForMask(meshRenderer, selector);
+        var graph = new ReactionGraph();
+        graph.Parameters.EnsureParameter("P", 0f);
+        graph.Parameters.EnsureParameter("Q", 0f);
+        var conditionObjects = Enumerable.Range(0, 7)
+            .Select(index =>
+            {
+                var conditionObject = CreateChild(avatarRoot, $"condition-{index}");
+                conditionObject.SetActive(false);
+                return conditionObject;
+            })
+            .ToArray();
+        graph.AddNode(new ReactionNode(
+            new AndNode(new ParameterExpression("P"), new ObjectActiveState(conditionObjects[^1])),
+            new HideMeshSection(target, selector)));
+        for (var index = conditionObjects.Length - 1; index > 0; index--)
+        {
+            graph.AddNode(new ReactionNode(
+                new ObjectActiveState(conditionObjects[index - 1]),
+                new DriveActiveState(conditionObjects[index], true)));
+        }
+        graph.AddNode(new ReactionNode(new Constant(true),
+            new DriveActiveState(conditionObjects[0], true)));
+        graph.AddNode(new ReactionNode(
+            new ParameterExpression("Q"),
+            HideMeshSection.Retain(target)));
+
+        backend.PreprocessGraph(graph);
+        ILBuild.Simplify(graph);
+        nadena.dev.modular_avatar.core.editor.rc.StaticProcessing.StaticProcessing.Apply(graph);
+        backend.Build(graph);
+
+        var effects = graph.Nodes.SelectMany(node => node.Effects).ToList();
+        Assert.That(effects, Is.Not.Empty);
+        Assert.IsFalse(effects.OfType<HideMeshSection>().Any());
+
+        var generatedBones = avatarRoot.GetComponentsInChildren<Transform>()
+            .Where(transform => transform.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix))
+            .ToList();
+        Assert.That(generatedBones, Is.Not.Empty);
+
+        foreach (var bone in generatedBones)
+        {
+            foreach (var axis in new[] { "x", "y", "z" })
+            {
+                var scaleActions = effects.OfType<FloatPropAction>().Where(action =>
+                    action.Prop.TargetObject == bone &&
+                    action.Prop.PropertyName == $"m_LocalScale.{axis}").ToList();
+                Assert.AreEqual(2, scaleActions.Count);
+                Assert.IsTrue(scaleActions.Any(action => float.IsNaN(action.Value)));
+                Assert.IsTrue(scaleActions.Any(action => action.Value == 1f),
+                    "Retain actions must lower to an explicit normal scale so later rules can cancel a hide.");
+            }
+
+            var constraints = bone.GetComponents<VRCScaleConstraint>();
+            Assert.AreEqual(1, constraints.Length, "A default-on hide must add exactly one initialization constraint.");
+            var constraint = constraints.Single();
+            Assert.AreSame(bone, constraint.Sources.Single().SourceTransform);
+            Assert.IsTrue(float.IsNaN(constraint.Sources.Single().Weight));
+            Assert.IsTrue(float.IsNaN(constraint.GlobalWeight));
+
+            var path = unityBackend.ObjectPathRemapper.GetVirtualPathForObject(bone.gameObject);
+            AssertZeroBaseCurve(unityBackend, path, "IsActive");
+            AssertZeroBaseCurve(unityBackend, path, "GlobalWeight");
+        }
+
+        var updateOffscreenActions = effects.OfType<FloatPropAction>().Where(action =>
+            action.Prop.TargetObject == meshRenderer &&
+            action.Prop.PropertyName == "m_UpdateWhenOffscreen").ToList();
+        Assert.AreEqual(2, updateOffscreenActions.Count);
+        Assert.IsTrue(updateOffscreenActions.All(action => action.Value == 0f));
+    }
+
+    [Test]
+    public void Build_EmptyGraph_DoesNotInstallReactiveLayers()
+    {
+        var context = CreateContext(avatarRoot);
+        var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+        var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
+        var unityBackend = new UnityBlendTreeBackend(context, controller);
+        var backend = new VRChatBlendTreeBackend(controller, unityBackend);
+        var graph = new ReactionGraph();
+
+        backend.PreprocessGraph(graph);
+        ILBuild.Simplify(graph);
+        nadena.dev.modular_avatar.core.editor.rc.StaticProcessing.StaticProcessing.Apply(graph);
+        backend.Build(graph);
+
+        Assert.IsFalse(controller.Layers.Any(layer =>
+            layer.Name == VRChatBlendTreeBackend.BaseLayerName ||
+            layer.Name == VRChatBlendTreeBackend.ApplyLayerName));
+    }
+
+    private static void AssertZeroBaseCurve(UnityBlendTreeBackend backend, string path, string property)
+    {
+        var curve = backend.BaseLayerClip.GetFloatCurve(
+            EditorCurveBinding.FloatCurve(path, typeof(VRCScaleConstraint), property));
+        Assert.IsNotNull(curve);
+        Assert.AreEqual(0f, curve.Evaluate(0f));
+        Assert.That(curve.keys, Has.Some.Property("time").EqualTo(0f));
+    }
+
     [Test]
     public void TestMeshCutterAllVerticesSelected_DegenerateTriangle()
     {

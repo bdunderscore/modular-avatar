@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
     internal class InternalParameterCondition : IExpression
@@ -18,9 +16,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new InternalParameterCondition(ParameterName);
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
-            return getParameter(ParameterName) > 0.5f;
+            return context.GetParameter(ParameterName) > 0.5f;
         }
 
         public void Walk(ExpressionVisitor visitor)

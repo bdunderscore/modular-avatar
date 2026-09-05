@@ -366,6 +366,8 @@
   "ro_sim.effect_group.target_component.tooltip": "受到 Reactive Component 影響的元件",
   "ro_sim.effect_group.property": "屬性",
   "ro_sim.effect_group.property.tooltip": "受到 Reactive Component 影響的目標元件屬性",
+  "ro_sim.effect.shape_key": "形態鍵 {0}",
+  "ro_sim.effect.material_slot": "材質槽 {0}",
   "ro_sim.effect_group.value": "值",
   "ro_sim.effect_group.value.tooltip": "Reactive Component 啟用時，屬性將被設為此值",
   "ro_sim.effect_group.material": "材質",

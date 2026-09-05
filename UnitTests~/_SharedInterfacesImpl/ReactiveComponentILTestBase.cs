@@ -107,6 +107,12 @@ namespace UnitTests.SharedInterfacesImpl
         {
             var blendTreeBackend = new UnityBlendTreeBackend(buildContext, vac);
             MaxLatency = rootNode.Latency;
+            
+            // Normally, we set the parameters reference in backend.Build(); since we're building a motion
+            // node directly, we need to manually inject them here.
+            var stubGraph = new ReactionGraph();
+            blendTreeBackend.Parameters = stubGraph.Parameters;
+            
             var motion = blendTreeBackend.BakeMotion(rootNode);
             blendTreeBackend.RootTree.Children = blendTreeBackend.RootTree.Children.Add(
                 new VirtualBlendTree.VirtualChildMotion
@@ -115,7 +121,7 @@ namespace UnitTests.SharedInterfacesImpl
                     DirectBlendParameter = UnityBlendTreeBackend.ALWAYS_ONE,
                 }
             );
-            blendTreeBackend.Build(System.Array.Empty<ReactionGraph>());
+            blendTreeBackend.CommitParameters(true);
 
             var layer = vac.AddLayer(LayerPriority.Default, "test");
             layer.DefaultWeight = 1;

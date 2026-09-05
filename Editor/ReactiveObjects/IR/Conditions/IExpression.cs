@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
@@ -12,11 +11,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
     internal interface IExpression
     {
         /// <summary>
-       /// Evaluate the expression based on the provided parameter lookup callback
-       /// </summary>
-       /// <param name="getParameter"></param>
-       /// <returns></returns>
-        public bool Evaluate(Func<string, float> getParameter);
+        ///     Evaluate the expression in the provided context.
+        /// </summary>
+        public bool Evaluate(ExpressionEvaluationContext context);
         /// <summary>
        ///  Visits all nodes in the expression
        /// </summary>

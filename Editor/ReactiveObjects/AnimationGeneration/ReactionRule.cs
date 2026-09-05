@@ -3,23 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using UnityEngine;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ReactionRule
     {
-        public ReactionRule(TargetProp key, object? value)
+        public ReactionRule(IAction action)
         {
-            TargetProp = key;
-
+            Action = action;
             ControllingConditions = new();
-                
-            Value = value;
         }
 
-        public TargetProp TargetProp;
-        public object? Value;
+        public IAction Action;
 
         public Component? ControllingObject;
 
@@ -33,34 +30,25 @@ namespace nadena.dev.modular_avatar.core.editor
         public bool IsConstant => ControllingConditions.Count == 0
                                   || ControllingConditions.All(c => c.IsConstant)
                                   || ControllingConditions.Any(c => c.IsConstant && !c.InitiallyActive);
-        
+
         public bool IsConstantActive => IsConstant && InitiallyActive;
 
         public override string ToString()
         {
-            return $"AGK: {TargetProp}={Value}";
+            return $"AGK: {Action}";
         }
 
         public bool TryMerge(ReactionRule other)
         {
-            if (!TargetProp.Equals(other.TargetProp)) return false;
-                
-            // Value checks
-            if (Equals(Value, other.Value)) { /* objects match */ }
-            else if (Value is float a && other.Value is float b)
-            {
-                if (Mathf.Abs(a - b) > 0.001f) return false;
-            }
-            else return false;
-            if (!ControllingConditions.SequenceEqual(other.ControllingConditions)) return false;
+            if (!Equals(Action.TargetKey, other.Action.TargetKey)) return false;
+            if (!Action.ApproximatelyEqual(other.Action)) return false;
 
-            return true;
+            return ControllingConditions.SequenceEqual(other.ControllingConditions);
         }
 
         protected bool Equals(ReactionRule other)
         {
-            return TargetProp.Equals(other.TargetProp)
-                   && Equals(Value, other.Value)
+            return Equals(Action, other.Action)
                    && Equals(ControllingObject, other.ControllingObject)
                    && ControllingConditions.SequenceEqual(other.ControllingConditions)
                    && Inverted == other.Inverted;
@@ -82,7 +70,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ccHash = HashCode.Combine(ccHash, cc);
             }
 
-            return HashCode.Combine(TargetProp, Value, ControllingObject, ccHash, Inverted);
+            return HashCode.Combine(Action, ControllingObject, ccHash, Inverted);
         }
     }
 }

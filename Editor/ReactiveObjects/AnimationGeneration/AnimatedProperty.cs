@@ -8,25 +8,18 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class AnimatedProperty
     {
-        public TargetProp TargetProp { get; }
+        public object TargetKey { get; }
 
-        public object? currentState;
+        public List<ReactionRule> actionGroups = new();
 
-        // Objects which trigger deletion of this shape key. 
-        public List<ReactionRule> actionGroups = new List<ReactionRule>();
-
-        public object? overrideStaticState = null;
-
-        public AnimatedProperty(TargetProp key, object? currentState)
+        public AnimatedProperty(object targetKey)
         {
-            TargetProp = key;
-            this.currentState = currentState;
+            TargetKey = targetKey;
         }
 
         protected bool Equals(AnimatedProperty other)
         {
-            return Equals(currentState, other.currentState) && actionGroups.SequenceEqual(other.actionGroups) &&
-                   TargetProp.Equals(other.TargetProp);
+            return actionGroups.SequenceEqual(other.actionGroups) && TargetKey.Equals(other.TargetKey);
         }
 
         public override bool Equals(object? obj)
@@ -45,7 +38,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 actionGroupHash = HashCode.Combine(actionGroupHash, ag);
             }
 
-            return HashCode.Combine(currentState, actionGroupHash, TargetProp);
+            return HashCode.Combine(actionGroupHash, TargetKey);
         }
     }
 }

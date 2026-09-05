@@ -54,9 +54,9 @@ public class RemoveVerticesFromMeshTest : TestBase
         mesh.SetIndices(indexes, 0, submesh0count, MeshTopology.Triangles, 0);
         mesh.SetIndices(indexes, submesh0count, indexes.Count - submesh0count, MeshTopology.Triangles, 1, baseVertex: useBaseVertex ? n : 0);
 
-        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new[]
+        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new IMeshSelector[]
         {
-            (new TargetProp(), (IMeshSelector) new SpecificVertexFilter(new int[] { n + 3, n + 6 }))
+            new SpecificVertexFilter(new int[] { n + 3, n + 6 })
         });
 
         Assert.AreEqual(2, newMesh.subMeshCount, "Test mesh should have exactly 2 submeshes");
@@ -138,9 +138,9 @@ public class RemoveVerticesFromMeshTest : TestBase
             expectedTriangles.Add(lod0Indices[index + 2]);
         }
 
-        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new[]
+        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new IMeshSelector[]
         {
-            (new TargetProp(), (IMeshSelector) new SpecificVertexFilter(new[] { removedVertex }))
+            new SpecificVertexFilter(new[] { removedVertex })
         });
 
         var originalVertexByPosition = mesh.vertices
@@ -268,9 +268,9 @@ public class RemoveVerticesFromMeshTest : TestBase
         mesh.triangles = new int[] { 0, 1, 2, 3, 4, 5, 5, 6, 7 };
 
         // Remove vertices 6 and 7
-        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new[]
+        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new IMeshSelector[]
         {
-            (new TargetProp(), (IMeshSelector) new SpecificVertexFilter(new int[] { 6, 7 }))
+            new SpecificVertexFilter(new int[] { 6, 7 })
         });
 
         // Verify vertex count
@@ -331,7 +331,7 @@ public class RemoveVerticesFromMeshTest : TestBase
         var original = new Mesh { subMeshCount = 1 };
 
         var result = RemoveVerticesFromMesh.RemoveVertices(null!, original,
-            Array.Empty<(TargetProp, IMeshSelector)>());
+            Array.Empty<IMeshSelector>());
 
         Assert.AreNotSame(original, result);
         Assert.AreEqual(0, result.vertexCount);
@@ -357,9 +357,9 @@ public class RemoveVerticesFromMeshTest : TestBase
 
         mesh.triangles = new int[] { 0, 1, 2, 3, 4, 5, 5, 6, 7 };
 
-        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new[]
+        var newMesh = RemoveVerticesFromMesh.RemoveVertices(null!, mesh, new IMeshSelector[]
         {
-            (new TargetProp(), (IMeshSelector) new SpecificVertexFilter(new int[] { 6, 7 }))
+            new SpecificVertexFilter(new int[] { 6, 7 })
         });
 
         Assert.AreEqual(6, newMesh.vertexCount, "Should have 6 vertices remaining");

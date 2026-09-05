@@ -11,6 +11,16 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
 
         public object TargetKey { get; }
 
+        public bool ApproximatelyEqual(IAction other)
+        {
+            return Equals(other);
+        }
+
+        public StaticApplyResult ApplyStatic(StaticApplyContext context)
+        {
+            return StaticApplyResult.Applied;
+        }
+
         private bool Equals(NullAction other) => Equals(TargetKey, other.TargetKey);
 
         public override bool Equals(object? obj) => ReferenceEquals(this, obj) || (obj is NullAction other && Equals(other));

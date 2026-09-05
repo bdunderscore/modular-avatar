@@ -28,15 +28,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new ObjectActiveState(TargetObject, StateMode);
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
             return StateMode switch
             {
-                State.Active => TargetObject.activeSelf,
-                State.Inactive => !TargetObject.activeSelf,
+                State.Active => context.GetObjectActive(TargetObject),
+                State.Inactive => !context.GetObjectActive(TargetObject),
                 // NotDriven should be rewritten to parameter-based conditions before evaluation.
                 State.NotDriven => false,
-                _ => TargetObject.activeSelf
+                _ => context.GetObjectActive(TargetObject)
             };
         }
 

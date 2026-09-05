@@ -8,7 +8,6 @@ using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -20,7 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor
     internal static class RemoveVerticesFromMesh
     {
         public static Mesh RemoveVertices(Renderer renderer, Mesh original,
-            IEnumerable<(TargetProp, IMeshSelector)> targets)
+            IEnumerable<IMeshSelector> selectors)
         {
             if (original.vertexCount == 0) return Object.Instantiate(original);
 
@@ -36,10 +35,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 using var selectorJob = new MeshSelectorJob(renderer, original);
 
-                var selectors = targets.Select(t => t.Item2).ToList();
-                IMeshSelector combinedSelector = selectors.Count == 0 ? null
-                    : selectors.Count == 1 ? selectors[0]
-                    : new ORFilter(selectors);
+                var selectorList = selectors.ToList();
+                var combinedSelector = selectorList.Count == 0 ? null
+                    : selectorList.Count == 1 ? selectorList[0]
+                    : new ORFilter(selectorList);
 
                 // Phase 1: schedule primitive mask jobs
                 var primMaskHandles = new JobHandle[submeshCount];
