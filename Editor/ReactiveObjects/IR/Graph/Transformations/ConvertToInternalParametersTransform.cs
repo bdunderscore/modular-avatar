@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
-using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
@@ -54,7 +53,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 // Replace ObjectActiveState expressions with InternalParameterConditions
                 node.Expression = ReplaceObjectActiveStates(node.Expression, objectToParameter, objectToDrivenParameter);
 
-                // Replace DriveActiveState actions with DriveInternalParameter actions
+                // Augment DriveActiveState actions with DriveInternalParameter actions
                 var initialCount = node.Effects.Count;
                 for (var i = 0; i < initialCount; i++)
                 {

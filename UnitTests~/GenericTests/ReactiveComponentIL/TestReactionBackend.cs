@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 
@@ -19,6 +18,7 @@ namespace UnitTestsReactiveComponentIL
             _parameters = graph?.Parameters ?? throw new ArgumentNullException(nameof(graph));
         }
 
+
         public string AddParameter(string prefix, float initialValue)
         {
             return _parameters.AddParameter(prefix, initialValue);
@@ -34,7 +34,7 @@ namespace UnitTestsReactiveComponentIL
             _parameters.SetParameterInitialValue(name, value);
         }
 
-        public void Build(IEnumerable<ReactionGraph> graphs)
+        public void Build(ReactionGraph graph)
         {
             throw new NotSupportedException("The parameter-only test backend cannot build reaction graphs");
         }

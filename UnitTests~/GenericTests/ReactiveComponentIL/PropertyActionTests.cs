@@ -1,3 +1,4 @@
+using System;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
@@ -10,7 +11,7 @@ using UnityEngine.TestTools;
 
 namespace UnitTestsReactiveComponentIL
 {
-    public class PropActionTests : TestBase
+    public class PropertyActionTests : TestBase
     {
         private UnityBlendTreeBackend _blendTreeBackend;
         private GameObject _root;
@@ -18,7 +19,20 @@ namespace UnitTestsReactiveComponentIL
         private sealed class UnknownAction : IAction
         {
             public object TargetKey => this;
+            public bool ApproximatelyEqual(IAction other) => ReferenceEquals(this, other);
+            public StaticApplyResult ApplyStatic(StaticApplyContext context) => StaticApplyResult.Retain;
         }
+
+        private sealed class TrackedResource : IDisposable
+        {
+            public bool IsDisposed { get; private set; }
+
+            public void Dispose()
+            {
+                IsDisposed = true;
+            }
+        }
+
 
         [SetUp]
         public override void Setup()
@@ -30,6 +44,29 @@ namespace UnitTestsReactiveComponentIL
             var animatorServices = buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
             _blendTreeBackend = new UnityBlendTreeBackend(buildContext, controller);
+        }
+
+        [Test]
+        public void StaticApplyContext_CachesResourcesAndDisposesEachResource()
+        {
+            var context = new StaticApplyContext();
+            var first = context.Get("first", _ => new TrackedResource());
+            var same = context.Get<string, TrackedResource>(
+                "first",
+                _ => throw new AssertionException("The cached resource must be reused"));
+            var second = context.Get("second", _ => new TrackedResource());
+
+            Assert.AreSame(first, same);
+            Assert.IsFalse(first.IsDisposed);
+            Assert.IsFalse(second.IsDisposed);
+
+            context.Dispose();
+
+            Assert.IsTrue(first.IsDisposed);
+            Assert.IsTrue(second.IsDisposed);
+            Assert.DoesNotThrow(context.Dispose);
+            Assert.Throws<ObjectDisposedException>(() =>
+                context.Get("third", _ => new TrackedResource()));
         }
 
         [Test]
@@ -54,11 +91,7 @@ namespace UnitTestsReactiveComponentIL
         public void NullObjectReference_ToMotion_EmitsPPtrCurveWithNullKey()
         {
             var meshFilter = CreateChild(_root, "mesh-filter").AddComponent<MeshFilter>();
-            var action = new PropAction(new TargetProp
-            {
-                TargetObject = meshFilter,
-                PropertyName = "m_Mesh",
-            });
+            var action = new ObjectPropAction(new PropertyTarget(meshFilter, "m_Mesh"));
             var motion = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(action)) as VirtualClip;
             Assert.IsNotNull(motion);
             var binding = ObjectBindingFor(meshFilter);
@@ -74,11 +107,7 @@ namespace UnitTestsReactiveComponentIL
         public void NullObjectReference_SetBaseState_EmitsPPtrCurveWithNullKey()
         {
             var meshFilter = CreateChild(_root, "mesh-filter").AddComponent<MeshFilter>();
-            var action = new PropAction(new TargetProp
-            {
-                TargetObject = meshFilter,
-                PropertyName = "m_Mesh",
-            });
+            var action = new ObjectPropAction(new PropertyTarget(meshFilter, "m_Mesh"));
             var binding = ObjectBindingFor(meshFilter);
 
             _blendTreeBackend.ApplyBaseState(action, actionStartsActive: false);

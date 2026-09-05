@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using System;
-
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
     internal sealed class Constant : IExpression
@@ -23,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new Constant(Value);
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
             return Value;
         }

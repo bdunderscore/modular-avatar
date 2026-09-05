@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using System;
-
 namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
 {
     internal sealed class NotNode : IExpression
@@ -29,9 +27,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new NotNode(Inner.DeepClone());
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
-            return !Inner.Evaluate(getParameter);
+            return !Inner.Evaluate(context);
         }
 
         public void Walk(ExpressionVisitor visitor)

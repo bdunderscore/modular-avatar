@@ -31,9 +31,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new ParameterExpression(ParameterName, Threshold, Mode);
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
-            var value = getParameter(ParameterName);
+            var value = context.GetParameter(ParameterName);
             return Mode == ConditionMode.GreaterThan
                 ? value > Threshold
                 : value < Threshold;

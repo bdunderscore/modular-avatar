@@ -1,6 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
@@ -12,6 +11,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
        /// </summary>
        /// <param name="graph">The graph to preprocess.</param>
         void PreprocessGraph(ReactionGraph graph);
+
 
         /// <summary>
        ///     Allocates a uniquely named parameter with the specified initial value.
@@ -36,9 +36,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         void SetParameterInitialValue(string name, float value);
 
         /// <summary>
-        ///     Lowers optimized reaction graphs into the backend's output representation.
+        ///     Lowers a reaction graph into the backend's output representation.
         /// </summary>
-        /// <param name="graphs">The optimized reaction subgraphs to build.</param>
-        void Build(IEnumerable<ReactionGraph> graphs);
+        /// <param name="graph">The reaction graph to build.</param>
+        void Build(ReactionGraph graph);
     }
 }

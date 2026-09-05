@@ -28,6 +28,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     ? (value ? 1.0f : 0.0f)
                     : backend.GetParameterInitialValue(parameterName);
 
+            var context = new ExpressionEvaluationContext(getParameterInitialValue);
+
             var iterationLimit = CalculateGraphDiameter(drivers) + 1;
             var changed = false;
 
@@ -40,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     var target = new ParameterTarget(driver.ParameterName);
                     bool? state = null;
 
-                    var exprValue = expr.Evaluate(getParameterInitialValue);
+                    var exprValue = expr.Evaluate(context);
                     if (exprValue)
                     {
                         state = driver.State;
@@ -100,7 +102,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 {
                     foreach (var target in targets)
                     {
-                        nextDistances[target] = System.Math.Max(nextDistances[target], distances[source] + 1);
+                        nextDistances[target] = Math.Max(nextDistances[target], distances[source] + 1);
                     }
                 }
 

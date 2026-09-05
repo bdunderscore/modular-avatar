@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
@@ -23,8 +24,22 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public VirtualBlendTree BaseLayerTree { get; }
         public VirtualClip BaseLayerClip { get; }
         private readonly VirtualAnimatorController _vac;
-        private readonly ReactionParameters _fallbackParameters = new();
-        private ReactionParameters _parameters;
+
+        private ReactionParameters? __parameters;
+
+        internal ReactionParameters Parameters
+        {
+            get => __parameters ?? throw new InvalidOperationException("Parameters have not been initialized");
+            set
+            {
+                if (__parameters != value && __parameters != null)
+                {
+                    throw new InvalidOperationException("Parameters have already been initialized");
+                }
+
+                __parameters = value;
+            }
+        }
 
         public int Latency { get; private set; }
 
@@ -36,7 +51,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             
             EmptyMotion = VirtualClip.Create("Empty");
             _vac = vac;
-            _parameters = _fallbackParameters;
 
             AlwaysOnClip = VirtualClip.Create("Base");
 
@@ -84,12 +98,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         
         public string AddParameter(string prefix, float value)
         {
-            return _parameters.AddParameter(prefix, value);
+            return Parameters.AddParameter(prefix, value);
         }
 
         public void SetParameterInitialValue(string name, float value)
         {
-            _parameters.SetParameterInitialValue(name, value);
+            Parameters.SetParameterInitialValue(name, value);
         }
 
         public IDisposable LatencyScope(int frames)
@@ -118,17 +132,17 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public float GetParameterInitialValue(string parameterName)
         {
-            return _parameters.GetParameterInitialValue(parameterName);
+            return Parameters.GetParameterInitialValue(parameterName);
         }
 
         internal void EnsureParameterPresent(string parameterName, float defaultValue = 0)
         {
-            if (_parameters.ParameterDefaults.ContainsKey(parameterName)) return;
+            if (Parameters.ParameterDefaults.ContainsKey(parameterName)) return;
 
             var value = _vac.Parameters.TryGetValue(parameterName, out var parameter)
                 ? AnimatorParameterValue(parameter)
                 : defaultValue;
-            _parameters.EnsureParameter(parameterName, value);
+            Parameters.EnsureParameter(parameterName, value);
         }
 
         private static float AnimatorParameterValue(AnimatorControllerParameter parameter)
@@ -144,27 +158,66 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public void PreprocessGraph(ReactionGraph graph)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
-            _parameters = graph.Parameters;
 
+            PrepareParameterDefaults(graph);
+            ProcessExternalObjectStateInputsTransform.Apply(graph, this);
+        }
+
+        private static void LowerSemanticActions(ReactionGraph graph)
+        {
+            foreach (var node in graph.Nodes)
+            {
+                for (var i = 0; i < node.Effects.Count; i++)
+                {
+                    node.Effects[i] = LowerSemanticAction(node.Effects[i]);
+                }
+            }
+        }
+
+        private static IAction LowerSemanticAction(IAction action)
+        {
+            if (action is AlreadyApplied applied)
+                return new AlreadyApplied(LowerSemanticAction(applied.Inner));
+
+            return action switch
+            {
+                SetShapeKey shape => new FloatPropAction(
+                    new PropertyTarget(
+                        shape.Renderer,
+                        ReactiveObjectAnalyzer.BlendshapePrefix + shape.ShapeName),
+                    shape.Value),
+                SetMaterial material => new ObjectPropAction(
+                    new PropertyTarget(
+                        material.Renderer,
+                        $"m_Materials.Array.data[{material.MaterialIndex}]"),
+                    material.Material),
+                _ => action
+            };
+        }
+
+        internal void PrepareParameterDefaults(ReactionGraph graph)
+        {
+            Parameters = graph.Parameters;
             foreach (var node in graph.Nodes)
             {
                 var expression = node.Expression;
                 RegisterParameterDefaults(ref expression);
                 node.Expression = expression;
-            }
 
-            ProcessExternalObjectStateInputsTransform.Apply(graph, this);
+                foreach (var action in node.Effects.OfType<DriveParameter>())
+                    EnsureParameterPresent(action.ParameterName);
+            }
         }
 
         private void RegisterParameterDefaults(ref IExpression expression)
         {
             if (expression is ParameterExpression parameter)
             {
-                _parameters.EnsureParameter(parameter.ParameterName, 0);
+                Parameters.EnsureParameter(parameter.ParameterName, 0);
                 if (_vac.Parameters.TryGetValue(parameter.ParameterName, out var existing))
                 {
                     var existingValue = AnimatorParameterValue(existing);
-                    _parameters.SetParameterInitialValue(parameter.ParameterName, existingValue);
+                    Parameters.SetParameterInitialValue(parameter.ParameterName, existingValue);
                 }
 
                 return;
@@ -173,28 +226,133 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             expression.Walk(RegisterParameterDefaults);
         }
 
-        public void Build(IEnumerable<ReactionGraph> graphs)
+        public void Build(ReactionGraph graph)
         {
-            if (graphs == null) throw new ArgumentNullException(nameof(graphs));
-            var materialized = graphs.ToList();
-            var firstNonEmptyGraph = materialized.FirstOrDefault(graph => graph.Nodes.Count > 0);
-            if (firstNonEmptyGraph != null)
-            {
-                var parameters = firstNonEmptyGraph.Parameters;
-                if (materialized.Any(graph => !ReferenceEquals(graph.Parameters, parameters)))
-                    throw new InvalidOperationException("Reaction graphs do not share ReactionParameters");
-                _parameters = parameters;
-            }
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
 
-            foreach (var graph in materialized)
+            Parameters = graph.Parameters;
+            LowerSemanticActions(graph);
+            RemoveRedundantAlreadyAppliedActions(graph);
+
+            var graphs = OptimizeForBackend(graph);
+            foreach (var subgraph in graphs)
             {
-                var groups = AlignNodesTransform.CreateEffectGroups(this, graph);
+                var groups = AlignNodesTransform.CreateEffectGroups(this, subgraph);
                 var aligned = AlignNodesTransform.Apply(this, groups);
                 AssignInitialGroupStatesTransform.Apply(this, aligned);
                 foreach (var group in aligned) Bake(group.Emit());
             }
 
-            CommitParameters();
+            CommitParameters(HasGeneratedOutput);
+        }
+
+        private IReadOnlyList<ReactionGraph> OptimizeForBackend(ReactionGraph graph)
+        {
+            ConvertToInternalParametersTransform.Apply(this, graph);
+            BooleanSimplifyTransform.Apply(graph);
+            RemoveConstantFalseNodesTransform.Apply(graph);
+
+            // ConvertToInternalParameters introduces new effects on existing nodes, so we need to decompose again.
+            DecomposeTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            AssignInitialStates.ProcessGraph(this, graph);
+            AssertDecomposed(graph);
+
+            BreakLoopsTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            PruneUnusedInternalParametersTransform.Apply(graph);
+            AssertDecomposed(graph);
+
+            graph.Parameters.PruneOrphanedInternalParameters(graph);
+
+            return SplitIntoSubgraphsTransform.Apply(graph);
+        }
+
+        private static void AssertDecomposed(ReactionGraph graph)
+        {
+            foreach (var node in graph.Nodes)
+            {
+                if (node.Effects.Count != 1)
+                    throw new InvalidOperationException("Expected node to be decomposed");
+            }
+        }
+
+        internal bool HasGeneratedOutput =>
+            RootTree.Children.Count > 1 ||
+            BaseLayerClip.GetFloatCurveBindings().Any() ||
+            BaseLayerClip.GetObjectCurveBindings().Any();
+
+        private void RemoveRedundantAlreadyAppliedActions(ReactionGraph graph)
+        {
+            foreach (var node in graph.Nodes)
+            {
+                if (node.Expression is not Constant { Value: true }) continue;
+
+                for (var i = node.Effects.Count - 1; i >= 0; i--)
+                {
+                    if (node.Effects[i] is not AlreadyApplied applied) continue;
+
+                    var action = applied.Inner;
+                    if (IsRedundantInitialAction(graph, action))
+                    {
+                        node.Effects.RemoveAt(i);
+                    }
+                    else
+                    {
+                        node.Effects[i] = action;
+                    }
+                }
+            }
+
+            graph.Nodes.RemoveAll(node => node.Effects.Count == 0);
+        }
+
+        private bool IsRedundantInitialAction(ReactionGraph graph, IAction action)
+        {
+            switch (action)
+            {
+                case NullAction:
+                    return true;
+                case FloatPropAction prop:
+                {
+                    var binding = FloatPropAction.GetCurveBinding(prop.Prop, ObjectPathRemapper);
+                    return !binding.HasValue || !AnimationIndex.GetClipsForBinding(binding.Value).Any();
+                }
+                case ObjectPropAction prop:
+                {
+                    var binding = ObjectPropAction.GetCurveBinding(prop.Prop, ObjectPathRemapper);
+                    return !binding.HasValue || !AnimationIndex.GetClipsForBinding(binding.Value).Any();
+                }
+                case DriveActiveState active:
+                {
+                    var binding = FloatPropAction.GetCurveBinding(
+                        PropertyTarget.ForObjectActive(active.Target),
+                        ObjectPathRemapper);
+                    return (!binding.HasValue || !AnimationIndex.GetClipsForBinding(binding.Value).Any()) &&
+                           !HasObjectActiveState(graph, active.Target);
+                }
+                default:
+                    return false;
+            }
+        }
+
+        private static bool HasObjectActiveState(ReactionGraph graph, GameObject target)
+        {
+            return graph.Nodes.Any(node => HasObjectActiveState(node.Expression, target));
+        }
+
+        private static bool HasObjectActiveState(IExpression expression, GameObject target)
+        {
+            if (expression is ObjectActiveState state && state.TargetObject == target) return true;
+
+            var found = false;
+            expression.Walk((ref IExpression child) =>
+            {
+                if (HasObjectActiveState(child, target)) found = true;
+            });
+            return found;
         }
 
         /// <summary>
@@ -203,7 +361,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         ///     parameters whose EffectGroups were removed by PruneUnusedInternalParametersTransform)
         ///     from remaining in the animator with stale or incorrect default values.
         /// </summary>
-        private void CommitParameters()
+        internal void CommitParameters(bool includeAlwaysOne)
         {
             const string rcPrefix = "$$MA/RC/";
             const string delayPrefix = "$$MA/RC/DELAY/";
@@ -211,16 +369,22 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 .Where(k => k.StartsWith(rcPrefix)
                             && !k.StartsWith(delayPrefix)
                             && k != ALWAYS_ONE
-                            && !_parameters.ParameterDefaults.ContainsKey(k))
+                            && !Parameters.ParameterDefaults.ContainsKey(k))
                 .ToList();
 
             // Build the pruned dictionary first, then assign once.
             // Assigning to _vac.Parameters is O(n) (it triggers a parameter-change callback),
             // so we batch all removals through Aggregate before the single assignment.
             var parameters = orphans.Aggregate(_vac.Parameters, (dict, name) => dict.Remove(name));
-            foreach (var (name, value) in _parameters.ParameterDefaults)
+            foreach (var (name, value) in Parameters.ParameterDefaults)
                 parameters = parameters.SetItem(name, new AnimatorControllerParameter { name = name, type = AnimatorControllerParameterType.Float, defaultFloat = value });
-            parameters = parameters.SetItem(ALWAYS_ONE, new AnimatorControllerParameter { name = ALWAYS_ONE, type = AnimatorControllerParameterType.Float, defaultFloat = 1 });
+            if (includeAlwaysOne)
+                parameters = parameters.SetItem(ALWAYS_ONE, new AnimatorControllerParameter
+                {
+                    name = ALWAYS_ONE,
+                    type = AnimatorControllerParameterType.Float,
+                    defaultFloat = 1
+                });
             _vac.Parameters = parameters;
         }
     }

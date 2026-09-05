@@ -121,14 +121,14 @@ namespace nadena.dev.modular_avatar.core.editor
 
         // ── Public entry point ────────────────────────────────────────────────────
 
-        internal static Dictionary<(TargetProp, IMeshSelector), List<AddedBone>> ComputeNaNPlan(
+        internal static Dictionary<(TKey, IMeshSelector), List<AddedBone>> ComputeNaNPlan<TKey>(
             Renderer renderer,
             ref Mesh mesh,
-            List<(TargetProp, IMeshSelector)> targets
+            List<(TKey, IMeshSelector)> targets
         )
         {
             if (mesh.vertexCount == 0 || targets.Count == 0)
-                return new Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>();
+                return new Dictionary<(TKey, IMeshSelector), List<AddedBone>>();
 
             if (targets.Count <= 64)
                 return ComputeNaNPlanInner(renderer, ref mesh, targets, SmallHideKey.From);
@@ -138,11 +138,11 @@ namespace nadena.dev.modular_avatar.core.editor
 
         // ── Core algorithm ────────────────────────────────────────────────────────
 
-        private static Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>
-            ComputeNaNPlanInner<THideKey>(
+        private static Dictionary<(TKey, IMeshSelector), List<AddedBone>>
+            ComputeNaNPlanInner<TKey, THideKey>(
                 Renderer renderer,
                 ref Mesh mesh,
-                List<(TargetProp, IMeshSelector)> targets,
+                List<(TKey, IMeshSelector)> targets,
                 Func<List<int>, THideKey> makeHideKey
             ) where THideKey : struct, IHideKey<THideKey>
         {
@@ -334,7 +334,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 // No primitives selected by any shape — leave mesh unchanged
                 if (vertHideKey.All(k => k.IsEmpty))
-                    return new Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>();
+                    return new Dictionary<(TKey, IMeshSelector), List<AddedBone>>();
 
                 var newVertCount = newToOrig.Count;
                 var newToOrigArray = newToOrig.ToArray();
@@ -432,7 +432,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var nextBoneIndex = initialBoneCount;
-                var result = new Dictionary<(TargetProp, IMeshSelector), List<AddedBone>>();
+                var result = new Dictionary<(TKey, IMeshSelector), List<AddedBone>>();
                 var vertexMask = new bool[newVertCount];
 
                 for (var s = 0; s < targets.Count; s++)
@@ -505,13 +505,13 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        public static Dictionary<(TargetProp, IMeshSelector), List<GameObject>> GenerateNaNimatedBones(
+        public static Dictionary<(TKey, IMeshSelector), List<GameObject>> GenerateNaNimatedBones<TKey>(
             SkinnedMeshRenderer renderer,
-            Dictionary<(TargetProp, IMeshSelector), List<AddedBone>> plan)
+            Dictionary<(TKey, IMeshSelector), List<AddedBone>> plan)
         {
             Dictionary<Transform, Transform> parentToBuffer = new();
 
-            List<(AddedBone, (TargetProp, IMeshSelector))> createdBones =
+            List<(AddedBone, (TKey, IMeshSelector))> createdBones =
                 plan.SelectMany(kv => kv.Value.Select(bone => (bone, kv.Key)))
                     .OrderBy(b => b.bone.newBoneIndex)
                     .ToList();

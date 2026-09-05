@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
 using NUnit.Framework;
@@ -26,6 +27,25 @@ namespace UnitTests.ReactiveComponent
             AssertStaticState(prefab, "AudioSource", typeof(AudioSource), false, true);
             AssertStaticState(prefab, "ParentConstraint", typeof(ParentConstraint), true, null);
             AssertStaticState(prefab, "InitiallyDisabled", typeof(AudioSource), false, false);
+        }
+
+        [Test]
+        public void ConstantToggleStillCapturesControlledAudioSource()
+        {
+            var root = CreateRoot("root");
+            AddMinimalAvatarComponents(root);
+            var target = CreateChild(root, "Target");
+            target.AddComponent<AudioSource>().enabled = true;
+            var toggle = root.AddComponent<ModularAvatarObjectToggle>();
+            toggle.Objects.Add(new ToggledObject
+            {
+                Object = new AvatarObjectReference(target),
+                Active = false
+            });
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            AssertStaticState(root, "Target", typeof(AudioSource), false, true);
         }
 
         [Test]

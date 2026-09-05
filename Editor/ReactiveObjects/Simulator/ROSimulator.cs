@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.preview;
@@ -12,6 +14,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
@@ -58,6 +61,10 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             void SetTitle(EditorWindow w)
             {
                 w.titleContent = new GUIContent(Localization.L.GetLocalizedString("ro_sim.window.title"));
+                if (w is ROSimulator simulator && simulator._fInspecting != null)
+                {
+                    simulator.RequestRefresh();
+                }
             }
 
             LanguagePrefs.RegisterLanguageChangeCallback(this, SetTitle);
@@ -85,6 +92,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         {
             EditorApplication.delayCall += () =>
             {
+                if (this == null) return;
                 PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
                 MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem?>.Empty;
                 EditorApplication.delayCall += LoadUI;
@@ -97,14 +105,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private void OnDisable()
         {
             is_enabled = false;
+            Selection.selectionChanged -= SelectionChanged;
+            EditorApplication.update -= PeriodicRefresh;
 
             // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
             // (which generates a noisy exception)
             EditorApplication.delayCall += () =>
             {
-                Selection.selectionChanged -= SelectionChanged;
-                EditorApplication.update -= PeriodicRefresh;
-                
                 PropertyOverrides.Value = null;
                 MenuItemOverrides.Value = null;
             };
@@ -123,7 +130,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
         private GUIStyle? lockButtonStyle;
         private bool locked, is_enabled;
 
-        private Dictionary<(EntityId, string), bool> foldoutState = new();
+        private readonly Dictionary<object, bool> foldoutState = new();
         private Button? _btnClear;
 
         private Button _btn_clear =>
@@ -316,7 +323,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             var result = analysis.Analyze(avatar.gameObject);
 
             SetThisObjectOverrides(analysis);
-            SetOverallActiveHeader(currentSelection, result.InitialStates);
+            SetOverallActiveHeader(currentSelection, result.InitialActions);
             SetAffectedBy(currentSelection, result.Shapes);
         }
         
@@ -414,32 +421,24 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             UpdatePropertyOverride(_propertyOverrideProperty, state, _propertyOverrideTargetValue);
         }
 
-        private void SetAffectedBy(GameObject gameObject, Dictionary<TargetProp, AnimatedProperty> shapes)
+        private void SetAffectedBy(GameObject gameObject, Dictionary<object, AnimatedProperty> shapes)
         {
             var effect_list = e_debugInfo.Q<ScrollView>("effect-list");
             effect_list.Clear();
 
             var orderedShapes = shapes.Values
-                .Where(s => AffectedBy(s.TargetProp, gameObject))
-                .OrderBy(
-                s =>
-                {
-                    if (s.TargetProp.TargetObject is GameObject go && s.TargetProp.PropertyName == "m_IsActive")
-                        return (0, "", "");
-                    return (1, s.TargetProp.TargetObject?.GetType().ToString() ?? "", s.TargetProp.PropertyName);
-                }
-            );
+                .Where(s => AffectedBy(s.TargetKey, gameObject))
+                .OrderBy(s => s.TargetKey is ObjectActiveTarget ? 0 : 1)
+                .ThenBy(s => s.TargetKey.ToString());
             
             foreach (var shape in orderedShapes)
             {
-                var targetProp = shape.TargetProp;
+                var targetKey = shape.TargetKey;
                 var propInfo = shape;
 
                 var propGroup = new Foldout();
-                propGroup.text = (targetProp.TargetObject?.GetType().ToString() ?? "(null)") + "." +
-                                 targetProp.PropertyName;
-                var foldoutStateKey = (shape.TargetProp.TargetObject?.GetEntityId() ??
-                                       UnityObjectIDHelper.InvalidID, shape.TargetProp.PropertyName);
+                propGroup.text = DescribeTarget(targetKey);
+                var foldoutStateKey = targetKey;
                 propGroup.RegisterValueChangedCallback(evt =>
                 {
                     foldoutState[foldoutStateKey] = evt.newValue;
@@ -452,7 +451,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                         propGroup.RemoveFromClassList("foldout-open");
                     }
                 });
-                if (shape.TargetProp.TargetObject is GameObject go && shape.TargetProp.PropertyName == "m_IsActive")
+                if (shape.TargetKey is ObjectActiveTarget)
                 {
                     propGroup.text = "Active State";
                     propGroup.value = true;
@@ -540,52 +539,106 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                     f_material.SetEnabled(false);
                     f_delete.style.display = DisplayStyle.None;
                     f_delete.SetEnabled(false);
-                    
-                    if (targetProp.TargetObject is GameObject && targetProp.PropertyName == "m_IsActive")
-                    {
-                        if (reactionRule.Value is not float activeValue)
-                        {
-                            continue;
-                        }
 
-                        if (activeValue > 0.5f)
-                        {
-                            f_set_active.style.display = DisplayStyle.Flex;
-                        }
-                        else
-                        {
-                            f_set_inactive.style.display = DisplayStyle.Flex;
-                        }
-                    }
-                    else
+                    switch (reactionRule.Action)
                     {
-                        f_target_component.SetValueWithoutNotify(targetProp.TargetObject);
-                        f_target_component.style.display = DisplayStyle.Flex;
-                        f_property.value = targetProp.PropertyName;
-                        f_property.style.display = DisplayStyle.Flex;
+                        case DriveActiveState active:
+                            f_target_component.SetValueWithoutNotify(active.Target);
+                            f_target_component.style.display = DisplayStyle.Flex;
+                            if (active.Active)
+                            {
+                                f_set_active.style.display = DisplayStyle.Flex;
+                            }
+                            else
+                            {
+                                f_set_inactive.style.display = DisplayStyle.Flex;
+                            }
 
-                        if (reactionRule.Value is IMeshSelector)
-                        {
-                            f_delete.style.display = DisplayStyle.Flex;
-                            f_delete.value = reactionRule.Value.ToString();
-                        } else if (reactionRule.Value is float f)
-                        {
-                            f_value.SetValueWithoutNotify(f);
+                            break;
+
+                        case SetShapeKey setShape:
+                            f_target_component.SetValueWithoutNotify(setShape.Renderer);
+                            f_target_component.style.display = DisplayStyle.Flex;
+                            f_property.value = DescribeShapeKey(setShape.ShapeName);
+                            f_property.style.display = DisplayStyle.Flex;
+                            f_value.SetValueWithoutNotify(setShape.Value);
                             f_value.style.display = DisplayStyle.Flex;
-                        } else if (reactionRule.Value is Material m)
-                        {
-                            f_material.SetValueWithoutNotify(m);
+                            break;
+
+                        case SetMaterial material:
+                            f_target_component.SetValueWithoutNotify(material.Renderer);
+                            f_target_component.style.display = DisplayStyle.Flex;
+                            f_property.value = DescribeMaterialSlot(material.MaterialIndex);
+                            f_property.style.display = DisplayStyle.Flex;
+                            f_material.SetValueWithoutNotify(material.Material);
                             f_material.style.display = DisplayStyle.Flex;
-                        }
-                    } 
+                            break;
+
+                        case HideMeshSection hide:
+                            f_target_component.SetValueWithoutNotify(hide.Target.Renderer);
+                            f_target_component.style.display = DisplayStyle.Flex;
+                            if (hide.ShouldHide)
+                            {
+                                f_delete.value = hide.Selector?.ToString();
+                                f_delete.style.display = DisplayStyle.Flex;
+                            }
+
+                            break;
+
+                        case NullAction:
+                            var target = TargetObject(targetKey);
+                            if (target != null)
+                            {
+                                f_target_component.SetValueWithoutNotify(target);
+                                f_target_component.style.display = DisplayStyle.Flex;
+                            }
+
+                            break;
+                    }
                 }
             }
         }
 
-        private bool AffectedBy(TargetProp shapeKey, GameObject gameObject)
+        private static string DescribeTarget(object targetKey)
         {
-            return (shapeKey.TargetObject == gameObject) ||
-                   (shapeKey.TargetObject is Component c && c.gameObject == gameObject);
+            return targetKey switch
+            {
+                ShapeKeyTarget target => DescribeShapeKey(target.ShapeName),
+                MaterialSlotTarget target => DescribeMaterialSlot(target.MaterialIndex),
+                _ => targetKey.ToString()
+            };
+        }
+
+        private static string DescribeShapeKey(string shapeName)
+        {
+            return string.Format(Localization.L.GetLocalizedString("ro_sim.effect.shape_key"), shapeName);
+        }
+
+        private static string DescribeMaterialSlot(int materialIndex)
+        {
+            return string.Format(Localization.L.GetLocalizedString("ro_sim.effect.material_slot"), materialIndex);
+        }
+
+        private static bool AffectedBy(object targetKey, GameObject gameObject)
+        {
+            return TargetObject(targetKey) switch
+            {
+                GameObject target => target == gameObject,
+                Component target => target.gameObject == gameObject,
+                _ => false
+            };
+        }
+
+        private static Object? TargetObject(object targetKey)
+        {
+            return targetKey switch
+            {
+                ShapeKeyTarget target => target.Renderer,
+                MaterialSlotTarget target => target.Renderer,
+                MeshSectionTarget target => target.Renderer,
+                ObjectActiveTarget target => target.Target,
+                _ => null
+            };
         }
 
         private void BuildRuleConditionBlock(VisualElement conditions, ReactionRule rule)
@@ -684,12 +737,13 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             }
         }
 
-        private void SetOverallActiveHeader(GameObject obj, Dictionary<TargetProp, object?> initialStates)
+        private void SetOverallActiveHeader(GameObject obj, Dictionary<object, IAction> initialActions)
         {
-            bool activeState = obj.activeInHierarchy;
-            if (initialStates.TryGetValue(TargetProp.ForObjectActive(obj), out var activeStateObj))
+            var activeState = obj.activeInHierarchy;
+            if (initialActions.TryGetValue(new ObjectActiveTarget(obj), out var initialAction) &&
+                initialAction is DriveActiveState active)
             {
-                activeState = activeStateObj is float f && f > 0;
+                activeState = active.Active;
             }
             var ve_active = e_debugInfo.Q<VisualElement>("state-enabled");
             var ve_inactive = e_debugInfo.Q<VisualElement>("state-disabled");

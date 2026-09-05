@@ -38,7 +38,8 @@ namespace UnitTestsReactiveComponentIL
         private void Build(ReactionGraph graph)
         {
             _blendTreeBackend.PreprocessGraph(graph);
-            _blendTreeBackend.Build(ILBuild.Optimize(_blendTreeBackend, graph));
+            ILBuild.Simplify(graph);
+            _blendTreeBackend.Build(graph);
         }
 
 
@@ -117,7 +118,7 @@ namespace UnitTestsReactiveComponentIL
 
             var pass = new ReactiveObjectPassV2(_context);
 
-            var targetProp = new TargetProp { TargetObject = objA, PropertyName = "m_IsActive" };
+            var targetKey = new ObjectActiveTarget(objA);
             var condition = new ControlCondition
             {
                 Parameter = "P",
@@ -125,9 +126,9 @@ namespace UnitTestsReactiveComponentIL
                 ParameterValueHi = float.PositiveInfinity,
                 InitialValue = 1.0f,
             };
-            var rule = new ReactionRule(targetProp, 1.0f);
+            var rule = new ReactionRule(new DriveActiveState(objA, true));
             rule.ControllingConditions.Add(condition);
-            var property = new AnimatedProperty(targetProp, 0.0f);
+            var property = new AnimatedProperty(targetKey);
             property.actionGroups.Add(rule);
 
             var shapeToGraph = typeof(ReactiveObjectPassV2)
@@ -135,7 +136,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(shapeToGraph);
             var graph = shapeToGraph.Invoke(pass, new object[]
             {
-                new Dictionary<TargetProp, AnimatedProperty> { [targetProp] = property }
+                new Dictionary<object, AnimatedProperty> { [targetKey] = property }
             }) as ReactionGraph;
             Assert.IsNotNull(graph);
             Assert.AreEqual(condition.InitialValue, graph.Parameters.GetParameterInitialValue(condition.Parameter),

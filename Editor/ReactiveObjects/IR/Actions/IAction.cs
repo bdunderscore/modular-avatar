@@ -5,5 +5,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
     internal interface IAction
     {
         object TargetKey { get; }
+        bool ApproximatelyEqual(IAction other);
+        StaticApplyResult ApplyStatic(StaticApplyContext context);
     }
 }

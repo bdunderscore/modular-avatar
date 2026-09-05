@@ -374,6 +374,8 @@
   "ro_sim.effect_group.target_component.tooltip": "The component that will be affected by the Reactive Object",
   "ro_sim.effect_group.property": "Property",
   "ro_sim.effect_group.property.tooltip": "The property of the target component that will be affected by the Reactive Object",
+  "ro_sim.effect.shape_key": "Shape Key {0}",
+  "ro_sim.effect.material_slot": "Material Slot {0}",
   "ro_sim.effect_group.value": "Value",
   "ro_sim.effect_group.value.tooltip": "The value that the property will be set to when the Reactive Object is active",
   "ro_sim.effect_group.material": "Material",

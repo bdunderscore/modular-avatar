@@ -2,8 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.modular_avatar.core.editor.rc.Actions;
-using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
 {
@@ -11,11 +10,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     {
         internal static void Apply(UnityBlendTreeBackend backend, List<EffectGroup> groups)
         {
+            var context = new ExpressionEvaluationContext(backend.GetParameterInitialValue);
+
             foreach (var group in groups)
             {
                 foreach (var (node, index) in group.Nodes.Select((n, i) => (n, i)))
                 {
-                    if (node.Expression.Evaluate(backend.GetParameterInitialValue))
+                    if (node.Expression.Evaluate(context))
                     {
                         group.DefaultNode = index;
                     }

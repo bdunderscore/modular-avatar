@@ -7,6 +7,8 @@ using System.Linq;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -150,14 +152,11 @@ public class ShapeDeletionAnalysis : TestBase
     {
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var analysis = new ReactiveObjectAnalyzer().Analyze(root);
-        var deletedShape = analysis.Shapes.GetValueOrDefault(new TargetProp()
-        {
-            TargetObject = mesh,
-            PropertyName = "deletedShape.bottom"
-        });
+        var deletedShape = analysis.Shapes.GetValueOrDefault(MeshSectionTarget.ForShape(mesh, "bottom"));
         Assert.IsNotNull(deletedShape);
         var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-        Assert.That(activeGroup?.Value is IMeshSelector);
+        Assert.That(activeGroup?.Action, Is.TypeOf<HideMeshSection>());
+        Assert.IsTrue(((HideMeshSection)activeGroup!.Action).ShouldHide);
         return mesh;
     }
     
@@ -165,15 +164,11 @@ public class ShapeDeletionAnalysis : TestBase
     {
         var mesh = root.GetComponentInChildren<SkinnedMeshRenderer>();
         var analysis = new ReactiveObjectAnalyzer().Analyze(root);
-        var deletedShape = analysis.Shapes.GetValueOrDefault(new TargetProp()
-        {
-            TargetObject = mesh,
-            PropertyName = "deletedShape.bottom"
-        });
+        var deletedShape = analysis.Shapes.GetValueOrDefault(MeshSectionTarget.ForShape(mesh, "bottom"));
         if (deletedShape != null)
         {
             var activeGroup = deletedShape.actionGroups.LastOrDefault(ag => ag.InitiallyActive);
-            Assert.IsFalse(activeGroup?.Value is IMeshSelector);
+            Assert.IsFalse(activeGroup?.Action is HideMeshSection { ShouldHide: true });
         }
         
     }

@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using System;
-
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,9 +24,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Conditions
             return new OrNode(Children.Select(c => c.DeepClone()).ToArray());
         }
 
-        public bool Evaluate(Func<string, float> getParameter)
+        public bool Evaluate(ExpressionEvaluationContext context)
         {
-            return Children.Any(child => child.Evaluate(getParameter));
+            return Children.Any(child => child.Evaluate(context));
         }
 
         public void Walk(ExpressionVisitor visitor)

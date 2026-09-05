@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
+using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -187,6 +188,139 @@ namespace UnitTestsReactiveComponentIL
                 "Preprocessing must rewrite the node expression once even when it has multiple actions.");
             Assert.IsFalse(rewritten.Children[0] is ObjectActiveState,
                 "Preprocessing must recognize every DriveActiveState on the node, including later actions.");
+        }
+
+        [Test]
+        public void Build_LowersShapeAndMaterialActions()
+        {
+            var renderer = CreateChild(_root, "renderer").AddComponent<SkinnedMeshRenderer>();
+            var material = TrackObject(new Material(Shader.Find("Sprites/Default")));
+            var activeTarget = CreateChild(_root, "active-target");
+            var graph = new ReactionGraph();
+            var node = new ReactionNode(new Constant(true), new SetShapeKey(renderer, "smile", 75f));
+            node.Effects.Add(new SetMaterial(renderer, 0, material));
+            node.Effects.Add(new SetMaterial(renderer, 1, null));
+            var driveActiveState = new DriveActiveState(activeTarget, false);
+            node.Effects.Add(driveActiveState);
+            graph.AddNode(node);
+
+            _blendTreeBackend.PreprocessGraph(graph);
+            Assert.IsInstanceOf<SetShapeKey>(node.Effects[0]);
+            Assert.IsInstanceOf<SetMaterial>(node.Effects[1]);
+            Assert.IsInstanceOf<SetMaterial>(node.Effects[2]);
+
+            ILBuild.Simplify(graph);
+            _blendTreeBackend.Build(graph);
+
+            var effects = graph.Nodes.SelectMany(node => node.Effects).ToList();
+            Assert.AreEqual(4, effects.Count);
+
+            var shapeAction = effects.OfType<FloatPropAction>()
+                .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "blendShape.smile")));
+            Assert.AreEqual(75f, shapeAction.Value);
+
+            var materialAction = effects.OfType<ObjectPropAction>()
+                .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "m_Materials.Array.data[0]")));
+            Assert.AreSame(material, materialAction.Value);
+
+            var nullMaterialAction = effects.OfType<ObjectPropAction>()
+                .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "m_Materials.Array.data[1]")));
+            Assert.IsNull(nullMaterialAction.Value);
+
+            var path = _blendTreeBackend.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject);
+            var floatClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(shapeAction)) as VirtualClip;
+            var floatCurve = floatClip!.GetFloatCurve(
+                EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), "blendShape.smile"));
+            Assert.IsNotNull(floatCurve);
+            Assert.AreEqual(75f, floatCurve.Evaluate(0f));
+            Assert.That(floatCurve.keys, Has.Some.Property("time").EqualTo(0f));
+
+            var materialBinding0 = EditorCurveBinding.PPtrCurve(
+                path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[0]");
+            var nonNullClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(materialAction)) as VirtualClip;
+            var nonNullCurve = nonNullClip!.GetObjectCurve(materialBinding0);
+            Assert.IsNotNull(nonNullCurve);
+            Assert.AreSame(material, nonNullCurve.Single().value);
+            Assert.AreEqual(0f, nonNullCurve.Single().time);
+
+            var materialBinding1 = EditorCurveBinding.PPtrCurve(
+                path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[1]");
+            var nullClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(nullMaterialAction)) as VirtualClip;
+            var nullCurve = nullClip!.GetObjectCurve(materialBinding1);
+            Assert.IsNotNull(nullCurve);
+            Assert.IsNull(nullCurve.Single().value);
+            Assert.AreEqual(0f, nullCurve.Single().time);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Build_AlreadyAppliedPropertyAction_DropsOnlyWhenNotExternallyAnimated(bool externallyAnimated)
+        {
+            var renderer = CreateChild(_root, "renderer").AddComponent<SkinnedMeshRenderer>();
+            var material = TrackObject(new Material(Shader.Find("Sprites/Default")));
+            var property = new PropertyTarget(renderer, "m_Materials.Array.data[0]");
+
+            if (externallyAnimated)
+            {
+                var controller = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
+                var layer = controller.AddLayer(LayerPriority.Default, "layer");
+                var state = layer.StateMachine!.AddState("state");
+                layer.StateMachine.DefaultState = state;
+                var clip = VirtualClip.Create("clip");
+                clip.SetObjectCurve(
+                    EditorCurveBinding.PPtrCurve(
+                        _asc.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject),
+                        typeof(SkinnedMeshRenderer),
+                        property.PropertyName),
+                    new[] { new ObjectReferenceKeyframe { time = 0, value = material } });
+                state.Motion = clip;
+                _asc.ControllerContext.Controllers["external"] = controller;
+            }
+
+            var graph = new ReactionGraph();
+            var node = new ReactionNode(new Constant(true),
+                new AlreadyApplied(new ObjectPropAction(property, material)));
+            graph.AddNode(node);
+
+            _blendTreeBackend.PreprocessGraph(graph);
+            ILBuild.Simplify(graph);
+            _blendTreeBackend.Build(graph);
+
+            if (externallyAnimated)
+            {
+                Assert.AreEqual(1, graph.Nodes.Count);
+                Assert.IsInstanceOf<ObjectPropAction>(graph.Nodes.Single().Effects.Single());
+                Assert.AreEqual(2, _blendTreeBackend.RootTree.Children.Count);
+            }
+            else
+            {
+                Assert.IsEmpty(graph.Nodes);
+                Assert.AreEqual(1, _blendTreeBackend.RootTree.Children.Count);
+            }
+        }
+
+        [Test]
+        public void Build_AlreadyAppliedActiveDriver_IsRetainedWhenObjectStateRemainsReferenced()
+        {
+            var target = CreateChild(_root, "target");
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(
+                new ObjectActiveState(target, ObjectActiveState.State.Active),
+                new NullAction()));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(target, true)));
+            graph.AddNode(new ReactionNode(new ParameterExpression("P"), new DriveActiveState(target, true)));
+            graph.AddNode(new ReactionNode(new ParameterExpression("Q"), new DriveActiveState(target, false)));
+
+            ILBuild.Simplify(graph);
+            var initiallyApplied = graph.Nodes.Single(node =>
+                node.Expression is Constant { Value: true } &&
+                node.Effects.Single() is DriveActiveState);
+            initiallyApplied.Effects[0] = new AlreadyApplied((DriveActiveState)initiallyApplied.Effects[0]);
+            _blendTreeBackend.Build(graph);
+
+            Assert.IsNotEmpty(graph.Nodes);
+            Assert.IsFalse(graph.Nodes.SelectMany(node => node.Effects).Any(effect => effect is AlreadyApplied));
+            Assert.That(graph.Nodes.SelectMany(node => node.Effects), Has.Some.InstanceOf<DriveInternalParameter>());
         }
 
         [Test]
