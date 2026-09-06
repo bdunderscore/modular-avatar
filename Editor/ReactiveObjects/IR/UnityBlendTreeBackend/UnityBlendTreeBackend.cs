@@ -240,7 +240,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 var groups = AlignNodesTransform.CreateEffectGroups(this, subgraph);
                 var aligned = AlignNodesTransform.Apply(this, groups);
                 AssignInitialGroupStatesTransform.Apply(this, aligned);
-                foreach (var group in aligned) Bake(group.Emit());
+                foreach (var group in aligned)
+                {
+                    var motionNode = group.Emit();
+                    CoalesceBranchesTransform.Apply(ref motionNode);
+                    Bake(motionNode);
+                }
             }
 
             CommitParameters(HasGeneratedOutput);
