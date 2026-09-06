@@ -87,7 +87,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 var maxLods = Enumerable.Range(0, original.subMeshCount).Select(sm => original.GetLods(sm).Length).Max();
                 if (maxLods > 1)
                 {
-                    MeshLodUtility.GenerateMeshLods(mesh, maxLods);
+                    UnityEditor.MeshLodUtility.GenerateMeshLods(mesh, maxLods);
                 }
 #endif
             }
