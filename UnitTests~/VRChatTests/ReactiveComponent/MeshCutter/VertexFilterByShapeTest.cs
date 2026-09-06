@@ -81,12 +81,15 @@ public class VertexFilterByShapeTest : TestBase
         var filter2 = new VertexFilterByShape("TestShape", 0.5f);
         var filter3 = new VertexFilterByShape("TestShape", 0.6f);
         var filter4 = new VertexFilterByShape("DifferentShape", 0.5f);
+        var filter5 = new VertexFilterByShape("TestShape", 0.5000001f);
 
         // Test equality
         Assert.IsTrue(filter1.Equals(filter2), "Filters with same shape and threshold should be equal");
         Assert.IsFalse(filter1.Equals(filter3), "Filters with different thresholds should not be equal");
         Assert.IsFalse(filter1.Equals(filter4), "Filters with different shapes should not be equal");
         Assert.IsFalse(filter1.Equals(null), "Filter should not equal null");
+        Assert.IsFalse(filter1.Equals(filter5),
+            "Filters with thresholds differing by a floating-point rounding increment should not be equal");
 
         // Test hash codes
         Assert.AreEqual(filter1.GetHashCode(), filter2.GetHashCode(), "Equal filters should have same hash code");

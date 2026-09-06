@@ -198,11 +198,14 @@ public class VertexFilterByBoneTests : TestBase
         var filter2 = new VertexFilterByBone(bone0, 0.5f);
         var filter3 = new VertexFilterByBone(bone0, 0.6f);
         var filter4 = new VertexFilterByBone(bone1, 0.5f);
+        var filter5 = new VertexFilterByBone(bone0, 0.5000001f);
 
         Assert.IsTrue(filter1.Equals(filter2), "Filters with same bone and threshold should be equal");
         Assert.IsFalse(filter1.Equals(filter3), "Filters with different thresholds should not be equal");
         Assert.IsFalse(filter1.Equals(filter4), "Filters with different bones should not be equal");
         Assert.IsFalse(filter1.Equals(null), "Filter should not equal null");
+        Assert.IsFalse(filter1.Equals(filter5),
+            "Filters with thresholds differing by a floating-point rounding increment should not be equal");
 
         Assert.AreEqual(filter1.GetHashCode(), filter2.GetHashCode(), "Equal filters should have same hash code");
     }
