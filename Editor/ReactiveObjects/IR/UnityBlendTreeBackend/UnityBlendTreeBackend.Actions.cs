@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
@@ -9,9 +11,41 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal sealed partial class UnityBlendTreeBackend
     {
-        internal IMotionNode EmitAction(IAction action)
+        internal IMotionNode EmitAction(IAction actions)
         {
-            var clip = VirtualClip.Create("Effect " + action);
+            return EmitActions(new[] { actions });
+        }
+
+        internal IMotionNode EmitActions(IEnumerable<IAction> actions)
+        {
+            var clip = VirtualClip.Create("Effect");
+            var setName = false;
+            foreach (var action in actions)
+            {
+                if (!setName) clip.Name = "Effect " + action;
+                EmitAction(action, clip);
+            }
+            return new MotionNode(clip);
+        }
+
+        private bool CanEmit(IAction action)
+        {
+            switch (action)
+            {
+                case DriveActiveState: return true;
+                case DriveParameter: return true;
+                case DriveInternalParameter: return true;
+                case FloatPropAction: return true;
+                case ObjectPropAction: return true;
+                case NullAction: return false;
+                default:
+                    Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
+                    return false;
+            }
+        }
+        
+        private void EmitAction(IAction action, VirtualClip clip)
+        {
             switch (action)
             {
                 case DriveActiveState active: EmitDriveActiveState(active, clip); break;
@@ -24,7 +58,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
                     break;
             }
-            return new MotionNode(clip);
         }
 
         internal void ApplyBaseState(IAction action, bool actionStartsActive)

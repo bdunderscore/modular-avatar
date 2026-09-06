@@ -16,6 +16,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
         public List<IAction> Effects = new();
         public IExpression Expression { get; set; }
 
+        public ReactionNode(IExpression expression)
+        {
+            Expression = expression;
+        }
+
         public ReactionNode(IExpression expression, IAction effect)
         {
             Expression = expression;
