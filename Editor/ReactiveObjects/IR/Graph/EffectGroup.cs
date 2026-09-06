@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
-using nadena.dev.ndmf.animator;
 
 namespace nadena.dev.modular_avatar.core.editor.rc
 {
@@ -15,7 +14,33 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     /// </summary>
     internal class EffectGroup
     {
-        public EffectGroup(UnityBlendTreeBackend context, object targetKey, List<ReactionNode> nodes)
+        public static EffectGroup Merge(UnityBlendTreeBackend backend, object targetKey, List<EffectGroup> groups)
+        {
+            var nodeCount = groups[0].Nodes.Count;
+            var newNodes = new List<ReactionNode>(nodeCount);
+
+            for (var i = 0; i < nodeCount; i++)
+            {
+                var expression = groups[0].Nodes[i].Expression;
+                var node = new ReactionNode(expression);
+                newNodes.Add(node);
+
+                foreach (var group in groups)
+                {
+                    if (!groups[0].Nodes[i].Expression.Equals(expression))
+                    {
+                        throw new InvalidOperationException(
+                            $"Cannot merge EffectGroups with different expressions at index {i}: {groups[0].Nodes[i].Expression} vs {group.Nodes[i].Expression}");
+                    }
+
+                    node.Effects.AddRange(group.Nodes[i].Effects);
+                }
+            }
+
+            return new EffectGroup(backend, targetKey, newNodes);
+        }
+
+        public EffectGroup(UnityBlendTreeBackend backend, object targetKey, List<ReactionNode> nodes)
         {
             TargetKey = targetKey;
             Nodes = nodes;
@@ -24,8 +49,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var conditions = new List<(ProxyCondition, IMotionNode)>();
             foreach (var node in nodes)
             {
-                var effect = node.Effects.First(e => e.TargetKey.Equals(targetKey));
-                var motion = context.EmitAction(effect);
+                var motion = backend.EmitActions(node.Effects);
 
                 var proxyCondition = ProxyCondition.Always();
                 _proxyConditions.Add(proxyCondition);
