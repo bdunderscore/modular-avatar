@@ -26,6 +26,16 @@ public class ShapeDeletionAnalysis : TestBase
     }
 
     [Test]
+    public void MeshSectionTargetsUseExactSelectorEquality()
+    {
+        var renderer = new GameObject("Renderer").AddComponent<SkinnedMeshRenderer>();
+        var exactTarget = MeshSectionTarget.ForMask(renderer, new VertexFilterByShape("shape", 0.5f));
+        var nearTarget = MeshSectionTarget.ForMask(renderer, new VertexFilterByShape("shape", 0.5000001f));
+
+        Assert.IsFalse(exactTarget.Equals(nearTarget));
+    }
+
+    [Test]
     public void WhenAnimationExistsForOtherShape_DoesDelete()
     {
         var root = CreatePrefab("DeletionTest/DeletionTest_WithAnimation.prefab");

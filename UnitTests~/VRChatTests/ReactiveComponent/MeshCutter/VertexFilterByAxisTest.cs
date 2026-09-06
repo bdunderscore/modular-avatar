@@ -154,6 +154,23 @@ public class VertexFilterByAxisTest : TestBase
     }
 
     [Test]
+    public void TestEqualsUsesExactVectorComparison()
+    {
+        var exactComponent = CreateChild(avatarRoot, "ExactAxisFilter").AddComponent<VertexFilterByAxisComponent>();
+        exactComponent.Center = Vector3.zero;
+        exactComponent.Axis = Vector3.right;
+
+        var nearComponent = CreateChild(avatarRoot, "NearAxisFilter").AddComponent<VertexFilterByAxisComponent>();
+        nearComponent.Center = Vector3.zero;
+        nearComponent.Axis = new Vector3(1.000001f, 0, 0);
+
+        var exactFilter = new VertexFilterByAxis(exactComponent, ComputeContext.NullContext);
+        var nearFilter = new VertexFilterByAxis(nearComponent, ComputeContext.NullContext);
+
+        Assert.IsFalse(exactFilter.Equals(nearFilter));
+    }
+
+    [Test]
     public void TestUnfilteredPrimitivesRemainUnfiltered()
     {
         // Center at Y=4: no vertices are above Y=4, so the filter marks nothing new.

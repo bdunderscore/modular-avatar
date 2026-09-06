@@ -29,8 +29,8 @@ namespace nadena.dev.modular_avatar.core.editor
         public bool Equals(IMeshSelector? other)
         {
             return other is VertexFilterByAxis other2
-                   && other2._axis == _axis
-                   && other2._center == _center
+                   && other2._axis.Equals(_axis)
+                   && other2._center.Equals(_center)
                    && other2._selectionMode == _selectionMode;
         }
 

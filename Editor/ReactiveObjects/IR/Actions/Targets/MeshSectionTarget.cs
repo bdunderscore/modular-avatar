@@ -41,7 +41,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 
         private bool Equals(MeshSectionTarget other)
         {
-            return _kind == other._kind && Equals(Renderer, other.Renderer) &&
+            return _kind == other._kind && Renderer == other.Renderer &&
                    (_kind == TargetKind.Shape
                        ? ShapeName == other.ShapeName
                        : Selector?.Equals(other.Selector) is true);

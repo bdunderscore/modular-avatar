@@ -104,7 +104,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return other is VertexFilterByShape filter
                    && filter.Shapes.SetEquals(Shapes)
-                   && Mathf.Approximately(filter.Threshold, Threshold)
+                   // ReSharper disable once CompareOfFloatsByEqualityOperator
+                   && filter.Threshold == Threshold
                    && filter._selectionMode == _selectionMode;
         }
 

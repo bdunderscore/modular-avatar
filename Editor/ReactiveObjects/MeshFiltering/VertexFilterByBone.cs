@@ -46,7 +46,8 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return other is VertexFilterByBone filter
                    && filter._bone == _bone
-                   && Mathf.Approximately(filter._threshold, _threshold)
+                   // ReSharper disable once CompareOfFloatsByEqualityOperator
+                   && filter._threshold == _threshold
                    && filter._selectionMode == _selectionMode;
         }
 
