@@ -109,7 +109,7 @@ namespace nadena.dev.modular_avatar.core
 
                     if (!resolvedTarget.transform.IsChildOf(avatar.transform)) continue;
 
-                    if (objRef.IsConsistent(avatar)) continue;
+                    if (objRef.IsConsistent(avatar, component)) continue;
 
                     if (!dirty)
                     {
