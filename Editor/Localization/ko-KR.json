@@ -370,6 +370,8 @@
   "ro_sim.effect_group.target_component.tooltip": "Reactive 오브젝트의 영향을 받는 컴포넌트",
   "ro_sim.effect_group.property": "속성",
   "ro_sim.effect_group.property.tooltip": "Reactive 오브젝트로 인해 변경되는 대상 컴포넌트의 속성",
+  "ro_sim.effect.shape_key": "셰이프 키 {0}",
+  "ro_sim.effect.material_slot": "머티리얼 슬롯 {0}",
   "ro_sim.effect_group.value": "값",
   "ro_sim.effect_group.value.tooltip": "Reactive 오브젝트가 활성화될 때 대상 컴포넌트에 설정할 머티리얼",
   "ro_sim.effect_group.material": "머티리얼",
