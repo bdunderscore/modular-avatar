@@ -42,10 +42,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(merged[0].Nodes[0].Effects, Has.Count.EqualTo(2));
 
             IMotionNode emitted = merged[0].Emit();
-            while (emitted is ProxyNode proxy) emitted = proxy.Target;
-            var branch = emitted as BranchNode;
+            var branch = ResolveProxy(emitted) as BranchNode;
             Assert.That(branch, Is.Not.Null);
-            var motion = branch.OnGreaterThan as MotionNode;
+            var motion = ResolveProxy(branch.OnGreaterThan) as MotionNode;
             Assert.That(motion, Is.Not.Null);
             var clip = motion.Motion as VirtualClip;
             Assert.That(clip, Is.Not.Null);
@@ -55,6 +54,12 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(secondCurve, Is.Not.Null);
             Assert.That(firstCurve.Evaluate(0), Is.EqualTo(1f));
             Assert.That(secondCurve.Evaluate(0), Is.EqualTo(2f));
+        }
+
+        private static IMotionNode ResolveProxy(IMotionNode emitted)
+        {
+            while (emitted is ProxyNode proxy) emitted = proxy.Target;
+            return emitted;
         }
 
         [Test]

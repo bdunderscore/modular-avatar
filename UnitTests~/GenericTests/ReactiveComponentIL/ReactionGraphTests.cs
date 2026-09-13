@@ -320,7 +320,7 @@ namespace UnitTestsReactiveComponentIL
 
             Assert.IsNotEmpty(graph.Nodes);
             Assert.IsFalse(graph.Nodes.SelectMany(node => node.Effects).Any(effect => effect is AlreadyApplied));
-            Assert.That(graph.Nodes.SelectMany(node => node.Effects), Has.Some.InstanceOf<DriveInternalParameter>());
+            Assert.That(graph.Nodes.SelectMany(node => node.Effects), Has.Some.InstanceOf<DriveActiveState>());
         }
 
         [Test]
