@@ -156,9 +156,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private static string FormatRangeBounds(float? lo, float? hi)
         {
             if (lo == null && hi == null) return "*";
-            if (lo == null) return $"< {hi:G6}";
-            if (hi == null) return $">= {lo:G6}";
-            return $"[{lo:G6}, {hi:G6})";
+            if (lo == null) return $"<= {hi:G6}";
+            if (hi == null) return $"> {lo:G6}";
+            return $"({lo:G6}, {hi:G6}]";
         }
 
         // Collects the ranges in a ProxyCondition's condition tree that route to onTrueProxy.

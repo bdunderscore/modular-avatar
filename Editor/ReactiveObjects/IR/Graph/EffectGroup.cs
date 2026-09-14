@@ -18,6 +18,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             var nodeCount = groups[0].Nodes.Count;
             var newNodes = new List<ReactionNode>(nodeCount);
+            var first = groups.First();
 
             for (var i = 0; i < nodeCount; i++)
             {
@@ -27,10 +28,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                 foreach (var group in groups)
                 {
-                    if (!groups[0].Nodes[i].Expression.Equals(expression))
+                    if (!first.Nodes[i].Expression.Equals(expression))
                     {
                         throw new InvalidOperationException(
-                            $"Cannot merge EffectGroups with different expressions at index {i}: {groups[0].Nodes[i].Expression} vs {group.Nodes[i].Expression}");
+                            $"Cannot merge EffectGroups with different expressions at index {i}: {first.Nodes[i].Expression} vs {group.Nodes[i].Expression}");
                     }
 
                     node.Effects.AddRange(group.Nodes[i].Effects);

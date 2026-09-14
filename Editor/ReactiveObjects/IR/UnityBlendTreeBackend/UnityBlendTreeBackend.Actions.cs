@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Collections.Generic;
-using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.ndmf.animator;
 using UnityEditor;
@@ -22,7 +21,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var setName = false;
             foreach (var action in actions)
             {
-                if (!setName) clip.Name = "Effect " + action;
+                if (!setName)
+                {
+                    clip.Name = "Effect " + action;
+                    setName = true;
+                }
                 EmitAction(action, clip);
             }
             return new MotionNode(clip);

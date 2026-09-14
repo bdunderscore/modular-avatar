@@ -70,6 +70,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 if (min >= max) return; // empty interval (impossible branch)
 
+                if (branch is ProxyNode pn)
+                {
+                    Visit(pn.Target, min, max);
+                    return;
+                }
+                
                 if (branch is not BranchNode bn || bn.Parameter != root.Parameter)
                 {
                     list.Add(min, new CandidateBranch { Start = min, End = max, Inner = branch });
