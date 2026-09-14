@@ -228,7 +228,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNull(nullMaterialAction.Value);
 
             var path = _blendTreeBackend.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject);
-            var floatClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(shapeAction)) as VirtualClip;
+            var floatClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(shapeAction)) as VirtualClip;
             var floatCurve = floatClip!.GetFloatCurve(
                 EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), "blendShape.smile"));
             Assert.IsNotNull(floatCurve);
@@ -237,7 +237,7 @@ namespace UnitTestsReactiveComponentIL
 
             var materialBinding0 = EditorCurveBinding.PPtrCurve(
                 path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[0]");
-            var nonNullClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(materialAction)) as VirtualClip;
+            var nonNullClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(materialAction)) as VirtualClip;
             var nonNullCurve = nonNullClip!.GetObjectCurve(materialBinding0);
             Assert.IsNotNull(nonNullCurve);
             Assert.AreSame(material, nonNullCurve.Single().value);
@@ -245,11 +245,20 @@ namespace UnitTestsReactiveComponentIL
 
             var materialBinding1 = EditorCurveBinding.PPtrCurve(
                 path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[1]");
-            var nullClip = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(nullMaterialAction)) as VirtualClip;
+            var nullClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(nullMaterialAction)) as VirtualClip;
             var nullCurve = nullClip!.GetObjectCurve(materialBinding1);
             Assert.IsNotNull(nullCurve);
             Assert.IsNull(nullCurve.Single().value);
             Assert.AreEqual(0f, nullCurve.Single().time);
+        }
+
+        private IMotionNode EmitSimplePropertyAction(IAction action)
+        {
+            var processor = new SimplePropProcessor();
+            var node = new ReactionNode(new Constant(true), action);
+            var group = processor.Accept(action.TargetKey, new[] { node });
+            Assert.IsNotNull(group);
+            return group!.Emit(_blendTreeBackend)!;
         }
 
         [TestCase(false)]

@@ -19,7 +19,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
        /// <param name="prefix">The prefix used to generate the parameter name.</param>
        /// <param name="initialValue">The parameter's initial value.</param>
        /// <returns>The generated parameter name.</returns>
-        string AddParameter(string prefix, float initialValue);
+       string AddUniqueParameter(string prefix, float initialValue);
 
         /// <summary>
        ///     Gets the initial value of a parameter, or zero if the parameter is unknown.

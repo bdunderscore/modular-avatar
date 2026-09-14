@@ -35,14 +35,14 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(condition, new DriveParameter("first", 1f)));
             graph.AddNode(new ReactionNode(condition, new DriveParameter("second", 2f)));
 
-            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
 
             Assert.That(merged, Has.Count.EqualTo(1));
             Assert.That(merged[0].Nodes, Has.Count.EqualTo(1));
             Assert.That(merged[0].Nodes[0].Effects, Has.Count.EqualTo(2));
 
-            IMotionNode emitted = merged[0].Emit();
+            IMotionNode emitted = merged[0].Emit(_backend);
             var branch = ResolveProxy(emitted) as BranchNode;
             Assert.That(branch, Is.Not.Null);
             var motion = ResolveProxy(branch.OnGreaterThan) as MotionNode;
@@ -70,7 +70,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new InternalParameterCondition("first"), new DriveParameter("first", 1f)));
             graph.AddNode(new ReactionNode(new InternalParameterCondition("second"), new DriveParameter("second", 2f)));
 
-            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
 
             Assert.That(merged, Has.Count.EqualTo(2));
@@ -79,17 +79,18 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void EffectGroupMerge_DifferentConditions_Throws()
         {
-            var first = new EffectGroup(_backend, "target", new List<ReactionNode>
+            var processor = new SimplePropProcessor();
+            var first = new EffectGroup(processor, "target", new List<ReactionNode>
             {
                 new(new InternalParameterCondition("first"))
-            });
-            var second = new EffectGroup(_backend, "target", new List<ReactionNode>
+            }, 1);
+            var second = new EffectGroup(processor, "target", new List<ReactionNode>
             {
                 new(new InternalParameterCondition("second"))
-            });
+            }, 1);
 
             Assert.Throws<InvalidOperationException>(() =>
-                EffectGroup.Merge(_backend, "target", new List<EffectGroup> { first, second }));
+                EffectGroup.Merge(new List<EffectGroup> { first, second }));
         }
 
         [Test]
@@ -100,7 +101,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("second", 2f)));
             _backend.PreprocessGraph(graph);
 
-            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
             AssignInitialGroupStatesTransform.Apply(_backend, merged);
 

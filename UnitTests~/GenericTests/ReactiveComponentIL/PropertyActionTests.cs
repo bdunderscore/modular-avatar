@@ -3,6 +3,8 @@ using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
@@ -70,12 +72,14 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
-        public void UnknownAction_EmitAction_LogsWarningWithoutThrowing()
+        public void UnknownAction_Build_LogsWarningWithoutThrowing()
         {
             var action = new UnknownAction();
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), action));
             LogAssert.Expect(LogType.Warning, $"Unsupported action type: {action.GetType().FullName}");
 
-            Assert.DoesNotThrow(() => _blendTreeBackend.EmitAction(action));
+            Assert.DoesNotThrow(() => _blendTreeBackend.Build(graph));
         }
 
         [Test]
@@ -92,7 +96,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var meshFilter = CreateChild(_root, "mesh-filter").AddComponent<MeshFilter>();
             var action = new ObjectPropAction(new PropertyTarget(meshFilter, "m_Mesh"));
-            var motion = _blendTreeBackend.BakeMotion(_blendTreeBackend.EmitAction(action)) as VirtualClip;
+            var motion = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(action)) as VirtualClip;
             Assert.IsNotNull(motion);
             var binding = ObjectBindingFor(meshFilter);
 
@@ -117,6 +121,15 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(1, keys.Length);
             Assert.AreEqual(0f, keys[0].time);
             Assert.IsNull(keys[0].value);
+        }
+
+        private IMotionNode EmitSimplePropertyAction(IAction action)
+        {
+            var processor = new SimplePropProcessor();
+            var node = new ReactionNode(new Constant(true), action);
+            var group = processor.Accept(action.TargetKey, new[] { node });
+            Assert.IsNotNull(group);
+            return group!.Emit(_blendTreeBackend)!;
         }
 
         private EditorCurveBinding ObjectBindingFor(MeshFilter meshFilter)

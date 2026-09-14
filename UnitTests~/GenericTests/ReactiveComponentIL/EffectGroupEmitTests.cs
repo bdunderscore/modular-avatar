@@ -67,7 +67,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(condition, new DriveInternalParameter("effect", true)));
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new InternalParameterTarget("effect")];
         }
 
@@ -79,7 +79,7 @@ namespace UnitTestsReactiveComponentIL
                 graph.AddNode(new ReactionNode(condition, new DriveInternalParameter("effect", true)));
             }
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new InternalParameterTarget("effect")];
         }
 
@@ -91,7 +91,7 @@ namespace UnitTestsReactiveComponentIL
                 graph.AddNode(new ReactionNode(condition, effect));
             }
 
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new ParameterTarget("effect")];
         }
 
@@ -122,7 +122,7 @@ namespace UnitTestsReactiveComponentIL
                 (new InternalParameterCondition("first"), new DriveParameter("effect", 1f)),
                 (new InternalParameterCondition("second"), new DriveParameter("effect", 2f))
             );
-            var root = group.Emit();
+            var root = group.Emit(_blendTreeBackend);
 
             var outerBranch = Resolve(root) as BranchNode;
             Assert.IsNotNull(outerBranch, "Root should be a BranchNode");
@@ -148,7 +148,7 @@ namespace UnitTestsReactiveComponentIL
                 (new InternalParameterCondition("first"), new DriveParameter("effect", 1f)),
                 (new InternalParameterCondition("second"), new DriveParameter("effect", 2f)),
                 (new InternalParameterCondition("third"), new DriveParameter("effect", 3f))
-            ).Emit();
+            ).Emit(_blendTreeBackend);
 
             var priority = root as PriorityNode;
             Assert.IsNotNull(priority, "Three or more effects should emit through a PriorityNode");
@@ -186,7 +186,7 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("second"),
                 new InternalParameterCondition("third")
             );
-            var root = group.Emit();
+            var root = group.Emit(_blendTreeBackend);
 
             var priority = root as PriorityNode;
             Assert.IsNotNull(priority);
@@ -212,7 +212,7 @@ namespace UnitTestsReactiveComponentIL
             );
             group.DefaultNode = 1;
 
-            var priority = group.Emit() as PriorityNode;
+            var priority = group.Emit(_blendTreeBackend) as PriorityNode;
 
             Assert.IsNotNull(priority);
             var initialCount = 0;
@@ -235,7 +235,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void Constant_True_ResolvesToEffectMotion()
         {
-            var root = MakeGroup(new Constant(true)).Emit();
+            var root = MakeGroup(new Constant(true)).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root),
                 "Constant(true) should resolve to the effect MotionNode without any BranchNode");
         }
@@ -243,7 +243,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void Constant_False_ResolvesToEmpty()
         {
-            var root = MakeGroup(new Constant(false)).Emit();
+            var root = MakeGroup(new Constant(false)).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root),
                 "Constant(false) should resolve to EmptyNode without any BranchNode");
         }
@@ -253,7 +253,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void InternalParameterCondition_GreaterEquals_IsEffect_LessThan_IsEmpty()
         {
-            var root = MakeGroup(new InternalParameterCondition("cond")).Emit();
+            var root = MakeGroup(new InternalParameterCondition("cond")).Emit(_blendTreeBackend);
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch, "IPC should produce a BranchNode");
             Assert.AreEqual("cond", branch.Parameter);
@@ -268,7 +268,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void NotNode_WrappingIPC_SwapsEffectAndEmpty()
         {
-            var root = MakeGroup(new NotNode(new InternalParameterCondition("cond"))).Emit();
+            var root = MakeGroup(new NotNode(new InternalParameterCondition("cond"))).Emit(_blendTreeBackend);
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch, "NOT(IPC) should produce a BranchNode");
             Assert.AreEqual("cond", branch.Parameter);
@@ -281,14 +281,14 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void NotNode_WrappingConstantTrue_ResolvesToEmpty()
         {
-            var root = MakeGroup(new NotNode(new Constant(true))).Emit();
+            var root = MakeGroup(new NotNode(new Constant(true))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root), "NOT(true) → empty");
         }
 
         [Test]
         public void NotNode_WrappingConstantFalse_ResolvesToEffect()
         {
-            var root = MakeGroup(new NotNode(new Constant(false))).Emit();
+            var root = MakeGroup(new NotNode(new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root), "NOT(false) → effect");
         }
 
@@ -301,7 +301,7 @@ namespace UnitTestsReactiveComponentIL
             var root = MakeGroup(new OrNode(
                 new InternalParameterCondition("a"),
                 new InternalParameterCondition("b")
-            )).Emit();
+            )).Emit(_blendTreeBackend);
 
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
@@ -318,14 +318,14 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void OrNode_TrueOrFalse_ResolvesToEffect()
         {
-            var root = MakeGroup(new OrNode(new Constant(true), new Constant(false))).Emit();
+            var root = MakeGroup(new OrNode(new Constant(true), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root));
         }
 
         [Test]
         public void OrNode_FalseOrFalse_ResolvesToEmpty()
         {
-            var root = MakeGroup(new OrNode(new Constant(false), new Constant(false))).Emit();
+            var root = MakeGroup(new OrNode(new Constant(false), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root));
         }
 
@@ -338,7 +338,7 @@ namespace UnitTestsReactiveComponentIL
             var root = MakeGroup(new AndNode(
                 new InternalParameterCondition("a"),
                 new InternalParameterCondition("b")
-            )).Emit();
+            )).Emit(_blendTreeBackend);
 
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
@@ -355,14 +355,14 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void AndNode_TrueAndTrue_ResolvesToEffect()
         {
-            var root = MakeGroup(new AndNode(new Constant(true), new Constant(true))).Emit();
+            var root = MakeGroup(new AndNode(new Constant(true), new Constant(true))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root));
         }
 
         [Test]
         public void AndNode_TrueAndFalse_ResolvesToEmpty()
         {
-            var root = MakeGroup(new AndNode(new Constant(true), new Constant(false))).Emit();
+            var root = MakeGroup(new AndNode(new Constant(true), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root));
         }
 
@@ -373,7 +373,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var root = MakeGroup(
                 new ParameterExpression("p", 0.5f, ParameterExpression.ConditionMode.GreaterThan)
-            ).Emit();
+            ).Emit(_blendTreeBackend);
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch);
             Assert.AreEqual("p", branch.Parameter);
@@ -387,7 +387,7 @@ namespace UnitTestsReactiveComponentIL
         {
             var root = MakeGroup(
                 new ParameterExpression("p", 0.3f, ParameterExpression.ConditionMode.LessThan)
-            ).Emit();
+            ).Emit(_blendTreeBackend);
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch);
             Assert.AreEqual("p", branch.Parameter);
@@ -399,7 +399,7 @@ namespace UnitTestsReactiveComponentIL
         [Test]
         public void ParameterExpression_CustomThreshold_PreservedInBranchNode()
         {
-            var root = MakeGroup(new ParameterExpression("p", 0.75f)).Emit();
+            var root = MakeGroup(new ParameterExpression("p", 0.75f)).Emit(_blendTreeBackend);
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch);
             Assert.AreEqual(0.75f, branch.Threshold,

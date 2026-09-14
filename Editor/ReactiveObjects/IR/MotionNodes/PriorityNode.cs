@@ -105,7 +105,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             // We now construct the functional blend tree. This has two components: A direct blend tree, which
             // sums the conditions, and which then references a 1D blend tree which selects between them.
-            var sumParam = backend.AddParameter("PriorityNode", initialState ?? 1f);
+            var sumParam = backend.AddUniqueParameter("PriorityNode", initialState ?? 1f);
             var sumTree = VirtualBlendTree.Create("PriorityNode sum");
             sumTree.BlendType = BlendTreeType.Direct;
             sumTree.NormalizedBlendValues = false;
@@ -187,9 +187,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            foreach (var cond in Conditions)
+            for (var i = 0; i < Conditions.Count; i++)
             {
-                cond.Item1.Node.WalkTree(visitor);
+                var tuple = Conditions[i];
+                visitor(ref tuple.Item2);
+                Conditions[i] = tuple;
             }
         }
     }

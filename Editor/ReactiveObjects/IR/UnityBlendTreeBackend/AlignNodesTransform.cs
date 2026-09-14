@@ -73,19 +73,35 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             _revEdges[to].Add(from);
         }
 
-        internal static Dictionary<object, EffectGroup> CreateEffectGroups(UnityBlendTreeBackend context, ReactionGraph graph)
+        internal static Dictionary<object, EffectGroup> CreateEffectGroups(IReadOnlyList<IEffectProcessor> processors,
+            ReactionGraph graph)
         {
-            // TODO: group multiple effects that always activate together into the same condition nodes
-            return graph.Nodes.SelectMany(n => n.Effects.Select(e =>
+            var grouped = graph.Nodes.SelectMany(n => n.Effects.Select(e =>
                 new ReactionNode(n.Expression.DeepClone(), e) { Priority = n.Priority }))
-                .GroupBy(node => node.Effects[0].TargetKey)
-                .Select(g => new EffectGroup(context, g.Key, g.ToList()))
-                .ToDictionary(kv => kv.TargetKey, kv => kv);
+                .GroupBy(node => node.Effects[0].TargetKey);
+
+            var groups = new Dictionary<object, EffectGroup>();
+
+            foreach (var nodeGroup in grouped)
+            {
+                foreach (var processor in processors)
+                {
+                    var group = processor.Accept(nodeGroup.Key, nodeGroup.ToList());
+                    if (group != null)
+                    {
+                        groups[group.TargetKey] = group;
+                        break;
+                    }
+                }
+            }
+
+            return groups;
         }
 
-        public static List<EffectGroup> Apply(UnityBlendTreeBackend context, ReactionGraph graph)
+        public static List<EffectGroup> Apply(UnityBlendTreeBackend context, IReadOnlyList<IEffectProcessor> processors,
+            ReactionGraph graph)
         {
-            return Apply(context, CreateEffectGroups(context, graph));
+            return Apply(context, CreateEffectGroups(processors, graph));
         }
 
         private void AddInitialEdges(Dictionary<object, EffectGroup> byEffect)

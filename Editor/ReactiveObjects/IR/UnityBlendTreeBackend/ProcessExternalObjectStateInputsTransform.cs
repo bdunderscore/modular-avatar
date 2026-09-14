@@ -117,7 +117,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 return null;
             }
 
-            var param = context.AddParameter("ActiveSelf", target.activeSelf ? 1 : 0);
+            var param = context.AddUniqueParameter("ActiveSelf", target.activeSelf ? 1 : 0);
             var paramBinding = EditorCurveBinding.FloatCurve("", typeof(Animator), param);
 
             foreach (var clip in clips)

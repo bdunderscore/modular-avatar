@@ -275,9 +275,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
         }
 
-        public string AddParameter(string prefix, float initialValue)
+        public string AddUniqueParameter(string prefix, float initialValue)
         {
-            return _inner.AddParameter(prefix, initialValue);
+            return _inner.AddUniqueParameter(prefix, initialValue);
         }
 
         public float GetParameterInitialValue(string name)

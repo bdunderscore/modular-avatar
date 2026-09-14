@@ -1,8 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
-using nadena.dev.ndmf.animator;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,31 +8,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal sealed partial class UnityBlendTreeBackend
     {
-        internal IMotionNode EmitAction(IAction action)
-        {
-            return EmitActions(new[] { action });
-        }
-
-        internal IMotionNode EmitActions(IEnumerable<IAction> actions)
-        {
-            var clip = VirtualClip.Create("Effect");
-            var setName = false;
-            foreach (var action in actions)
-            {
-                if (!setName)
-                {
-                    clip.Name = "Effect " + action;
-                    setName = true;
-                }
-                EmitAction(action, clip);
-            }
-            return new MotionNode(clip);
-        }
-
         private bool CanEmit(IAction action)
         {
             switch (action)
             {
+                case TargetKeyOverride: return true;
                 case DriveActiveState: return true;
                 case DriveParameter: return true;
                 case DriveInternalParameter: return true;
@@ -46,27 +24,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     return false;
             }
         }
-        
-        private void EmitAction(IAction action, VirtualClip clip)
-        {
-            switch (action)
-            {
-                case DriveActiveState active: EmitDriveActiveState(active, clip); break;
-                case DriveParameter parameter: EmitDriveParameter(parameter, clip); break;
-                case DriveInternalParameter internalParameter: EmitDriveInternalParameter(internalParameter, clip); break;
-                case FloatPropAction prop: prop.Emit(ObjectPathRemapper, clip); break;
-                case ObjectPropAction prop: prop.Emit(ObjectPathRemapper, clip); break;
-                case NullAction: break;
-                default:
-                    Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
-                    break;
-            }
-        }
+
 
         internal void ApplyBaseState(IAction action, bool actionStartsActive)
         {
             switch (action)
             {
+                case TargetKeyOverride overrideAction:
+                    foreach (var innerAction in overrideAction.Actions)
+                    {
+                        ApplyBaseState(innerAction, actionStartsActive);
+                    }
+
+                    break;
                 case DriveActiveState active: ApplyDriveActiveState(active, actionStartsActive); break;
                 case DriveParameter parameter: ApplyDriveParameter(parameter, actionStartsActive); break;
                 case DriveInternalParameter: break;
@@ -79,11 +49,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
         }
 
-
-        private void EmitDriveActiveState(DriveActiveState action, VirtualClip clip) => clip.SetFloatCurve(
-            EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(action.Target), typeof(GameObject), "m_IsActive"),
-            AnimationCurve.Constant(0, 1, action.Active ? 1 : 0));
-
         private void ApplyDriveActiveState(DriveActiveState action, bool startsActive)
         {
             BaseLayerClip.SetFloatCurve(EditorCurveBinding.FloatCurve(ObjectPathRemapper.GetVirtualPathForObject(action.Target), typeof(GameObject), "m_IsActive"),
@@ -91,18 +56,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             if (startsActive) action.Target.SetActive(action.Active);
         }
 
-        private static void EmitDriveParameter(DriveParameter action, VirtualClip clip) => clip.SetFloatCurve(
-            EditorCurveBinding.FloatCurve("", typeof(Animator), action.ParameterName), AnimationCurve.Constant(0, 1, action.Value));
-
         private void ApplyDriveParameter(DriveParameter action, bool startsActive)
         {
             if (startsActive) SetParameterInitialValue(action.ParameterName, action.Value);
             else EnsureParameterPresent(action.ParameterName);
         }
-
-        private static void EmitDriveInternalParameter(DriveInternalParameter action, VirtualClip clip) => clip.SetFloatCurve(
-            EditorCurveBinding.FloatCurve("", typeof(Animator), action.ParameterName), AnimationCurve.Constant(0, 1, action.State ? 1 : 0));
-
 
         private void ApplyFloatPropAction(FloatPropAction action, bool startsActive)
         {

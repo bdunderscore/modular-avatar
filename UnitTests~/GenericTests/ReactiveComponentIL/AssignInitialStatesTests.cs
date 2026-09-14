@@ -211,7 +211,7 @@ namespace UnitTestsReactiveComponentIL
             ));
 
             _blendTreeBackend.PreprocessGraph(graph);
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
 
             var group = groups[new ParameterTarget("q")];
@@ -397,7 +397,7 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p", 1.0f)));
             _blendTreeBackend.PreprocessGraph(graph);
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
 
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
 
@@ -416,7 +416,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));   // node0: State=true
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", false)));  // node1: State=false
             _blendTreeBackend.PreprocessGraph(graph);
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
 
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
 
@@ -436,7 +436,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true),  new DriveInternalParameter("p", true)));
             graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("p", false)));
             _blendTreeBackend.PreprocessGraph(graph);
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
 
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
 
@@ -450,7 +450,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true),  new DriveParameter("p", 1.0f)));
             graph.AddNode(new ReactionNode(new Constant(false), new DriveParameter("q", 1.0f)));
             _blendTreeBackend.PreprocessGraph(graph);
-            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend, graph);
+            var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
 
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
 

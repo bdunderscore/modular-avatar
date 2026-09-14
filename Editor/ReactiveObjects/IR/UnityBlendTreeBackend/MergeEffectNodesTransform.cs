@@ -24,7 +24,16 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     continue;
                 }
 
-                var newGroup = EffectGroup.Merge(backend, group.Key, group.ToList());
+                var first = group.First();
+
+                if (group.Any(g => g != first && !first.Processor.CanMerge(first, g)))
+                {
+                    // Processor rejects the merge
+                    newGroups.AddRange(group);
+                    continue;
+                }
+
+                var newGroup = EffectGroup.Merge(group.ToList());
                 newGroups.Add(newGroup);
             }
 
@@ -33,18 +42,20 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private static Fingerprint ConditionFingerprint(EffectGroup arg)
         {
-            return new Fingerprint(arg.Nodes.Select(n => n.Expression).ToImmutableList());
+            return new Fingerprint(arg.Processor, arg.Nodes.Select(n => n.Expression).ToImmutableList());
         }
 
         private class Fingerprint : IEquatable<Fingerprint>
         {
             private readonly int hashCode;
+            private readonly IEffectProcessor processor;
             private readonly ImmutableList<IExpression> expressions;
 
-            public Fingerprint(ImmutableList<IExpression> expressions)
+            public Fingerprint(IEffectProcessor processor, ImmutableList<IExpression> expressions)
             {
+                this.processor = processor;
                 this.expressions = expressions;
-                hashCode = 0;
+                hashCode = processor.GetHashCode();
                 foreach (var expr in expressions)
                 {
                     hashCode = HashCode.Combine(hashCode, expr);
@@ -54,6 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             public bool Equals(Fingerprint other)
             {
                 if (hashCode != other.hashCode) return false;
+                if (!processor.Equals(other.processor)) return false;
                 return expressions.SequenceEqual(other.expressions);
             }
 
