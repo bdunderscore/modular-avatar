@@ -7,9 +7,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal class ProxyNode : IMotionNode
     {
+        private static long COUNTER;
+        private readonly long IdentityIndex = COUNTER++;
+        
         public ProxyNode(IMotionNode? target = null)
         {
-            Target = target;
+            Target = target ?? new EmptyNode();
         }
 
         private IMotionNode? _target;
@@ -34,6 +37,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public VirtualMotion Bake(UnityBlendTreeBackend backend)
         {
             return Target?.Bake(backend) ?? backend.EmptyMotion;
+        }
+
+        public override string ToString()
+        {
+            return "ProxyNode[" + IdentityIndex + "]";
         }
     }
 }

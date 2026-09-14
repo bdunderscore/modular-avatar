@@ -19,7 +19,7 @@ namespace UnitTestsReactiveComponentIL
         }
 
 
-        public string AddParameter(string prefix, float initialValue)
+        public string AddUniqueParameter(string prefix, float initialValue)
         {
             return _parameters.AddParameter(prefix, initialValue);
         }

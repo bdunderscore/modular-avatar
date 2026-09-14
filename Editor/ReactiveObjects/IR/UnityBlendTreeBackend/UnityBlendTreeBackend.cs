@@ -27,6 +27,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private ReactionParameters? __parameters;
 
+        internal List<IEffectProcessor> _effectProcessors = new();
+
         internal ReactionParameters Parameters
         {
             get => __parameters ?? throw new InvalidOperationException("Parameters have not been initialized");
@@ -45,6 +47,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public UnityBlendTreeBackend(ndmf.BuildContext buildContext, VirtualAnimatorController vac)
         {
+            _effectProcessors.Add(new SimplePropProcessor());
+            
             var asc = buildContext.Extension<AnimatorServicesContext>();
             AnimationIndex = asc.AnimationIndex;
             ObjectPathRemapper = asc.ObjectPathRemapper;
@@ -95,8 +99,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             if (root == null) throw new ArgumentNullException(nameof(root));
             return root.Bake(this);
         }
-        
-        public string AddParameter(string prefix, float value)
+
+        public string AddUniqueParameter(string prefix, float value)
         {
             return Parameters.AddParameter(prefix, value);
         }
@@ -238,13 +242,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var graphs = OptimizeForBackend(graph);
             foreach (var subgraph in graphs)
             {
-                var groups = AlignNodesTransform.CreateEffectGroups(this, subgraph);
+                var groups = AlignNodesTransform.CreateEffectGroups(_effectProcessors, subgraph);
                 var aligned = AlignNodesTransform.Apply(this, groups);
                 aligned = MergeEffectNodesTransform.MergeNodes(this, aligned);
                 AssignInitialGroupStatesTransform.Apply(this, aligned);
                 foreach (var group in aligned)
                 {
-                    var motionNode = group.Emit();
+                    var motionNode = group.Emit(this);
+                    if (motionNode == null) continue;
                     CoalesceBranchesTransform.Apply(ref motionNode);
                     Bake(motionNode);
                 }
@@ -285,6 +290,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             return SplitIntoSubgraphsTransform.Apply(graph);
         }
+
 
         private static void AssertDecomposed(ReactionGraph graph)
         {

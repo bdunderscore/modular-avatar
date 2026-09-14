@@ -60,14 +60,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public static ProxyCondition FromInner(bool initialState, Func<ProxyNode, ProxyNode, IMotionNode> buildInner)
         {
-            var onFalse = new ProxyNode(null);
-            var onTrue = new ProxyNode(null);
+            var onFalse = new ProxyNode();
+            var onTrue = new ProxyNode();
             return new ProxyCondition(initialState, buildInner(onFalse, onTrue), onFalse, onTrue);
         }
 
         public static ProxyCondition Always()
         {
-            var proxyNode = new ProxyNode(null);
+            var proxyNode = new ProxyNode();
             var onFalse = new ProxyNode();
             return new ProxyCondition(true, proxyNode, onFalse, proxyNode);
         }

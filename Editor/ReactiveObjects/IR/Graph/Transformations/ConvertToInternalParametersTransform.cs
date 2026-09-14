@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         {
             if (!objectToParameter.ContainsKey(obj))
             {
-                var paramName = backend.AddParameter($"ObjActive/{obj.name}", obj.activeSelf ? 1 : 0);
+                var paramName = backend.AddUniqueParameter($"ObjActive/{obj.name}", obj.activeSelf ? 1 : 0);
                 objectToParameter[obj] = paramName;
             }
         }
@@ -119,7 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         {
             if (!objectToDrivenParameter.ContainsKey(obj))
             {
-                objectToDrivenParameter[obj] = backend.AddParameter($"ObjDriven/{obj.name}", 0);
+                objectToDrivenParameter[obj] = backend.AddUniqueParameter($"ObjDriven/{obj.name}", 0);
             }
         }
         private static IExpression ReplaceObjectActiveStates(

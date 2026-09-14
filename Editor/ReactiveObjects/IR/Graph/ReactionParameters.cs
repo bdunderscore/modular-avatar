@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Collections.Generic;
-using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 
 namespace nadena.dev.modular_avatar.core.editor.rc.Graph
@@ -92,6 +91,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
                     expression.Walk((ref IExpression child) => CollectRcParameterExpressions(child, names));
                     break;
             }
+        }
+
+        public bool HasParameter(string key)
+        {
+            return _parameterDefaults.ContainsKey(key);
         }
     }
 }
