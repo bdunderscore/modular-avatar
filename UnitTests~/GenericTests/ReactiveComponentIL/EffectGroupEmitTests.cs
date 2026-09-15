@@ -101,8 +101,8 @@ namespace UnitTestsReactiveComponentIL
             var branch = proxy.Node as BranchNode;
             Assert.IsNotNull(branch, $"{parameter} condition should emit a BranchNode");
             Assert.AreEqual(parameter, branch.Parameter);
-            Assert.AreSame(onTrue, branch.OnGreaterEquals);
-            Assert.AreSame(onFalse, branch.OnLessThan);
+            Assert.AreSame(onTrue, branch.OnGreaterThan);
+            Assert.AreSame(onFalse, branch.OnLessEquals);
         }
 
         // ── Two-node priority ordering ────────────────────────────────────────
@@ -125,15 +125,15 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(outerBranch, "Root should be a BranchNode");
             Assert.AreEqual("second", outerBranch.Parameter,
                 "Last condition must be checked first so it wins when both are true");
-            Assert.AreEqual(2f, EffectValue(outerBranch.OnGreaterEquals),
+            Assert.AreEqual(2f, EffectValue(outerBranch.OnGreaterThan),
                 "second=true must select the second effect");
 
-            var innerBranch = Resolve(outerBranch.OnLessThan) as BranchNode;
+            var innerBranch = Resolve(outerBranch.OnLessEquals) as BranchNode;
             Assert.IsNotNull(innerBranch, "second=false path should check 'first'");
             Assert.AreEqual("first", innerBranch.Parameter);
-            Assert.AreEqual(1f, EffectValue(innerBranch.OnGreaterEquals),
+            Assert.AreEqual(1f, EffectValue(innerBranch.OnGreaterThan),
                 "first=true must select the first effect");
-            Assert.IsTrue(ResolvesToEmpty(innerBranch.OnLessThan), "both false → empty");
+            Assert.IsTrue(ResolvesToEmpty(innerBranch.OnLessEquals), "both false → empty");
         }
 
         // ── PriorityNode groups ───────────────────────────────────────────────
@@ -254,9 +254,9 @@ namespace UnitTestsReactiveComponentIL
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch, "IPC should produce a BranchNode");
             Assert.AreEqual("cond", branch.Parameter);
-            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterEquals),
+            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterThan),
                 "OnGreaterEquals (condition true) should be the effect");
-            Assert.IsTrue(ResolvesToEmpty(branch.OnLessThan),
+            Assert.IsTrue(ResolvesToEmpty(branch.OnLessEquals),
                 "OnLessThan (condition false) should be empty");
         }
 
@@ -269,9 +269,9 @@ namespace UnitTestsReactiveComponentIL
             var branch = Resolve(root) as BranchNode;
             Assert.IsNotNull(branch, "NOT(IPC) should produce a BranchNode");
             Assert.AreEqual("cond", branch.Parameter);
-            Assert.IsTrue(ResolvesToEmpty(branch.OnGreaterEquals),
+            Assert.IsTrue(ResolvesToEmpty(branch.OnGreaterThan),
                 "cond=true → NOT is false → empty");
-            Assert.IsTrue(ResolvesToEffect(branch.OnLessThan),
+            Assert.IsTrue(ResolvesToEffect(branch.OnLessEquals),
                 "cond=false → NOT is true → effect");
         }
 
@@ -303,13 +303,13 @@ namespace UnitTestsReactiveComponentIL
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
             Assert.AreEqual("b", outer.Parameter);
-            Assert.IsTrue(ResolvesToEffect(outer.OnGreaterEquals), "b=true → OR is true → effect");
+            Assert.IsTrue(ResolvesToEffect(outer.OnGreaterThan), "b=true → OR is true → effect");
 
-            var inner = Resolve(outer.OnLessThan) as BranchNode;
+            var inner = Resolve(outer.OnLessEquals) as BranchNode;
             Assert.IsNotNull(inner, "b=false path should check 'a'");
             Assert.AreEqual("a", inner.Parameter);
-            Assert.IsTrue(ResolvesToEffect(inner.OnGreaterEquals), "b=false, a=true → OR is true → effect");
-            Assert.IsTrue(ResolvesToEmpty(inner.OnLessThan), "both false → empty");
+            Assert.IsTrue(ResolvesToEffect(inner.OnGreaterThan), "b=false, a=true → OR is true → effect");
+            Assert.IsTrue(ResolvesToEmpty(inner.OnLessEquals), "both false → empty");
         }
 
         [Test]
@@ -340,13 +340,13 @@ namespace UnitTestsReactiveComponentIL
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
             Assert.AreEqual("b", outer.Parameter);
-            Assert.IsTrue(ResolvesToEmpty(outer.OnLessThan), "b=false → AND is false → empty");
+            Assert.IsTrue(ResolvesToEmpty(outer.OnLessEquals), "b=false → AND is false → empty");
 
-            var inner = Resolve(outer.OnGreaterEquals) as BranchNode;
+            var inner = Resolve(outer.OnGreaterThan) as BranchNode;
             Assert.IsNotNull(inner, "b=true path should check 'a'");
             Assert.AreEqual("a", inner.Parameter);
-            Assert.IsTrue(ResolvesToEffect(inner.OnGreaterEquals), "both true → effect");
-            Assert.IsTrue(ResolvesToEmpty(inner.OnLessThan), "b=true, a=false → empty");
+            Assert.IsTrue(ResolvesToEffect(inner.OnGreaterThan), "both true → effect");
+            Assert.IsTrue(ResolvesToEmpty(inner.OnLessEquals), "b=true, a=false → empty");
         }
 
         [Test]
@@ -375,8 +375,8 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(branch);
             Assert.AreEqual("p", branch.Parameter);
             Assert.AreEqual(0.5f, branch.Threshold, 1e-5f);
-            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterEquals), "p > 0.5 → condition true → effect");
-            Assert.IsTrue(ResolvesToEmpty(branch.OnLessThan), "p <= 0.5 → condition false → empty");
+            Assert.IsTrue(ResolvesToEffect(branch.OnGreaterThan), "p > 0.5 → condition true → effect");
+            Assert.IsTrue(ResolvesToEmpty(branch.OnLessEquals), "p <= 0.5 → condition false → empty");
         }
 
         [Test]
@@ -389,8 +389,8 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(branch);
             Assert.AreEqual("p", branch.Parameter);
             Assert.AreEqual(0.3f.NextSmallest(), branch.Threshold);
-            Assert.IsTrue(ResolvesToEffect(branch.OnLessThan), "p < 0.3 → condition true → effect");
-            Assert.IsTrue(ResolvesToEmpty(branch.OnGreaterEquals), "p >= 0.3 → condition false → empty");
+            Assert.IsTrue(ResolvesToEffect(branch.OnLessEquals), "p < 0.3 → condition true → effect");
+            Assert.IsTrue(ResolvesToEmpty(branch.OnGreaterThan), "p >= 0.3 → condition false → empty");
         }
 
         [Test]

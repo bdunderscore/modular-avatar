@@ -233,17 +233,33 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             Parameters = graph.Parameters;
             LowerSemanticActions(graph);
             RemoveRedundantAlreadyAppliedActions(graph);
+            TrimUnsupported(graph);
 
             var graphs = OptimizeForBackend(graph);
             foreach (var subgraph in graphs)
             {
                 var groups = AlignNodesTransform.CreateEffectGroups(this, subgraph);
                 var aligned = AlignNodesTransform.Apply(this, groups);
+                aligned = MergeEffectNodesTransform.MergeNodes(this, aligned);
                 AssignInitialGroupStatesTransform.Apply(this, aligned);
-                foreach (var group in aligned) Bake(group.Emit());
+                foreach (var group in aligned)
+                {
+                    var motionNode = group.Emit();
+                    CoalesceBranchesTransform.Apply(ref motionNode);
+                    Bake(motionNode);
+                }
             }
 
             CommitParameters(HasGeneratedOutput);
+        }
+
+        private void TrimUnsupported(ReactionGraph graphs)
+        {
+            graphs.Nodes.RemoveAll(node =>
+            {
+                node.Effects.RemoveAll(n => !CanEmit(n));
+                return node.Effects.Count == 0;
+            });
         }
 
         private IReadOnlyList<ReactionGraph> OptimizeForBackend(ReactionGraph graph)

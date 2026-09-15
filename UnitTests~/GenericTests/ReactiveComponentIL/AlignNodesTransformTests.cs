@@ -906,12 +906,12 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual("p", branchNode.Parameter);
 
             // When p >= threshold (true), the effect MotionNode must play
-            var trueTarget = ((ProxyNode)branchNode.OnGreaterEquals).Target;
+            var trueTarget = ((ProxyNode)branchNode.OnGreaterThan).Target;
             Assert.IsInstanceOf<MotionNode>(trueTarget,
                 "OnGreaterEquals (p=true) must resolve to the effect MotionNode, not the empty node");
 
             // When p < threshold (false), no effect should play
-            var falseTarget = ((ProxyNode)branchNode.OnLessThan).Target;
+            var falseTarget = ((ProxyNode)branchNode.OnLessEquals).Target;
             Assert.IsNotInstanceOf<MotionNode>(falseTarget,
                 "OnLessThan (p=false) must not resolve to the effect MotionNode");
         }

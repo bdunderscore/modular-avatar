@@ -132,9 +132,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 if (param == null) param = bn.Parameter;
                 else if (bn.Parameter != param) return null;
 
-                var left = TryCollectSegments(bn.OnLessThan, param, lo, bn.Threshold);
+                var left = TryCollectSegments(bn.OnLessEquals, param, lo, bn.Threshold);
                 if (left == null) return null;
-                var right = TryCollectSegments(bn.OnGreaterEquals, param, bn.Threshold, hi);
+                var right = TryCollectSegments(bn.OnGreaterThan, param, bn.Threshold, hi);
                 if (right == null) return null;
 
                 left.AddRange(right);
@@ -156,9 +156,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private static string FormatRangeBounds(float? lo, float? hi)
         {
             if (lo == null && hi == null) return "*";
-            if (lo == null) return $"< {hi:G6}";
-            if (hi == null) return $">= {lo:G6}";
-            return $"[{lo:G6}, {hi:G6})";
+            if (lo == null) return $"<= {hi:G6}";
+            if (hi == null) return $"> {lo:G6}";
+            return $"({lo:G6}, {hi:G6}]";
         }
 
         // Collects the ranges in a ProxyCondition's condition tree that route to onTrueProxy.
@@ -183,9 +183,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 if (param == null) param = bn.Parameter;
                 else if (bn.Parameter != param) return null;
 
-                var left = TryCollectTrueSegments(bn.OnLessThan, param, lo, bn.Threshold, onFalseProxy, onTrueProxy);
+                var left = TryCollectTrueSegments(bn.OnLessEquals, param, lo, bn.Threshold, onFalseProxy, onTrueProxy);
                 if (left == null) return null;
-                var right = TryCollectTrueSegments(bn.OnGreaterEquals, param, bn.Threshold, hi, onFalseProxy,
+                var right = TryCollectTrueSegments(bn.OnGreaterThan, param, bn.Threshold, hi, onFalseProxy,
                     onTrueProxy);
                 if (right == null) return null;
 
@@ -268,9 +268,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                         // Mixed parameters — fall back to raw two-branch display.
                         sb.AppendLine(indent + $"Branch({bn.Parameter} >= {bn.Threshold:G6})");
                         sb.Append(indent + "  true:  ");
-                        DumpInline(bn.OnGreaterEquals, indent + "  ", sb, depth + 1);
+                        DumpInline(bn.OnGreaterThan, indent + "  ", sb, depth + 1);
                         sb.Append(indent + "  false: ");
-                        DumpInline(bn.OnLessThan, indent + "  ", sb, depth + 1);
+                        DumpInline(bn.OnLessEquals, indent + "  ", sb, depth + 1);
                     }
                     else if (segs.Count == 0)
                     {
