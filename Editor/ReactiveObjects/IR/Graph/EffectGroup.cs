@@ -28,7 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
                 foreach (var group in groups)
                 {
-                    if (!first.Nodes[i].Expression.Equals(expression))
+                    if (!group.Nodes[i].Expression.Equals(expression))
                     {
                         throw new InvalidOperationException(
                             $"Cannot merge EffectGroups with different expressions at index {i}: {first.Nodes[i].Expression} vs {group.Nodes[i].Expression}");

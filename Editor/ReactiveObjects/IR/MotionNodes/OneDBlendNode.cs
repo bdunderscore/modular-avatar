@@ -22,16 +22,19 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             var empty = backend.EmptyMotion;
 
-            var adjustedNodes = new (float, VirtualMotion)[] { (float.NegativeInfinity, empty) }
+            var nodesWithLowerSentinel = new (float, VirtualMotion)[] { (float.NegativeInfinity, empty) }
                 .Concat(Nodes.Select(n => (n.Item1, n.Item2.Bake(backend))))
-                .Append((float.PositiveInfinity, empty))
                 .Select(pair => (threshold: pair.Item1, node: pair.Item2))
                 .ToList();
 
-            // Drop all zero-width intervals
-            adjustedNodes = adjustedNodes.Zip(adjustedNodes.Skip(1), (a, b) => (first: a, next: b.Item1))
-                .Where(pair => pair.first.Item1 < pair.next)
+            var finalNode = nodesWithLowerSentinel[^1];
+
+            // Drop all zero-width intervals, retaining the final real node explicitly.
+            var adjustedNodes = nodesWithLowerSentinel
+                .Zip(nodesWithLowerSentinel.Skip(1), (a, b) => (first: a, next: b.Item1))
+                .Where(pair => pair.first.threshold < pair.next)
                 .Select(pair => pair.first)
+                .Append(finalNode)
                 .ToList();
 
             if (adjustedNodes.Count == 1)

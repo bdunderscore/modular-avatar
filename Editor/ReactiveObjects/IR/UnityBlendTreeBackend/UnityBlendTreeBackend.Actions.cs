@@ -10,9 +10,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal sealed partial class UnityBlendTreeBackend
     {
-        internal IMotionNode EmitAction(IAction actions)
+        internal IMotionNode EmitAction(IAction action)
         {
-            return EmitActions(new[] { actions });
+            return EmitActions(new[] { action });
         }
 
         internal IMotionNode EmitActions(IEnumerable<IAction> actions)

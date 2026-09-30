@@ -266,7 +266,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     if (segs == null)
                     {
                         // Mixed parameters — fall back to raw two-branch display.
-                        sb.AppendLine(indent + $"Branch({bn.Parameter} >= {bn.Threshold:G6})");
+                        sb.AppendLine(indent + $"Branch({bn.Parameter} > {bn.Threshold:G6})");
                         sb.Append(indent + "  true:  ");
                         DumpInline(bn.OnGreaterThan, indent + "  ", sb, depth + 1);
                         sb.Append(indent + "  false: ");

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using modular_avatar_tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
@@ -6,6 +7,8 @@ using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace UnitTestsReactiveComponentIL
 {
@@ -401,6 +404,17 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(branch);
             Assert.AreEqual(0.75f, branch.Threshold,
                 "Custom threshold must be forwarded to BranchNode exactly");
+        }
+
+        [Test]
+        public void DumpNodeGraph_MixedParameters_UsesStrictGreaterThanFallbackHeader()
+        {
+            var inner = new BranchNode("inner");
+            var outer = new BranchNode("outer", inner, EmptyNode.Instance) { Threshold = 1f };
+
+            LogAssert.Expect(LogType.Log, new Regex(@"Branch\(outer > 1\)"));
+
+            EffectGroupDumper.DumpNodeGraph(new System.Collections.Generic.List<IMotionNode> { outer });
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using modular_avatar_tests;
@@ -73,6 +74,22 @@ namespace UnitTestsReactiveComponentIL
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
 
             Assert.That(merged, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void EffectGroupMerge_DifferentConditions_Throws()
+        {
+            var first = new EffectGroup(_backend, "target", new List<ReactionNode>
+            {
+                new(new InternalParameterCondition("first"))
+            });
+            var second = new EffectGroup(_backend, "target", new List<ReactionNode>
+            {
+                new(new InternalParameterCondition("second"))
+            });
+
+            Assert.Throws<InvalidOperationException>(() =>
+                EffectGroup.Merge(_backend, "target", new List<EffectGroup> { first, second }));
         }
 
         [Test]
