@@ -112,6 +112,37 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
+        public void CoalesceBranches_SingleValueRange_IsPreserved()
+        {
+            var below = new EmptyNode();
+            var singleton = new EmptyNode();
+            var above = new EmptyNode();
+            var singletonValue = 0f;
+
+            // The nested greater-than range starts at zero and is clipped by the outer branch to [0, 0].
+            IMotionNode root = new BranchNode(
+                "parameter",
+                new BranchNode("parameter", below, singleton)
+                {
+                    Threshold = singletonValue.NextSmallest()
+                },
+                above
+            ) { Threshold = singletonValue };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(3));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(below));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo(singletonValue));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(singleton));
+            Assert.That(blend.Nodes[2].Item1, Is.EqualTo(singletonValue.NextLargest()));
+            Assert.That(blend.Nodes[2].Item2, Is.SameAs(above));
+        }
+
+        [Test]
         public void CoalesceBranches_ProxyWrappedConditionalChain_MergesAdjacentRanges()
         {
             var first = new EmptyNode();

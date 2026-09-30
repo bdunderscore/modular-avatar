@@ -68,7 +68,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             void Visit(IMotionNode branch, float min, float max)
             {
-                if (min >= max) return; // empty interval (impossible branch)
+                if (min > max) return; // empty interval (impossible branch)
 
                 if (branch is ProxyNode pn)
                 {
