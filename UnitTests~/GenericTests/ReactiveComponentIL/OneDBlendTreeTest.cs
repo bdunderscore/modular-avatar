@@ -92,6 +92,31 @@ namespace UnitTestsReactiveComponentIL
             }
         }
 
+        [RCILTest]
+        public IEnumerator CoalescedIdenticalBranchesPreserveMotion()
+        {
+            CreateSensor("active", out var activeMotion, out var isActive);
+            AddParameter("test", 0f);
+
+            IMotionNode root = new BranchNode("test", activeMotion, activeMotion) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null, "The test must exercise the coalesced OneDBlendNode path");
+            Assert.That(blend.Nodes, Has.Count.EqualTo(1));
+
+            BakeConditions(root);
+            Assert.IsNotNull(animator.runtimeAnimatorController);
+
+            foreach (var value in new[] { -1f, 0f, 1f })
+            {
+                animator.SetFloat("test", value);
+                yield return null;
+                Assert.That(isActive(), Is.True, $"Parameter value {value:R} did not select the sole motion");
+            }
+        }
+
         private static void AssertOnlyStateActive(Func<bool>[] sensors, int expectedState, float parameterValue)
         {
             for (var i = 0; i < sensors.Length; i++)

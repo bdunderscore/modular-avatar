@@ -22,15 +22,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             var empty = backend.EmptyMotion;
 
-            var vbt = VirtualBlendTree.Create("OneDBlend " + Parameter);
-            vbt.BlendType = BlendTreeType.Simple1D;
-            vbt.BlendParameter = Parameter;
-            vbt.UseAutomaticThresholds = false;
-            vbt.NormalizedBlendValues = false;
-
-            var builder = ImmutableList.CreateBuilder<VirtualBlendTree.VirtualChildMotion>();
-            var pendingThreshold = float.NegativeInfinity;
-
             var adjustedNodes = new (float, VirtualMotion)[] { (float.NegativeInfinity, empty) }
                 .Concat(Nodes.Select(n => (n.Item1, n.Item2.Bake(backend))))
                 .Append((float.PositiveInfinity, empty))
@@ -43,9 +34,20 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 .Select(pair => pair.first)
                 .ToList();
 
-            // Because we augmented the nodes with start/end entries, we're guaranteed to have at least two
-            // nodes.
+            if (adjustedNodes.Count == 1)
+            {
+                return adjustedNodes[0].node;
+            }
 
+            var vbt = VirtualBlendTree.Create("OneDBlend " + Parameter);
+            vbt.BlendType = BlendTreeType.Simple1D;
+            vbt.BlendParameter = Parameter;
+            vbt.UseAutomaticThresholds = false;
+            vbt.NormalizedBlendValues = false;
+
+            var builder = ImmutableList.CreateBuilder<VirtualBlendTree.VirtualChildMotion>();
+
+            // At least two distinct ranges remain, so emit each boundary without blending.
             IEnumerable<((float threshold, VirtualMotion motion) start, (float threshold, VirtualMotion motion) end)>
                 intervals = adjustedNodes.Zip(adjustedNodes.Skip(1), (a, b) => (start: a, end: b));
 
