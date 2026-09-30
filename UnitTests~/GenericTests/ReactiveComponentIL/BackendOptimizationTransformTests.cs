@@ -160,6 +160,52 @@ namespace UnitTestsReactiveComponentIL
         }
 
         [Test]
+        public void CoalesceBranches_PositiveInfinityRootThreshold_SkipsGreaterBranch()
+        {
+            var atOrBelow = new EmptyNode();
+            var unreachableGreater = new EmptyNode();
+            IMotionNode root = new BranchNode("parameter", atOrBelow, unreachableGreater)
+            {
+                Threshold = float.PositiveInfinity
+            };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(1));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(atOrBelow));
+        }
+
+        [Test]
+        public void CoalesceBranches_PositiveInfinityNestedThreshold_SkipsGreaterBranch()
+        {
+            var belowOuter = new EmptyNode();
+            var atOrBelowInfinity = new EmptyNode();
+            var unreachableGreater = new EmptyNode();
+            IMotionNode root = new BranchNode(
+                "parameter",
+                belowOuter,
+                new BranchNode("parameter", atOrBelowInfinity, unreachableGreater)
+                {
+                    Threshold = float.PositiveInfinity
+                }
+            ) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(2));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(belowOuter));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo(0f.NextLargest()));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(atOrBelowInfinity));
+            Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableGreater)), Is.False);
+        }
+
+        [Test]
         public void CoalesceBranches_ProxyWrappedConditionalChain_MergesAdjacentRanges()
         {
             var first = new EmptyNode();

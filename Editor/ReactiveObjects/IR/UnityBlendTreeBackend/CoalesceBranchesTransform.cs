@@ -62,7 +62,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             var list = new SortedList<float, CandidateBranch>();
             Visit(root.OnLessEquals, float.NegativeInfinity, root.Threshold);
-            Visit(root.OnGreaterThan, root.Threshold.NextLargest(), float.PositiveInfinity);
+            if (!float.IsPositiveInfinity(root.Threshold))
+            {
+                Visit(root.OnGreaterThan, root.Threshold.NextLargest(), float.PositiveInfinity);
+            }
 
             return list;
 
@@ -83,7 +86,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 }
 
                 Visit(bn.OnLessEquals, min, math.min(max, bn.Threshold));
-                Visit(bn.OnGreaterThan, math.max(min, bn.Threshold.NextLargest()), max);
+                if (!float.IsPositiveInfinity(bn.Threshold))
+                {
+                    Visit(bn.OnGreaterThan, math.max(min, bn.Threshold.NextLargest()), max);
+                }
             }
         }
     }
