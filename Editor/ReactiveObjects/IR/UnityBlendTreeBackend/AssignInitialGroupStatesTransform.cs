@@ -25,16 +25,17 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 if (group.DefaultNode.HasValue)
                 {
                     var defaultNode = group.DefaultNode.Value;
-                    backend.ApplyBaseState(
-                        group.Nodes[defaultNode].Effects.First(e => e.TargetKey.Equals(group.TargetKey)),
-                        true);
+                    foreach (var effectGroup in group.Nodes[defaultNode].Effects.GroupBy(a => a.TargetKey))
+                    {
+                        backend.ApplyBaseState(effectGroup.First(), true);
+                    }
                 }
                 else
                 {
-                    backend.ApplyBaseState(
-                        group.Nodes.SelectMany(n => n.Effects)
-                            .First(e => e.TargetKey.Equals(group.TargetKey)),
-                        false);
+                    foreach (var effectGroup in group.Nodes.SelectMany(n => n.Effects).GroupBy(a => a.TargetKey))
+                    {
+                        backend.ApplyBaseState(effectGroup.First(), false);
+                    }
                 }
             }
         }

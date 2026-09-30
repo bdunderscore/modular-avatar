@@ -1,0 +1,341 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using modular_avatar_tests;
+using nadena.dev.modular_avatar.core.editor.rc;
+using nadena.dev.modular_avatar.core.editor.rc.Actions;
+using nadena.dev.modular_avatar.core.editor.rc.Conditions;
+using nadena.dev.modular_avatar.core.editor.rc.Graph;
+using nadena.dev.modular_avatar.core.editor.rc.Transformations;
+using nadena.dev.ndmf.animator;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace UnitTestsReactiveComponentIL
+{
+    public class BackendOptimizationTransformTests : TestBase
+    {
+        private UnityBlendTreeBackend _backend;
+
+        [SetUp]
+        public override void Setup()
+        {
+            base.Setup();
+            var context = CreateContext(CreateRoot("root"));
+            var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
+            _backend = new UnityBlendTreeBackend(context, controller);
+        }
+
+        [Test]
+        public void MergeEffectNodes_EquivalentConditions_EmitsAllMergedActions()
+        {
+            var condition = new InternalParameterCondition("enabled");
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(condition, new DriveParameter("first", 1f)));
+            graph.AddNode(new ReactionNode(condition, new DriveParameter("second", 2f)));
+
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
+
+            Assert.That(merged, Has.Count.EqualTo(1));
+            Assert.That(merged[0].Nodes, Has.Count.EqualTo(1));
+            Assert.That(merged[0].Nodes[0].Effects, Has.Count.EqualTo(2));
+
+            IMotionNode emitted = merged[0].Emit();
+            var branch = ResolveProxy(emitted) as BranchNode;
+            Assert.That(branch, Is.Not.Null);
+            var motion = ResolveProxy(branch.OnGreaterThan) as MotionNode;
+            Assert.That(motion, Is.Not.Null);
+            var clip = motion.Motion as VirtualClip;
+            Assert.That(clip, Is.Not.Null);
+            var firstCurve = clip.GetFloatCurve("", typeof(Animator), "first");
+            var secondCurve = clip.GetFloatCurve("", typeof(Animator), "second");
+            Assert.That(firstCurve, Is.Not.Null);
+            Assert.That(secondCurve, Is.Not.Null);
+            Assert.That(firstCurve.Evaluate(0), Is.EqualTo(1f));
+            Assert.That(secondCurve.Evaluate(0), Is.EqualTo(2f));
+        }
+
+        private static IMotionNode ResolveProxy(IMotionNode emitted)
+        {
+            while (emitted is ProxyNode proxy) emitted = proxy.Target;
+            return emitted;
+        }
+
+        [Test]
+        public void MergeEffectNodes_DifferentConditions_RemainsSeparate()
+        {
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new InternalParameterCondition("first"), new DriveParameter("first", 1f)));
+            graph.AddNode(new ReactionNode(new InternalParameterCondition("second"), new DriveParameter("second", 2f)));
+
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
+
+            Assert.That(merged, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void EffectGroupMerge_DifferentConditions_Throws()
+        {
+            var first = new EffectGroup(_backend, "target", new List<ReactionNode>
+            {
+                new(new InternalParameterCondition("first"))
+            });
+            var second = new EffectGroup(_backend, "target", new List<ReactionNode>
+            {
+                new(new InternalParameterCondition("second"))
+            });
+
+            Assert.Throws<InvalidOperationException>(() =>
+                EffectGroup.Merge(_backend, "target", new List<EffectGroup> { first, second }));
+        }
+
+        [Test]
+        public void MergeEffectNodes_InitiallyActive_AppliesEveryTargetBaseState()
+        {
+            var graph = new ReactionGraph();
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("first", 1f)));
+            graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("second", 2f)));
+            _backend.PreprocessGraph(graph);
+
+            var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend, graph);
+            var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
+            AssignInitialGroupStatesTransform.Apply(_backend, merged);
+
+            Assert.That(merged[0].DefaultNode, Is.EqualTo(0));
+            Assert.That(_backend.GetParameterInitialValue("first"), Is.EqualTo(1f));
+            Assert.That(_backend.GetParameterInitialValue("second"), Is.EqualTo(2f));
+        }
+
+        [Test]
+        public void CoalesceBranches_AdjacentEqualRanges_MergesWithoutLosingRange()
+        {
+            var repeated = new EmptyNode();
+            var final = new EmptyNode();
+            IMotionNode root = new BranchNode("parameter", repeated,
+                new BranchNode("parameter", repeated, final) { Threshold = 1f }) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(2));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(repeated));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo(1f.NextLargest()));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(final));
+        }
+
+        [Test]
+        public void CoalesceBranches_SingleValueRange_IsPreserved()
+        {
+            var below = new EmptyNode();
+            var singleton = new EmptyNode();
+            var above = new EmptyNode();
+            var singletonValue = 0f;
+
+            // The nested greater-than range starts at zero and is clipped by the outer branch to [0, 0].
+            IMotionNode root = new BranchNode(
+                "parameter",
+                new BranchNode("parameter", below, singleton)
+                {
+                    Threshold = singletonValue.NextSmallest()
+                },
+                above
+            ) { Threshold = singletonValue };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(3));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(below));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo(singletonValue));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(singleton));
+            Assert.That(blend.Nodes[2].Item1, Is.EqualTo(singletonValue.NextLargest()));
+            Assert.That(blend.Nodes[2].Item2, Is.SameAs(above));
+        }
+
+        [Test]
+        public void CoalesceBranches_PositiveInfinityRootThreshold_SkipsGreaterBranch()
+        {
+            var atOrBelow = new EmptyNode();
+            var unreachableGreater = new EmptyNode();
+            IMotionNode root = new BranchNode("parameter", atOrBelow, unreachableGreater)
+            {
+                Threshold = float.PositiveInfinity
+            };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(1));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(atOrBelow));
+        }
+
+        [Test]
+        public void CoalesceBranches_PositiveInfinityNestedThreshold_SkipsGreaterBranch()
+        {
+            var belowOuter = new EmptyNode();
+            var atOrBelowInfinity = new EmptyNode();
+            var unreachableGreater = new EmptyNode();
+            IMotionNode root = new BranchNode(
+                "parameter",
+                belowOuter,
+                new BranchNode("parameter", atOrBelowInfinity, unreachableGreater)
+                {
+                    Threshold = float.PositiveInfinity
+                }
+            ) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(2));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(belowOuter));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo(0f.NextLargest()));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(atOrBelowInfinity));
+            Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableGreater)), Is.False);
+        }
+
+        [Test]
+        public void CoalesceBranches_ProxyWrappedConditionalChain_MergesAdjacentRanges()
+        {
+            var first = new EmptyNode();
+            var repeated = new EmptyNode();
+            var final = new EmptyNode();
+            // Root:
+            //   <= 0:
+            //     <= -1: first
+            //     > -1: repeated
+            //   > 0:
+            //    <= 1: repeated
+            //    >  1:
+            //      <= 2: repeated
+            //      >  2: final
+            //
+            // Overall ranges:
+            // [...,  -1]: first
+            // (-1, 0]: repeated
+            // (0, 1]: repeated
+            // (1, 2]: repeated
+            // (2. ...]: final
+            IMotionNode root = new BranchNode(
+                "parameter",
+                new ProxyNode(new BranchNode(
+                    "parameter",
+                    first,
+                    new ProxyNode(repeated)
+                ) { Threshold = -1f }),
+                new ProxyNode(new BranchNode(
+                    "parameter",
+                    new ProxyNode(repeated),
+                    new ProxyNode(new BranchNode(
+                        "parameter",
+                        repeated,
+                        final
+                    ) { Threshold = 2f })
+                ) { Threshold = 1f })
+            ) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(3));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(first));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo((-1f).NextLargest()));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(repeated));
+            Assert.That(blend.Nodes[2].Item1, Is.EqualTo(2f.NextLargest()));
+            Assert.That(blend.Nodes[2].Item2, Is.SameAs(final));
+        }
+
+        [Test]
+        public void CoalesceBranches_UnreachableAndPartiallyUnreachableRanges_AreExcluded()
+        {
+            var first = new EmptyNode();
+            var repeated = new EmptyNode();
+            var final = new EmptyNode();
+            var unreachableBelow = new EmptyNode();
+            var unreachableAbove = new EmptyNode();
+            // Root:
+            //   <= 0:
+            //     <= -1: first
+            //     > -1:
+            //       <= 1: repeated
+            //       >  1: unreachableAbove (unreachable)
+            //   > 0:
+            //     <= 1:
+            //       <= -1: unreachableBelow (unreachable)
+            //       > -1: repeated
+            //     > 1: final
+            //
+            // Overall ranges:
+            // [..., -1]: first
+            // (-1, 0]: repeated (clipped by Root <= 0)
+            // (0, 1]: repeated (clipped by Root > 0)
+            // (1, ...]: final
+            IMotionNode root = new BranchNode(
+                "parameter",
+                new ProxyNode(new BranchNode(
+                    "parameter",
+                    first,
+                    new ProxyNode(new BranchNode(
+                        "parameter",
+                        repeated,
+                        unreachableAbove
+                    ) { Threshold = 1f })
+                ) { Threshold = -1f }),
+                new ProxyNode(new BranchNode(
+                    "parameter",
+                    new ProxyNode(new BranchNode(
+                        "parameter",
+                        unreachableBelow,
+                        repeated
+                    ) { Threshold = -1f }),
+                    final
+                ) { Threshold = 1f })
+            ) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var blend = root as OneDBlendNode;
+            Assert.That(blend, Is.Not.Null);
+            Assert.That(blend.Nodes, Has.Count.EqualTo(3));
+            Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
+            Assert.That(blend.Nodes[0].Item2, Is.SameAs(first));
+            Assert.That(blend.Nodes[1].Item1, Is.EqualTo((-1f).NextLargest()));
+            Assert.That(blend.Nodes[1].Item2, Is.SameAs(repeated));
+            Assert.That(blend.Nodes[2].Item1, Is.EqualTo(1f.NextLargest()));
+            Assert.That(blend.Nodes[2].Item2, Is.SameAs(final));
+            Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableBelow)), Is.False);
+            Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableAbove)), Is.False);
+        }
+
+        [Test]
+        public void CoalesceBranches_DifferentParameters_PreservesNestedCondition()
+        {
+            var onFalse = new EmptyNode();
+            var onTrue = new EmptyNode();
+            IMotionNode root = new BranchNode("outer", new EmptyNode(),
+                new BranchNode("inner", onFalse, onTrue) { Threshold = 1f }) { Threshold = 0f };
+
+            CoalesceBranchesTransform.Apply(ref root);
+
+            var outer = root as OneDBlendNode;
+            Assert.That(outer, Is.Not.Null);
+            Assert.That(outer.Parameter, Is.EqualTo("outer"));
+            var inner = outer.Nodes.Single(node => node.Item2 is OneDBlendNode).Item2 as OneDBlendNode;
+            Assert.That(inner.Parameter, Is.EqualTo("inner"));
+            Assert.That(inner.Nodes.Select(node => node.Item2), Is.EquivalentTo(new[] { onFalse, onTrue }));
+        }
+    }
+}
