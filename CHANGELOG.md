@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2138] Reduced unnecessary `Scale Adjuster` preview updates when unrelated bones are moved.
 
 ### Changed
 - [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different

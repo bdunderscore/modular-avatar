@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2138] 無関係なボーン操作による `Scale Adjuster` プレビューの不要な更新を抑制
 
 ### Changed
 

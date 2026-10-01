@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2138] 無関係なボーン操作による `Scale Adjuster` プレビューの不要な更新を抑制
 
 ### Changed
 - [#2095] Reactive Component の生成処理をブレンドツリー方式に刷新し、アニメーターの処理負荷を軽減するとともに、
