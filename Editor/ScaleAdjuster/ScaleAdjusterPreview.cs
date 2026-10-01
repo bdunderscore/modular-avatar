@@ -202,8 +202,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Where(renderer => renderer != null)
                 .ToHashSet();
             _rendererBones = GetRendererBones(context, proxyPairList);
-            _sourceBones = _rendererBones.Values.SelectMany(bones => bones).Where(bone => bone != null).ToHashSet();
-            var bones = _sourceBones.OrderBy(k => k.gameObject.name).ToArray();
+            var scaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
+            var (affectedBones, usedScaleAdjusters) = GetAffectedTargets(_rendererBones, scaleAdjusters);
+            _sourceBones = affectedBones;
+            var bonesSet = _rendererBones.Values.SelectMany(bones => bones).Where(bone => bone != null).ToHashSet();
+            var bones = bonesSet.OrderBy(k => k.gameObject.name).ToArray();
 
             Transform[] sourceBones;
             Transform[] destinationBones;
@@ -237,7 +240,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _boneIsValid = new NativeArray<bool>(sourceBones.Length, Allocator.Persistent);
             _boneStates = new NativeArray<BoneState>(sourceBones.Length, Allocator.Persistent);
 
-            _scaleAdjusterValues = GetScaleAdjusterValues(context);
+            _scaleAdjusterValues = GetScaleAdjusterValues(context, usedScaleAdjusters);
             FindScaleAdjusters();
             TransferBoneStates().Complete();
 
@@ -264,10 +267,37 @@ namespace nadena.dev.modular_avatar.core.editor
             return rendererBones;
         }
 
-        private Dictionary<ModularAvatarScaleAdjuster, Vector3> GetScaleAdjusterValues(ComputeContext context)
+        private static (HashSet<Transform> AffectedBones, HashSet<ModularAvatarScaleAdjuster> ScaleAdjusters)
+            GetAffectedTargets(Dictionary<Renderer, Transform[]> rendererBones,
+                IEnumerable<ModularAvatarScaleAdjuster> scaleAdjusters)
         {
-            return context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true)
-                .Where(scaleAdjuster => _sourceBones.Contains(scaleAdjuster.transform))
+            var adjustersByBone = scaleAdjusters.ToDictionary(adjuster => adjuster.transform);
+            var affectedBones = new HashSet<Transform>();
+            var usedScaleAdjusters = new HashSet<ModularAvatarScaleAdjuster>();
+            foreach (var bones in rendererBones.Values)
+            {
+                var affected = false;
+                foreach (var bone in bones)
+                {
+                    if (bone == null || !adjustersByBone.TryGetValue(bone, out var adjuster)) continue;
+
+                    usedScaleAdjusters.Add(adjuster);
+                    affected = true;
+                }
+
+                if (affected)
+                {
+                    affectedBones.UnionWith(bones.Where(bone => bone != null));
+                }
+            }
+
+            return (affectedBones, usedScaleAdjusters);
+        }
+
+        private Dictionary<ModularAvatarScaleAdjuster, Vector3> GetScaleAdjusterValues(ComputeContext context,
+            IEnumerable<ModularAvatarScaleAdjuster> scaleAdjusters)
+        {
+            return scaleAdjusters
                 .ToDictionary(
                     scaleAdjuster => scaleAdjuster,
                     scaleAdjuster => context.Observe(scaleAdjuster, adjuster => adjuster.Scale)
@@ -306,7 +336,9 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Where(renderer => renderer != null)
                 .ToHashSet();
             var rendererBones = GetRendererBones(context, proxyPairList);
-            var scaleAdjusterValues = GetScaleAdjusterValues(context);
+            var scaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
+            var (_, usedScaleAdjusters) = GetAffectedTargets(rendererBones, scaleAdjusters);
+            var scaleAdjusterValues = GetScaleAdjusterValues(context, usedScaleAdjusters);
 
             if (_sourceRenderers.SetEquals(sourceRenderers)
                 && RendererBonesEqual(_rendererBones, rendererBones)
