@@ -156,10 +156,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         // Map from bones found in initial proxy state to shadow bones
         private readonly Dictionary<Transform, Transform> _shadowBoneMap;
-        private readonly Dictionary<Transform, Matrix4x4> _sourceBoneWorldTransforms;
-        private readonly HashSet<Transform> _sourceBones;
+        private readonly Dictionary<Transform, Matrix4x4> _affectedBoneWorldTransforms;
+        private readonly HashSet<Transform> _affectedBones;
         private readonly HashSet<Renderer> _sourceRenderers;
-        private readonly Dictionary<Renderer, Transform[]> _rendererBones;
+        private readonly Dictionary<Renderer, Transform[]> _allRendererBones;
 
         // Map from bones found in initial proxy state to shadow bones (with scale adjuster bones substituted)
         private readonly Dictionary<Transform, Transform> _finalBonesMap = new();
@@ -201,12 +201,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(pair => pair.Item1)
                 .Where(renderer => renderer != null)
                 .ToHashSet();
-            _rendererBones = GetRendererBones(context, proxyPairList);
-            var scaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
-            var (affectedBones, usedScaleAdjusters) = GetAffectedTargets(_rendererBones, scaleAdjusters);
-            _sourceBones = affectedBones;
-            var bonesSet = _rendererBones.Values.SelectMany(bones => bones).Where(bone => bone != null).ToHashSet();
-            var bones = bonesSet.OrderBy(k => k.gameObject.name).ToArray();
+            _allRendererBones = GetAllRendererBones(context, proxyPairList);
+            var allScaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
+            var (affectedBones, usedScaleAdjusters) = GetAffectedTargets(_allRendererBones, allScaleAdjusters);
+            _affectedBones = affectedBones;
+            var allBones = _allRendererBones.Values.SelectMany(bones => bones).Where(bone => bone != null).ToHashSet();
+            var sortedAllBones = allBones.OrderBy(k => k.gameObject.name).ToArray();
 
             Transform[] sourceBones;
             Transform[] destinationBones;
@@ -215,7 +215,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 SceneManager.SetActiveScene(scene);
                 VirtualAvatarRoot = new GameObject(avatarRoot.name + " [ScaleAdjuster]");
 
-                _shadowBoneMap = CreateShadowBones(bones);
+                _shadowBoneMap = CreateShadowBones(sortedAllBones);
                 sourceBones = new Transform[_shadowBoneMap.Count];
                 destinationBones = new Transform[_shadowBoneMap.Count];
 
@@ -232,7 +232,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 SceneManager.SetActiveScene(priorScene);
             }
 
-            _sourceBoneWorldTransforms = CaptureSourceBoneWorldTransforms(context);
+            _affectedBoneWorldTransforms = CaptureAffectedBoneWorldTransforms(context);
 
             _srcBones = new TransformAccessArray(sourceBones);
             _dstBones = new TransformAccessArray(destinationBones);
@@ -246,35 +246,35 @@ namespace nadena.dev.modular_avatar.core.editor
 
             _activeNodes.Add(this);
 
-            _finalRendererBones = _rendererBones.ToDictionary(
+            _finalRendererBones = _allRendererBones.ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value.Select(b => b == null ? null : _finalBonesMap.GetValueOrDefault(b, b)).ToArray()
             );
         }
 
-        private Dictionary<Renderer, Transform[]> GetRendererBones(ComputeContext context,
+        private Dictionary<Renderer, Transform[]> GetAllRendererBones(ComputeContext context,
             List<(Renderer, Renderer)> proxyPairs)
         {
-            var rendererBones = new Dictionary<Renderer, Transform[]>();
+            var allRendererBones = new Dictionary<Renderer, Transform[]>();
             foreach (var (original, proxy) in proxyPairs)
             {
                 if (original == null || proxy is not SkinnedMeshRenderer smr) continue;
 
                 var bones = context.Observe(smr, smr_ => smr_.bones, Enumerable.SequenceEqual).ToArray();
-                rendererBones[original] = bones;
+                allRendererBones[original] = bones;
             }
 
-            return rendererBones;
+            return allRendererBones;
         }
 
-        private static (HashSet<Transform> AffectedBones, HashSet<ModularAvatarScaleAdjuster> ScaleAdjusters)
-            GetAffectedTargets(Dictionary<Renderer, Transform[]> rendererBones,
-                IEnumerable<ModularAvatarScaleAdjuster> scaleAdjusters)
+        private static (HashSet<Transform> AffectedBones, HashSet<ModularAvatarScaleAdjuster> UsedScaleAdjusters)
+            GetAffectedTargets(Dictionary<Renderer, Transform[]> allRendererBones,
+                IEnumerable<ModularAvatarScaleAdjuster> allScaleAdjusters)
         {
-            var adjustersByBone = scaleAdjusters.ToDictionary(adjuster => adjuster.transform);
+            var adjustersByBone = allScaleAdjusters.ToDictionary(adjuster => adjuster.transform);
             var affectedBones = new HashSet<Transform>();
             var usedScaleAdjusters = new HashSet<ModularAvatarScaleAdjuster>();
-            foreach (var bones in rendererBones.Values)
+            foreach (var bones in allRendererBones.Values)
             {
                 var affected = false;
                 foreach (var bone in bones)
@@ -295,9 +295,9 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private Dictionary<ModularAvatarScaleAdjuster, Vector3> GetScaleAdjusterValues(ComputeContext context,
-            IEnumerable<ModularAvatarScaleAdjuster> scaleAdjusters)
+            IEnumerable<ModularAvatarScaleAdjuster> usedScaleAdjusters)
         {
-            return scaleAdjusters
+            return usedScaleAdjusters
                 .ToDictionary(
                     scaleAdjuster => scaleAdjuster,
                     scaleAdjuster => context.Observe(scaleAdjuster, adjuster => adjuster.Scale)
@@ -335,14 +335,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 .Select(pair => pair.Item1)
                 .Where(renderer => renderer != null)
                 .ToHashSet();
-            var rendererBones = GetRendererBones(context, proxyPairList);
-            var scaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
-            var (_, usedScaleAdjusters) = GetAffectedTargets(rendererBones, scaleAdjusters);
+            var allRendererBones = GetAllRendererBones(context, proxyPairList);
+            var allScaleAdjusters = context.GetComponentsInChildren<ModularAvatarScaleAdjuster>(SourceAvatarRoot, true);
+            var (_, usedScaleAdjusters) = GetAffectedTargets(allRendererBones, allScaleAdjusters);
             var scaleAdjusterValues = GetScaleAdjusterValues(context, usedScaleAdjusters);
 
             if (_sourceRenderers.SetEquals(sourceRenderers)
-                && RendererBonesEqual(_rendererBones, rendererBones)
-                && SourceBoneWorldTransformsMatch(context)
+                && RendererBonesEqual(_allRendererBones, allRendererBones)
+                && AffectedBoneWorldTransformsMatch(context)
                 && ScaleAdjusterValuesEqual(_scaleAdjusterValues, scaleAdjusterValues))
             {
                 // No meaningful changes; reuse this node as-is
@@ -374,10 +374,10 @@ namespace nadena.dev.modular_avatar.core.editor
             return true;
         }
 
-        private Dictionary<Transform, Matrix4x4> CaptureSourceBoneWorldTransforms(ComputeContext context)
+        private Dictionary<Transform, Matrix4x4> CaptureAffectedBoneWorldTransforms(ComputeContext context)
         {
             var worldTransforms = new Dictionary<Transform, Matrix4x4>();
-            foreach (var source in _sourceBones)
+            foreach (var source in _affectedBones)
             {
                 context.ObserveTransformPosition(source);
                 worldTransforms[source] = source.localToWorldMatrix;
@@ -386,9 +386,9 @@ namespace nadena.dev.modular_avatar.core.editor
             return worldTransforms;
         }
 
-        private bool SourceBoneWorldTransformsMatch(ComputeContext context)
+        private bool AffectedBoneWorldTransformsMatch(ComputeContext context)
         {
-            foreach (var (source, worldTransform) in _sourceBoneWorldTransforms)
+            foreach (var (source, worldTransform) in _affectedBoneWorldTransforms)
             {
                 if (source == null) return false;
 
