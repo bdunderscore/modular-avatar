@@ -7,6 +7,7 @@ using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -36,6 +37,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 return parameters;
 
             parameters = new Dictionary<string, float?>();
+
+            // ParameterInfo observes the descriptor, but not its referenced parameter asset.
+            var descriptor = _context.GetComponent<VRCAvatarDescriptor>(root);
+            if (descriptor != null && descriptor.expressionParameters != null)
+                _context.Observe(descriptor.expressionParameters);
 
             foreach (var param in _info.GetParametersForObject(root))
             {

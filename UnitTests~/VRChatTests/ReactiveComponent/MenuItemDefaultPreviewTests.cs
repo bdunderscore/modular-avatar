@@ -246,6 +246,90 @@ namespace UnitTests.ReactiveComponent
         }
 
         [UnityTest]
+        public IEnumerator CachedAnalyzeRefreshesWhenZeroDefaultIsSpecifiedOrCleared()
+        {
+            var root = CreateRoot("root");
+            var parameters = AddParameter(root, 0, false);
+            var (menuItem, target) = CreateMenuToggle(root, root, "toggle", true);
+            var previousProperties = ROSimulator.PropertyOverrides.Value;
+            var previousMenuItems = ROSimulator.MenuItemOverrides.Value;
+            ROSimulator.PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+            ROSimulator.MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem?>.Empty;
+            var context = new ComputeContext("Unspecified parameter default preview test");
+
+            try
+            {
+                AssertToggleEnabled(ReactiveObjectAnalyzer.CachedAnalyze(context, root), target, true);
+
+                foreach (var explicitDefault in new[] { true, false })
+                {
+                    var serializedParameters = new SerializedObject(parameters);
+                    serializedParameters.FindProperty("parameters").GetArrayElementAtIndex(0)
+                        .FindPropertyRelative("hasExplicitDefaultValue").boolValue = explicitDefault;
+                    serializedParameters.ApplyModifiedProperties();
+                    yield return null;
+                    ComputeContext.FlushInvalidates();
+
+                    Assert.IsTrue(context.IsInvalidated,
+                        "Specifying or clearing a zero default must invalidate the cached reactive analysis.");
+
+                    context = new ComputeContext("Zero parameter default refreshed preview test");
+                    AssertToggleEnabled(ReactiveObjectAnalyzer.CachedAnalyze(context, root), target, !explicitDefault);
+                    Assert.IsTrue(menuItem.isDefault, "Preview analysis must preserve the Menu Item's default flag.");
+                }
+            }
+            finally
+            {
+                context.Invalidate();
+                ROSimulator.PropertyOverrides.Value = previousProperties;
+                ROSimulator.MenuItemOverrides.Value = previousMenuItems;
+                ComputeContext.FlushInvalidates();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CachedAnalyzeRefreshesWhenExpressionParameterDefaultChanges()
+        {
+            var root = CreateRoot("root");
+            SetDescriptorDefault(root, 0);
+            var parameters = root.GetComponent<VRCAvatarDescriptor>().expressionParameters;
+            var (_, target) = CreateMenuToggle(root, root, "toggle");
+            var previousProperties = ROSimulator.PropertyOverrides.Value;
+            var previousMenuItems = ROSimulator.MenuItemOverrides.Value;
+            ROSimulator.PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+            ROSimulator.MenuItemOverrides.Value = ImmutableDictionary<string, ModularAvatarMenuItem?>.Empty;
+            var context = new ComputeContext("Expressions parameter default preview test");
+
+            try
+            {
+                AssertToggleEnabled(ReactiveObjectAnalyzer.CachedAnalyze(context, root), target, false);
+
+                foreach (var defaultValue in new[] { 1f, 0f })
+                {
+                    var serializedParameters = new SerializedObject(parameters);
+                    serializedParameters.FindProperty("parameters").GetArrayElementAtIndex(0)
+                        .FindPropertyRelative("defaultValue").floatValue = defaultValue;
+                    serializedParameters.ApplyModifiedProperties();
+                    yield return null;
+                    ComputeContext.FlushInvalidates();
+
+                    Assert.IsTrue(context.IsInvalidated,
+                        "Editing an Expressions Parameters asset must invalidate the cached reactive analysis.");
+
+                    context = new ComputeContext("Expressions parameter default refreshed preview test");
+                    AssertToggleEnabled(ReactiveObjectAnalyzer.CachedAnalyze(context, root), target, defaultValue == 1);
+                }
+            }
+            finally
+            {
+                context.Invalidate();
+                ROSimulator.PropertyOverrides.Value = previousProperties;
+                ROSimulator.MenuItemOverrides.Value = previousMenuItems;
+                ComputeContext.FlushInvalidates();
+            }
+        }
+
+        [UnityTest]
         public IEnumerator EditorOnlyParameterSubtreeIsExcludedAndTagChangesInvalidateCachedAnalysis()
         {
             var root = CreateRoot("root");

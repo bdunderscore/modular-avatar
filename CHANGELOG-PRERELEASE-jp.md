@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#1158] Reactive Component のプレビューがパラメーターの初期値を反映せず、MA Parameters の初期値を変更しても
+- [#1158] Reactive Component のプレビューがパラメーターの初期値を反映せず、初期値を変更しても
   更新されない問題を修正しました。
 
 ### Changed

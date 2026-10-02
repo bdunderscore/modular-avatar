@@ -11,7 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
-- [#1158] Reactive Component のプレビューがパラメーターの初期値を反映せず、MA Parameters の初期値を変更しても
+- [#1158] Reactive Component のプレビューがパラメーターの初期値を反映せず、初期値を変更しても
   更新されない問題を修正しました。
 
 ### Changed
