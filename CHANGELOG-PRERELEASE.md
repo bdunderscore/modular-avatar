@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#1158] Fixed Reactive Component previews ignoring parameter defaults and not refreshing when parameter defaults
+  change.
 
 ### Changed
 
