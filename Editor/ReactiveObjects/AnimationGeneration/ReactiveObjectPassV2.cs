@@ -10,8 +10,13 @@ using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.StaticProcessing;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using UnityEngine;
+using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS
+using System;
+using nadena.dev.ndmf.vrchat;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 #endif
 
 namespace nadena.dev.modular_avatar.core.editor
@@ -58,6 +63,35 @@ namespace nadena.dev.modular_avatar.core.editor
             StaticProcessing.Apply(graph);
 
             backend.Build(graph);
+
+#if MA_VRCSDK3_AVATARS
+            if (backend is VRChatBlendTreeBackend vrcBackend)
+            {
+                var avDesc = context.VRChatAvatarDescriptor()!;
+                var expParams = avDesc.expressionParameters;
+                if (expParams == null)
+                {
+                    expParams = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+                    expParams.parameters = null;
+                    expParams.name = "Expression Parameters";
+                    context.AssetSaver.SaveAsset(expParams);
+                } else if (!context.IsTemporaryAsset(expParams))
+                {
+                    expParams = Object.Instantiate(expParams);
+                    context.AssetSaver.SaveAsset(expParams);
+                    avDesc.expressionParameters = expParams;
+                }
+
+                if (expParams.parameters == null)
+                {
+                    expParams.parameters = vrcBackend.ExtraSyncParams.ToArray();
+                }
+                else
+                {
+                    expParams.parameters = expParams.parameters.Concat(vrcBackend.ExtraSyncParams).ToArray();
+                }
+            }
+#endif
         }
 
 

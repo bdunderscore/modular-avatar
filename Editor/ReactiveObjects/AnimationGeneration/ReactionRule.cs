@@ -42,6 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             if (!Equals(Action.TargetKey, other.Action.TargetKey)) return false;
             if (!Action.ApproximatelyEqual(other.Action)) return false;
+            if (Inverted != other.Inverted) return false;
 
             return ControllingConditions.SequenceEqual(other.ControllingConditions);
         }

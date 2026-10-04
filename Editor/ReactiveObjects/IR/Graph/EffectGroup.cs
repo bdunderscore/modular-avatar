@@ -47,7 +47,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 }
             }
 
-            return new EffectGroup(firstGroup.Processor, firstGroup.TargetKey, newNodes, firstGroup.Latency);
+            return new EffectGroup(firstGroup.Processor, firstGroup.TargetKey, newNodes, firstGroup.Latency)
+            {
+                AlignedGraphLatency = firstGroup.AlignedGraphLatency
+            };
         }
 
         public EffectGroup(IEffectProcessor processor, object targetKey, List<ReactionNode> nodes, int latency)
@@ -78,6 +81,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         ///     It follows that external effects always have depth zero.
         /// </summary>
         public int? Depth;
+
+        /// <summary>
+        ///     The longest aligned path from an external input to any effect in this group&apos;s graph.
+        ///     This is assigned by <see cref="Transformations.AlignNodesTransform"/>.
+        /// </summary>
+        public int AlignedGraphLatency { get; internal set; }
 
         public int? DefaultNode;
 

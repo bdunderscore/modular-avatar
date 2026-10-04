@@ -585,6 +585,18 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
                             break;
 
+                        case ReactiveMoveAction move:
+                            f_target_component.SetValueWithoutNotify(move.ToMove);
+                            f_target_component.style.display = DisplayStyle.Flex;
+                            f_property.value = move.FixToWorld
+                                ? Localization.L.GetLocalizedString("ro_sim.effect.reactive_move.fixed_to_world")
+                                : string.Format(
+                                    Localization.L.GetLocalizedString("ro_sim.effect.reactive_move.destination"),
+                                    move.WhereTo != null ? move.WhereTo.name : "(missing destination)"
+                                );
+                            f_property.style.display = DisplayStyle.Flex;
+                            break;
+
                         case NullAction:
                             var target = TargetObject(targetKey);
                             if (target != null)
@@ -637,6 +649,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
                 MaterialSlotTarget target => target.Renderer,
                 MeshSectionTarget target => target.Renderer,
                 ObjectActiveTarget target => target.Target,
+                ReactiveMoveTarget target => target.ToMove,
                 _ => null
             };
         }

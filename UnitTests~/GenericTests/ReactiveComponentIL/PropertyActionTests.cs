@@ -75,11 +75,9 @@ namespace UnitTestsReactiveComponentIL
         public void UnknownAction_Build_LogsWarningWithoutThrowing()
         {
             var action = new UnknownAction();
-            var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(new Constant(true), action));
             LogAssert.Expect(LogType.Warning, $"Unsupported action type: {action.GetType().FullName}");
 
-            Assert.DoesNotThrow(() => _blendTreeBackend.Build(graph));
+            Assert.DoesNotThrow(() => _blendTreeBackend.ApplyBaseState(action, true));
         }
 
         [Test]
