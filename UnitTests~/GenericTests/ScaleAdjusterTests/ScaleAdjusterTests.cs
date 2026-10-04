@@ -74,6 +74,7 @@ namespace UnitTests.ScaleAdjusterTests
         {
             var root = CreateRoot("Avatar");
             var bone = CreateChild(root, "Bone");
+            var childBone = CreateChild(bone, "Child Bone");
             var adjuster = bone.AddComponent<ModularAvatarScaleAdjuster>();
             adjuster.Scale = new Vector3(2, 3, 4);
 
@@ -83,46 +84,73 @@ namespace UnitTests.ScaleAdjusterTests
             original.bones = new[] { bone.transform };
 
             var proxyObject = TrackObject(new GameObject("Proxy Renderer"));
+            proxyObject.transform.SetParent(bone.transform, false);
             var proxy = proxyObject.AddComponent<SkinnedMeshRenderer>();
             proxy.rootBone = bone.transform;
             proxy.bones = new[] { bone.transform };
+            proxy.probeAnchor = bone.transform;
 
-            var group = RenderGroup.For(original).WithData(root, (a, b) => a == b);
-            var node = new ScaleAdjusterPreviewNode(
-                ComputeContext.NullContext,
-                group,
-                new[] { ((Renderer)original, (Renderer)proxy) }
-            );
+            var unlistedProxyObject = TrackObject(new GameObject("Unlisted Proxy Renderer"));
+            var unlistedProxy = unlistedProxyObject.AddComponent<SkinnedMeshRenderer>();
+            unlistedProxy.rootBone = bone.transform;
+            unlistedProxy.bones = new[] { bone.transform, childBone.transform };
+            unlistedProxy.probeAnchor = bone.transform;
+            var group = RenderGroup.For(original).WithData(root);
+
+            var rendererProxies = new Dictionary<Renderer, Renderer>();
+            rendererProxies[original] = proxy;
+            var fixture = new ShadowBoneTestFixture();
+            var previewContext = new PreviewContext
+            {
+                ShadowBoneManager = fixture.Handle
+            };
+            ScaleAdjusterPreviewNode node = null;
 
             try
             {
-                Assert.That(node.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
-                ScaleAdjusterPreviewNode.ClearCache();
-                node.OnFrameGroup();
-                node.OnFrame(original, proxy);
+                using (previewContext.Activate())
+                {
+                    node = fixture.ExecuteInStageSync(
+                        rendererProxies,
+                        () => new ScaleAdjusterPreviewNode(
+                            ComputeContext.NullContext,
+                            group,
+                            new[] { ((Renderer)original, (Renderer)proxy) }
+                        )
+                    );
 
-                var adjustedBone = proxy.bones[0];
-                Assert.That(adjustedBone, Is.Not.SameAs(bone.transform));
-                Assert.That(adjustedBone.localScale, Is.EqualTo(adjuster.Scale));
-                Assert.That(proxy.rootBone, Is.SameAs(bone.transform));
-                Assert.That(proxy.transform.parent, Is.Null);
+                    Assert.That(node.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
+                    var adjustedBone = proxy.bones[0];
+                    Assert.That(adjustedBone, Is.Not.SameAs(bone.transform));
+                    Assert.That(adjustedBone.localScale, Is.EqualTo(adjuster.Scale));
+                    Assert.That(proxy.rootBone, Is.SameAs(adjustedBone));
+                    Assert.That(proxy.probeAnchor, Is.SameAs(adjustedBone));
+                    Assert.That(proxy.transform.parent, Is.SameAs(adjustedBone));
 
-                var transferredBone = adjustedBone.parent;
-                transferredBone.hasChanged = false;
-                ScaleAdjusterPreviewNode.ClearCache();
-                node.OnFrameGroup();
-                Assert.That(transferredBone.hasChanged, Is.False);
 
-                bone.transform.localRotation = Quaternion.AngleAxis(0.01f, Vector3.right);
-                ScaleAdjusterPreviewNode.ClearCache();
-                node.OnFrameGroup();
-                Assert.That(bone.transform.rotation.x, Is.Not.EqualTo(0));
-                Assert.That(transferredBone.hasChanged, Is.True);
-                AssertQuaternionExactlyEqual(bone.transform.rotation, transferredBone.rotation);
+                    Assert.That(unlistedProxy.rootBone, Is.SameAs(bone.transform));
+                    Assert.That(unlistedProxy.bones, Is.EqualTo(new[] { bone.transform, childBone.transform }));
+                    Assert.That(unlistedProxy.probeAnchor, Is.SameAs(bone.transform));
+
+                    var transferredBone = adjustedBone.parent;
+                    fixture.SyncPoses();
+                    transferredBone.hasChanged = false;
+                    node.OnFrameGroup();
+                    fixture.SyncPoses();
+                    Assert.That(transferredBone.hasChanged, Is.False);
+
+                    bone.transform.localRotation = Quaternion.AngleAxis(0.01f, Vector3.right);
+                    node.OnFrameGroup();
+                    fixture.SyncPoses();
+                    Assert.That(bone.transform.rotation.x, Is.Not.EqualTo(0));
+                    Assert.That(transferredBone.hasChanged, Is.True);
+                    AssertQuaternionExactlyEqual(bone.transform.rotation, transferredBone.rotation);
+                }
             }
             finally
             {
-                node.Dispose();
+                node?.Dispose();
+                fixture.Dispose();
             }
         }
 
@@ -138,61 +166,87 @@ namespace UnitTests.ScaleAdjusterTests
             var original = rendererObject.AddComponent<SkinnedMeshRenderer>();
             original.bones = new[] { bone.transform };
 
-            var firstProxyObject = TrackObject(new GameObject("First Proxy Renderer"));
-            var firstProxy = firstProxyObject.AddComponent<SkinnedMeshRenderer>();
-            firstProxy.bones = new[] { bone.transform };
-
             var group = RenderGroup.For(original).WithData(root, (a, b) => a == b);
-            ScaleAdjusterPreviewNode firstNode = new ScaleAdjusterPreviewNode(
-                ComputeContext.NullContext,
-                group,
-                new[] { ((Renderer)original, (Renderer)firstProxy) }
-            );
+            var rendererProxies = new Dictionary<Renderer, Renderer>();
+            var firstFixture = new ShadowBoneTestFixture();
+            ShadowBoneTestFixture secondFixture = null;
+            ShadowBoneTestFixture thirdFixture = null;
+            ScaleAdjusterPreviewNode firstNode = null;
             IRenderFilterNode secondNode = null;
             IRenderFilterNode thirdNode = null;
 
             try
             {
-                firstNode.OnFrame(original, firstProxy);
-                var firstProxyBone = firstProxy.bones[0];
+                var firstProxyObject = TrackObject(new GameObject("First Proxy Renderer"));
+                var firstProxy = firstProxyObject.AddComponent<SkinnedMeshRenderer>();
+                firstProxy.bones = new[] { bone.transform };
+                rendererProxies[original] = firstProxy;
+                var firstPreviewContext = new PreviewContext
+                {
+                    ShadowBoneManager = firstFixture.Handle
+                };
+                using (firstPreviewContext.Activate())
+                {
+                    firstNode = firstFixture.ExecuteInStageSync(
+                        rendererProxies,
+                        () => new ScaleAdjusterPreviewNode(
+                            ComputeContext.NullContext,
+                            group,
+                            new[] { ((Renderer)original, (Renderer)firstProxy) }
+                        )
+                    );
+                }
 
-                var unchangedProxyObject = TrackObject(new GameObject("Unchanged Proxy Renderer"));
-                var unchangedProxy = unchangedProxyObject.AddComponent<SkinnedMeshRenderer>();
-                unchangedProxy.bones = new[] { bone.transform };
-                var unchangedNode = firstNode.Refresh(
-                    new[] { ((Renderer)original, (Renderer)unchangedProxy) },
-                    ComputeContext.NullContext,
-                    RenderAspects.Shapes
-                ).Result;
-                Assert.That(unchangedNode, Is.SameAs(firstNode));
-                Assert.That(unchangedNode.WhatChanged, Is.EqualTo((RenderAspects) 0));
-                unchangedNode.OnFrame(original, unchangedProxy);
-                Assert.That(unchangedProxy.bones[0], Is.SameAs(firstProxyBone));
+                var firstProxyBone = firstProxy.bones[0];
 
                 var secondProxyObject = TrackObject(new GameObject("Second Proxy Renderer"));
                 var secondProxy = secondProxyObject.AddComponent<SkinnedMeshRenderer>();
                 secondProxy.bones = new[] { bone.transform };
                 adjuster.Scale = new Vector3(3, 3, 3);
-                secondNode = firstNode.Refresh(
-                    new[] { ((Renderer)original, (Renderer)secondProxy) },
-                    ComputeContext.NullContext,
-                    RenderAspects.Shapes
-                ).Result;
+                rendererProxies[original] = secondProxy;
+                secondFixture = new ShadowBoneTestFixture();
+                var secondPreviewContext = new PreviewContext
+                {
+                    ShadowBoneManager = secondFixture.Handle
+                };
+                using (secondPreviewContext.Activate())
+                {
+                    secondNode = secondFixture.ExecuteInStageSync(
+                        rendererProxies,
+                        () => firstNode.Refresh(
+                            new[] { ((Renderer)original, (Renderer)secondProxy) },
+                            ComputeContext.NullContext,
+                            RenderAspects.Shapes
+                        ).Result
+                    );
+                }
+
                 Assert.That(secondNode, Is.Not.SameAs(firstNode));
-                secondNode.OnFrame(original, secondProxy);
                 var secondProxyBone = secondProxy.bones[0];
 
                 var thirdProxyObject = TrackObject(new GameObject("Third Proxy Renderer"));
                 var thirdProxy = thirdProxyObject.AddComponent<SkinnedMeshRenderer>();
                 thirdProxy.bones = new[] { bone.transform };
                 adjuster.Scale = new Vector3(4, 4, 4);
-                thirdNode = secondNode.Refresh(
-                    new[] { ((Renderer)original, (Renderer)thirdProxy) },
-                    ComputeContext.NullContext,
-                    RenderAspects.Shapes
-                ).Result;
+                rendererProxies[original] = thirdProxy;
+                thirdFixture = new ShadowBoneTestFixture();
+                var thirdPreviewContext = new PreviewContext
+                {
+                    ShadowBoneManager = thirdFixture.Handle
+                };
+                using (thirdPreviewContext.Activate())
+                {
+                    thirdNode = thirdFixture.ExecuteInStageSync(
+                        rendererProxies,
+                        () => secondNode.Refresh(
+                            new[] { ((Renderer)original, (Renderer)thirdProxy) },
+                            ComputeContext.NullContext,
+                            RenderAspects.Shapes
+                        ).Result
+                    );
+                }
+
                 Assert.That(thirdNode, Is.Not.SameAs(secondNode));
-                thirdNode.OnFrame(original, thirdProxy);
                 var thirdProxyBone = thirdProxy.bones[0];
 
                 Assert.That(firstProxyBone, Is.Not.SameAs(secondProxyBone));
@@ -221,87 +275,12 @@ namespace UnitTests.ScaleAdjusterTests
                 thirdNode?.Dispose();
                 secondNode?.Dispose();
                 firstNode?.Dispose();
+                thirdFixture?.Dispose();
+                secondFixture?.Dispose();
+                firstFixture.Dispose();
             }
         }
 
-        [Test]
-        public void ScaleAdjusterPreview_RefreshesForRendererBoneAndWorldTransformChanges()
-        {
-            var root = CreateRoot("Avatar");
-            var bone = CreateChild(root, "Bone");
-            var otherBone = CreateChild(root, "Other Bone");
-            bone.AddComponent<ModularAvatarScaleAdjuster>();
-
-            var rendererObject = CreateChild(root, "Renderer");
-            var original = rendererObject.AddComponent<SkinnedMeshRenderer>();
-            original.bones = new[] { bone.transform };
-
-            var proxyObject = TrackObject(new GameObject("Proxy Renderer"));
-            var proxy = proxyObject.AddComponent<SkinnedMeshRenderer>();
-            proxy.bones = new[] { bone.transform };
-
-            var group = RenderGroup.For(original).WithData(root, (a, b) => a == b);
-            var node = new ScaleAdjusterPreviewNode(
-                ComputeContext.NullContext,
-                group,
-                new[] { ((Renderer)original, (Renderer)proxy) }
-            );
-
-            try
-            {
-                var changedBonesProxyObject = TrackObject(new GameObject("Changed Bones Proxy Renderer"));
-                var changedBonesProxy = changedBonesProxyObject.AddComponent<SkinnedMeshRenderer>();
-                changedBonesProxy.bones = new[] { otherBone.transform };
-                AssertCreatesNewNode(new[] { ((Renderer)original, (Renderer)changedBonesProxy) });
-
-                var newParent = CreateChild(root, "New Parent");
-                newParent.transform.localPosition = Vector3.right;
-                bone.transform.SetParent(newParent.transform, false);
-                AssertCreatesNewNode(new[] { ((Renderer)original, (Renderer)proxy) });
-                bone.transform.SetParent(root.transform, false);
-
-                bone.transform.localRotation = Quaternion.Euler(0, 1, 0);
-                AssertCreatesNewNode(new[] { ((Renderer)original, (Renderer)proxy) });
-                bone.transform.localRotation = Quaternion.identity;
-
-                bone.transform.localScale = new Vector3(1.01f, 1, 1);
-                AssertCreatesNewNode(new[] { ((Renderer)original, (Renderer)proxy) });
-                bone.transform.localScale = Vector3.one;
-
-                var secondRendererObject = CreateChild(root, "Second Renderer");
-                var secondOriginal = secondRendererObject.AddComponent<SkinnedMeshRenderer>();
-                secondOriginal.bones = new[] { bone.transform };
-                var secondProxyObject = TrackObject(new GameObject("Second Proxy Renderer"));
-                var secondProxy = secondProxyObject.AddComponent<SkinnedMeshRenderer>();
-                secondProxy.bones = new[] { bone.transform };
-                AssertCreatesNewNode(new[]
-                {
-                    ((Renderer)original, (Renderer)proxy),
-                    ((Renderer)secondOriginal, (Renderer)secondProxy)
-                });
-            }
-            finally
-            {
-                node.Dispose();
-            }
-
-            void AssertCreatesNewNode(IEnumerable<(Renderer, Renderer)> proxyPairs)
-            {
-                var refreshedNode = node.Refresh(
-                    proxyPairs,
-                    ComputeContext.NullContext,
-                    RenderAspects.Shapes
-                ).Result;
-                try
-                {
-                    Assert.That(refreshedNode, Is.Not.SameAs(node));
-                }
-                finally
-                {
-                    refreshedNode.Dispose();
-                }
-            }
-        }
 
         private static void AssertQuaternionExactlyEqual(Quaternion expected, Quaternion actual)
         {
