@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2146] `MA Reactive Move` を追加しました。条件に応じてオブジェクトのワールド位置、回転、スケールを別のオブジェクトに合わせられます。
 
 ### Fixed
 

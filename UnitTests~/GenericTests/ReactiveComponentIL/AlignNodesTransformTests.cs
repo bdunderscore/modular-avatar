@@ -186,6 +186,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(2, groups[0].Latency);
         }
 
+
         #endregion
 
         #region Delay Node Insertion Tests
