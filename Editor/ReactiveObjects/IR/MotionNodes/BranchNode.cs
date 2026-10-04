@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Immutable;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
@@ -14,14 +15,30 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public string Parameter { get; set; }
         public float Threshold = 0.99f;
 
-        public IMotionNode OnGreaterEquals;
-        public IMotionNode OnLessThan;
+        private IMotionNode _gt, _le;
+        public IMotionNode OnGreaterThan
+        {
+            get => _gt;
+            set
+            {
+                _gt = value ?? throw new NullReferenceException("OnGreaterThan cannot be null");
+            }
+        }
 
-        public BranchNode(string parameterName, IMotionNode? onLess = null, IMotionNode? onGreaterEquals = null)
+        public IMotionNode OnLessEquals
+        {
+            get => _le;
+            set
+            {
+                _le = value ?? throw new NullReferenceException("OnLessEquals cannot be null");
+            }
+        }
+
+        public BranchNode(string parameterName, IMotionNode? onLessEquals = null, IMotionNode? onGreater = null)
         {
             Parameter = parameterName;
-            OnLessThan = onLess ?? EmptyNode.Instance;
-            OnGreaterEquals = onGreaterEquals ?? EmptyNode.Instance;
+            OnLessEquals = onLessEquals ?? EmptyNode.Instance;
+            OnGreaterThan = onGreater ?? EmptyNode.Instance;
         }
 
         public VirtualMotion Bake(UnityBlendTreeBackend backend)
@@ -30,8 +47,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             var vbt = VirtualBlendTree.Create("BoolParam " + Parameter);
 
-            var onLess = OnLessThan?.Bake(backend) ?? empty;
-            var onGreater = OnGreaterEquals?.Bake(backend) ?? empty;
+            var onLess = OnLessEquals?.Bake(backend) ?? empty;
+            var onGreater = OnGreaterThan?.Bake(backend) ?? empty;
 
             vbt.BlendType = BlendTreeType.Simple1D;
             vbt.BlendParameter = Parameter;
@@ -56,8 +73,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            visitor(ref OnGreaterEquals);
-            visitor(ref OnLessThan);
+            IMotionNode tmp = OnGreaterThan;
+            visitor(ref tmp);
+            OnGreaterThan = tmp;
+
+            tmp = OnLessEquals;
+            visitor(ref tmp);
+            OnLessEquals = tmp;
         }
     }
 }

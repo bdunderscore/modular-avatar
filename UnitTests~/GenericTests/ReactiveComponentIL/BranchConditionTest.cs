@@ -17,8 +17,8 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("test", 0);
             
             var branch = new BranchNode("test");
-            branch.OnGreaterEquals = motionTrue;
-            branch.OnLessThan = motionFalse;
+            branch.OnGreaterThan = motionTrue;
+            branch.OnLessEquals = motionFalse;
             
             BakeConditions(branch);
             Assert.IsNotNull(animator.runtimeAnimatorController);
@@ -43,8 +43,8 @@ namespace UnitTestsReactiveComponentIL
             var branch = new BranchNode("test")
             {
                 Threshold = threshold,
-                OnGreaterEquals = motionTrue,
-                OnLessThan = motionFalse
+                OnGreaterThan = motionTrue,
+                OnLessEquals = motionFalse
             };
 
             BakeConditions(branch);
@@ -67,8 +67,8 @@ namespace UnitTestsReactiveComponentIL
             var branch = new BranchNode("test")
             {
                 Threshold = threshold,
-                OnGreaterEquals = motionTrue,
-                OnLessThan = motionFalse
+                OnGreaterThan = motionTrue,
+                OnLessEquals = motionFalse
             };
 
             BakeConditions(branch);
