@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "nadena.dev.ndmf": {
-      "version": "1.15.0-beta.0"
+      "version": "1.15.0-beta.1"
     }
   },
   "locked": {
     "nadena.dev.ndmf": {
-      "version": "1.15.0-beta.0"
+      "version": "1.15.0-beta.1"
     }
   }
 }
