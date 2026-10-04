@@ -3,9 +3,11 @@
 #if MA_VRCSDK3_AVATARS
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -15,7 +17,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ParameterInfo _info;
 
         // avatar root => params
-        private readonly Dictionary<GameObject, Dictionary<string, ProvidedParameter>> _registeredParameters = new();
+        private readonly Dictionary<GameObject, Dictionary<string, float?>> _registeredParameters = new();
 
         public MenuItemPreviewCondition(ComputeContext computeContext)
         {
@@ -24,28 +26,61 @@ namespace nadena.dev.modular_avatar.core.editor
             _context = computeContext;
         }
 
-        private Dictionary<string, ProvidedParameter> RegisteredParameters(GameObject obj)
+        private Dictionary<string, float?> RegisteredParameters(GameObject obj)
         {
             _context.ObservePath(obj.transform);
 
             var root = RuntimeUtil.FindAvatarInParents(obj.transform)?.gameObject;
-            if (root == null) return new Dictionary<string, ProvidedParameter>();
+            if (root == null) return new Dictionary<string, float?>();
 
             if (_registeredParameters.TryGetValue(root, out var parameters))
                 return parameters;
 
-            parameters = new Dictionary<string, ProvidedParameter>();
+            parameters = new Dictionary<string, float?>();
 
-            foreach (var param in _info.GetParametersForObject(root)) parameters[param.EffectiveName] = param;
+            // ParameterInfo observes the descriptor, but not its referenced parameter asset.
+            var descriptor = _context.GetComponent<VRCAvatarDescriptor>(root);
+            if (descriptor != null && descriptor.expressionParameters != null)
+                _context.Observe(descriptor.expressionParameters);
+
+            foreach (var param in _info.GetParametersForObject(root))
+            {
+                if (param.Namespace == ParameterNamespace.Animator)
+                    parameters[param.EffectiveName] = param.DefaultValue;
+            }
+
+            // MA's explicit defaults override expression parameters. Traverse parents before children so an outer
+            // explicit default wins, while an unspecified outer default can inherit an inner one.
+            var explicitDefaults = new Dictionary<string, float>();
+            foreach (var component in _context.GetComponentsInChildren<ModularAvatarParameters>(root, true))
+            {
+                if (_context.ObservePath(component.transform).TakeWhile(t => t.gameObject != root)
+                    .Any(t => _context.Observe(t.gameObject, go => go.CompareTag("EditorOnly"))))
+                    continue;
+
+                var configs = _context.Observe(component, c => c.parameters.ToArray(), Enumerable.SequenceEqual);
+                var remaps = _info.GetParameterRemappingsAt(component, true);
+                foreach (var config in configs)
+                {
+                    if (config.isPrefix || !config.HasDefaultValue) continue;
+
+                    var name = config.nameOrPrefix;
+                    if (remaps.TryGetValue((ParameterNamespace.Animator, name), out var remap))
+                        name = remap.ParameterName;
+
+                    if (explicitDefaults.TryAdd(name, config.defaultValue))
+                        parameters[name] = config.defaultValue;
+                }
+            }
 
             _registeredParameters[root] = parameters;
             return parameters;
         }
 
         private bool TryGetRegisteredParam(ModularAvatarMenuItem mami, string paramName,
-            out ProvidedParameter? providedParameter)
+            out float? defaultValue)
         {
-            providedParameter = null;
+            defaultValue = null;
 
             if (string.IsNullOrWhiteSpace(mami.PortableControl.Parameter)) return false;
 
@@ -54,24 +89,22 @@ namespace nadena.dev.modular_avatar.core.editor
             if (remaps.TryGetValue((ParameterNamespace.Animator, paramName), out var remap))
                 paramName = remap.ParameterName;
 
-            return RegisteredParameters(mami.gameObject).TryGetValue(paramName, out providedParameter);
+            return RegisteredParameters(mami.gameObject).TryGetValue(paramName, out defaultValue);
         }
 
-        public bool IsEnabledForPreview(ModularAvatarMenuItem mami)
+        public float InitialValueForPreview(ModularAvatarMenuItem mami)
         {
             _context.ObservePath(mami.transform);
-            if (_context.Observe(mami, m => string.IsNullOrWhiteSpace(m.PortableControl.Parameter))) return false;
+            var (paramName, value, automaticValue, isDefault) = _context.Observe(mami,
+                m => (m.PortableControl.Parameter, m.PortableControl.Value, m.automaticValue, m.isDefault));
 
-            var (paramName, value) =
-                _context.Observe(mami, m => (m.PortableControl.Parameter, m.PortableControl.Value));
-
-            if (TryGetRegisteredParam(mami, paramName, out var providedParameter))
+            if (!automaticValue && !string.IsNullOrWhiteSpace(paramName) &&
+                TryGetRegisteredParam(mami, paramName, out var defaultValue) && defaultValue.HasValue)
             {
-                var defaultValue = providedParameter.DefaultValue ?? 0;
-                return Mathf.Abs(defaultValue - value) < 0.01f;
+                return defaultValue.Value;
             }
 
-            return _context.Observe(mami, _ => mami.isDefault);
+            return isDefault ? value : -999;
         }
     }
 }

@@ -26,6 +26,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly Dictionary<string, float>? _simulationInitialStates;
 
+#if MA_VRCSDK3_AVATARS
+        private readonly MenuItemPreviewCondition? _menuItemPreviewCondition;
+#endif
+
         public const string BlendshapePrefix = "blendShape.";
 
         public bool OptimizeShapes = true;
@@ -56,6 +60,9 @@ namespace nadena.dev.modular_avatar.core.editor
             _context = null;
             _rpe = null;
             _simulationInitialStates = new();
+#if MA_VRCSDK3_AVATARS
+            _menuItemPreviewCondition = new MenuItemPreviewCondition(_computeContext);
+#endif
         }
 
         public string GetGameObjectStateProperty(GameObject obj)

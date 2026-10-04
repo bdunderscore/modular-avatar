@@ -137,6 +137,13 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
 
+#if MA_VRCSDK3_AVATARS
+                    if (mami_condition != null && _menuItemPreviewCondition != null)
+                    {
+                        mami_condition.InitialValue = _menuItemPreviewCondition.InitialValueForPreview(mami);
+                    }
+#endif
+
                     if (mami_condition != null && ForceMenuItems != null &&
                         ForceMenuItems.TryGetValue(mami_condition.Parameter, out var forcedMenuItem))
                     {
