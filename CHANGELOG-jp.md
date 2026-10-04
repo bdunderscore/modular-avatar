@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2146] `MA Reactive Move` を追加しました。条件に応じてオブジェクトのワールド位置、回転、スケールを別のオブジェクトに合わせられます。
 
 ### Fixed
 

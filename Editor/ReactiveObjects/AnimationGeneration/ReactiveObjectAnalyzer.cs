@@ -119,6 +119,7 @@ namespace nadena.dev.modular_avatar.core.editor
             FindMeshCutter(shapes, root);
             FindObjectToggles(shapes, root);
             FindMaterialChangers(shapes, root);
+            FindReactiveMoves(shapes, root);
 
 
             ApplyInitialStateOverrides(shapes);

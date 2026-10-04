@@ -86,7 +86,7 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
                     {
                         seq.Run("Reactive Components", ctx => new ReactiveObjectPassV2(ctx).Execute())
                             .PreviewingWith( new MeshDeleterPreview(), new ShapeChangerPreview(),
-                                new ObjectSwitcherPreview(), new MaterialSetterPreview());
+                                new ObjectSwitcherPreview(), new MaterialSetterPreview(), new ReactiveMovePreview());
                     })
 ;
 #if MA_VRCSDK3_AVATARS

@@ -10,6 +10,8 @@ using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.StaticProcessing;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.vrchat;
+using UnityEngine;
 #if MA_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -58,6 +60,22 @@ namespace nadena.dev.modular_avatar.core.editor
             StaticProcessing.Apply(graph);
 
             backend.Build(graph);
+
+#if MA_VRCSDK3_AVATARS
+            if (backend is VRChatBlendTreeBackend vrcBackend)
+            {
+                var avDesc = context.VRChatAvatarDescriptor()!;
+                var expParams = avDesc.expressionParameters;
+                if (!context.IsTemporaryAsset(expParams))
+                {
+                    expParams = Object.Instantiate(expParams);
+                    context.AssetSaver.SaveAsset(expParams);
+                    avDesc.expressionParameters = expParams;
+                }
+
+                expParams.parameters = expParams.parameters.Concat(vrcBackend.ExtraSyncParams).ToArray();
+            }
+#endif
         }
 
 

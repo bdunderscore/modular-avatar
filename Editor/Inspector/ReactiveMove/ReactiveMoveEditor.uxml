@@ -1,0 +1,25 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ed:PropertyField binding-path="m_toMove" label="reactive_object.reactive_move.to_move" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="m_fixToWorld" label="reactive_object.reactive_move.fix_to_world" class="ndmf-tr"
+                          name="fix-to-world"
+        />
+        <ed:PropertyField binding-path="m_whereTo" label="reactive_object.reactive_move.where_to" class="ndmf-tr"
+                          name="where-to"
+        />
+
+        <ui:Label name="configuration" text="reactive_object.config_heading" class="ndmf-tr section-heading"/>
+        <ed:PropertyField binding-path="m_inverted" label="reactive_object.inverse" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="m_setPosition" label="reactive_object.reactive_move.sets_position"
+                          class="ndmf-tr"/>
+        <ed:PropertyField binding-path="m_setRotation" label="reactive_object.reactive_move.sets_rotation"
+                          class="ndmf-tr"/>
+        <ed:PropertyField binding-path="m_setScale" label="reactive_object.reactive_move.sets_scale" class="ndmf-tr"/>
+        <ed:PropertyField binding-path="m_transitionTime" label="reactive_object.reactive_move.transition_time"
+                          class="ndmf-tr"/>
+
+        <ma:ROSimulatorButton/>
+        <ma:LanguageSwitcherElement/>
+    </ui:VisualElement>
+</UXML>
