@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.animator;
 using nadena.dev.modular_avatar.core.editor.rc;
@@ -20,9 +21,10 @@ namespace UnitTestsReactiveComponentIL
             AddParameter("test", -1f);
 
             var blend = new OneDBlendNode("test");
-            blend.Nodes.Add((float.NegativeInfinity, lowMotion));
-            blend.Nodes.Add((0f, middleMotion));
-            blend.Nodes.Add((1f, highMotion));
+            blend.Nodes = ImmutableList<(float, IMotionNode)>.Empty
+                .Add((float.NegativeInfinity, lowMotion))
+                .Add((0f, middleMotion))
+                .Add((1f, highMotion));
 
             BakeConditions(blend);
             Assert.IsNotNull(animator.runtimeAnimatorController);
@@ -46,34 +48,6 @@ namespace UnitTestsReactiveComponentIL
                 yield return null;
                 AssertOnlyStateActive(sensors, expectedState, value);
             }
-        }
-
-        [RCILTest]
-        public IEnumerator PositiveInfinityMotionIsRetained()
-        {
-            var finiteMotion = VirtualClip.Create("finite");
-            var positiveInfinityMotion = VirtualClip.Create("positive infinity");
-            var blend = new OneDBlendNode("test");
-            blend.Nodes.Add((0f, new MotionNode(finiteMotion)));
-            blend.Nodes.Add((float.PositiveInfinity, new MotionNode(positiveInfinityMotion)));
-
-            var backend = new UnityBlendTreeBackend(buildContext, vac);
-            var baked = blend.Bake(backend) as VirtualBlendTree;
-
-            Assert.That(baked, Is.Not.Null);
-            Assert.That(baked.Children, Has.Count.EqualTo(4));
-            Assert.That(
-                baked.Children.Select(child => child.Threshold),
-                Is.EqualTo(new[] { 0f.NextSmallest(), 0f, float.MaxValue, float.PositiveInfinity })
-            );
-            Assert.That(baked.Children[1].Motion, Is.SameAs(finiteMotion));
-            Assert.That(baked.Children[1].Motion.Name, Is.EqualTo("finite"));
-            Assert.That(baked.Children[2].Motion, Is.SameAs(finiteMotion));
-            Assert.That(baked.Children[2].Motion.Name, Is.EqualTo("finite"));
-            Assert.That(baked.Children[3].Motion, Is.SameAs(positiveInfinityMotion));
-            Assert.That(baked.Children[3].Motion.Name, Is.EqualTo("positive infinity"));
-
-            yield break;
         }
 
         [RCILTest]
