@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.animator;
@@ -10,8 +11,20 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     {
         public string Parameter { get; set; }
 
+        private ImmutableList<(float, IMotionNode)> _nodes = ImmutableList<(float, IMotionNode)>.Empty;
         // Each pair has the _first_ value that is mapped to this node
-        public List<(float, IMotionNode)> Nodes { get; } = new();
+        public ImmutableList<(float, IMotionNode)> Nodes
+        {
+            get => _nodes;
+            set
+            {
+                if (value.Any(pair => pair.Item2 == null))
+                {
+                    throw new NullReferenceException("Nodes cannot contain null motions");
+                }
+                _nodes = value;
+            }
+        }
 
         public OneDBlendNode(string parameter)
         {
@@ -74,12 +87,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            for (var i = 0; i < Nodes.Count; i++)
+            Nodes = Nodes.Select(pair =>
             {
-                var tuple = Nodes[i];
-                visitor(ref tuple.Item2);
-                Nodes[i] = tuple;
-            }
+                visitor(ref pair.Item2);
+                return pair;
+            }).ToImmutableList();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Unity.Mathematics;
 
@@ -20,38 +22,45 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 return;
             }
 
-            var oneD = new OneDBlendNode(bn.Parameter);
+            var nodes = ImmutableList<(float, IMotionNode)>.Empty;
             var branches = CollectBranches(bn);
-
+            
             var iterator = float.MinValue;
             IMotionNode? priorNode = null;
             foreach (var elem in branches.Values)
             {
+                if (elem.Inner == null)
+                {
+                    throw new NullReferenceException("BranchNode cannot have null branches");
+                }
+                
                 if (elem.Start > iterator)
                 {
-                    oneD.Nodes.Add((iterator, new EmptyNode()));
+                    nodes = nodes.Add((iterator, new EmptyNode()));
                 }
 
                 var start = elem.Start;
 
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (elem.Start == iterator && oneD.Nodes.LastOrDefault().Item2 == elem.Inner)
+                if (elem.Start == iterator && nodes.LastOrDefault().Item2 == elem.Inner)
                 {
                     // Two ranges that are adjacent with the same effect - merge them.
-                    var removed = oneD.Nodes.Last();
-                    oneD.Nodes.RemoveAt(oneD.Nodes.Count - 1);
+                    var removed = nodes.Last();
+                    nodes = nodes.RemoveAt(nodes.Count - 1);
                     start = removed.Item1;
                 }
 
-                oneD.Nodes.Add((start, elem.Inner));
+                nodes = nodes.Add((start, elem.Inner));
                 iterator = elem.End.NextLargest();
             }
 
             if (iterator < float.MaxValue)
             {
-                oneD.Nodes.Add((iterator, new EmptyNode()));
+                nodes = nodes.Add((iterator, new EmptyNode()));
             }
 
+            var oneD = new OneDBlendNode(bn.Parameter);
+            oneD.Nodes = nodes;
             motionNode = oneD;
             motionNode.WalkTree(Apply);
         }
@@ -73,7 +82,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 if (min > max) return; // empty interval (impossible branch)
 
-                if (branch is ProxyNode pn)
+                if (branch is ProxyNode pn && pn.Target != null)
                 {
                     Visit(pn.Target, min, max);
                     return;

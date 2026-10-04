@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Immutable;
 using nadena.dev.ndmf.animator;
 using UnityEditor.Animations;
@@ -14,8 +15,24 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public string Parameter { get; set; }
         public float Threshold = 0.99f;
 
-        public IMotionNode OnGreaterThan;
-        public IMotionNode OnLessEquals;
+        private IMotionNode _gt, _le;
+        public IMotionNode OnGreaterThan
+        {
+            get => _gt;
+            set
+            {
+                _gt = value ?? throw new NullReferenceException("OnGreaterThan cannot be null");
+            }
+        }
+
+        public IMotionNode OnLessEquals
+        {
+            get => _le;
+            set
+            {
+                _le = value ?? throw new NullReferenceException("OnLessEquals cannot be null");
+            }
+        }
 
         public BranchNode(string parameterName, IMotionNode? onLessEquals = null, IMotionNode? onGreater = null)
         {
@@ -56,8 +73,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public void WalkTree(MotionNodeVisitor visitor)
         {
-            visitor(ref OnGreaterThan);
-            visitor(ref OnLessEquals);
+            IMotionNode tmp = OnGreaterThan;
+            visitor(ref tmp);
+            OnGreaterThan = tmp;
+
+            tmp = OnLessEquals;
+            visitor(ref tmp);
+            OnLessEquals = tmp;
         }
     }
 }
