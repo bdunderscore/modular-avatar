@@ -16,20 +16,7 @@
   ],
   "autoReferenced": false,
   "defineConstraints": [
-    "UNITY_INCLUDE_TESTS",
-    "MA_VRCSDK3_AVATARS"
-  ],
-  "versionDefines": [
-    {
-      "name": "com.vrchat.avatars",
-      "expression": "",
-      "define": "MA_VRCSDK3_AVATARS"
-    },
-    {
-      "name": "com.vrchat.avatars",
-      "expression": "3.5.2",
-      "define": "MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER"
-    }
+    "UNITY_INCLUDE_TESTS"
   ],
   "noEngineReferences": false
 }

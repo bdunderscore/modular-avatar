@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -440,6 +441,299 @@ namespace modular_avatar_tests
                 analyzer.GetGameObjectStateProperty(inactiveObject),
                 "Distinct GameObjects must not share an ActiveSelf proxy parameter."
             );
+        }
+
+        [Test]
+        public void ReactiveMovePreview_AppliesInitialWorldPoseToShadowBones()
+        {
+            var root = CreateRoot("root");
+            var movedParent = CreateChild(root, "moved parent");
+            movedParent.transform.position = new Vector3(2, 0, 0);
+            movedParent.transform.localScale = new Vector3(2, 2, 2);
+            var moved = CreateChild(movedParent, "moved");
+            moved.transform.localPosition = new Vector3(1, 0, 0);
+            moved.transform.localRotation = Quaternion.Euler(0, 15, 0);
+
+            var targetParent = CreateChild(root, "target parent");
+            targetParent.transform.position = new Vector3(-3, 1, 4);
+            targetParent.transform.localScale = new Vector3(3, 2, 4);
+            var target = CreateChild(targetParent, "target");
+            target.transform.localPosition = new Vector3(2, -1, 1);
+            target.transform.localRotation = Quaternion.Euler(10, 30, 5);
+            target.transform.localScale = new Vector3(2, 3, 4);
+
+            var renderer = CreateChild(moved, "renderer").AddComponent<SkinnedMeshRenderer>();
+            renderer.bones = new[] { moved.transform };
+            var proxy = TrackObject(new GameObject("proxy")).AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { moved.transform };
+
+            var move = root.AddComponent<ModularAvatarReactiveMove>();
+            move.ToMove = new AvatarObjectReference(moved);
+            move.WhereTo = new AvatarObjectReference(target);
+            move.SetsPosition = true;
+            move.SetsRotation = true;
+            move.SetsScale = true;
+
+            var handle = new ShadowHandle(new Dictionary<Renderer, Renderer> { { renderer, proxy } });
+            var previewContext = new PreviewContext { ShadowBoneManager = handle };
+            var context = new ComputeContext("Reactive Move preview pose test");
+            try
+            {
+                using (previewContext.Activate())
+                {
+                    var preview = new ReactiveMovePreview();
+                    var group = RenderGroup.For(renderer).WithData(root);
+                    var node = preview.Instantiate(
+                        group,
+                        new[] { ((Renderer)renderer, (Renderer)proxy) },
+                        context
+                    ).Result;
+
+                    handle.SyncPoses();
+                    node.OnFrameGroup();
+
+                    var movedShadow = handle.GetBone(moved.transform);
+                    var targetShadow = handle.GetBone(target.transform);
+                    Assert.That(Vector3.Distance(movedShadow.position, targetShadow.position), Is.LessThan(0.0001f));
+                    AssertQuaternionExactlyEqual(targetShadow.rotation, movedShadow.rotation);
+                    Assert.That(Vector3.Distance(movedShadow.lossyScale, targetShadow.lossyScale), Is.LessThan(0.0001f));
+                    Assert.That(proxy.bones, Is.EqualTo(new[] { movedShadow }));
+                }
+            }
+            finally
+            {
+                context.Invalidate();
+                ComputeContext.FlushInvalidates();
+                handle.Dispose();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ReactiveMovePreview_RegistersInactiveReferencesAndRefreshesStateImmediately()
+        {
+            var root = CreateRoot("root");
+            var moved = CreateChild(root, "moved");
+            var target = CreateChild(root, "target");
+            target.transform.position = new Vector3(3, 4, 5);
+            var renderer = CreateChild(moved, "renderer").AddComponent<SkinnedMeshRenderer>();
+            renderer.bones = new[] { moved.transform };
+            var proxy = TrackObject(new GameObject("proxy")).AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { moved.transform };
+
+            var controller = CreateChild(root, "controller");
+            controller.SetActive(false);
+            var move = controller.AddComponent<ModularAvatarReactiveMove>();
+            move.ToMove = new AvatarObjectReference(moved);
+            move.WhereTo = new AvatarObjectReference(target);
+            move.SetsPosition = true;
+
+            var handle = new ShadowHandle(new Dictionary<Renderer, Renderer> { { renderer, proxy } });
+            ROSimulator.PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
+            var previewContext = new PreviewContext { ShadowBoneManager = handle };
+            var initialContext = new ComputeContext("inactive Reactive Move preview");
+            var activeContext = new ComputeContext("active Reactive Move preview");
+            var movedTargetContext = new ComputeContext("moved target Reactive Move preview");
+
+            try
+            {
+                IRenderFilterNode initialNode;
+                using (previewContext.Activate())
+                {
+                    var preview = new ReactiveMovePreview();
+                    initialNode = preview.Instantiate(
+                        RenderGroup.For(renderer).WithData(root),
+                        new[] { ((Renderer)renderer, (Renderer)proxy) },
+                        initialContext
+                    ).Result;
+                }
+
+                Assert.That(handle.HasShadow(moved.transform), Is.True);
+                Assert.That(handle.HasShadow(target.transform), Is.False);
+                Assert.That(proxy.bones, Is.EqualTo(new[] { handle.GetExistingShadow(moved.transform) }));
+
+                handle.SyncPoses();
+                initialNode.OnFrameGroup();
+                Assert.That(handle.GetExistingShadow(moved.transform).position, Is.EqualTo(moved.transform.position));
+
+                ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
+                    $"__ActiveSelfProxy/{nadena.dev.modular_avatar.core.UnityObjectIDHelper.GetEntityId(controller)}",
+                    1.0f
+                );
+                for (var i = 0; i < 10 && !initialContext.IsInvalidated; i++)
+                {
+                    yield return null;
+                    ComputeContext.FlushInvalidates();
+                }
+                Assert.That(initialContext.IsInvalidated, Is.True);
+
+                IRenderFilterNode activeNode;
+                using (previewContext.Activate())
+                {
+                    activeNode = initialNode.Refresh(
+                        new[] { ((Renderer)renderer, (Renderer)proxy) },
+                        activeContext,
+                        0
+                    ).Result;
+                }
+
+                Assert.That(activeNode, Is.Not.SameAs(initialNode));
+                Assert.That(activeNode.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
+
+                // The prior pipeline remains active while its replacement builds.
+                handle.GetBone(target.transform);
+                handle.SyncPoses();
+                initialNode.OnFrameGroup();
+                Assert.That(
+                    handle.GetExistingShadow(moved.transform).position,
+                    Is.EqualTo(target.transform.position)
+                );
+
+                target.transform.position = new Vector3(-2, 6, 1);
+                for (var i = 0; i < 10 && !activeContext.IsInvalidated; i++)
+                {
+                    yield return null;
+                    ComputeContext.FlushInvalidates();
+                }
+                Assert.That(activeContext.IsInvalidated, Is.True);
+
+                IRenderFilterNode movedTargetNode;
+                using (previewContext.Activate())
+                {
+                    movedTargetNode = activeNode.Refresh(
+                        new[] { ((Renderer)renderer, (Renderer)proxy) },
+                        movedTargetContext,
+                        0
+                    ).Result;
+                }
+
+                Assert.That(movedTargetNode, Is.Not.SameAs(activeNode));
+                Assert.That(movedTargetNode.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
+
+                handle.SyncPoses();
+                activeNode.OnFrameGroup();
+                Assert.That(
+                    handle.GetExistingShadow(moved.transform).position,
+                    Is.EqualTo(target.transform.position)
+                );
+            }
+            finally
+            {
+                initialContext.Invalidate();
+                activeContext.Invalidate();
+                ROSimulator.PropertyOverrides.Value = null;
+                movedTargetContext.Invalidate();
+                ComputeContext.FlushInvalidates();
+                handle.Dispose();
+            }
+        }
+
+        private sealed class ShadowHandle : IShadowBoneManagerHandle, System.IDisposable
+        {
+            private readonly Dictionary<Renderer, Renderer> _proxies;
+            private readonly Dictionary<Transform, Transform> _shadows = new();
+
+            public ShadowHandle(Dictionary<Renderer, Renderer> proxies)
+            {
+                _proxies = proxies;
+            }
+
+            public bool HasShadow(Transform source)
+            {
+                return _shadows.ContainsKey(source);
+            }
+
+            public Transform GetExistingShadow(Transform source)
+            {
+                return _shadows[source];
+            }
+
+            public Transform GetBone(Transform bone)
+            {
+                if (bone == null) return null;
+                if (_shadows.TryGetValue(bone, out var shadow)) return shadow;
+
+                shadow = new GameObject($"shadow {bone.name}").transform;
+                _shadows.Add(bone, shadow);
+                ReplaceProxyReferences(bone, shadow);
+                return shadow;
+            }
+
+            public void ReplaceBone(Renderer originalRenderer, Transform original, Transform replacement)
+            {
+                if (_proxies.TryGetValue(originalRenderer, out var proxy))
+                {
+                    ReplaceReferences(proxy, original, replacement);
+                }
+            }
+
+            public void SyncPoses()
+            {
+                foreach (var source in _shadows.Keys.ToArray())
+                {
+                    EnsureShadowHierarchy(source);
+                }
+
+                foreach (var (source, shadow) in _shadows)
+                {
+                    shadow.localPosition = source.localPosition;
+                    shadow.localRotation = source.localRotation;
+                    shadow.localScale = source.localScale;
+                }
+            }
+
+            public void Dispose()
+            {
+                foreach (var shadow in _shadows.Values)
+                {
+                    if (shadow != null) Object.DestroyImmediate(shadow.gameObject);
+                }
+            }
+
+            private void ReplaceProxyReferences(Transform original, Transform replacement)
+            {
+                foreach (var proxy in _proxies.Values)
+                {
+                    ReplaceReferences(proxy, original, replacement);
+                }
+            }
+
+            private static void ReplaceReferences(Renderer renderer, Transform original, Transform replacement)
+            {
+                if (renderer is SkinnedMeshRenderer skinned)
+                {
+                    skinned.bones = skinned.bones.Select(bone => bone == original ? replacement : bone).ToArray();
+                    if (skinned.rootBone == original) skinned.rootBone = replacement;
+                }
+
+                if (renderer.probeAnchor == original) renderer.probeAnchor = replacement;
+                if (renderer.transform.parent == original) renderer.transform.SetParent(replacement, false);
+            }
+
+            private void EnsureShadowHierarchy(Transform source)
+            {
+                var shadow = GetBone(source);
+                if (source.parent == null)
+                {
+                    shadow.SetParent(null, false);
+                    return;
+                }
+
+                EnsureShadowHierarchy(source.parent);
+                shadow.SetParent(GetBone(source.parent), false);
+            }
+        }
+
+        private static void AssertQuaternionExactlyEqual(Quaternion expected, Quaternion actual)
+        {
+            var equal = expected.x == actual.x
+                        && expected.y == actual.y
+                        && expected.z == actual.z
+                        && expected.w == actual.w;
+            var doubleCoverEqual = expected.x == -actual.x
+                                   && expected.y == -actual.y
+                                   && expected.z == -actual.z
+                                   && expected.w == -actual.w;
+            Assert.That(equal || doubleCoverEqual, Is.True);
         }
 
         private ReactionRule CreateRuleWithCondition(bool isConstant, bool initiallyActive, bool inverted)

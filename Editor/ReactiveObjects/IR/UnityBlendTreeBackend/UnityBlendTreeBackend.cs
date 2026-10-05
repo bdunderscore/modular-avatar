@@ -23,6 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public VirtualBlendTree RootTree { get; }
         public VirtualBlendTree BaseLayerTree { get; }
         public VirtualClip BaseLayerClip { get; }
+        
         private readonly VirtualAnimatorController _vac;
 
         private ReactionParameters? __parameters;
@@ -237,7 +238,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             Parameters = graph.Parameters;
             LowerSemanticActions(graph);
             RemoveRedundantAlreadyAppliedActions(graph);
-            TrimUnsupported(graph);
 
             var graphs = OptimizeForBackend(graph);
             foreach (var subgraph in graphs)
@@ -256,15 +256,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
 
             CommitParameters(HasGeneratedOutput);
-        }
-
-        private void TrimUnsupported(ReactionGraph graphs)
-        {
-            graphs.Nodes.RemoveAll(node =>
-            {
-                node.Effects.RemoveAll(n => !CanEmit(n));
-                return node.Effects.Count == 0;
-            });
         }
 
         private IReadOnlyList<ReactionGraph> OptimizeForBackend(ReactionGraph graph)
@@ -290,7 +281,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             return SplitIntoSubgraphsTransform.Apply(graph);
         }
-
 
         private static void AssertDecomposed(ReactionGraph graph)
         {

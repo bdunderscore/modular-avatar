@@ -8,24 +8,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal sealed partial class UnityBlendTreeBackend
     {
-        private bool CanEmit(IAction action)
-        {
-            switch (action)
-            {
-                case TargetKeyOverride: return true;
-                case DriveActiveState: return true;
-                case DriveParameter: return true;
-                case DriveInternalParameter: return true;
-                case FloatPropAction: return true;
-                case ObjectPropAction: return true;
-                case NullAction: return false;
-                default:
-                    Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
-                    return false;
-            }
-        }
-
-
         internal void ApplyBaseState(IAction action, bool actionStartsActive)
         {
             switch (action)
@@ -43,6 +25,9 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 case FloatPropAction prop: ApplyFloatPropAction(prop, actionStartsActive); break;
                 case ObjectPropAction prop: ApplyObjectPropAction(prop, actionStartsActive); break;
                 case NullAction: break;
+                case DeltaTimeControlAction:
+                    // TODO?
+                    break;
                 default:
                     Debug.LogWarning($"Unsupported action type: {action.GetType().FullName}");
                     break;

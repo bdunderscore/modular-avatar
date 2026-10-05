@@ -1,0 +1,4 @@
+﻿.section-heading {
+    margin-top: 4px;
+    -unity-font-style: bold;
+}
