@@ -15,13 +15,13 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.10.1",
-    "@docusaurus/preset-classic": "^3.10.1",
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
     "prism-react-renderer": "^2.4.1",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-loadable": "^5.5.0",
     "react-medium-image-zoom": "^5.4.9",
     "react-modal": "^3.16.3",
@@ -29,9 +29,9 @@
     "search-insights": "^2.17.3"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.10.1",
+    "@docusaurus/module-type-aliases": "^3.10.2",
     "@tsconfig/docusaurus": "^2.0.9",
-    "@types/react": "^19.2.17",
+    "@types/react": "^19.3.0",
     "typescript": "^5.9.3"
   },
   "resolutions": {
