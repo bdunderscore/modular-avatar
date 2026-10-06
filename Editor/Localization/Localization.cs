@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private const string localizationPathGuid = "488c994003974b3ab2796371cf627bca";
         private static string localizationPathRoot = AssetDatabase.GUIDToAssetPath(localizationPathGuid);
 
-        private static ImmutableDictionary<string, string> SupportedLanguageDisplayNames
+        internal static ImmutableDictionary<string, string> SupportedLanguageDisplayNames
             = ImmutableDictionary<string, string>.Empty
                 .Add("en-US", "English")
                 .Add("ja-JP", "日本語")
