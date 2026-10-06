@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2149] Fixed incorrect label for traditional Chinese language in the language switcher
 - [#2162] Merge Motion could be overridden by inactive reactive components
 - [#2170] `Reactive Move` would generate Write Defaults=on states even when the rest of the FX animator was WD=off
 

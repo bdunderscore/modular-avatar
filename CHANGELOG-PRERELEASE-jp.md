@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2149] 言語選択UIに繁体字のラベルが誤っていた問題を修正
 - [#2162] 非アクティブのリアクティブコンポーネントがMerge Motionの効果を上書きしてしまう問題を修正
 - [#2170] FX アニメーターの他のステートが WD OFF でも、`Reactive Move` が Write Defaults=ON のステートを書き出す問題を修正
 
