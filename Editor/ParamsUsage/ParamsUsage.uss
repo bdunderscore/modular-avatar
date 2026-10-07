@@ -20,15 +20,21 @@
     margin-bottom: 12px;
 }
 
+LogoImage {
+    flex-shrink: 0;
+}
+
 #Footer {
     margin-left: 15px;
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 #UsageBox {
     height: 16px;
     flex-direction: row;
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 #UsageBox VisualElement {
@@ -50,6 +56,33 @@
 
 .Entry {
     flex-direction: row;
+}
+
+.Entry .ParameterFoldout {
+    flex-grow: 1;
+}
+
+.Entry .ParameterFoldout .unity-foldout__toggle {
+    margin: 0;
+}
+
+.Entry .ParameterFoldout .unity-foldout__toggle .unity-foldout__text {
+    padding-top: 0;
+    margin-left: 0;
+}
+
+.Entry .ParameterFoldout .ParameterBox {
+    padding: 5px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.Entry .ParameterFoldout .ParameterBox .ParameterName {
+    -unity-font-style: bold;
+}
+
+.Entry .ParameterFoldout .ParameterBox .ParameterDetails {
+    margin-left: 5px;
 }
 
 .IconOuter {
