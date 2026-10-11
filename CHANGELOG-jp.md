@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 
 ### Fixed
+- [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
 
 ### Changed
 - [#2095] Reactive Component の生成処理をブレンドツリー方式に刷新し、アニメーターの処理負荷を軽減するとともに、

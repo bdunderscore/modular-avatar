@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
 
 ### Changed
 
