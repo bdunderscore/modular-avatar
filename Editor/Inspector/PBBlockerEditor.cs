@@ -37,7 +37,6 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         public PBBlockerEditor()
         {
-            Debug.Log("ctor");
         }
         
         protected override void OnInnerInspectorGUI()
