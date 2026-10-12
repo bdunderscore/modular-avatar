@@ -6,6 +6,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.Simulator;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using NUnit.Framework;
 using UnityEngine;
@@ -223,7 +224,7 @@ namespace modular_avatar_tests
                 }
 
                 ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
-                    $"__ActiveSelfProxy/{UnityObjectIDHelper.GetEntityId(controller)}", 1.0f
+                    $"__ActiveSelfProxy/{controller.GetEntityId()}", 1.0f
                 );
                 for (var i = 0; i < 10 && !inactiveContext.IsInvalidated; i++)
                 {
@@ -384,7 +385,7 @@ namespace modular_avatar_tests
                 foreach (var controller in new[] { positionController, rotationController, scaleController })
                 {
                     ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
-                        $"__ActiveSelfProxy/{UnityObjectIDHelper.GetEntityId(controller)}", 1.0f
+                        $"__ActiveSelfProxy/{controller.GetEntityId()}", 1.0f
                     );
                 }
                 for (var i = 0; i < 10 && !inactiveContext.IsInvalidated; i++)
@@ -470,7 +471,7 @@ namespace modular_avatar_tests
                     "The earlier valid position move must preview before the unresolved move activates.");
 
                 ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
-                    $"__ActiveSelfProxy/{UnityObjectIDHelper.GetEntityId(invalidController)}", 1.0f
+                    $"__ActiveSelfProxy/{invalidController.GetEntityId()}", 1.0f
                 );
                 for (var i = 0; i < 10 && !validContext.IsInvalidated; i++)
                 {
@@ -494,7 +495,7 @@ namespace modular_avatar_tests
                     "The unresolved position move must not override the selected scale channel.");
 
                 ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
-                    $"__ActiveSelfProxy/{UnityObjectIDHelper.GetEntityId(invalidController)}", 0.0f
+                    $"__ActiveSelfProxy/{invalidController.GetEntityId()}", 0.0f
                 );
                 for (var i = 0; i < 10 && !invalidContext.IsInvalidated; i++)
                 {

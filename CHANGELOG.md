@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Update VRCFury before upgrading Modular Avatar.
 
 ### Removed
+- [#2146] Removed `UnityObjectIDHelper` from Modular Avatar's public API. This API was exposed accidentally, and caused
+frequent extension method conflicts; use the NDMF-exported version instead.
 
 ### Security
 

@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - [#2122] Removed (made non-public) a number of APIs introduced in 1.19.0-alpha.0 which were not intended to be made
 public (yet).
+- [#2146] Removed `UnityObjectIDHelper` from Modular Avatar's public API. This API was exposed accidentally, and caused
+  frequent extension method conflicts; use the NDMF-exported version instead.
 
 ### Security
 
