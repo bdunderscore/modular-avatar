@@ -13,6 +13,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private uint _lastScaleHash;
         private bool _lastScaleHasMultipleDifferentValues;
         private Vector3[] _lastScales;
+        private bool _undoRedoPerformed;
 
         protected void OnEnable()
         {
@@ -20,6 +21,18 @@ namespace nadena.dev.modular_avatar.core.editor
             _lastScaleHash = _scale.contentHash;
             _lastScaleHasMultipleDifferentValues = _scale.hasMultipleDifferentValues;
             _lastScales = targets.OfType<ModularAvatarScaleAdjuster>().Select(s => s.Scale).ToArray();
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        }
+
+        private void OnUndoRedoPerformed()
+        {
+            _undoRedoPerformed = true;
+        }
+
+        protected override void OnDestroy()
+        {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            base.OnDestroy();
         }
 
         protected override void OnInnerInspectorGUI()
@@ -27,9 +40,16 @@ namespace nadena.dev.modular_avatar.core.editor
             var adjusters = targets.OfType<ModularAvatarScaleAdjuster>().ToArray();
             var currentScales = adjusters.Select(s => s.Scale).ToArray();
 
-            var externallyChanged = _lastScales == null
+            var undoRedoPerformed = _undoRedoPerformed;
+            _undoRedoPerformed = false;
+            if (undoRedoPerformed)
+            {
+                serializedObject.Update();
+            }
+
+            var externallyChanged = !undoRedoPerformed && (_lastScales == null
                                     || _lastScales.Length != currentScales.Length
-                                    || currentScales.Zip(_lastScales, (current, last) => current != last).Any(changed => changed);
+                                    || currentScales.Zip(_lastScales, (current, last) => current != last).Any(changed => changed));
 
             var scalers = adjusters
                 .Select(s => new ScaleAdjusterTool.AdjusterScaler(s)).ToList();
@@ -40,10 +60,11 @@ namespace nadena.dev.modular_avatar.core.editor
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_scale, G("scale_adjuster.scale"));
 
-            var scaleChanged = EditorGUI.EndChangeCheck()
+            var guiChanged = EditorGUI.EndChangeCheck();
+            var scaleChanged = !undoRedoPerformed && (guiChanged
                             || _scale.contentHash != previousScaleHash
                             || _scale.hasMultipleDifferentValues != previousScaleHasMultipleDifferentValues
-                            || externallyChanged;
+                            || externallyChanged);
 
             if (scaleChanged)
             {
