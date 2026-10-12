@@ -700,7 +700,7 @@ namespace modular_avatar_tests
                 Assert.That(handle.GetExistingShadow(moved.transform).position, Is.EqualTo(moved.transform.position));
 
                 ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
-                    $"__ActiveSelfProxy/{nadena.dev.modular_avatar.core.UnityObjectIDHelper.GetEntityId(controller)}",
+                    $"__ActiveSelfProxy/{controller.GetEntityId()}",
                     1.0f
                 );
                 for (var i = 0; i < 10 && !initialContext.IsInvalidated; i++)

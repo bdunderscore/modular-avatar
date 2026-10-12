@@ -21,6 +21,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
     VRCFury を更新してください。
 
 ### Removed
+- [#2146] `UnityObjectIDHelper` を Modular Avatar の公開APIから削除。このAPIは間違って公開されたもいので、
+拡張メソッドの衝突の原因になっていました。代わりに NDMF が公開している同名のクラスをご利用ください。
 
 ### Security
 
