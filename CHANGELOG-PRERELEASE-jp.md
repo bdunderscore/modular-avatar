@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
+- [#2156] `MA Scale Adjuster` の値をインスペクタで貼り付けた時に子オブジェクトの位置が更新されないのを修正
 
 ### Removed
 - [#2122] 1.19.0-alpha.0に間違えて導入したパブリックAPIを幾つか非公開にした
