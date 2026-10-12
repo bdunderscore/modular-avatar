@@ -8,21 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.19.0-alpha.1] - [2026-10-12]
+
+### Added
 - [#2146] `MA Reactive Move` を追加しました。条件に応じてオブジェクトのワールド位置、回転、スケールを別のオブジェクトに合わせられます。
 
 ### Fixed
 - [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
 
-### Changed
-
 ### Removed
 - [#2122] 1.19.0-alpha.0に間違えて導入したパブリックAPIを幾つか非公開にした
 - [#2146] `UnityObjectIDHelper` を Modular Avatar の公開APIから削除。このAPIは間違って公開されたもいので、
   拡張メソッドの衝突の原因になっていました。代わりに NDMF が公開している同名のクラスをご利用ください。
-
-### Security
-
-### Deprecated
 
 ## [1.19.0-alpha.0] - [2026-09-01]
 
