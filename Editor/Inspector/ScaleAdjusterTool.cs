@@ -88,35 +88,38 @@ namespace nadena.dev.modular_avatar.core.editor
                 get => _obj.Scale;
                 set
                 {
-                    Undo.RecordObject(_obj, UNDO_STRING);
+                    SetScale(value, _obj.Scale);
+                }
+            }
 
-                    var targetL2W = _obj.transform.localToWorldMatrix;
+            internal void SetScale(Vector3 value, Vector3 oldScale)
+            {
+                Undo.RecordObject(_obj, UNDO_STRING);
 
-                    var oldScale = _obj.Scale;
+                var targetL2W = _obj.transform.localToWorldMatrix;
 
-                    _obj.Scale = value;
-                    LastScale = value;
+                _obj.Scale = value;
+                LastScale = value;
 
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(_obj);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(_obj);
 
-                    // Update child positions
-                    if (AdjustChildPositions)
+                // Update child positions
+                if (AdjustChildPositions)
+                {
+                    // We clamp the effective scale to avoid losing child bone position data when we scale
+                    // to exactly zero
+                    oldScale = ClampScale(oldScale);
+                    var curScale = ClampScale(_obj.Scale);
+
+                    var baseToScaleCoord = (targetL2W * Matrix4x4.Scale(oldScale)).inverse * targetL2W;
+                    var scaleToBaseCoord = Matrix4x4.Scale(curScale);
+
+                    var updateTransform = scaleToBaseCoord * baseToScaleCoord;
+                    foreach (Transform child in _obj.transform)
                     {
-                        // We clamp the effective scale to avoid losing child bone position data when we scale
-                        // to exactly zero
-                        oldScale = ClampScale(oldScale);
-                        var curScale = ClampScale(_obj.Scale);
-
-                        var baseToScaleCoord = (targetL2W * Matrix4x4.Scale(oldScale)).inverse * targetL2W;
-                        var scaleToBaseCoord = Matrix4x4.Scale(curScale);
-                        
-                        var updateTransform = scaleToBaseCoord * baseToScaleCoord;
-                        foreach (Transform child in _obj.transform)
-                        {
-                            Undo.RecordObject(child, UNDO_STRING);
-                            child.localPosition = updateTransform.MultiplyPoint(child.localPosition);
-                            PrefabUtility.RecordPrefabInstancePropertyModifications(child);
-                        }
+                        Undo.RecordObject(child, UNDO_STRING);
+                        child.localPosition = updateTransform.MultiplyPoint(child.localPosition);
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(child);
                     }
                 }
             }
