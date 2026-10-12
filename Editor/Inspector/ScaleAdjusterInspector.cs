@@ -23,12 +23,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _lastScales = targets.OfType<ModularAvatarScaleAdjuster>().Select(s => s.Scale).ToArray();
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
-
-        private void OnUndoRedoPerformed()
-        {
-            _undoRedoPerformed = true;
-        }
-
+        private void OnUndoRedoPerformed() => _undoRedoPerformed = true;
         protected override void OnDestroy()
         {
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
@@ -39,38 +34,25 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             var adjusters = targets.OfType<ModularAvatarScaleAdjuster>().ToArray();
             var currentScales = adjusters.Select(s => s.Scale).ToArray();
+            var scalers = adjusters.Select(s => new ScaleAdjusterTool.AdjusterScaler(s)).ToList();
 
             var undoRedoPerformed = _undoRedoPerformed;
             _undoRedoPerformed = false;
-            if (undoRedoPerformed)
-            {
-                serializedObject.Update();
-            }
+            if (undoRedoPerformed) serializedObject.Update();
 
-            var externallyChanged = !undoRedoPerformed && (_lastScales == null
-                                    || _lastScales.Length != currentScales.Length
-                                    || currentScales.Zip(_lastScales, (current, last) => current != last).Any(changed => changed));
-
-            var scalers = adjusters
-                .Select(s => new ScaleAdjusterTool.AdjusterScaler(s)).ToList();
-
-            var previousScaleHash = _lastScaleHash;
-            var previousScaleHasMultipleDifferentValues = _lastScaleHasMultipleDifferentValues;
+            var externallyChanged = !undoRedoPerformed && IsExternallyChanged(currentScales);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_scale, G("scale_adjuster.scale"));
 
             var guiChanged = EditorGUI.EndChangeCheck();
-            var scaleChanged = !undoRedoPerformed && (guiChanged
-                            || _scale.contentHash != previousScaleHash
-                            || _scale.hasMultipleDifferentValues != previousScaleHasMultipleDifferentValues
-                            || externallyChanged);
-
+            var scaleChanged = !undoRedoPerformed && (guiChanged || externallyChanged || HasScaleChanged(_scale, _lastScaleHash, _lastScaleHasMultipleDifferentValues));
             if (scaleChanged)
             {
                 for (var i = 0; i < scalers.Count; i++)
                 {
-                    // If the scale was changed externally (e.g., by another script or inspector), we want to reset the scale to the last known value.
+                    // Paste can update the component before this inspector is redrawn, so use the previous scale
+                    // when calculating child positions.
                     if (externallyChanged && _lastScales != null && i < _lastScales.Length)
                     {
                         scalers[i].SetScale(_scale.vector3Value, _lastScales[i]);
@@ -91,6 +73,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 ScaleAdjusterTool.AdjustChildPositions);
 
             ShowLanguageUI();
+        }
+
+        private bool IsExternallyChanged(Vector3[] currentScales)
+        {
+            return _lastScales == null
+                || _lastScales.Length != currentScales.Length
+                || currentScales.Zip(_lastScales, (current, last) => current != last).Any(changed => changed);
+        }
+
+        private static bool HasScaleChanged(SerializedProperty scale, uint previousScaleHash,
+            bool previousScaleHasMultipleDifferentValues)
+        {
+            return scale.contentHash != previousScaleHash
+                || scale.hasMultipleDifferentValues != previousScaleHasMultipleDifferentValues;
         }
     }
 }
