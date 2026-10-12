@@ -1,0 +1,39 @@
+{
+  "name": "nadena.dev.modular-avatar.tests.playmode.vrchat",
+  "rootNamespace": "",
+  "references": [
+    "nadena.dev.modular-avatar.tests.playmode",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "nadena.dev.modular-avatar.core",
+    "VRC.SDK3A",
+    "VRC.SDKBase"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll",
+    "VRC.Dynamics.dll",
+    "VRC.SDK3.Dynamics.Constraint.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS",
+    "MA_VRCSDK3_AVATARS"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.vrchat.avatars",
+      "expression": "",
+      "define": "MA_VRCSDK3_AVATARS"
+    },
+    {
+      "name": "com.vrchat.avatars",
+      "expression": "3.5.2",
+      "define": "MA_VRCSDK3_AVATARS_3_5_2_OR_NEWER"
+    }
+  ],
+  "noEngineReferences": false
+}

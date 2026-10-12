@@ -9,8 +9,10 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2146] `MA Reactive Move` を追加しました。条件に応じてオブジェクトのワールド位置、回転、スケールを別のオブジェクトに合わせられます。
 
 ### Fixed
+- [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
 
 ### Changed
 - [#2095] Reactive Component の生成処理をブレンドツリー方式に刷新し、アニメーターの処理負荷を軽減するとともに、
@@ -20,6 +22,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
     VRCFury を更新してください。
 
 ### Removed
+- [#2146] `UnityObjectIDHelper` を Modular Avatar の公開APIから削除。このAPIは間違って公開されたもいので、
+拡張メソッドの衝突の原因になっていました。代わりに NDMF が公開している同名のクラスをご利用ください。
 
 ### Security
 

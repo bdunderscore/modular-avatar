@@ -11,8 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 
 ### Fixed
+- [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
 
 ### Changed
 - [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different
@@ -22,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Update VRCFury before upgrading Modular Avatar.
 
 ### Removed
+- [#2146] Removed `UnityObjectIDHelper` from Modular Avatar's public API. This API was exposed accidentally, and caused
+frequent extension method conflicts; use the NDMF-exported version instead.
 
 ### Security
 

@@ -229,12 +229,17 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             // ParameterExpression (ie - not around intermediate And/Or nodes).
 
             var transform = new AlignNodesTransform(context);
-
             transform.AddInitialEdges(byEffect);
             transform.TopoAssignDepths();
             transform.CheckForCycles();
-            transform.InjectDelayNodes(byEffect);
 
+            transform._assignedDepths.TryGetValue(ExternalSource.Instance, out var alignedGraphLatency);
+            foreach (var group in byEffect.Values)
+            {
+                group.AlignedGraphLatency = Math.Max(group.Latency, alignedGraphLatency);
+            }
+
+            transform.InjectDelayNodes(byEffect);
             return byEffect.Values.ToList();
         }
 

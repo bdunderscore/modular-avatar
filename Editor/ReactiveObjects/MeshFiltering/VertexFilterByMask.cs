@@ -2,6 +2,7 @@
 
 using System;
 using nadena.dev.modular_avatar.core.vertex_filters;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using Unity.Burst;
 using Unity.Collections;

@@ -77,7 +77,12 @@ namespace UnitTests.SharedInterfacesImpl
         public void ProcessAvatar(GameObject gameObject)
         {
             using var scope = new OverrideTemporaryDirectoryScope(null);
-            AvatarProcessor.ProcessAvatar(gameObject, PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30]);
+#if MA_VRCSDK3_AVATARS
+            var platform = WellKnownPlatforms.VRChatAvatar30;
+#else
+            var platform = WellKnownPlatforms.Generic;
+#endif
+            AvatarProcessor.ProcessAvatar(gameObject, PlatformRegistry.PlatformProviders[platform]);
         }
 
         public T LoadAsset<T>(Type relativeType, string relPath) where T : Object

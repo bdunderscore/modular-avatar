@@ -463,6 +463,99 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        private void FindReactiveMoves(Dictionary<object, AnimatedProperty> objectGroups, GameObject root)
+        {
+            var moves = _computeContext.GetComponentsInChildren<ModularAvatarReactiveMove>(root, true);
+
+            foreach (var move in moves)
+            {
+                var settings = _computeContext.Observe(move, c => (
+                    ToMove: c.ToMove?.Clone(),
+                    WhereTo: c.WhereTo?.Clone(),
+                    c.FixToWorld,
+                    c.SetsPosition,
+                    c.SetsRotation,
+                    c.SetsScale,
+                    c.TransitionTime,
+                    c.Inverted
+                ));
+                var toMove = settings.ToMove?.Get(move)?.transform;
+                var whereTo = settings.WhereTo?.Get(move)?.transform;
+                if (toMove == null) continue;
+                if (!settings.SetsPosition && !settings.SetsRotation && !settings.SetsScale) continue;
+
+                AddReactiveMove(objectGroups, move, toMove, whereTo,
+                    settings.FixToWorld, settings.SetsPosition, settings.SetsRotation,
+                    settings.SetsScale, settings.TransitionTime, settings.Inverted);
+            }
+        }
+
+        private void AddReactiveMove(
+            Dictionary<object, AnimatedProperty> objectGroups,
+            ModularAvatarReactiveMove move,
+            Transform toMove,
+            Transform? whereTo,
+            bool fixToWorld,
+            bool setsPosition,
+            bool setsRotation,
+            bool setsScale,
+            float transitionTime,
+            bool inverted
+        )
+        {
+            if (toMove == whereTo)
+            {
+                // Self-reference: Convert to fixed-to-world
+                fixToWorld = true;
+                whereTo = null;
+            }
+
+            if (setsPosition)
+            {
+                AddReactiveMoveChannel(objectGroups, move, toMove, whereTo, fixToWorld,
+                    ReactiveMoveChannels.Position, transitionTime, inverted);
+            }
+
+            if (setsRotation)
+            {
+                AddReactiveMoveChannel(objectGroups, move, toMove, whereTo, fixToWorld,
+                    ReactiveMoveChannels.Rotation, transitionTime, inverted);
+            }
+
+            if (setsScale)
+            {
+                AddReactiveMoveChannel(objectGroups, move, toMove, whereTo, fixToWorld,
+                    ReactiveMoveChannels.Scale, transitionTime, inverted);
+            }
+        }
+
+        private void AddReactiveMoveChannel(
+            Dictionary<object, AnimatedProperty> objectGroups,
+            ModularAvatarReactiveMove move,
+            Transform toMove,
+            Transform? whereTo,
+            bool fixToWorld,
+            ReactiveMoveChannels channel,
+            float transitionTime,
+            bool inverted
+        )
+        {
+            var moveAction = new ReactiveMoveAction(toMove, whereTo, fixToWorld, channel, transitionTime);
+            var action = ObjectRule(moveAction, move, toMove.gameObject);
+            action.Inverted = inverted;
+
+            if (!objectGroups.TryGetValue(moveAction.TargetKey, out var group))
+            {
+                group = new AnimatedProperty(moveAction.TargetKey);
+                objectGroups[moveAction.TargetKey] = group;
+            }
+
+            if (group.actionGroups.Count == 0 || !group.actionGroups[^1].TryMerge(action))
+            {
+                group.actionGroups.Add(action);
+            }
+        }
+
         private void FindObjectToggles(Dictionary<object, AnimatedProperty> objectGroups, GameObject root)
         {
             var toggles = _computeContext.GetComponentsInChildren<ModularAvatarObjectToggle>(root, true);
