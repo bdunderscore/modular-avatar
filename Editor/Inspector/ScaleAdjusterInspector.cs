@@ -69,8 +69,6 @@ namespace nadena.dev.modular_avatar.core.editor
             ScaleAdjusterTool.AdjustChildPositions = EditorGUILayout.Toggle(G("scale_adjuster.adjust_children"),
                 ScaleAdjusterTool.AdjustChildPositions);
 
-            serializedObject.ApplyModifiedProperties();
-
             ShowLanguageUI();
         }
     }
