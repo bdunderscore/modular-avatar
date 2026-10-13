@@ -12,9 +12,9 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
-    internal class BuildContext
+    internal class BuildContext : IExtensionContext
     {
-        internal readonly ndmf.BuildContext PluginBuildContext;
+        internal ndmf.BuildContext PluginBuildContext { get; private set; }
 
 #if MA_VRCSDK3_AVATARS
         internal VRCAvatarDescriptor AvatarDescriptor => PluginBuildContext.AvatarDescriptor;
@@ -35,12 +35,17 @@ namespace nadena.dev.modular_avatar.core.editor
         /// </summary>
         internal readonly Dictionary<Object, Action<VRCExpressionsMenu.Control>> PostProcessControls = new();
 #endif
-        public static implicit operator BuildContext(ndmf.BuildContext ctx) =>
-            ctx.Extension<ModularAvatarContext>().BuildContext;
 
-        public BuildContext(ndmf.BuildContext PluginBuildContext)
+        // Parameterless constructor for use as an IExtensionContext
+        public BuildContext()
         {
-            this.PluginBuildContext = PluginBuildContext;
+        }
+
+        // Legacy constructor for tests and direct instantiation
+        // When using this constructor, OnActivate will not override the PluginBuildContext
+        public BuildContext(ndmf.BuildContext pluginBuildContext)
+        {
+            this.PluginBuildContext = pluginBuildContext;
         }
 
 #if MA_VRCSDK3_AVATARS
@@ -91,5 +96,27 @@ namespace nadena.dev.modular_avatar.core.editor
             return newMenu;
         }
 #endif
+
+        public void OnActivate(ndmf.BuildContext context)
+        {
+            // Initialize from the framework-provided context when used as an extension
+            if (PluginBuildContext == null)
+            {
+                PluginBuildContext = context;
+            }
+        }
+
+        public void OnDeactivate(ndmf.BuildContext context)
+        {
+            // Nothing to clean up
+        }
+    }
+
+    internal static class BuildContextExtensions
+    {
+        public static BuildContext GetBuildContext(this ndmf.BuildContext ctx)
+        {
+            return ctx.Extension<BuildContext>();
+        }
     }
 }
