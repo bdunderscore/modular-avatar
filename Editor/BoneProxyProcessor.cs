@@ -102,24 +102,27 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
 
                 var transform = Proxy.transform;
-                if (keepPos)
-                {
-                    transform.position = WorldPos;
+                
+                if (proxy.Proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepLocalPose) {
+                    if (keepPos)
+                    {
+                        transform.position = WorldPos;
+                    }
+                    else
+                    {
+                        transform.localPosition = Vector3.zero;
+                    }
+    
+                    if (keepRot)
+                    {
+                        transform.rotation = WorldRot;
+                    }
+                    else
+                    {
+                        transform.localRotation = Quaternion.identity;
+                    }
                 }
-                else
-                {
-                    transform.localPosition = Vector3.zero;
-                }
-
-                if (keepRot)
-                {
-                    transform.rotation = WorldRot;
-                }
-                else
-                {
-                    transform.localRotation = Quaternion.identity;
-                }
-
+                
                 if (Proxy.matchScale)
                 {
                     transform.localScale = Vector3.one;
@@ -168,7 +171,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 proxy.Proxy.gameObject.name += suffix;
 
                 var transform = proxy.Proxy.transform;
-                transform.SetParent(proxy.Target, true);
+                transform.SetParent(proxy.Target, proxy.Proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepLocalPose);
             }
         }
 
