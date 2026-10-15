@@ -26,6 +26,7 @@ namespace nadena.dev.modular_avatar.core.editor
             BoneProxyAttachmentMode.AsChildKeepWorldPose,
             BoneProxyAttachmentMode.AsChildKeepRotation,
             BoneProxyAttachmentMode.AsChildKeepPosition,
+            BoneProxyAttachmentMode.AsChildKeepLocalPose,
         };
     }
 
