@@ -49,14 +49,19 @@ namespace nadena.dev.modular_avatar.core
         AsChildKeepWorldPose,
 
         /// <summary>
-        /// Places the bone proxy object at the target, preserving local rotation only.
+        /// Places the bone proxy object at the target, preserving world rotation only.
         /// </summary>
         AsChildKeepRotation,
 
         /// <summary>
-        /// Places the bone proxy object at the target, preserving local position only.
+        /// Places the bone proxy object at the target, preserving world position only.
         /// </summary>
         AsChildKeepPosition,
+
+         /// <summary>
+         /// Places the bone proxy object at the target, preserving local position, rotation and scale.
+         /// </summary>
+         AsChildKeepLocalPose,       
     }
 
     [ExecuteInEditMode]
