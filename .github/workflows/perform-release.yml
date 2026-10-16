@@ -172,18 +172,18 @@ jobs:
           
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: CHANGELOG
           path: CHANGELOG.md
       - name: Upload CHANGELOG-PRERELEASE.md
         if: ${{ github.event.inputs.release_kind == 'prerelease' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
       - name: Upload release note
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: changelog
           path: release-note.md
@@ -209,7 +209,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: package-zip
           path: ${{ env.zipFile }}
