@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 var transform = Proxy.transform;
                 
-                if (proxy.Proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepLocalPose) {
+                if (Proxy.attachmentMode != BoneProxyAttachmentMode.AsChildKeepLocalPose) {
                     if (keepPos)
                     {
                         transform.position = WorldPos;
