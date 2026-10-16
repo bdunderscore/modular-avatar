@@ -5,7 +5,7 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     /// <summary>
     /// Regression test: When the retargeted root bone has a zero-scale axis, the bounds extents computation
@@ -22,14 +22,14 @@ namespace modular_avatar_tests
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
-
+    
             // Create bone hierarchy: root > parentBone > childBone
             var parentBone = CreateChild(root, "parentBone");
             var childBone = CreateChild(parentBone, "childBone");
-
+    
             // Set parentBone to have zero Y scale — this will be the newRootBone
             parentBone.transform.localScale = new Vector3(1, 0, 1);
-
+    
             // Create SkinnedMeshRenderer with childBone as rootBone
             var renderer = root.AddComponent<SkinnedMeshRenderer>();
             var mesh = new Mesh();
@@ -45,17 +45,17 @@ namespace modular_avatar_tests
             renderer.sharedMesh = mesh;
             renderer.localBounds = mesh.bounds;
             renderer.rootBone = childBone.transform;
-
+    
             // Set up bone database: mark childBone as retargetable
             // GetRetargetedBone(childBone) will return parentBone (the first non-retargetable ancestor)
             var boneDatabase = new BoneDatabase();
             boneDatabase.AddMergedBone(childBone.transform);
-
+    
             var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
             var asc = buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             new RetargetMeshes().OnPreprocessAvatar(root, boneDatabase, asc);
-
+    
             // After retargeting, verify bounds are valid (not NaN/Inf)
             var bounds = renderer.localBounds;
             Assert.IsFalse(float.IsNaN(bounds.extents.x), "bounds.extents.x is NaN");
@@ -64,7 +64,7 @@ namespace modular_avatar_tests
             Assert.IsFalse(float.IsInfinity(bounds.extents.x), "bounds.extents.x is Inf");
             Assert.IsFalse(float.IsInfinity(bounds.extents.y), "bounds.extents.y is Inf");
             Assert.IsFalse(float.IsInfinity(bounds.extents.z), "bounds.extents.z is Inf");
-
+    
             Assert.IsFalse(float.IsNaN(bounds.center.x), "bounds.center.x is NaN");
             Assert.IsFalse(float.IsNaN(bounds.center.y), "bounds.center.y is NaN");
             Assert.IsFalse(float.IsNaN(bounds.center.z), "bounds.center.z is NaN");

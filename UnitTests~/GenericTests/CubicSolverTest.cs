@@ -4,12 +4,12 @@ using System.Linq;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class CubicSolverTest
     {
         private const double RootTolerance = 1e-6;
-
+    
         [Test]
         public void FindsThreeDistinctRootsInInterval()
         {
@@ -21,11 +21,11 @@ namespace modular_avatar_tests
             const double c = 0.66;
             const double d = -0.08;
             var expected = new[] { 0.2, 0.5, 0.8 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void ReturnsOnlyRootsInsideRequestedInterval()
         {
@@ -38,11 +38,11 @@ namespace modular_avatar_tests
             const double c = -5.75;
             const double d = 1.5;
             var expected = new[] { 0.25 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void ReturnsRepeatedRootOnlyOnce()
         {
@@ -55,13 +55,13 @@ namespace modular_avatar_tests
             const double c = 0.88;
             const double d = -0.144;
             var expected = new[] { 0.4, 0.9 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, new[] { 0.4, 0.9 });
             Assert.That(EvaluateDerivative(a, b, c, 0.4), Is.EqualTo(0.0).Within(1e-14),
                 "The derivative must also vanish at the stated double root");
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void CollapsesFloatAdjacentCandidatesAroundRepeatedRoot()
         {
@@ -74,7 +74,7 @@ namespace modular_avatar_tests
             var b = -(2.0 * repeatedRoot + simpleRoot);
             var c = repeatedRoot * repeatedRoot + 2.0 * repeatedRoot * simpleRoot;
             var d = -repeatedRoot * repeatedRoot * simpleRoot;
-
+    
             // The rounded polynomial has a positive local maximum near 0.122, but is
             // negative only 10^-8 to either side. It therefore has two numerical roots
             // in this interval, separated by only a few float ULPs. The interval solver
@@ -90,12 +90,12 @@ namespace modular_avatar_tests
                 Is.Not.EqualTo((float)(repeatedRoot + splitBracketRadius)),
                 "The split neighborhood must span more than one float value"
             );
-
+    
             var expected = new[] { repeatedRoot, simpleRoot };
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void ReturnsTripleRootOnlyOnce()
         {
@@ -105,11 +105,11 @@ namespace modular_avatar_tests
             const double c = 0.27;
             const double d = -0.027;
             var expected = new[] { 0.3 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, new[] { 0.3 });
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void SmallDiscriminantDoesNotCreateSpuriousRoots()
         {
@@ -120,11 +120,11 @@ namespace modular_avatar_tests
             const double c = 0.0;
             const double d = 1e-6;
             var expected = new[] { -0.01 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, -1.0, 1.0));
         }
-
+    
         [Test]
         public void ScalingAllCoefficientsDoesNotChangeRoots()
         {
@@ -137,11 +137,11 @@ namespace modular_avatar_tests
             const double c = 0.66 * scale;
             const double d = -0.08 * scale;
             var expected = new[] { 0.2, 0.5, 0.8 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void TinyLeadingCoefficientDoesNotRequireMonicNormalization()
         {
@@ -155,11 +155,11 @@ namespace modular_avatar_tests
             const double c = -1.0;
             const double d = 0.0;
             var expected = new[] { 0.0 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, -0.1, 0.1));
         }
-
+    
         [Test]
         public void IncludesRootsAtIntervalEndpoints()
         {
@@ -170,11 +170,11 @@ namespace modular_avatar_tests
             const double c = 0.5;
             const double d = 0.0;
             var expected = new[] { 0.0, 0.5, 1.0 };
-
+    
             AssertExpectedRootsEvaluateToZero(a, b, c, d, expected);
             AssertRoots(expected, CubicSolver.SolveCubicInterval(a, b, c, d, 0.0, 1.0));
         }
-
+    
         [Test]
         public void HandlesQuadraticAndLinearInputs()
         {
@@ -183,14 +183,14 @@ namespace modular_avatar_tests
             AssertExpectedRootsEvaluateToZero(0.0, 1.0, -1.0, 0.16, quadraticExpected);
             AssertRoots(quadraticExpected,
                 CubicSolver.SolveCubicInterval(0.0, 1.0, -1.0, 0.16, 0.0, 1.0));
-
+    
             // 2x - 1 = 0 iff x = 0.5.
             var linearExpected = new[] { 0.5 };
             AssertExpectedRootsEvaluateToZero(0.0, 0.0, 2.0, -1.0, linearExpected);
             AssertRoots(linearExpected,
                 CubicSolver.SolveCubicInterval(0.0, 0.0, 2.0, -1.0, 0.0, 1.0));
         }
-
+    
         [Test]
         public void ReturnsNoRootWhenPolynomialDoesNotReachZero()
         {
@@ -198,7 +198,7 @@ namespace modular_avatar_tests
             var roots = CubicSolver.SolveCubicInterval(0.0, 1.0, 0.0, 1.0, -10.0, 10.0);
             Assert.That(roots, Is.Empty);
         }
-
+    
         private static void AssertExpectedRootsEvaluateToZero(
             double a,
             double b,
@@ -216,7 +216,7 @@ namespace modular_avatar_tests
                     $"The stated root {root:R} must evaluate to zero for the test polynomial");
             }
         }
-
+    
         private static void AssertRoots(double[] expected, IEnumerable<float> actualRoots)
         {
             var actual = actualRoots.ToArray();
@@ -227,17 +227,17 @@ namespace modular_avatar_tests
                     $"Unexpected root at index {i}");
             }
         }
-
+    
         private static double Evaluate(double a, double b, double c, double d, double x)
         {
             return ((a * x + b) * x + c) * x + d;
         }
-
+    
         private static double EvaluateDerivative(double a, double b, double c, double x)
         {
             return (3.0 * a * x + 2.0 * b) * x + c;
         }
-
+    
         private static double EvaluationScale(double a, double b, double c, double d, double x)
         {
             var absX = Math.Abs(x);

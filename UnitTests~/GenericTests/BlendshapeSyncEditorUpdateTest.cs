@@ -3,7 +3,7 @@ using nadena.dev.modular_avatar.core;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class BlendshapeSyncEditorUpdateTest : TestBase
     {
@@ -18,7 +18,7 @@ namespace modular_avatar_tests
                 mesh.AddBlendShapeFrame(name, 100f, deltas, zeros, zeros);
             return mesh;
         }
-
+    
         [Test]
         public void NullTargetMesh_ContinuesLoop_RatherThanAbortingEarly()
         {
@@ -28,18 +28,18 @@ namespace modular_avatar_tests
             var localMesh = TrackObject(CreateMeshWithBlendshapes("shape_a", "shape_b"));
             var localSmr = localGo.AddComponent<SkinnedMeshRenderer>();
             localSmr.sharedMesh = localMesh;
-
+    
             // Source mesh: one blendshape to be synced into local shape_b.
             var sourceGo = CreateChild(root, "source");
             var sourceMesh = TrackObject(CreateMeshWithBlendshapes("shape_b"));
             var sourceSmr = sourceGo.AddComponent<SkinnedMeshRenderer>();
             sourceSmr.sharedMesh = sourceMesh;
             sourceSmr.SetBlendShapeWeight(0, 77f);
-
+    
             var sync = localGo.AddComponent<ModularAvatarBlendshapeSync>();
             // A single dummy Bindings entry so BindingIndex=0 doesn't throw.
             sync.Bindings.Add(new BlendshapeBinding());
-
+    
             // First binding: TargetMesh null — simulates a mesh that was destroyed.
             // Second binding: valid source → syncs sourceSmr[0] into local[1].
             sync._editorBindings = new List<ModularAvatarBlendshapeSync.EditorBlendshapeBinding>
@@ -58,15 +58,15 @@ namespace modular_avatar_tests
                     BindingIndex = 0,
                 },
             };
-
+    
             sync.EditorUpdate();
-
+    
             // With the bug (`return` instead of `continue`), the loop aborts on the null
             // binding and shape_b (index 1) stays at 0.  With the fix it should be 77.
             Assert.AreEqual(77f, localSmr.GetBlendShapeWeight(1), 0.001f,
                 "EditorUpdate must skip null-TargetMesh bindings and still sync subsequent valid ones");
         }
-
+    
         [Test]
         public void Rebind_SkipsNullReferenceMesh_AndProcessesValidBindings()
         {
@@ -75,13 +75,13 @@ namespace modular_avatar_tests
             var localMesh = TrackObject(CreateMeshWithBlendshapes("shape_a", "shape_b"));
             var localSmr = localGo.AddComponent<SkinnedMeshRenderer>();
             localSmr.sharedMesh = localMesh;
-
+    
             var sourceGo = CreateChild(root, "source");
             var sourceMesh = TrackObject(CreateMeshWithBlendshapes("shape_b"));
             var sourceSmr = sourceGo.AddComponent<SkinnedMeshRenderer>();
             sourceSmr.sharedMesh = sourceMesh;
             sourceSmr.SetBlendShapeWeight(0, 77f);
-
+    
             var sync = localGo.AddComponent<ModularAvatarBlendshapeSync>();
             sync.Bindings.Add(new BlendshapeBinding
             {
@@ -95,7 +95,7 @@ namespace modular_avatar_tests
                 RemapCurveIsValid = true,
                 RemapCurve = AnimationCurve.Linear(0, 0, 100, 100),
             });
-
+    
             Assert.DoesNotThrow(sync.Rebind);
             Assert.That(sync._editorBindings, Has.Count.EqualTo(1));
             Assert.AreEqual(77f, localSmr.GetBlendShapeWeight(1), 0.001f);

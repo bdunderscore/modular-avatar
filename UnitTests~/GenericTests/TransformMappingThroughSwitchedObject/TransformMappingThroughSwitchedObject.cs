@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests.TransformMappingThroughSwitchedObject
+namespace nadena.dev.modular_avatar.test.Tests.TransformMappingThroughSwitchedObject
 {
     /// <summary>
     /// This test verifies that transform mappings are properly handled, even if the bone they target is on an armature
@@ -18,9 +18,9 @@ namespace modular_avatar_tests.TransformMappingThroughSwitchedObject
         {
             var prefab = CreatePrefab("TransformMappingThroughSwitchedObject.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var motion = findFxClip(prefab, "child_controller");
-
+    
             var binding = EditorCurveBinding.FloatCurve("Armature/Hips", typeof(Transform), "localEulerAnglesRaw.x");
             var curve = AnimationUtility.GetEditorCurve(motion, binding);
             Assert.IsNotNull(curve);

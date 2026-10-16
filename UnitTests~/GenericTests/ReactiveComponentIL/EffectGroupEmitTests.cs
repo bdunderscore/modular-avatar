@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -10,7 +10,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     /// <summary>
     /// Tests for EffectGroup.Emit() / EmitCondition — verifies that each IExpression type
@@ -28,7 +28,7 @@ namespace UnitTestsReactiveComponentIL
     public class EffectGroupEmitTests : TestBase
     {
         private UnityBlendTreeBackend _blendTreeBackend;
-
+    
         [SetUp]
         public override void Setup()
         {
@@ -39,30 +39,30 @@ namespace UnitTestsReactiveComponentIL
             var vac = VirtualAnimatorController.Create(asc.ControllerContext.CloneContext);
             _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
         }
-
+    
         // ── helpers ───────────────────────────────────────────────────────────
-
+    
         private IMotionNode Resolve(IMotionNode node)
         {
             while (node is ProxyNode px) node = px.Target;
             return node;
         }
-
+    
         private bool ResolvesToEffect(IMotionNode node) => Resolve(node) is MotionNode;
         private bool ResolvesToEmpty(IMotionNode node) => Resolve(node) is EmptyNode;
-
+    
         private float EffectValue(IMotionNode node)
         {
             var motion = Resolve(node) as MotionNode;
             Assert.IsNotNull(motion, "Expected an emitted MotionNode");
             var clip = motion.Motion as VirtualClip;
             Assert.IsNotNull(clip, "Effect MotionNode must contain a VirtualClip");
-
+    
             var curve = clip.GetFloatCurve("", typeof(UnityEngine.Animator), "effect");
             Assert.IsNotNull(curve, "Effect MotionNode must animate the effect parameter");
             return curve.Evaluate(0f);
         }
-
+    
         private EffectGroup MakeGroup(IExpression condition)
         {
             var graph = new ReactionGraph();
@@ -70,7 +70,7 @@ namespace UnitTestsReactiveComponentIL
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new InternalParameterTarget("effect")];
         }
-
+    
         private EffectGroup MakeGroup(params IExpression[] conditions)
         {
             var graph = new ReactionGraph();
@@ -78,11 +78,11 @@ namespace UnitTestsReactiveComponentIL
             {
                 graph.AddNode(new ReactionNode(condition, new DriveInternalParameter("effect", true)));
             }
-
+    
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new InternalParameterTarget("effect")];
         }
-
+    
         private EffectGroup MakeGroup(params (IExpression condition, IAction effect)[] nodes)
         {
             var graph = new ReactionGraph();
@@ -90,11 +90,11 @@ namespace UnitTestsReactiveComponentIL
             {
                 graph.AddNode(new ReactionNode(condition, effect));
             }
-
+    
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             return groups[new ParameterTarget("effect")];
         }
-
+    
         private void AssertBranchCondition(
             ProxyCondition proxy,
             string parameter,
@@ -107,9 +107,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreSame(onTrue, branch.OnGreaterThan);
             Assert.AreSame(onFalse, branch.OnLessEquals);
         }
-
+    
         // ── Two-node priority ordering ────────────────────────────────────────
-
+    
         /// <summary>
         /// With exactly two nodes, the ≤2 code path builds a chain of ProxyConditions.
         /// "Last component wins" requires that conditions[1] (second) is checked first so it takes
@@ -123,14 +123,14 @@ namespace UnitTestsReactiveComponentIL
                 (new InternalParameterCondition("second"), new DriveParameter("effect", 2f))
             );
             var root = group.Emit(_blendTreeBackend);
-
+    
             var outerBranch = Resolve(root) as BranchNode;
             Assert.IsNotNull(outerBranch, "Root should be a BranchNode");
             Assert.AreEqual("second", outerBranch.Parameter,
                 "Last condition must be checked first so it wins when both are true");
             Assert.AreEqual(2f, EffectValue(outerBranch.OnGreaterThan),
                 "second=true must select the second effect");
-
+    
             var innerBranch = Resolve(outerBranch.OnLessEquals) as BranchNode;
             Assert.IsNotNull(innerBranch, "second=false path should check 'first'");
             Assert.AreEqual("first", innerBranch.Parameter);
@@ -138,9 +138,9 @@ namespace UnitTestsReactiveComponentIL
                 "first=true must select the first effect");
             Assert.IsTrue(ResolvesToEmpty(innerBranch.OnLessEquals), "both false → empty");
         }
-
+    
         // ── PriorityNode groups ───────────────────────────────────────────────
-
+    
         [Test]
         public void ThreeNodes_EmitUsesPriorityNodeAndFillsEachProxyCondition()
         {
@@ -149,14 +149,14 @@ namespace UnitTestsReactiveComponentIL
                 (new InternalParameterCondition("second"), new DriveParameter("effect", 2f)),
                 (new InternalParameterCondition("third"), new DriveParameter("effect", 3f))
             ).Emit(_blendTreeBackend);
-
+    
             var priority = root as PriorityNode;
             Assert.IsNotNull(priority, "Three or more effects should emit through a PriorityNode");
             Assert.AreEqual(3, priority.Conditions.Count);
             Assert.AreEqual(3f, EffectValue(priority.Conditions[0].Item2));
             Assert.AreEqual(2f, EffectValue(priority.Conditions[1].Item2));
             Assert.AreEqual(1f, EffectValue(priority.Conditions[2].Item2));
-
+    
             AssertBranchCondition(
                 priority.Conditions[0].Item1,
                 "third",
@@ -173,7 +173,7 @@ namespace UnitTestsReactiveComponentIL
                 priority.Conditions[2].Item1.OnTrueProxy,
                 priority.Conditions[2].Item1.OnFalseProxy);
         }
-
+    
         /// <summary>
         /// PriorityNode is "first wins", so for "last component wins" semantics the conditions list
         /// must be in reverse node order: conditions[0] = last/highest-priority node.
@@ -187,11 +187,11 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("third")
             );
             var root = group.Emit(_blendTreeBackend);
-
+    
             var priority = root as PriorityNode;
             Assert.IsNotNull(priority);
             Assert.AreEqual(3, priority.Conditions.Count);
-
+    
             // PriorityNode is first-wins, so the last-added (highest-priority) node must be at index 0.
             Assert.AreEqual("third",
                 (priority.Conditions[0].Item1.Node as BranchNode)?.Parameter,
@@ -201,7 +201,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual("first",
                 (priority.Conditions[2].Item1.Node as BranchNode)?.Parameter);
         }
-
+    
         [Test]
         public void Emit_DefaultNode_MarksExactlyItsSelectedProxyInitial()
         {
@@ -211,27 +211,27 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("third")
             );
             group.DefaultNode = 1;
-
+    
             var priority = group.Emit(_blendTreeBackend) as PriorityNode;
-
+    
             Assert.IsNotNull(priority);
             var initialCount = 0;
             ProxyCondition initialProxy = null;
             foreach (var (proxy, _) in priority.Conditions)
             {
                 if (!proxy.InitialState) continue;
-
+    
                 initialCount++;
                 initialProxy = proxy;
             }
-
+    
             Assert.AreEqual(1, initialCount, "Exactly one emitted proxy must carry the selected initial state");
             Assert.AreEqual("second", (initialProxy.Node as BranchNode)?.Parameter,
                 "The initial-state proxy must belong to DefaultNode, not priority-list position");
         }
-
+    
         // ── Constant conditions ───────────────────────────────────────────────
-
+    
         [Test]
         public void Constant_True_ResolvesToEffectMotion()
         {
@@ -239,7 +239,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEffect(root),
                 "Constant(true) should resolve to the effect MotionNode without any BranchNode");
         }
-
+    
         [Test]
         public void Constant_False_ResolvesToEmpty()
         {
@@ -247,9 +247,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEmpty(root),
                 "Constant(false) should resolve to EmptyNode without any BranchNode");
         }
-
+    
         // ── InternalParameterCondition ────────────────────────────────────────
-
+    
         [Test]
         public void InternalParameterCondition_GreaterEquals_IsEffect_LessThan_IsEmpty()
         {
@@ -262,9 +262,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEmpty(branch.OnLessEquals),
                 "OnLessThan (condition false) should be empty");
         }
-
+    
         // ── NotNode ───────────────────────────────────────────────────────────
-
+    
         [Test]
         public void NotNode_WrappingIPC_SwapsEffectAndEmpty()
         {
@@ -277,23 +277,23 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEffect(branch.OnLessEquals),
                 "cond=false → NOT is true → effect");
         }
-
+    
         [Test]
         public void NotNode_WrappingConstantTrue_ResolvesToEmpty()
         {
             var root = MakeGroup(new NotNode(new Constant(true))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root), "NOT(true) → empty");
         }
-
+    
         [Test]
         public void NotNode_WrappingConstantFalse_ResolvesToEffect()
         {
             var root = MakeGroup(new NotNode(new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root), "NOT(false) → effect");
         }
-
+    
         // ── OrNode ────────────────────────────────────────────────────────────
-
+    
         [Test]
         public void OrNode_TwoIPCs_ShortCircuits_BFirstThenA()
         {
@@ -302,35 +302,35 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("a"),
                 new InternalParameterCondition("b")
             )).Emit(_blendTreeBackend);
-
+    
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
             Assert.AreEqual("b", outer.Parameter);
             Assert.IsTrue(ResolvesToEffect(outer.OnGreaterThan), "b=true → OR is true → effect");
-
+    
             var inner = Resolve(outer.OnLessEquals) as BranchNode;
             Assert.IsNotNull(inner, "b=false path should check 'a'");
             Assert.AreEqual("a", inner.Parameter);
             Assert.IsTrue(ResolvesToEffect(inner.OnGreaterThan), "b=false, a=true → OR is true → effect");
             Assert.IsTrue(ResolvesToEmpty(inner.OnLessEquals), "both false → empty");
         }
-
+    
         [Test]
         public void OrNode_TrueOrFalse_ResolvesToEffect()
         {
             var root = MakeGroup(new OrNode(new Constant(true), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root));
         }
-
+    
         [Test]
         public void OrNode_FalseOrFalse_ResolvesToEmpty()
         {
             var root = MakeGroup(new OrNode(new Constant(false), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root));
         }
-
+    
         // ── AndNode ───────────────────────────────────────────────────────────
-
+    
         [Test]
         public void AndNode_TwoIPCs_ShortCircuits_BFirstThenA()
         {
@@ -339,35 +339,35 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("a"),
                 new InternalParameterCondition("b")
             )).Emit(_blendTreeBackend);
-
+    
             var outer = Resolve(root) as BranchNode;
             Assert.IsNotNull(outer);
             Assert.AreEqual("b", outer.Parameter);
             Assert.IsTrue(ResolvesToEmpty(outer.OnLessEquals), "b=false → AND is false → empty");
-
+    
             var inner = Resolve(outer.OnGreaterThan) as BranchNode;
             Assert.IsNotNull(inner, "b=true path should check 'a'");
             Assert.AreEqual("a", inner.Parameter);
             Assert.IsTrue(ResolvesToEffect(inner.OnGreaterThan), "both true → effect");
             Assert.IsTrue(ResolvesToEmpty(inner.OnLessEquals), "b=true, a=false → empty");
         }
-
+    
         [Test]
         public void AndNode_TrueAndTrue_ResolvesToEffect()
         {
             var root = MakeGroup(new AndNode(new Constant(true), new Constant(true))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEffect(root));
         }
-
+    
         [Test]
         public void AndNode_TrueAndFalse_ResolvesToEmpty()
         {
             var root = MakeGroup(new AndNode(new Constant(true), new Constant(false))).Emit(_blendTreeBackend);
             Assert.IsTrue(ResolvesToEmpty(root));
         }
-
+    
         // ── ParameterExpression ───────────────────────────────────────────────
-
+    
         [Test]
         public void ParameterExpression_GreaterThan_EffectWhenAboveThreshold()
         {
@@ -381,7 +381,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEffect(branch.OnGreaterThan), "p > 0.5 → condition true → effect");
             Assert.IsTrue(ResolvesToEmpty(branch.OnLessEquals), "p <= 0.5 → condition false → empty");
         }
-
+    
         [Test]
         public void ParameterExpression_LessThan_EffectWhenBelowThreshold()
         {
@@ -395,7 +395,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(ResolvesToEffect(branch.OnLessEquals), "p < 0.3 → condition true → effect");
             Assert.IsTrue(ResolvesToEmpty(branch.OnGreaterThan), "p >= 0.3 → condition false → empty");
         }
-
+    
         [Test]
         public void ParameterExpression_CustomThreshold_PreservedInBranchNode()
         {
@@ -405,15 +405,15 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(0.75f, branch.Threshold,
                 "Custom threshold must be forwarded to BranchNode exactly");
         }
-
+    
         [Test]
         public void DumpNodeGraph_MixedParameters_UsesStrictGreaterThanFallbackHeader()
         {
             var inner = new BranchNode("inner");
             var outer = new BranchNode("outer", inner, EmptyNode.Instance) { Threshold = 1f };
-
+    
             LogAssert.Expect(LogType.Log, new Regex(@"Branch\(outer > 1\)"));
-
+    
             EffectGroupDumper.DumpNodeGraph(new System.Collections.Generic.List<IMotionNode> { outer });
         }
     }

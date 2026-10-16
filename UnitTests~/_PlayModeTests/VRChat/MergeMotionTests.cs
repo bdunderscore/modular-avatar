@@ -1,9 +1,9 @@
 using System.Collections;
 using nadena.dev.modular_avatar.core;
 using NUnit.Framework;
-using UnitTests._PlayModeTests;
 using UnityEngine;
 using UnityEngine.TestTools;
+using nadena.dev.modular_avatar.test._PlayModeTests;
 
 namespace nadena.dev.modular_avatar.test.playmode.vrchat
 {

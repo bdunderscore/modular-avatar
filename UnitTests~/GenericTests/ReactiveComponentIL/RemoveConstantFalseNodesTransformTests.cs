@@ -1,11 +1,11 @@
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using NUnit.Framework;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class RemoveConstantFalseNodesTransformTests : TestBase
     {
@@ -15,7 +15,7 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.Parameters.EnsureParameter("condition", 1f);
             var parameters = graph.Parameters;
-
+    
             var trueEffect = new DriveInternalParameter("true", true);
             var additionalTrueEffect = new DriveInternalParameter("also-true", false);
             var trueNode = new ReactionNode(new Constant(true), trueEffect);
@@ -27,9 +27,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(trueNode);
             graph.AddNode(falseNode);
             graph.AddNode(conditionalNode);
-
+    
             RemoveConstantFalseNodesTransform.Apply(graph);
-
+    
             CollectionAssert.AreEqual(new[] { trueNode, conditionalNode }, graph.Nodes);
             CollectionAssert.AreEqual(new IAction[] { trueEffect, additionalTrueEffect }, graph.Nodes[0].Effects);
             Assert.AreSame(conditionalEffect, graph.Nodes[1].Effects[0]);

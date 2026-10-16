@@ -5,10 +5,10 @@ using System.Linq;
 using nadena.dev.ndmf.animator;
 using nadena.dev.modular_avatar.core.editor.rc;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
-using UnitTests.SharedInterfacesImpl;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfacesImpl;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class OneDBlendTreeTest : ReactiveComponentILTestBase
     {
@@ -19,16 +19,16 @@ namespace UnitTestsReactiveComponentIL
             CreateSensor("middle", out var middleMotion, out var middleActive);
             CreateSensor("high", out var highMotion, out var highActive);
             AddParameter("test", -1f);
-
+    
             var blend = new OneDBlendNode("test");
             blend.Nodes = ImmutableList<(float, IMotionNode)>.Empty
                 .Add((float.NegativeInfinity, lowMotion))
                 .Add((0f, middleMotion))
                 .Add((1f, highMotion));
-
+    
             BakeConditions(blend);
             Assert.IsNotNull(animator.runtimeAnimatorController);
-
+    
             var sensors = new[] { lowActive, middleActive, highActive };
             var cases = new[]
             {
@@ -41,7 +41,7 @@ namespace UnitTestsReactiveComponentIL
                 (1f, 2),
                 (1f.NextLargest(), 2),
             };
-
+    
             foreach (var (value, expectedState) in cases)
             {
                 animator.SetFloat("test", value);
@@ -49,7 +49,7 @@ namespace UnitTestsReactiveComponentIL
                 AssertOnlyStateActive(sensors, expectedState, value);
             }
         }
-
+    
         [RCILTest]
         public IEnumerator CoalescedBranchesPreserveExactThresholdsWithoutBlending()
         {
@@ -57,25 +57,25 @@ namespace UnitTestsReactiveComponentIL
             CreateSensor("middle", out var middleMotion, out var middleActive);
             CreateSensor("high", out var highMotion, out var highActive);
             AddParameter("test", -1f);
-
+    
             IMotionNode root = new BranchNode(
                 "test",
                 lowMotion,
                 new BranchNode("test", middleMotion, highMotion) { Threshold = 1f }
             ) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null, "The test must exercise the coalesced OneDBlendNode path");
             Assert.That(
                 blend.Nodes.Select(node => node.Item1),
                 Is.EqualTo(new[] { float.NegativeInfinity, 0f.NextLargest(), 1f.NextLargest() })
             );
-
+    
             BakeConditions(root);
             Assert.IsNotNull(animator.runtimeAnimatorController);
-
+    
             var sensors = new[] { lowActive, middleActive, highActive };
             var cases = new[]
             {
@@ -86,7 +86,7 @@ namespace UnitTestsReactiveComponentIL
                 (1f, 1),
                 (1f.NextLargest(), 2),
             };
-
+    
             foreach (var (value, expectedState) in cases)
             {
                 animator.SetFloat("test", value);
@@ -94,24 +94,24 @@ namespace UnitTestsReactiveComponentIL
                 AssertOnlyStateActive(sensors, expectedState, value);
             }
         }
-
+    
         [RCILTest]
         public IEnumerator CoalescedIdenticalBranchesPreserveMotion()
         {
             CreateSensor("active", out var activeMotion, out var isActive);
             AddParameter("test", 0f);
-
+    
             IMotionNode root = new BranchNode("test", activeMotion, activeMotion) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null, "The test must exercise the coalesced OneDBlendNode path");
             Assert.That(blend.Nodes, Has.Count.EqualTo(1));
-
+    
             BakeConditions(root);
             Assert.IsNotNull(animator.runtimeAnimatorController);
-
+    
             foreach (var value in new[] { -1f, 0f, 1f })
             {
                 animator.SetFloat("test", value);
@@ -119,7 +119,7 @@ namespace UnitTestsReactiveComponentIL
                 Assert.That(isActive(), Is.True, $"Parameter value {value:R} did not select the sole motion");
             }
         }
-
+    
         private static void AssertOnlyStateActive(Func<bool>[] sensors, int expectedState, float parameterValue)
         {
             for (var i = 0; i < sensors.Length; i++)

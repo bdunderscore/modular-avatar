@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.armature_lock;
 using NUnit.Framework;
 
-namespace UnitTests.ArmatureAwase
+namespace nadena.dev.modular_avatar.test.ArmatureAwase
 {
     public class AllocationMapTest
     {
@@ -27,10 +27,10 @@ namespace UnitTests.ArmatureAwase
             
             var s3 = map.Allocate(3);
             AssertSegment(s3, 15, 3, true);
-
+    
             List<(ISegment, int, int, int)> segmentDefrags = new List<(ISegment, int, int, int)>();
             List<(int, int, int)> globalDefrags = new List<(int, int, int)>();
-
+    
             s1.Defragment = (src, dst, length) => segmentDefrags.Add((s1, src, dst, length));
             s1a.Defragment = (src, dst, length) => segmentDefrags.Add((s1a, src, dst, length));
             s2.Defragment = (src, dst, length) => segmentDefrags.Add((s2, src, dst, length));
@@ -50,7 +50,7 @@ namespace UnitTests.ArmatureAwase
                 (15, 13, 3),
             });
         }
-
+    
         [Test]
         public void SegmentCoalescing()
         {
@@ -66,12 +66,12 @@ namespace UnitTests.ArmatureAwase
             
             AssertSegment(s4, 0, 20, true);
         }
-
+    
         enum Op
         {
             Allocate, Deallocate, Defrag
         }
-
+    
         [Test]
         public void FreeingLastStripsTrailingFreeSegments()
         {
@@ -79,18 +79,18 @@ namespace UnitTests.ArmatureAwase
             var s1 = map.Allocate(10);
             var s2 = map.Allocate(5);
             var s3 = map.Allocate(7);
-
+    
             map.FreeSegment(s2);
             // s3 is the last element; freeing it should remove it and any trailing free segment
             // that precedes it so the invariant "last element is always in use" is preserved.
             map.FreeSegment(s3);
-
+    
             // A new allocation should occupy the space immediately after s1, not after the
             // stripped trailing free segment that would otherwise remain at the end.
             var s4 = map.Allocate(3);
             AssertSegment(s4, 10, 3, true);
         }
-
+    
         [Test]
         public void SegmentRandomOps()
         {
@@ -100,7 +100,7 @@ namespace UnitTests.ArmatureAwase
                 
                 List<ISegment> segments = new List<ISegment>();
                 List<(Op, int)> ops = new List<(Op, int)>();
-
+    
                 try
                 {
                     Random r = new Random();
@@ -131,7 +131,7 @@ namespace UnitTests.ArmatureAwase
                                 map.Defragment((src, dst, length) => {});
                                 break;
                             }
-
+    
                         }
                     }
                 }
@@ -143,7 +143,7 @@ namespace UnitTests.ArmatureAwase
                 }
             }
         }
-
+    
         private void AssertSegment(ISegment segment, int offset, int length, bool inUse)
         {
             var s = segment as AllocationMap.Segment;

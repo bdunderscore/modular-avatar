@@ -5,7 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace UnitTests.SharedInterfaces
+namespace nadena.dev.modular_avatar.test.SharedInterfaces
 {
     [AttributeUsage(AttributeTargets.Method)]
     [MeansImplicitUse]
@@ -14,7 +14,7 @@ namespace UnitTests.SharedInterfaces
     {
         
     }
-
+    
     public abstract class ReactiveComponentILTestSharedBase
     {
         private static Type[] _allTestClasses;
@@ -28,7 +28,7 @@ namespace UnitTests.SharedInterfaces
                     .SelectMany(a => a.GetTypes())
                     .Where(t => !t.IsAbstract && typeof(ReactiveComponentILTestSharedBase).IsAssignableFrom(t))
                     .ToArray();
-
+    
                 return _allTestClasses;
             }
         }
@@ -40,7 +40,7 @@ namespace UnitTests.SharedInterfaces
             {
                 throw new ArgumentException($"No RCIL test class named '{name}' was found.", nameof(name));
             }
-
+    
             var testNames = testClass.GetMethods()
                 .Where(method => method.GetCustomAttribute<RCILTest>() != null)
                 .Select(method => method.Name)
@@ -49,14 +49,14 @@ namespace UnitTests.SharedInterfaces
             {
                 throw new InvalidOperationException($"RCIL test class '{name}' has no tests.");
             }
-
+    
             return testNames;
         }
-
+    
         public static IEnumerator InvokeTest(String name, string testName)
         {
             Debug.Log("Test class names: " + AllTestClasses.Select(t => t.Name).Aggregate((a, b) => a + ", " + b));
-
+    
             var t = AllTestClasses.First(t => t.Name == name);
             var inst = (ReactiveComponentILTestSharedBase) t.GetConstructor(Type.EmptyTypes)!.Invoke(Array.Empty<object>());
             inst.SetUp();
@@ -73,7 +73,7 @@ namespace UnitTests.SharedInterfaces
                 inst.TearDown();
             }
         }
-
+    
         public abstract void SetUp();
         public abstract void TearDown();
     }

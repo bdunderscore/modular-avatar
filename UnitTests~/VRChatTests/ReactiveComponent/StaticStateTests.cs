@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
@@ -13,7 +13,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Animations;
 
-namespace UnitTests.ReactiveComponent
+namespace nadena.dev.modular_avatar.test.ReactiveComponent
 {
     public class StaticStateTests : TestBase
     {
@@ -23,12 +23,12 @@ namespace UnitTests.ReactiveComponent
             var prefab = CreatePrefab("RCDisablesActiveComponentStaticStates.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             AssertStaticState(prefab, "AudioSource", typeof(AudioSource), false, true);
             AssertStaticState(prefab, "ParentConstraint", typeof(ParentConstraint), true, null);
             AssertStaticState(prefab, "InitiallyDisabled", typeof(AudioSource), false, false);
         }
-
+    
         [Test]
         public void ConstantToggleStillCapturesControlledAudioSource()
         {
@@ -42,23 +42,23 @@ namespace UnitTests.ReactiveComponent
                 Object = new AvatarObjectReference(target),
                 Active = false
             });
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             AssertStaticState(root, "Target", typeof(AudioSource), false, true);
         }
-
+    
         [Test]
         public void DoesntTouchNonToggled()
         {
             var prefab = CreatePrefab("RCDisablesActiveComponentStaticStates.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             var rootMotion = BaseLayer(fxc).stateMachine.defaultState.motion;
-
+    
             foreach (var clip in CollectClips(rootMotion))
             foreach (var key in AnimationUtility.GetCurveBindings(clip))
             {
@@ -70,17 +70,17 @@ namespace UnitTests.ReactiveComponent
                 Assert.IsTrue(b.enabled);
             }
         }
-
+    
         [Test]
         public void TracksChildComponents()
         {
             var prefab = CreatePrefab("RCDisablesActiveComponentStaticStates.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             AssertStaticState(prefab, "Parent/Child", typeof(AudioSource), false, true);
         }
-
+    
         private void AssertStaticState(GameObject prefab, string name, Type componentType, bool staticState, bool? animState)
         {
             var child = prefab.transform.Find(name);
@@ -88,7 +88,7 @@ namespace UnitTests.ReactiveComponent
             var component = (Behaviour) child.GetComponent(componentType);
             
             Assert.AreEqual(staticState, component.enabled, "static state for " + name + " should be " + staticState + " but is " + component.enabled);
-
+    
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             var baseLayers = fxc.layers.Where(layer => layer.name == VRChatBlendTreeBackend.BaseLayerName).ToList();
@@ -98,25 +98,25 @@ namespace UnitTests.ReactiveComponent
             Assert.IsNotNull(baseLayers[0].stateMachine.defaultState.motion);
             Assert.IsNotNull(applyLayers[0].stateMachine.defaultState.motion);
             var rootMotion = BaseLayer(fxc).stateMachine.defaultState.motion;
-
+    
             var binding = EditorCurveBinding.FloatCurve(name, componentType, "m_Enabled");
             var curve = CollectClips(rootMotion)
                 .Select(c => AnimationUtility.GetEditorCurve(c, binding))
                 .FirstOrDefault(c => c != null);
-
+    
             Assert.AreEqual(animState == null, curve == null);
             if (animState == null) return;
-
+    
             var value = curve.keys[0].value;
-
+    
             Assert.AreEqual(animState, value > 0.5f);
         }
-
+    
         private AnimatorControllerLayer BaseLayer(AnimatorController ac)
         {
             return ac.layers.First(l => l.name == VRChatBlendTreeBackend.BaseLayerName);
         }
-
+    
         private static IEnumerable<AnimationClip> CollectClips(Motion motion)
         {
             if (motion is AnimationClip clip)

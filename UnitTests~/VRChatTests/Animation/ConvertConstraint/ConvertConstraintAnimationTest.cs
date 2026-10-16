@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Dynamics.Constraint.Components;
 
-namespace modular_avatar_tests.ConvertConstraint
+namespace nadena.dev.modular_avatar.test.Tests.ConvertConstraint
 {
     internal class ConvertConstraintAnimationTest : TestBase
     {
@@ -15,11 +15,11 @@ namespace modular_avatar_tests.ConvertConstraint
         public void WhenReplacedObjectIsConverted_AnimationIsAdjusted()
         {
             var prefab = CreatePrefab("WhenReplacedObjectIsConverted_AnimationIsAdjusted.prefab");
-
+    
             AvatarProcessor.ProcessAvatar(prefab,
                 PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30]
             );
-
+    
             var motion = (AnimationClip) findFxMotion(prefab, "test");
             var ecb = AnimationUtility.GetCurveBindings(motion)[0];
             

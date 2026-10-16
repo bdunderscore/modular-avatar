@@ -8,7 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class MiscAnimationTests : TestBase
     {
@@ -20,16 +20,16 @@ namespace modular_avatar_tests
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             context.DeactivateExtensionContext<AnimatorServicesContext>();
             context.DeactivateExtensionContext<VirtualControllerContext>();
-
+    
             var layer = findFxLayer(prefab, "Base Layer");
-
+    
             var hq_on = FindStateInLayer(layer, "HQ_ON");
             var hq_off = FindStateInLayer(layer, "HQ_OFF");
-
+    
             Assert.True(new SerializedObject(hq_on.motion).FindProperty("m_UseHighQualityCurve").boolValue);
             Assert.False(new SerializedObject(hq_off.motion).FindProperty("m_UseHighQualityCurve").boolValue);
         }
-
+    
         [Test]
         public void RelativePathTest()
         {
@@ -43,7 +43,7 @@ namespace modular_avatar_tests
             var a2 = CreateChild(c2, "a");
             var a3 = CreateChild(c3, "a");
             var a0 = CreateChild(root, "a");
-
+    
             var merge_rel_1 = AnimationTestUtil.TestController("T1", AnimationTestUtil.AnimationWithPath("a"));
             var merge_rel_2 = AnimationTestUtil.TestController("T2", AnimationTestUtil.AnimationWithPath("a"));
             var merge_abs = AnimationTestUtil.TestController("T3", AnimationTestUtil.AnimationWithPath("a"));

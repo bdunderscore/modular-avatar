@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public static class AnimationTestUtil
     {
@@ -36,17 +36,17 @@ namespace modular_avatar_tests
             };
             stateMachine.defaultState = state;
             state.motion = motion;
-
+    
             return controller;
         }
-
+    
         public static AnimationClip AnimationWithPath(string path)
         {
             AnimationClip clip = new AnimationClip();
             clip.SetCurve(path, typeof(Transform), "localPosition.x", AnimationCurve.Constant(0, 1, 0));
             return clip;
         }
-
+    
         public static void AssertAnimationHasPath(AnimationClip clip, string path)
         {
             Assert.IsTrue(AnimationUtility.GetCurveBindings(clip).Any(b => b.path == path));

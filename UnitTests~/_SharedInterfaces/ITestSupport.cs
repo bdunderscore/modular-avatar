@@ -3,12 +3,12 @@
 using System;
 using UnityEngine;
 
-namespace UnitTests.SharedInterfaces
+namespace nadena.dev.modular_avatar.test.SharedInterfaces
 {
     public interface ITestSupport
     {
         private static ITestSupport? _instance;
-
+    
         public static ITestSupport Instance
         {
             get => _instance ?? throw new Exception("Test support not initialized");
@@ -18,15 +18,15 @@ namespace UnitTests.SharedInterfaces
                 _instance = value;
             }
         }
-
+    
         public void Setup()
         {
         }
-
+    
         public void Teardown()
         {
         }
-
+    
         public void ProcessAvatar(GameObject gameObject);
         public T? LoadAsset<T>(Type relativeType, string path) where T : UnityEngine.Object;
         public GameObject CreateTestAvatar(string name);

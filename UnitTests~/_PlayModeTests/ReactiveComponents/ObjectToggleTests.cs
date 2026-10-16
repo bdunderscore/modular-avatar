@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace UnitTests._PlayModeTests.ReactiveComponents
+namespace nadena.dev.modular_avatar.test._PlayModeTests.ReactiveComponents
 {
     [SuppressMessage("ReSharper", "Unity.PreferAddressByIdToGraphicsParams")]
     public class ObjectToggleTests : TestBase
@@ -20,7 +20,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             var toggle = CreateChild(avatar, "toggle");
             var mi = toggle.AddComponent<ModularAvatarMenuItem>();
             var ot = toggle.AddComponent<ModularAvatarObjectToggle>();
-
+    
             mi.PortableControl.Parameter = "abc";
             ot.Objects.Add(new ToggledObject()
             {
@@ -38,13 +38,13 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             yield return null;
             Assert.IsFalse(prim.activeSelf);
         }
-
+    
         [UnityTest]
         public IEnumerator TestMultipleObjectToggles_DifferentGameObjects_TraversalOrder()
         {
             var avatar = CreateRoot();
             var prim = CreatePrim(avatar, "Cube");
-
+    
             // First toggle gameobject (earlier in traversal): sets prim inactive when its param is ON
             var toggleA = CreateChild(avatar, "toggleA");
             var miA = toggleA.AddComponent<ModularAvatarMenuItem>();
@@ -55,7 +55,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 Object = new AvatarObjectReference(prim),
                 Active = false
             });
-
+    
             // Second toggle gameobject (later in traversal): sets prim active when its param is ON
             var toggleB = CreateChild(avatar, "toggleB");
             var miB = toggleB.AddComponent<ModularAvatarMenuItem>();
@@ -66,34 +66,34 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 Object = new AvatarObjectReference(prim),
                 Active = true
             });
-
+    
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
-
+    
             yield return null;
             Assert.IsTrue(prim.activeSelf);
-
+    
             // Turn both toggles ON: last in traversal (toggleB) should win and prim should be active
             SetParam(animator, "pA", 1);
             SetParam(animator, "pB", 1);
             yield return null;
             Assert.IsTrue(prim.activeSelf);
-
+    
             // If only the earlier one is ON, prim should be inactive
             SetParam(animator, "pB", 0);
             yield return null;
             Assert.IsFalse(prim.activeSelf);
         }
-
+    
         [UnityTest]
         public IEnumerator TestMultipleObjectToggles_SameGameObject_LastComponentWins()
         {
             var avatar = CreateRoot();
             var prim = CreatePrim(avatar, "Cube");
             prim.SetActive(false);
-
+    
             var toggleGO = CreateChild(avatar, "toggleSame");
-
+    
             // Add first menu+toggle component pair (earlier component)
             var mi1 = toggleGO.AddComponent<ModularAvatarMenuItem>();
             var ot1 = toggleGO.AddComponent<ModularAvatarObjectToggle>();
@@ -103,16 +103,16 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 Object = new AvatarObjectReference(prim),
                 Active = false
             });
-
+    
             ot1.Objects.Add(new ToggledObject()
             {
                 Object = new AvatarObjectReference(prim),
                 Active = true
             });
-
+    
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
-
+    
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf);
@@ -122,44 +122,44 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             yield return null;
             Assert.IsTrue(prim.activeSelf);
         }
-
+    
         [UnityTest]
         public IEnumerator TestMultipleObjectToggles_SameGameObject_ThreeEffects_LastWins()
         {
             var avatar = CreateRoot();
             var prim = CreatePrim(avatar, "Cube");
             prim.SetActive(false);
-
+    
             var toggleGO = CreateChild(avatar, "toggle");
             var mi = toggleGO.AddComponent<ModularAvatarMenuItem>();
             var ot = toggleGO.AddComponent<ModularAvatarObjectToggle>();
             mi.PortableControl.Parameter = "s1";
-
+    
             // Three entries on the same target: the last one (Active=true) should win when s1 is ON.
             ot.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = false });
             ot.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = false });
             ot.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = true });
-
+    
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
-
+    
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf, "Default state should be preserved");
-
+    
             SetParam(animator, "s1", 1);
             yield return null;
             yield return null;
             Assert.IsTrue(prim.activeSelf, "Last entry (Active=true) should win over the two preceding Active=false entries");
         }
-
+    
         [UnityTest]
         public IEnumerator TestMultipleObjectToggles_ThreeGameObjects_LastActiveWins()
         {
             var avatar = CreateRoot();
             var prim = CreatePrim(avatar, "Cube");
             // prim starts active by default
-
+    
             // Three separate game objects, each with its own parameter, all toggling the same prim.
             // toggleA (first in traversal): Active=false
             var toggleA = CreateChild(avatar, "toggleA");
@@ -167,65 +167,65 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             var otA = toggleA.AddComponent<ModularAvatarObjectToggle>();
             miA.PortableControl.Parameter = "pA";
             otA.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = false });
-
+    
             // toggleB (second): Active=true
             var toggleB = CreateChild(avatar, "toggleB");
             var miB = toggleB.AddComponent<ModularAvatarMenuItem>();
             var otB = toggleB.AddComponent<ModularAvatarObjectToggle>();
             miB.PortableControl.Parameter = "pB";
             otB.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = true });
-
+    
             // toggleC (last in traversal): Active=false
             var toggleC = CreateChild(avatar, "toggleC");
             var miC = toggleC.AddComponent<ModularAvatarMenuItem>();
             var otC = toggleC.AddComponent<ModularAvatarObjectToggle>();
             miC.PortableControl.Parameter = "pC";
             otC.Objects.Add(new ToggledObject() { Object = new AvatarObjectReference(prim), Active = false });
-
+    
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
-
+    
             yield return null;
             yield return null;
             Assert.IsTrue(prim.activeSelf, "All OFF: default state preserved");
-
+    
             // Only A active: A is the only active condition and wins
             SetParam(animator, "pA", 1);
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf, "Only A active → prim inactive");
-
+    
             // A and B both active: B is later in traversal so B wins
             SetParam(animator, "pB", 1);
             yield return null;
             yield return null;
             Assert.IsTrue(prim.activeSelf, "A and B active → B (later) wins → prim active");
-
+    
             // All three active: C is last so C wins
             SetParam(animator, "pC", 1);
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf, "All three active → C (last) wins → prim inactive");
-
+    
             // Drop A: B and C still active, C still wins
             SetParam(animator, "pA", 0);
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf, "B and C active → C (last) wins → prim inactive");
-
+    
             // Drop C: only B remains
             SetParam(animator, "pC", 0);
             yield return null;
             yield return null;
             Assert.IsTrue(prim.activeSelf, "Only B active → B wins → prim active");
         }
-
+    
         [UnityTest]
         public IEnumerator TestObjectToggle_TargetsAnotherToggle_ANDGateWithMenu()
         {
             var avatar = CreateRoot();
             var prim = CreatePrim(avatar, "Cube");
-
+    
             // Target toggle (toggleB) -- has a menu and an object toggle that affects prim
             var toggleB = CreateChild(avatar, "toggleB");
             var mb = toggleB.AddComponent<ModularAvatarMenuItem>();
@@ -236,7 +236,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 Object = new AvatarObjectReference(prim),
                 Active = false
             });
-
+    
             // Controller toggle (toggleA) -- targets the toggleB GameObject itself
             var toggleA = CreateChild(avatar, "toggleA");
             var ma = toggleA.AddComponent<ModularAvatarMenuItem>();
@@ -248,19 +248,19 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 // When pa == 1 we set toggleB inactive, which should prevent otB from applying.
                 Active = false
             });
-
+    
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
             yield return null;
             
             Assert.IsTrue(prim.activeSelf);
-
+    
             // If pb is ON and pa is OFF, otB can apply and should set prim inactive
             SetParam(animator, "pb", 1);
             SetParam(animator, "pa", 0);
             yield return null;
             Assert.IsFalse(prim.activeSelf);
-
+    
             // If both pb and pa are ON, otA will deactivate toggleB, preventing otB from applying.
             SetParam(animator, "pa", 1);
             SetParam(animator, "pb", 1);
@@ -269,14 +269,14 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             yield return null;
             // Because toggleB is deactivated by otA, otB should not run; prim remains active.
             Assert.IsTrue(prim.activeSelf);
-
+    
             // Clean-up case: if pa goes OFF again while pb stays ON, otB should apply again
             SetParam(animator, "pa", 0);
             yield return null;
             yield return null;
             Assert.IsFalse(prim.activeSelf);
         }
-
+    
         [UnityTest]
         public IEnumerator OnBeforeOff()
         {
@@ -294,7 +294,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
                 }
             };
             p1ot.Inverted = true;
-
+    
             var menu = CreateChild(avatar, "menu");
             var mi = menu.AddComponent<ModularAvatarMenuItem>();
             var ot = menu.AddComponent<ModularAvatarObjectToggle>();
@@ -310,7 +310,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             
             ProcessAvatar(avatar);
             var animator = ActivateFX(avatar);
-
+    
             for (int i = 0; i < 5; i++)
             {
                 yield return null;
@@ -320,7 +320,7 @@ namespace UnitTests._PlayModeTests.ReactiveComponents
             // When we toggle OFF p1, we'll toggle ON p2. At no time should both be disabled.
             // Currently, we do allow for time when both might be enabled.
             SetParam(animator, "p", 1);
-
+    
             for (int i = 0; i < 10; i++)
             {
                 yield return null;

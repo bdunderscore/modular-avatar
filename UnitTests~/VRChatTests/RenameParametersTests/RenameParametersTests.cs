@@ -18,7 +18,7 @@ using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
-namespace modular_avatar_tests.RenameParametersTests
+namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
 {
     public class RenameParametersTests : TestBase
     {
@@ -27,25 +27,25 @@ namespace modular_avatar_tests.RenameParametersTests
         {
             var prefab = CreatePrefab("RenameParametersRenamesParamDrivers.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var layer = findFxLayer(prefab, "test");
             CheckDriver(layer.stateMachine.behaviours[0] as VRCAvatarParameterDriver);
-
+    
             var state = FindStateInLayer(layer, "s");
             CheckDriver(state.behaviours[0] as VRCAvatarParameterDriver);
-
+    
             var subStateMachine = layer.stateMachine.stateMachines[0].stateMachine;
             CheckDriver(subStateMachine.behaviours[0] as VRCAvatarParameterDriver);
-
+    
             var subState = FindStateInLayer(layer, "s");
             CheckDriver(subState.behaviours[0] as VRCAvatarParameterDriver);
-
+    
             void CheckDriver(VRCAvatarParameterDriver driver)
             {
                 Assert.AreEqual("param_new", driver.parameters[0].name);
             }
         }
-
+    
         [Test]
         public void RenameParametersRenamesTransitionParameters()
         {
@@ -57,18 +57,18 @@ namespace modular_avatar_tests.RenameParametersTests
             var transition = layer.stateMachine.states[0].state.transitions[0];
             Assert.AreEqual("y", transition.conditions[0].parameter);
         }
-
+    
         [Test]
         public void RenameInstalledMenu()
         {
             var prefab = CreatePrefab("RenameInstalledMenu.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var menu = prefab.GetComponent<VRCAvatarDescriptor>().expressionsMenu;
             Assert.AreEqual("test$33bf6fbd7cd8", menu.controls[0].parameter.name);
             Assert.AreEqual("test$33bf6fbd7cd8", menu.controls[1].subMenu.controls[0].parameter.name);
         }
-
+    
         [Test]
         public void TestRecursiveMenu()
         {
@@ -83,15 +83,15 @@ namespace modular_avatar_tests.RenameParametersTests
             });
             var installer = child.AddComponent<ModularAvatarMenuInstaller>();
             installer.menuToAppend = menu;
-
+    
             AvatarProcessor.ProcessAvatar(avatar);
         }
-
+    
         [Test]
         public void TestParameterConflicts()
         {
             var prefab = CreatePrefab("ParameterConflicts.prefab");
-
+    
             var context = CreateContext(prefab);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
@@ -104,7 +104,7 @@ namespace modular_avatar_tests.RenameParametersTests
                         new RenameParametersHook().OnPreprocessAvatar(prefab, maContext);
                     }
                 });
-
+    
             var valueConflict = errors
                 .Select(e => e.TheError)
                 .Cast<SimpleError>()
@@ -128,60 +128,60 @@ namespace modular_avatar_tests.RenameParametersTests
             Assert.AreEqual("TypeConflict/P", typeConflict.References[0].Path);
             Assert.AreEqual("TypeConflict/P (2)", typeConflict.References[1].Path);
         }
-
+    
         [Test]
         public void TestParameterResults()
         {
             var prefab = CreatePrefab("ParameterResolution.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var expParams = prefab.GetComponent<VRCAvatarDescriptor>().expressionParameters;
             
             Assert.AreEqual(expParams.parameters[0].name, "a");
             Assert.IsTrue(Mathf.Abs(expParams.parameters[0].defaultValue - 0.1f) < 0.0001f);
         }
-
+    
         [Test]
         public void AnimatorOnlyParametersTests()
         {
             var prefab = CreatePrefab("AnimatorOnlyParameterValues/AOPV.prefab");
-
+    
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController as AnimatorController;
             Assert.NotNull(fx);
-
+    
             AssertParamStates(fx);
-
+    
             var action = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController as AnimatorController;
             Assert.NotNull(action);
-
+    
             AssertParamStates(action);
-
+    
             void AssertParamStates(AnimatorController controller)
             {
                 var parameters = controller.parameters.Select(
                     p => new KeyValuePair<String, AnimatorControllerParameter>(p.name, p)
                 ).ToImmutableDictionary();
-
+    
                 Assert.LessOrEqual(Mathf.Abs(parameters["float"].defaultFloat - 0.5f), 0.005f);
                 Assert.AreEqual(23, parameters["int"].defaultInt);
                 Assert.AreEqual(true, parameters["bool"].defaultBool);
             }
         }
-
+    
         [Test]
         public void SavedParameterResolution()
         {
             var prefab = CreatePrefab("SavedParamResolution.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var expParams = prefab.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
                 .Select(p => new KeyValuePair<string, VRCExpressionParameters.Parameter>(p.name, p))
                 .ToImmutableDictionary();
@@ -193,14 +193,14 @@ namespace modular_avatar_tests.RenameParametersTests
             Assert.IsFalse(expParams["e"].saved);
             Assert.IsTrue(expParams["f"].saved);
         }
-
+    
         [Test]
         public void TestMultipleRemappings()
         {
             var av = CreateRoot("avatar");
-
+    
             var parameters = av.AddComponent<ModularAvatarParameters>();
-
+    
             parameters.parameters = new List<ParameterConfig>()
             {
                 new ParameterConfig()
@@ -216,13 +216,13 @@ namespace modular_avatar_tests.RenameParametersTests
                     syncType = ParameterSyncType.Float
                 },
             };
-
+    
             var c1 = av.AddComponent<VRCContactReceiver>();
             c1.parameter = "a";
             
             var c2 = av.AddComponent<VRCContactReceiver>();
             c2.parameter = "a";
-
+    
             var context = CreateContext(av);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
@@ -239,9 +239,9 @@ namespace modular_avatar_tests.RenameParametersTests
         public void TestMultipleRemappings_WithConflict()
         {
             var av = CreateRoot("avatar");
-
+    
             var parameters = av.AddComponent<ModularAvatarParameters>();
-
+    
             parameters.parameters = new List<ParameterConfig>()
             {
                 new ParameterConfig()
@@ -257,7 +257,7 @@ namespace modular_avatar_tests.RenameParametersTests
                     syncType = ParameterSyncType.Int
                 },
             };
-
+    
             var context = CreateContext(av);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
@@ -266,38 +266,38 @@ namespace modular_avatar_tests.RenameParametersTests
             
             Assert.IsNotEmpty(errors);
         }
-
+    
         [Test]
         public void ParameterOrderTest()
         {
             var av = CreateRoot("avatar");
-
+    
             var rootMenu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
             var paramsAsset = ScriptableObject.CreateInstance<VRCExpressionParameters>();
-
+    
             var desc = av.GetComponent<VRCAvatarDescriptor>();
             desc.expressionsMenu = rootMenu;
             desc.expressionParameters = paramsAsset;
-
+    
             var c1 = CreateChild(av, "a");
             var c2 = CreateChild(av, "b");
             var c3 = CreateChild(av, "c");
             var c4 = CreateChild(av, "d");
-
+    
             AddParam(c1, "A");
             AddParam(c2, "B");
             AddParam(c3, "C");
             AddParam(c4, "D");
             
             AvatarProcessor.ProcessAvatar(av);
-
+    
             paramsAsset = desc.expressionParameters;
             
             Assert.AreEqual("A", paramsAsset.parameters[0].name);
             Assert.AreEqual("B", paramsAsset.parameters[1].name);
             Assert.AreEqual("C", paramsAsset.parameters[2].name);
             Assert.AreEqual("D", paramsAsset.parameters[3].name);
-
+    
             void AddParam(GameObject child, String name)
             {
                 var param = child.AddComponent<ModularAvatarParameters>();
@@ -308,14 +308,14 @@ namespace modular_avatar_tests.RenameParametersTests
                 });
             }
         }
-
+    
         [Test]
         public void RecursiveRenameTest()
         {
             var prefab = CreatePrefab("RecursiveRenameTest.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = (AnimatorController) FindFxController(prefab).animatorController;
             
             Assert.IsFalse(fx.parameters.Any(p => p.name.StartsWith("Hoge")));
@@ -324,7 +324,7 @@ namespace modular_avatar_tests.RenameParametersTests
             
             Assert.AreNotEqual(fuga.name, "Fuga"); // should be auto-renamed
         }
-
+    
         [Test]
         public void AnimatorOnlyAndLocalParameterShouldNotSync()
         {
@@ -335,7 +335,7 @@ namespace modular_avatar_tests.RenameParametersTests
             
             var p1 = c1.AddComponent<ModularAvatarParameters>();
             var p2 = c2.AddComponent<ModularAvatarParameters>();
-
+    
             p1.parameters = new()
             {
                 new()
@@ -363,7 +363,7 @@ namespace modular_avatar_tests.RenameParametersTests
             
             Assert.IsFalse(expParams["a"].networkSynced);
         }
-
+    
         [Test]
         public void RenamesParameterCurves_InMergeAnimator()
         {
@@ -373,10 +373,10 @@ namespace modular_avatar_tests.RenameParametersTests
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController as AnimatorController;
-
+    
             var state = fx.layers.First(l => l.name == "test").stateMachine.defaultState;
             var motion = (AnimationClip)state.motion;
-
+    
             var bindings = AnimationUtility.GetCurveBindings(motion);
             var theBinding = bindings[0];
             Assert.AreEqual("test2", theBinding.propertyName);
@@ -391,16 +391,16 @@ namespace modular_avatar_tests.RenameParametersTests
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController as AnimatorController;
-
+    
             var state = fx.layers[0].stateMachine.defaultState;
             var tree = (BlendTree)state.motion;
             var motion = (AnimationClip)tree.children[0].motion;
-
+    
             var bindings = AnimationUtility.GetCurveBindings(motion);
             var theBinding = bindings[0];
             Assert.AreEqual("test2", theBinding.propertyName);
         }
-
+    
         [Test]
         public void WhenVirtualizedComponentsAreNull_DoesNotThrow()
         {
@@ -408,7 +408,7 @@ namespace modular_avatar_tests.RenameParametersTests
             
             AvatarProcessor.ProcessAvatar(prefab);
         }
-
+    
         #if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
         [Test]
         public void Remaps_PhysBone_And_Raycast()
@@ -430,7 +430,7 @@ namespace modular_avatar_tests.RenameParametersTests
             Assert.That(transitionParams, Does.Contain("pb2_Angle"));
             Assert.That(transitionParams, Does.Contain("pb2_Stretch"));
             Assert.That(transitionParams, Does.Contain("pb2_Squish"));
-
+    
             var pb = prefab.GetComponentInChildren<VRCPhysBone>();
             Assert.That(pb.parameter, Is.EqualTo("pb2"));
             

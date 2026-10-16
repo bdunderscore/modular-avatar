@@ -1,4 +1,4 @@
-﻿using modular_avatar_tests;
+﻿using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -9,7 +9,7 @@ using UnityEngine.Animations;
 using VRC.SDK3.Dynamics.Constraint.Components;
 #endif
 
-namespace UnitTests.WorldScaleObject
+namespace nadena.dev.modular_avatar.test.WorldScaleObject
 {
     public class WorldScaleObjectTest : TestBase
     {
@@ -30,7 +30,7 @@ namespace UnitTests.WorldScaleObject
             AssertScaleConstraintPresent(child);
             #endif
         }
-
+    
         #if MA_VRCSDK3_AVATARS
         private void AssertVRCScaleConstraintPresent(GameObject child)
         {
@@ -43,7 +43,7 @@ namespace UnitTests.WorldScaleObject
             Assert.AreEqual(true, scaleConstraint.IsActive);
         }
         #endif
-
+    
         private void AssertScaleConstraintPresent(GameObject child)
         {
             var scaleConstraint = child.GetComponent<ScaleConstraint>();

@@ -14,7 +14,7 @@ using VRC.SDK3.Avatars.Components;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 #pragma warning disable CS0618 // Type or member is obsolete
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class MergeBlendTreeTest : TestBase
     {
@@ -32,7 +32,7 @@ namespace modular_avatar_tests
             bt2.blendParameterY = "p2";
             bt2.blendType = BlendTreeType.FreeformCartesian2D;
             bt2.AddChild(AnimationTestUtil.AnimationWithPath("b"));
-
+    
             var root = CreateRoot("root");
             var c1 = CreateChild(root, "child1");
             var mergeComponent = c1.AddComponent<ModularAvatarMergeBlendTree>();
@@ -50,12 +50,12 @@ namespace modular_avatar_tests
             vrcConfig.MMDWorldSupport = false;
             
             AvatarProcessor.ProcessAvatar(root);
-
+    
             var fxController = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController;
             var fx = findFxLayer(root, MergeBlendTreePass.BlendTreeLayerName);
             Assert.AreSame(fxController.layers[0].stateMachine, fx.stateMachine);
             Assert.AreEqual(1, fx.stateMachine.states.Length);
-
+    
             var motion = fx.stateMachine.states[0].state.motion as BlendTree;
             Assert.AreEqual(BlendTreeType.Direct, motion.blendType);
             Assert.AreEqual(2, motion.children.Length);
@@ -76,13 +76,13 @@ namespace modular_avatar_tests
                 p.name == MergeBlendTreePass.ALWAYS_ONE && p.type == AnimatorControllerParameterType.Float
                 && Math.Abs(p.defaultFloat - 1.0f) < 0.0001f));
         }
-
+    
         [Test]
         public void AlternateRootTest()
         {
             BlendTree bt = new BlendTree();
             bt.AddChild(AnimationTestUtil.AnimationWithPath("a"));
-
+    
             var root = CreateRoot("root");
             var c1 = CreateChild(root, "child1");
             var mergeComponent = c1.AddComponent<ModularAvatarMergeBlendTree>();
@@ -98,10 +98,10 @@ namespace modular_avatar_tests
             
             var fx = findFxLayer(root, MergeBlendTreePass.BlendTreeLayerName);
             var motion = fx.stateMachine.states[0].state.motion as BlendTree;
-
+    
             AnimationTestUtil.AssertAnimationHasPath(((BlendTree)motion.children[0].motion).children[0].motion as AnimationClip, "child2/a");
         }
-
+    
         [Test]
         public void SupportsMergingMotions()
         {
@@ -123,7 +123,7 @@ namespace modular_avatar_tests
             
             Assert.IsTrue(motion!.children.Any(m => m.motion.name == clip.name));
         }
-
+    
         [Test]
         public void MergeOrderTest()
         {
@@ -133,11 +133,11 @@ namespace modular_avatar_tests
             var c1 = CreateChild(root, "child1");
             var mergeComponent = c1.AddComponent<ModularAvatarMergeBlendTree>();
             mergeComponent.BlendTree = bt;
-
+    
             TestMerge(root, "m1");
             TestMerge(root, "m2").layerPriority = int.MinValue;
             TestMerge(root, "m3").layerPriority = int.MaxValue;
-
+    
             AvatarProcessor.ProcessAvatar(root);
             
             var layerNames = (FindController(root, VRCAvatarDescriptor.AnimLayerType.FX).animatorController as AnimatorController)
@@ -157,7 +157,7 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var vrcDesc = root.GetComponent<VRCAvatarDescriptor>();
             var baseLayers = vrcDesc.baseAnimationLayers;
-
+    
             for (int i = 0; i < baseLayers.Length; i++)
             {
                 if (baseLayers[i].type == VRCAvatarDescriptor.AnimLayerType.FX)
@@ -166,7 +166,7 @@ namespace modular_avatar_tests
                     baseLayers[i].isDefault = false;
                 }
             }
-
+    
             vrcDesc.customizeAnimationLayers = true;
         
             // Add a Merge Blend Tree component using the same parameter
@@ -188,7 +188,7 @@ namespace modular_avatar_tests
             Assert.IsTrue(fxController!.parameters.Any(p =>
                 p.name == "testBool" && p.type == AnimatorControllerParameterType.Float));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_WithVariableCurve()
         {
@@ -200,7 +200,7 @@ namespace modular_avatar_tests
             // Test directly using the static function
             Assert.IsTrue(MergeBlendTreeEditor.HasNonConstantCurves(clip));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_WithConstantCurve()
         {
@@ -210,7 +210,7 @@ namespace modular_avatar_tests
             
             Assert.IsFalse(MergeBlendTreeEditor.HasNonConstantCurves(clip));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_SingleKeyWithNonzeroTangents()
         {
@@ -222,7 +222,7 @@ namespace modular_avatar_tests
             
             Assert.IsFalse(MergeBlendTreeEditor.HasNonConstantCurves(clip));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_MultipleErrorsSingleComponent()
         {
@@ -242,7 +242,7 @@ namespace modular_avatar_tests
             // Should return true if any child has non-constant curves
             Assert.IsTrue(MergeBlendTreeEditor.HasNonConstantCurves(blendTree));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_MultipleErrorsMultipleComponents()
         {
@@ -256,7 +256,7 @@ namespace modular_avatar_tests
             Assert.IsTrue(MergeBlendTreeEditor.HasNonConstantCurves(clip1));
             Assert.IsTrue(MergeBlendTreeEditor.HasNonConstantCurves(clip2));
         }
-
+    
         [Test]
         public void NonConstantCurveWarning_WithConstantTangents()
         {
@@ -264,13 +264,13 @@ namespace modular_avatar_tests
             
             Assert.IsFalse(MergeBlendTreeEditor.HasNonConstantCurves(clip));
         }
-
+    
         ModularAvatarMergeAnimator TestMerge(GameObject root, string mergeName, Motion motion = null)
         {
             var obj = CreateChild(root, mergeName);
             var merge = obj.AddComponent<ModularAvatarMergeAnimator>();
             merge.animator = AnimationTestUtil.TestController(mergeName, motion);
-
+    
             return merge;
         }
     }
