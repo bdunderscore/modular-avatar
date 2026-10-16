@@ -1,14 +1,14 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using HarmonyLib;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
-namespace UnitTests.MergeAnimatorTests.SyncedLayerOverrideInSubStatemachine
+namespace nadena.dev.modular_avatar.test.MergeAnimatorTests.SyncedLayerOverrideInSubStatemachine
 {
     public class SyncedLayerOverrideInSubStateMachine : TestBase
     {
@@ -30,12 +30,12 @@ namespace UnitTests.MergeAnimatorTests.SyncedLayerOverrideInSubStatemachine
                     layer.animatorController = controller;
                     layer.isDefault = false;
                 }
-
+    
                 layers[i] = layer;
             }
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             var fx = FindFxController(root);
             
             var ac = (AnimatorController) fx.animatorController;

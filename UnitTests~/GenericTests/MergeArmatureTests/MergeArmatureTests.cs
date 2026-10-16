@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor;
@@ -14,275 +14,278 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
 
-public class MergeArmatureTests : TestBase
+namespace nadena.dev.modular_avatar.test.Tests.MergeArmatureTests
 {
-    private const string SHAPELL_FBX_GUID = "1418fcab2d94f9d4982cd714b598900f";
+    public class MergeArmatureTests : TestBase
+    {
+        private const string SHAPELL_FBX_GUID = "1418fcab2d94f9d4982cd714b598900f";
+        
+        [Test]
+        public void DontStripObjectsWithComponents()
+        {
+            var root = CreatePrefab("ColliderMergeTest.prefab");
     
-    [Test]
-    public void DontStripObjectsWithComponents()
-    {
-        var root = CreatePrefab("ColliderMergeTest.prefab");
-
-        AvatarProcessor.ProcessAvatar(root);
-
-        // We expect two children:  Mergable and Hips$[uuid] (retained due to the BoxCollider)
-        var targetHips = root.transform.Find("TargetArmature/Hips");
-        Assert.AreEqual(2, targetHips.childCount);
-        Assert.AreEqual("Mergable", targetHips.GetChild(0).gameObject.name);
-
-        Assert.NotNull(targetHips.GetChild(1).GetComponent<BoxCollider>());
-    }
-
-#if MA_VRCSDK3_AVATARS
-
-    [Test]
-    public void DontMergePartiallySamePhysBoneChain()
-    {
-        var root = CreatePrefab("PartiallySamePhysBoneChain.prefab");
-        var physBone = root.transform.Find("GameObject/PhysBone").GetComponent<VRCPhysBone>();
-        var physBoneTarget = root.transform.Find("GameObject/Armature (1)/L_1");
-
-        AvatarProcessor.ProcessAvatar(root);
-
-        var targetHips = root.transform.Find("Armature");
-        
-        Assert.AreEqual(1, targetHips.childCount);
-        Assert.AreEqual("L_1", targetHips.GetChild(0).gameObject.name);
-        var l1 = targetHips.GetChild(0).transform;
-        var l1x = l1.GetChild(l1.childCount - 1).transform;
-        Assert.That(l1x.gameObject.name, Does.StartWith("L_1$"));
-
-        Assert.That(l1x, Is.EqualTo(physBoneTarget));
-        Assert.That(physBone.ignoreTransforms, Is.Empty);
-    }
-
-    [Test]
-    public void PhysBonesNRETest()
-    {
-        var root = LoadShapell();
-        var avdesc = root.AddComponent<VRCAvatarDescriptor>();
-        avdesc.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[0];
-        avdesc.specialAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[0];
-
-        var outfit1 = LoadShapell();
-        outfit1.transform.SetParent(root.transform, false);
-        
-        var outfit2 = LoadShapell();
-        outfit2.transform.SetParent(root.transform, false);
-        
-        var outfit1_hips = outfit1.transform.Find("Armature/Hips");
-        var outfit2_hips = outfit2.transform.Find("Armature/Hips");
-        var root_hips = root.transform.Find("Armature/Hips");
-        
-        root_hips.gameObject.AddComponent<VRCPhysBone>();
-        outfit1_hips.gameObject.AddComponent<VRCPhysBone>();
-        outfit2_hips.gameObject.AddComponent<VRCPhysBone>();
-        
-        var root_smr = root.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
-        var outfit1_smr = outfit1.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
-        var outfit2_smr = outfit2.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
-        
-        outfit1.transform.Find("Armature").gameObject.AddComponent<ModularAvatarMergeArmature>().mergeTarget.Set(
-            root.transform.Find("Armature").gameObject
-        );
-        
-        outfit2.transform.Find("Armature").gameObject.AddComponent<ModularAvatarMergeArmature>().mergeTarget.Set(
-            root.transform.Find("Armature").gameObject
-        );
-
-        AvatarProcessor.ProcessAvatar(root);
-
-        foreach (var (root_bone, outfit_bone) in Enumerable.Zip(root_smr.bones, outfit1_smr.bones, (x, y) => (x, y)))
-        {
-            Assert.AreSame(root_bone, outfit_bone);
+            AvatarProcessor.ProcessAvatar(root);
+    
+            // We expect two children:  Mergable and Hips$[uuid] (retained due to the BoxCollider)
+            var targetHips = root.transform.Find("TargetArmature/Hips");
+            Assert.AreEqual(2, targetHips.childCount);
+            Assert.AreEqual("Mergable", targetHips.GetChild(0).gameObject.name);
+    
+            Assert.NotNull(targetHips.GetChild(1).GetComponent<BoxCollider>());
         }
-        
-        foreach (var (root_bone, outfit_bone) in Enumerable.Zip(root_smr.bones, outfit2_smr.bones, (x, y) => (x, y)))
+    
+    #if MA_VRCSDK3_AVATARS
+    
+        [Test]
+        public void DontMergePartiallySamePhysBoneChain()
         {
-            Assert.AreSame(root_bone, outfit_bone);
+            var root = CreatePrefab("PartiallySamePhysBoneChain.prefab");
+            var physBone = root.transform.Find("GameObject/PhysBone").GetComponent<VRCPhysBone>();
+            var physBoneTarget = root.transform.Find("GameObject/Armature (1)/L_1");
+    
+            AvatarProcessor.ProcessAvatar(root);
+    
+            var targetHips = root.transform.Find("Armature");
+            
+            Assert.AreEqual(1, targetHips.childCount);
+            Assert.AreEqual("L_1", targetHips.GetChild(0).gameObject.name);
+            var l1 = targetHips.GetChild(0).transform;
+            var l1x = l1.GetChild(l1.childCount - 1).transform;
+            Assert.That(l1x.gameObject.name, Does.StartWith("L_1$"));
+    
+            Assert.That(l1x, Is.EqualTo(physBoneTarget));
+            Assert.That(physBone.ignoreTransforms, Is.Empty);
         }
-    }
-
-    [Test]
-    public void RetainsTransformLookthroughTest()
-    {
-        var root = CreatePrefab("TransformLookthrough/RetainsTransformLookthroughCurves.prefab");
-
-        AvatarProcessor.ProcessAvatar(root);
-
-        var testLayer = findFxLayer(root, "test");
-        var motion = (AnimationClip)testLayer.stateMachine.defaultState.motion;
-
-        var subArmature = root.transform.GetChild(0).GetChild(0).GetChild(0);
-        var armaturePath = RuntimeUtil.AvatarRootPath(subArmature.gameObject);
-        var hipsPath = "Armature/Hips";
-            
-        var curves = AnimationUtility.GetCurveBindings(motion)
-            .Select(ecb => (ecb.path,  ecb.type, ecb.propertyName))
-            .ToHashSet();
-        var expectedCurves = new HashSet<(string, Type, string)>()
+    
+        [Test]
+        public void PhysBonesNRETest()
         {
-            (armaturePath, typeof(GameObject), "m_IsActive"),
-            (hipsPath, typeof(Transform), "m_LocalScale.x"),
-            (hipsPath, typeof(Transform), "m_LocalScale.y"),
-            (hipsPath, typeof(Transform), "m_LocalScale.z"),
-            // It's not clear if we should be animating the root Armature object here, but this matches the pre-1.12
-            // behavior and is therefore probably best from a compatibility perspective
-            ("Armature", typeof(GameObject), "m_IsActive")
-        };
+            var root = LoadShapell();
+            var avdesc = root.AddComponent<VRCAvatarDescriptor>();
+            avdesc.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[0];
+            avdesc.specialAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[0];
+    
+            var outfit1 = LoadShapell();
+            outfit1.transform.SetParent(root.transform, false);
             
-        Assert.That(expectedCurves, Is.EquivalentTo(curves));
-    }
-#endif // MA_VRCSDK3_AVATARS
-
-    [Test]
-    public void GetBonesMappingTest()
-    {
-        // Create base armature
-        var root = CreateRoot("Root");
-        var baseArmature = new GameObject("BaseArmature");
-        baseArmature.transform.SetParent(root.transform);
-        
-        var baseHips = new GameObject("Hips");
-        baseHips.transform.SetParent(baseArmature.transform);
-        
-        var baseSpine = new GameObject("Spine");
-        baseSpine.transform.SetParent(baseHips.transform);
-        
-        var baseLeftArm = new GameObject("LeftArm");
-        baseLeftArm.transform.SetParent(baseSpine.transform);
-        
-        // Create merge armature with prefix/suffix
-        var mergeArmature = new GameObject("MergeArmature");
-        mergeArmature.transform.SetParent(root.transform);
-        
-        var mergeHips = new GameObject("Prefix_Hips_Suffix");
-        mergeHips.transform.SetParent(mergeArmature.transform);
-        
-        var mergeSpine = new GameObject("Prefix_Spine_Suffix");
-        mergeSpine.transform.SetParent(mergeHips.transform);
-        
-        var mergeLeftArm = new GameObject("Prefix_LeftArm_Suffix");
-        mergeLeftArm.transform.SetParent(mergeSpine.transform);
-        
-        // Add a bone that won't match (no prefix/suffix)
-        var nonMatchingBone = new GameObject("NonMatching");
-        nonMatchingBone.transform.SetParent(mergeHips.transform);
-        
-        // Setup ModularAvatarMergeArmature component
-        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
-        mergeComponent.mergeTarget.Set(baseArmature);
-        mergeComponent.prefix = "Prefix_";
-        mergeComponent.suffix = "_Suffix";
-        
-        // Test GetBonesMapping
-        var boneMapping = mergeComponent.GetBonesMapping();
-        
-        // Verify results
-        Assert.IsNotNull(boneMapping);
-        Assert.AreEqual(3, boneMapping.Count); // Should find 3 matching bone pairs
-        
-        var mappingDict = boneMapping.ToDictionary(pair => pair.Item2, pair => pair.Item1);
-        
-        // Verify each expected bone mapping
-        Assert.IsTrue(mappingDict.ContainsKey(mergeHips.transform));
-        Assert.AreSame(baseHips.transform, mappingDict[mergeHips.transform]);
-        
-        Assert.IsTrue(mappingDict.ContainsKey(mergeSpine.transform));
-        Assert.AreSame(baseSpine.transform, mappingDict[mergeSpine.transform]);
-        
-        Assert.IsTrue(mappingDict.ContainsKey(mergeLeftArm.transform));
-        Assert.AreSame(baseLeftArm.transform, mappingDict[mergeLeftArm.transform]);
-        
-        // Verify non-matching bone is not included
-        Assert.IsFalse(mappingDict.ContainsKey(nonMatchingBone.transform));
-    }
-
-    [Test]
-    public void MapBone_ReturnsNull_WhenMergeTargetUnset()
-    {
-        var root = CreateRoot("Root");
-        var mergeArmature = CreateChild(root, "MergeArmature");
-        var mergeHips = CreateChild(mergeArmature, "Hips");
-
-        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
-        // mergeTarget deliberately left unset — Get() will return null.
-        mergeComponent.prefix = "";
-        mergeComponent.suffix = "";
-
-        Assert.IsNull(mergeComponent.MapBone(mergeHips.transform));
-    }
-
-    [Test]
-    public void MapBone_ReturnsNull_WhenTargetNameMissing()
-    {
-        // Reproduce the null-ref from issue #3: pointer.Find() returns null for an intermediate
-        // bone whose stripped name doesn't exist under the merge target. Without the fix, the next
-        // loop iteration calls .Find() on the null pointer and throws NullReferenceException.
-        // The crash only triggers with at least 3 path segments so the null pointer is used again.
-
-        var root = CreateRoot("Root");
-
-        var baseArmature = CreateChild(root, "BaseArmature");
-        var baseHips = CreateChild(baseArmature, "Hips");
-        // Intentionally do NOT create "Spine" under baseHips — simulates a misconfigured armature.
-
-        var mergeArmature = CreateChild(root, "MergeArmature");
-        var mergeHips = CreateChild(mergeArmature, "Hips");
-        var mergeSpine = CreateChild(mergeHips, "Spine");
-        // Third level: Find("Spine") returns null, then the loop tries pointer.Find("Chest") → NRE.
-        var mergeChest = CreateChild(mergeSpine, "Chest");
-
-        var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
-        mergeComponent.mergeTarget.Set(baseArmature);
-        mergeComponent.prefix = "";
-        mergeComponent.suffix = "";
-
-        // Should return null (bone not found), not throw a NullReferenceException.
-        var result = mergeComponent.MapBone(mergeChest.transform);
-        Assert.IsNull(result);
-    }
-
-    [Test]
-    public void ForcePositionHeuristicRootScaleUsesAvatarRelativeWingspanAndCanBeUndone()
-    {
-        var root = CreateCommonPrefab("shapell.fbx");
-        AddMinimalAvatarComponents(root);
-        var targetArmature = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
-
-        var outfit = CreateCommonPrefab("shapell.fbx");
-        outfit.transform.SetParent(root.transform, false);
-        var mergeArmatureTransform = outfit.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
-        mergeArmatureTransform.localScale = Vector3.one * 0.5f;
-        var mergeArmature = mergeArmatureTransform.gameObject.AddComponent<ModularAvatarMergeArmature>();
-        mergeArmature.mergeTarget.Set(targetArmature.gameObject);
-
-        Undo.IncrementCurrentGroup();
-        var undoGroup = Undo.GetCurrentGroup();
-        MergeArmatureInspectorTools.ForcePositionToBaseAvatar(
-            mergeArmature,
-            new MergeArmaturePositionResetOptions
+            var outfit2 = LoadShapell();
+            outfit2.transform.SetParent(root.transform, false);
+            
+            var outfit1_hips = outfit1.transform.Find("Armature/Hips");
+            var outfit2_hips = outfit2.transform.Find("Armature/Hips");
+            var root_hips = root.transform.Find("Armature/Hips");
+            
+            root_hips.gameObject.AddComponent<VRCPhysBone>();
+            outfit1_hips.gameObject.AddComponent<VRCPhysBone>();
+            outfit2_hips.gameObject.AddComponent<VRCPhysBone>();
+            
+            var root_smr = root.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
+            var outfit1_smr = outfit1.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
+            var outfit2_smr = outfit2.transform.Find("Body").gameObject.GetComponent<SkinnedMeshRenderer>();
+            
+            outfit1.transform.Find("Armature").gameObject.AddComponent<ModularAvatarMergeArmature>().mergeTarget.Set(
+                root.transform.Find("Armature").gameObject
+            );
+            
+            outfit2.transform.Find("Armature").gameObject.AddComponent<ModularAvatarMergeArmature>().mergeTarget.Set(
+                root.transform.Find("Armature").gameObject
+            );
+    
+            AvatarProcessor.ProcessAvatar(root);
+    
+            foreach (var (root_bone, outfit_bone) in Enumerable.Zip(root_smr.bones, outfit1_smr.bones, (x, y) => (x, y)))
             {
-                ConvertATPose = false,
-                AdjustScale = true,
-                HeuristicRootScale = true,
+                Assert.AreSame(root_bone, outfit_bone);
             }
-        );
-        Undo.CollapseUndoOperations(undoGroup);
-
-        Assert.AreEqual(Vector3.one, mergeArmatureTransform.localScale);
-
-        Undo.PerformUndo();
-
-        Assert.AreEqual(Vector3.one * 0.5f, mergeArmatureTransform.localScale);
-    }
-
-    private static GameObject LoadShapell()
-    {
-        return GameObject.Instantiate(
-            AssetDatabase.LoadAssetAtPath<GameObject>(
-                AssetDatabase.GUIDToAssetPath(SHAPELL_FBX_GUID)
-            )
-        );
+            
+            foreach (var (root_bone, outfit_bone) in Enumerable.Zip(root_smr.bones, outfit2_smr.bones, (x, y) => (x, y)))
+            {
+                Assert.AreSame(root_bone, outfit_bone);
+            }
+        }
+    
+        [Test]
+        public void RetainsTransformLookthroughTest()
+        {
+            var root = CreatePrefab("TransformLookthrough/RetainsTransformLookthroughCurves.prefab");
+    
+            AvatarProcessor.ProcessAvatar(root);
+    
+            var testLayer = findFxLayer(root, "test");
+            var motion = (AnimationClip)testLayer.stateMachine.defaultState.motion;
+    
+            var subArmature = root.transform.GetChild(0).GetChild(0).GetChild(0);
+            var armaturePath = RuntimeUtil.AvatarRootPath(subArmature.gameObject);
+            var hipsPath = "Armature/Hips";
+                
+            var curves = AnimationUtility.GetCurveBindings(motion)
+                .Select(ecb => (ecb.path,  ecb.type, ecb.propertyName))
+                .ToHashSet();
+            var expectedCurves = new HashSet<(string, Type, string)>()
+            {
+                (armaturePath, typeof(GameObject), "m_IsActive"),
+                (hipsPath, typeof(Transform), "m_LocalScale.x"),
+                (hipsPath, typeof(Transform), "m_LocalScale.y"),
+                (hipsPath, typeof(Transform), "m_LocalScale.z"),
+                // It's not clear if we should be animating the root Armature object here, but this matches the pre-1.12
+                // behavior and is therefore probably best from a compatibility perspective
+                ("Armature", typeof(GameObject), "m_IsActive")
+            };
+                
+            Assert.That(expectedCurves, Is.EquivalentTo(curves));
+        }
+    #endif // MA_VRCSDK3_AVATARS
+    
+        [Test]
+        public void GetBonesMappingTest()
+        {
+            // Create base armature
+            var root = CreateRoot("Root");
+            var baseArmature = new GameObject("BaseArmature");
+            baseArmature.transform.SetParent(root.transform);
+            
+            var baseHips = new GameObject("Hips");
+            baseHips.transform.SetParent(baseArmature.transform);
+            
+            var baseSpine = new GameObject("Spine");
+            baseSpine.transform.SetParent(baseHips.transform);
+            
+            var baseLeftArm = new GameObject("LeftArm");
+            baseLeftArm.transform.SetParent(baseSpine.transform);
+            
+            // Create merge armature with prefix/suffix
+            var mergeArmature = new GameObject("MergeArmature");
+            mergeArmature.transform.SetParent(root.transform);
+            
+            var mergeHips = new GameObject("Prefix_Hips_Suffix");
+            mergeHips.transform.SetParent(mergeArmature.transform);
+            
+            var mergeSpine = new GameObject("Prefix_Spine_Suffix");
+            mergeSpine.transform.SetParent(mergeHips.transform);
+            
+            var mergeLeftArm = new GameObject("Prefix_LeftArm_Suffix");
+            mergeLeftArm.transform.SetParent(mergeSpine.transform);
+            
+            // Add a bone that won't match (no prefix/suffix)
+            var nonMatchingBone = new GameObject("NonMatching");
+            nonMatchingBone.transform.SetParent(mergeHips.transform);
+            
+            // Setup ModularAvatarMergeArmature component
+            var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+            mergeComponent.mergeTarget.Set(baseArmature);
+            mergeComponent.prefix = "Prefix_";
+            mergeComponent.suffix = "_Suffix";
+            
+            // Test GetBonesMapping
+            var boneMapping = mergeComponent.GetBonesMapping();
+            
+            // Verify results
+            Assert.IsNotNull(boneMapping);
+            Assert.AreEqual(3, boneMapping.Count); // Should find 3 matching bone pairs
+            
+            var mappingDict = boneMapping.ToDictionary(pair => pair.Item2, pair => pair.Item1);
+            
+            // Verify each expected bone mapping
+            Assert.IsTrue(mappingDict.ContainsKey(mergeHips.transform));
+            Assert.AreSame(baseHips.transform, mappingDict[mergeHips.transform]);
+            
+            Assert.IsTrue(mappingDict.ContainsKey(mergeSpine.transform));
+            Assert.AreSame(baseSpine.transform, mappingDict[mergeSpine.transform]);
+            
+            Assert.IsTrue(mappingDict.ContainsKey(mergeLeftArm.transform));
+            Assert.AreSame(baseLeftArm.transform, mappingDict[mergeLeftArm.transform]);
+            
+            // Verify non-matching bone is not included
+            Assert.IsFalse(mappingDict.ContainsKey(nonMatchingBone.transform));
+        }
+    
+        [Test]
+        public void MapBone_ReturnsNull_WhenMergeTargetUnset()
+        {
+            var root = CreateRoot("Root");
+            var mergeArmature = CreateChild(root, "MergeArmature");
+            var mergeHips = CreateChild(mergeArmature, "Hips");
+    
+            var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+            // mergeTarget deliberately left unset — Get() will return null.
+            mergeComponent.prefix = "";
+            mergeComponent.suffix = "";
+    
+            Assert.IsNull(mergeComponent.MapBone(mergeHips.transform));
+        }
+    
+        [Test]
+        public void MapBone_ReturnsNull_WhenTargetNameMissing()
+        {
+            // Reproduce the null-ref from issue #3: pointer.Find() returns null for an intermediate
+            // bone whose stripped name doesn't exist under the merge target. Without the fix, the next
+            // loop iteration calls .Find() on the null pointer and throws NullReferenceException.
+            // The crash only triggers with at least 3 path segments so the null pointer is used again.
+    
+            var root = CreateRoot("Root");
+    
+            var baseArmature = CreateChild(root, "BaseArmature");
+            var baseHips = CreateChild(baseArmature, "Hips");
+            // Intentionally do NOT create "Spine" under baseHips — simulates a misconfigured armature.
+    
+            var mergeArmature = CreateChild(root, "MergeArmature");
+            var mergeHips = CreateChild(mergeArmature, "Hips");
+            var mergeSpine = CreateChild(mergeHips, "Spine");
+            // Third level: Find("Spine") returns null, then the loop tries pointer.Find("Chest") → NRE.
+            var mergeChest = CreateChild(mergeSpine, "Chest");
+    
+            var mergeComponent = mergeArmature.AddComponent<ModularAvatarMergeArmature>();
+            mergeComponent.mergeTarget.Set(baseArmature);
+            mergeComponent.prefix = "";
+            mergeComponent.suffix = "";
+    
+            // Should return null (bone not found), not throw a NullReferenceException.
+            var result = mergeComponent.MapBone(mergeChest.transform);
+            Assert.IsNull(result);
+        }
+    
+        [Test]
+        public void ForcePositionHeuristicRootScaleUsesAvatarRelativeWingspanAndCanBeUndone()
+        {
+            var root = CreateCommonPrefab("shapell.fbx");
+            AddMinimalAvatarComponents(root);
+            var targetArmature = root.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
+    
+            var outfit = CreateCommonPrefab("shapell.fbx");
+            outfit.transform.SetParent(root.transform, false);
+            var mergeArmatureTransform = outfit.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).parent;
+            mergeArmatureTransform.localScale = Vector3.one * 0.5f;
+            var mergeArmature = mergeArmatureTransform.gameObject.AddComponent<ModularAvatarMergeArmature>();
+            mergeArmature.mergeTarget.Set(targetArmature.gameObject);
+    
+            Undo.IncrementCurrentGroup();
+            var undoGroup = Undo.GetCurrentGroup();
+            MergeArmatureInspectorTools.ForcePositionToBaseAvatar(
+                mergeArmature,
+                new MergeArmaturePositionResetOptions
+                {
+                    ConvertATPose = false,
+                    AdjustScale = true,
+                    HeuristicRootScale = true,
+                }
+            );
+            Undo.CollapseUndoOperations(undoGroup);
+    
+            Assert.AreEqual(Vector3.one, mergeArmatureTransform.localScale);
+    
+            Undo.PerformUndo();
+    
+            Assert.AreEqual(Vector3.one * 0.5f, mergeArmatureTransform.localScale);
+        }
+    
+        private static GameObject LoadShapell()
+        {
+            return GameObject.Instantiate(
+                AssetDatabase.LoadAssetAtPath<GameObject>(
+                    AssetDatabase.GUIDToAssetPath(SHAPELL_FBX_GUID)
+                )
+            );
+        }
     }
 }

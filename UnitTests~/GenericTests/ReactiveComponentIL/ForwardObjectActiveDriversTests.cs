@@ -1,11 +1,11 @@
-﻿using modular_avatar_tests;
+﻿using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using NUnit.Framework;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class ForwardObjectActiveDriversTests : TestBase
     {
@@ -17,12 +17,12 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction(new object())));
             graph.AddNode(new ReactionNode(driverExpr, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(driverExpr, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void SingleDriverOpposite_ReplacesWithFalse()
         {
@@ -31,12 +31,12 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction(new object())));
             graph.AddNode(new ReactionNode(driverExpr, new DriveActiveState(obj, false)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new Constant(false), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void TwoDriversBothMatch_Or()
         {
@@ -47,12 +47,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
             graph.AddNode(new ReactionNode(e2, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new OrNode(e1, e2), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void TwoDriversFirstMatchSecondOpposite_AndNot()
         {
@@ -63,12 +63,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
             graph.AddNode(new ReactionNode(e2, new DriveActiveState(obj, false)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new AndNode(e1, new NotNode(e2)), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void TwoDriversFirstOppositeSecondMatch_PicksSecond()
         {
@@ -79,12 +79,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, false)));
             graph.AddNode(new ReactionNode(e2, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(e2, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void AllDriversOpposite_MoreThanTwo_CollapsesFalse()
         {
@@ -97,12 +97,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, false)));
             graph.AddNode(new ReactionNode(e2, new DriveActiveState(obj, false)));
             graph.AddNode(new ReactionNode(e3, new DriveActiveState(obj, false)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new Constant(false), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void NotDriven_SingleDriver_Not()
         {
@@ -111,12 +111,12 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.NotDriven), new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new NotNode(e1), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void NotDriven_TwoDrivers_NotOr()
         {
@@ -127,12 +127,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.NotDriven), new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
             graph.AddNode(new ReactionNode(e2, new DriveActiveState(obj, false)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new NotNode(new OrNode(e1, e2)), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void NotDriven_ThreeDrivers_NoForwarding()
         {
@@ -142,12 +142,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ParameterExpression("p1"), new DriveActiveState(obj, true)));
             graph.AddNode(new ReactionNode(new ParameterExpression("p2"), new DriveActiveState(obj, false)));
             graph.AddNode(new ReactionNode(new ParameterExpression("p3"), new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreEqual(new ObjectActiveState(obj, ObjectActiveState.State.NotDriven), graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void MultipleObjectActiveStatesSameObject_Forwards()
         {
@@ -157,14 +157,14 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(expr, new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             // Both OAS nodes should be replaced with e1
             var expected = new AndNode(e1, e1);
             Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void MultipleObjectActiveStatesDifferentObjects_ForwardsDrivenObjectOnly()
         {
@@ -180,16 +180,16 @@ namespace UnitTestsReactiveComponentIL
                 new NullAction(new object())
             ));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj1, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             var expected = new AndNode(
                 e1,
                 new ObjectActiveState(obj2, ObjectActiveState.State.Active)
             );
             Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void MixedStateModes_ProcessedSeparately()
         {
@@ -202,15 +202,15 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(expr, new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             // Active OAS is driven to true -> replaced with e1
             // Inactive OAS is driven to true (opposite) -> replaced with false
             var expected = new AndNode(e1, new Constant(false));
             Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void MixedStateModesWithNotDriven()
         {
@@ -223,15 +223,15 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(expr, new NullAction(new object())));
             graph.AddNode(new ReactionNode(e1, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             // Active OAS is driven to true -> replaced with e1
             // NotDriven OAS -> replaced with NOT(e1)
             var expected = new OrNode(e1, new NotNode(e1));
             Assert.AreEqual(expected, graph.Nodes[0].Expression);
         }
-
+    
         [Test]
         public void SelfDrivingNode_PreservesObjectActiveState()
         {
@@ -241,12 +241,12 @@ namespace UnitTestsReactiveComponentIL
             var node = new ReactionNode(expression, new DriveActiveState(obj, true));
             var graph = new ReactionGraph();
             graph.AddNode(node);
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreSame(objectActiveState, ((AndNode)node.Expression).Children[0]);
         }
-
+    
         [Test]
         public void SharedDriverExpression_DoesNotForwardIntoItself()
         {
@@ -260,13 +260,13 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(consumer);
             graph.AddNode(driver);
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             Assert.AreSame(sharedExpression, consumer.Expression);
             Assert.AreSame(sharedExpression, driver.Expression);
         }
-
+    
         [Test]
         public void RepeatedObjectActiveStates_ReceiveDistinctDeepClones()
         {
@@ -285,9 +285,9 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(consumer);
             graph.AddNode(new ReactionNode(driverExpression, new DriveActiveState(obj, true)));
-
+    
             ForwardObjectActiveDriversTransform.Apply(graph);
-
+    
             var replacements = (OrNode)consumer.Expression;
             var first = (AndNode)replacements.Children[0];
             var second = (AndNode)replacements.Children[1];

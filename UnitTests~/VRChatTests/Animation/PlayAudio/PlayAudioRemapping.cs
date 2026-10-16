@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class PlayAudioRemapping : TestBase
     {
@@ -14,7 +14,7 @@ namespace modular_avatar_tests
         {
             var prefab = CreatePrefab("PlayAudioRemapping.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = FindFxController(prefab);
             var ac = (AnimatorController)fx.animatorController;
             
@@ -26,7 +26,7 @@ namespace modular_avatar_tests
             var subState = layer.stateMachine.stateMachines[0].stateMachine.states[0].state;
             var playAudio2 = (VRCAnimatorPlayAudio) subState.behaviours[0];
             Assert.AreEqual("New Parent/Bone Proxy/Audio Source", playAudio2.SourcePath);
-
+    
             var absLayer = findFxLayer(prefab, "absolute");
             state = absLayer.stateMachine.states[0].state;
             playAudio = (VRCAnimatorPlayAudio) state.behaviours[0];

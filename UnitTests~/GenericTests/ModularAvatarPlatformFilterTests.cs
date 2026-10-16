@@ -8,7 +8,7 @@ using NUnit.Framework;
 using UnityEngine;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class ModularAvatarPlatformFilterTests : TestBase
     {
@@ -17,13 +17,13 @@ namespace modular_avatar_tests
             public string QualifiedName { get; set; }
             public string DisplayName => QualifiedName;
         }
-
+    
         private void RunPlatformFilterPass(GameObject root, string platformName)
         {
             var context = new BuildContext(root, null, new DummyPlatformProvider { QualifiedName = platformName });
             new PlatformFilterPass().Process(context);
         }
-
+    
         [Test]
         public void DeletesObject_WhenExcludedForPlatform()
         {
@@ -32,12 +32,12 @@ namespace modular_avatar_tests
             var filter = child.AddComponent<ModularAvatarPlatformFilter>();
             filter.Platform = "TestPlatform";
             filter.ExcludePlatform = true;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void KeepsObject_WhenIncludedForPlatform()
         {
@@ -46,12 +46,12 @@ namespace modular_avatar_tests
             var filter = child.AddComponent<ModularAvatarPlatformFilter>();
             filter.Platform = "TestPlatform";
             filter.ExcludePlatform = false;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNotNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void DeletesObject_WhenHasIncludesButNotIncluded()
         {
@@ -60,12 +60,12 @@ namespace modular_avatar_tests
             var filter = child.AddComponent<ModularAvatarPlatformFilter>();
             filter.Platform = "OtherPlatform";
             filter.ExcludePlatform = false;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void KeepsObject_WhenNoFiltersMatchPlatform()
         {
@@ -74,12 +74,12 @@ namespace modular_avatar_tests
             var filter = child.AddComponent<ModularAvatarPlatformFilter>();
             filter.Platform = "OtherPlatform";
             filter.ExcludePlatform = true;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNotNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void KeepsObject_WhenAnyIncludeMatchesPlatform_MultipleFilters()
         {
@@ -91,12 +91,12 @@ namespace modular_avatar_tests
             var filter2 = child.AddComponent<ModularAvatarPlatformFilter>();
             filter2.Platform = "OtherPlatform";
             filter2.ExcludePlatform = false;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNotNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void DeletesObject_WhenNoIncludeMatchesPlatform_MultipleFilters()
         {
@@ -108,12 +108,12 @@ namespace modular_avatar_tests
             var filter2 = child.AddComponent<ModularAvatarPlatformFilter>();
             filter2.Platform = "OtherPlatform2";
             filter2.ExcludePlatform = false;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void DeletesObject_WhenAnyExcludeMatchesPlatform_MultipleFilters()
         {
@@ -125,12 +125,12 @@ namespace modular_avatar_tests
             var filter2 = child.AddComponent<ModularAvatarPlatformFilter>();
             filter2.Platform = "OtherPlatform";
             filter2.ExcludePlatform = true;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void KeepsObject_WhenNoExcludeMatchesPlatform_MultipleFilters()
         {
@@ -142,12 +142,12 @@ namespace modular_avatar_tests
             var filter2 = child.AddComponent<ModularAvatarPlatformFilter>();
             filter2.Platform = "OtherPlatform2";
             filter2.ExcludePlatform = true;
-
+    
             RunPlatformFilterPass(root, "TestPlatform");
-
+    
             Assert.IsNotNull(root.transform.Find("child"));
         }
-
+    
         [Test]
         public void ReportsError_WhenMixedIncludeExcludeOnSameObject()
         {
@@ -159,7 +159,7 @@ namespace modular_avatar_tests
             var filter2 = child.AddComponent<ModularAvatarPlatformFilter>();
             filter2.Platform = "OtherPlatform";
             filter2.ExcludePlatform = true;
-
+    
             var errors = ErrorReport.CaptureErrors(() => RunPlatformFilterPass(root, "TestPlatform"));
             Assert.IsTrue(errors.Any(e => e.TheError != null));
         }

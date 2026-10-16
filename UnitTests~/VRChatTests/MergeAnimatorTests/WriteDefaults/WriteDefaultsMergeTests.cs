@@ -1,6 +1,6 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
@@ -8,7 +8,7 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor.Animations;
 
-namespace UnitTests.MergeAnimatorTests.WriteDefaults
+namespace nadena.dev.modular_avatar.test.MergeAnimatorTests.WriteDefaults
 {
     public class WriteDefaultsMergeTests : TestBase
     {
@@ -26,7 +26,7 @@ namespace UnitTests.MergeAnimatorTests.WriteDefaults
                 case "WD_ON": baseFxWdState = true; break;
                 default: baseFxWdState = null; break;
             }
-
+    
             // If the base layer is ambiguous and WD is disabled, the only thing we can assert is that nothing changed.
             // This is kind of a pain, so... TODO
             if (baseFxWdState == null && !matchWD) return;
@@ -48,7 +48,7 @@ namespace UnitTests.MergeAnimatorTests.WriteDefaults
             var fx = FindFxController(root);
             var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
             var vfx = cloneContext.Clone(fx.animatorController);
-
+    
             foreach (var layer in vfx.Layers)
             {
                 bool expectedState;
@@ -68,7 +68,7 @@ namespace UnitTests.MergeAnimatorTests.WriteDefaults
                     case '1': expectedState = true; break;
                     default: continue;
                 }
-
+    
                 foreach (var node in layer.AllReachableNodes())
                 {
                     if (node is VirtualState vs)

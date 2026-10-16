@@ -4,7 +4,7 @@ using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using VRC.SDK3.Avatars.Components;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class ExpressionMenuFixupTests : TestBase
     {
@@ -13,7 +13,7 @@ namespace modular_avatar_tests
         {
             var avatar = CreatePrefab("ExpressionsMenuFixupTestAvatar.prefab");
             AvatarProcessor.ProcessAvatar(avatar);
-
+    
             var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             var expMenu = descriptor.expressionsMenu;
             
@@ -29,7 +29,7 @@ namespace modular_avatar_tests
             
             Assert.AreEqual("testparam", expMenu.controls[2].subParameters[0].name);
             Assert.AreEqual("", expMenu.controls[2].subParameters[1].name);
-
+    
             foreach (var label in expMenu.controls[2].labels)
             {
                 Assert.LessOrEqual(label.icon.width, 256);

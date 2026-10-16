@@ -1,4 +1,4 @@
-﻿using modular_avatar_tests;
+﻿using nadena.dev.modular_avatar.test.Tests;
 using System.Linq;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
@@ -9,17 +9,17 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class BreakLoopsTests : TestBase
     {
-
+    
         [SetUp]
         public override void Setup()
         {
             base.Setup();
         }
-
+    
         [Test]
         public void NoLoop_NoChanges()
         {
@@ -38,14 +38,14 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Should not change anything since there's no cycle
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0]);
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression);
         }
-
+    
         [Test]
         public void SimpleSelfLoop_Breaks()
         {
@@ -58,9 +58,9 @@ namespace UnitTestsReactiveComponentIL
             );
             
             graph.AddNode(node);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // The loop should be broken: DriveInternalParameter -> DriveParameter
             Assert.AreEqual(1, node.Effects.Count);
             Assert.IsInstanceOf<DriveParameter>(node.Effects[0]);
@@ -70,7 +70,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsInstanceOf<ParameterExpression>(node.Expression);
             Assert.AreEqual("param1", ((ParameterExpression)node.Expression).ParameterName);
         }
-
+    
         [Test]
         public void TwoNodeLoop_Breaks()
         {
@@ -89,9 +89,9 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Equal priorities fall back to graph order, so the later node's param2 drive is externalized.
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects.Single());
             Assert.IsInstanceOf<DriveParameter>(node2.Effects.Single());
@@ -100,7 +100,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual("param1",
                 ((InternalParameterCondition)node2.Expression).ParameterName);
         }
-
+    
         [Test]
         public void LoopWithMultipleParameterReferences_AllConverted()
         {
@@ -108,7 +108,7 @@ namespace UnitTestsReactiveComponentIL
             // Node2 reads param1, has AND condition with param2, drives param2
             // Node1 reads param2 -> creates loop
             var graph = new ReactionGraph();
-
+    
             var node1 = new ReactionNode(
                 new InternalParameterCondition("param2"),
                 new DriveInternalParameter("param1", true)
@@ -116,12 +116,12 @@ namespace UnitTestsReactiveComponentIL
             {
                 Priority = 0
             };
-
+    
             var andExpr = new AndNode(
                 new InternalParameterCondition("param1"),
                 new InternalParameterCondition("param2")
             );
-
+    
             var node2 = new ReactionNode(
                 andExpr,
                 new DriveInternalParameter("param2", true)
@@ -130,25 +130,25 @@ namespace UnitTestsReactiveComponentIL
                 // Explicitly set priority to control which edge is broken (highest value first)
                 Priority = 1
             };
-
+    
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0]);
             Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
-
+    
             foreach (var node in graph.Nodes)
             {
                 Assert.IsFalse(ContainsInternalParameterConditionForParam(node.Expression, "param2"),
                     "All references to the broken parameter should be converted");
             }
-
+    
             Assert.IsTrue(ContainsInternalParameterConditionForParam(node2.Expression, "param1"),
                 "References to an unbroken parameter should remain internal");
         }
-
+    
         [Test]
         public void HigherExplicitPriorityWinsEvenWhenEarlierInGraphOrder()
         {
@@ -163,9 +163,9 @@ namespace UnitTestsReactiveComponentIL
             ) { Priority = 0 };
             graph.AddNode(higherPriorityNode);
             graph.AddNode(lowerPriorityNode);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             Assert.IsInstanceOf<DriveParameter>(higherPriorityNode.Effects.Single());
             Assert.AreEqual("paramB",
                 ((DriveParameter)higherPriorityNode.Effects.Single()).ParameterName);
@@ -175,7 +175,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual("paramA",
                 ((InternalParameterCondition)higherPriorityNode.Expression).ParameterName);
         }
-
+    
         [Test]
         public void EqualPriorityFallsBackToLaterGraphNode()
         {
@@ -190,9 +190,9 @@ namespace UnitTestsReactiveComponentIL
             ) { Priority = 10 };
             graph.AddNode(firstNode);
             graph.AddNode(laterNode);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             Assert.IsInstanceOf<DriveInternalParameter>(firstNode.Effects.Single());
             Assert.IsInstanceOf<DriveParameter>(laterNode.Effects.Single());
             Assert.AreEqual("paramA", ((DriveParameter)laterNode.Effects.Single()).ParameterName);
@@ -200,7 +200,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual("paramB",
                 ((InternalParameterCondition)laterNode.Expression).ParameterName);
         }
-
+    
         [Test]
         public void NestedExpressionWithLoop_AllConverted()
         {
@@ -230,14 +230,14 @@ namespace UnitTestsReactiveComponentIL
             
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             Assert.IsInstanceOf<DriveParameter>(node1.Effects.Single());
             Assert.AreEqual("param1", ((DriveParameter)node1.Effects.Single()).ParameterName);
             Assert.IsInstanceOf<DriveInternalParameter>(node2.Effects.Single());
             Assert.AreEqual("param1", ((ParameterExpression)node2.Expression).ParameterName);
-
+    
             var or = (OrNode)node1.Expression;
             var and = (AndNode)or.Children[0];
             var not = (NotNode)or.Children[1];
@@ -246,7 +246,7 @@ namespace UnitTestsReactiveComponentIL
                 ((InternalParameterCondition)and.Children[1]).ParameterName);
             Assert.AreEqual("param3", ((InternalParameterCondition)not.Inner).ParameterName);
         }
-
+    
         [Test]
         public void MultipleEffectsOnNode_IsRejected()
         {
@@ -257,10 +257,10 @@ namespace UnitTestsReactiveComponentIL
             );
             node.Effects.Add(new DriveParameter("external_param", 0.5f));
             graph.AddNode(node);
-
+    
             Assert.Throws<System.InvalidOperationException>(() => BreakLoopsTransform.Apply(graph));
         }
-
+    
         [Test]
         public void InternalDriverAfterNonInternalEffect_IsRejected()
         {
@@ -271,10 +271,10 @@ namespace UnitTestsReactiveComponentIL
             );
             node.Effects.Add(new DriveInternalParameter("param", true));
             graph.AddNode(node);
-
+    
             Assert.Throws<System.InvalidOperationException>(() => BreakLoopsTransform.Apply(graph));
         }
-
+    
         [Test]
         public void ThreeNodeCycle_HighestPriorityBrokenFirst()
         {
@@ -307,9 +307,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param3 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "Node1 should still drive param2 internally");
@@ -322,26 +322,26 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsInstanceOf<InternalParameterCondition>(node1.Expression, "Node1's param1 should remain internal");
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression, "Node2's param2 should remain internal");
         }
-
+    
         [Test]
         public void ConvertedParameterValue_IsOne()
         {
             // When we convert a DriveInternalParameter(State=true) to DriveParameter, it should have value 1.0f
             var graph = new ReactionGraph();
-
+    
             var node = new ReactionNode(
                 new InternalParameterCondition("param1"),
                 new DriveInternalParameter("param1", true)
             );
-
+    
             graph.AddNode(node);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             var driveParam = (DriveParameter)node.Effects[0];
             Assert.AreEqual(1.0f, driveParam.Value);
         }
-
+    
         [Test]
         public void DriveToInactive_StatePreservedWhenLoopBroken()
         {
@@ -352,32 +352,32 @@ namespace UnitTestsReactiveComponentIL
             // Cycle: ObjActive/A <-> ObjActive/B.
             // node2 has higher priority so its edge (DriveInternalParameter("ObjActive/B", false)) is broken.
             var graph = new ReactionGraph();
-
+    
             var node1 = new ReactionNode(
                 new InternalParameterCondition("ObjActive/B"),
                 new DriveInternalParameter("ObjActive/A", true)
             );
             node1.Priority = 0;
-
+    
             // Higher priority: when A is active, drive B *inactive* (State = false).
             var node2 = new ReactionNode(
                 new InternalParameterCondition("ObjActive/A"),
                 new DriveInternalParameter("ObjActive/B", false)
             );
             node2.Priority = 1;
-
+    
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // node2 is higher priority, so its drive edge is broken.
             Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
             var dp = (DriveParameter)node2.Effects[0];
             Assert.AreEqual("ObjActive/B", dp.ParameterName);
             Assert.AreEqual(0.0f, dp.Value, "State=false must produce 0.0f, not 1.0f");
         }
-
+    
         [Test]
         public void ConvertedParameterExpression_Uses0_5ThresholdAndGreaterThan()
         {
@@ -391,15 +391,15 @@ namespace UnitTestsReactiveComponentIL
             );
             
             graph.AddNode(node);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             var paramExpr = (ParameterExpression)node.Expression;
             Assert.AreEqual("param1", paramExpr.ParameterName);
             Assert.AreEqual(0.5f, paramExpr.Threshold);
             Assert.AreEqual(ParameterExpression.ConditionMode.GreaterThan, paramExpr.Mode);
         }
-
+    
         [Test]
         public void MultipleNodesDriverSameParameter_BothCanParticipateInCycles()
         {
@@ -433,9 +433,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param2 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "Node1 should still drive param1 internally");
@@ -447,7 +447,7 @@ namespace UnitTestsReactiveComponentIL
             // param1 should still be InternalParameterCondition since it's not broken
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression, "Node2's param1 should remain internal");
         }
-
+    
         [Test]
         public void MultipleNodesDriverSameParameter_IndependentLoops()
         {
@@ -475,15 +475,15 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // No cycles, so nothing should change
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0]);
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0]);
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression);
         }
-
+    
         [Test]
         public void MultipleExpressionReferencesAndMultipleDrivers_AllConverted()
         {
@@ -526,9 +526,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param2 should be broken (driven by node2, highest priority)
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "Node1 should still drive param1 internally");
@@ -542,7 +542,7 @@ namespace UnitTestsReactiveComponentIL
             bool hasInternalParam1AfterConversion = ContainsInternalParameterConditionForParam(expr2, "param1");
             Assert.IsTrue(hasInternalParam1AfterConversion, "InternalParameterConditions for param1 should remain (not broken)");
         }
-
+    
         [Test]
         public void MultipleDriversWithDifferentPriorities_HighestPriorityBrokenFirst()
         {
@@ -577,15 +577,15 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param2 (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param1 internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "Node1 should still drive param1 internally");
             Assert.IsInstanceOf<DriveParameter>(node2.Effects[0], "Node2 should drive param2 externally (broken)");
         }
-
+    
         /// <summary>
         ///     Helper method to check if an expression tree contains an InternalParameterCondition for a specific parameter.
         /// </summary>
@@ -593,7 +593,7 @@ namespace UnitTestsReactiveComponentIL
         {
             if (expr is InternalParameterCondition ipc && ipc.ParameterName == paramName)
                 return true;
-
+    
             bool found = false;
             void Visit(ref IExpression e)
             {
@@ -602,13 +602,13 @@ namespace UnitTestsReactiveComponentIL
                 else
                     e.Walk(Visit);
             }
-
+    
             var tmp = expr;
             Visit(ref tmp);
             return found;
         }
-
-
+    
+    
         [Test]
         public void SimpleCycle_OnlyBreaksHighestPriorityParameter()
         {
@@ -639,9 +639,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param_A (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "Node0 should still drive param_B internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "Node1 should still drive param_C internally");
@@ -654,7 +654,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsInstanceOf<InternalParameterCondition>(node1.Expression);
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression);
         }
-
+    
         [Test]
         public void MultipleCycles_BreaksRequiredParameters()
         {
@@ -709,9 +709,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node2);
             graph.AddNode(node3);
             graph.AddNode(node4);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // param_A is driven by node2 (priority 2) and node3 (priority 3)
             // param_D is driven by node4 (priority 4)
             // Both param_A and param_D should be broken as they're in different cycles
@@ -727,7 +727,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsInstanceOf<InternalParameterCondition>(node3.Expression, "Node3's param_D should not be converted");
             Assert.IsInstanceOf<ParameterExpression>(node4.Expression, "Node4's param_A should be converted");
         }
-
+    
         [Test]
         public void CycleWithComplexExpression_BreaksCorrectly()
         {
@@ -762,9 +762,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param_A (driven by node2, highest priority) should be broken
             Assert.IsInstanceOf<DriveParameter>(node2.Effects[0]);
             
@@ -780,7 +780,7 @@ namespace UnitTestsReactiveComponentIL
             var node2Expr = (NotNode)node2.Expression;
             Assert.IsInstanceOf<InternalParameterCondition>(node2Expr.Inner);
         }
-
+    
         [Test]
         public void InterlinkedCycles_BreaksA1AndA2()
         {
@@ -793,23 +793,23 @@ namespace UnitTestsReactiveComponentIL
             // D -> A2 (node5)
             // Cycles: A1-B-C-A1 and A2-B-D-A2; we should break A1 and A2 (driven by highest-priority nodes).
             var graph = new ReactionGraph();
-
+    
             var node0 = new ReactionNode(new InternalParameterCondition("param_A1"), new DriveInternalParameter("param_B", true)) { Priority = 0 };
             var node1 = new ReactionNode(new InternalParameterCondition("param_A2"), new DriveInternalParameter("param_B", true)) { Priority = 1 };
             var node2 = new ReactionNode(new InternalParameterCondition("param_B"), new DriveInternalParameter("param_C", true)) { Priority = 2 };
             var node4 = new ReactionNode(new InternalParameterCondition("param_B"), new DriveInternalParameter("param_D", true)) { Priority = 3 };
             var node3 = new ReactionNode(new InternalParameterCondition("param_C"), new DriveInternalParameter("param_A1", true)) { Priority = 4 };
             var node5 = new ReactionNode(new InternalParameterCondition("param_D"), new DriveInternalParameter("param_A2", true)) { Priority = 5 };
-
+    
             graph.AddNode(node0);
             graph.AddNode(node1);
             graph.AddNode(node2);
             graph.AddNode(node4);
             graph.AddNode(node3);
             graph.AddNode(node5);
-
+    
             BreakLoopsTransform.Apply(graph);
-
+    
             // Only param_A1 (node3) and param_A2 (node5) should be broken
             Assert.IsInstanceOf<DriveInternalParameter>(node0.Effects[0], "node0 should still drive param_B internally");
             Assert.IsInstanceOf<DriveInternalParameter>(node1.Effects[0], "node1 should still drive param_B internally");
@@ -817,11 +817,11 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsInstanceOf<DriveInternalParameter>(node4.Effects[0], "node4 should still drive param_D internally");
             Assert.IsInstanceOf<DriveParameter>(node3.Effects[0], "node3 should drive param_A1 externally (broken)");
             Assert.IsInstanceOf<DriveParameter>(node5.Effects[0], "node5 should drive param_A2 externally (broken)");
-
+    
             // References to broken parameters should be converted where they are read
             Assert.IsInstanceOf<ParameterExpression>(node0.Expression, "node0 reads param_A1 and should be converted");
             Assert.IsInstanceOf<ParameterExpression>(node1.Expression, "node1 reads param_A2 and should be converted");
-
+    
             // Nodes that read only unbroken params remain internal
             Assert.IsInstanceOf<InternalParameterCondition>(node2.Expression, "node2 reads param_B and should remain internal");
             Assert.IsInstanceOf<InternalParameterCondition>(node4.Expression, "node4 reads param_B and should remain internal");

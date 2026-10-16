@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -12,14 +12,14 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class AlignNodesTransformTests : TestBase
     {
         private GameObject _root;
         private UnityBlendTreeBackend _blendTreeBackend;
         private AnimatorServicesContext _asc;
-
+    
         [SetUp]
         public override void Setup()
         {
@@ -31,9 +31,9 @@ namespace UnitTestsReactiveComponentIL
             _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
             _blendTreeBackend.Parameters = new();
         }
-
+    
         #region Effect Group Tests
-
+    
         [Test]
         public void DividesIntoEffectGroups_SingleEffect()
         {
@@ -43,14 +43,14 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(1, groups[0].Nodes.Count);
             Assert.AreEqual(new InternalParameterTarget("param1"), groups[0].TargetKey);
         }
-
+    
         [Test]
         public void DividesIntoEffectGroups_MultipleEffects()
         {
@@ -64,9 +64,9 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(false),
                 new DriveInternalParameter("param2", false)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(2, groups.Count);
             
             var param1Group = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("param1")));
@@ -77,7 +77,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(1, param1Group.Nodes.Count);
             Assert.AreEqual(1, param2Group.Nodes.Count);
         }
-
+    
         [Test]
         public void DividesIntoEffectGroups_SameEffectMultipleNodes()
         {
@@ -93,9 +93,9 @@ namespace UnitTestsReactiveComponentIL
             );
             graph.AddNode(node1);
             graph.AddNode(node2);
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(2, groups[0].Nodes.Count);
             Assert.AreEqual(new InternalParameterTarget("param1"), groups[0].TargetKey);
@@ -105,7 +105,7 @@ namespace UnitTestsReactiveComponentIL
                 new[] { node1.Expression, node2.Expression },
                 groups[0].Nodes.Select(node => node.Expression));
         }
-
+    
         [Test]
         public void MultiEffectNode_AlignmentKeepsGroupExpressionsIsolated()
         {
@@ -116,24 +116,24 @@ namespace UnitTestsReactiveComponentIL
             );
             node.Effects.Add(new DriveInternalParameter("second", true));
             graph.AddNode(node);
-
+    
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             AlignNodesTransform.Apply(_blendTreeBackend, groups);
-
+    
             var firstCondition = ((AndNode)groups[new InternalParameterTarget("first")].Nodes.Single().Expression)
                 .Children.OfType<InternalParameterCondition>().Single();
             var secondCondition = ((AndNode)groups[new InternalParameterTarget("second")].Nodes.Single().Expression)
                 .Children.OfType<InternalParameterCondition>().Single();
-
+    
             Assert.AreNotSame(firstCondition, secondCondition,
                 "Each effect group must receive its own expression clone before alignment rewrites it");
-
+    
             firstCondition.ParameterName = "only-first";
-
+    
             Assert.AreEqual("shared", secondCondition.ParameterName,
                 "Alignment changes to one group's expression must not leak into another effect group");
         }
-
+    
         [Test]
         public void LatencyCalculation_TwoOrFewerNodes_LatencyOne()
         {
@@ -151,16 +151,16 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("pair1", false)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var singleGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("single")));
             var pairGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("pair1")));
-
+    
             Assert.AreEqual(1, singleGroup.Latency);
             Assert.AreEqual(1, pairGroup.Latency);
         }
-
+    
         [Test]
         public void LatencyCalculation_MoreThanTwoNodes_LatencyTwo()
         {
@@ -178,19 +178,19 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(1, groups.Count);
             Assert.AreEqual(3, groups[0].Nodes.Count);
             Assert.AreEqual(2, groups[0].Latency);
         }
-
-
+    
+    
         #endregion
-
+    
         #region Delay Node Insertion Tests
-
+    
         [Test]
         public void InsertsDelayNodes_WhenPathLengthsDiffer()
         {
@@ -236,9 +236,9 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("D", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var aGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
             var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
             var cGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
@@ -251,14 +251,14 @@ namespace UnitTestsReactiveComponentIL
             
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
         }
-
+    
         [Test]
         public void DelayNodesCreatedForAllMisalignedParameters()
         {
             // A reads B and C; B and C read D. D is driven by an external parameter, and a
             // lower-latency external effect also reads D.
             var graph = new ReactionGraph();
-
+    
             graph.AddNode(new ReactionNode(
                 new AndNode(
                     new InternalParameterCondition("B"),
@@ -266,38 +266,38 @@ namespace UnitTestsReactiveComponentIL
                 ),
                 new DriveInternalParameter("A", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("D"),
                 new DriveInternalParameter("B", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("D"),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("input"),
                 new DriveInternalParameter("D", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("D"),
                 new NullAction("dOutput")
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var aGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("A")));
             var bGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
             var cGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
             var dGroup = groups.Single(g => g.TargetKey.Equals(new InternalParameterTarget("D")));
             var dOutputGroup = groups.Single(g => Equals(g.TargetKey, "dOutput"));
-
+    
             Assert.IsNotNull(aGroup);
             Assert.IsNotNull(dGroup);
-
+    
             var delayD1 = AlignNodesTransform.DelayParamName("D", 1);
             ValidateDelayForward(delayD1, "D");
             Assert.That(GetParameterReferencesFromExpression(dOutputGroup.Nodes.Single().Expression),
@@ -310,7 +310,7 @@ namespace UnitTestsReactiveComponentIL
                 Is.EquivalentTo(new[] { "D" }),
                 "C is already aligned with D and must read D directly");
         }
-
+    
         [Test]
         public void MultipleDelayNodesForSingleParameter()
         {
@@ -360,9 +360,9 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             // Find the original and delay node groups
             var cGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("C")));
             var bGroup = groups.FirstOrDefault(g => g.TargetKey.Equals(new InternalParameterTarget("B")));
@@ -371,7 +371,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(cGroup, "Should have C group");
             Assert.IsNotNull(bGroup, "Should have B group");
             Assert.IsNotNull(aGroup, "Should have A group");
-
+    
             // Verify delay forwarding structures
             ValidateDelayForward(AlignNodesTransform.DelayParamName("B", 1), "B");
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 2), AlignNodesTransform.DelayParamName("C", 1));
@@ -389,14 +389,14 @@ namespace UnitTestsReactiveComponentIL
                 "NullAction should reference delayed B");
             Assert.That(referencesInNullAction, Contains.Item(AlignNodesTransform.DelayParamName("C", 2)),
                 "NullAction should reference delayed C");
-
+    
             // Verify A group references are correct
             var referencesInA = GetParameterReferencesFromExpression(aGroup.Nodes[0].Expression);
             Assert.That(referencesInA, Contains.Item("B"), "A should reference B (no delay needed for A)");
             Assert.That(referencesInA, Contains.Item(AlignNodesTransform.DelayParamName("C", 1)),
                 "A should reference C (one level of delay from A's perspective)");
         }
-
+    
         [Test]
         public void DifferingLatenciesRequireSelectiveDelayNodes()
         {
@@ -416,7 +416,7 @@ namespace UnitTestsReactiveComponentIL
             //   Node 1: IP(A)
             //
             // IP(A): Constant (depth 2, latency 1)
-
+    
             var graph = new ReactionGraph();
             
             // NullAction("x") with 3 nodes (latency 2)
@@ -451,9 +451,9 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("A", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var xGroup = groups.FirstOrDefault(g => g.TargetKey as string == "x");
             var yGroup = groups.FirstOrDefault(g => g.TargetKey as string == "y");
             var zGroup = groups.FirstOrDefault(g => g.TargetKey as string == "z");
@@ -482,14 +482,14 @@ namespace UnitTestsReactiveComponentIL
                 "y should not reference original A");
             Assert.That(yReferences, Contains.Item(AlignNodesTransform.DelayParamName("A", 1)),
                 "y should reference delayed A");
-
+    
             var zReferences = GetParameterReferencesFromExpression(zGroup.Nodes[0].Expression);
             Assert.That(zReferences, Does.Not.Contain("A"),
                 "z should not reference original A");
             Assert.That(zReferences, Contains.Item(AlignNodesTransform.DelayParamName("A", 1)),
                 "z should reference delayed A");
         }
-
+    
         [Test]
         public void NoDelayNodesWhenPathLengthsSame()
         {
@@ -501,16 +501,16 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression("externalParam"),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(1, groups.Count);
             var param1Group = groups.Single();
             Assert.AreEqual(new InternalParameterTarget("param1"), param1Group.TargetKey);
             AssertExpressionReferences(param1Group.Nodes.Single().Expression, "externalParam");
             ValidateNoDelayForwards();
         }
-
+    
         [Test]
         public void AndGateGraph_InsertsDelayNodesForLatencyOneGroups()
         {
@@ -519,9 +519,9 @@ namespace UnitTestsReactiveComponentIL
             //
             // Expected: the latency-2 AND group reads the external parameters directly. The latency-1
             // groups read A_OFF$d1/B_OFF$d1/C_OFF$d1, forwarded from the corresponding external parameters.
-
+    
             var graph = new ReactionGraph();
-
+    
             // AND group: 3 nodes → latency=2
             var andNode0 = new ReactionNode(new ParameterExpression("A_OFF"), new NullAction("AND"));
             var andNode1 = new ReactionNode(new ParameterExpression("B_OFF"), new NullAction("AND"));
@@ -529,7 +529,7 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(andNode0);
             graph.AddNode(andNode1);
             graph.AddNode(andNode2);
-
+    
             // Latency-1 external-effect groups: 1 node each
             var notANode = new ReactionNode(new ParameterExpression("A_OFF"), new NullAction("NOT_A"));
             var aObjNode = new ReactionNode(new ParameterExpression("A_OFF"), new NullAction("A_OBJ"));
@@ -539,34 +539,34 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(aObjNode);
             graph.AddNode(bObjNode);
             graph.AddNode(cObjNode);
-
+    
             var byEffect = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             var aligned = AlignNodesTransform.Apply(_blendTreeBackend, byEffect);
-
+    
             // Locate groups
             var andGroup  = aligned.FirstOrDefault(g => g.TargetKey as string == "AND");
             var notAGroup = aligned.FirstOrDefault(g => g.TargetKey as string == "NOT_A");
             var aObjGroup = aligned.FirstOrDefault(g => g.TargetKey as string == "A_OBJ");
             var bObjGroup = aligned.FirstOrDefault(g => g.TargetKey as string == "B_OBJ");
             var cObjGroup = aligned.FirstOrDefault(g => g.TargetKey as string == "C_OBJ");
-
+    
             Assert.IsNotNull(andGroup,  "AND group should exist");
             Assert.IsNotNull(notAGroup, "NOT_A group should exist");
             Assert.IsNotNull(aObjGroup, "A_OBJ group should exist");
             Assert.IsNotNull(bObjGroup, "B_OBJ group should exist");
             Assert.IsNotNull(cObjGroup, "C_OBJ group should exist");
-
+    
             // Latencies
             Assert.AreEqual(2, andGroup.Latency,  "AND has 3 nodes → latency 2");
             Assert.AreEqual(1, notAGroup.Latency, "NOT_A has 1 node → latency 1");
             Assert.AreEqual(1, aObjGroup.Latency, "A_OBJ has 1 node → latency 1");
             Assert.AreEqual(1, bObjGroup.Latency, "B_OBJ has 1 node → latency 1");
             Assert.AreEqual(1, cObjGroup.Latency, "C_OBJ has 1 node → latency 1");
-
+    
             ValidateDelayForward(AlignNodesTransform.DelayParamName("A_OFF", 1), "A_OFF");
             ValidateDelayForward(AlignNodesTransform.DelayParamName("B_OFF", 1), "B_OFF");
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C_OFF", 1), "C_OFF");
-
+    
             // AND nodes keep original param names (latency-2 consumer, no rewrite needed)
             Assert.AreEqual("A_OFF", ((ParameterExpression)andGroup.Nodes[0].Expression).ParameterName,
                 "AND node0 should still reference A_OFF");
@@ -574,7 +574,7 @@ namespace UnitTestsReactiveComponentIL
                 "AND node1 should still reference B_OFF");
             Assert.AreEqual("C_OFF", ((ParameterExpression)andGroup.Nodes[2].Expression).ParameterName,
                 "AND node2 should still reference C_OFF");
-
+    
             // Latency-1 nodes should be rewritten to reference delay params
             Assert.AreEqual(AlignNodesTransform.DelayParamName("A_OFF", 1), ((ParameterExpression)notAGroup.Nodes[0].Expression).ParameterName,
                 "NOT_A should reference delayed A_OFF");
@@ -585,7 +585,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(AlignNodesTransform.DelayParamName("C_OFF", 1), ((ParameterExpression)cObjGroup.Nodes[0].Expression).ParameterName,
                 "C_OBJ should reference delayed C_OFF");
         }
-
+    
         [Test]
         public void DelayNodeStructure_HasForwardingEntry()
         {
@@ -593,13 +593,13 @@ namespace UnitTestsReactiveComponentIL
             // Each delay level D[i] is a clip writing constant 1 to the delay param, with
             // DirectBlendParameter = the prior level (or the original param for level 1).
             var graph = new ReactionGraph();
-
+    
             // External consumer of A so the graph has a path to ExternalEffect
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("A"),
                 new NullAction("output")
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new OrNode(
                     new InternalParameterCondition("B"),
@@ -607,7 +607,7 @@ namespace UnitTestsReactiveComponentIL
                 ),
                 new DriveInternalParameter("A", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new OrNode(
                     new InternalParameterCondition("C"),
@@ -615,25 +615,25 @@ namespace UnitTestsReactiveComponentIL
                 ),
                 new DriveInternalParameter("B", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new Constant(true),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new Constant(true),
                 new DriveInternalParameter("D", true)
             ));
-
+    
             AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             // C is 2 hops from the external effect via A; when read by A (1 hop away),
             // C must be delayed by 1 frame. Verify the blend tree forwarding entry was created.
             Assert.IsNotEmpty(_blendTreeBackend.RootTree.Children, "Should have created at least one delay forwarding entry");
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
         }
-
+    
         [Test]
         public void DelayParameters_HaveBaseCurveSetToZero()
         {
@@ -642,7 +642,7 @@ namespace UnitTestsReactiveComponentIL
             // AlwaysOnClip must contain a constant-0 curve for every delay parameter so that
             // the direct blend tree always resets it before the forwarding clip can override it.
             var graph = new ReactionGraph();
-
+    
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("A"),
                 new NullAction("output")
@@ -662,18 +662,18 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
         }
-
+    
         [Test]
         public void DelayParameters_MultipleDepths_AllHaveBaseCurves()
         {
             // Each delay level (C$d1, C$d2, B$d1, etc.) must independently have a base curve.
             var graph = new ReactionGraph();
-
+    
             graph.AddNode(new ReactionNode(
                 new OrNode(
                     new InternalParameterCondition("A"),
@@ -697,18 +697,18 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("B", 1));
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 1));
             ValidateDelayBaseCurve(AlignNodesTransform.DelayParamName("C", 2));
         }
-
+    
         #endregion
-
+    
         #region Depth Assignment Tests
-
+    
         [Test]
         public void ConstantDrivenParameter_NoDelayNodesCreated()
         {
@@ -718,33 +718,33 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("internalParam", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("internalParam")));
             AssertExpressionReferences(group.Nodes.Single().Expression);
             ValidateNoDelayForwards();
         }
-
+    
         [Test]
         public void LinearChain_NoDelayNodesNeeded()
         {
             // A simple linear chain (param1 reads param2) needs no delay nodes
             var graph = new ReactionGraph();
-
+    
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("param2"),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             graph.AddNode(new ReactionNode(
                 new Constant(true),
                 new DriveInternalParameter("param2", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var param1Group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param1")));
             Assert.That(groups.Any(g =>
@@ -752,7 +752,7 @@ namespace UnitTestsReactiveComponentIL
             AssertExpressionReferences(param1Group.Nodes.Single().Expression, "param2");
             ValidateNoDelayForwards();
         }
-
+    
         [Test]
         public void DepthAssignmentConsidersLatency()
         {
@@ -782,25 +782,25 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("param2", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var param1Group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param1")));
             var param2Group = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param2")));
-
+    
             Assert.AreEqual(1, param1Group.Latency);
             Assert.AreEqual(2, param2Group.Latency);
             foreach (var node in param1Group.Nodes)
                 AssertExpressionReferences(node.Expression, "param2");
             ValidateNoDelayForwards();
         }
-
+    
         #endregion
-
+    
         #region Complex Chain Tests
-
+    
         [Test]
         public void HandlesChainOfInternalParameters()
         {
@@ -823,9 +823,9 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression("input"),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             // Verify we got the correct groups
             Assert.That(groups.Any(g => g.TargetKey.Equals(new InternalParameterTarget("output"))));
             Assert.That(groups.Any(g => g.TargetKey.Equals(new InternalParameterTarget("param1"))));
@@ -834,7 +834,7 @@ namespace UnitTestsReactiveComponentIL
             
             // All expected groups are present (verified above)
         }
-
+    
         [Test]
         public void HandlesBranchingPaths()
         {
@@ -867,24 +867,24 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression("input"),
                 new DriveInternalParameter("param2", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             var outputGroup = groups.Single(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("output")));
             Assert.That(groups.Any(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param1"))));
             Assert.That(groups.Any(g =>
                 g.TargetKey.Equals(new InternalParameterTarget("param2"))));
-
+    
             AssertExpressionReferences(outputGroup.Nodes.Single().Expression, "param1", "param2");
             ValidateNoDelayForwards();
         }
-
+    
         #endregion
-
+    
         #region EffectGroup Emit Tests
-
+    
         [Test]
         public void Emit_InternalParameterCondition_TrueCaseUsesOnGreaterEquals()
         {
@@ -896,41 +896,41 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("p"),
                 new DriveInternalParameter("effect", true)
             ));
-
+    
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             var eg = groups[new InternalParameterTarget("effect")];
-
+    
             var rootNode = eg.Emit(_blendTreeBackend);
-
+    
             var branchNode = ((ProxyNode)rootNode).Target as BranchNode;
             Assert.IsNotNull(branchNode, "EmitCondition should produce a BranchNode for InternalParameterCondition");
             Assert.AreEqual("p", branchNode.Parameter);
-
+    
             // When p >= threshold (true), the effect MotionNode must play
             var trueTarget = ((ProxyNode)branchNode.OnGreaterThan).Target;
             Assert.IsInstanceOf<MotionNode>(trueTarget,
                 "OnGreaterEquals (p=true) must resolve to the effect MotionNode, not the empty node");
-
+    
             // When p < threshold (false), no effect should play
             var falseTarget = ((ProxyNode)branchNode.OnLessEquals).Target;
             Assert.IsNotInstanceOf<MotionNode>(falseTarget,
                 "OnLessThan (p=false) must not resolve to the effect MotionNode");
         }
-
+    
         #endregion
-
+    
         #region Edge Case Tests
-
+    
         [Test]
         public void EmptyGraph_NoError()
         {
             var graph = new ReactionGraph();
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(0, groups.Count);
         }
-
+    
         [Test]
         public void SingleNodeNoInternalParameters_NoError()
         {
@@ -939,12 +939,12 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression("externalParam"),
                 new DriveInternalParameter("output", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             Assert.AreEqual(1, groups.Count);
         }
-
+    
         [Test]
         public void CycleThrowsException()
         {
@@ -959,11 +959,11 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("param1"),
                 new DriveInternalParameter("param2", true)
             ));
-
+    
             // Should throw an exception due to invalid edge depth
             Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph));
         }
-
+    
         [Test]
         public void SelfLoopThrowsException()
         {
@@ -974,15 +974,15 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("param1"),
                 new DriveInternalParameter("param1", true)
             ));
-
+    
             // Should throw an exception due to invalid edge depth
             Assert.Throws<Exception>(() => AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph));
         }
-
+    
         #endregion
-
+    
         #region Expression Replacement Tests
-
+    
         [Test]
         public void ReplacesInternalParameterReferences_WithDelayedVersion()
         {
@@ -1019,12 +1019,12 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(true),
                 new DriveInternalParameter("C", true)
             ));
-
+    
             var groups = AlignNodesTransform.Apply(_blendTreeBackend, _blendTreeBackend._effectProcessors, graph);
-
+    
             // Validate the delay forwarding structure
             ValidateDelayForward(AlignNodesTransform.DelayParamName("C", 1), "C");
-
+    
             // Verify the NullAction node now references the delay node instead of C
             var referencesInNullAction = GetParameterReferencesFromExpression(
                 groups.Single(group => Equals(group.TargetKey, "a")).Nodes.Single().Expression);
@@ -1032,7 +1032,7 @@ namespace UnitTestsReactiveComponentIL
                 "NullAction should not reference original C");
             Assert.That(referencesInNullAction, Contains.Item(AlignNodesTransform.DelayParamName("C", 1)),
                 "NullAction should reference the delay node for C");
-
+    
             // Verify all referenced parameters exist in the output groups or are delay params
             foreach (var group in groups)
             {
@@ -1048,17 +1048,17 @@ namespace UnitTestsReactiveComponentIL
                 }
             }
         }
-
+    
         #endregion
-
+    
         #region Helper Methods
-
+    
         private HashSet<string> GetParameterReferencesFromExpression(IExpression expr)
         {
             var references = new HashSet<string>();
             Visit(ref expr);
             return references;
-
+    
             void Visit(ref IExpression e)
             {
                 switch (e)
@@ -1075,12 +1075,12 @@ namespace UnitTestsReactiveComponentIL
                 }
             }
         }
-
+    
         private void AssertExpressionReferences(IExpression expression, params string[] expected)
         {
             Assert.That(GetParameterReferencesFromExpression(expression), Is.EquivalentTo(expected));
         }
-
+    
         private void ValidateNoDelayForwards()
         {
             var delayCurveBindings = _blendTreeBackend.RootTree.Children
@@ -1089,11 +1089,11 @@ namespace UnitTestsReactiveComponentIL
                 .SelectMany(clip => clip.GetFloatCurveBindings())
                 .Where(binding => binding.type == typeof(Animator)
                                   && AlignNodesTransform.IsDelayParam(binding.propertyName));
-
+    
             Assert.That(delayCurveBindings, Is.Empty,
                 "An aligned graph must not emit RootTree delay forwarding clips");
         }
-
+    
         /// <summary>
         /// Validates that a delay parameter forwarding entry exists in the root blend tree.
         /// GetDelayedParameter creates a direct blend tree child where:
@@ -1108,13 +1108,13 @@ namespace UnitTestsReactiveComponentIL
                 .Select(c => c.Motion as VirtualClip)
                 .FirstOrDefault(clip => clip != null &&
                                  clip.GetFloatCurve("", typeof(Animator), delayParamName) != null);
-
+    
             Assert.IsNotNull(forwardingClip,
                 $"RootTree should have a forwarding entry: {sourceParamName} → {delayParamName}");
             Assert.AreEqual(1f, forwardingClip.GetFloatCurve("", typeof(Animator), delayParamName).Evaluate(0f),
                 $"Forwarding curve for {delayParamName} must evaluate to 1");
         }
-
+    
         /// <summary>
         /// Validates that AlwaysOnClip has a constant-0 base curve for the given delay parameter.
         /// Without this curve, when the source parameter drops to 0 the delay parameter sticks at 1.
@@ -1127,7 +1127,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreEqual(0f, curve.Evaluate(0f),
                 $"Base curve for {delayParamName} must evaluate to 0");
         }
-
+    
         #endregion
     }
 }

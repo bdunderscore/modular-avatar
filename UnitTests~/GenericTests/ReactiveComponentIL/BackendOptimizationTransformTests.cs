@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -11,12 +11,12 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class BackendOptimizationTransformTests : TestBase
     {
         private UnityBlendTreeBackend _backend;
-
+    
         [SetUp]
         public override void Setup()
         {
@@ -26,7 +26,7 @@ namespace UnitTestsReactiveComponentIL
             var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
             _backend = new UnityBlendTreeBackend(context, controller);
         }
-
+    
         [Test]
         public void MergeEffectNodes_EquivalentConditions_EmitsAllMergedActions()
         {
@@ -34,14 +34,14 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(condition, new DriveParameter("first", 1f)));
             graph.AddNode(new ReactionNode(condition, new DriveParameter("second", 2f)));
-
+    
             var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
-
+    
             Assert.That(merged, Has.Count.EqualTo(1));
             Assert.That(merged[0].Nodes, Has.Count.EqualTo(1));
             Assert.That(merged[0].Nodes[0].Effects, Has.Count.EqualTo(2));
-
+    
             IMotionNode emitted = merged[0].Emit(_backend);
             var branch = ResolveProxy(emitted) as BranchNode;
             Assert.That(branch, Is.Not.Null);
@@ -56,26 +56,26 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(firstCurve.Evaluate(0), Is.EqualTo(1f));
             Assert.That(secondCurve.Evaluate(0), Is.EqualTo(2f));
         }
-
+    
         private static IMotionNode ResolveProxy(IMotionNode emitted)
         {
             while (emitted is ProxyNode proxy) emitted = proxy.Target;
             return emitted;
         }
-
+    
         [Test]
         public void MergeEffectNodes_DifferentConditions_RemainsSeparate()
         {
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new InternalParameterCondition("first"), new DriveParameter("first", 1f)));
             graph.AddNode(new ReactionNode(new InternalParameterCondition("second"), new DriveParameter("second", 2f)));
-
+    
             var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
-
+    
             Assert.That(merged, Has.Count.EqualTo(2));
         }
-
+    
         [Test]
         public void EffectGroupMerge_DifferentConditions_Throws()
         {
@@ -88,11 +88,11 @@ namespace UnitTestsReactiveComponentIL
             {
                 new(new InternalParameterCondition("second"))
             }, 1);
-
+    
             Assert.Throws<InvalidOperationException>(() =>
                 EffectGroup.Merge(new List<EffectGroup> { first, second }));
         }
-
+    
         [Test]
         public void MergeEffectNodes_InitiallyActive_AppliesEveryTargetBaseState()
         {
@@ -100,16 +100,16 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("first", 1f)));
             graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("second", 2f)));
             _backend.PreprocessGraph(graph);
-
+    
             var effectGroups = AlignNodesTransform.CreateEffectGroups(_backend._effectProcessors, graph);
             var merged = MergeEffectNodesTransform.MergeNodes(_backend, effectGroups.Values.ToList());
             AssignInitialGroupStatesTransform.Apply(_backend, merged);
-
+    
             Assert.That(merged[0].DefaultNode, Is.EqualTo(0));
             Assert.That(_backend.GetParameterInitialValue("first"), Is.EqualTo(1f));
             Assert.That(_backend.GetParameterInitialValue("second"), Is.EqualTo(2f));
         }
-
+    
         [Test]
         public void CoalesceBranches_AdjacentEqualRanges_MergesWithoutLosingRange()
         {
@@ -117,9 +117,9 @@ namespace UnitTestsReactiveComponentIL
             var final = new EmptyNode();
             IMotionNode root = new BranchNode("parameter", repeated,
                 new BranchNode("parameter", repeated, final) { Threshold = 1f }) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(2));
@@ -128,7 +128,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(blend.Nodes[1].Item1, Is.EqualTo(1f.NextLargest()));
             Assert.That(blend.Nodes[1].Item2, Is.SameAs(final));
         }
-
+    
         [Test]
         public void CoalesceBranches_SingleValueRange_IsPreserved()
         {
@@ -136,7 +136,7 @@ namespace UnitTestsReactiveComponentIL
             var singleton = new EmptyNode();
             var above = new EmptyNode();
             var singletonValue = 0f;
-
+    
             // The nested greater-than range starts at zero and is clipped by the outer branch to [0, 0].
             IMotionNode root = new BranchNode(
                 "parameter",
@@ -146,9 +146,9 @@ namespace UnitTestsReactiveComponentIL
                 },
                 above
             ) { Threshold = singletonValue };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(3));
@@ -159,7 +159,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(blend.Nodes[2].Item1, Is.EqualTo(singletonValue.NextLargest()));
             Assert.That(blend.Nodes[2].Item2, Is.SameAs(above));
         }
-
+    
         [Test]
         public void CoalesceBranches_PositiveInfinityRootThreshold_SkipsGreaterBranch()
         {
@@ -169,16 +169,16 @@ namespace UnitTestsReactiveComponentIL
             {
                 Threshold = float.PositiveInfinity
             };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(1));
             Assert.That(blend.Nodes[0].Item1, Is.EqualTo(float.NegativeInfinity));
             Assert.That(blend.Nodes[0].Item2, Is.SameAs(atOrBelow));
         }
-
+    
         [Test]
         public void CoalesceBranches_PositiveInfinityNestedThreshold_SkipsGreaterBranch()
         {
@@ -193,9 +193,9 @@ namespace UnitTestsReactiveComponentIL
                     Threshold = float.PositiveInfinity
                 }
             ) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(2));
@@ -205,7 +205,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(blend.Nodes[1].Item2, Is.SameAs(atOrBelowInfinity));
             Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableGreater)), Is.False);
         }
-
+    
         [Test]
         public void CoalesceBranches_ProxyWrappedConditionalChain_MergesAdjacentRanges()
         {
@@ -245,9 +245,9 @@ namespace UnitTestsReactiveComponentIL
                     ) { Threshold = 2f })
                 ) { Threshold = 1f })
             ) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(3));
@@ -258,7 +258,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(blend.Nodes[2].Item1, Is.EqualTo(2f.NextLargest()));
             Assert.That(blend.Nodes[2].Item2, Is.SameAs(final));
         }
-
+    
         [Test]
         public void CoalesceBranches_UnreachableAndPartiallyUnreachableRanges_AreExcluded()
         {
@@ -305,9 +305,9 @@ namespace UnitTestsReactiveComponentIL
                     final
                 ) { Threshold = 1f })
             ) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var blend = root as OneDBlendNode;
             Assert.That(blend, Is.Not.Null);
             Assert.That(blend.Nodes, Has.Count.EqualTo(3));
@@ -320,7 +320,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableBelow)), Is.False);
             Assert.That(blend.Nodes.Any(node => ReferenceEquals(node.Item2, unreachableAbove)), Is.False);
         }
-
+    
         [Test]
         public void CoalesceBranches_DifferentParameters_PreservesNestedCondition()
         {
@@ -328,9 +328,9 @@ namespace UnitTestsReactiveComponentIL
             var onTrue = new EmptyNode();
             IMotionNode root = new BranchNode("outer", new EmptyNode(),
                 new BranchNode("inner", onFalse, onTrue) { Threshold = 1f }) { Threshold = 0f };
-
+    
             CoalesceBranchesTransform.Apply(ref root);
-
+    
             var outer = root as OneDBlendNode;
             Assert.That(outer, Is.Not.Null);
             Assert.That(outer.Parameter, Is.EqualTo("outer"));

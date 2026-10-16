@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
 using UnityEngine.TestTools;
 
-namespace UnitTests._PlayModeTests.ReactiveComponents
+namespace nadena.dev.modular_avatar.test._PlayModeTests.ReactiveComponents
 {
     public class PriorityNodeTestStub : TestBase
     {

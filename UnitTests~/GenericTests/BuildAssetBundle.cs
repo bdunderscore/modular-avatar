@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEditor;
 
-namespace _ModularAvatar.EditModeTests
+namespace nadena.dev.modular_avatar.test.EditModeTests
 {
     /// <summary>
     /// This tests compilation error in runtime build with building asset bundle.
@@ -12,13 +12,13 @@ namespace _ModularAvatar.EditModeTests
         public void Build()
         {
             var path = "Packages/nadena.dev.modular-avatar/Assets/FixedPrefab.prefab";
-
+    
             var assetBundleBuild = new AssetBundleBuild()
             {
                 assetNames = new string[]{ path },
                 assetBundleName = "asset.unity3d"
             };
-
+    
             BuildPipeline.BuildAssetBundles("Assets/",
                 new [] {assetBundleBuild},
                 BuildAssetBundleOptions.None, 

@@ -20,7 +20,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.TestTools;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     /// <summary>
     /// Regression test: An off-by-one error resulted in AnalyzeConstants leaving one extra dead group when there are
@@ -37,43 +37,43 @@ namespace modular_avatar_tests
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
-
+    
             var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
             buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             // ReadablePropertyExtension depends on AnimatorServicesContext
             buildContext.ActivateExtensionContextRecursive<ReadablePropertyExtension>();
-
+    
             var analyzer = new ReactiveObjectAnalyzer(buildContext);
-
+    
             // Create a semantic target for the action groups.
             var targetObj = CreateChild(root, "target");
             var targetKey = new ObjectActiveTarget(targetObj);
-
+    
             // Create 3 action groups:
             // - rule0: IsConstantActive = false (dead group, condition with IsConstant = false)
             // - rule1: IsConstantActive = false (dead group, condition with IsConstant = false)
             // - rule2: IsConstantActive = true (always-on group, condition with IsConstant = true)
             var animatedProperty = new AnimatedProperty(targetKey);
-
+    
             // Dead rule 0: condition is not constant → IsConstantActive = false
             var rule0 = CreateRuleWithCondition(isConstant: false, initiallyActive: true, inverted: false);
             animatedProperty.actionGroups.Add(rule0);
-
+    
             // Dead rule 1: condition is not constant → IsConstantActive = false
             var rule1 = CreateRuleWithCondition(isConstant: false, initiallyActive: true, inverted: false);
             animatedProperty.actionGroups.Add(rule1);
-
+    
             // Always-on rule 2: condition is constant and initially active → IsConstantActive = true
             var rule2 = CreateRuleWithCondition(isConstant: true, initiallyActive: true, inverted: false);
             animatedProperty.actionGroups.Add(rule2);
-
+    
             var shapes = new Dictionary<object, AnimatedProperty>
             {
                 { targetKey, animatedProperty }
             };
-
+    
             analyzer.AnalyzeConstants(shapes);
-
+    
             // After AnalyzeConstants:
             // - lastAlwaysOnGroup should be 2 (index of rule2, the only IsConstantActive=true)
             // - RemoveRange(0, lastAlwaysOnGroup) = RemoveRange(0, 2) should remove rule0 and rule1
@@ -85,7 +85,7 @@ namespace modular_avatar_tests
                 $"Expected 1 action group remaining after pruning, but found {animatedProperty.actionGroups.Count}. " +
                 "The off-by-one in RemoveRange leaves a redundant dead group.");
         }
-
+    
         [UnityTest]
         public IEnumerator CachedAnalyze_InvalidatesWhenRendererSharedMeshChanges()
         {
@@ -100,29 +100,29 @@ namespace modular_avatar_tests
                 ChangeType = ShapeChangeType.Set,
                 Value = 100,
             });
-
+    
             var target = new ShapeKeyTarget(renderer, "new_shape");
             var context = new ComputeContext("sharedMesh invalidation test");
             try
             {
                 var initialAnalysis = ReactiveObjectAnalyzer.CachedAnalyze(context, root);
                 Assert.IsFalse(initialAnalysis.Shapes.ContainsKey(target));
-
+    
                 var mesh = TrackObject(new Mesh());
                 mesh.vertices = new[] { Vector3.zero, Vector3.right, Vector3.up };
                 mesh.triangles = new[] { 0, 1, 2 };
                 var deltas = new[] { Vector3.up, Vector3.up, Vector3.up };
                 mesh.AddBlendShapeFrame("new_shape", 100, deltas, new Vector3[3], new Vector3[3]);
-
+    
                 var serializedRenderer = new SerializedObject(renderer);
                 serializedRenderer.FindProperty("m_Mesh").objectReferenceValue = mesh;
                 serializedRenderer.ApplyModifiedProperties();
                 yield return null;
                 ComputeContext.FlushInvalidates();
-
+    
                 Assert.IsTrue(context.IsInvalidated,
                     "Changing a renderer's sharedMesh must invalidate the cached reactive analysis.");
-
+    
                 var refreshedContext = new ComputeContext("sharedMesh refreshed analysis test");
                 try
                 {
@@ -142,8 +142,8 @@ namespace modular_avatar_tests
                 ComputeContext.FlushInvalidates();
             }
         }
-
-
+    
+    
         [Test]
         public void Analyze_IgnoresNegativeMaterialSetterSlot()
         {
@@ -151,17 +151,17 @@ namespace modular_avatar_tests
             var rendererObject = CreateChild(root, "renderer");
             var renderer = rendererObject.AddComponent<MeshRenderer>();
             renderer.sharedMaterials = new Material[1];
-
+    
             var setter = root.AddComponent<ModularAvatarMaterialSetter>();
             setter.Objects.Add(new MaterialSwitchObject
             {
                 Object = new AvatarObjectReference(rendererObject),
                 MaterialIndex = -1,
             });
-
+    
             ReactiveObjectAnalyzer.AnalysisResult analysis = default;
             Assert.DoesNotThrow(() => analysis = new ReactiveObjectAnalyzer().Analyze(root));
-
+    
             var invalidTarget = new MaterialSlotTarget(renderer, -1);
             Assert.IsFalse(analysis.Shapes.ContainsKey(invalidTarget),
                 "A negative material slot must not generate a material animation action.");
@@ -178,7 +178,7 @@ namespace modular_avatar_tests
             mesh.AddBlendShapeFrame("shape", 100, new[] { Vector3.up, Vector3.up, Vector3.up },
                 new Vector3[3], new Vector3[3]);
             renderer.sharedMesh = mesh;
-
+    
             var material = TrackObject(new Material(Shader.Find("Sprites/Default")));
             renderer.sharedMaterials = new Material[2];
             var shapeChanger = root.AddComponent<ModularAvatarShapeChanger>();
@@ -189,7 +189,7 @@ namespace modular_avatar_tests
                 ChangeType = ShapeChangeType.Set,
                 Value = 42f,
             });
-
+    
             var materialSetter = root.AddComponent<ModularAvatarMaterialSetter>();
             materialSetter.Objects.Add(new MaterialSwitchObject
             {
@@ -203,12 +203,12 @@ namespace modular_avatar_tests
                 MaterialIndex = 1,
                 Material = null,
             });
-
+    
             var meshCutter = root.AddComponent<ModularAvatarMeshCutter>();
             meshCutter.Object.Set(rendererObject);
             var axisFilter = root.AddComponent<VertexFilterByAxisComponent>();
             axisFilter.Axis = Vector3.up;
-
+    
             var toggledObject = CreateChild(root, "toggled");
             var objectToggle = root.AddComponent<ModularAvatarObjectToggle>();
             objectToggle.Objects.Add(new ToggledObject
@@ -216,7 +216,7 @@ namespace modular_avatar_tests
                 Object = new AvatarObjectReference(toggledObject),
                 Active = false,
             });
-
+    
             var actions = new ReactiveObjectAnalyzer().Analyze(root).Shapes.Values
                 .SelectMany(property => property.actionGroups)
                 .Select(rule => rule.Action)
@@ -225,24 +225,24 @@ namespace modular_avatar_tests
             Assert.AreSame(renderer, shapeAction.Renderer);
             Assert.AreEqual("shape", shapeAction.ShapeName);
             Assert.AreEqual(42f, shapeAction.Value);
-
+    
             var materialActions = actions.OfType<SetMaterial>().ToList();
             Assert.AreEqual(2, materialActions.Count);
             Assert.AreSame(material, materialActions.Single(action => action.MaterialIndex == 0).Material);
             Assert.IsNull(materialActions.Single(action => action.MaterialIndex == 1).Material);
             Assert.IsTrue(materialActions.All(action => action.Renderer == renderer));
-
+    
             var hideAction = actions.OfType<HideMeshSection>().Single(action => action.ShouldHide);
             var expectedSelector = new VertexFilterByAxis(axisFilter, ComputeContext.NullContext);
             Assert.AreEqual(MeshSectionTarget.ForMask(renderer, expectedSelector), hideAction.Target);
             Assert.IsTrue(expectedSelector.Equals(hideAction.Selector));
             Assert.IsFalse(actions.OfType<NullAction>().Any());
-
+    
             var activeAction = actions.OfType<DriveActiveState>().Single();
             Assert.AreSame(toggledObject, activeAction.Target);
             Assert.IsFalse(activeAction.Active);
         }
-
+    
         [Test]
         public void ReactiveMoves_PruneConstantWinnersIndependentlyPerChannel()
         {
@@ -251,19 +251,19 @@ namespace modular_avatar_tests
             var firstPositionTarget = CreateChild(root, "first position target");
             var winningPositionTarget = CreateChild(root, "winning position target");
             var rotationTarget = CreateChild(root, "rotation target");
-
+    
             CreateMove(root, toMove, firstPositionTarget, position: true, rotation: false, scale: false);
             var channelLessFixedMove = CreateMove(root, toMove, firstPositionTarget,
                 position: false, rotation: false, scale: false);
             channelLessFixedMove.FixToWorld = true;
             CreateMove(root, toMove, rotationTarget, position: false, rotation: true, scale: false);
             CreateMove(root, toMove, winningPositionTarget, position: true, rotation: false, scale: false);
-
+    
             var result = new ReactiveObjectAnalyzer().Analyze(root);
             var actions = result.InitialActions.Values
                 .OfType<ReactiveMoveAction>()
                 .ToList();
-
+    
             Assert.That(actions, Has.Count.EqualTo(2));
             Assert.That(actions.Single(action => action.Channel == ReactiveMoveChannels.Position).WhereTo,
                 Is.EqualTo(winningPositionTarget.transform));
@@ -271,7 +271,7 @@ namespace modular_avatar_tests
                 Is.EqualTo(rotationTarget.transform));
             Assert.That(actions.Any(action => action.FixToWorld), Is.False);
         }
-
+    
         [TestCase((int) ReactiveMoveChannels.Position)]
         [TestCase((int) ReactiveMoveChannels.Rotation)]
         [TestCase((int) ReactiveMoveChannels.Scale)]
@@ -283,7 +283,7 @@ namespace modular_avatar_tests
             var validTarget = CreateChild(root, "valid target");
             var validController = CreateChild(root, "valid controller");
             var invalidController = CreateChild(root, "invalid controller");
-
+    
             CreateMove(validController, toMove, validTarget, position: true, rotation: true, scale: true);
             var invalidMove = CreateMove(
                 invalidController,
@@ -296,11 +296,11 @@ namespace modular_avatar_tests
             invalidMove.WhereTo = new AvatarObjectReference();
             AddDefaultMenuControl(validController, "valid move");
             AddDefaultMenuControl(invalidController, "invalid move");
-
+    
             var actions = new ReactiveObjectAnalyzer().Analyze(root).InitialActions.Values
                 .OfType<ReactiveMoveAction>()
                 .ToList();
-
+    
             Assert.That(actions, Has.Count.EqualTo(3));
             Assert.That(
                 actions.Single(action => action.Channel == invalidChannel).WhereTo,
@@ -312,7 +312,7 @@ namespace modular_avatar_tests
                 Is.True
             );
         }
-
+    
         [Test]
         public void ReactiveMoves_AcceptFixedMissingDestination()
         {
@@ -324,16 +324,16 @@ namespace modular_avatar_tests
             fixedMove.WhereTo = new AvatarObjectReference();
             fixedMove.FixToWorld = true;
             AddDefaultMenuControl(controller, "fixed move");
-
+    
             var actions = new ReactiveObjectAnalyzer().Analyze(root).InitialActions.Values
                 .OfType<ReactiveMoveAction>()
                 .ToList();
-
+    
             Assert.That(actions, Has.Count.EqualTo(1));
             Assert.That(actions.Single().FixToWorld, Is.True);
             Assert.That(actions.Single().WhereTo, Is.Null);
         }
-
+    
         [Test]
         public void ReactiveMoves_KeepOppositeInversionsOnIndependentChannels()
         {
@@ -343,26 +343,26 @@ namespace modular_avatar_tests
             var rotationTarget = CreateChild(root, "rotation target");
             var positionController = CreateChild(root, "position controller");
             var rotationController = CreateChild(root, "rotation controller");
-
+    
             CreateMove(positionController, toMove, positionTarget, position: true, rotation: false, scale: false);
             var invertedMove = CreateMove(rotationController, toMove, rotationTarget,
                 position: false, rotation: true, scale: false);
             invertedMove.Inverted = true;
             AddDefaultMenuControl(positionController, "position");
             AddDefaultMenuControl(rotationController, "rotation");
-
+    
             var actions = new ReactiveObjectAnalyzer().Analyze(root).Shapes.Values
                 .SelectMany(property => property.actionGroups)
                 .Select(rule => rule)
                 .ToList();
-
+    
             Assert.That(actions, Has.Count.EqualTo(2));
             Assert.That(actions.Single(rule => ((ReactiveMoveAction) rule.Action).Channel == ReactiveMoveChannels.Position)
                 .InitiallyActive, Is.True);
             Assert.That(actions.Single(rule => ((ReactiveMoveAction) rule.Action).Channel == ReactiveMoveChannels.Rotation)
                 .InitiallyActive, Is.False);
         }
-
+    
         [Test]
         public void ReactiveMoves_KeepFixedAndOrdinaryRulesDistinct()
         {
@@ -370,24 +370,24 @@ namespace modular_avatar_tests
             var toMove = CreateChild(root, "to move");
             var target = CreateChild(root, "target");
             var controller = CreateChild(root, "controller");
-
+    
             CreateMove(controller, toMove, target, position: true, rotation: false, scale: false);
             var fixedMove = CreateMove(controller, toMove, target,
                 position: true, rotation: false, scale: false);
             fixedMove.FixToWorld = true;
             AddDefaultMenuControl(controller, "fixed and ordinary");
-
+    
             var actions = new ReactiveObjectAnalyzer().Analyze(root).Shapes.Values
                 .SelectMany(property => property.actionGroups)
                 .Select(rule => (ReactiveMoveAction) rule.Action)
                 .ToList();
-
+    
             Assert.That(actions, Has.Count.EqualTo(2));
             Assert.That(actions.Single(action => !action.FixToWorld).WhereTo, Is.EqualTo(target.transform));
             Assert.That(actions.Single(action => action.FixToWorld).WhereTo, Is.Null);
         }
-
-
+    
+    
         [Test]
         public void ReactionDebugger_RendersSemanticActionRows()
         {
@@ -399,7 +399,7 @@ namespace modular_avatar_tests
             var selector = new VertexFilterByShape("shape", 0.001f);
             var meshTarget = MeshSectionTarget.ForShape(renderer, "shape");
             var shapes = new Dictionary<object, AnimatedProperty>();
-
+    
             AddRule(new ShapeKeyTarget(renderer, "shape"), new SetShapeKey(renderer, "shape", 42f));
             AddRule(new MaterialSlotTarget(renderer, 0), new SetMaterial(renderer, 0, material));
             AddRule(new MaterialSlotTarget(renderer, 1), new SetMaterial(renderer, 1, null));
@@ -407,26 +407,26 @@ namespace modular_avatar_tests
             AddRule(MeshSectionTarget.ForShape(renderer, "cancelled"),
                 HideMeshSection.Retain(MeshSectionTarget.ForShape(renderer, "cancelled")));
             AddRule(new ObjectActiveTarget(rendererObject), new DriveActiveState(rendererObject, false));
-
+    
             var window = ScriptableObject.CreateInstance<ROSimulator>();
             try
             {
                 InvokePrivate(window, "LoadUI");
                 typeof(ROSimulator).GetMethod("SetAffectedBy", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .Invoke(window, new object[] { rendererObject, shapes });
-
+    
                 var rows = window.rootVisualElement.Query<VisualElement>(className: "effect-group").ToList();
                 Assert.AreEqual(6, rows.Count);
-
+    
                 var shapeDescription = LocalizedDescription("ro_sim.effect.shape_key", "shape");
                 var material0Description = LocalizedDescription("ro_sim.effect.material_slot", 0);
                 var material1Description = LocalizedDescription("ro_sim.effect.material_slot", 1);
-
+    
                 var shapeRow = RowForProperty(shapeDescription);
                 Assert.AreSame(renderer, shapeRow.Q<ObjectField>("effect__target").value);
                 Assert.AreEqual(42f, shapeRow.Q<FloatField>("effect__value").value);
                 Assert.AreEqual(DisplayStyle.Flex, shapeRow.Q<FloatField>("effect__value").style.display.value);
-
+    
                 var materialRow = RowForProperty(material0Description);
                 Assert.AreSame(material, materialRow.Q<ObjectField>("effect__material").value);
                 var nullMaterialRow = RowForProperty(material1Description);
@@ -439,11 +439,11 @@ namespace modular_avatar_tests
                 Assert.Contains(shapeDescription, foldoutLabels);
                 Assert.Contains(material0Description, foldoutLabels);
                 Assert.IsFalse(foldoutLabels.Any(label => label.Contains("m_Materials.Array.data")));
-
+    
                 var deleteRow = rows.Single(row => row.Q<TextField>("effect__deleted").style.display.value ==
                                                    DisplayStyle.Flex);
                 Assert.AreEqual(selector.ToString(), deleteRow.Q<TextField>("effect__deleted").value);
-
+    
                 var cancellationRow = rows.Single(row =>
                     row.Q<ObjectField>("effect__target").value == renderer &&
                     row.Q<TextField>("effect__prop").style.display.value == DisplayStyle.None &&
@@ -452,11 +452,11 @@ namespace modular_avatar_tests
                     cancellationRow.Q<FloatField>("effect__value").style.display.value);
                 Assert.AreEqual(DisplayStyle.None,
                     cancellationRow.Q<ObjectField>("effect__material").style.display.value);
-
+    
                 var inactiveRow = rows.Single(row =>
                     row.Q<VisualElement>("effect__set-inactive").style.display.value == DisplayStyle.Flex);
                 Assert.AreSame(rendererObject, inactiveRow.Q<ObjectField>("effect__target").value);
-
+    
                 VisualElement RowForProperty(string property)
                 {
                     return rows.Single(row => row.Q<TextField>("effect__prop").value == property);
@@ -465,27 +465,27 @@ namespace modular_avatar_tests
                 {
                     return string.Format(Localization.L.GetLocalizedString(key), value);
                 }
-
+    
             }
             finally
             {
                 Object.DestroyImmediate(window);
             }
-
+    
             void AddRule(object targetKey, IAction action)
             {
                 var property = new AnimatedProperty(targetKey);
                 property.actionGroups.Add(new ReactionRule(action) { ControllingObject = controller });
                 shapes.Add(targetKey, property);
             }
-
+    
             static void InvokePrivate(ROSimulator target, string method)
             {
                 typeof(ROSimulator).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)!
                     .Invoke(target, null);
             }
         }
-
+    
         [Test]
         public void MaterialSetterPreview_AppliesNullMaterialOverride()
         {
@@ -506,7 +506,7 @@ namespace modular_avatar_tests
                 MaterialIndex = 0,
                 Material = null,
             });
-
+    
             var proxy = CreateChild(root, "proxy").AddComponent<SkinnedMeshRenderer>();
             proxy.sharedMaterials = new[] { originalMaterial };
             var context = new ComputeContext("MaterialSetterPreview null material test");
@@ -521,9 +521,9 @@ namespace modular_avatar_tests
                     group,
                     new[] { ((Renderer)renderer, (Renderer)proxy) },
                     context).Result;
-
+    
                 node.OnFrame(renderer, proxy);
-
+    
                 Assert.IsNull(proxy.sharedMaterials[0]);
             }
             finally
@@ -532,7 +532,7 @@ namespace modular_avatar_tests
                 ComputeContext.FlushInvalidates();
             }
         }
-
+    
         [Test]
         public void ObjectTogglePreview_UsesActiveInitialActionForInactiveObject()
         {
@@ -551,7 +551,7 @@ namespace modular_avatar_tests
                 Object = new AvatarObjectReference(target),
                 Active = true,
             });
-
+    
             var context = new ComputeContext("ObjectTogglePreview active override test");
             try
             {
@@ -560,7 +560,7 @@ namespace modular_avatar_tests
                     .GetMethod("RootsForAvatar", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .Invoke(preview, new object[] { context, root })!;
                 var group = groups.Single(candidate => candidate.Renderers.Contains(renderer));
-
+    
                 Assert.IsTrue(group.GetData<bool>());
             }
             finally
@@ -569,7 +569,7 @@ namespace modular_avatar_tests
                 ComputeContext.FlushInvalidates();
             }
         }
-
+    
         [Test]
         public void ActiveSelfProxiesAreUniquePerGameObject()
         {
@@ -577,16 +577,16 @@ namespace modular_avatar_tests
             var activeObject = CreateChild(root, "active");
             var inactiveObject = CreateChild(root, "inactive");
             inactiveObject.SetActive(false);
-
+    
             var analyzer = new ReactiveObjectAnalyzer();
-
+    
             Assert.AreNotEqual(
                 analyzer.GetGameObjectStateProperty(activeObject),
                 analyzer.GetGameObjectStateProperty(inactiveObject),
                 "Distinct GameObjects must not share an ActiveSelf proxy parameter."
             );
         }
-
+    
         [Test]
         public void ReactiveMovePreview_AppliesInitialWorldPoseToShadowBones()
         {
@@ -597,7 +597,7 @@ namespace modular_avatar_tests
             var moved = CreateChild(movedParent, "moved");
             moved.transform.localPosition = new Vector3(1, 0, 0);
             moved.transform.localRotation = Quaternion.Euler(0, 15, 0);
-
+    
             var targetParent = CreateChild(root, "target parent");
             targetParent.transform.position = new Vector3(-3, 1, 4);
             targetParent.transform.localScale = new Vector3(3, 2, 4);
@@ -605,19 +605,19 @@ namespace modular_avatar_tests
             target.transform.localPosition = new Vector3(2, -1, 1);
             target.transform.localRotation = Quaternion.Euler(10, 30, 5);
             target.transform.localScale = new Vector3(2, 3, 4);
-
+    
             var renderer = CreateChild(moved, "renderer").AddComponent<SkinnedMeshRenderer>();
             renderer.bones = new[] { moved.transform };
             var proxy = TrackObject(new GameObject("proxy")).AddComponent<SkinnedMeshRenderer>();
             proxy.bones = new[] { moved.transform };
-
+    
             var move = root.AddComponent<ModularAvatarReactiveMove>();
             move.ToMove = new AvatarObjectReference(moved);
             move.WhereTo = new AvatarObjectReference(target);
             move.SetsPosition = true;
             move.SetsRotation = true;
             move.SetsScale = true;
-
+    
             var handle = new ShadowHandle(new Dictionary<Renderer, Renderer> { { renderer, proxy } });
             var previewContext = new PreviewContext { ShadowBoneManager = handle };
             var context = new ComputeContext("Reactive Move preview pose test");
@@ -632,10 +632,10 @@ namespace modular_avatar_tests
                         new[] { ((Renderer)renderer, (Renderer)proxy) },
                         context
                     ).Result;
-
+    
                     handle.SyncPoses();
                     node.OnFrameGroup();
-
+    
                     var movedShadow = handle.GetBone(moved.transform);
                     var targetShadow = handle.GetBone(target.transform);
                     Assert.That(Vector3.Distance(movedShadow.position, targetShadow.position), Is.LessThan(0.0001f));
@@ -651,7 +651,7 @@ namespace modular_avatar_tests
                 handle.Dispose();
             }
         }
-
+    
         [UnityTest]
         public IEnumerator ReactiveMovePreview_RegistersInactiveReferencesAndRefreshesStateImmediately()
         {
@@ -663,21 +663,21 @@ namespace modular_avatar_tests
             renderer.bones = new[] { moved.transform };
             var proxy = TrackObject(new GameObject("proxy")).AddComponent<SkinnedMeshRenderer>();
             proxy.bones = new[] { moved.transform };
-
+    
             var controller = CreateChild(root, "controller");
             controller.SetActive(false);
             var move = controller.AddComponent<ModularAvatarReactiveMove>();
             move.ToMove = new AvatarObjectReference(moved);
             move.WhereTo = new AvatarObjectReference(target);
             move.SetsPosition = true;
-
+    
             var handle = new ShadowHandle(new Dictionary<Renderer, Renderer> { { renderer, proxy } });
             ROSimulator.PropertyOverrides.Value = ImmutableDictionary<string, float>.Empty;
             var previewContext = new PreviewContext { ShadowBoneManager = handle };
             var initialContext = new ComputeContext("inactive Reactive Move preview");
             var activeContext = new ComputeContext("active Reactive Move preview");
             var movedTargetContext = new ComputeContext("moved target Reactive Move preview");
-
+    
             try
             {
                 IRenderFilterNode initialNode;
@@ -690,15 +690,15 @@ namespace modular_avatar_tests
                         initialContext
                     ).Result;
                 }
-
+    
                 Assert.That(handle.HasShadow(moved.transform), Is.True);
                 Assert.That(handle.HasShadow(target.transform), Is.False);
                 Assert.That(proxy.bones, Is.EqualTo(new[] { handle.GetExistingShadow(moved.transform) }));
-
+    
                 handle.SyncPoses();
                 initialNode.OnFrameGroup();
                 Assert.That(handle.GetExistingShadow(moved.transform).position, Is.EqualTo(moved.transform.position));
-
+    
                 ROSimulator.PropertyOverrides.Value = ROSimulator.PropertyOverrides.Value!.SetItem(
                     $"__ActiveSelfProxy/{controller.GetEntityId()}",
                     1.0f
@@ -709,7 +709,7 @@ namespace modular_avatar_tests
                     ComputeContext.FlushInvalidates();
                 }
                 Assert.That(initialContext.IsInvalidated, Is.True);
-
+    
                 IRenderFilterNode activeNode;
                 using (previewContext.Activate())
                 {
@@ -719,10 +719,10 @@ namespace modular_avatar_tests
                         0
                     ).Result;
                 }
-
+    
                 Assert.That(activeNode, Is.Not.SameAs(initialNode));
                 Assert.That(activeNode.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
-
+    
                 // The prior pipeline remains active while its replacement builds.
                 handle.GetBone(target.transform);
                 handle.SyncPoses();
@@ -731,7 +731,7 @@ namespace modular_avatar_tests
                     handle.GetExistingShadow(moved.transform).position,
                     Is.EqualTo(target.transform.position)
                 );
-
+    
                 target.transform.position = new Vector3(-2, 6, 1);
                 for (var i = 0; i < 10 && !activeContext.IsInvalidated; i++)
                 {
@@ -739,7 +739,7 @@ namespace modular_avatar_tests
                     ComputeContext.FlushInvalidates();
                 }
                 Assert.That(activeContext.IsInvalidated, Is.True);
-
+    
                 IRenderFilterNode movedTargetNode;
                 using (previewContext.Activate())
                 {
@@ -749,10 +749,10 @@ namespace modular_avatar_tests
                         0
                     ).Result;
                 }
-
+    
                 Assert.That(movedTargetNode, Is.Not.SameAs(activeNode));
                 Assert.That(movedTargetNode.WhatChanged, Is.EqualTo(RenderAspects.Shapes));
-
+    
                 handle.SyncPoses();
                 activeNode.OnFrameGroup();
                 Assert.That(
@@ -770,7 +770,7 @@ namespace modular_avatar_tests
                 handle.Dispose();
             }
         }
-
+    
         private static ModularAvatarReactiveMove CreateMove(
             GameObject controller,
             GameObject toMove,
@@ -788,7 +788,7 @@ namespace modular_avatar_tests
             move.SetsScale = scale;
             return move;
         }
-
+    
         private static void AddDefaultMenuControl(GameObject controller, string parameter)
         {
             var menu = controller.AddComponent<ModularAvatarMenuItem>();
@@ -797,38 +797,38 @@ namespace modular_avatar_tests
             menu.PortableControl.Value = 1;
             menu.isDefault = true;
         }
-
+    
         private sealed class ShadowHandle : IShadowBoneManagerHandle, System.IDisposable
         {
             private readonly Dictionary<Renderer, Renderer> _proxies;
             private readonly Dictionary<Transform, Transform> _shadows = new();
-
+    
             public ShadowHandle(Dictionary<Renderer, Renderer> proxies)
             {
                 _proxies = proxies;
             }
-
+    
             public bool HasShadow(Transform source)
             {
                 return _shadows.ContainsKey(source);
             }
-
+    
             public Transform GetExistingShadow(Transform source)
             {
                 return _shadows[source];
             }
-
+    
             public Transform GetBone(Transform bone)
             {
                 if (bone == null) return null;
                 if (_shadows.TryGetValue(bone, out var shadow)) return shadow;
-
+    
                 shadow = new GameObject($"shadow {bone.name}").transform;
                 _shadows.Add(bone, shadow);
                 ReplaceProxyReferences(bone, shadow);
                 return shadow;
             }
-
+    
             public void ReplaceBone(Renderer originalRenderer, Transform original, Transform replacement)
             {
                 if (_proxies.TryGetValue(originalRenderer, out var proxy))
@@ -836,14 +836,14 @@ namespace modular_avatar_tests
                     ReplaceReferences(proxy, original, replacement);
                 }
             }
-
+    
             public void SyncPoses()
             {
                 foreach (var source in _shadows.Keys.ToArray())
                 {
                     EnsureShadowHierarchy(source);
                 }
-
+    
                 foreach (var (source, shadow) in _shadows)
                 {
                     shadow.localPosition = source.localPosition;
@@ -851,7 +851,7 @@ namespace modular_avatar_tests
                     shadow.localScale = source.localScale;
                 }
             }
-
+    
             public void Dispose()
             {
                 foreach (var shadow in _shadows.Values)
@@ -859,7 +859,7 @@ namespace modular_avatar_tests
                     if (shadow != null) Object.DestroyImmediate(shadow.gameObject);
                 }
             }
-
+    
             private void ReplaceProxyReferences(Transform original, Transform replacement)
             {
                 foreach (var proxy in _proxies.Values)
@@ -867,7 +867,7 @@ namespace modular_avatar_tests
                     ReplaceReferences(proxy, original, replacement);
                 }
             }
-
+    
             private static void ReplaceReferences(Renderer renderer, Transform original, Transform replacement)
             {
                 if (renderer is SkinnedMeshRenderer skinned)
@@ -875,11 +875,11 @@ namespace modular_avatar_tests
                     skinned.bones = skinned.bones.Select(bone => bone == original ? replacement : bone).ToArray();
                     if (skinned.rootBone == original) skinned.rootBone = replacement;
                 }
-
+    
                 if (renderer.probeAnchor == original) renderer.probeAnchor = replacement;
                 if (renderer.transform.parent == original) renderer.transform.SetParent(replacement, false);
             }
-
+    
             private void EnsureShadowHierarchy(Transform source)
             {
                 var shadow = GetBone(source);
@@ -888,12 +888,12 @@ namespace modular_avatar_tests
                     shadow.SetParent(null, false);
                     return;
                 }
-
+    
                 EnsureShadowHierarchy(source.parent);
                 shadow.SetParent(GetBone(source.parent), false);
             }
         }
-
+    
         private static void AssertQuaternionExactlyEqual(Quaternion expected, Quaternion actual)
         {
             var equal = expected.x == actual.x
@@ -906,11 +906,11 @@ namespace modular_avatar_tests
                                    && expected.w == -actual.w;
             Assert.That(equal || doubleCoverEqual, Is.True);
         }
-
+    
         private ReactionRule CreateRuleWithCondition(bool isConstant, bool initiallyActive, bool inverted)
         {
             var rule = new ReactionRule(new NullAction());
-
+    
             // Create a condition with ReferenceObject = null so AnalyzeConstants won't modify IsConstant
             var condition = new ControlCondition
             {
@@ -922,7 +922,7 @@ namespace modular_avatar_tests
                 ParameterValueHi = 1.0f,
                 ReferenceObject = null // Prevents AnalyzeConstants from overriding IsConstant
             };
-
+    
             rule.ControllingConditions.Add(condition);
             return rule;
         }

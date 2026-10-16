@@ -6,7 +6,7 @@ using NUnit.Framework;
 using UnityEngine;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class BoneProxyTest : TestBase
     {
@@ -22,28 +22,28 @@ namespace modular_avatar_tests
             AssertAttachmentMode(BoneProxyAttachmentMode.AsChildKeepWorldPose, expectSnapPos: false,
                 expectSnapRot: false);
         }
-
+    
         [Test]
         public void TestNonHumanoidTarget()
         {
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var reference = CreateChild(root, "ref");
-
+    
             var boneProxy = reference.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = root.transform;
             boneProxy.ClearCache(true);
             Assert.AreEqual(root.transform, boneProxy.target);
-
+    
             boneProxy.target = target.transform;
             boneProxy.ClearCache(true);
             Assert.AreEqual(target.transform, boneProxy.target);
-
+    
             target.name = "target2";
             boneProxy.ClearCache(true);
             Assert.IsNull(boneProxy.target);
         }
-
+    
         [Test]
         public void TestNameCollision()
         {
@@ -69,7 +69,7 @@ namespace modular_avatar_tests
             
             Assert.AreNotEqual(src_child1.name, src_child2.name);
         }
-
+    
         // New tests for cycle checking
         [Test]
         public void CycleDetection_BoneProxiesMutualFail()
@@ -77,118 +77,118 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var a = CreateChild(root, "A");
             var b = CreateChild(root, "B");
-
+    
             var aBone = CreateChild(a, "bone");
             var bBone = CreateChild(b, "bone");
-
+    
             var bpA = aBone.AddComponent<ModularAvatarBoneProxy>();
             var bpB = bBone.AddComponent<ModularAvatarBoneProxy>();
-
+    
             bpA.target = bBone.transform;
             bpB.target = aBone.transform;
-
+    
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
-
+    
             Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
         }
-
+    
         [Test]
         public void CycleDetection_BoneProxyMergeArmatureFail()
         {
             var root = CreateRoot("root");
             var baseRoot = CreateChild(root, "Base");
             var mergeRoot = CreateChild(root, "Merge");
-
+    
             var baseBone = CreateChild(baseRoot, "bone");
             var mergeBone = CreateChild(mergeRoot, "bone");
-
+    
             var mama = mergeRoot.AddComponent<ModularAvatarMergeArmature>();
             mama.mergeTarget.Set(baseRoot);
-
+    
             var bp = baseBone.AddComponent<ModularAvatarBoneProxy>();
             bp.target = mergeBone.transform;
-
+    
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
-
+    
             Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
         }
-
+    
         [Test]
         public void BoneProxy_NoCycle_Succeeds()
         {
             var root = CreateRoot("root");
-
+    
             var t1 = CreateChild(root, "t1");
             var t2 = CreateChild(root, "t2");
             var t3 = CreateChild(root, "t3");
-
+    
             var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
             var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
-
+    
             bp1.target = t2.transform; // t1 -> t2
             bp2.target = t3.transform; // t2 -> t3 (no cycle)
-
+    
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
             Assert.IsTrue(errors.Count == 0, "Expected no errors for a non-cyclical bone proxy chain");
         }
-
+    
         [Test]
         public void BoneProxy_NoCycle_OrderIndependent()
         {
             var root = CreateRoot("root");
-
+    
             // Create targets first, then reorder siblings before attaching proxies to ensure order doesn't matter
             var t1 = CreateChild(root, "t1");
             var t2 = CreateChild(root, "t2");
             var t3 = CreateChild(root, "t3");
-
+    
             // Reorder siblings so proxies will appear in a different order in the hierarchy
             t1.transform.SetSiblingIndex(root.transform.childCount - 1);
             t2.transform.SetSiblingIndex(0);
-
+    
             var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
             var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
-
+    
             bp1.target = t2.transform; // t1 -> t2
             bp2.target = t3.transform; // t2 -> t3 (no cycle)
-
+    
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
             Assert.IsTrue(errors.Count == 0, "Expected no errors after creating bone proxies in a different sibling order");
         }
-
+    
         [Test]
         public void CycleDetection_BoneProxy_WithIntermediateChildFail()
         {
             var root = CreateRoot("root");
-
+    
             var A = CreateChild(root, "A");
             var AChild = CreateChild(A, "child");
             var B = CreateChild(root, "B");
-
+    
             // BP on A targets B
             var bpA = A.AddComponent<ModularAvatarBoneProxy>();
             bpA.target = B.transform;
-
+    
             // BP on B targets a child of A (A/child) -> this creates a cycle via parent edges
             var bpB = B.AddComponent<ModularAvatarBoneProxy>();
             bpB.target = AChild.transform;
-
+    
             var errors = ErrorReport.CaptureErrors(() => nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root));
             Assert.IsTrue(errors.Any(e => (e.TheError is SimpleError se) && se.TitleKey == "error.object_cycle"));
         }
-
+    
         [Test]
         public void BoneProxy_AdjustTransform_Order_MixedSettings()
         {
             var root = CreateRoot("root");
-
+    
             // Create a longer chain: t1 -> t2 -> t3 -> t4 -> t5
             var t1 = CreateChild(root, "t1");
             var t2 = CreateChild(root, "t2");
             var t3 = CreateChild(root, "t3");
             var t4 = CreateChild(root, "t4");
             var t5 = CreateChild(root, "t5");
-
+    
             // Set distinct world transforms so we can verify preservation/reset later
             t1.transform.position = new Vector3(1.1f, 2.2f, 3.3f);
             t1.transform.rotation = Quaternion.Euler(10f, 20f, 30f);
@@ -200,50 +200,50 @@ namespace modular_avatar_tests
             t4.transform.rotation = Quaternion.Euler(100f, 110f, 120f);
             t5.transform.position = new Vector3(14.14f, 15.15f, 16.16f);
             t5.transform.rotation = Quaternion.Euler(130f, 140f, 150f);
-
+    
             // Create proxies on t1..t4, each targeting the next transform
             var bp1 = t1.AddComponent<ModularAvatarBoneProxy>();
             var bp2 = t2.AddComponent<ModularAvatarBoneProxy>();
             var bp3 = t3.AddComponent<ModularAvatarBoneProxy>();
             var bp4 = t4.AddComponent<ModularAvatarBoneProxy>();
-
+    
             bp1.target = t2.transform; // t1 -> t2
             bp2.target = t3.transform; // t2 -> t3
             bp3.target = t4.transform; // t3 -> t4
             bp4.target = t5.transform; // t4 -> t5
-
+    
             // Alternating attachment modes: KeepWorldPose, AtRoot, KeepWorldPose, AtRoot
             bp1.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
             bp2.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
             bp3.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
             bp4.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
-
+    
             // Record original world transforms for keep-world entries
             var orig1Pos = t1.transform.position;
             var orig1Rot = t1.transform.rotation;
             var orig3Pos = t3.transform.position;
             var orig3Rot = t3.transform.rotation;
-
+    
             // Run the proxy preprocessing (which re-parents and then AdjustTransform parent->child)
             var context = CreateContext(root);
             new BoneProxyPluginPrepass().ExecuteForTesting(context);
             new BoneProxyPluginPass().ExecuteForTesting(context);
-
+    
             // After processing: bp2 (on t2) and bp4 (on t4) are AsChildAtRoot and must have local pos/rot zero
             Assert.LessOrEqual(Vector3.Distance(t2.transform.localPosition, Vector3.zero), 0.0001f, "bp2 (AtRoot) should have local position zero");
             Assert.LessOrEqual(Quaternion.Angle(t2.transform.localRotation, Quaternion.identity), 0.0001f, "bp2 (AtRoot) should have local rotation identity");
-
+    
             Assert.LessOrEqual(Vector3.Distance(t4.transform.localPosition, Vector3.zero), 0.0001f, "bp4 (AtRoot) should have local position zero");
             Assert.LessOrEqual(Quaternion.Angle(t4.transform.localRotation, Quaternion.identity), 0.0001f, "bp4 (AtRoot) should have local rotation identity");
-
+    
             // bp1 (on t1) and bp3 (on t3) are KeepWorldPose and must preserve world transform
             Assert.LessOrEqual(Vector3.Distance(t1.transform.position, orig1Pos), 0.0001f, "bp1 (KeepWorldPose) should preserve world position");
             Assert.LessOrEqual(Quaternion.Angle(t1.transform.rotation, orig1Rot), 0.01f, "bp1 (KeepWorldPose) should preserve world rotation");
-
+    
             Assert.LessOrEqual(Vector3.Distance(t3.transform.position, orig3Pos), 0.0001f, "bp3 (KeepWorldPose) should preserve world position");
             Assert.LessOrEqual(Quaternion.Angle(t3.transform.rotation, orig3Rot), 0.01f, "bp3 (KeepWorldPose) should preserve world rotation");
         }
-
+    
         [Test]
         public void MergeArmature_BoneProxy_Interaction()
         {
@@ -287,34 +287,34 @@ namespace modular_avatar_tests
             // Expected path: Z/X/Y (since X in MergeTarget becomes a child of Z)
             Assert.AreEqual(z, sourceY.transform.parent.parent.gameObject, "Y should be a child of Z after processing");
         }
-
+    
         private void AssertAttachmentMode(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
             AssertAttachmentModeAtBuild(attachmentMode, expectSnapPos, expectSnapRot);
             AssertAttachmentModeInEditor(attachmentMode, expectSnapPos, expectSnapRot);
         }
-
+    
         private void AssertAttachmentModeInEditor(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
             // Unset gets converted in the custom inspector; until it is, we don't snap (since we need to know the
             // position to heuristically set the snapping mode).
             if (attachmentMode == BoneProxyAttachmentMode.Unset) return;
-
+    
             var root = CreateRoot("root");
             var bone = CreateChild(root, "bone");
             var proxy = CreateChild(root, "proxy");
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = bone.transform;
             boneProxy.attachmentMode = attachmentMode;
-
+    
             bone.transform.localPosition = Vector3.one;
             bone.transform.localRotation = Quaternion.Euler(123, 45, 6);
-
+    
             boneProxy.Update();
-
+    
             if (expectSnapPos)
             {
                 Assert.LessOrEqual(Vector3.Distance(proxy.transform.position, bone.transform.position), 0.0001f);
@@ -323,7 +323,7 @@ namespace modular_avatar_tests
             {
                 Assert.GreaterOrEqual(Vector3.Distance(proxy.transform.position, bone.transform.position), 0.0001f);
             }
-
+    
             if (expectSnapRot)
             {
                 Assert.LessOrEqual(Quaternion.Angle(proxy.transform.rotation, bone.transform.rotation), 0.0001f);
@@ -333,28 +333,28 @@ namespace modular_avatar_tests
                 Assert.GreaterOrEqual(Quaternion.Angle(proxy.transform.rotation, bone.transform.rotation), 0.0001f);
             }
         }
-
+    
         private void AssertAttachmentModeAtBuild(BoneProxyAttachmentMode attachmentMode, bool expectSnapPos,
             bool expectSnapRot)
         {
             var root = CreateRoot("root");
             var bone = CreateChild(root, "bone");
             var proxy = CreateChild(root, "proxy");
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = bone.transform;
             boneProxy.attachmentMode = attachmentMode;
             // Prevent the bone from being optimized away
             var proxyTransform = boneProxy.transform;
             proxyTransform.gameObject.AddComponent<MeshRenderer>();
-
+    
             bone.transform.localPosition = Vector3.one;
             bone.transform.localRotation = Quaternion.Euler(123, 45, 6);
-
+    
             nadena.dev.modular_avatar.core.editor.AvatarProcessor.ProcessAvatar(root);
-
+    
             Assert.AreEqual(proxyTransform.parent, bone.transform);
-
+    
             if (expectSnapPos)
             {
                 Assert.LessOrEqual(Vector3.Distance(proxy.transform.localPosition, Vector3.zero), 0.0001f);
@@ -363,7 +363,7 @@ namespace modular_avatar_tests
             {
                 Assert.LessOrEqual(Vector3.Distance(proxy.transform.position, Vector3.zero), 0.0001f);
             }
-
+    
             if (expectSnapRot)
             {
                 Assert.LessOrEqual(Quaternion.Angle(proxy.transform.localRotation, Quaternion.identity), 0.0001f);
@@ -373,19 +373,19 @@ namespace modular_avatar_tests
                 Assert.LessOrEqual(Quaternion.Angle(proxy.transform.rotation, Quaternion.identity), 0.0001f);
             }
         }
-
+    
         [Test]
         public void TestCycleOrder()
         {
             // This test checks for a regression in which bone proxies contained inside merge armatures would break
             // the build.
             var avatar = CreatePrefab("BoneProxyCycleOrderTest.prefab");
-
+    
             var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(avatar));
             
             Assert.IsEmpty(errors);
         }
-
+    
         [Test]
         [TestCase(true, true)] // BoneProxy on merge source, target within merge source
         [TestCase(true, false)] // BoneProxy on merge source, target outside merge source
@@ -401,12 +401,12 @@ namespace modular_avatar_tests
             //   - TargetOutside (target if targetWithinMergeSource is false)
             //   - MergeTarget (receives children from merge source)
             //   - ProxyHolder (may be here if boneProxyOnMergeSource is false)
-
+    
             var root = CreateRoot("root");
-
+    
             var mergeTarget = CreateChild(root, "MergeTarget");
             var mergeSource = CreateChild(root, "MergeSource");
-
+    
             // Create the bone proxy holder - will move to its target
             GameObject proxyHolder;
             GameObject targetObject;
@@ -419,11 +419,11 @@ namespace modular_avatar_tests
             {
                 proxyHolder = CreateChild(root, "ProxyHolder");
             }
-
+    
             // Add bone proxy
             var boneProxy = proxyHolder.AddComponent<ModularAvatarBoneProxy>();
             proxyHolder.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Create and set up the target
             if (targetWithinMergeSource)
             {
@@ -434,36 +434,36 @@ namespace modular_avatar_tests
                 targetObject = CreateChild(root, "TargetOutside");
             }
             targetObject.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             boneProxy.target = targetObject.transform;
-
+    
             // Add additional child to merge source to verify merge behavior
             // This should relocate to merge target since it's not a bone proxy target
             var otherChild = CreateChild(mergeSource, "OtherChild");
             otherChild.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Set up merge armature
             var mergeArmature = mergeSource.AddComponent<ModularAvatarMergeArmature>();
             mergeArmature.mergeTarget.Set(mergeTarget);
             CreateChild(mergeTarget, "TargetWithin");
             CreateChild(mergeTarget, "OtherChild");
             CreateChild(mergeTarget, "ProxyHolder");
-
+    
             // Process the avatar
             var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             // Verify no errors
             Assert.IsEmpty(errors, "Expected no errors when bone proxy interacts with merge armature");
-
+    
             // Verify proxy moved to target
             Assert.AreEqual(targetObject, proxyHolder.transform.parent.gameObject, 
                 "BoneProxy holder should be parented to its target after processing");
-
+    
             // Verify that OtherChild (which is not the proxy target) is relocated to merge target
             Assert.IsTrue(otherChild.transform.IsChildOf(mergeTarget.transform),
                 "OtherChild from merge source should be relocated to merge target");
         }
-
+    
         [Test]
         public void MergeArmature_TargetsChildOfBoneProxy_Relocates()
         {
@@ -480,19 +480,19 @@ namespace modular_avatar_tests
             // After processing:
             // - BoneProxyHolder becomes child of BoneProxyTarget
             // - Data and OtherData become children of BoneProxyChild
-
+    
             var root = CreateRoot("root");
-
+    
             var boneProxyTarget = CreateChild(root, "BoneProxyTarget");
             var boneProxyChild = CreateChild(boneProxyTarget, "BoneProxyChild");
             var content = CreateChild(boneProxyChild, "Content");
             content.AddComponent<MeshRenderer>();
-
+    
             var boneProxyHolder = CreateChild(root, "BoneProxyHolder");
             var boneProxy = boneProxyHolder.AddComponent<ModularAvatarBoneProxy>();
             boneProxyHolder.AddComponent<MeshRenderer>(); // Prevent optimization
             boneProxy.target = boneProxyTarget.transform;
-
+    
             var mergeSource = CreateChild(root, "MergeSource");
             var data = CreateChild(mergeSource, "Data");
             data.AddComponent<MeshRenderer>();
@@ -500,16 +500,16 @@ namespace modular_avatar_tests
             otherData.AddComponent<MeshRenderer>();
             CreateChild(boneProxyChild, "Data");
             CreateChild(boneProxyChild, "OtherData");
-
+    
             var mergeArmature = mergeSource.AddComponent<ModularAvatarMergeArmature>();
             mergeArmature.mergeTarget.Set(boneProxyChild);
-
+    
             // Process the avatar
             var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             // Verify no errors
             Assert.IsEmpty(errors, "Expected no errors when merge armature targets a child of a bone proxy");
-
+    
             // Verify BoneProxyHolder was moved to BoneProxyTarget
             Assert.AreEqual(boneProxyTarget, boneProxyHolder.transform.parent.gameObject,
                 "BoneProxy holder should be moved to its target (BoneProxyTarget)");
@@ -518,7 +518,7 @@ namespace modular_avatar_tests
             Assert.IsTrue(data.transform.IsChildOf(boneProxyTarget.transform),
                 "Bone proxy should be parent of merged objects");
         }
-
+    
         [Test]
         public void MatchScale_Enabled_LocalScaleBecomesOne()
         {
@@ -527,27 +527,27 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var proxy = CreateChild(root, "proxy");
-
+    
             // Set a specific non-uniform scale on the proxy
             proxy.transform.localScale = new Vector3(2f, 3f, 4f);
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = true;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
             proxy.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Process the avatar
             AvatarProcessor.ProcessAvatar(root);
-
+    
             // After processing, local scale should be (1, 1, 1)
             Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
                 "Local scale should be (1, 1, 1) when matchScale is enabled");
-
+    
             // The proxy should now be a child of the target
             Assert.AreEqual(target, proxy.transform.parent.gameObject);
         }
-
+    
         [Test]
         public void MatchScale_Disabled_RetainsWorldLossyScale()
         {
@@ -565,25 +565,25 @@ namespace modular_avatar_tests
             proxy.transform.localScale = new Vector3(3f, 3f, 3f);
             
             var originalWorldScale = proxy.transform.lossyScale; // Should be (3, 3, 3)
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = false;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
             proxy.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Process the avatar
             AvatarProcessor.ProcessAvatar(root);
-
+    
             // After processing, the world lossy scale should be retained
             var finalWorldScale = proxy.transform.lossyScale;
             Assert.LessOrEqual(Vector3.Distance(finalWorldScale, originalWorldScale), 0.001f,
                 "World lossy scale should be retained when matchScale is disabled");
-
+    
             // The proxy should now be a child of the target
             Assert.AreEqual(target, proxy.transform.parent.gameObject);
         }
-
+    
         [Test]
         public void MatchScale_Enabled_EditorUpdate()
         {
@@ -592,31 +592,31 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var proxy = CreateChild(root, "proxy");
-
+    
             // Set target and proxy to have different scales and positions
             target.transform.position = new Vector3(1f, 2f, 3f);
             target.transform.rotation = Quaternion.Euler(45f, 45f, 45f);
             target.transform.localScale = new Vector3(2f, 2f, 2f);
-
+    
             proxy.transform.localPosition = new Vector3(5f, 6f, 7f);
             proxy.transform.localRotation = Quaternion.Euler(10f, 20f, 30f);
             proxy.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = true;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
-
+    
             // Call Update (which is editor-only logic)
             boneProxy.Update();
-
+    
             // The local scale should be set to match the parent's scale
             // This ensures that the proxy maintains proper visual positioning
             Assert.IsTrue(proxy.transform.localScale.x > 0, "Local scale X should be positive");
             Assert.IsTrue(proxy.transform.localScale.y > 0, "Local scale Y should be positive");
             Assert.IsTrue(proxy.transform.localScale.z > 0, "Local scale Z should be positive");
         }
-
+    
         [Test]
         public void MatchScale_Disabled_EditorUpdate()
         {
@@ -625,24 +625,24 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var proxy = CreateChild(root, "proxy");
-
+    
             target.transform.localScale = new Vector3(2f, 2f, 2f);
             var originalLocalScale = new Vector3(1.5f, 2.5f, 3.5f);
             proxy.transform.localScale = originalLocalScale;
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = false;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildKeepWorldPose;
-
+    
             // Call Update
             boneProxy.Update();
-
+    
             // The local scale should remain unchanged when matchScale is false
             Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, originalLocalScale), 0.0001f,
                 "Local scale should not change when matchScale is disabled");
         }
-
+    
         [Test]
         [TestCase(BoneProxyAttachmentMode.AsChildAtRoot)]
         [TestCase(BoneProxyAttachmentMode.AsChildKeepWorldPose)]
@@ -654,29 +654,29 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var proxy = CreateChild(root, "proxy");
-
+    
             target.transform.localScale = new Vector3(2f, 2f, 2f);
             proxy.transform.localScale = new Vector3(3f, 3f, 3f);
             proxy.transform.position = new Vector3(1f, 2f, 3f);
             proxy.transform.rotation = Quaternion.Euler(30f, 45f, 60f);
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = true;
             boneProxy.attachmentMode = attachmentMode;
             proxy.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Process the avatar
             AvatarProcessor.ProcessAvatar(root);
-
+    
             // After processing, local scale should be (1, 1, 1) regardless of attachment mode
             Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
                 $"Local scale should be (1, 1, 1) for {attachmentMode} when matchScale is enabled");
-
+    
             // The proxy should be a child of the target
             Assert.AreEqual(target, proxy.transform.parent.gameObject);
         }
-
+    
         [Test]
         public void MatchScale_WithScaledTarget()
         {
@@ -691,25 +691,25 @@ namespace modular_avatar_tests
             
             var proxy = CreateChild(root, "proxy");
             proxy.transform.localScale = new Vector3(4f, 4f, 4f);
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = true;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
             proxy.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Process the avatar
             AvatarProcessor.ProcessAvatar(root);
-
+    
             // After processing, local scale should be (1, 1, 1)
             // even though the target has a scaled parent
             Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
                 "Local scale should be (1, 1, 1) when matchScale is enabled, regardless of target's parent scale");
-
+    
             // The proxy should now be a child of the target
             Assert.AreEqual(target, proxy.transform.parent.gameObject);
         }
-
+    
         [Test]
         public void MatchScale_NonUniformScale()
         {
@@ -717,19 +717,19 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var target = CreateChild(root, "target");
             var proxy = CreateChild(root, "proxy");
-
+    
             // Set different scale values in each axis
             proxy.transform.localScale = new Vector3(1f, 2f, 3f);
-
+    
             var boneProxy = proxy.AddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = target.transform;
             boneProxy.matchScale = true;
             boneProxy.attachmentMode = BoneProxyAttachmentMode.AsChildAtRoot;
             proxy.AddComponent<MeshRenderer>(); // Prevent optimization
-
+    
             // Process the avatar
             AvatarProcessor.ProcessAvatar(root);
-
+    
             // After processing, local scale should be (1, 1, 1)
             Assert.LessOrEqual(Vector3.Distance(proxy.transform.localScale, Vector3.one), 0.0001f,
                 "Local scale should be (1, 1, 1) for non-uniform scales when matchScale is enabled");

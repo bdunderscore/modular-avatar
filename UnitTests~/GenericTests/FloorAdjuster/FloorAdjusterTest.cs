@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.plugin;
@@ -8,7 +8,7 @@ using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTests.GenericTests
+namespace nadena.dev.modular_avatar.test.GenericTests
 {
     public class FloorAdjusterTest : TestBase
     {

@@ -8,7 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class AvatarMaskTest : TestBase
     {
@@ -21,27 +21,27 @@ namespace modular_avatar_tests
                 this.humanoidMaskElements = humanoidMaskElements;
                 this.transformMaskElements = transformMaskElements;
             }
-
+    
             public override bool Equals(object obj)
             {
                 if (obj == this) return true;
                 if (!(obj is ExtractedMask other)) return false;
-
+    
                 if (!humanoidMaskElements.SequenceEqual(other.humanoidMaskElements)) return false;
                 return transformMaskElements.SequenceEqual(other.transformMaskElements);
             }
-
+    
             public override int GetHashCode()
             {
                 return HashCode.Combine(humanoidMaskElements, transformMaskElements);
             }
-
+    
             public static ExtractedMask FromAvatarMask(AvatarMask mask)
             {
                 var so = new SerializedObject(mask);
                 var m_Mask = so.FindProperty("m_Mask");
                 var m_Elements = so.FindProperty("m_Elements");
-
+    
                 var humanoidMaskElements = new int[m_Mask.arraySize];
                 var maskElementCount = m_Mask.arraySize;
                 for (var i = 0; i < maskElementCount; i++)
@@ -49,7 +49,7 @@ namespace modular_avatar_tests
                     var element = m_Mask.GetArrayElementAtIndex(i);
                     humanoidMaskElements[i] = element.intValue;
                 }
-
+    
                 var transformMaskElements = new List<(string, float)>();
                 var transformElementCount = m_Elements.arraySize;
                 for (var i = 0; i < transformElementCount; i++)
@@ -93,7 +93,7 @@ namespace modular_avatar_tests
             AvatarProcessor.ProcessAvatar(prefab);
             
             // Body -> parent/anim-root/Body
-
+    
             var newMask = findFxLayer(prefab, "test").avatarMask;
             var state = ExtractedMask.FromAvatarMask(newMask);
             
@@ -117,7 +117,7 @@ namespace modular_avatar_tests
             // Original paths are removed
             Assert.IsFalse(state.transformMaskElements.Any(e => e.Item1 == "Body"));
         }
-
+    
         [Test]
         public void whenObjectMovedByBoneProxy_avatarMaskPathsAreRewritten()
         {

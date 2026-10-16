@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
@@ -11,7 +11,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class BlendshapeSyncIntegrationTest : TestBase
     {
@@ -22,65 +22,65 @@ namespace modular_avatar_tests
         )
         {
             var root = CreatePrefab(prefabName);
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             var clip = findFxClip(root, "Base Layer");
-
+    
             var bindings = AnimationUtility.GetCurveBindings(clip)
                 .Select(binding =>
                 {
                     var constantKey = AnimationUtility.GetEditorCurve(clip, binding).keys[0].value;
                     return (binding.path, binding.propertyName, constantKey);
                 }).ToImmutableHashSet();
-
+    
             Assert.True(bindings.Contains(("BaseMesh", "blendShape.shape_0", 0.1f)));
             Assert.True(bindings.Contains(("BaseMesh", "blendShape.shape_0_local", 0.3f)));
             Assert.True(bindings.Contains(("BaseMesh", "blendShape.shape_1", 0.2f)));
             Assert.True(bindings.Contains(("BaseMesh", "blendShape.missing_mesh_shape", 0.4f)));
             Assert.True(bindings.Contains(("BaseMesh", "blendShape.missing_mesh_shape_2", 0.5f)));
-
+    
             Assert.True(bindings.Contains(("SyncedMesh", "blendShape.shape_0_local", 0.1f)));
             Assert.True(bindings.Contains(("SyncedMesh", "blendShape.shape_1", 0.2f)));
-
+    
             Assert.AreEqual(bindings.Count, 7);
         }
-
+    
         [Test]
         public void WhenBaseMeshIsMovedByBoneProxy_BlendShapeSync()
         {
             var root = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
             var child = CreateChild(root, "Child");
-
+    
             var baseMesh = root.transform.Find("BaseMesh");
             var boneProxy = baseMesh.GetOrAddComponent<ModularAvatarBoneProxy>();
             boneProxy.target = child.transform;
             
             AvatarProcessor.ProcessAvatar(root);
-
+    
             var clip = findFxClip(root, "Base Layer");
-
+    
             var bindings = AnimationUtility.GetCurveBindings(clip)
                 .Select(binding =>
                 {
                     var constantKey = AnimationUtility.GetEditorCurve(clip, binding).keys[0].value;
                     return (binding.path, binding.propertyName, constantKey);
                 }).ToImmutableHashSet();
-
+    
             Assert.True(bindings.Contains(("Child/BaseMesh", "blendShape.shape_0", 0.1f)));
             Assert.True(bindings.Contains(("Child/BaseMesh", "blendShape.shape_1", 0.2f)));
-
+    
             Assert.True(bindings.Contains(("SyncedMesh", "blendShape.shape_0_local", 0.1f)));
             Assert.True(bindings.Contains(("SyncedMesh", "blendShape.shape_1", 0.2f)));
-
+    
             Assert.AreEqual(bindings.Count, 7);
         }
-
+    
         [Test]
         public void BlendshapeSync_CopiesValueToDownstreamMeshes()
         {
             var root = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
-
+    
             // Set a value on BaseMesh's shape_0 and shape_1
             var baseMesh = root.transform.Find("BaseMesh").GetComponent<UnityEngine.SkinnedMeshRenderer>();
             var syncedMesh = root.transform.Find("SyncedMesh").GetComponent<UnityEngine.SkinnedMeshRenderer>();
@@ -95,14 +95,14 @@ namespace modular_avatar_tests
             // Set test values
             baseMesh.SetBlendShapeWeight(shape0, 42.5f);
             baseMesh.SetBlendShapeWeight(shape1, 13.7f);
-
+    
             // Process the avatar (should sync values)
             AvatarProcessor.ProcessAvatar(root);
             
             // Assert that base mesh blendshape weights are unchanged
             Assert.AreEqual(42.5f, baseMesh.GetBlendShapeWeight(shape0));
             Assert.AreEqual(13.7f, baseMesh.GetBlendShapeWeight(shape1));
-
+    
             // By default, the prefab syncs:
             //   BaseMesh.shape_0 -> SyncedMesh.shape_0_local
             //   BaseMesh.shape_1 -> SyncedMesh.shape_1
@@ -111,7 +111,7 @@ namespace modular_avatar_tests
             Assert.AreEqual(42.5f, syncedMesh.GetBlendShapeWeight(syncedShape0Local));
             Assert.AreEqual(13.7f, syncedMesh.GetBlendShapeWeight(syncedShape1));
         }
-
+    
         [Test]
         public void BlendshapeSync_MissingSharedMeshes_AreDiagnosedAndDoNotPreventValidBindingProcessing()
         {
@@ -119,42 +119,42 @@ namespace modular_avatar_tests
             var missingLocalRenderer = missingLocalRoot.transform.Find("SyncedMesh")
                 .GetComponent<SkinnedMeshRenderer>();
             missingLocalRenderer.sharedMesh = null;
-
+    
             var localErrors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(missingLocalRoot));
             Assert.That(localErrors.Select(e => e.TheError as SimpleError)
                 .Any(e => e?.TitleKey == "validation.blendshape_sync.no_local_mesh"), Is.True);
-
+    
             var missingSourceRoot = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
             var missingSourceRenderer = missingSourceRoot.transform.Find("BaseMesh")
                 .GetComponent<SkinnedMeshRenderer>();
             missingSourceRenderer.sharedMesh = null;
-
+    
             var sourceErrors = ErrorReport.CaptureErrors(() => ComponentValidation.ValidateAll(missingSourceRoot));
             Assert.That(sourceErrors.Select(e => e.TheError as SimpleError)
                 .Any(e => e?.TitleKey == "validation.blendshape_sync.missing_target_mesh"), Is.True);
-
+    
             var validRoot = CreatePrefab("BlendshapeSyncIntegrationTest.prefab");
             AvatarProcessor.ProcessAvatar(validRoot);
-
+    
             var clip = findFxClip(validRoot, "Base Layer");
             var syncedShape = AnimationUtility.GetCurveBindings(clip)
                 .Single(binding => binding.path == "SyncedMesh"
                                    && binding.propertyName == "blendShape.shape_0_local");
             Assert.That(AnimationUtility.GetEditorCurve(clip, syncedShape).keys[0].value, Is.EqualTo(0.1f));
         }
-
+    
         [Test]
         public void BlendShapeSync_RemapsOrignalCurve()
         {
             var root = CreatePrefab("BlendshapeSyncRemapCurveTest.prefab");
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             var clip = findFxClip(root, "Base Layer");
             var bindings = AnimationUtility.GetCurveBindings(clip)
                 .Where((cb) => cb.path == "SyncedMesh")
                 .ToImmutableDictionary((cb) => cb.propertyName);
-
+    
             const float epsilon = 1E-3f;
             var values = new[]
             {
@@ -168,7 +168,7 @@ namespace modular_avatar_tests
             {
                 Assert.True(bindings.ContainsKey(property));
                 var curve = AnimationUtility.GetEditorCurve(clip, bindings[property]);
-
+    
                 foreach (var (time, expectedValue) in expectedValues)
                 {
                     Assert.AreEqual(expectedValue, curve.Evaluate(time), epsilon, $"Property: {property}, Time: {time}");
