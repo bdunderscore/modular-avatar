@@ -74,15 +74,15 @@ namespace modular_avatar_tests.MMD
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
 
-            // dummy, dummy, MMD, Merge Blend Tree, RC base, L0, L1, L2, RC apply
-            // L0 is displaced by the Merge Blend Tree layer, but must not be disabled in MMD mode (#1922).
+            // dummy, dummy, MMD, RC base, Merge Blend Tree, L0, L1, L2, RC apply
+            // L0 is displaced by the RC base and Merge Blend Tree layers, but must not be disabled in MMD mode (#1922).
             AssertMMDModeHandling(fxc, 6, 7);
 
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
-            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[3].name);
-            Assert.AreEqual("MA/RC Base", fxc.layers[4].name);
+            Assert.AreEqual("MA/RC Base", fxc.layers[3].name);
+            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[4].name);
             Assert.AreEqual("L0", fxc.layers[5].name);
             Assert.AreEqual("L1", fxc.layers[6].name);
             Assert.AreEqual("L2", fxc.layers[7].name);

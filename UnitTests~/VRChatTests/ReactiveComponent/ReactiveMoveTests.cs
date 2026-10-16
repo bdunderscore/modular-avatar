@@ -18,7 +18,9 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.Dynamics;
+using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Dynamics.Constraint.Components;
+using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor.AnimLayerType;
 using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
 namespace UnitTests.ReactiveComponent
@@ -341,12 +343,24 @@ namespace UnitTests.ReactiveComponent
             var context = new nadena.dev.ndmf.BuildContext(root, null,
                 PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30], true);
             var services = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            
+            // Alias the FX controller onto an animator to make it easy to test in context.
             var controller = VirtualAnimatorController.Create(services.ControllerContext.CloneContext);
+            services.ControllerContext.Controllers[FX] = controller;
             services.ControllerContext.Controllers[animator] = controller;
+            
+            var injectRO = context.ActivateExtensionContextRecursive<InjectROBaseLayer>();
+
             var backend = new VRChatBlendTreeBackend(controller, new UnityBlendTreeBackend(context, controller));
             backend.PreprocessGraph(graph);
             ILBuild.Simplify(graph);
             backend.Build(graph);
+            
+            // Since we're manually building things we also have to manually set up the base layer
+            var baseState = injectRO.Layer!.StateMachine!.AddState("Base");
+            baseState.Motion = backend.BaseBlendTree;
+            injectRO.Layer!.StateMachine.DefaultState = baseState;
+            
             context.DeactivateAllExtensionContexts();
             animator.Rebind();
             var constraint = target.GetComponent<VRCPositionConstraint>();

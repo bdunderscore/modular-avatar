@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2162] Merge Motion could be overridden by inactive reactive components
 
 ### Changed
 
