@@ -74,13 +74,13 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Download artifact (tagged)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: docs
           path: docs/build
 
       - name: Download artifact (latest)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: docs-dev
           path: docs/build/dev
