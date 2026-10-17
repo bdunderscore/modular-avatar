@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
+- [#2156] Fixed an issue where the position of child objects was not updated when pasting a value for `MA Scale Adjuster` in the Inspector
 
 ### Removed
 - [#2122] Removed (made non-public) a number of APIs introduced in 1.19.0-alpha.0 which were not intended to be made
