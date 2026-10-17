@@ -34,13 +34,6 @@
     "@types/react": "^19.3.0",
     "typescript": "^5.9.3"
   },
-  "resolutions": {
-    "@algolia/client-search": "4.20.0",
-    "algoliasearch": "4.20.0",
-    "algoliasearch-helper": "3.15.0",
-    "@algolia/autocomplete-core": "1.12.1",
-    "@algolia/autocomplete-preser-algolia": "1.12.1"
-  },
   "browserslist": {
     "production": [
       ">0.5%",
@@ -56,5 +49,5 @@
   "engines": {
     "node": ">=20.0"
   },
-  "packageManager": "yarn@4.17.0"
+  "packageManager": "yarn@4.18.1"
 }
