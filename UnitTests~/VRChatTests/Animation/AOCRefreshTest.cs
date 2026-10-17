@@ -10,7 +10,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class AOCRefreshTest : TestBase
     {
@@ -18,7 +18,7 @@ namespace modular_avatar_tests
         public void Test()
         {
             var avatar = new GameObject("avatar");
-
+    
             var ac = new AnimatorController();
             var originalMotion = new AnimationClip() { name = "c1" };
             var newMotion = new AnimationClip() { name = "c2" };
@@ -46,14 +46,14 @@ namespace modular_avatar_tests
             ac.layers[0].stateMachine.defaultState = ac.layers[0].stateMachine.states[0].state;
             
             aoc.ApplyOverrides(new[] { new KeyValuePair<AnimationClip, AnimationClip>(originalMotion, newMotion) });
-
+    
             var animator = avatar.AddComponent<Animator>();
             animator.runtimeAnimatorController = aoc;
-
+    
             avatar.AddComponent<NDMFAvatarRoot>();
             
             var context = CreateContext(avatar, WellKnownPlatforms.Generic);
-
+    
             var vcc = context.ActivateExtensionContextRecursive<VirtualControllerContext>();
             var virtualController = vcc.Controllers[animator];
             Assert.AreEqual("c2", virtualController.Layers.First().StateMachine.DefaultState.Motion.Name);
@@ -77,7 +77,7 @@ namespace modular_avatar_tests
             vcc = context.ActivateExtensionContextRecursive<VirtualControllerContext>();
             virtualController = vcc.Controllers[animator];
             Assert.AreEqual("c2", virtualController.Layers.First().StateMachine.DefaultState.Motion.Name);
-
+    
             context.DeactivateAllExtensionContexts();
             
             // The animator should still use the replaced motion

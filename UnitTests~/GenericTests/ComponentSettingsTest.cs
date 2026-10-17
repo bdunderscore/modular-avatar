@@ -10,13 +10,13 @@ using UnityEngine;
 using Activator = nadena.dev.modular_avatar.core.Activator;
 using Object = UnityEngine.Object;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class ComponentSettingsTest : TestBase
     {
         GameObject _gameObject;
         Texture2D _iconTexture;
-
+    
         [SetUp]
         public override void Setup()
         {
@@ -25,13 +25,13 @@ namespace modular_avatar_tests
             _iconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
                 AssetDatabase.GUIDToAssetPath("a8edd5bd1a0a64a40aa99cc09fb5f198"));
         }
-
+    
         public override void Teardown()
         {
             base.Teardown();
             Object.DestroyImmediate(_gameObject);
         }
-
+    
         [Test]
         [TestCaseSource(nameof(ComponentTypes))]
         public void CheckIconIsSet(Type type)
@@ -41,7 +41,7 @@ namespace modular_avatar_tests
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
             if (type == typeof(EditModePBManager)) return;
-
+    
             // get icon
             var component = (MonoBehaviour) _gameObject.AddComponent(type);
             var monoScript = MonoScript.FromMonoBehaviour(component);
@@ -52,11 +52,11 @@ namespace modular_avatar_tests
             var serializedImporter = new SerializedObject(monoImporter);
             var iconProperty = serializedImporter.FindProperty("icon");
             var icon = iconProperty.objectReferenceValue;
-
+    
             // check the icon
             Assert.That(icon, Is.EqualTo(_iconTexture));
         }
-
+    
         [Test]
         [TestCaseSource(nameof(ComponentTypes))]
         public void CheckHelpURL(Type type)
@@ -66,12 +66,12 @@ namespace modular_avatar_tests
             if (type == typeof(AvatarActivator)) return;
             if (type == typeof(TestComponent)) return;
             if (type == typeof(EditModePBManager)) return;
-
+    
             // get icon
             var helpUrl = type.GetCustomAttribute<HelpURLAttribute>();
             Assert.That(helpUrl, Is.Not.Null);
         }
-
+    
         /// <returns>All non-abstract MonoBehaviour classes</returns>
         static IEnumerable<Type> ComponentTypes()
         {

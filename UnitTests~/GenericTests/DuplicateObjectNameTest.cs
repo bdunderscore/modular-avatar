@@ -1,8 +1,8 @@
-﻿using modular_avatar_tests;
+﻿using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 
-namespace _ModularAvatar.EditModeTests
+namespace nadena.dev.modular_avatar.test.EditModeTests
 {
     public class DuplicateObjectNameTest : TestBase
     {
@@ -13,7 +13,7 @@ namespace _ModularAvatar.EditModeTests
             var avatar = CreateRoot("root");
             var c1 = CreateChild(avatar, "child");
             var c2 = CreateChild(avatar, "child");
-
+    
             PathMappings.Init(avatar);
             c2.gameObject.name = "child2";
             Assert.AreEqual(PathMappings.MapPath("child"), "child");

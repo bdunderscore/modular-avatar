@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using nadena.dev.modular_avatar.core.editor.rc;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
-using UnitTests.SharedInterfacesImpl;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfacesImpl;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class BranchConditionTest : ReactiveComponentILTestBase
     {
@@ -31,7 +31,7 @@ namespace UnitTestsReactiveComponentIL
             yield return null;
             Assert.IsTrue(testTrue());
         }
-
+    
         [RCILTest]
         public IEnumerator TestBranchNodeGreaterConditionIsStrictAtThreshold()
         {
@@ -39,23 +39,23 @@ namespace UnitTestsReactiveComponentIL
             CreateSensor("true", out var motionTrue, out var testTrue);
             CreateSensor("false", out var motionFalse, out var testFalse);
             AddParameter("test", threshold);
-
+    
             var branch = new BranchNode("test")
             {
                 Threshold = threshold,
                 OnGreaterThan = motionTrue,
                 OnLessEquals = motionFalse
             };
-
+    
             BakeConditions(branch);
             Assert.IsNotNull(animator.runtimeAnimatorController);
-
+    
             yield return null;
-
+    
             Assert.IsTrue(testFalse(), "A value equal to the threshold must take the false branch");
             Assert.IsFalse(testTrue(), "The strict greater-than branch must not activate at equality");
         }
-
+    
         [RCILTest]
         public IEnumerator TestBranchNodeGreaterConditionActivatesOneUlpAboveThreshold()
         {
@@ -63,19 +63,19 @@ namespace UnitTestsReactiveComponentIL
             CreateSensor("true", out var motionTrue, out var testTrue);
             CreateSensor("false", out var motionFalse, out var testFalse);
             AddParameter("test", threshold.NextLargest());
-
+    
             var branch = new BranchNode("test")
             {
                 Threshold = threshold,
                 OnGreaterThan = motionTrue,
                 OnLessEquals = motionFalse
             };
-
+    
             BakeConditions(branch);
             Assert.IsNotNull(animator.runtimeAnimatorController);
-
+    
             yield return null;
-
+    
             Assert.IsTrue(testTrue(), "The strict greater-than branch must activate one ULP above the threshold");
             Assert.IsFalse(testFalse(), "One ULP above the threshold must not take the false branch");
         }

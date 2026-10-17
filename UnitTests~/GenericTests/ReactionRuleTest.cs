@@ -2,7 +2,7 @@ using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using NUnit.Framework;
 
-namespace UnitTests.GenericTests
+namespace nadena.dev.modular_avatar.test.GenericTests
 {
     public class ReactionRuleTest
     {
@@ -13,7 +13,7 @@ namespace UnitTests.GenericTests
             rule.Inverted = inverted;
             return rule;
         }
-
+    
         [Test]
         public void IsConstantActive_NoConditions_NotInverted_IsTrue()
         {
@@ -22,7 +22,7 @@ namespace UnitTests.GenericTests
             Assert.IsTrue(rule.InitiallyActive);
             Assert.IsTrue(rule.IsConstantActive);
         }
-
+    
         [Test]
         public void IsConstantActive_NoConditions_Inverted_IsFalse()
         {
@@ -33,32 +33,32 @@ namespace UnitTests.GenericTests
             Assert.IsFalse(rule.InitiallyActive);   // inversion already applied
             Assert.IsFalse(rule.IsConstantActive);  // was incorrectly true before fix
         }
-
+    
         [Test]
         public void TryMerge_SetShapeKeyValuesWithinTolerance_Merges()
         {
             var first = new ReactionRule(new SetShapeKey(null, "shape", 12.5f));
             var second = new ReactionRule(new SetShapeKey(null, "shape", 12.5005f));
-
+    
             Assert.IsTrue(first.TryMerge(second));
         }
-
+    
         [Test]
         public void TryMerge_SetShapeKeyValuesOutsideTolerance_DoesNotMerge()
         {
             var first = new ReactionRule(new SetShapeKey(null, "shape", 12.5f));
             var second = new ReactionRule(new SetShapeKey(null, "shape", 12.502f));
-
+    
             Assert.IsFalse(first.TryMerge(second));
         }
-
+    
         [Test]
         public void TryMerge_NonShapeActionsRequireExactEquality()
         {
             var first = new ReactionRule(new DriveParameter("parameter", 1f));
             var same = new ReactionRule(new DriveParameter("parameter", 1f));
             var different = new ReactionRule(new DriveParameter("parameter", 1.0005f));
-
+    
             Assert.IsTrue(first.TryMerge(same));
             Assert.IsFalse(first.TryMerge(different));
         }

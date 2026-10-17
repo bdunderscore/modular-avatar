@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
 using UnityEngine;
 
-namespace UnitTests._PlayModeTests
+namespace nadena.dev.modular_avatar.test._PlayModeTests
 {
     public class TestBase
     {
@@ -14,7 +14,7 @@ namespace UnitTests._PlayModeTests
             _toDestroy.Clear();
             ITestSupport.Instance.Setup();
         }
-
+    
         [TearDown]
         public virtual void Teardown()
         {
@@ -24,9 +24,9 @@ namespace UnitTests._PlayModeTests
             }
             ITestSupport.Instance.Teardown();
         }
-
+    
         private List<UnityEngine.Object> _toDestroy = new();
-
+    
         protected T obj<T>(T o) where T : UnityEngine.Object
         {
             _toDestroy.Add(o);
@@ -45,7 +45,7 @@ namespace UnitTests._PlayModeTests
             go.transform.parent = parent.transform;
             return obj(go);
         }
-
+    
         protected GameObject CreatePrim(GameObject parent, string name)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -57,29 +57,29 @@ namespace UnitTests._PlayModeTests
         protected GameObject CreatePrefab(string relPath)
         {
             var prefab = ITestSupport.Instance.LoadAsset<GameObject>(GetType(), relPath);
-
+    
             return obj(Object.Instantiate(prefab));
         }
-
+    
         protected void ProcessAvatar(GameObject avatar)
         {
             ITestSupport.Instance.ProcessAvatar(avatar);
         }
-
+    
         protected Animator ActivateFX(GameObject avatar)
         {
             ITestSupport.Instance.ActivateFX(avatar);
-
+    
             var anim = avatar.GetComponent<Animator>();
             anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-
+    
             return anim;
         }
-
+    
         protected void SetParam(Animator animator, string name, float value)
         {
             var p = animator.parameters.First(p => p.name == name);
-
+    
             switch (p.type)
             {
                 case AnimatorControllerParameterType.Bool:
@@ -100,7 +100,7 @@ namespace UnitTests._PlayModeTests
                     {
                         animator.ResetTrigger(name);
                     }
-
+    
                     break;
             }
         } 

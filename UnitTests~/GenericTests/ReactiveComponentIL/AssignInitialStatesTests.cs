@@ -1,5 +1,5 @@
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -9,19 +9,19 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class AssignInitialStatesTests : TestBase
     {
         private UnityBlendTreeBackend _blendTreeBackend;
         private ReactionParameters _parameters;
         private TestReactionBackend _backend;
-
+    
         [SetUp]
         public override void Setup()
         {
             base.Setup();
-
+    
             var root = CreateRoot("root");
             var bc = CreateContext(root);
             var asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
@@ -30,68 +30,68 @@ namespace UnitTestsReactiveComponentIL
             _parameters = new ReactionParameters();
             _backend = new TestReactionBackend(_parameters);
         }
-
+    
         // ── helpers ──────────────────────────────────────────────────────────
-
+    
         private float ContextValue(string param) => _parameters.GetParameterInitialValue(param);
-
+    
         // ── basic driver activation ───────────────────────────────────────────
-
+    
         [Test]
         public void EmptyGraph_NoError()
         {
             var graph = new ReactionGraph(_parameters);
             Assert.DoesNotThrow(() => AssignInitialStates.ProcessGraph(_backend, graph));
         }
-
+    
         [Test]
         public void NoDriverEffects_NoContextChanges()
         {
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             // No DriveInternalParameter effects → context untouched
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ConstantTrue_SetsParameterToTrue()
         {
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ConstantTrue_DrivesFalseState_SetsParameterToZero()
         {
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", false)));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ConstantFalse_DriverNotActivated_ParameterRemainsDefault()
         {
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("p", true)));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             // Condition is false → driver never fires → parameter not explicitly set
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         // ── external parameter conditions ────────────────────────────────────
-
+    
         [Test]
         public void ExternalParameter_DefaultZero_DriverNotActivated()
         {
@@ -103,98 +103,98 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression("externalParam"),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ExternalParameter_DefaultAboveThreshold_DriverActivated()
         {
             // ParameterExpression must read the parameter's registered default value.
             // P defaults to 1.0, threshold is 0.5 (GreaterThan) → condition is true → driver fires.
             _parameters.SetParameterInitialValue("P", 1.0f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ExternalParameter_GreaterThanMode_DefaultAtThreshold_DriverNotActivated()
         {
             // GreaterThan mode is strict: P=0.5 is not > 0.5.
             _parameters.SetParameterInitialValue("P", 0.5f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ExternalParameter_LessThanMode_DefaultBelowThreshold_DriverActivated()
         {
             // LessThan mode: P=0.0 < 0.5 → true → driver fires.
             _parameters.SetParameterInitialValue("P", 0.0f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.LessThan),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ExternalParameter_LessThanMode_DefaultAboveThreshold_DriverNotActivated()
         {
             // LessThan mode: P=1.0 is not < 0.5 → false → driver does not fire.
             _parameters.SetParameterInitialValue("P", 1.0f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.LessThan),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ExternalParameter_LessThanMode_DefaultAtThreshold_DriverNotActivated()
         {
             // LessThan mode is strict: P=0.5 is not < 0.5.
             _parameters.SetParameterInitialValue("P", 0.5f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.LessThan),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void ProcessGroups_ExternalParameterAboveThreshold_DefaultNodeSet()
         {
@@ -203,42 +203,42 @@ namespace UnitTestsReactiveComponentIL
             // and caused SetBaseState(false) to record the wrong base-layer clip value.
             // After the fix, P=1.0 > 0.5 → condition true → DefaultNode is set.
             _parameters.SetParameterInitialValue("P", 1.0f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
                 new DriveParameter("q", 1.0f)
             ));
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
-
+    
             var group = groups[new ParameterTarget("q")];
             Assert.IsNotNull(group.DefaultNode, "DefaultNode must be set when P > 0.5");
             Assert.AreEqual(0, group.DefaultNode);
             Assert.AreEqual(1f, ContextValue("q"), "SetBaseState(true) must set q to 1");
         }
-
+    
         // ── initial graph parameter value as seed ─────────────────────────────
-
+    
         [Test]
         public void InternalParameterCondition_ReadsExistingContextValue_ActivatesDriver()
         {
             // Pre-seed "a" in the context so the condition evaluates true.
             _parameters.SetParameterInitialValue("a", 1f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new InternalParameterCondition("a"),
                 new DriveInternalParameter("b", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("b"));
         }
-
+    
         [Test]
         public void InternalParameterCondition_ContextValueZero_DriverNotActivated()
         {
@@ -248,14 +248,14 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("a"),
                 new DriveInternalParameter("b", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("b"));
         }
-
+    
         // ── fixed-point iteration (chained drivers) ───────────────────────────
-
+    
         [Test]
         public void Chain_BDrivesA_BothSetCorrectly()
         {
@@ -270,20 +270,20 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("B"),
                 new DriveInternalParameter("A", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("B"), "B should be set to 1");
             Assert.AreEqual(1f, ContextValue("A"), "A should be set to 1 once B is resolved");
         }
-
+    
         [Test]
         public void Chain_ExceedingTenDependencies_PropagatesToEnd()
         {
             const int dependencyCount = 11;
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("P0", true)));
-
+    
             for (var i = 1; i <= dependencyCount; i++)
             {
                 graph.AddNode(new ReactionNode(
@@ -291,13 +291,13 @@ namespace UnitTestsReactiveComponentIL
                     new DriveInternalParameter($"P{i}", true)
                 ));
             }
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue($"P{dependencyCount}"));
         }
-
-
+    
+    
         [Test]
         public void Chain_InvertedState_PropagatesCorrectly()
         {
@@ -309,15 +309,15 @@ namespace UnitTestsReactiveComponentIL
                 new InternalParameterCondition("B"),
                 new DriveInternalParameter("A", false)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("B"));
             Assert.AreEqual(0f, ContextValue("A"));
         }
-
+    
         // ── multiple drivers for same target ─────────────────────────────────
-
+    
         [Test]
         public void TwoDriversSameTarget_LastActiveOneWins()
         {
@@ -325,14 +325,14 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", true)));
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", false)));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"), "Last driver in iteration order should win");
         }
-
+    
         // ── compound expressions ──────────────────────────────────────────────
-
+    
         [Test]
         public void AndCondition_BothTrue_DriverActivated()
         {
@@ -341,12 +341,12 @@ namespace UnitTestsReactiveComponentIL
                 new AndNode(new Constant(true), new Constant(true)),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("p"));
         }
-
+    
         [Test]
         public void AndCondition_OneFalse_DriverNotActivated()
         {
@@ -355,12 +355,12 @@ namespace UnitTestsReactiveComponentIL
                 new AndNode(new Constant(true), new Constant(false)),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         [Test]
         public void OrCondition_OneFalse_DriverStillActivated()
         {
@@ -369,12 +369,12 @@ namespace UnitTestsReactiveComponentIL
                 new OrNode(new Constant(false), new Constant(true)),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("p"));
         }
-
+    
         [Test]
         public void NotCondition_InvertsTrue_DriverNotActivated()
         {
@@ -383,14 +383,14 @@ namespace UnitTestsReactiveComponentIL
                 new NotNode(new Constant(true)),
                 new DriveInternalParameter("p", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(0f, ContextValue("p"));
         }
-
+    
         // ── AssignInitialGroupStatesTransform ────────────────────────────────
-
+    
         [Test]
         public void ProcessGroups_SingleNodeTrue_DefaultNodeZero_BaseStateTrue()
         {
@@ -398,15 +398,15 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveParameter("p", 1.0f)));
             _blendTreeBackend.PreprocessGraph(graph);
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
-
+    
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
-
+    
             var group = groups[new ParameterTarget("p")];
             Assert.AreEqual(0, group.DefaultNode, "Only node is true → DefaultNode should be 0");
             Assert.AreEqual(1f, ContextValue("p"),
                 "SetBaseState(true) with State=true should set 'p' to 1");
         }
-
+    
         [Test]
         public void ProcessGroups_LastTrueNodeWins()
         {
@@ -417,16 +417,16 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("p", false)));  // node1: State=false
             _blendTreeBackend.PreprocessGraph(graph);
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
-
+    
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
-
+    
             var group = groups[new InternalParameterTarget("p")];
             Assert.AreEqual(1, group.DefaultNode,
                 "Last true node (index 1) should win as DefaultNode");
             Assert.AreEqual(0f, ContextValue("p"),
                 "node1 has State=false → SetBaseState(true) sets 'p' to 0");
         }
-
+    
         [Test]
         public void ProcessGroups_CorrectDefaultNodeIndex_WhenMiddleNodeIsTrue()
         {
@@ -437,12 +437,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(false), new DriveInternalParameter("p", false)));
             _blendTreeBackend.PreprocessGraph(graph);
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
-
+    
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
-
+    
             Assert.AreEqual(1, groups[new InternalParameterTarget("p")].DefaultNode);
         }
-
+    
         [Test]
         public void ProcessGroups_MultipleGroups_EachProcessedIndependently()
         {
@@ -451,36 +451,36 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(false), new DriveParameter("q", 1.0f)));
             _blendTreeBackend.PreprocessGraph(graph);
             var groups = AlignNodesTransform.CreateEffectGroups(_blendTreeBackend._effectProcessors, graph);
-
+    
             AssignInitialGroupStatesTransform.Apply(_blendTreeBackend, groups.Values.ToList());
-
+    
             Assert.AreEqual(1f, ContextValue("p"), "'p' condition is true → parameter 1");
             Assert.AreEqual(0f, ContextValue("q"), "'q' condition is false → parameter 0");
         }
-
+    
         // ── external parameter initial value ─────────────────────────────────
-
+    
         [Test]
         public void ExternalParameter_NonZeroGraphDefault_DrivesInitialStateCorrectly()
         {
             // Shape conversion registers external defaults in the graph-owned registry.
             // ProcessGraph must evaluate that shared value rather than falling back to zero.
             _parameters.EnsureParameter("P", 1.0f);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("P", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
                 new DriveInternalParameter("ObjActive/A", true)
             ));
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue("ObjActive/A"),
                 "P defaults to 1.0 > 0.5 — ProcessGraph must set ObjActive/A to 1");
         }
-
+    
         // ── pipeline-ordering regression ──────────────────────────────────────
-
+    
         [Test]
         public void InactiveObject_DrivenActiveByAlwaysOnNode_InitialValuePropagated()
         {
@@ -490,23 +490,23 @@ namespace UnitTestsReactiveComponentIL
             // After ConvertToInternal + Decompose + ProcessGraph the ObjActive/A param must be 1.
             var objA = CreateChild(CreateRoot("objects"), "A");
             objA.SetActive(false);
-
+    
             var graph = new ReactionGraph(_parameters);
             graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(objA, true)));
-
+    
             ConvertToInternalParametersTransform.Apply(_backend, graph);
             DecomposeTransform.Apply(graph);
-
+    
             var dipNode = graph.Nodes.Single(n =>
                 n.Effects[0] is DriveInternalParameter dip &&
                 dip.ParameterName.Contains("ObjActive/A"));
             var paramName = ((DriveInternalParameter)dipNode.Effects[0]).ParameterName;
-
+    
             Assert.AreEqual(0f, ContextValue(paramName),
                 "Before ProcessGraph, param reflects activeSelf (inactive → 0)");
-
+    
             AssignInitialStates.ProcessGraph(_backend, graph);
-
+    
             Assert.AreEqual(1f, ContextValue(paramName),
                 "After ProcessGraph, always-on driver must propagate A's initial value to 1");
         }

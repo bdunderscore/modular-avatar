@@ -1,14 +1,14 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace UnitTests.ReactiveComponent
+namespace nadena.dev.modular_avatar.test.ReactiveComponent
 {
     internal class ObjectToggleTests : TestBase
     {

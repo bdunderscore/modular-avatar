@@ -13,7 +13,6 @@ using nadena.dev.ndmf.animator;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if MA_VRCSDK3_AVATARS
-using System;
 using nadena.dev.ndmf.vrchat;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -21,6 +20,42 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+    /// <summary>
+    ///     The Merge Motion pass injects a layer at int.MinValue; we need to come in before that layer,
+    ///     but also process the FX layer after that layer is added. As such, we inject a placeholder before
+    ///     Merge Motion runs in this pass.
+    /// </summary>
+    [DependsOnContext(typeof(AnimatorServicesContext))]
+    internal class InjectROBaseLayer : IExtensionContext
+    {
+        public VirtualLayer? Layer;
+
+        public void OnActivate(ndmf.BuildContext context)
+        {
+#if MA_VRCSDK3_AVATARS
+            if (context.PlatformProvider.QualifiedName != WellKnownPlatforms.VRChatAvatar30) return;
+
+            var asc = context.Extension<AnimatorServicesContext>();
+            if (asc.ControllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fxLayer))
+            {
+                Layer = fxLayer.AddLayer(new LayerPriority(int.MinValue), VRChatBlendTreeBackend.BaseLayerName);
+            }
+#endif
+        }
+
+        public void OnDeactivate(ndmf.BuildContext context)
+        {
+#if MA_VRCSDK3_AVATARS
+            if (Layer != null && Layer.StateMachine?.DefaultState?.Motion == null)
+            {
+                var asc = context.Extension<AnimatorServicesContext>();
+                asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX].RemoveLayer(Layer);
+            }
+#endif
+        }
+    }
+
+    [DependsOnContext(typeof(InjectROBaseLayer))]
     internal class ReactiveObjectPassV2
     {
         private readonly ndmf.BuildContext context;
@@ -35,6 +70,9 @@ namespace nadena.dev.modular_avatar.core.editor
         internal void Execute()
         {
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
+
+            if (analysis.Shapes.Count == 0) return;
+            
             var graph = ShapeToGraph(analysis.Shapes);
 
             IReactionBackend? backend = null;
@@ -67,6 +105,17 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
             if (backend is VRChatBlendTreeBackend vrcBackend)
             {
+                var baseLayer = context.Extension<InjectROBaseLayer>().Layer;
+                if (baseLayer != null)
+                {
+                    if (!vrcBackend.BaseBlendTree.Children.IsEmpty)
+                    {
+                        var state = baseLayer.StateMachine!.AddState("Base");
+                        baseLayer.StateMachine.DefaultState = state;
+                        state.Motion = vrcBackend.BaseBlendTree;
+                    }
+                }
+
                 var avDesc = context.VRChatAvatarDescriptor()!;
                 var expParams = avDesc.expressionParameters;
                 if (expParams == null)

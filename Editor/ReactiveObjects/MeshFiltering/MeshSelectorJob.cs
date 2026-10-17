@@ -263,10 +263,15 @@ namespace nadena.dev.modular_avatar.core.editor
             var uvFormat = MeshData.GetVertexAttributeFormat(attr);
             var uvDim = MeshData.GetVertexAttributeDimension(attr);
 
-            if (uvDim != 2)
+            if (uvDim < 2)
             {
                 throw new NotSupportedException($"Unsupported UV dimension {uvDim} in mesh {ReferenceRenderer.name}");
             }
+
+            // Discard the excess UV dimensions. Note that ConvertVertexStreamData will copy all dimensions
+            // we ask for into the output buffer; since uvStride does not depend on this count, we'll skip
+            // over the additional dimensions.
+            uvDim = 2;
 
             var uvData = ConvertVertexStreamData.Convert(
                 out var convertJobHandle,

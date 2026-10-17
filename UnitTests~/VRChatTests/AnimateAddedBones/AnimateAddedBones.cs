@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests.AnimateAddedBones
+namespace nadena.dev.modular_avatar.test.Tests.AnimateAddedBones
 {
     /// <summary>
     /// This test verifies that merged animations which affect a bone newly added to an armature by Merge Armature
@@ -18,14 +18,14 @@ namespace modular_avatar_tests.AnimateAddedBones
         {
             var prefab = CreatePrefab("AnimateAddedBones.prefab");
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var layerName = "merged";
-
+    
             var motion = findFxClip(prefab, layerName);
-
+    
             var cubeObject = prefab.transform.Find("Armature/Hips").GetChild(0).gameObject;
             Assert.True(cubeObject.name.StartsWith("Cube$"));
-
+    
             var binding =
                 EditorCurveBinding.FloatCurve("Armature/Hips/" + cubeObject.name, typeof(Transform),
                     "localEulerAnglesRaw.x");

@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Conditions;
@@ -13,7 +13,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEditor;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class ILBuildIntegrationTests : TestBase
     {
@@ -22,12 +22,12 @@ namespace UnitTestsReactiveComponentIL
         private GameObject _root;
         private AnimatorServicesContext _asc;
         private VirtualAnimatorController _vac;
-
+    
         [SetUp]
         public override void Setup()
         {
             base.Setup();
-
+    
             _root = CreateRoot("root");
             var bc = CreateContext(_root);
             _context = bc;
@@ -41,8 +41,8 @@ namespace UnitTestsReactiveComponentIL
             ILBuild.Simplify(graph);
             _blendTreeBackend.Build(graph);
         }
-
-
+    
+    
         [Test]
         public void Build_InactiveObjectDrivenActiveByAlwaysOnNode_StartsActive()
         {
@@ -53,18 +53,18 @@ namespace UnitTestsReactiveComponentIL
             // it active. After the staged pipeline runs the ObjActive/A parameter must be 1, not 0.
             var objA = CreateChild(_root, "A");
             objA.SetActive(false);
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(objA, true)));
-
+    
             Build(graph);
-
+    
             Assert.IsTrue(objA.activeSelf,
                 "SetBaseState must call Target.SetActive(true) — A is always driven active");
             Assert.IsFalse(_vac.Parameters.Keys.Any(k => k.Contains("ObjActive/A")),
                 "ObjActive/A is not used as a condition so it must be cleaned up as an orphan");
         }
-
+    
         [Test]
         public void Build_InactiveObjectDrivenActiveByAlwaysOnNode_ObservedObjActiveStartsActive()
         {
@@ -72,12 +72,12 @@ namespace UnitTestsReactiveComponentIL
             objA.SetActive(false);
             var objB = CreateChild(_root, "B");
             objB.SetActive(false);
-
+    
             // ForwardObjectActiveDriversTransform forwards ObjectActiveState expressions with at
             // most two drivers. Three drivers keep ObjActive/A observable through the downstream
             // rule. Use initially-false external conditions rather than Constant(false), since
             // boolean simplification may remove constant driver nodes.
-
+    
             var graph = new ReactionGraph();
             graph.Parameters.EnsureParameter("FalseDriver1", 0f);
             graph.Parameters.EnsureParameter("FalseDriver2", 0f);
@@ -96,9 +96,9 @@ namespace UnitTestsReactiveComponentIL
                 new ObjectActiveState(objA, ObjectActiveState.State.Active),
                 new DriveActiveState(objB, true)
             ));
-
+    
             Build(graph);
-
+    
             var objActiveAName = _vac.Parameters.Keys.Single(key => key.Contains("ObjActive/A"));
             Assert.AreEqual(1f, _vac.Parameters[objActiveAName].defaultFloat,
                 "The observed ObjActive/A parameter must start from A's computed active state");
@@ -107,7 +107,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsTrue(objB.activeSelf,
                 "The downstream observer must see A's computed initial active state");
         }
-
+    
         [Test]
         public void Build_InactiveObjectDrivenByExternalParamWithDefault_StartsActive()
         {
@@ -115,9 +115,9 @@ namespace UnitTestsReactiveComponentIL
             // parameter registry so preprocessing can preserve P = 1.0.
             var objA = CreateChild(_root, "A");
             objA.SetActive(false);
-
+    
             var pass = new ReactiveObjectPassV2(_context);
-
+    
             var targetKey = new ObjectActiveTarget(objA);
             var condition = new ControlCondition
             {
@@ -130,7 +130,7 @@ namespace UnitTestsReactiveComponentIL
             rule.ControllingConditions.Add(condition);
             var property = new AnimatedProperty(targetKey);
             property.actionGroups.Add(rule);
-
+    
             var shapeToGraph = typeof(ReactiveObjectPassV2)
                 .GetMethod("ShapeToGraph", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.IsNotNull(shapeToGraph);
@@ -141,15 +141,15 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(graph);
             Assert.AreEqual(condition.InitialValue, graph.Parameters.GetParameterInitialValue(condition.Parameter),
                 "ShapeToGraph must preserve ControlCondition.InitialValue in the graph parameter registry");
-
+    
             Build(graph);
-
+    
             Assert.IsTrue(objA.activeSelf,
                 "P=1.0 drives A active — SetBaseState must call Target.SetActive(true)");
             Assert.IsFalse(_vac.Parameters.Keys.Any(k => k.Contains("ObjActive/A")),
                 "ObjActive/A is not used as a condition so it must be cleaned up as an orphan");
         }
-
+    
         // ── SetBaseState / scene-state ordering ─────────────────────────────
         //
         // Intent (per spec):
@@ -163,7 +163,7 @@ namespace UnitTestsReactiveComponentIL
         //
         // ObjActive/A is an orphan in these tests (nothing reads it as a condition), so
         // PruneOrphanedInternalParameters removes it from the VAC after the build.
-
+    
         private float BaseLayerValue(GameObject obj)
         {
             var path = _blendTreeBackend.ObjectPathRemapper.GetVirtualPathForObject(obj);
@@ -172,7 +172,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(curve, $"BaseLayerClip must have a curve for {obj.name}.m_IsActive");
             return curve.Evaluate(0);
         }
-
+    
         private ReactionGraph MakeDriveActiveGraph(GameObject obj, bool driveToActive, string paramName, float initialValue)
         {
             var graph = new ReactionGraph();
@@ -183,7 +183,7 @@ namespace UnitTestsReactiveComponentIL
             ));
             return graph;
         }
-
+    
         // Parameters: (sceneActive, pDefault, expectedSceneActiveAfterBuild, expectedBaseLayerValue)
         private static readonly object[] SetBaseStateCases =
         {
@@ -196,16 +196,16 @@ namespace UnitTestsReactiveComponentIL
             // active scene,   rule inactive → SetBaseState(false) → scene stays active, base=1
             new object[] { true,  0.0f, true,  1f },
         };
-
+    
         [Test, TestCaseSource(nameof(SetBaseStateCases))]
         public void SetBaseState_CorrectlyRecordsOriginalStateAndUpdatesScene(
             bool sceneActive, float pDefault, bool expectedSceneActive, float expectedBaseLayer)
         {
             var objA = CreateChild(_root, "A");
             objA.SetActive(sceneActive);
-
+    
             Build(MakeDriveActiveGraph(objA, true, "P", pDefault));
-
+    
             Assert.AreEqual(expectedSceneActive, objA.activeSelf,
                 "Scene object active state must match the RC-evaluated initial state");
             Assert.AreEqual(expectedBaseLayer, BaseLayerValue(objA),
@@ -213,7 +213,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsFalse(_vac.Parameters.Keys.Any(k => k.Contains("ObjActive/A")),
                 "ObjActive/A is orphaned (nothing reads it) and must be cleaned up");
         }
-
+    
         [Test]
         public void Build_DelayParameters_InitializedFromExternalParamDefault()
         {
@@ -231,11 +231,11 @@ namespace UnitTestsReactiveComponentIL
             // Regression: those delay params were initialized to 0 because EnsureParameterPresent
             // defaulted Q to 0. With the fix, they must be initialized to Q's correct default (1.0).
             var objA = CreateChild(_root, "A");
-
+    
             var graph = new ReactionGraph();
             graph.Parameters.EnsureParameter("Q", 1.0f);
             var resultParam = graph.Parameters.AddParameter("result", 0);
-
+    
             // 3-case EffectGroup: three nodes driving resultParam → PriorityNode → Latency=2
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("Q", 0.5f, ParameterExpression.ConditionMode.GreaterThan),
@@ -249,7 +249,7 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(false),
                 new DriveInternalParameter(resultParam, true)
             ));
-
+    
             // 2-case EffectGroup: two nodes → ProxyCondition → Latency=1
             // Condition reads BOTH "result" (internal) AND Q (external), forcing a 2-frame delay on Q.
             graph.AddNode(new ReactionNode(
@@ -263,14 +263,14 @@ namespace UnitTestsReactiveComponentIL
                 new Constant(false),
                 new DriveActiveState(objA, false)
             ));
-
+    
             Build(graph);
-
+    
             var delayParams = _vac.Parameters.Keys
                 .Where(AlignNodesTransform.IsDelayParam)
                 .Where(k => AlignNodesTransform.DelayParamBaseName(k) == "Q")
                 .ToList();
-
+    
             Assert.IsNotEmpty(delayParams, "Delay parameters for Q must be created by AlignNodesTransform");
             foreach (var dp in delayParams)
             {
@@ -279,7 +279,7 @@ namespace UnitTestsReactiveComponentIL
                     "a wrong initial value causes multi-frame flicker on avatar load");
             }
         }
-
+    
         // ── Non-orphan ObjActive tracking ────────────────────────────────────
         //
         // ForwardObjectActiveDriversTransform only forwards ObjectActiveState references
@@ -293,7 +293,7 @@ namespace UnitTestsReactiveComponentIL
         //   - When P=1 (rule fires): ObjActive/A=1, A set active by SetBaseState
         //   - When P=0, A inactive: ObjActive/A=0, A stays inactive
         //   - When P=0, A active: ObjActive/A=1 (A IS active initially)
-
+    
         private static readonly object[] NonOrphanObjActiveCases =
         {
             // (aStartsActive, pDefault, expectedObjActiveA, expectedAActiveAfterBuild)
@@ -302,7 +302,7 @@ namespace UnitTestsReactiveComponentIL
             new object[] { true,  1.0f, 1f, true  },  // active,   rule on  → stays active
             new object[] { true,  0.0f, 1f, true  },  // active,   rule off → ObjActive/A seeded to 1
         };
-
+    
         [Test, TestCaseSource(nameof(NonOrphanObjActiveCases))]
         public void ObjActive_NonOrphan_CorrectlyTracksActualObjectActiveState(
             bool aStartsActive, float pDefault, float expectedObjActiveA, bool expectedAActive)
@@ -311,10 +311,10 @@ namespace UnitTestsReactiveComponentIL
             objA.SetActive(aStartsActive);
             var objB = CreateChild(_root, "B");
             objB.SetActive(false);
-
+    
             var graph = new ReactionGraph();
             graph.Parameters.EnsureParameter("P", pDefault);
-
+    
             // Three nodes drive A → driverCount=3 → ForwardObjectActiveDriversTransform skips
             // forwarding (it only forwards when driverCount ≤ 2), so ObjectActiveState(A) in
             // the second rule is preserved and becomes InternalParameterCondition("ObjActive/A").
@@ -324,22 +324,22 @@ namespace UnitTestsReactiveComponentIL
             ));
             graph.AddNode(new ReactionNode(new Constant(false), new DriveActiveState(objA, false)));
             graph.AddNode(new ReactionNode(new Constant(false), new DriveActiveState(objA, false)));
-
+    
             // Second group reads A's active state — keeps ObjActive/A alive after pruning.
             graph.AddNode(new ReactionNode(
                 new ObjectActiveState(objA, ObjectActiveState.State.Active),
                 new DriveActiveState(objB, true)
             ));
-
+    
             Build(graph);
-
+    
             var objActiveAName = _vac.Parameters.Keys.Single(k => k.Contains("ObjActive/A"));
             Assert.AreEqual(expectedObjActiveA, graph.Parameters.GetParameterInitialValue(objActiveAName),
                 "ObjActive/A must reflect A's actual active state (not just whether the RC rule fired)");
             Assert.AreEqual(expectedAActive, objA.activeSelf,
                 "A's scene state must match the RC-evaluated initial state");
         }
-
+    
         // ── PruneOrphanedInternalParameters preserves condition-only RC params ─
         //
         // Unity backend preprocessing creates $$MA/RC/ActiveSelf$N parameters and
@@ -347,7 +347,7 @@ namespace UnitTestsReactiveComponentIL
         // the original PruneOrphanedInternalParameters (which only checked effect targets) would
         // prune them. After pruning the BranchNode blend tree references a missing VAC parameter,
         // which Unity silently treats as 0, breaking external-clip-driven object state tracking.
-
+    
         [Test]
         public void EnsureParameterPresent_ConvertsBoolParameterAndRetainsDefault()
         {
@@ -357,17 +357,17 @@ namespace UnitTestsReactiveComponentIL
                 type = AnimatorControllerParameterType.Bool,
                 defaultBool = true
             });
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ParameterExpression("BoolParameter"), new NullAction()));
             Build(graph);
-
+    
             var parameter = _vac.Parameters["BoolParameter"];
             Assert.AreEqual(AnimatorControllerParameterType.Float, parameter.type);
             Assert.AreEqual(1.0f, parameter.defaultFloat);
             Assert.AreEqual(1.0f, graph.Parameters.GetParameterInitialValue("BoolParameter"));
         }
-
+    
         [Test]
         public void EnsureParameterPresent_ConvertsIntParameterAndRetainsDefault()
         {
@@ -377,23 +377,23 @@ namespace UnitTestsReactiveComponentIL
                 type = AnimatorControllerParameterType.Int,
                 defaultInt = 42
             });
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ParameterExpression("IntParameter"), new NullAction()));
             Build(graph);
-
+    
             var parameter = _vac.Parameters["IntParameter"];
             Assert.AreEqual(AnimatorControllerParameterType.Float, parameter.type);
             Assert.AreEqual(42.0f, parameter.defaultFloat);
             Assert.AreEqual(42.0f, graph.Parameters.GetParameterInitialValue("IntParameter"));
         }
-
+    
         [Test]
         public void PruneOrphanedInternalParameters_PreservesRcParamReferencedInCondition()
         {
             var objA = CreateChild(_root, "A");
             objA.SetActive(false);
-
+    
             // Simulate Unity backend preprocessing: create an RC-prefixed
             // parameter and use it in a ParameterExpression condition of an external-effect node.
             var graph = new ReactionGraph();
@@ -402,16 +402,16 @@ namespace UnitTestsReactiveComponentIL
                 new ParameterExpression(activeSelfParam, 0.5f, ParameterExpression.ConditionMode.GreaterThan),
                 new DriveActiveState(objA, true)
             ));
-
+    
             Build(graph);
-
+    
             Assert.IsTrue(_vac.Parameters.ContainsKey(activeSelfParam),
                 $"RC parameter '{activeSelfParam}' is referenced in a ParameterExpression condition " +
                 "of a surviving node and must not be pruned from the VAC");
             Assert.AreEqual(1.0f, graph.Parameters.GetParameterInitialValue(activeSelfParam),
                 "The preserved parameter must retain its initial value for correct blend-tree behavior");
         }
-
+    
         [Test]
         public void Build_InactiveDriveParameterPreservesExistingDefault()
         {
@@ -421,15 +421,15 @@ namespace UnitTestsReactiveComponentIL
                 type = AnimatorControllerParameterType.Int,
                 defaultInt = 42,
             });
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new Constant(false), new DriveParameter("IntParameter", 1f)));
             Build(graph);
-
+    
             var parameter = _vac.Parameters["IntParameter"];
             Assert.AreEqual(AnimatorControllerParameterType.Float, parameter.type);
             Assert.AreEqual(42f, parameter.defaultFloat);
         }
-
+    
     }
 }

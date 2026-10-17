@@ -27,6 +27,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private readonly UnityBlendTreeBackend _inner;
 
+        internal VirtualBlendTree BaseBlendTree => _inner.BaseLayerTree;
+
         internal VirtualAnimatorController FX { get; }
 
         public VRCExpressionParameters.Parameter[] ExtraSyncParams
@@ -629,8 +631,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             LowerReactiveMoves(graph);
             _inner.Build(graph);
             if (!_inner.HasGeneratedOutput) return;
-
-            InstallLayer(BaseLayerName, int.MinValue, "Base", _inner.BaseLayerTree);
+            
             var applyState = InstallLayer(ApplyLayerName, 1, "Apply", _inner.RootTree);
 
             if (_syncInitParam != null)

@@ -7,7 +7,7 @@ using NUnit.Framework;
 using UnityEditor.Animations;
 using VRC.SDK3.Avatars.Components;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class MergeOrderTest : TestBase
     {

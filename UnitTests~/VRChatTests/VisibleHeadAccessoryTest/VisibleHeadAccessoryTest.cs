@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -10,7 +10,7 @@ using Unity.Collections;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
-namespace UnitTests.VisibleHeadAccessoryTest
+namespace nadena.dev.modular_avatar.test.VisibleHeadAccessoryTest
 {
     internal class VisibleHeadAccessoryTest : TestBase
     {
@@ -18,19 +18,19 @@ namespace UnitTests.VisibleHeadAccessoryTest
         public void Test()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone, "ShapellAvatarVRC must have a Head bone");
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             var mesh = new Mesh();
             mesh.vertices = new Vector3[]
             {
@@ -39,7 +39,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new Vector3(0, 1, 0),
             };
             mesh.triangles = new int[] { 0, 1, 2 };
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -48,7 +48,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 0, weight = 1 },
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             mesh.bindposes = new Matrix4x4[]
             {
                 headBone.worldToLocalMatrix,
@@ -56,40 +56,40 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             // -- Verify HeadChop --
             var headChopObj = root.transform.Find("VHA HeadChop");
             Assert.NotNull(headChopObj, "VHA HeadChop object should exist");
             var headChop = headChopObj.GetComponent<VRCHeadChop>();
             Assert.NotNull(headChop, "VHA HeadChop component should exist");
-
+    
             var targets = headChop.targetBones.Select(b => b.transform).ToList();
-
+    
             Assert.IsTrue(targets.Contains(boneO1), "HeadChop should reference BoneO1");
-
+    
             var headClone = boneO1.parent.Find("Head (VHA Clone)");
             Assert.NotNull(headClone, "Head clone bone should exist under Head");
             Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
-
-
+    
+    
             // -- Verify SMR bone references --
             Assert.IsTrue(
                 smr.bones.Any(b => b.name.Contains("(VHA Clone)")),
                 "SMR should reference at least one VHA Clone bone"
             );
-
+    
             // -- Verify processed mesh bone weights --
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh, "Mesh should have been replaced");
-
+    
             var newBpw = processedMesh.GetAllBoneWeights();
             var newBpv = processedMesh.GetBonesPerVertex();
-
+    
             // The original head bone stays in the SMR bones array and original vertices
             // still reference it. Only cloned vertices must point at the head clone instead.
             var origHeadBoneIndex = System.Array.IndexOf(smr.bones, headBone);
@@ -98,9 +98,9 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 "Clone V0 should not reference original Head");
             Assert.AreNotEqual(origHeadBoneIndex, newBpw[4].boneIndex,
                 "Clone V2 should not reference original Head");
-
+    
             Assert.AreEqual(5, newBpv.Length, "Expected 3 original + 2 cloned vertices");
-
+    
             int wIdx = 0;
             Assert.AreEqual(1, newBpv[0]);
             Assert.AreEqual(0, newBpw[wIdx].boneIndex, "Original V0 should still reference Head");
@@ -111,37 +111,37 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.AreEqual(1, newBpv[2]);
             Assert.AreEqual(0, newBpw[wIdx].boneIndex, "Original V2 should still reference Head");
             wIdx++;
-
+    
             Assert.AreEqual(1, newBpv[3]);
             var cloneBoneIndex = newBpw[wIdx].boneIndex;
             Assert.AreNotEqual(0, cloneBoneIndex, "Clone of V0 should not reference original Head");
             var cloneBone = smr.bones[cloneBoneIndex];
             Assert.AreEqual(headClone, cloneBone, "Clone V0 should reference Head clone transform");
             wIdx++;
-
+    
             Assert.AreEqual(1, newBpv[4]);
             Assert.AreEqual(cloneBoneIndex, newBpw[wIdx].boneIndex,
                 "Clone of V2 should reference same clone bone as V0 (deduplication)");
             wIdx++;
         }
-
+    
         [Test]
         public void TestMixedAndNonMixedTriangles()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // 6 vertices: V0,V2,V4 → Head(hidden), V1,V3,V5 → BoneO1(visible)
             // 4 triangles: 2 mixed (T0, T1), 2 non-mixed (T2 all-hidden, T3 all-visible)
             var mesh = new Mesh();
@@ -159,7 +159,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             mesh.SetIndices(new int[] { 0, 1, 2, 3, 4, 5 }, MeshTopology.Triangles, 0);
             // Submesh 1: non-mixed triangles (all-head and all-visible)
             mesh.SetIndices(new int[] { 0, 2, 4, 1, 3, 5 }, MeshTopology.Triangles, 1);
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1, 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -171,7 +171,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 1, weight = 1 }, // V5
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             mesh.bindposes = new Matrix4x4[]
             {
                 headBone.worldToLocalMatrix,
@@ -179,45 +179,45 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             // -- HeadChop --
             var headChopObj = root.transform.Find("VHA HeadChop");
             Assert.NotNull(headChopObj);
             var headChop = headChopObj.GetComponent<VRCHeadChop>();
             Assert.NotNull(headChop);
-
+    
             var targets = headChop.targetBones.Select(b => b.transform).ToList();
             Assert.IsTrue(targets.Contains(boneO1), "HeadChop should reference BoneO1");
-
+    
             var headClone = boneO1.parent.Find("Head (VHA Clone)");
             Assert.NotNull(headClone);
             Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
-
-
+    
+    
             // -- SMR bones --
             Assert.IsTrue(smr.bones.Any(b => b.name.Contains("(VHA Clone)")),
                 "SMR should reference a clone bone");
-
+    
             // -- Processed mesh --
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
             Assert.AreEqual(2, processedMesh.subMeshCount);
-
+    
             var newBpw = processedMesh.GetAllBoneWeights();
             var newBpv = processedMesh.GetBonesPerVertex();
-
+    
             // 6 originals + 3 clones (V0, V2, V4 had non-visible weights in mixed triangles)
             int origCount = 6;
             int expectedCloneCount = 3;
             Assert.AreEqual(origCount + expectedCloneCount, newBpv.Length);
-
+    
             var origHeadIndex = System.Array.IndexOf(smr.bones, headBone);
-
+    
             // Original vertices keep their original bone indices
             for (int v = 0; v < origCount; v++)
             {
@@ -225,14 +225,14 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 Assert.AreEqual(expectedBone, newBpw[v].boneIndex,
                     "Original V" + v + " should keep original bone " + expectedBone);
             }
-
+    
             // Cloned vertices must NOT reference the original head bone
             for (int v = origCount; v < newBpv.Length; v++)
             {
                 Assert.AreNotEqual(origHeadIndex, newBpw[v].boneIndex,
                     "Clone V" + v + " should not reference original Head");
             }
-
+    
             // All clones should reference the same deduplicated head clone bone
             var deduplicatedBoneIndex = newBpw[origCount].boneIndex;
             for (int v = origCount + 1; v < newBpv.Length; v++)
@@ -240,11 +240,11 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 Assert.AreEqual(deduplicatedBoneIndex, newBpw[v].boneIndex,
                     "All clones should reference the same deduplicated clone bone");
             }
-
+    
             // The head clone transform should be the one in the SMR bones array
             var cloneBone = smr.bones[deduplicatedBoneIndex];
             Assert.AreEqual(headClone, cloneBone);
-
+    
             // -- Verify submesh indices --
             // Submesh 0 (mixed triangles) should reference clones for Head vertices
             var sm0 = processedMesh.GetIndices(0);
@@ -252,53 +252,53 @@ namespace UnitTests.VisibleHeadAccessoryTest
             // T1: [V3, V4', V5] → V3→3, V4→clone(8), V5→5
             int[] expectedSm0 = { 6, 1, 7, 3, 8, 5 };
             Assert.AreEqual(expectedSm0, sm0, "Submesh 0 indices should use clones for Head vertices");
-
+    
             // Submesh 1 (non-mixed) should reference original vertices unchanged
             var sm1 = processedMesh.GetIndices(1);
             int[] expectedSm1 = { 0, 2, 4, 1, 3, 5 };
             Assert.AreEqual(expectedSm1, sm1, "Submesh 1 indices should remain unchanged");
         }
-
+    
         [Test]
         public void TestNullMesh()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone, "ShapellAvatarVRC must have a Head bone");
-
+    
             var boneO1 = CreateChild(headBone.gameObject, "BoneO1").transform;
             boneO1.gameObject.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var nullSmr = new GameObject("Null SMR").AddComponent<SkinnedMeshRenderer>();
             nullSmr.transform.SetParent(boneO1, false);
             nullSmr.sharedMesh = null;
             nullSmr.bones = new Transform[] { headBone };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             var headChop = root.transform.Find("VHA HeadChop");
             Assert.NotNull(headChop, "VHA HeadChop should be created even with null mesh present");
         }
-
+    
         [Test]
         public void TestMixedAndNonMixedSameSubmesh()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // 6 vertices: V0,V2,V4 → Head(hidden), V1,V3,V5 → BoneO1(visible)
             // Single submesh with 4 triangles mixing visible and hidden
             var mesh = new Mesh();
@@ -319,7 +319,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 0, 2, 4, // T2: all Head → NOT mixed, preserved
                 1, 3, 5, // T3: all BoneO1 → NOT mixed, preserved
             };
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1, 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -331,7 +331,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 1, weight = 1 }, // V5
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             mesh.bindposes = new Matrix4x4[]
             {
                 headBone.worldToLocalMatrix,
@@ -339,51 +339,51 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             // -- HeadChop --
             var headChopObj = root.transform.Find("VHA HeadChop");
             Assert.NotNull(headChopObj);
             var headChop = headChopObj.GetComponent<VRCHeadChop>();
             Assert.NotNull(headChop);
-
+    
             var targets = headChop.targetBones.Select(b => b.transform).ToList();
             Assert.IsTrue(targets.Contains(boneO1), "HeadChop should reference BoneO1");
-
+    
             var headClone = boneO1.parent.Find("Head (VHA Clone)");
             Assert.NotNull(headClone);
             Assert.IsTrue(targets.Contains(headClone), "HeadChop should reference Head clone");
-
-
+    
+    
             // -- Processed mesh --
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
             Assert.AreEqual(1, processedMesh.subMeshCount);
-
+    
             var newBpw = processedMesh.GetAllBoneWeights();
             var newBpv = processedMesh.GetBonesPerVertex();
-
+    
             // 6 originals + 2 clones (V0 and V2 are Head-vertices in mixed triangles)
             int origCount = 6;
             int expectedCloneCount = 2;
             Assert.AreEqual(origCount + expectedCloneCount, newBpv.Length);
-
+    
             // Cloned vertices must not reference original Head
             var origHeadIndex = System.Array.IndexOf(smr.bones, headBone);
             for (int v = origCount; v < newBpv.Length; v++)
                 Assert.AreNotEqual(origHeadIndex, newBpw[v].boneIndex,
                     "Clone should not reference original Head");
-
+    
             // All clones share the same deduplicated head clone bone
             var cloneBoneIndex = newBpw[origCount].boneIndex;
             for (int v = origCount + 1; v < newBpv.Length; v++)
                 Assert.AreEqual(cloneBoneIndex, newBpw[v].boneIndex,
                     "Clones should share the same clone bone");
-
+    
             // -- Verify triangle indices --
             var indices = processedMesh.GetIndices(0);
             // Expected: T0 uses clones for V0,V2, T1 uses clone for V0,
@@ -397,24 +397,24 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.AreEqual(expected, indices,
                 "Mixed triangles should use clones, non-mixed triangles should be untouched");
         }
-
+    
         [Test]
         public void TestQuadMesh()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // 4 vertices forming 1 quad: V0=Head, V1=BoneO1, V2=BoneO1, V3=Head
             var mesh = new Mesh();
             mesh.vertices = new Vector3[]
@@ -424,7 +424,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new Vector3(2, 0, 0), // V2: BoneO1
                 new Vector3(3, 0, 0), // V3: Head
             };
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -434,51 +434,51 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 0, weight = 1 }, // V3: Head
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             mesh.bindposes = new Matrix4x4[]
             {
                 headBone.worldToLocalMatrix,
                 boneO1.worldToLocalMatrix,
             };
-
+    
             mesh.subMeshCount = 1;
             mesh.SetIndices(new int[] { 0, 1, 2, 3 }, MeshTopology.Quads, 0);
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
             Assert.AreEqual(1, processedMesh.subMeshCount);
-
+    
             var newBpw = processedMesh.GetAllBoneWeights();
             var newBpv = processedMesh.GetBonesPerVertex();
-
+    
             // 4 originals + 2 clones (V0 and V3 are non-visible in the mixed quad)
             Assert.AreEqual(6, newBpv.Length, "Expected 4 original + 2 cloned vertices");
-
+    
             var origHeadIndex = System.Array.IndexOf(smr.bones, headBone);
-
+    
             // Original vertices keep their bone indices
             Assert.AreEqual(0, newBpw[0].boneIndex); // V0: Head
             Assert.AreEqual(1, newBpw[1].boneIndex); // V1: BoneO1
             Assert.AreEqual(1, newBpw[2].boneIndex); // V2: BoneO1
             Assert.AreEqual(0, newBpw[3].boneIndex); // V3: Head
-
+    
             // Clones (indices 4,5) must not reference original Head
             Assert.AreNotEqual(origHeadIndex, newBpw[4].boneIndex,
                 "Clone of V0 should not reference original Head");
             Assert.AreNotEqual(origHeadIndex, newBpw[5].boneIndex,
                 "Clone of V3 should not reference original Head");
-
+    
             // Both clones share the same deduplicated head clone bone
             Assert.AreEqual(newBpw[4].boneIndex, newBpw[5].boneIndex,
                 "All clones should reference the same deduplicated clone bone");
-
+    
             // -- Quad indices --
             var indices = processedMesh.GetIndices(0);
             var topology = processedMesh.GetTopology(0);
@@ -487,24 +487,24 @@ namespace UnitTests.VisibleHeadAccessoryTest
             int[] expected = { 4, 1, 2, 5 };
             Assert.AreEqual(expected, indices);
         }
-
+    
         [Test]
         public void TestPBBlockerOnClones()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // Simple mixed triangle mesh
             var mesh = new Mesh();
             mesh.vertices = new Vector3[]
@@ -514,7 +514,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new Vector3(0, 1, 0), // V2: Head
             };
             mesh.triangles = new int[] { 0, 1, 2 };
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -523,7 +523,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 0, weight = 1 },
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             mesh.bindposes = new Matrix4x4[]
             {
                 headBone.worldToLocalMatrix,
@@ -531,43 +531,43 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             // Run only the VisibleHeadAccessoryProcessor (not the full build pipeline
             // which strips PBBlocker)
             var maCtx = new nadena.dev.modular_avatar.core.editor.BuildContext(root);
             var processor = new VisibleHeadAccessoryProcessor(maCtx);
             processor.Process();
-
+    
             var headClone = boneO1.parent.Find("Head (VHA Clone)");
             Assert.NotNull(headClone, "Head clone should be created");
-
+    
             // PBBlocker should be present when running the VHA processor in isolation
             Assert.IsNull(boneO1.GetComponent<ModularAvatarPBBlocker>(),
                 "VHA hierarchy bones should NOT have PBBlocker");
             Assert.NotNull(headClone.GetComponent<ModularAvatarPBBlocker>(),
                 "Clone bones SHOULD have PBBlocker");
         }
-
+    
         [Test]
         public void TestIndexFormatUpgradeToUInt32()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // The VHA component is on boneO1, so _visibleBones contains boneO1
             // but NOT headBone. Thus bone index 1 (boneO1) = visible, bone index 0
             // (headBone) = non-visible.
@@ -578,11 +578,11 @@ namespace UnitTests.VisibleHeadAccessoryTest
             var visibleCount = 30000;  // vertices 0..29999, bone 1 = boneO1 = visible
             var nonVisibleCount = 20000; // vertices 30000..49999, bone 0 = headBone = non-visible
             var totalVertices = visibleCount + nonVisibleCount; // 50000
-
+    
             var vertices = new Vector3[totalVertices];
             var bpv = new byte[totalVertices];
             var bws = new BoneWeight1[totalVertices];
-
+    
             for (var i = 0; i < totalVertices; i++)
             {
                 vertices[i] = new Vector3(i, 0, 0);
@@ -594,7 +594,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                     weight = 1,
                 };
             }
-
+    
             // Triangles: (visible, non-visible, visible). Each non-visible vertex
             // appears in one mixed primitive → gets cloned, adding ~20000 clones
             // → total ~70000, span 69999 > 65535.
@@ -606,15 +606,15 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 tris[triBase + 1] = visibleCount + i;        // non-visible
                 tris[triBase + 2] = (i + 1) % visibleCount;  // visible
             }
-
+    
             var mesh = new Mesh();
             mesh.vertices = vertices;
             mesh.triangles = tris;
-
+    
             using var bpvNative = new NativeArray<byte>(bpv, Allocator.Temp);
             using var bwsNative = new NativeArray<BoneWeight1>(bws, Allocator.Temp);
             mesh.SetBoneWeights(bpvNative, bwsNative);
-
+    
             mesh.bindposes = new[]
             {
                 headBone.worldToLocalMatrix,
@@ -622,12 +622,12 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
             Assert.Greater(processedMesh.vertexCount, 65535);
@@ -636,24 +636,24 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 processedMesh.indexFormat
             );
         }
-
+    
         [Test]
         public void TestUInt16WithBaseVertex()
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
-
+    
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
             var boneO1 = boneO1Go.transform;
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             // 70000 vertices: V0-V39999 non-visible (bone 0 = headBone),
             // V40000-V69999 visible (bone 1 = boneO1).
             //
@@ -665,11 +665,11 @@ namespace UnitTests.VisibleHeadAccessoryTest
             var nonVisCount = 40000;
             var visCount = 30000;
             var totalVertices = nonVisCount + visCount; // 70000
-
+    
             var vertices = new Vector3[totalVertices];
             var bpv = new byte[totalVertices];
             var bws = new BoneWeight1[totalVertices];
-
+    
             for (var i = 0; i < totalVertices; i++)
             {
                 vertices[i] = new Vector3(i, 0, 0);
@@ -680,7 +680,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                     weight = 1,
                 };
             }
-
+    
             // Submesh 0: 9999 triangles using V0-V29999 only (all non-visible)
             var sub0Tris = new int[29997];
             for (var i = 0; i < 9999; i++)
@@ -689,7 +689,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 sub0Tris[i * 3 + 1] = i * 3 + 1;
                 sub0Tris[i * 3 + 2] = i * 3 + 2;
             }
-
+    
             // Submesh 1: mix V30000-V39999 (non-visible) + V40000-V49999 (visible)
             // Triangle pattern: (visible_i, non-visible_i, V40000) — no wraparound needed.
             var mixNonVisStart = 30000;
@@ -703,17 +703,17 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 sub1Tris[baseIdx + 1] = mixNonVisStart + i; // non-visible_i
                 sub1Tris[baseIdx + 2] = mixVisStart;         // V40000
             }
-
+    
             var mesh = new Mesh();
             mesh.vertices = vertices;
             mesh.subMeshCount = 2;
             mesh.SetIndices(sub0Tris, MeshTopology.Triangles, 0, false);
             mesh.SetIndices(sub1Tris, MeshTopology.Triangles, 1, false);
-
+    
             using var bpvNative = new NativeArray<byte>(bpv, Allocator.Temp);
             using var bwsNative = new NativeArray<BoneWeight1>(bws, Allocator.Temp);
             mesh.SetBoneWeights(bpvNative, bwsNative);
-
+    
             mesh.bindposes = new[]
             {
                 headBone.worldToLocalMatrix,
@@ -721,12 +721,12 @@ namespace UnitTests.VisibleHeadAccessoryTest
             };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             var processedMesh = smr.sharedMesh;
             Assert.AreNotSame(mesh, processedMesh);
             Assert.Greater(processedMesh.vertexCount, 65535);
@@ -734,21 +734,21 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 UnityEngine.Rendering.IndexFormat.UInt16,
                 processedMesh.indexFormat
             );
-
+    
             // Submesh 0: no clones → indices unchanged, baseVertex=0
             Assert.AreEqual(0, processedMesh.GetBaseVertex(0));
             var sub0Stored = processedMesh.GetIndices(0);
             Assert.AreEqual(sub0Tris.Length, sub0Stored.Length);
             for (var i = 0; i < 30; i++)
                 Assert.AreEqual(sub0Tris[i], sub0Stored[i]);
-
+    
             // Submesh 1: baseVertex should be 40000 (min index in this submesh)
             var baseV = processedMesh.GetBaseVertex(1);
             Assert.AreEqual(mixVisStart, baseV);
-
+    
             var sub1Stored = processedMesh.GetIndices(1);
             Assert.AreEqual(sub1Tris.Length, sub1Stored.Length);
-
+    
             // GetIndices returns absolute vertex indices (baseVertex already applied).
             // First triangle: V40000 stays, V30000 → clone at 70000, third vertex is always V40000.
             Assert.AreEqual(40000, sub1Stored[0], "V40000 stays visible");
@@ -765,7 +765,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             );
             Assert.AreEqual(40000, sub1Stored[lastTri * 3 + 2], "Third vertex is V40000");
         }
-
+    
         [Test]
         public void TestBindposeMathForClonedBones()
         {
@@ -782,7 +782,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             var animator = root.GetComponent<Animator>();
             var headBone = animator.GetBoneTransform(HumanBodyBones.Head);
             Assert.NotNull(headBone);
-
+    
             // Non-trivial bone offset/rotation so the assertion catches a missing
             // identity-local-transform on the clone.
             var boneO1Go = CreateChild(headBone.gameObject, "BoneO1");
@@ -790,11 +790,11 @@ namespace UnitTests.VisibleHeadAccessoryTest
             boneO1.localPosition = new Vector3(0.1f, 0.2f, 0.3f);
             boneO1.localRotation = Quaternion.Euler(15, 30, 45);
             boneO1Go.AddComponent<ModularAvatarVisibleHeadAccessory>();
-
+    
             var smrGo = new GameObject("Accessory Mesh");
             smrGo.transform.SetParent(boneO1, false);
             var smr = smrGo.AddComponent<SkinnedMeshRenderer>();
-
+    
             var mesh = new Mesh();
             mesh.vertices = new Vector3[]
             {
@@ -803,7 +803,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new Vector3(0.0f, 0.0f, 0.0f),
             };
             mesh.triangles = new int[] { 0, 1, 2 };
-
+    
             using var bpv = new NativeArray<byte>(new byte[] { 1, 1, 1 }, Allocator.Temp);
             using var bws = new NativeArray<BoneWeight1>(new BoneWeight1[]
             {
@@ -812,22 +812,22 @@ namespace UnitTests.VisibleHeadAccessoryTest
                 new BoneWeight1 { boneIndex = 1, weight = 1 },
             }, Allocator.Temp);
             mesh.SetBoneWeights(bpv, bws);
-
+    
             var bindpose0 = headBone.worldToLocalMatrix;
             var bindpose1 = boneO1.worldToLocalMatrix;
             mesh.bindposes = new Matrix4x4[] { bindpose0, bindpose1 };
             mesh.RecalculateBounds();
             TrackObject(mesh);
-
+    
             smr.sharedMesh = mesh;
             smr.bones = new[] { headBone, boneO1 };
-
+    
             Assert.DoesNotThrow(() => AvatarProcessor.ProcessAvatar(root));
-
+    
             var processedMesh = smr.sharedMesh;
             var newBones = smr.bones;
             var newBindposes = processedMesh.bindposes;
-
+    
             Transform cloneBone = null;
             int cloneBoneIndex = -1;
             for (var i = 0; i < newBones.Length; i++)
@@ -841,7 +841,7 @@ namespace UnitTests.VisibleHeadAccessoryTest
             }
             Assert.NotNull(cloneBone, "Clone bone should exist");
             Assert.AreEqual(headBone, cloneBone.parent, "Clone should be parented under the original bone");
-
+    
             const float tol = 1e-4f;
             Assert.AreEqual(0f, cloneBone.localPosition.x, tol, "Clone local x");
             Assert.AreEqual(0f, cloneBone.localPosition.y, tol, "Clone local y");
@@ -850,11 +850,11 @@ namespace UnitTests.VisibleHeadAccessoryTest
             Assert.AreEqual(0f, cloneBone.localRotation.y, tol, "Clone local rot y");
             Assert.AreEqual(0f, cloneBone.localRotation.z, tol, "Clone local rot z");
             Assert.AreEqual(1f, cloneBone.localRotation.w, tol, "Clone local rot w");
-
+    
             // Clone's bindpose must equal original bone's bindpose (RemapBone preserves it).
             AssertMatricesEqual(bindpose0, newBindposes[cloneBoneIndex], tol);
         }
-
+    
         private static void AssertMatricesEqual(Matrix4x4 expected, Matrix4x4 actual, float tol)
         {
             Assert.AreEqual(expected.m00, actual.m00, tol, "m00");

@@ -1,10 +1,10 @@
 using System.Collections;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
-using UnitTests.SharedInterfacesImpl;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfacesImpl;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class ReactiveComponentILTestSharedBaseTests
     {
@@ -12,31 +12,31 @@ namespace UnitTestsReactiveComponentIL
         public void InvokeTest_TearsDownAfterCoroutineCompletes()
         {
             CoroutineLifecycleProbe.Reset();
-
+    
             var coroutine = ReactiveComponentILTestSharedBase.InvokeTest(
                 nameof(CoroutineLifecycleProbe),
                 nameof(CoroutineLifecycleProbe.Run)
             );
-
+    
             Assert.IsTrue(coroutine.MoveNext());
             Assert.IsTrue(CoroutineLifecycleProbe.BodyStarted);
             Assert.IsFalse(CoroutineLifecycleProbe.TearDownCalled);
-
+    
             Assert.IsFalse(coroutine.MoveNext());
             Assert.IsTrue(CoroutineLifecycleProbe.BodyCompleted);
             Assert.IsTrue(CoroutineLifecycleProbe.TearDownCalled);
         }
-
+    
         [Test]
         public void TestNames_UnknownClass_ThrowsClearException()
         {
             var exception = Assert.Throws<System.ArgumentException>(
                 () => ReactiveComponentILTestSharedBase.TestNames("MissingRCILTestClass")
             );
-
+    
             StringAssert.Contains("No RCIL test class", exception.Message);
         }
-
+    
         [Test]
         public void TearDown_DestroysCreatedAvatar()
         {
@@ -44,26 +44,26 @@ namespace UnitTestsReactiveComponentIL
             fixture.SetUp();
             var avatar = fixture.Avatar;
             Assert.IsNotNull(avatar);
-
+    
             fixture.TearDown();
-
+    
             Assert.IsTrue(avatar == null);
         }
     }
-
+    
     public class CoroutineLifecycleProbe : ReactiveComponentILTestSharedBase
     {
         public static bool BodyStarted { get; private set; }
         public static bool BodyCompleted { get; private set; }
         public static bool TearDownCalled { get; private set; }
-
+    
         public static void Reset()
         {
             BodyStarted = false;
             BodyCompleted = false;
             TearDownCalled = false;
         }
-
+    
         [RCILTest]
         public IEnumerator Run()
         {
@@ -71,17 +71,17 @@ namespace UnitTestsReactiveComponentIL
             yield return null;
             BodyCompleted = true;
         }
-
+    
         public override void SetUp()
         {
         }
-
+    
         public override void TearDown()
         {
             TearDownCalled = true;
         }
     }
-
+    
     public class AvatarLifecycleProbe : ReactiveComponentILTestBase
     {
         public GameObject Avatar => avatar;

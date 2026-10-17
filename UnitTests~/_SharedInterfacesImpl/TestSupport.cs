@@ -7,7 +7,7 @@ using nadena.dev.ndmf;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.ui;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,7 +17,7 @@ using System.Linq;
 using VRC.SDK3.Avatars.Components;
 #endif
 
-namespace UnitTests.SharedInterfacesImpl
+namespace nadena.dev.modular_avatar.test.SharedInterfacesImpl
 {
     public class TestSupport : ITestSupport
     {
@@ -27,7 +27,7 @@ namespace UnitTests.SharedInterfacesImpl
         private const string MinimalAvatarGuid = "1f16ff0330cb5d84b96216a6ca6c5eed";
         #endif
         private static Dictionary<System.Type, string>? _scriptToDirectory = null;
-
+    
         private Dictionary<Type, string> ScriptToDirectory
         {
             get
@@ -48,7 +48,7 @@ namespace UnitTests.SharedInterfacesImpl
                         }
                     }
                 }
-
+    
                 return _scriptToDirectory;
             }
         }
@@ -56,35 +56,35 @@ namespace UnitTests.SharedInterfacesImpl
         private TestSupport()
         {
         }
-
+    
         [InitializeOnLoadMethod]
         static void Init()
         {
             ITestSupport.Instance = new TestSupport();
         }
-
+    
         public void Setup()
         {
             ErrorReport.Clear();
             ErrorReportWindow.DISABLE_WINDOW = true;
         }
-
+    
         public void Teardown()
         {
             ErrorReportWindow.DISABLE_WINDOW = false;
         }
-
+    
         public void ProcessAvatar(GameObject gameObject)
         {
             using var scope = new OverrideTemporaryDirectoryScope(null);
-#if MA_VRCSDK3_AVATARS
+    #if MA_VRCSDK3_AVATARS
             var platform = WellKnownPlatforms.VRChatAvatar30;
-#else
+    #else
             var platform = WellKnownPlatforms.Generic;
-#endif
+    #endif
             AvatarProcessor.ProcessAvatar(gameObject, PlatformRegistry.PlatformProviders[platform]);
         }
-
+    
         public T LoadAsset<T>(Type relativeType, string relPath) where T : Object
         {
             var root = ScriptToDirectory.GetValueOrDefault(relativeType) ??
@@ -92,27 +92,27 @@ namespace UnitTests.SharedInterfacesImpl
             root += "/";
             
             var path = root + relPath;
-
+    
             var obj = AssetDatabase.LoadAssetAtPath<T>(path);
             Assert.NotNull(obj, "Missing test asset {0}", path);
-
+    
             return obj;
         }
-
+    
         public GameObject CreateTestAvatar(string name)
         {
             var path = AssetDatabase.GUIDToAssetPath(MinimalAvatarGuid);
             var go = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
-
+    
             return go;
         }
-
+    
         #if MA_VRCSDK3_AVATARS
         public void ActivateFX(GameObject avatar)
         {
             var avDesc = avatar.GetComponent<VRCAvatarDescriptor>();
             var animator = avatar.GetComponent<Animator>();
-
+    
             animator.runtimeAnimatorController = avDesc.baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX)
                 .animatorController;

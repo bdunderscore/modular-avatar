@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
@@ -12,7 +12,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
-namespace UnitTests.ReactiveComponent.ParameterAssignment
+namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
 {
     public class AutoValueAssignmentTests : TestBase
     {
@@ -33,7 +33,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                     syncType = ParameterSyncType.Bool
                 }
             };
-
+    
             var mami = child.AddComponent<ModularAvatarMenuItem>();
             mami.Control = new()
             {
@@ -44,15 +44,15 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 name = "x"
             };
             mami.automaticValue = true;
-
+    
             child.AddComponent<ModularAvatarMenuInstaller>();
-
+    
             AvatarProcessor.ProcessAvatar(root);
             var menu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu
                 .controls.First(c => c.name == "child");
             Assert.AreEqual(1, menu.value);
         }
-
+    
         public enum ChildType
         {
             Direct,
@@ -76,7 +76,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         {
             var root = CreateRoot("root");
             var child = CreateChild(root, "child");
-
+    
             var target = CreateChild(root, "target");
             target.AddComponent<SkinnedMeshRenderer>();
             
@@ -87,9 +87,9 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 type = controlType
             };
             mami.automaticValue = true;
-
+    
             child.AddComponent<ModularAvatarMenuInstaller>();
-
+    
             ModularAvatarObjectToggle? toggle = null;
             switch (childType)
             {
@@ -100,7 +100,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                     toggle = CreateChild(mami.gameObject, "child").AddComponent<ModularAvatarObjectToggle>();
                     break;
             }
-
+    
             if (toggle != null)
             {
                 var obj = new ToggledObject();
@@ -109,9 +109,9 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 obj.Object.Set(target);
                 toggle.Objects.Add(obj);
             }
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             bool shouldHaveParam = (childType != ChildType.None) &&
                                    (controlType == VRCExpressionsMenu.Control.ControlType.Button ||
                                     controlType == VRCExpressionsMenu.Control.ControlType.Toggle);
@@ -121,7 +121,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 vrcExpParams.parameters.Any(p => p.name.StartsWith(ParameterAssignerPass.AUTOMATIC_PARAMETER_PREFIX));
             Assert.AreEqual(shouldHaveParam, hasParam);
         }
-
+    
         [Test]
         public void DefaultValueOnParametersControlledParameter(
             [Values(true, false)] bool isDefault
@@ -130,7 +130,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             var root = CreateRoot("root");
             var child = CreateChild(root, "child");
             var target = CreateChild(child, "menu");
-
+    
             var p = child.AddComponent<ModularAvatarParameters>();
             p.parameters.Add(new()
             {
@@ -139,7 +139,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 nameOrPrefix = "test",
                 syncType = ParameterSyncType.Float
             });
-
+    
             target.AddComponent<ModularAvatarMenuInstaller>();
             var mi = target.AddComponent<ModularAvatarMenuItem>();
             mi.label = "test";
@@ -165,21 +165,21 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         {
             TestAssignments(new[] { (false, 1.0f) }, new[] { 1.0f });
             TestAssignments(new[] { (false, 1.0f) }, new[] { 1.0f }, 0);
-
+    
             TestAssignments(new[] { (false, 4.0f) }, new[] { 4.0f });
             TestAssignments(new[] { (false, 4.0f) }, new[] { 4.0f }, 0);
-
+    
             TestAssignments(new[] { (false, 1.0f), (false, 4.0f) }, new[] { 1.0f, 4.0f });
             TestAssignments(new[] { (false, 1.0f), (false, 4.0f) }, new[] { 1.0f, 4.0f }, 0);
         }
-
+    
         [Test]
         public void SingleEntryToggles()
         {
             TestAssignments(new[] { (true, 0.0f) }, new[] { 1.0f });
             TestAssignments(new[] { (true, 0.0f) }, new[] { 1.0f }, 0);
         }
-
+    
         [Test]
         public void MultiEntryToggles()
         {
@@ -189,7 +189,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             
             TestAssignments(new[] { (true, 0.0f), (true, 0.0f), (true, 0.0f) }, new[] { 1.0f, 0.0f, 2.0f }, 1);
         }
-
+    
         [Test]
         public void MixedAutoTests()
         {
@@ -216,10 +216,10 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                     defaultValue = 1
                 }
             };
-
+    
             var obj = CreateChild(root, "obj");
             obj.AddComponent<MeshRenderer>();
-
+    
             var toggle = CreateChild(root, "toggle");
             var menuItem = toggle.AddComponent<ModularAvatarMenuItem>();
             menuItem.automaticValue = false;
@@ -229,7 +229,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                 parameter = new VRCExpressionsMenu.Control.Parameter { name = "x" },
                 value = 1
             };
-
+    
             var objectToggle = toggle.AddComponent<ModularAvatarObjectToggle>();
             objectToggle.Objects = new()
             {
@@ -239,12 +239,12 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                     Object = new AvatarObjectReference(obj)
                 }
             };
-
+    
             AvatarProcessor.ProcessAvatar(root);
-
+    
             Assert.IsFalse(obj.activeSelf);
         }
-
+    
         
         void TestAssignments(
             (bool, float)[] assignments,
@@ -255,18 +255,18 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
         )
         {
             var root = CreateRoot("root");
-
+    
             var avDesc = root.GetComponent<VRCAvatarDescriptor>();
             avDesc.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
             avDesc.expressionParameters.parameters = Array.Empty<VRCExpressionParameters.Parameter>();
-
+    
             List<ModularAvatarMenuItem> menuItems = new();
             
             foreach (var (auto, value) in assignments)
             {
                 var obj = CreateChild(root, "m" + (menuItems.Count));
                 var mami = obj.AddComponent<ModularAvatarMenuItem>();
-
+    
                 mami.Control = new VRCExpressionsMenu.Control()
                 {
                     name = obj.name,
@@ -277,20 +277,20 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
                         name = "test_parameter"
                     }
                 };
-
+    
                 mami.automaticValue = auto;
                 mami.isDefault = false;
                 
                 menuItems.Add(mami);
             }
-
+    
             if (defaultIndex.HasValue)
             {
                 menuItems[defaultIndex.Value].isDefault = true;
             }
             
             customize?.Invoke(menuItems);
-
+    
             var context = new nadena.dev.ndmf.BuildContext(root, null);
             
             new ParameterAssignerPass().TestExecute(context);
@@ -299,7 +299,7 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
             {
                 Assert.AreEqual(expected, mami.Control.value);
             }
-
+    
             var expectedDefaultValue = overrideExpectedDefaultValue ?? (defaultIndex.HasValue ? expectedAssignments[defaultIndex.Value] : 0);
             Assert.AreEqual(expectedDefaultValue, avDesc.expressionParameters.parameters.Single().defaultValue);
         }

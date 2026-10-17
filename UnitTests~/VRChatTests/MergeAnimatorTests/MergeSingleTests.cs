@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
@@ -17,7 +17,7 @@ using VRC.SDK3.Avatars.Components;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 using BuildContext = nadena.dev.ndmf.BuildContext;
 
-namespace UnitTests.MergeAnimatorTests
+namespace nadena.dev.modular_avatar.test.MergeAnimatorTests
 {
     internal class MergeSingleTests : TestBase
     {
@@ -25,13 +25,13 @@ namespace UnitTests.MergeAnimatorTests
         public void NoErrorWhenAnimatorIsNull()
         {
             var av = CreateRoot("root");
-
+    
             var merge = av.AddComponent<ModularAvatarMergeAnimator>();
-
+    
             var ctx = new BuildContext(av, null);
             ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var errors = ErrorReport.CaptureErrors(() =>
             {
                 new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
@@ -40,19 +40,19 @@ namespace UnitTests.MergeAnimatorTests
             
             Assert.IsEmpty(errors);
         }
-
+    
         [Test]
         public void MergeAnimationOverrideController()
         {
             var av = CreateRoot("root");
-
+    
             var merge = av.AddComponent<ModularAvatarMergeAnimator>();
             merge.animator = LoadAsset<AnimatorOverrideController>("AOC_Override.overrideController");
-
+    
             var ctx = new BuildContext(av, null);
             ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var errors = ErrorReport.CaptureErrors(() =>
             {
                 new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
@@ -62,11 +62,11 @@ namespace UnitTests.MergeAnimatorTests
             ctx.DeactivateAllExtensionContexts();
             
             Assert.IsEmpty(errors);
-
+    
             var state = FindStateInLayer(findFxLayer(av, "Target"), "Anim1");
             Assert.IsTrue(state.motion.name.StartsWith("Anim2"));
         }
-
+    
         [Test]
         public void MergeAnimation_ForcesFirstLayerToWeightOne()
         {
@@ -91,7 +91,7 @@ namespace UnitTests.MergeAnimatorTests
             var ctx = new BuildContext(av, null);
             ctx.ActivateExtensionContext<ModularAvatarContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var errors = ErrorReport.CaptureErrors(() =>
             {
                 new MergeAnimatorProcessor().OnPreprocessAvatar(av, ctx);
@@ -101,7 +101,7 @@ namespace UnitTests.MergeAnimatorTests
             ctx.DeactivateAllExtensionContexts();
             
             Assert.IsEmpty(errors);
-
+    
             var layer = ((AnimatorController) FindFxController(av).animatorController).layers[^1];
             Assert.AreEqual(1, layer.defaultWeight);
         }

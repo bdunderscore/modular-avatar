@@ -14,7 +14,7 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
 using AvatarProcessor = nadena.dev.modular_avatar.core.editor.AvatarProcessor;
 
-namespace modular_avatar_tests.MMD
+namespace nadena.dev.modular_avatar.test.Tests.MMD
 {
     public class MMDHandlingTests : TestBase
     {
@@ -24,7 +24,7 @@ namespace modular_avatar_tests.MMD
             var prefab = CreatePrefab("MMDMode_Noop.prefab");
             
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
             
@@ -33,7 +33,7 @@ namespace modular_avatar_tests.MMD
             Assert.AreEqual("L1", fxc.layers[1].name);
             Assert.AreEqual("L2", fxc.layers[2].name);
         }
-
+    
         [Test]
         public void MMDMode_ReactiveComponent()
         {
@@ -43,12 +43,12 @@ namespace modular_avatar_tests.MMD
             
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-
+    
             // dummy, dummy, MMD, RC base, L0, L1, L2, RC apply
             // L0 (the avatar's original first layer) is displaced by the RC base layer, but must not be
             // disabled in MMD mode, since MMD worlds can't disable the first layer of an unprocessed avatar (#1922).
             AssertMMDModeHandling(fxc, 5, 6);
-
+    
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
@@ -58,7 +58,7 @@ namespace modular_avatar_tests.MMD
             Assert.AreEqual("L2", fxc.layers[6].name);
             Assert.AreEqual("MA/RC Apply", fxc.layers[7].name);
         }
-
+    
         [Test]
         public void MMDMode_ReactiveComponentWithMergeBlendTree()
         {
@@ -68,27 +68,27 @@ namespace modular_avatar_tests.MMD
             blendTree.AddChild(new AnimationClip());
             mergeBlendTree.BlendTree = blendTree;
             mergeBlendTree.PathMode = MergeAnimatorPathMode.Relative;
-
+    
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-
-            // dummy, dummy, MMD, Merge Blend Tree, RC base, L0, L1, L2, RC apply
-            // L0 is displaced by the Merge Blend Tree layer, but must not be disabled in MMD mode (#1922).
+    
+            // dummy, dummy, MMD, RC base, Merge Blend Tree, L0, L1, L2, RC apply
+            // L0 is displaced by the RC base and Merge Blend Tree layers, but must not be disabled in MMD mode (#1922).
             AssertMMDModeHandling(fxc, 6, 7);
-
+    
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[0].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
-            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[3].name);
-            Assert.AreEqual("MA/RC Base", fxc.layers[4].name);
+            Assert.AreEqual("MA/RC Base", fxc.layers[3].name);
+            Assert.AreEqual(MergeBlendTreePass.BlendTreeLayerName, fxc.layers[4].name);
             Assert.AreEqual("L0", fxc.layers[5].name);
             Assert.AreEqual("L1", fxc.layers[6].name);
             Assert.AreEqual("L2", fxc.layers[7].name);
             Assert.AreEqual("MA/RC Apply", fxc.layers[8].name);
         }
-
+    
         [Test]
         public void MMDMode_MergeBefore()
         {
@@ -115,7 +115,7 @@ namespace modular_avatar_tests.MMD
             Assert.AreEqual("L1", fxc.layers[7].name);
             Assert.AreEqual("L2", fxc.layers[8].name);
         }
-
+    
         [Test]
         public void MMDMode_ManualOverride()
         {
@@ -134,12 +134,12 @@ namespace modular_avatar_tests.MMD
         public void MMDMode_OptInFirstLayer()
         {
             var prefab = CreatePrefab("MMDMode_OptInFirstLayer.prefab");
-
+    
             AvatarProcessor.ProcessAvatar(prefab);
-
+    
             var fx = FindFxController(prefab);
             var fxc = (AnimatorController)fx.animatorController;
-
+    
             var layerNames = fxc.layers.Select(l => l.name).ToList();
             Assert.That(layerNames, Is.EquivalentTo(new[]
             {
@@ -166,7 +166,7 @@ namespace modular_avatar_tests.MMD
             var fxc = (AnimatorController)fx.animatorController;
             
             AddWdOffLayer(prefab);
-
+    
             // Capture errors during processing
             var errors = ErrorReport.CaptureErrors(() =>
             {
@@ -180,7 +180,7 @@ namespace modular_avatar_tests.MMD
             
             Assert.IsTrue(hasWdOffWarning, "Expected warning about WriteDefaults OFF in non-MMD layers was not reported");
         }
-
+    
         private static void AddWdOffLayer(GameObject prefab)
         {
             // Add a layer with WD OFF states
@@ -191,7 +191,7 @@ namespace modular_avatar_tests.MMD
                 stateMachine = new AnimatorStateMachine()
             };
             testLayer.stateMachine.name = "TestWDOffLayer";
-
+    
             var state = new AnimatorState()
             {
                 name = "WDOffState",
@@ -199,16 +199,16 @@ namespace modular_avatar_tests.MMD
             };
             testLayer.stateMachine.defaultState = state;
             testLayer.stateMachine.states = new[] { new ChildAnimatorState() { state = state } };
-
+    
             ac.layers = new[]
             {
                 testLayer
             };
-
+    
             var mama = prefab.AddComponent<ModularAvatarMergeAnimator>();
             mama.animator = ac;
         }
-
+    
         [Test]
         public void MMDMode_NoWarningWithoutMMDControl()
         {
@@ -234,27 +234,27 @@ namespace modular_avatar_tests.MMD
             Assert.IsFalse(hasWdOffWarning, "Unexpected warning about WriteDefaults OFF was reported when no MMD Layer Control is present");
         }
         
-
+    
         private void AssertMMDModeHandling(AnimatorController fxc, params int[] layers)
         {
             Assert.AreEqual(MMDRelayPass.ControlLayerName, fxc.layers[2].name);
             Assert.AreEqual(MMDRelayPass.DummyLayerName, fxc.layers[1].name);
-
+    
             AssertMMDModeLayerDrivers(fxc, layers);
         }
-
+    
         private static void AssertMMDModeLayerDrivers(AnimatorController fxc, params int[] layers)
         {
             var expectedLayers = new HashSet<int>(layers);
-
+    
             var controlLayer = fxc.layers.First(l => l.name == MMDRelayPass.ControlLayerName);
             foreach (var state in controlLayer.stateMachine.states)
             {
                 var actualLayers = new HashSet<int>();
                 float expectedWeight = -1f;
-
+    
                 var behaviors = state.state.behaviours;
-
+    
                 switch (state.state.name)
                 {
                     case MMDRelayPass.StateNameInitial:
@@ -274,7 +274,7 @@ namespace modular_avatar_tests.MMD
                         Assert.Fail($"Unexpected state {state.state.name}");
                         break;
                 }
-
+    
                 foreach (var behavior in state.state.behaviours)
                 {
                     if (behavior is VRCAnimatorLayerControl lc)

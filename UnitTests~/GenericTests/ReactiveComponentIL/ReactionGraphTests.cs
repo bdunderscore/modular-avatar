@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core.editor;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
@@ -13,26 +13,26 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnitTestsReactiveComponentIL
+namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
 {
     public class ReactionGraphTests : TestBase
     {
         private UnityBlendTreeBackend _blendTreeBackend;
         private GameObject _root;
         private AnimatorServicesContext _asc;
-
+    
         [SetUp]
         public override void Setup()
         {
             base.Setup();
-
+    
             _root = CreateRoot("root");
             var bc = CreateContext(_root);
             _asc = bc.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var vac = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
             _blendTreeBackend = new UnityBlendTreeBackend(bc, vac);
         }
-
+    
         [Test]
         public void CheckTransformResults(
             [Values(false, true)] bool hasExternalAnimation,
@@ -41,17 +41,17 @@ namespace UnitTestsReactiveComponentIL
         )
         {
             var obj = CreateChild(_root, "obj");
-
+    
             var initialExpr = new ObjectActiveState(obj,
                 wantState ? ObjectActiveState.State.Active : ObjectActiveState.State.Inactive);
             var node = new ReactionNode(
                 initialExpr,
                 new NullAction()
             );
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(node);
-
+    
             VirtualClip? clip = null;
             AnimationCurve? sourceActiveStateCurve = null;
             if (hasExternalAnimation)
@@ -75,10 +75,10 @@ namespace UnitTestsReactiveComponentIL
                     sourceActiveStateCurve
                 );
                 state.Motion = clip;
-
+    
                 _asc.ControllerContext.Controllers["xyzzy"] = controller;
             }
-
+    
             if (hasDriver)
             {
                 graph.AddNode(new ReactionNode(
@@ -86,32 +86,32 @@ namespace UnitTestsReactiveComponentIL
                     new DriveActiveState(obj, true)
                 ));
             }
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             var targetRule = graph.Nodes[0].Expression;
             if (targetRule is not OrNode orNode)
                 throw new Exception("should be an OrNode at the root: " + targetRule);
             if (orNode.Children[0] is not AndNode andNode)
                 throw new Exception("should be an AndNode at the first child: " + targetRule);
-
+    
             Assert.AreEqual(2, orNode.Children.Count, "wrong number of children at OrNode: " + targetRule);
             Assert.AreEqual(2, andNode.Children.Count, "wrong number of children at AndNode: " + targetRule);
-
+    
             if (hasExternalAnimation)
             {
                 if (andNode.Children[0] is not ParameterExpression pe)
                 {
                     throw new Exception("should be a ParameterExpression at the first child: " + targetRule);
                 }
-
+    
                 Assert.AreEqual(
                     wantState
                         ? ParameterExpression.ConditionMode.GreaterThan
                         : ParameterExpression.ConditionMode.LessThan,
                     pe.Mode
                 );
-
+    
                 var importedCurve = clip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(
                         "",
@@ -130,14 +130,14 @@ namespace UnitTestsReactiveComponentIL
                 {
                     Assert.AreEqual(sourceCurve.Evaluate(key.time), parameterCurve.Evaluate(key.time));
                 }
-
+    
                 // Base layer should seed initial active state and parameter defaults
                 var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
                 var baseActiveCurve = _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive"));
                 Assert.IsNotNull(baseActiveCurve, "Base layer missing active-state default curve");
                 Assert.AreEqual(obj.activeSelf ? 1 : 0, baseActiveCurve.keys[0].value);
-
+    
                 var baseParamCurve = _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve("", typeof(Animator), pe.ParameterName));
                 Assert.IsNotNull(baseParamCurve, "Base layer missing parameter default curve");
@@ -149,7 +149,7 @@ namespace UnitTestsReactiveComponentIL
                     wantState == obj.activeSelf
                 )));
             }
-
+    
             if (hasDriver)
             {
                 Assert.AreEqual(initialExpr, orNode.Children[1], "missing initial expression: " + targetRule);
@@ -160,7 +160,7 @@ namespace UnitTestsReactiveComponentIL
                     "initial expression should be missing: " + targetRule);
             }
         }
-
+    
         [Test]
         public void PreprocessGraph_EnrichesExistingParametersAndRewritesMultiActionNodeOnce()
         {
@@ -178,9 +178,9 @@ namespace UnitTestsReactiveComponentIL
             );
             node.Effects.Add(new DriveActiveState(second, false));
             graph.AddNode(node);
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             Assert.AreSame(parameters, graph.Parameters);
             Assert.AreEqual(0.25f, graph.Parameters.GetParameterInitialValue("P"));
             var rewritten = graph.Nodes[0].Expression as AndNode;
@@ -189,7 +189,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsFalse(rewritten.Children[0] is ObjectActiveState,
                 "Preprocessing must recognize every DriveActiveState on the node, including later actions.");
         }
-
+    
         [Test]
         public void Build_LowersShapeAndMaterialActions()
         {
@@ -203,30 +203,30 @@ namespace UnitTestsReactiveComponentIL
             var driveActiveState = new DriveActiveState(activeTarget, false);
             node.Effects.Add(driveActiveState);
             graph.AddNode(node);
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
             Assert.IsInstanceOf<SetShapeKey>(node.Effects[0]);
             Assert.IsInstanceOf<SetMaterial>(node.Effects[1]);
             Assert.IsInstanceOf<SetMaterial>(node.Effects[2]);
-
+    
             ILBuild.Simplify(graph);
             _blendTreeBackend.Build(graph);
-
+    
             var effects = graph.Nodes.SelectMany(node => node.Effects).ToList();
             Assert.AreEqual(4, effects.Count);
-
+    
             var shapeAction = effects.OfType<FloatPropAction>()
                 .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "blendShape.smile")));
             Assert.AreEqual(75f, shapeAction.Value);
-
+    
             var materialAction = effects.OfType<ObjectPropAction>()
                 .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "m_Materials.Array.data[0]")));
             Assert.AreSame(material, materialAction.Value);
-
+    
             var nullMaterialAction = effects.OfType<ObjectPropAction>()
                 .Single(action => action.Prop.Equals(new PropertyTarget(renderer, "m_Materials.Array.data[1]")));
             Assert.IsNull(nullMaterialAction.Value);
-
+    
             var path = _blendTreeBackend.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject);
             var floatClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(shapeAction)) as VirtualClip;
             var floatCurve = floatClip!.GetFloatCurve(
@@ -234,7 +234,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(floatCurve);
             Assert.AreEqual(75f, floatCurve.Evaluate(0f));
             Assert.That(floatCurve.keys, Has.Some.Property("time").EqualTo(0f));
-
+    
             var materialBinding0 = EditorCurveBinding.PPtrCurve(
                 path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[0]");
             var nonNullClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(materialAction)) as VirtualClip;
@@ -242,7 +242,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(nonNullCurve);
             Assert.AreSame(material, nonNullCurve.Single().value);
             Assert.AreEqual(0f, nonNullCurve.Single().time);
-
+    
             var materialBinding1 = EditorCurveBinding.PPtrCurve(
                 path, typeof(SkinnedMeshRenderer), "m_Materials.Array.data[1]");
             var nullClip = _blendTreeBackend.BakeMotion(EmitSimplePropertyAction(nullMaterialAction)) as VirtualClip;
@@ -251,7 +251,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNull(nullCurve.Single().value);
             Assert.AreEqual(0f, nullCurve.Single().time);
         }
-
+    
         private IMotionNode EmitSimplePropertyAction(IAction action)
         {
             var processor = new SimplePropProcessor();
@@ -260,7 +260,7 @@ namespace UnitTestsReactiveComponentIL
             Assert.IsNotNull(group);
             return group!.Emit(_blendTreeBackend)!;
         }
-
+    
         [TestCase(false)]
         [TestCase(true)]
         public void Build_AlreadyAppliedPropertyAction_DropsOnlyWhenNotExternallyAnimated(bool externallyAnimated)
@@ -268,7 +268,7 @@ namespace UnitTestsReactiveComponentIL
             var renderer = CreateChild(_root, "renderer").AddComponent<SkinnedMeshRenderer>();
             var material = TrackObject(new Material(Shader.Find("Sprites/Default")));
             var property = new PropertyTarget(renderer, "m_Materials.Array.data[0]");
-
+    
             if (externallyAnimated)
             {
                 var controller = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
@@ -285,16 +285,16 @@ namespace UnitTestsReactiveComponentIL
                 state.Motion = clip;
                 _asc.ControllerContext.Controllers["external"] = controller;
             }
-
+    
             var graph = new ReactionGraph();
             var node = new ReactionNode(new Constant(true),
                 new AlreadyApplied(new ObjectPropAction(property, material)));
             graph.AddNode(node);
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
             ILBuild.Simplify(graph);
             _blendTreeBackend.Build(graph);
-
+    
             if (externallyAnimated)
             {
                 Assert.AreEqual(1, graph.Nodes.Count);
@@ -307,7 +307,7 @@ namespace UnitTestsReactiveComponentIL
                 Assert.AreEqual(1, _blendTreeBackend.RootTree.Children.Count);
             }
         }
-
+    
         [Test]
         public void Build_AlreadyAppliedActiveDriver_IsRetainedWhenObjectStateRemainsReferenced()
         {
@@ -319,19 +319,19 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new Constant(true), new DriveActiveState(target, true)));
             graph.AddNode(new ReactionNode(new ParameterExpression("P"), new DriveActiveState(target, true)));
             graph.AddNode(new ReactionNode(new ParameterExpression("Q"), new DriveActiveState(target, false)));
-
+    
             ILBuild.Simplify(graph);
             var initiallyApplied = graph.Nodes.Single(node =>
                 node.Expression is Constant { Value: true } &&
                 node.Effects.Single() is DriveActiveState);
             initiallyApplied.Effects[0] = new AlreadyApplied((DriveActiveState)initiallyApplied.Effects[0]);
             _blendTreeBackend.Build(graph);
-
+    
             Assert.IsNotEmpty(graph.Nodes);
             Assert.IsFalse(graph.Nodes.SelectMany(node => node.Effects).Any(effect => effect is AlreadyApplied));
             Assert.That(graph.Nodes.SelectMany(node => node.Effects), Has.Some.InstanceOf<DriveActiveState>());
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_GroupsByObjectTarget()
         {
@@ -343,16 +343,16 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
             graph.AddNode(node3);
-
+    
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(2, subgraphs.Count);
             var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
             CollectionAssert.AreEquivalent(new[] { node1, node2 }, grouped.Nodes);
             CollectionAssert.AreEquivalent(new[] { node3 },
                 subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_GroupsByParameterName()
         {
@@ -363,16 +363,16 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
             graph.AddNode(node3);
-
+    
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(2, subgraphs.Count);
             var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
             CollectionAssert.AreEquivalent(new[] { node1, node2 }, grouped.Nodes);
             CollectionAssert.AreEquivalent(new[] { node3 },
                 subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_GroupsByActionTarget()
         {
@@ -383,16 +383,16 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(node1);
             graph.AddNode(node2);
             graph.AddNode(node3);
-
+    
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(2, subgraphs.Count);
             var grouped = subgraphs.Single(subgraph => subgraph.Nodes.Contains(node1));
             CollectionAssert.AreEquivalent(new[] { node1, node3 }, grouped.Nodes);
             CollectionAssert.AreEquivalent(new[] { node2 },
                 subgraphs.Single(subgraph => !ReferenceEquals(subgraph, grouped)).Nodes);
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_IndependentNodes()
         {
@@ -400,13 +400,13 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(new ReactionNode(new ObjectActiveState(CreateChild(_root, "a")), new NullAction()));
             graph.AddNode(new ReactionNode(new ParameterExpression("p1"), new DriveParameter("p2", 0.5f)));
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
-
+    
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(3, subgraphs.Count);
             Assert.That(subgraphs.All(g => g.Nodes.Count == 1));
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_GroupsByDriveInternalParameterEffect()
         {
@@ -418,22 +418,22 @@ namespace UnitTestsReactiveComponentIL
             var writer = new ReactionNode(new Constant(true), new DriveInternalParameter("p", true));
             var reader = new ReactionNode(new InternalParameterCondition("p"), new NullAction());
             var independent = new ReactionNode(new Constant(true), new NullAction());
-
+    
             graph.AddNode(writer);
             graph.AddNode(reader);
             graph.AddNode(independent);
-
+    
             var subgraphs = (List<ReactionGraph>)SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(2, subgraphs.Count);
             var writerGroup = subgraphs.FirstOrDefault(g => g.Nodes.Contains(writer));
             Assert.IsNotNull(writerGroup);
             Assert.That(writerGroup.Nodes, Contains.Item(reader),
                 "Writer and reader of the same internal parameter must be in the same subgraph");
         }
-
+    
         // ── Unity backend external-object preprocessing cases ────────────────
-
+    
         [Test]
         public void PreprocessGraph_NotDrivenMode_ExpressionPassedThrough()
         {
@@ -441,13 +441,13 @@ namespace UnitTestsReactiveComponentIL
             var graph = new ReactionGraph();
             var expr = new ObjectActiveState(obj, ObjectActiveState.State.NotDriven);
             graph.AddNode(new ReactionNode(expr, new NullAction()));
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             Assert.AreEqual(expr, graph.Nodes[0].Expression,
                 "NotDriven OAS must not be substituted — it represents the RC-controlled state");
         }
-
+    
         [Test]
         public void ProcessExternalOAS_NoExternalAnimation_BaseLayerNotWritten()
         {
@@ -457,21 +457,21 @@ namespace UnitTestsReactiveComponentIL
                 new ObjectActiveState(obj, ObjectActiveState.State.Active),
                 new NullAction()
             ));
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
             Assert.IsNull(
                 _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive")),
                 "Base layer clip must not be written when no external animation drives the object");
         }
-
+    
         [Test]
         public void ProcessExternalOAS_ObjectNotReferencedByOAS_BaseLayerNotWritten()
         {
             var obj = CreateChild(_root, "obj");
-
+    
             // Add an external animation clip that drives obj's active state.
             var controller = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
             var layer = controller.AddLayer(LayerPriority.Default, "layer");
@@ -485,26 +485,26 @@ namespace UnitTestsReactiveComponentIL
                 AnimationCurve.Constant(0, 1, 0));
             state.Motion = clip;
             _asc.ControllerContext.Controllers["xyzzy"] = controller;
-
+    
             // The graph has no node referencing obj via ObjectActiveState.
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new Constant(true), new NullAction()));
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             var path = _asc.ObjectPathRemapper.GetVirtualPathForObject(obj);
             Assert.IsNull(
                 _blendTreeBackend.BaseLayerClip.GetFloatCurve(
                     EditorCurveBinding.FloatCurve(path, typeof(GameObject), "m_IsActive")),
                 "Base layer clip must not be written for objects never referenced by OAS");
         }
-
+    
         [Test]
         public void ProcessExternalOAS_MultipleObjectsWithExternalAnimations_GetSeparateParameters()
         {
             var obj1 = CreateChild(_root, "obj1");
             var obj2 = CreateChild(_root, "obj2");
-
+    
             var controller = VirtualAnimatorController.Create(_asc.ControllerContext.CloneContext);
             var layer = controller.AddLayer(LayerPriority.Default, "layer");
             var state = layer.StateMachine!.AddState("state");
@@ -518,24 +518,24 @@ namespace UnitTestsReactiveComponentIL
                         typeof(GameObject), "m_IsActive"),
                     AnimationCurve.Constant(0, 1, 0));
             }
-
+    
             state.Motion = clip;
             _asc.ControllerContext.Controllers["xyzzy"] = controller;
-
+    
             var graph = new ReactionGraph();
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj1, ObjectActiveState.State.Active),
                 new NullAction()));
             graph.AddNode(new ReactionNode(new ObjectActiveState(obj2, ObjectActiveState.State.Active),
                 new NullAction()));
-
+    
             _blendTreeBackend.PreprocessGraph(graph);
-
+    
             // Both should be rewritten to OrNode at the top level.
             var or0 = graph.Nodes[0].Expression as OrNode;
             var or1 = graph.Nodes[1].Expression as OrNode;
             Assert.IsNotNull(or0);
             Assert.IsNotNull(or1);
-
+    
             var pe0 = ((AndNode)or0.Children[0]).Children[0] as ParameterExpression;
             var pe1 = ((AndNode)or1.Children[0]).Children[0] as ParameterExpression;
             Assert.IsNotNull(pe0);
@@ -543,9 +543,9 @@ namespace UnitTestsReactiveComponentIL
             Assert.AreNotEqual(pe0.ParameterName, pe1.ParameterName,
                 "Each object with external animation must receive its own parameter");
         }
-
+    
         // ── SplitIntoSubgraphsTransform additional cases ──────────────────────
-
+    
         [Test]
         public void SplitIntoSubgraphs_EmptyGraph_ReturnsEmptyList()
         {
@@ -553,7 +553,7 @@ namespace UnitTestsReactiveComponentIL
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
             Assert.AreEqual(0, subgraphs.Count);
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_NestedAndExpression_CollectsObjectKey()
         {
@@ -567,14 +567,14 @@ namespace UnitTestsReactiveComponentIL
             var nodeB = new ReactionNode(new ObjectActiveState(obj, ObjectActiveState.State.Active), new NullAction());
             graph.AddNode(nodeA);
             graph.AddNode(nodeB);
-
+    
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(1, subgraphs.Count, "Nodes sharing an OAS key nested in AND should be grouped");
             Assert.That(subgraphs[0].Nodes, Contains.Item(nodeA));
             Assert.That(subgraphs[0].Nodes, Contains.Item(nodeB));
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_NestedNotExpression_CollectsParameterKey()
         {
@@ -587,12 +587,12 @@ namespace UnitTestsReactiveComponentIL
             var nodeB = new ReactionNode(new Constant(true), new DriveInternalParameter("p", true));
             graph.AddNode(nodeA);
             graph.AddNode(nodeB);
-
+    
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(1, subgraphs.Count, "Nodes sharing a parameter key nested in NOT should be grouped");
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_TransitiveGrouping_ThreeNodesViaDistinctKeys()
         {
@@ -605,12 +605,12 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(nodeA);
             graph.AddNode(nodeB);
             graph.AddNode(nodeC);
-
+    
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(1, subgraphs.Count, "All three nodes should be in one subgraph via transitive key sharing");
         }
-
+    
         [Test]
         public void SplitIntoSubgraphs_MultipleWritersSameParameter_AllGrouped()
         {
@@ -622,9 +622,9 @@ namespace UnitTestsReactiveComponentIL
             graph.AddNode(writer1);
             graph.AddNode(writer2);
             graph.AddNode(reader);
-
+    
             var subgraphs = SplitIntoSubgraphsTransform.Apply(graph);
-
+    
             Assert.AreEqual(1, subgraphs.Count, "Both writers and the reader must be in the same subgraph");
         }
     }

@@ -1,13 +1,13 @@
 ﻿#if MA_VRCSDK3_AVATARS
 
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace UnitTests.MergeAnimatorTests.ProxyAnim
+namespace nadena.dev.modular_avatar.test.MergeAnimatorTests.ProxyAnim
 {
     public class ProxyAnimTest : TestBase
     {
@@ -15,7 +15,7 @@ namespace UnitTests.MergeAnimatorTests.ProxyAnim
         public void whenProxyAnimIsMerged_itIsNotReplaced()
         {
             var root = CreatePrefab("ProxyAnimTest.prefab");
-
+    
             var originalAnimator = (AnimatorController) root.GetComponentInChildren<ModularAvatarMergeAnimator>().animator;
             var originalClip = originalAnimator.layers[0].stateMachine.states[0].state.motion as AnimationClip;
             

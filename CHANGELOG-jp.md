@@ -13,6 +13,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 
 ### Fixed
 - [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
+- [#2171] `Vertex Filter - By Mask` が三次元以上のUVチャンネルでエラーを出す問題を修正
 - [#2156] `MA Scale Adjuster` の値をインスペクタで貼り付けた時に子オブジェクトの位置が更新されないのを修正
 
 ### Changed

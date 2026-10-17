@@ -1,4 +1,4 @@
-using modular_avatar_tests;
+using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
@@ -7,7 +7,7 @@ using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnitTests.ReactiveComponent
+namespace nadena.dev.modular_avatar.test.ReactiveComponent
 {
     public class GenericPlatformReactiveObjectTests : TestBase
     {
@@ -17,10 +17,10 @@ namespace UnitTests.ReactiveComponent
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
-
+    
             var target = CreateChild(root, "target");
             target.SetActive(!active);
-
+    
             var toggle = root.AddComponent<ModularAvatarObjectToggle>();
             toggle.Objects = new()
             {
@@ -30,23 +30,23 @@ namespace UnitTests.ReactiveComponent
                     Active = active
                 }
             };
-
+    
             var context = CreateContext(root, WellKnownPlatforms.Generic);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             context.ActivateExtensionContextRecursive<ReadablePropertyExtension>();
-
+    
             new ReactiveObjectPassV2(context).Execute();
-
+    
             Assert.That(target.activeSelf, Is.EqualTo(active));
             Assert.That(root.GetComponent<Animator>().runtimeAnimatorController, Is.Null);
         }
-
+    
         [Test]
         public void GenericBuild_AppliesDefaultActiveMenuToggleWithoutAnimatorLogic()
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
-
+    
             var target = CreateChild(root, "target");
             target.SetActive(false);
             var controller = CreateChild(root, "controller");
@@ -64,29 +64,29 @@ namespace UnitTests.ReactiveComponent
                     Active = true
                 }
             };
-
+    
             var context = CreateContext(root, WellKnownPlatforms.Generic);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             context.ActivateExtensionContextRecursive<ReadablePropertyExtension>();
-
+    
             new ReactiveObjectPassV2(context).Execute();
-
+    
             Assert.That(target.activeSelf, Is.True);
             Assert.That(root.GetComponent<Animator>().runtimeAnimatorController, Is.Null);
         }
-
+    
         [TestCase(true)]
         [TestCase(false)]
         public void GenericBuild_PropagatesAlwaysOnObjectDriverToDependentRule(bool driverActive)
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
-
+    
             var driverTarget = CreateChild(root, "driver target");
             driverTarget.SetActive(!driverActive);
             var dependentTarget = CreateChild(root, "dependent target");
             dependentTarget.SetActive(true);
-
+    
             var driver = root.AddComponent<ModularAvatarObjectToggle>();
             driver.Objects = new()
             {
@@ -96,7 +96,7 @@ namespace UnitTests.ReactiveComponent
                     Active = driverActive
                 }
             };
-
+    
             var dependent = driverTarget.AddComponent<ModularAvatarObjectToggle>();
             dependent.Objects = new()
             {
@@ -106,13 +106,13 @@ namespace UnitTests.ReactiveComponent
                     Active = false
                 }
             };
-
+    
             var context = CreateContext(root, WellKnownPlatforms.Generic);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             context.ActivateExtensionContextRecursive<ReadablePropertyExtension>();
-
+    
             new ReactiveObjectPassV2(context).Execute();
-
+    
             Assert.That(dependentTarget.activeSelf, Is.EqualTo(!driverActive));
             Assert.That(root.GetComponent<Animator>().runtimeAnimatorController, Is.Null);
         }

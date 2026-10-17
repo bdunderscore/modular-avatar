@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class AnimParameterPathRewritingTest : TestBase
     {
@@ -13,7 +13,7 @@ namespace modular_avatar_tests
         public void test_AnimParameterPathRewriting()
         {
             var prefab = CreatePrefab("AnimParameterPathRewriting.prefab");
-
+    
             var originalClip = LoadAsset<AnimationClip>("clip.anim");
             
             AvatarProcessor.ProcessAvatar(prefab);

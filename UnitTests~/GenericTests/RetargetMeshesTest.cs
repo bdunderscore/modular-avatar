@@ -5,7 +5,7 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class RetargetMeshesTest : TestBase
     {
@@ -16,23 +16,23 @@ namespace modular_avatar_tests
             var root = CreateRoot("root");
             var a = CreateChild(root, "a");
             var b = CreateChild(a, "b");
-
+    
             var skinnedMeshRenderer = root.AddComponent<SkinnedMeshRenderer>();
             skinnedMeshRenderer.sharedMesh = new Mesh();
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
-
+    
             var build_context = new nadena.dev.ndmf.BuildContext(root, null);
             var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
-
+    
             new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
-
+    
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
         }
-
+    
         [Test]
         public void NoMeshRootBoneOnly()
         {
@@ -40,51 +40,51 @@ namespace modular_avatar_tests
             var a = CreateChild(root, "a");
             var b = CreateChild(a, "b");
             b.transform.localScale = new Vector3(2, 2, 2);
-
+    
             var skinnedMeshRenderer = root.AddComponent<SkinnedMeshRenderer>();
             skinnedMeshRenderer.sharedMesh = null;
             skinnedMeshRenderer.localBounds = new Bounds(new Vector3(0, 0, 0), new Vector3(1, 1, 1));
             skinnedMeshRenderer.rootBone = b.transform;
             Debug.Assert(skinnedMeshRenderer.bones.Length == 0);
-
+    
             var build_context = new nadena.dev.ndmf.BuildContext(root, null);
             var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
-
+    
             new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
-
+    
             Assert.AreEqual(a.transform, skinnedMeshRenderer.rootBone);
             Assert.AreEqual(new Bounds(new Vector3(0, 0, 0), new Vector3(2, 2, 2)),
                 skinnedMeshRenderer.localBounds);
         }
-
+    
         [Test]
         public void ObjectRegistryRegistrationOnMeshRetargeting()
         {
             var root = CreateRoot("root");
             var a = CreateChild(root, "a");
             var b = CreateChild(a, "b");
-
+    
             var originalMesh = new Mesh();
             originalMesh.name = "OriginalMesh";
             
             var skinnedMeshRenderer = root.AddComponent<SkinnedMeshRenderer>();
             skinnedMeshRenderer.sharedMesh = originalMesh;
             skinnedMeshRenderer.rootBone = b.transform;
-
+    
             var reg = new ObjectRegistry(root.transform);
             using var scope = new ObjectRegistryScope(reg);
-
+    
             var build_context = new nadena.dev.ndmf.BuildContext(root, null);
             var asc = build_context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-
+    
             var bonedb = new BoneDatabase();
             bonedb.AddMergedBone(b.transform);
-
+    
             new RetargetMeshes().OnPreprocessAvatar(root, bonedb, asc);
-
+    
             // Verify that the mesh was replaced
             Assert.AreNotEqual(originalMesh, skinnedMeshRenderer.sharedMesh);
             Assert.IsTrue(skinnedMeshRenderer.sharedMesh.name.StartsWith("RETARGETED__"));

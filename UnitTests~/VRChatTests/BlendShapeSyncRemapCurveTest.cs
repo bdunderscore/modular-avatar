@@ -6,18 +6,18 @@ using System.Linq;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
-using UnitTests.SharedInterfaces;
+using nadena.dev.modular_avatar.test.SharedInterfaces;
 using UnityEditor;
 using UnityEngine;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     using RemapCurve = ModularAvatarBlendshapeSync.RemapCurve;
-
+    
     public class BlendShapeSyncRemapCurveTest: TestBase
     {
         #region RemapCurve Utility class
-
+    
         public static IEnumerable<TestCaseData> IdentityCurve_Cases()
         {
             yield return new TestCaseData(null);
@@ -25,7 +25,7 @@ namespace modular_avatar_tests
             yield return new TestCaseData(new AnimationCurve(new Keyframe(-1, 0))).SetName("SingleKeyframe");
             yield return new TestCaseData(new AnimationCurve(NewLinearFrame(0, 0), NewLinearFrame(100, 100))).SetName("ValidIdentityCurve");
         }
-
+    
         [Test]
         [TestCaseSource(nameof(IdentityCurve_Cases))]
         public void IdentityCurve(AnimationCurve? inCurve)
@@ -33,33 +33,33 @@ namespace modular_avatar_tests
             var remapCurve = new RemapCurve(inCurve);
             Assert.That(remapCurve.IsIdentity, Is.True, "IsIdentity");
             Assert.That(remapCurve.SplitPoints, Is.Empty, "SplitPoints");
-
+    
             Assert.That(remapCurve.GetPointOnCurve(-50).OriginalValue, Is.EqualTo(-50));
             Assert.That(remapCurve.GetPointOnCurve(-50).MappedValue, Is.EqualTo(-50));
             Assert.That(remapCurve.GetPointOnCurve(-50).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(-50).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(0).OriginalValue, Is.EqualTo(0));
             Assert.That(remapCurve.GetPointOnCurve(0).MappedValue, Is.EqualTo(0));
             Assert.That(remapCurve.GetPointOnCurve(0).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(0).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(50).OriginalValue, Is.EqualTo(50));
             Assert.That(remapCurve.GetPointOnCurve(50).MappedValue, Is.EqualTo(50));
             Assert.That(remapCurve.GetPointOnCurve(50).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(50).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(100).OriginalValue, Is.EqualTo(100));
             Assert.That(remapCurve.GetPointOnCurve(100).MappedValue, Is.EqualTo(100));
             Assert.That(remapCurve.GetPointOnCurve(100).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(100).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(120).OriginalValue, Is.EqualTo(120));
             Assert.That(remapCurve.GetPointOnCurve(120).MappedValue, Is.EqualTo(120));
             Assert.That(remapCurve.GetPointOnCurve(120).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(120).RightDerivative, Is.EqualTo(1));
         }
-
+    
         [Test]
         public void IdentityLikeWithSingleSplitPoint()
         {
@@ -69,29 +69,29 @@ namespace modular_avatar_tests
                 NewLinearFrame(100, 100)
             ));
             Assert.That(remapCurve.IsIdentity, Is.False);
-
+    
             // since the curve is identity-like, GetPointOnCurve behavior should be same as identity curve
             Assert.That(remapCurve.GetPointOnCurve(-50).MappedValue, Is.EqualTo(-50));
             Assert.That(remapCurve.GetPointOnCurve(-50).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(-50).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(0).OriginalValue, Is.EqualTo(0));
             Assert.That(remapCurve.GetPointOnCurve(0).MappedValue, Is.EqualTo(0));
             Assert.That(remapCurve.GetPointOnCurve(0).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(0).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(50).MappedValue, Is.EqualTo(50));
             Assert.That(remapCurve.GetPointOnCurve(50).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(50).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(100).MappedValue, Is.EqualTo(100));
             Assert.That(remapCurve.GetPointOnCurve(100).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(100).RightDerivative, Is.EqualTo(1));
-
+    
             Assert.That(remapCurve.GetPointOnCurve(120).MappedValue, Is.EqualTo(120));
             Assert.That(remapCurve.GetPointOnCurve(120).LeftDerivative, Is.EqualTo(1));
             Assert.That(remapCurve.GetPointOnCurve(120).RightDerivative, Is.EqualTo(1));
-
+    
             // However, there is a middle key frame; we should split the source curve.
             // the point won't change derivative, though.
             Assert.That(remapCurve.SplitPoints.Count(), Is.EqualTo(1));
@@ -102,12 +102,12 @@ namespace modular_avatar_tests
             Assert.That(splitPoint.RightDerivative, Is.EqualTo(1));
             Assert.That(splitPoint.MapTangent(1, isOut: false), Is.EqualTo(1));
         }
-
+    
         [Test]
         public void MapTangent()
         {
             RemapCurve.Point pointOnCurve;
-
+    
             var remapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame( 25, 0),
@@ -118,7 +118,7 @@ namespace modular_avatar_tests
             var split25 = remapCurve.SplitPoints.First();
             var split50 = remapCurve.SplitPoints.Skip(1).First();
             var split75 = remapCurve.SplitPoints.Skip(2).First();
-
+    
             // The flat 0 segment: become 0
             pointOnCurve = remapCurve.GetPointOnCurve(12.5f);
             Assert.That(pointOnCurve.LeftDerivative, Is.EqualTo(0));
@@ -132,7 +132,7 @@ namespace modular_avatar_tests
             Assert.That(pointOnCurve.MapTangent(float.PositiveInfinity, isOut: true), Is.EqualTo(float.PositiveInfinity));
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: false), Is.EqualTo(float.NegativeInfinity));
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: true), Is.EqualTo(float.NegativeInfinity));
-
+    
             // The point changes flat 0 => positive
             pointOnCurve = remapCurve.GetPointOnCurve(25.0f);
             Assert.That(pointOnCurve, Is.EqualTo(split25));
@@ -149,7 +149,7 @@ namespace modular_avatar_tests
             Assert.That(pointOnCurve.MapTangent(float.PositiveInfinity, isOut: true), Is.EqualTo(float.PositiveInfinity));
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: false), Is.EqualTo(float.NegativeInfinity));
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: true), Is.EqualTo(float.NegativeInfinity));
-
+    
             // The point changes positive => negative
             pointOnCurve = remapCurve.GetPointOnCurve(50.0f);
             Assert.That(pointOnCurve, Is.EqualTo(split50));
@@ -184,7 +184,7 @@ namespace modular_avatar_tests
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: false), Is.EqualTo(float.NegativeInfinity));
             Assert.That(pointOnCurve.MapTangent(float.NegativeInfinity, isOut: true), Is.EqualTo(float.NegativeInfinity));
         }
-
+    
         [Test]
         public void MappedValue()
         {
@@ -193,7 +193,7 @@ namespace modular_avatar_tests
                 NewLinearFrame(50, 100),
                 NewLinearFrame(100, 100)
             ));
-
+    
             // mapped value exactly at remap curve keyframe
             Assert.That(remapCurve.GetPointOnCurve(0).MappedValue, Is.EqualTo(0));
             Assert.That(remapCurve.GetPointOnCurve(50).MappedValue, Is.EqualTo(100));
@@ -209,11 +209,11 @@ namespace modular_avatar_tests
             Assert.That(remapCurve.GetPointOnCurve(-50).MappedValue, Is.EqualTo(-100));
             Assert.That(remapCurve.GetPointOnCurve(-100).MappedValue, Is.EqualTo(-200));
         }
-
+    
         #endregion
-
+    
         #region MapCurve Known Cases
-
+    
         [Test]
         public void SplitExactlyAtInfinityTangentPointWouldNotCreateInfinityTangent()
         {
@@ -223,24 +223,24 @@ namespace modular_avatar_tests
             // for both sides when we add a keyframe at the middle point.
             // However, we must not break their behavior, so we will create two frames around the middle point
             // to eliminate infinity tangent.
-
+    
             var sourceCurve = new AnimationCurve(
                 new Keyframe(time: 0, value: 0, inTangent: 0, outTangent: 0, inWeight: 1 / 3f, outWeight: 1),
                 new Keyframe(time: 1, value: 100, inTangent: 0, outTangent: 0, inWeight: 1, outWeight: 1 / 3f)
             );
-
+    
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame(50, 60),
                 NewLinearFrame(100, 100)
             ));
-
+    
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
-
+    
             Assert.That(mapped.keys.Length, Is.EqualTo(4));
             Assert.That(mapped.keys.All(x => float.IsFinite(x.inTangent) && float.IsFinite(x.outTangent)));
         }
-
+    
         [Test]
         public void SplitNormalCurve()
         {
@@ -248,41 +248,41 @@ namespace modular_avatar_tests
                 new Keyframe(time: 0, value: 0, inTangent: 0, outTangent: 0),
                 new Keyframe(time: 1, value: 100, inTangent: 0, outTangent: 0)
             );
-
+    
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame(50, 60),
                 NewLinearFrame(100, 100)
             ));
-
+    
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
-
+    
             Assert.That(mapped.keys.Length, Is.EqualTo(3));
             Assert.That(mapped.keys[1].time, Is.EqualTo(0.5f));
             Assert.That(mapped.keys[1].value, Is.EqualTo(60f).Within(0.0001f));
         }
-
+    
         [Test]
         public void NoSplitForNonCrossingSegment()
         {
             // If the source curve does not cross any split point, the segment will not be cut.
-
+    
             var sourceCurve = new AnimationCurve(
                 new Keyframe(time: 0, value: 0, inTangent: 0, outTangent: 0),
                 new Keyframe(time: 1, value: 30, inTangent: 0, outTangent: 0)
             );
-
+    
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame(50, 60),
                 NewLinearFrame(100, 100)
             ));
-
+    
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
-
+    
             Assert.That(mapped.keys.Length, Is.EqualTo(2));
         }
-
+    
         public static IEnumerable<TestCaseData> NoSplitForConstantSegment_Cases()
         {
             yield return new TestCaseData(new AnimationCurve(
@@ -318,29 +318,29 @@ namespace modular_avatar_tests
                 new Keyframe(time: 1, value: 100, inTangent: float.NegativeInfinity, outTangent: float.NegativeInfinity)
             )).SetName("tangent=(NegativeInfinity,NegativeInfinity)");
         }
-
+    
         [Test]
         [TestCaseSource(nameof(NoSplitForConstantSegment_Cases))]
         public void NoSplitForConstantSegment(AnimationCurve sourceCurve)
         {
             // Even when key frame value crosses a split point, if the segment is constant segment with Infinity tangent, the segment will not be cut.
-
+    
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame(50, 60),
                 NewLinearFrame(100, 100)
             ));
-
+    
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
-
+    
             Assert.That(mapped.keys.Length, Is.EqualTo(2));
         }
-
+    
         [Test]
         public void ReturnsExactlySameCurveForIdentityRemapCurve()
         {
             // If the source curve does not cross with split point, the segment will not be cut.
-
+    
             var sourceCurve = new AnimationCurve(
                 new Keyframe(
                     time: 0,
@@ -355,29 +355,29 @@ namespace modular_avatar_tests
                     outTangent: 0
                 )
             );
-
+    
             var mapCurve = new RemapCurve(new AnimationCurve(
                 NewLinearFrame(0, 0),
                 NewLinearFrame(100, 100)
             ));
             Assert.That(mapCurve.IsIdentity, Is.True);
-
+    
             var mapped = BlendshapeSyncAnimationProcessor.MapCurve(sourceCurve, mapCurve);
-
+    
             Assert.That(mapped, Is.SameAs(sourceCurve));
         }
-
+    
         #endregion
-
+    
         #region MapCurve
-
+    
         private static readonly int Seed = UnityEngine.Random.Range(0, int.MaxValue);
-
+    
         public static IEnumerable<AnimationCurveCase> TestCurves()
         {
             var curveSource = ITestSupport.Instance.LoadAsset<AnimationClip>(typeof(BlendShapeSyncRemapCurveTest), "BlendshapeSyncRemapCurveTestCurveClip.anim");
             var curve = AnimationUtility.GetEditorCurve(curveSource, AnimationUtility.GetCurveBindings(curveSource)[0]);
-
+    
             yield return new AnimationCurveCase("Saved Curve", BlendshapeSyncAnimationProcessor.NormalizeCurveToFreeTangents(curve));
             yield return new AnimationCurveCase("Bezier with Infinity Tangent",
                 new Keyframe(time: 0, value: 0, inTangent: 0, outTangent: 0, inWeight: 1 / 3f, outWeight: 1),
@@ -420,8 +420,8 @@ namespace modular_avatar_tests
                 new Keyframe(time: 0, value: 0, inTangent: 0, outTangent: 0),
                 new Keyframe(time: 1, value: 100, inTangent: float.NegativeInfinity, outTangent: 0)
             );
-
-#if MODULAR_AVATAR_FUZZ_TESTING
+    
+    #if MODULAR_AVATAR_FUZZ_TESTING
             // fuzz testing
             var random = new System.Random(Seed);
             for (int i = 0; i < 100; i++)
@@ -440,12 +440,12 @@ namespace modular_avatar_tests
                     new Keyframe(time: 0, value: inValue, inTangent: inTangent, outTangent: outTangent, inWeight: 0, outWeight: leftWeight),
                     new Keyframe(time: time, value: outValue, inTangent: outTangent, outTangent: inTangent, inWeight: rightWeight, outWeight: 0)
                 );
-
+    
                 yield return curveCase;
             }
-#endif
+    #endif
         }
-
+    
         public static IEnumerable<AnimationCurveCase> TestRemapCases()
         {
             yield return new AnimationCurveCase("Linear-like with multiple split point",
@@ -463,8 +463,8 @@ namespace modular_avatar_tests
                 NewLinearFrame(75, 0),
                 NewLinearFrame(100, 0)
             );
-
-#if MODULAR_AVATAR_FUZZ_TESTING
+    
+    #if MODULAR_AVATAR_FUZZ_TESTING
             // fuzz testing
             var random = new System.Random(Seed);
             for (int i = 0; i < 100; i++)
@@ -476,20 +476,20 @@ namespace modular_avatar_tests
                 for (int j = 0; j < additionalKeys; j++)
                     frames.Add(NewLinearFrame((float)random.NextDouble(), (float)random.NextDouble()));
                 frames.Sort((x, y) => x.time.CompareTo(y.time));
-
+    
                 var curveDescription = string.Join(", ", frames.Select(x => $"({x.time:G9}, {x.value:G9})"));
-
+    
                 var remapCase = new AnimationCurveCase($"Fuzzing Curve (seed: {Seed}, {i}) {curveDescription}", new AnimationCurve(frames.ToArray()));
                 if (new RemapCurve(remapCase.Curve).SplitPoints.Any(x =>
                             Math.Abs(x.LeftDerivative) > 10 || Math.Abs(x.RightDerivative) > 10)
                     || Enumerable.Range(0, frames.Count - 1).Any(i => frames[i + 1].time - frames[i].time < 0.01)) 
                     continue; // it's too extreme to work well without problem of floating point precision
-
+    
                 yield return remapCase;
             }
-#endif
+    #endif
         }
-
+    
         [Test]
         [Combinatorial]
         public void TestRemapCurveIsCorrect(
@@ -502,42 +502,42 @@ namespace modular_avatar_tests
             var remapCurve = new RemapCurve(remapCase.Curve);
             var mappedCurve = BlendshapeSyncAnimationProcessor.MapCurve(animationCurve, remapCurve);
             Assert.That(remapCurve.IsIdentity, Is.False);
-
+    
             var endTime = mappedCurve[mappedCurve.length - 1].time;
-
+    
             for (float time = 0; time <= endTime; time += 0.01f)
             {
                 var expectValue = remapCurve.GetPointOnCurve(animationCurve.Evaluate(time)).MappedValue;
                 var mappedValue = mappedCurve.Evaluate(time);
-
+    
                 // we want to allow +/- 1% of error for value (in 0-100) and time (in seconds)
                 // 1% in value 0-100 is 1.
                 // 1% in time axis is 0.01 sec, and may result in error for 0.01 sec * tangent in value axis 
                 var keyRange = Enumerable.Range(0, mappedCurve.length - 1).TakeWhile(i => mappedCurve[i].time <= time).Last();
                 var maxTangent = Mathf.Max(Mathf.Abs(mappedCurve[keyRange].outTangent), Mathf.Abs(mappedCurve[keyRange + 1].inTangent));
                 var allowedError = Mathf.Max(Mathf.Max(Mathf.Abs(expectValue) / 100, 1), maxTangent / 100);
-
+    
                 Assert.That(mappedValue, Is.EqualTo(expectValue).Within(allowedError), $"at {time}");
             }
         }
-
+    
         public class AnimationCurveCase
         {
             private readonly string caseName;
             public AnimationCurve Curve;
-
+    
             public AnimationCurveCase(string name, AnimationCurve curve) => (caseName, Curve) = (name, curve);
             public AnimationCurveCase(string name, params Keyframe[] keys) => (caseName, Curve) = (name, new AnimationCurve(keys));
-
+    
             public override string ToString() => caseName;
         }
-
+    
         #endregion
-
+    
         #region Test Utilities
-
+    
         private static Keyframe? linearReference;
-
+    
         public static Keyframe NewLinearFrame(float time, float value)
         {
             if (linearReference is null)
@@ -547,13 +547,13 @@ namespace modular_avatar_tests
                 AnimationUtility.SetKeyRightTangentMode(tmpCurve, 0, AnimationUtility.TangentMode.Linear);
                 linearReference = tmpCurve[0];
             }
-
+    
             var result = linearReference.Value;
             result.time = time;
             result.value = value;
             return result;
         }
-
+    
         // to be used by debugger to save generated
         private static void SaveCurveForInvestigation(AnimationCurve original, AnimationCurve mapped)
         {
@@ -563,7 +563,7 @@ namespace modular_avatar_tests
             AssetDatabase.CreateAsset(clip, "Assets/test.anim");
             AssetDatabase.SaveAssets();
         }
-
+    
         #endregion
     }
 }

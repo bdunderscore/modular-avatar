@@ -1,12 +1,12 @@
 using nadena.dev.modular_avatar;
 using NUnit.Framework;
 
-namespace modular_avatar_tests
+namespace nadena.dev.modular_avatar.test.Tests
 {
     public class SemVerComparatorTest
     {
         private static readonly SemVerComparator Comparator = new();
-
+    
         [TestCase("1.0.0", "2.0.0")]
         [TestCase("2.0.0", "2.1.0")]
         [TestCase("2.1.0", "2.1.1")]
@@ -21,14 +21,14 @@ namespace modular_avatar_tests
             Assert.That(Comparator.Compare(lower, higher), Is.LessThan(0));
             Assert.That(Comparator.Compare(higher, lower), Is.GreaterThan(0));
         }
-
+    
         [Test]
         public void IgnoresBuildMetadata()
         {
             Assert.That(Comparator.Compare("1.2.3+build.1", "1.2.3+build.2"), Is.Zero);
             Assert.That(Comparator.Compare("1.2.3-rc.1+build.1", "1.2.3-rc.1"), Is.Zero);
         }
-
+    
         [TestCase("1.2.3-alpha", "1.2.3")]
         [TestCase("1.2.3-beta.1", "1.2.3")]
         [TestCase("1.2.3-alpha", "1.2.3-rc.1")]
@@ -37,7 +37,7 @@ namespace modular_avatar_tests
             Assert.That(Comparator.CompareForCompatibility(first, second), Is.Zero);
             Assert.That(Comparator.CompareForCompatibility(second, first), Is.Zero);
         }
-
+    
         [TestCase("1.2")]
         [TestCase("01.2.3")]
         [TestCase("1.2.3-01")]
