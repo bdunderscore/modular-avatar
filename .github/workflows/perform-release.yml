@@ -58,7 +58,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       # https://github.com/orgs/community/discussions/13836#discussioncomment-8535364
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
           app-id: ${{ vars.RELEASER_APP_ID }}
@@ -105,12 +105,12 @@ jobs:
           esac
 
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Checkout logo assets
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ github.event.inputs.release_kind != 'adhoc' }}
         with:
           repository: bdunderscore/modular-avatar-images
@@ -172,18 +172,18 @@ jobs:
           
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: CHANGELOG
           path: CHANGELOG.md
       - name: Upload CHANGELOG-PRERELEASE.md
         if: ${{ github.event.inputs.release_kind == 'prerelease' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
       - name: Upload release note
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: changelog
           path: release-note.md
@@ -209,7 +209,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: package-zip
           path: ${{ env.zipFile }}
@@ -219,7 +219,7 @@ jobs:
           cat .github/release-note.md
 
       - name: Make Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: ${{ github.event.inputs.publish == 'true' }}
         with:
           draft: true

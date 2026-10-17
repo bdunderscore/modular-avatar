@@ -22,7 +22,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         # Run on releases only
         if: ${{ github.event.release }}
         with:
@@ -65,22 +65,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 22.23.3
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Download artifact (tagged)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: docs
           path: docs/build
 
       - name: Download artifact (latest)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: docs-dev
           path: docs/build/dev
@@ -95,16 +95,16 @@ jobs:
           tar -xf docs/build/docs.tar -C docs-site~/public
           tar -xf docs/build/dev/docs.tar -C docs-site~/public/dev
       
-      - name: Setup Yarn 4.17.0
+      - name: Setup Yarn 4.18.1
         run: |
           corepack enable
-          corepack prepare yarn@4.17.0 --activate
+          corepack prepare yarn@4.18.1 --activate
           
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "dir=$(cd docs-site~; yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -118,14 +118,14 @@ jobs:
           YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
           
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           command: deploy --name modular-avatar-docs
           workingDirectory: docs-site~
           
       - name: Purge cache
-        uses: nathanvaughn/actions-cloudflare-purge@e893da8393033106c170b0b9de0918112cf04800
+        uses: nathanvaughn/actions-cloudflare-purge@e893da8393033106c170b0b9de0918112cf04800 # v4.0.0
         continue-on-error: true
         with:
           cf_zone: ${{ secrets.CF_ZONE_ID }}
