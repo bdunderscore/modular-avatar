@@ -129,6 +129,54 @@ namespace nadena.dev.modular_avatar.test.Tests
         }
     
         [Test]
+        public void VertexFilterByMaskIgnoresExtraUVDimensions(
+            [Values(3, 4)] int dimensions,
+            [Values(VertexSelectionMode.AnyVertex, VertexSelectionMode.AllVertices, VertexSelectionMode.Centroid)]
+            VertexSelectionMode selectionMode,
+            [Values(true, false)] bool readable
+        )
+        {
+            var renderer = CreateRoot("MaskFilterExtraUVDimensionsTestObject").AddComponent<MeshRenderer>();
+            var black = new Vector2(0.25f, 0.25f);
+            var white = new Vector2(0.75f, 0.75f);
+            var mesh = CreateUvTriangleMesh(
+                UvPrim(black),
+                UvPrim(white),
+                new[] { black, white, white },
+                new[] { black, black, white }
+            );
+            var uvs = mesh.uv;
+
+            // Z/W point at the opposite mask color and must not affect selection.
+            if (dimensions == 3)
+            {
+                var uv3 = new Vector3[uvs.Length];
+                for (int i = 0; i < uvs.Length; i++)
+                    uv3[i] = new Vector3(uvs[i].x, uvs[i].y, 1 - uvs[i].x);
+                mesh.SetUVs(0, uv3);
+            }
+            else
+            {
+                var uv4 = new Vector4[uvs.Length];
+                for (int i = 0; i < uvs.Length; i++)
+                    uv4[i] = new Vector4(uvs[i].x, uvs[i].y, 1 - uvs[i].x, 1 - uvs[i].y);
+                mesh.SetUVs(0, uv4);
+            }
+
+            var mask = CreateMaskTexture(readable, TextureWrapMode.Clamp);
+            var filter = new VertexFilterByMask(0, mask, ByMaskMode.DeleteBlack, selectionMode);
+            var filtered = RunFilterPrimitives(filter, renderer, mesh);
+
+            CollectionAssert.AreEqual(new[]
+            {
+                true,
+                false,
+                selectionMode == VertexSelectionMode.AnyVertex,
+                selectionMode != VertexSelectionMode.AllVertices
+            }, filtered);
+        }
+
+        [Test]
         public void ANDFilter_DoesNotClearFilteredArray()
         {
             int primCount = 5;
