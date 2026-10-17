@@ -1,4 +1,4 @@
-﻿#if MA_VRCSDK3_AVATARS
+#if MA_VRCSDK3_AVATARS
 
 using System.Collections.Generic;
 using System.Linq;
@@ -312,14 +312,74 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
             move.SetsScale = scale;
             return move;
         }
-    
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DeltaTime_GeneratedStates_UseExistingWriteDefaults(bool writeDefaults)
+        {
+            var root = CreateRoot("DeltaTimeRoot");
+            var target = CreateChild(root, "Target");
+            var graph = new ReactionGraph();
+            var destinations = Enumerable.Range(0, 3)
+                .Select(index => CreateChild(root, $"Destination{index}"))
+                .ToList();
+
+            for (var i = 0; i < destinations.Count; i++)
+            {
+                var parameter = $"input-{i}";
+                graph.Parameters.EnsureParameter(parameter, 0);
+                graph.AddNode(new ReactionNode(
+                    new ParameterExpression(parameter, 0.5f, ParameterExpression.ConditionMode.GreaterThan),
+                    new ReactiveMoveAction(target.transform, destinations[i].transform, false,
+                        ReactiveMoveChannels.Position, i + 1)
+                ));
+            }
+
+            var expectedWriteDefaults = true;
+            var existingStates = new HashSet<VirtualState>();
+            GenerateReactiveController(root, graph, existingController =>
+            {
+                var existingLayer = existingController.AddLayer(LayerPriority.Default, "Existing clip states");
+                var existingStateMachine = existingLayer.StateMachine!;
+                existingStateMachine.DefaultState = existingStateMachine.AddState("Existing default",
+                    VirtualClip.Create("Existing default clip"));
+                existingStateMachine.DefaultState.WriteDefaultValues = writeDefaults;
+                var existingAlternate = existingStateMachine.AddState("Existing alternate",
+                    VirtualClip.Create("Existing alternate clip"));
+                existingAlternate.WriteDefaultValues = writeDefaults;
+
+                // Direct-blendtree layers always require WD on and must not affect the inferred setting.
+                var directLayer = existingController.AddLayer(LayerPriority.Default, "Existing direct blendtree");
+                var directTree = VirtualBlendTree.Create("Existing direct tree");
+                directTree.BlendType = BlendTreeType.Direct;
+                var directStateMachine = directLayer.StateMachine!;
+                directStateMachine.DefaultState = directStateMachine.AddState("Existing direct", directTree);
+                directStateMachine.DefaultState.WriteDefaultValues = !writeDefaults;
+
+                expectedWriteDefaults = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(existingController) ?? true;
+                Assert.That(expectedWriteDefaults, Is.EqualTo(writeDefaults),
+                    "Test setup must derive write defaults from the clip-motion states, not the direct blendtree");
+                existingStates.UnionWith(existingController.AllReachableNodes().OfType<VirtualState>());
+            }, generatedController =>
+            {
+                var generatedStates = generatedController.AllReachableNodes()
+                    .OfType<VirtualState>()
+                    .Where(state => !existingStates.Contains(state) && state.Motion is not VirtualBlendTree)
+                    .ToList();
+                Assert.That(generatedStates, Is.Not.Empty, "expected generated non-blendtree states");
+                foreach (var state in generatedStates)
+                {
+                    Assert.That(state.WriteDefaultValues, Is.EqualTo(expectedWriteDefaults),
+                        $"generated state '{state.Name}' has incorrect write defaults");
+                }
+            });
+        }
         [Test]
         public void DeltaTime_DeepInternalChain_SuppressesInitialTransitionOnly()
         {
             var root = CreateRoot("DeltaTimeRoot");
             var target = CreateChild(root, "Target");
             var destination = CreateChild(root, "Destination");
-            var animator = root.GetComponent<Animator>() ?? root.AddComponent<Animator>();
             var graph = new ReactionGraph();
             graph.Parameters.EnsureParameter("input", 0);
     
@@ -339,30 +399,8 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
                 new ReactiveMoveAction(target.transform, destination.transform, false,
                     ReactiveMoveChannels.Position, 2f)
             ));
-    
-            var context = new nadena.dev.ndmf.BuildContext(root, null,
-                PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30], true);
-            var services = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            
-            // Alias the FX controller onto an animator to make it easy to test in context.
-            var controller = VirtualAnimatorController.Create(services.ControllerContext.CloneContext);
-            services.ControllerContext.Controllers[FX] = controller;
-            services.ControllerContext.Controllers[animator] = controller;
-            
-            var injectRO = context.ActivateExtensionContextRecursive<InjectROBaseLayer>();
-    
-            var backend = new VRChatBlendTreeBackend(controller, new UnityBlendTreeBackend(context, controller));
-            backend.PreprocessGraph(graph);
-            ILBuild.Simplify(graph);
-            backend.Build(graph);
-            
-            // Since we're manually building things we also have to manually set up the base layer
-            var baseState = injectRO.Layer!.StateMachine!.AddState("Base");
-            baseState.Motion = backend.BaseBlendTree;
-            injectRO.Layer!.StateMachine.DefaultState = baseState;
-            
-            context.DeactivateAllExtensionContexts();
-            animator.Rebind();
+
+            var (animator, _) = GenerateReactiveController(root, graph);
             var constraint = target.GetComponent<VRCPositionConstraint>();
     
             animator.SetFloat("__MA/SyncInit", 1);
@@ -378,7 +416,45 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
             for (var i = 0; i < 30; i++) animator.Update(1f / 60f);
             Assert.That(constraint.Sources[1].Weight, Is.GreaterThan(0.001f).And.LessThan(0.999f));
         }
-    
+
+        private (Animator animator, VirtualAnimatorController controller) GenerateReactiveController(
+            GameObject root,
+            ReactionGraph graph,
+            System.Action<VirtualAnimatorController> setupController = null,
+            System.Action<VirtualAnimatorController> validateController = null
+        )
+        {
+            var animator = root.GetComponent<Animator>() ?? root.AddComponent<Animator>();
+            var context = new nadena.dev.ndmf.BuildContext(root, null,
+                PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30], true);
+            var services = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var controller = VirtualAnimatorController.Create(services.ControllerContext.CloneContext);
+            services.ControllerContext.Controllers[FX] = controller;
+            services.ControllerContext.Controllers[animator] = controller;
+            var injectRO = context.ActivateExtensionContextRecursive<InjectROBaseLayer>();
+
+            try
+            {
+                setupController?.Invoke(controller);
+
+                var backend = new VRChatBlendTreeBackend(controller, new UnityBlendTreeBackend(context, controller));
+                backend.PreprocessGraph(graph);
+                ILBuild.Simplify(graph);
+                backend.Build(graph);
+
+                var baseState = injectRO.Layer!.StateMachine!.AddState("Base");
+                baseState.Motion = backend.BaseBlendTree;
+                injectRO.Layer.StateMachine.DefaultState = baseState;
+                validateController?.Invoke(controller);
+            }
+            finally
+            {
+                context.DeactivateAllExtensionContexts();
+            }
+
+            animator.Rebind();
+            return (animator, controller);
+        }
         private static void AssertVector3(Vector3 actual, Vector3 expected)
         {
             Assert.That(Vector3.Distance(actual, expected), Is.LessThan(0.0001f));

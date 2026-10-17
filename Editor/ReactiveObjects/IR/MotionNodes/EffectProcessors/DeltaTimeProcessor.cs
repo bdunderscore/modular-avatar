@@ -76,6 +76,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             var now = Backend.ElapsedTimeParam;
             var deltaTime = Backend.DeltaTimeParam;
             var syncInit = Backend.SyncInitParam;
+            var wd = MergeAnimatorProcessor.AnalyzeLayerWriteDefaults(Backend.FX) ?? true;
             var customLayer = this.Backend.FX.AddLayer(new LayerPriority(int.MaxValue), "MA RC: DeltaTime Control");
             
             const int xNodeSize = 300;
@@ -102,18 +103,22 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 
                 // Primary group
                 var moving = stateMachine.AddState($"S{i}: Moving", position: groupPos + new Vector3(xNodeSize, 0, 0));
+                moving.WriteDefaultValues = wd;
                 moving.Motion = movingClip;
                 moving.TimeParameter = deltaTime;
                 
                 var transition = stateMachine.AddState($"S{i}: Transition", position: groupPos + new Vector3(xNodeSize * 2, 0, 0));
+                transition.WriteDefaultValues = wd;
                 transition.Motion = movingClip;
                 transition.TimeParameter = deltaTime;
                 
                 var locked = stateMachine.AddState($"S{i}: Locked", position: groupPos + new Vector3(xNodeSize * 3, 0, 0));
+                locked.WriteDefaultValues = wd;
                 locked.Motion = lockedClip;
                 
                 // Pre-sync
                 var unsynced = stateMachine.AddState($"S{i}: Sync Pending", position: groupPos + new Vector3(xNodeSize * 2, yNodeSize, 0));
+                unsynced.WriteDefaultValues = wd;
                 unsynced.Motion = lockedClip;
 
                 if (i == group.DefaultNode || stateMachine.DefaultState == null)
