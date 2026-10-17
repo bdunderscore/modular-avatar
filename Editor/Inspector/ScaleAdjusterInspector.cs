@@ -24,11 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
         private void OnUndoRedoPerformed() => _undoRedoPerformed = true;
-        protected override void OnDestroy()
-        {
-            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
-            base.OnDestroy();
-        }
+        protected void OnDisable() => Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 
         protected override void OnInnerInspectorGUI()
         {
