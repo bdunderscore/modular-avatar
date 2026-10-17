@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 
 ### Fixed
+- [#2149] Fixed incorrect label for traditional Chinese language in the language switcher
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
 
 ### Changed
