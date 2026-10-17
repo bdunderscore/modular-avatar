@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2162] 非アクティブのリアクティブコンポーネントがMerge Motionの効果を上書きしてしまう問題を修正
-- [#2170] FX アニメーターの他のステートが WD OFF でも、`Reactive Move` が Write Defaults=ON のステートを書き出す問題を修正
-- [#2171] `Vertex Filter - By Mask` が三次元以上のUVチャンネルでエラーを出す問題を修正
 
 ### Changed
 
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-alpha.2] - [2026-10-17]
+
+### Fixed
+- [#2162] 非アクティブのリアクティブコンポーネントがMerge Motionの効果を上書きしてしまう問題を修正
+- [#2170] FX アニメーターの他のステートが WD OFF でも、`Reactive Move` が Write Defaults=ON のステートを書き出す問題を修正
+- [#2171] `Vertex Filter - By Mask` が三次元以上のUVチャンネルでエラーを出す問題を修正
 
 ## [1.19.0-alpha.1] - [2026-10-12]
 

@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2162] Merge Motion could be overridden by inactive reactive components
-- [#2170] `Reactive Move` would generate Write Defaults=on states even when the rest of the FX animator was WD=off
-- [#2171] Fixed issue where `Vertex Filter - By Mask` broke with 3+-dimension UV channels
 
 ### Changed
 
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-alpha.2] - [2026-10-17]
+
+### Fixed
+- [#2162] Merge Motion could be overridden by inactive reactive components
+- [#2170] `Reactive Move` would generate Write Defaults=on states even when the rest of the FX animator was WD=off
+- [#2171] Fixed issue where `Vertex Filter - By Mask` broke with 3+-dimension UV channels
 
 ## [1.19.0-alpha.1] - [2026-10-12]
 
