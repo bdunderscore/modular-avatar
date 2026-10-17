@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
+- [#2171] Fixed issue where `Vertex Filter - By Mask` broke with 3+-dimension UV channels
 
 ### Changed
 - [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different
