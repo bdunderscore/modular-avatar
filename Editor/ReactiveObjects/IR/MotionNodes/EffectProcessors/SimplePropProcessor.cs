@@ -189,11 +189,20 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                         prop.TargetType,
                         prop.Name
                     );
-                    clip.SetFloatCurve(ecb, AnimationCurve.Constant(0, 1, (float)prop.Value!));
+                    clip.SetFloatCurve(ecb, ConstantCurve((float)prop.Value!));
                 }
             }
 
             return new MotionNode(clip);
+        }
+
+        private static AnimationCurve ConstantCurve(float value)
+        {
+            if (!float.IsNaN(value)) return AnimationCurve.Constant(0, 1, value);
+
+            var curve = new AnimationCurve();
+            curve.AddKey(new Keyframe(0, value));
+            return curve;
         }
 
         private GameObject? ResolveTarget(Object? propTarget)
