@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ### Changed
+- [#2180] `MA Global Collider` は、指を置き換える手段に訴える前に、VRChat Physbone コライダーのグローバルコリジョン機能を活用するようになりました。
 
 ### Removed
 
