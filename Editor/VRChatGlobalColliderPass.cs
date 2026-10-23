@@ -7,11 +7,13 @@ using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.vrchat;
 using UnityEngine;
-using VRC.SDKBase.Validation;
-using VRC.SDK3.Dynamics.PhysBone.Components;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
 using Object = UnityEngine.Object;
+#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
+using VRC.SDKBase.Validation;
+using VRC.SDK3.Dynamics.PhysBone.Components;
 using VRC.Dynamics;
+#endif
 
 #endregion
 
@@ -37,11 +39,13 @@ namespace nadena.dev.modular_avatar.core.editor
 			//suppress this option in their case. 
 			//Manual remaps run first 
 
+#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
 			//Checks for existing global colliders on the avatar. 
 			var existingVRCGlobalColliders = ctx.AvatarRootTransform.GetComponentsInChildren<VRCPhysBoneCollider>(true)
 				.Where(c => c.globalCollision != VRCPhysBone.AdvancedBool.False)
 				.ToArray();
 			int availableGlobalPBColliders = Mathf.Max(0, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR - existingVRCGlobalColliders.Length);
+#endif
 
 			var logFingerRemapCount = new int();
 			var logRemapUsingFinger = new HashSet<GameObject>();
@@ -118,6 +122,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				}
 				else
 				{
+#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
 					//Use VRC Physbone Colliders first
 					if (availableGlobalPBColliders > 0)
 					{
@@ -132,6 +137,7 @@ namespace nadena.dev.modular_avatar.core.editor
 						availableGlobalPBColliders--;
 						continue;
 					}
+#endif
 
 					targetCollider = GlobalCollider.None;
 					foreach (var collider in colliderPriority)
