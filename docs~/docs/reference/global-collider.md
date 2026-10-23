@@ -35,7 +35,7 @@ colliders such as the fingers.
 You can place this component on any game object and define its shape like a standard capsule or VRChat Physbone collider.
 
 The implementation strategy may differ by platform. On VRChat, the number of global colliders is limited, so this
-component will take over one of the base colliders (fingers) in order to implement the global collider.
+component will use the allotted VRChat Physbone Colliders set to global before making use of finger colliders to implement the global collider.
 
 On other platforms, we may implement this in a different way.
 

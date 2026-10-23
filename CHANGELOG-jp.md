@@ -22,6 +22,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
   - 互換性に関する注意：Reactive Component の反応タイミングが以前のバージョンからわずかに変わる場合があります。
   - 互換性に関する注意：VRCFury 1.1373 未満との共存はサポートされなくなりました。Modular Avatar を更新する前に
     VRCFury を更新してください。
+- [#2180] `MA Global Collider` は、指を置き換える手段に訴える前に、VRChat Physbone コライダーのグローバルコリジョン機能を活用するようになりました。
 
 ### Removed
 - [#2146] `UnityObjectIDHelper` を Modular Avatar の公開APIから削除。このAPIは間違って公開されたもいので、
