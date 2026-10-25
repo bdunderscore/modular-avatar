@@ -9,6 +9,8 @@ namespace nadena.dev.modular_avatar.core.editor
 {
     internal class ControlCondition
     {
+        internal const float UnselectedMenuItemInitialValue = -999;
+
         public string Parameter = "";
         public Object? DebugReference;
 
