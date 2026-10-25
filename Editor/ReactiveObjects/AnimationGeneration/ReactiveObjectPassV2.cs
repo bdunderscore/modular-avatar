@@ -175,7 +175,13 @@ namespace nadena.dev.modular_avatar.core.editor
                 return new ObjectActiveState(arg.ReferenceObject, ObjectActiveState.State.Active);
             }
 
-            graph.Parameters.EnsureParameter(arg.Parameter, arg.InitialValue);
+            graph.Parameters.EnsureParameter(arg.Parameter, 0);
+            // Non-default menu items use a preview sentinel, not a shared parameter default.
+            // A real initial value must win regardless of which menu item is visited first.
+            if (arg.InitialValue != ControlCondition.UnselectedMenuItemInitialValue)
+            {
+                graph.Parameters.SetParameterInitialValue(arg.Parameter, arg.InitialValue);
+            }
 
             if (!float.IsFinite(arg.ParameterValueHi))
             {
