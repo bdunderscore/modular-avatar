@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
 
 ### Fixed
+- [#2182] Fixed incorrect non-animated states for Reactive Components sharing a menu parameter when a non-default menu item was processed first.
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
 - [#2171] Fixed issue where `Vertex Filter - By Mask` broke with 3+-dimension UV channels
 - [#2175] `Mesh Cutter` and `Shape Changer` (delete mode) had no effect on VRChat when driven by a condition
