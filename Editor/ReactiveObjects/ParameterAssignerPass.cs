@@ -242,7 +242,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                     else
                     {
-                        simulationInitialStates.TryAdd(simulationParamName, -999);
+                        simulationInitialStates.TryAdd(simulationParamName, ControlCondition.UnselectedMenuItemInitialValue);
                     }
                 }
             }
@@ -258,7 +258,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 // Note: This slightly odd-looking value is key to making the Auto checkbox work for editor previews;
                 // we basically force-disable any conditions for nonselected menu items and force-enable any for default
                 // menu items.
-                InitialValue = mami.isDefault ? control.Value : -999,
+                InitialValue = mami.isDefault ? control.Value : ControlCondition.UnselectedMenuItemInitialValue,
                 ParameterValueLo = control.Value - 0.005f,
                 ParameterValueHi = control.Value + 0.005f,
                 DebugReference = mami,
