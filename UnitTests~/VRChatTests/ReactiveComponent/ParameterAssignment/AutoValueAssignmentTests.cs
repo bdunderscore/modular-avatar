@@ -8,6 +8,7 @@ using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
+using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -246,6 +247,65 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
         }
     
         
+        [Test]
+        public void SharedMenuParameterInitialStateIsIndependentOfOrder(
+            [Values(false, true)] bool defaultFirst,
+            [Values(false, true)] bool declareAnimatorParameter
+        )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+            descriptor.expressionParameters.parameters = Array.Empty<VRCExpressionParameters.Parameter>();
+
+            if (declareAnimatorParameter)
+            {
+                var controller = new AnimatorController();
+                controller.AddParameter("outfit", AnimatorControllerParameterType.Float);
+                controller.AddLayer("Idle");
+                var state = controller.layers[0].stateMachine.AddState("Idle");
+                controller.layers[0].stateMachine.defaultState = state;
+                var layers = descriptor.baseAnimationLayers;
+                var index = Array.FindIndex(layers, l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+                layers[index].isDefault = false;
+                layers[index].animatorController = controller;
+                descriptor.baseAnimationLayers = layers;
+            }
+
+            var defaultOutfit = CreateChild(root, "defaultOutfit");
+            var otherOutfit = CreateChild(root, "otherOutfit");
+            otherOutfit.SetActive(false);
+
+            foreach (var isDefault in new[] { defaultFirst, !defaultFirst })
+            {
+                var child = CreateChild(root, isDefault ? "defaultChoice" : "otherChoice");
+                var menuItem = child.AddComponent<ModularAvatarMenuItem>();
+                menuItem.Control = new VRCExpressionsMenu.Control
+                {
+                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+                };
+                menuItem.automaticValue = true;
+                menuItem.isDefault = isDefault;
+
+                var toggle = child.AddComponent<ModularAvatarObjectToggle>();
+                toggle.Inverted = isDefault;
+                toggle.Objects.Add(new ToggledObject
+                {
+                    Object = new AvatarObjectReference(isDefault ? defaultOutfit : otherOutfit),
+                    Active = !isDefault
+                });
+            }
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.IsTrue(defaultOutfit.activeSelf);
+            Assert.IsFalse(otherOutfit.activeSelf);
+            var fx = (AnimatorController)descriptor.baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
+            Assert.AreEqual(0f, fx.parameters.Single(p => p.name == "outfit").defaultFloat);
+        }
+
         void TestAssignments(
             (bool, float)[] assignments,
             float[] expectedAssignments,
