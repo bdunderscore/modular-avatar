@@ -703,11 +703,16 @@ namespace nadena.dev.modular_avatar.test.Tests
                     $"__ActiveSelfProxy/{controller.GetEntityId()}",
                     1.0f
                 );
-                for (var i = 0; i < 10 && !initialContext.IsInvalidated; i++)
+                // Older NDMF versions can invalidate initialContext for unrelated component changes. Wait for the
+                // work queued by the override itself instead of treating that potentially stale flag as completion.
+                var overrideInvalidationProcessed = false;
+                NDMFSyncContext.Context.Post(_ => overrideInvalidationProcessed = true, null);
+                for (var i = 0; i < 10 && !overrideInvalidationProcessed; i++)
                 {
                     yield return null;
                     ComputeContext.FlushInvalidates();
                 }
+                Assert.That(overrideInvalidationProcessed, Is.True);
                 Assert.That(initialContext.IsInvalidated, Is.True);
     
                 IRenderFilterNode activeNode;
@@ -733,7 +738,7 @@ namespace nadena.dev.modular_avatar.test.Tests
                 );
     
                 target.transform.position = new Vector3(-2, 6, 1);
-                for (var i = 0; i < 10 && !activeContext.IsInvalidated; i++)
+                for (var i = 0; i < 10; i++)
                 {
                     yield return null;
                     ComputeContext.FlushInvalidates();
