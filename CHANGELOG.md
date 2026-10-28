@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Compatibility note: Reactive Component response timing may be slightly different from prior versions.
   - Compatibility note: Modular Avatar no longer supports co-existence with VRCFury versions older than 1.1373.
     Update VRCFury before upgrading Modular Avatar.
+- [#2180] `MA Global Collider` now takes advantage of VRChat Physbone colliders with global collision before resorting to finger theft.
 
 ### Removed
 - [#2146] Removed `UnityObjectIDHelper` from Modular Avatar's public API. This API was exposed accidentally, and caused
