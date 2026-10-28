@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-alpha.3] - [2026-10-28]
+
+### Fixed
+- [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ## [1.19.0-alpha.2] - [2026-10-17]
 

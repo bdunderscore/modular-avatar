@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2175] `Mesh Cutter` and `Shape Changer` (delete mode) had no effect on VRChat when driven by a condition
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-alpha.3] - [2026-10-28]
+
+### Fixed
+- [#2175] `Mesh Cutter` and `Shape Changer` (delete mode) had no effect on VRChat when driven by a condition
 
 ## [1.19.0-alpha.2] - [2026-10-17]
 
