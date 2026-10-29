@@ -50,8 +50,10 @@ namespace nadena.dev.modular_avatar.core.editor.plugin
             // Protect against accidental destructive edits by cloning the input controllers ASAP
             seq.WithRequiredExtension(typeof(AnimatorServicesContext), s =>
             {
-                // Just activating the context is enough.
-                s.Run("Clone animators", _ => { });
+                s.Run("Clone animators", ctx =>
+                {
+                    ctx.ActivateExtensionContextRecursive<VirtualControllerContext>();
+                });
             });
 
             seq = InPhase(BuildPhase.Transforming);
