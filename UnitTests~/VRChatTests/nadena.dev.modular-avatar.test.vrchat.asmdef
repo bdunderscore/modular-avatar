@@ -45,6 +45,11 @@
       "name": "com.vrchat.avatars",
       "expression": "3.10.3",
       "define": "MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER"
+    },
+    {
+      "name": "com.vrchat.avatars",
+      "expression": "3.10.6",
+      "define": "MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER"
     }
   ],
   "noEngineReferences": false
