@@ -223,6 +223,14 @@ namespace nadena.dev.modular_avatar.core.editor
                         localOnly = !parameter.networkSynced,
                         defaultValue = parameter.defaultValue,
                         saved = parameter.saved,
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+                        bitWidth = parameter.bitWidth == 8 ? 0 : parameter.bitWidth,
+                        representation = parameter.flippedRepresentation ?
+                            (pst == ParameterSyncType.Float ? ParameterRepresentation.Unsigned : ParameterRepresentation.Signed) :
+                            ParameterRepresentation.Default,
+                        useCustomLerpDuration = parameter.useCustomLerpDuration,
+                        customLerpDuration = parameter.customLerpDuration,
+#endif
                     });
                     importedAny = true;
                 }
