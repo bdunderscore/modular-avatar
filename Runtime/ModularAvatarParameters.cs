@@ -19,6 +19,11 @@ namespace nadena.dev.modular_avatar.core
         public ParameterSyncType syncType;
         public bool localOnly;
 
+        public int bitWidth;
+        public ParameterRepresentation representation;
+        public bool useCustomLerpDuration;
+        public float customLerpDuration;
+
         public float defaultValue;
         public bool saved;
 
@@ -53,6 +58,13 @@ namespace nadena.dev.modular_avatar.core
         Int,
         Float,
         Bool,
+    }
+
+    public enum ParameterRepresentation
+    {
+        Default,
+        Unsigned,
+        Signed,
     }
 
     [DisallowMultipleComponent]
