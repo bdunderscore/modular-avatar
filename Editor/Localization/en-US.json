@@ -493,5 +493,14 @@
   "version_reset.warning": "Force downgrading an existing asset can damage your saved data. Check for correct behavior after resetting.",
   "version_reset.set_current": "Set required version to current",
   "version_reset.clear_required_version": "Clear required version data",
-  "version_reset.cancel": "Cancel"
+  "version_reset.cancel": "Cancel",
+  "error.rename_params.bit_width_conflict": "[MA-0028] Bit width conflict",
+  "error.rename_params.bit_width_conflict:description": "Parameter {0} has multiple bit widths specified: {1} != {2}",
+  "error.rename_params.bit_width_conflict:hint": "To avoid unpredictable behavior, leave the bit width field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first bit width specified in the hierarchy order.",
+  "error.rename_params.representation_conflict": "[MA-0029] Representation conflict",
+  "error.rename_params.representation_conflict:description": "Parameter {0} has multiple representations specified: {1} != {2}",
+  "error.rename_params.representation_conflict:hint": "To avoid unpredictable behavior, leave the representation field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first representation specified in the hierarchy order.",
+  "error.rename_params.lerp_duration_conflict": "[MA-0030] Lerp duration conflict",
+  "error.rename_params.lerp_duration_conflict:description": "Parameter {0} has multiple lerp durations specified: {1} != {2}",
+  "error.rename_params.lerp_duration_conflict:hint": "To avoid unpredictable behavior, leave the lerp duration field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first lerp duration specified in the hierarchy order."
 }

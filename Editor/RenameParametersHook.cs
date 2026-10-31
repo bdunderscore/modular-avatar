@@ -305,6 +305,45 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.default_value_conflict", paramList.ToArray());
                 }
+
+                var isNumeric = param.ResolvedParameter.syncType switch
+                {
+                    ParameterSyncType.Float or ParameterSyncType.Int => true,
+                    _ => false,
+                };
+
+                if (isNumeric && param.BitWidthConflict)
+                {
+                    var w1 = param.ConflictingBitWidths.First();
+                    var w2 = param.ConflictingBitWidths.Skip(1).First();
+
+                    List<object> paramList = new List<object> { name, w1, w2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.bit_width_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.RepresentationConflict)
+                {
+                    var r1 = param.ConflictingRepresentations.First();
+                    var r2 = param.ConflictingRepresentations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, r1, r2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.representation_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.CustomLerpDurationConflict)
+                {
+                    var d1 = param.ConflictingLerpDurations.First();
+                    var d2 = param.ConflictingLerpDurations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, d1, d2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.lerp_duration_conflict", paramList.ToArray());
+                }
                 
                 if (!knownParams.Contains(name) && param.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
                 {
