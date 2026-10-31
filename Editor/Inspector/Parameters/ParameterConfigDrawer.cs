@@ -1,6 +1,7 @@
 ﻿#if MA_VRCSDK3_AVATARS && UNITY_2022_1_OR_NEWER
 
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -38,7 +39,6 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
 
             var f_default = root.Q<DefaultValueField>();
             f_default.OnUpdateSyncType((ParameterSyncType)f_sync_type.index);
-            f_sync_type.RegisterValueChangedCallback(evt => f_default.OnUpdateSyncType((ParameterSyncType)f_sync_type.index));
 
             var f_synced = root.Q<Toggle>("f-synced");
             var f_local_only = root.Q<Toggle>("f-local-only");
@@ -47,6 +47,53 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
             f_local_only.RegisterValueChangedCallback(evt => { f_synced.SetValueWithoutNotify(!evt.newValue); });
 
             f_synced.RegisterValueChangedCallback(evt => { f_local_only.value = !evt.newValue; });
+
+            var f_representation = root.Q<DropdownField>("f-representation");
+            f_representation.formatSelectedValueCallback = s => FormatRepresentation(s, (ParameterSyncType)f_sync_type.index);
+            f_representation.formatListItemCallback = f_representation.formatSelectedValueCallback;
+
+            var f_bit_width = root.Q<DropdownField>("f-bit-width");
+            var f_bit_width_value = new IntegerField();
+            f_bit_width.choices = new List<string> { "0", "2", "3", "4", "5", "6", "7", "8" };
+            f_bit_width.formatSelectedValueCallback = s => FormatBitWidth(s);
+            f_bit_width.formatListItemCallback = f_bit_width.formatSelectedValueCallback;
+            f_bit_width.RegisterValueChangedCallback(evt => f_bit_width_value.value = int.Parse(evt.newValue));
+            f_bit_width_value.bindingPath = nameof(ParameterConfig.bitWidth);
+            f_bit_width_value.style.display = DisplayStyle.None;
+            f_bit_width_value.RegisterValueChangedCallback(evt => f_bit_width.SetValueWithoutNotify(ToChoice(evt.newValue)));
+            f_bit_width.parent.Add(f_bit_width_value);
+
+            Action updateNumericFormat = () =>
+            {
+                Enum.TryParse<ParameterRepresentation>(f_representation.value, out var representation);
+                f_default.OnUpdateNumericFormat(f_bit_width_value.value, representation);
+            };
+
+            f_sync_type.RegisterValueChangedCallback(evt =>
+            {
+                f_default.OnUpdateSyncType((ParameterSyncType)f_sync_type.index);
+                f_representation.SetValueWithoutNotify(f_representation.value);
+                updateNumericFormat();
+            });
+            f_representation.RegisterValueChangedCallback(evt => updateNumericFormat());
+            f_bit_width_value.RegisterValueChangedCallback(evt => updateNumericFormat());
+
+            var f_use_custom_lerp_duration = root.Q<Toggle>("f-use-custom-lerp-duration");
+            var f_custom_lerp_duration = root.Q<FloatField>("f-custom-lerp-duration");
+            f_custom_lerp_duration.isDelayed = true;
+            f_use_custom_lerp_duration.RegisterValueChangedCallback(evt =>
+            {
+                f_custom_lerp_duration.style.visibility = evt.newValue ? Visibility.Visible : Visibility.Hidden;
+            });
+            f_custom_lerp_duration.style.visibility =
+                f_use_custom_lerp_duration.value ? Visibility.Visible : Visibility.Hidden;
+            f_custom_lerp_duration.RegisterValueChangedCallback(evt =>
+            {
+                var clamped = float.IsFinite(evt.newValue)
+                    ? Mathf.Clamp(evt.newValue, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION)
+                    : ParameterConfig.MIN_LERP_DURATION;
+                if (!Mathf.Approximately(clamped, evt.newValue)) f_custom_lerp_duration.value = clamped;
+            });
 
             var internalParamAccessor = root.Q<Toggle>("f-internal-parameter");
             internalParamAccessor.RegisterValueChangedCallback(evt =>
@@ -265,6 +312,35 @@ namespace nadena.dev.modular_avatar.core.editor.Parameters
                 }
 
             inLoop = false;
+        }
+
+        private static string FormatRepresentation(string value, ParameterSyncType syncType)
+        {
+            if (!Enum.TryParse<ParameterRepresentation>(value, out var representation)) return value;
+
+            var defaultRepresentation =
+                ParameterConfig.ResolveRepresentation(ParameterRepresentation.Default, syncType);
+
+            return representation switch
+            {
+                ParameterRepresentation.Unsigned or ParameterRepresentation.Signed => Localization.S("params.representation." + representation),
+                _ => string.Format(Localization.S("params.representation.Default"), Localization.S("params.representation." + defaultRepresentation))
+            };
+        }
+
+        private static string FormatBitWidth(string value)
+        {
+            return value switch
+            {
+                "0" => string.Format(Localization.S("params.bitWidth.Default"),
+                    string.Format(Localization.S("params.bitWidth"), ParameterConfig.DEFAULT_BIT_WIDTH)),
+                _ => string.Format(Localization.S("params.bitWidth"), value),
+            };
+        }
+
+        private static string ToChoice(int bitWidth)
+        {
+            return bitWidth == 0 ? "0" : ParameterConfig.ResolveBitWidth(bitWidth).ToString();
         }
     }
 }

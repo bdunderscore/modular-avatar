@@ -92,8 +92,11 @@ namespace nadena.dev.modular_avatar.core.editor
             public List<Object> DefaultSources = new List<Object>();
             public ImmutableHashSet<float> ConflictingValues = ImmutableHashSet<float>.Empty;
             public ImmutableHashSet<ParameterSyncType> ConflictingSyncTypes = ImmutableHashSet<ParameterSyncType>.Empty;
+            public ImmutableHashSet<int> ConflictingBitWidths = ImmutableHashSet<int>.Empty;
+            public ImmutableHashSet<ParameterRepresentation> ConflictingRepresentations = ImmutableHashSet<ParameterRepresentation>.Empty;
+            public ImmutableHashSet<float> ConflictingLerpDurations = ImmutableHashSet<float>.Empty;
             
-            public bool TypeConflict, DefaultValueConflict;
+            public bool TypeConflict, DefaultValueConflict, BitWidthConflict, RepresentationConflict, CustomLerpDurationConflict;
             public long encounterOrder = encounterOrderCounter++;
 
             public VRCExpressionParameters.ValueType? ValueType
@@ -130,6 +133,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ResolvedParameter.saved |= info.ResolvedParameter.saved;
                 ResolvedParameter.localOnly &= info.ResolvedParameter.localOnly;
+
+                MergeAdvancedOptions(info, true);
             }
 
             public void MergeChild(ParameterInfo info)
@@ -142,6 +147,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                     ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
+
+                MergeAdvancedOptions(info, false);
             }
             
             void MergeCommon(ParameterInfo info)
@@ -163,11 +170,63 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 TypeConflict = TypeConflict || info.TypeConflict;
                 DefaultValueConflict = DefaultValueConflict || info.DefaultValueConflict;
+                BitWidthConflict = BitWidthConflict || info.BitWidthConflict;
+                RepresentationConflict = RepresentationConflict || info.RepresentationConflict;
+                CustomLerpDurationConflict = CustomLerpDurationConflict || info.CustomLerpDurationConflict;
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
+                ConflictingBitWidths = ConflictingBitWidths.Union(info.ConflictingBitWidths);
+                ConflictingRepresentations = ConflictingRepresentations.Union(info.ConflictingRepresentations);
+                ConflictingLerpDurations = ConflictingLerpDurations.Union(info.ConflictingLerpDurations);
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
+            }
+
+            void MergeAdvancedOptions(ParameterInfo info, bool detectConflicts)
+            {
+                var other = info.ResolvedParameter;
+
+                var clampedWidth = Math.Clamp(ResolvedParameter.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
+                var clampedOtherWidth = Math.Clamp(other.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
+                if (ResolvedParameter.bitWidth == 0)
+                {
+                    ResolvedParameter.bitWidth = other.bitWidth;
+                }
+                else if (detectConflicts && other.bitWidth != 0 && clampedWidth != clampedOtherWidth)
+                {
+                    BitWidthConflict = true;
+                    ConflictingBitWidths = ConflictingBitWidths
+                        .Add(clampedWidth)
+                        .Add(clampedOtherWidth);
+                }
+
+                if (ResolvedParameter.representation == ParameterRepresentation.Default)
+                {
+                    ResolvedParameter.representation = other.representation;
+                }
+                else if (detectConflicts && other.representation != ParameterRepresentation.Default && ResolvedParameter.representation != other.representation)
+                {
+                    RepresentationConflict = true;
+                    ConflictingRepresentations = ConflictingRepresentations
+                        .Add(ResolvedParameter.representation)
+                        .Add(other.representation);
+                }
+
+                var clampedDuration = Math.Clamp(ResolvedParameter.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
+                var clampedOtherDuration = Math.Clamp(other.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
+                if (!ResolvedParameter.useCustomLerpDuration)
+                {
+                    ResolvedParameter.useCustomLerpDuration = other.useCustomLerpDuration;
+                    ResolvedParameter.customLerpDuration = other.customLerpDuration;
+                }
+                else if (detectConflicts && other.useCustomLerpDuration && Math.Abs(clampedDuration - clampedOtherDuration) > ParameterConfig.VALUE_EPSILON)
+                {
+                    CustomLerpDurationConflict = true;
+                    ConflictingLerpDurations = ConflictingLerpDurations
+                        .Add(clampedDuration)
+                        .Add(clampedOtherDuration);
+                }
             }
         }
 
@@ -181,11 +240,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
             SetExpressionParameters(avatar, syncParams);
 
+            var expressionDefaults = avatar.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Where(p => p.name != null)
+                .GroupBy(p => p.name)
+                .ToDictionary(g => g.Key, g => g.First().defaultValue);
+
             _context.PluginBuildContext.GetState<DefaultValues>().InitialValueOverrides
                 = syncParams.Where(p =>
                         p.Value.ResolvedParameter.HasDefaultValue &&
                         p.Value.ResolvedParameter.OverrideAnimatorDefaults)
-                    .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
+                    .ToImmutableDictionary(p => p.Key, p =>
+                        expressionDefaults.TryGetValue(p.Key, out var expressionDefault)
+                            ? expressionDefault
+                            : p.Value.ResolvedParameter.defaultValue);
 
             // clean up all parameters objects before the ParameterAssignerPass runs
             foreach (var p in avatar.GetComponentsInChildren<ModularAvatarParameters>())
@@ -246,6 +313,45 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.default_value_conflict", paramList.ToArray());
                 }
+
+                var isNumeric = param.ResolvedParameter.syncType switch
+                {
+                    ParameterSyncType.Float or ParameterSyncType.Int => true,
+                    _ => false,
+                };
+
+                if (isNumeric && param.BitWidthConflict)
+                {
+                    var w1 = param.ConflictingBitWidths.First();
+                    var w2 = param.ConflictingBitWidths.Skip(1).First();
+
+                    List<object> paramList = new List<object> { name, w1, w2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.bit_width_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.RepresentationConflict)
+                {
+                    var r1 = param.ConflictingRepresentations.First();
+                    var r2 = param.ConflictingRepresentations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, r1, r2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.representation_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.CustomLerpDurationConflict)
+                {
+                    var d1 = param.ConflictingLerpDurations.First();
+                    var d2 = param.ConflictingLerpDurations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, d1, d2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.lerp_duration_conflict", paramList.ToArray());
+                }
                 
                 if (!knownParams.Contains(name) && param.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
                 {
@@ -269,7 +375,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     converted.networkSynced = !param.ResolvedParameter.localOnly;
                     converted.saved = param.ResolvedParameter.saved;
                     converted.defaultValue = param.ResolvedParameter.defaultValue;
-                    
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+                    ApplyAdvancedOptions(converted, param.ResolvedParameter);
+#endif
                     parameters.Add(converted);
                 }
             }
@@ -324,9 +432,43 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.valueType = parameter.valueType;
             newParameter.networkSynced = parameter.networkSynced || !info.ResolvedParameter.localOnly;
             newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
-            
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+            newParameter.bitWidth = parameter.bitWidth;
+            newParameter.flippedRepresentation = parameter.flippedRepresentation;
+            newParameter.useCustomLerpDuration = parameter.useCustomLerpDuration;
+            newParameter.customLerpDuration = parameter.customLerpDuration;
+            ApplyAdvancedOptions(newParameter, info.ResolvedParameter);
+#endif
+
             return newParameter;
         }
+
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+        private static void ApplyAdvancedOptions(VRCExpressionParameters.Parameter target, ParameterConfig config)
+        {
+            if (target.valueType == VRCExpressionParameters.ValueType.Bool) return;
+
+            if (config.bitWidth != 0) target.bitWidth = (byte)Math.Clamp(config.bitWidth, VRCExpressionParameters.Parameter.MinBitWidth, VRCExpressionParameters.Parameter.MaxBitWidth);
+
+            if (config.representation != ParameterRepresentation.Default)
+            {
+                target.flippedRepresentation = target.valueType == VRCExpressionParameters.ValueType.Float
+                    ? config.representation == ParameterRepresentation.Unsigned
+                    : config.representation == ParameterRepresentation.Signed;
+            }
+
+            var syncType = target.valueType == VRCExpressionParameters.ValueType.Float
+                ? ParameterSyncType.Float
+                : ParameterSyncType.Int;
+            target.defaultValue = ParameterConfig.ResolveClampedValue(target.defaultValue, syncType, target.bitWidth, target.flippedRepresentation);
+
+            if (config.useCustomLerpDuration && float.IsFinite(config.customLerpDuration))
+            {
+                target.useCustomLerpDuration = true;
+                target.customLerpDuration = Math.Clamp(config.customLerpDuration, VRCExpressionParameters.Parameter.MinLerpDuration, VRCExpressionParameters.Parameter.MaxLerpDuration);
+            }
+        }
+#endif
 
         private ImmutableDictionary<string, ParameterInfo> WalkTree(
             GameObject obj

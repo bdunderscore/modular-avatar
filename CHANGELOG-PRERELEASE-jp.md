@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
 
 ### Fixed
 
