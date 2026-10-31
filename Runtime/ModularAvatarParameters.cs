@@ -66,6 +66,18 @@ namespace nadena.dev.modular_avatar.core
                 ? ParameterRepresentation.Signed
                 : ParameterRepresentation.Unsigned;
         }
+
+        internal static float ResolveClampedValue(float value, ParameterSyncType syncType, int bitWidth, bool flippedRepresentation)
+        {
+            return (syncType, flippedRepresentation) switch
+            {
+                (ParameterSyncType.Float, false) => Math.Clamp(value, -1f, 1f),
+                (ParameterSyncType.Float, true) => Math.Clamp(value, 0f, 1f),
+                (ParameterSyncType.Int, false) => Math.Clamp(value, 0, (1 << bitWidth) - 1f),
+                (ParameterSyncType.Int, true) => Math.Clamp(value, -(1 << (bitWidth - 1)),  (1 << (bitWidth - 1)) - 1f),
+                _ => value,
+            };
+        }
     }
 
     /**
