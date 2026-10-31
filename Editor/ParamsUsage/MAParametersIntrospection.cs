@@ -82,7 +82,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         break;
                 }
 
-                return new ProvidedParameter(
+                var parameter = new ProvidedParameter(
                     p.nameOrPrefix,
                     p.isPrefix ? ParameterNamespace.PhysBonesPrefix : ParameterNamespace.Animator,
                     _component, PluginDefinition.Instance, paramType)
@@ -90,8 +90,23 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly && !animatorOnly,
                     IsHidden = p.internalParameter,
-                    DefaultValue = p.defaultValue
+                    DefaultValue = p.defaultValue,
+                    NumericBitWidth = p.bitWidth != 0 ? p.bitWidth : null,
+                    LerpDuration = p.useCustomLerpDuration ? p.customLerpDuration : null,
                 };
+
+                // For Default variant, NDMF itself resolves its default signedness.
+                switch (p.representation)
+                {
+                    case ParameterRepresentation.Unsigned:
+                        parameter.Signedness = ParameterSignedness.Unsigned;
+                        break;
+                    case ParameterRepresentation.Signed:
+                        parameter.Signedness = ParameterSignedness.Signed;
+                        break;
+                }
+
+                return parameter;
             });
         }
 
