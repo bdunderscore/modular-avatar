@@ -240,11 +240,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
             SetExpressionParameters(avatar, syncParams);
 
+            var expressionDefaults = avatar.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Where(p => p.name != null)
+                .GroupBy(p => p.name)
+                .ToDictionary(g => g.Key, g => g.First().defaultValue);
+
             _context.PluginBuildContext.GetState<DefaultValues>().InitialValueOverrides
                 = syncParams.Where(p =>
                         p.Value.ResolvedParameter.HasDefaultValue &&
                         p.Value.ResolvedParameter.OverrideAnimatorDefaults)
-                    .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
+                    .ToImmutableDictionary(p => p.Key, p =>
+                        expressionDefaults.TryGetValue(p.Key, out var expressionDefault)
+                            ? expressionDefault
+                            : p.Value.ResolvedParameter.defaultValue);
 
             // clean up all parameters objects before the ParameterAssignerPass runs
             foreach (var p in avatar.GetComponentsInChildren<ModularAvatarParameters>())
@@ -448,6 +456,11 @@ namespace nadena.dev.modular_avatar.core.editor
                     ? config.representation == ParameterRepresentation.Unsigned
                     : config.representation == ParameterRepresentation.Signed;
             }
+
+            var syncType = target.valueType == VRCExpressionParameters.ValueType.Float
+                ? ParameterSyncType.Float
+                : ParameterSyncType.Int;
+            target.defaultValue = ParameterConfig.ResolveClampedValue(target.defaultValue, syncType, target.bitWidth, target.flippedRepresentation);
 
             if (config.useCustomLerpDuration && float.IsFinite(config.customLerpDuration))
             {
