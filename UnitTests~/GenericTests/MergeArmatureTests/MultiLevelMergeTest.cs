@@ -54,7 +54,7 @@ namespace nadena.dev.modular_avatar.test.Tests.MergeArmatureTests
     
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
-            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
     
@@ -82,7 +82,7 @@ namespace nadena.dev.modular_avatar.test.Tests.MergeArmatureTests
     
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
-            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
     
@@ -106,7 +106,7 @@ namespace nadena.dev.modular_avatar.test.Tests.MergeArmatureTests
     
             nadena.dev.ndmf.BuildContext context =
                 new nadena.dev.ndmf.BuildContext(root, null);
-            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             new MergeArmatureHook().OnPreprocessAvatar(context, root);
     

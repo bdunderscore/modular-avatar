@@ -29,7 +29,7 @@ namespace nadena.dev.modular_avatar.test.MergeAnimatorTests
             var merge = av.AddComponent<ModularAvatarMergeAnimator>();
     
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
+            ctx.ActivateExtensionContext<BuildContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
     
             var errors = ErrorReport.CaptureErrors(() =>
@@ -50,7 +50,7 @@ namespace nadena.dev.modular_avatar.test.MergeAnimatorTests
             merge.animator = LoadAsset<AnimatorOverrideController>("AOC_Override.overrideController");
     
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
+            ctx.ActivateExtensionContext<BuildContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
     
             var errors = ErrorReport.CaptureErrors(() =>
@@ -89,7 +89,7 @@ namespace nadena.dev.modular_avatar.test.MergeAnimatorTests
             
             
             var ctx = new BuildContext(av, null);
-            ctx.ActivateExtensionContext<ModularAvatarContext>();
+            ctx.ActivateExtensionContext<BuildContext>();
             ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
     
             var errors = ErrorReport.CaptureErrors(() =>

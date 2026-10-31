@@ -103,7 +103,7 @@ namespace nadena.dev.modular_avatar.test.Tests.DuplicatePBStripping
     
             var context = CreateContext(prefab);
             
-            context.ActivateExtensionContext<ModularAvatarContext>();
+            context.ActivateExtensionContext<BuildContext>();
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var errors = ErrorReport.CaptureErrors(() => new MergeArmatureHook().OnPreprocessAvatar(context, prefab));
             Assert.AreEqual(1, errors.Count);
