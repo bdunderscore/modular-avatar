@@ -12,7 +12,7 @@ namespace nadena.dev.modular_avatar.core
     public struct ParameterConfig
     {
         internal const float VALUE_EPSILON = 0.000001f;
-        
+
         public string nameOrPrefix;
         public string remapTo;
         public bool internalParameter, isPrefix;
