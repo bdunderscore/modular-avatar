@@ -14,6 +14,7 @@ namespace nadena.dev.modular_avatar.core
         internal const float VALUE_EPSILON = 0.000001f;
         internal const int MIN_BIT_WIDTH = 2;
         internal const int MAX_BIT_WIDTH = 8;
+        internal const int DEFAULT_BIT_WIDTH = 8;
         internal const float MIN_LERP_DURATION = 0f;
         internal const float MAX_LERP_DURATION = 300f;
 
@@ -50,6 +51,21 @@ namespace nadena.dev.modular_avatar.core
         }
 
         public bool HasDefaultValue => hasExplicitDefaultValue || Mathf.Abs(defaultValue) > VALUE_EPSILON;
+
+        internal static int ResolveBitWidth(int bitWidth)
+        {
+            return bitWidth == 0 ? DEFAULT_BIT_WIDTH : Mathf.Clamp(bitWidth, MIN_BIT_WIDTH, MAX_BIT_WIDTH);
+        }
+
+        internal static ParameterRepresentation ResolveRepresentation(ParameterRepresentation representation,
+            ParameterSyncType syncType)
+        {
+            if (representation != ParameterRepresentation.Default) return representation;
+
+            return syncType == ParameterSyncType.Float
+                ? ParameterRepresentation.Signed
+                : ParameterRepresentation.Unsigned;
+        }
     }
 
     /**
