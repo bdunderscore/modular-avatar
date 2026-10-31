@@ -324,7 +324,13 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.valueType = parameter.valueType;
             newParameter.networkSynced = parameter.networkSynced || !info.ResolvedParameter.localOnly;
             newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
-            
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+            newParameter.bitWidth = parameter.bitWidth;
+            newParameter.flippedRepresentation = parameter.flippedRepresentation;
+            newParameter.useCustomLerpDuration = parameter.useCustomLerpDuration;
+            newParameter.customLerpDuration = parameter.customLerpDuration;
+#endif
+
             return newParameter;
         }
 
