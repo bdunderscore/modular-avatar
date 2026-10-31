@@ -408,7 +408,121 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
             
             AvatarProcessor.ProcessAvatar(prefab);
         }
-    
+
+        #if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+        [Test]
+        public void AdvancedOptions_AppliedToNewParameters()
+        {
+            var root = CreateRoot("root");
+
+            root.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new()
+                {
+                    nameOrPrefix = "int",
+                    syncType = ParameterSyncType.Int,
+                    bitWidth = 4,
+                    representation = ParameterRepresentation.Signed,
+                    useCustomLerpDuration = true,
+                    customLerpDuration = 2f,
+                },
+                new()
+                {
+                    nameOrPrefix = "float",
+                    syncType = ParameterSyncType.Float,
+                    representation = ParameterRepresentation.Unsigned,
+                },
+            };
+
+            var (errors, expParams) = RunRenameParameters(root);
+
+            Assert.IsEmpty(errors);
+            Assert.AreEqual(4, expParams["int"].bitWidth);
+            Assert.IsTrue(expParams["int"].flippedRepresentation);
+            Assert.IsTrue(expParams["int"].useCustomLerpDuration);
+            Assert.AreEqual(2f, expParams["int"].customLerpDuration);
+            Assert.IsTrue(expParams["float"].flippedRepresentation);
+            Assert.AreEqual(VRCExpressionParameters.Parameter.ValueRepresentation.Unsigned,
+                expParams["float"].GetRepresentationByType());
+        }
+
+        [Test]
+        public void AdvancedOptions_UnspecifiedUsesSdkDefaults()
+        {
+            var root = CreateRoot("root");
+
+            root.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new() { nameOrPrefix = "a", syncType = ParameterSyncType.Int },
+            };
+
+            var (errors, expParams) = RunRenameParameters(root);
+
+            Assert.IsEmpty(errors);
+            Assert.AreEqual(8, expParams["a"].bitWidth);
+            Assert.IsFalse(expParams["a"].flippedRepresentation);
+            Assert.IsFalse(expParams["a"].useCustomLerpDuration);
+        }
+
+        [Test]
+        public void AdvancedOptions_SiblingConflictsAreReported()
+        {
+            var root = CreateRoot("root");
+            var c1 = CreateChild(root, "c1");
+            var c2 = CreateChild(root, "c2");
+
+            c1.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new()
+                {
+                    nameOrPrefix = "a",
+                    syncType = ParameterSyncType.Int,
+                    bitWidth = 4,
+                    representation = ParameterRepresentation.Signed,
+                    useCustomLerpDuration = true,
+                    customLerpDuration = 1f,
+                },
+            };
+            c2.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new()
+                {
+                    nameOrPrefix = "a",
+                    syncType = ParameterSyncType.Int,
+                    bitWidth = 6,
+                    representation = ParameterRepresentation.Unsigned,
+                    useCustomLerpDuration = true,
+                    customLerpDuration = 2f,
+                },
+            };
+
+            var (errors, expParams) = RunRenameParameters(root);
+
+            var titleKeys = errors.Select(e => e.TheError).OfType<SimpleError>().Select(e => e.TitleKey).ToList();
+            Assert.That(titleKeys, Does.Contain("error.rename_params.bit_width_conflict"));
+            Assert.That(titleKeys, Does.Contain("error.rename_params.representation_conflict"));
+            Assert.That(titleKeys, Does.Contain("error.rename_params.lerp_duration_conflict"));
+
+            Assert.AreEqual(4, expParams["a"].bitWidth);
+            Assert.IsTrue(expParams["a"].flippedRepresentation);
+            Assert.AreEqual(1f, expParams["a"].customLerpDuration);
+        }
+
+        private (List<ErrorContext>, Dictionary<string, VRCExpressionParameters.Parameter>) RunRenameParameters(
+            GameObject root)
+        {
+            var context = CreateContext(root);
+            var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
+            context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+
+            var errors = ErrorReport.CaptureErrors(() => new RenameParametersHook().OnPreprocessAvatar(root, maContext));
+            var expParams = root.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .ToDictionary(p => p.name);
+
+            return (errors, expParams);
+        }
+        #endif
+
         #if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
         [Test]
         public void Remaps_PhysBone_And_Raycast()
