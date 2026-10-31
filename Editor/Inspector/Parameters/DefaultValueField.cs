@@ -26,6 +26,8 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly DropdownField _boolField;
 
         private ParameterSyncType _syncType;
+        private int _bitWidth;
+        private ParameterRepresentation _representation;
         private bool _hasInitialBinding;
 
         public DefaultValueField()
@@ -74,6 +76,39 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
+        public void OnUpdateNumericFormat(int bitWidth, ParameterRepresentation representation)
+        {
+            _bitWidth = bitWidth;
+            _representation = representation;
+        }
+
+        private (float, float) GetValueRange(bool implicitUpdate)
+        {
+            var maxBitWidth = ParameterConfig.MAX_BIT_WIDTH;
+            if (implicitUpdate)
+            {
+                return _syncType switch
+                {
+                    ParameterSyncType.Int => (-(1 << (maxBitWidth - 1)), (1 << maxBitWidth) - 1),
+                    ParameterSyncType.Float => (-1, 1),
+                    _ => (float.NegativeInfinity, float.PositiveInfinity),
+                };
+            }
+
+            var bitWidth = ParameterConfig.ResolveBitWidth(_bitWidth);
+            var signed = ParameterConfig.ResolveRepresentation(_representation, _syncType) ==
+                         ParameterRepresentation.Signed;
+
+            return _syncType switch
+            {
+                ParameterSyncType.Int => signed
+                    ? (-(1 << (bitWidth - 1)), (1 << (bitWidth - 1)) - 1)
+                    : (0, (1 << bitWidth) - 1),
+                ParameterSyncType.Float => (signed ? -1 : 0, 1),
+                _ => (float.NegativeInfinity, float.PositiveInfinity),
+            };
+        }
+
         private void OnUpdateNumberValue(string value, bool implicitUpdate = false)
         {
             // Upon initial creation, sometimes the OnUpdateSyncType fires before we receive the initial value event.
@@ -96,10 +131,11 @@ namespace nadena.dev.modular_avatar.core.editor
                 && !float.IsNaN(parsed)
                 && !float.IsInfinity(parsed))
             {
+                var (min, max) = GetValueRange(implicitUpdate);
                 theValue = _defaultValueField.value = _syncType switch
                 {
-                    ParameterSyncType.Int => Mathf.FloorToInt(Mathf.Clamp(parsed, 0, 255)),
-                    ParameterSyncType.Float => Mathf.Clamp(parsed, -1, 1),
+                    ParameterSyncType.Int => Mathf.FloorToInt(Mathf.Clamp(parsed, min, max)),
+                    ParameterSyncType.Float => Mathf.Clamp(parsed, min, max),
                     ParameterSyncType.Bool => parsed != 0 ? 1 : 0,
                     _ => parsed,
                 };

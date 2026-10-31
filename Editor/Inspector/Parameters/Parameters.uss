@@ -104,3 +104,34 @@ DefaultValueField > * {
     height: 24px;
     padding: 1px;
 }
+
+.st-ty-Bool #advanced-options,
+.st-ty-Not-Synced #advanced-options,
+.st-pb-prefix #advanced-options {
+    display: none;
+}
+
+#advanced-options > #f-representation,
+#advanced-options > #f-bit-width,
+#advanced-options > #f-use-custom-lerp-duration,
+#advanced-options > #f-custom-lerp-duration {
+    flex-shrink: 1;
+    flex-basis: 0;
+}
+
+#advanced-options > #f-representation {
+    flex-grow: 5;
+}
+
+#advanced-options > #f-bit-width {
+    flex-grow: 4;
+    margin-right: 20px;
+}
+
+#advanced-options > #f-use-custom-lerp-duration {
+    flex-grow: 4;
+}
+
+#advanced-options > #f-custom-lerp-duration {
+    flex-grow: 2;
+}
