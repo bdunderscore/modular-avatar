@@ -489,5 +489,14 @@
   "version_reset.warning": "既存のアセットを強制的にダウングレードすると、保存済みのデータが破損するおそれがあります。リセット後に正しく動作するか確認してください。",
   "version_reset.set_current": "必要なバージョンを現在のバージョンに設定",
   "version_reset.clear_required_version": "必要なバージョン情報を消去",
-  "version_reset.cancel": "キャンセル"
+  "version_reset.cancel": "キャンセル",
+  "error.rename_params.bit_width_conflict": "[MA-0028] ビット幅の競合",
+  "error.rename_params.bit_width_conflict:description": "パラメータ {0} には複数のビット幅が指定されています: {1} != {2}",
+  "error.rename_params.bit_width_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントのビット幅フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定されたビット幅を採用します。",
+  "error.rename_params.representation_conflict": "[MA-0029] 数値表現の競合",
+  "error.rename_params.representation_conflict:description": "パラメータ {0} には複数の数値表現が指定されています: {1} != {2}",
+  "error.rename_params.representation_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの数値表現フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された数値表現を採用します。",
+  "error.rename_params.lerp_duration_conflict": "[MA-0030] 補間時間の競合",
+  "error.rename_params.lerp_duration_conflict:description": "パラメータ {0} には複数の補間時間が指定されています: {1} != {2}",
+  "error.rename_params.lerp_duration_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの補間時間フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された補間時間を採用します。"
 }
