@@ -12,6 +12,10 @@ namespace nadena.dev.modular_avatar.core
     public struct ParameterConfig
     {
         internal const float VALUE_EPSILON = 0.000001f;
+        internal const int MIN_BIT_WIDTH = 2;
+        internal const int MAX_BIT_WIDTH = 8;
+        internal const float MIN_LERP_DURATION = 0f;
+        internal const float MAX_LERP_DURATION = 300f;
 
         public string nameOrPrefix;
         public string remapTo;

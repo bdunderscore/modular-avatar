@@ -187,8 +187,8 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var other = info.ResolvedParameter;
 
-                var clampedWidth = Math.Clamp(ResolvedParameter.bitWidth, 2, 8);
-                var clampedOtherWidth = Math.Clamp(other.bitWidth, 2, 8);
+                var clampedWidth = Math.Clamp(ResolvedParameter.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
+                var clampedOtherWidth = Math.Clamp(other.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
                 if (ResolvedParameter.bitWidth == 0)
                 {
                     ResolvedParameter.bitWidth = other.bitWidth;
@@ -213,8 +213,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         .Add(other.representation);
                 }
 
-                var clampedDuration = Math.Clamp(ResolvedParameter.customLerpDuration, 0, 300);
-                var clampedOtherDuration = Math.Clamp(other.customLerpDuration, 0, 300);
+                var clampedDuration = Math.Clamp(ResolvedParameter.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
+                var clampedOtherDuration = Math.Clamp(other.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
                 if (!ResolvedParameter.useCustomLerpDuration)
                 {
                     ResolvedParameter.useCustomLerpDuration = other.useCustomLerpDuration;
@@ -367,7 +367,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     converted.networkSynced = !param.ResolvedParameter.localOnly;
                     converted.saved = param.ResolvedParameter.saved;
                     converted.defaultValue = param.ResolvedParameter.defaultValue;
-                    
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+                    ApplyAdvancedOptions(converted, param.ResolvedParameter);
+#endif
                     parameters.Add(converted);
                 }
             }
@@ -427,10 +429,33 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.flippedRepresentation = parameter.flippedRepresentation;
             newParameter.useCustomLerpDuration = parameter.useCustomLerpDuration;
             newParameter.customLerpDuration = parameter.customLerpDuration;
+            ApplyAdvancedOptions(newParameter, info.ResolvedParameter);
 #endif
 
             return newParameter;
         }
+
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+        private static void ApplyAdvancedOptions(VRCExpressionParameters.Parameter target, ParameterConfig config)
+        {
+            if (target.valueType == VRCExpressionParameters.ValueType.Bool) return;
+
+            if (config.bitWidth != 0) target.bitWidth = (byte)Math.Clamp(config.bitWidth, VRCExpressionParameters.Parameter.MinBitWidth, VRCExpressionParameters.Parameter.MaxBitWidth);
+
+            if (config.representation != ParameterRepresentation.Default)
+            {
+                target.flippedRepresentation = target.valueType == VRCExpressionParameters.ValueType.Float
+                    ? config.representation == ParameterRepresentation.Unsigned
+                    : config.representation == ParameterRepresentation.Signed;
+            }
+
+            if (config.useCustomLerpDuration && float.IsFinite(config.customLerpDuration))
+            {
+                target.useCustomLerpDuration = true;
+                target.customLerpDuration = Math.Clamp(config.customLerpDuration, VRCExpressionParameters.Parameter.MinLerpDuration, VRCExpressionParameters.Parameter.MaxLerpDuration);
+            }
+        }
+#endif
 
         private ImmutableDictionary<string, ParameterInfo> WalkTree(
             GameObject obj
