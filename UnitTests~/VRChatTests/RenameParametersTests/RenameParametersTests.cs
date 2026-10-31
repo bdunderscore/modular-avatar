@@ -434,7 +434,7 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
                 },
             };
 
-            var (errors, expParams) = RunRenameParameters(root);
+            var (errors, expParams, _) = RunRenameParameters(root);
 
             Assert.IsEmpty(errors);
             Assert.AreEqual(4, expParams["int"].bitWidth);
@@ -456,7 +456,7 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
                 new() { nameOrPrefix = "a", syncType = ParameterSyncType.Int },
             };
 
-            var (errors, expParams) = RunRenameParameters(root);
+            var (errors, expParams, _) = RunRenameParameters(root);
 
             Assert.IsEmpty(errors);
             Assert.AreEqual(8, expParams["a"].bitWidth);
@@ -496,7 +496,7 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
                 },
             };
 
-            var (errors, expParams) = RunRenameParameters(root);
+            var (errors, expParams, _) = RunRenameParameters(root);
 
             var titleKeys = errors.Select(e => e.TheError).OfType<SimpleError>().Select(e => e.TitleKey).ToList();
             Assert.That(titleKeys, Does.Contain("error.rename_params.bit_width_conflict"));
@@ -508,8 +508,58 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
             Assert.AreEqual(1f, expParams["a"].customLerpDuration);
         }
 
-        private (List<ErrorContext>, Dictionary<string, VRCExpressionParameters.Parameter>) RunRenameParameters(
-            GameObject root)
+        [Test]
+        public void AdvancedOptions_DefaultValueIsClampedToRange()
+        {
+            var root = CreateRoot("root");
+
+            root.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new()
+                {
+                    nameOrPrefix = "unsigned",
+                    syncType = ParameterSyncType.Int,
+                    bitWidth = 4,
+                    defaultValue = 200,
+                    hasExplicitDefaultValue = true,
+                    m_overrideAnimatorDefaults = true,
+                },
+                new()
+                {
+                    nameOrPrefix = "signed",
+                    syncType = ParameterSyncType.Int,
+                    bitWidth = 4,
+                    representation = ParameterRepresentation.Signed,
+                    defaultValue = -20,
+                    hasExplicitDefaultValue = true,
+                    m_overrideAnimatorDefaults = true,
+                },
+                new()
+                {
+                    nameOrPrefix = "float",
+                    syncType = ParameterSyncType.Float,
+                    representation = ParameterRepresentation.Unsigned,
+                    defaultValue = -0.5f,
+                    hasExplicitDefaultValue = true,
+                    m_overrideAnimatorDefaults = true,
+                },
+            };
+
+            var (errors, expParams, context) = RunRenameParameters(root);
+
+            Assert.IsEmpty(errors);
+            Assert.AreEqual(15f, expParams["unsigned"].defaultValue);
+            Assert.AreEqual(-8f, expParams["signed"].defaultValue);
+            Assert.AreEqual(0f, expParams["float"].defaultValue);
+
+            var overrides = context.GetState<DefaultValues>().InitialValueOverrides;
+            Assert.AreEqual(15f, overrides["unsigned"]);
+            Assert.AreEqual(-8f, overrides["signed"]);
+            Assert.AreEqual(0f, overrides["float"]);
+        }
+
+        private (List<ErrorContext>, Dictionary<string, VRCExpressionParameters.Parameter>, nadena.dev.ndmf.BuildContext)
+            RunRenameParameters(GameObject root)
         {
             var context = CreateContext(root);
             var maContext = context.ActivateExtensionContext<ModularAvatarContext>().BuildContext;
@@ -519,7 +569,7 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
             var expParams = root.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
                 .ToDictionary(p => p.name);
 
-            return (errors, expParams);
+            return (errors, expParams, context);
         }
         #endif
 
