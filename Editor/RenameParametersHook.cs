@@ -92,8 +92,11 @@ namespace nadena.dev.modular_avatar.core.editor
             public List<Object> DefaultSources = new List<Object>();
             public ImmutableHashSet<float> ConflictingValues = ImmutableHashSet<float>.Empty;
             public ImmutableHashSet<ParameterSyncType> ConflictingSyncTypes = ImmutableHashSet<ParameterSyncType>.Empty;
+            public ImmutableHashSet<int> ConflictingBitWidths = ImmutableHashSet<int>.Empty;
+            public ImmutableHashSet<ParameterRepresentation> ConflictingRepresentations = ImmutableHashSet<ParameterRepresentation>.Empty;
+            public ImmutableHashSet<float> ConflictingLerpDurations = ImmutableHashSet<float>.Empty;
             
-            public bool TypeConflict, DefaultValueConflict;
+            public bool TypeConflict, DefaultValueConflict, BitWidthConflict, RepresentationConflict, CustomLerpDurationConflict;
             public long encounterOrder = encounterOrderCounter++;
 
             public VRCExpressionParameters.ValueType? ValueType
@@ -130,6 +133,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ResolvedParameter.saved |= info.ResolvedParameter.saved;
                 ResolvedParameter.localOnly &= info.ResolvedParameter.localOnly;
+
+                MergeAdvancedOptions(info, true);
             }
 
             public void MergeChild(ParameterInfo info)
@@ -142,6 +147,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                     ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
+
+                MergeAdvancedOptions(info, false);
             }
             
             void MergeCommon(ParameterInfo info)
@@ -163,11 +170,63 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 TypeConflict = TypeConflict || info.TypeConflict;
                 DefaultValueConflict = DefaultValueConflict || info.DefaultValueConflict;
+                BitWidthConflict = BitWidthConflict || info.BitWidthConflict;
+                RepresentationConflict = RepresentationConflict || info.RepresentationConflict;
+                CustomLerpDurationConflict = CustomLerpDurationConflict || info.CustomLerpDurationConflict;
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
+                ConflictingBitWidths = ConflictingBitWidths.Union(info.ConflictingBitWidths);
+                ConflictingRepresentations = ConflictingRepresentations.Union(info.ConflictingRepresentations);
+                ConflictingLerpDurations = ConflictingLerpDurations.Union(info.ConflictingLerpDurations);
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
+            }
+
+            void MergeAdvancedOptions(ParameterInfo info, bool detectConflicts)
+            {
+                var other = info.ResolvedParameter;
+
+                var clampedWidth = Math.Clamp(ResolvedParameter.bitWidth, 2, 8);
+                var clampedOtherWidth = Math.Clamp(other.bitWidth, 2, 8);
+                if (ResolvedParameter.bitWidth == 0)
+                {
+                    ResolvedParameter.bitWidth = other.bitWidth;
+                }
+                else if (detectConflicts && other.bitWidth != 0 && clampedWidth != clampedOtherWidth)
+                {
+                    BitWidthConflict = true;
+                    ConflictingBitWidths = ConflictingBitWidths
+                        .Add(clampedWidth)
+                        .Add(clampedOtherWidth);
+                }
+
+                if (ResolvedParameter.representation == ParameterRepresentation.Default)
+                {
+                    ResolvedParameter.representation = other.representation;
+                }
+                else if (detectConflicts && other.representation != ParameterRepresentation.Default && ResolvedParameter.representation != other.representation)
+                {
+                    RepresentationConflict = true;
+                    ConflictingRepresentations = ConflictingRepresentations
+                        .Add(ResolvedParameter.representation)
+                        .Add(other.representation);
+                }
+
+                var clampedDuration = Math.Clamp(ResolvedParameter.customLerpDuration, 0, 300);
+                var clampedOtherDuration = Math.Clamp(other.customLerpDuration, 0, 300);
+                if (!ResolvedParameter.useCustomLerpDuration)
+                {
+                    ResolvedParameter.useCustomLerpDuration = other.useCustomLerpDuration;
+                    ResolvedParameter.customLerpDuration = other.customLerpDuration;
+                }
+                else if (detectConflicts && other.useCustomLerpDuration && Math.Abs(clampedDuration - clampedOtherDuration) > ParameterConfig.VALUE_EPSILON)
+                {
+                    CustomLerpDurationConflict = true;
+                    ConflictingLerpDurations = ConflictingLerpDurations
+                        .Add(clampedDuration)
+                        .Add(clampedOtherDuration);
+                }
             }
         }
 
