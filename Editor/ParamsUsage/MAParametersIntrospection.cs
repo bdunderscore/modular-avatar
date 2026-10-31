@@ -46,7 +46,7 @@ namespace nadena.dev.modular_avatar.core.editor
             };
         }
     }
-    
+
     [ParameterProviderFor(typeof(ModularAvatarParameters))]
     internal class MAParametersIntrospection : IParameterProvider
     {
@@ -99,7 +99,7 @@ namespace nadena.dev.modular_avatar.core.editor
             ndmf.BuildContext context = null)
         {
             var remappings = context != null ? ParameterRenameMappings.Get(context) : null;
-            
+
             // TODO - internal parameter handling
             foreach (var p in _component.parameters)
             {
