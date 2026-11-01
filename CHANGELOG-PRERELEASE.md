@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
+- [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
 
 ### Fixed
 
 ### Changed
+- [#2189] VRC Contact Receivers will now have their parameters renamed based on either a prefix or non-prefix parameter
+  rename entry.
+- [#2189] PhysBone prefix parameters will rename the parameter of the same name, as well as ones prefixed by that prefix.
 
 ### Removed
 

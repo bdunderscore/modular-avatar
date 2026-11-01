@@ -11,6 +11,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Added
 - [#2146] `MA Reactive Move` を追加しました。条件に応じてオブジェクトのワールド位置、回転、スケールを別のオブジェクトに合わせられます。
 - [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
+- [#2189] `MA Parameters` の接頭辞設定をContact ReceiverのAdvanced変数に対応
 
 ### Fixed
 - [#2153] `MA PhysBone Blocker` コンポーネント追加時に表示される不要なログの削除
@@ -18,6 +19,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ### Changed
+- [#2189] `VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更
+- [#2189] 接頭辞設定の場合、同名の単一パラメーターも名前変更されるように変更（Contact対応のため）
 - [#2095] Reactive Component の生成処理をブレンドツリー方式に刷新し、アニメーターの処理負荷を軽減するとともに、
   同じトリガーに対して複数の Reactive Component の反応タイミングがずれる問題を修正しました。
   - 互換性に関する注意：Reactive Component の反応タイミングが以前のバージョンからわずかに変わる場合があります。

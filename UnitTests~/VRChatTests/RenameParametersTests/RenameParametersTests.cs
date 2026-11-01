@@ -573,6 +573,222 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameParametersTests
         }
         #endif
 
+        [Test]
+        public void RemapsContactReceiverPrefixParameters()
+        {
+            var root = CreateRoot("avatar");
+            var parameters = root.AddComponent<ModularAvatarParameters>();
+            parameters.parameters = new List<ParameterConfig>
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "pb",
+                    remapTo = "pb2",
+                    isPrefix = true,
+                    syncType = ParameterSyncType.Float
+                }
+            };
+
+            var contact = root.AddComponent<VRCContactReceiver>();
+            contact.parameter = "pb";
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.That(contact.parameter, Is.EqualTo("pb2"));
+        }
+
+        [TestCase(false, "animator-target")]
+        [TestCase(true, "prefix-target")]
+        public void ContactReceiverUsesPrefixMappingBeforeAnimatorMappingWithoutCascading(
+            bool includePrefixMapping, string expectedName)
+        {
+            var root = CreateRoot("avatar");
+            var parameters = root.AddComponent<ModularAvatarParameters>();
+            parameters.parameters = new List<ParameterConfig>
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "contact",
+                    remapTo = "animator-target",
+                    syncType = ParameterSyncType.Float
+                },
+                new ParameterConfig
+                {
+                    nameOrPrefix = "prefix-target",
+                    remapTo = "cascaded-target",
+                    syncType = ParameterSyncType.Float
+                }
+            };
+            if (includePrefixMapping)
+            {
+                parameters.parameters.Add(new ParameterConfig
+                {
+                    nameOrPrefix = "contact",
+                    remapTo = "prefix-target",
+                    isPrefix = true,
+                    syncType = ParameterSyncType.Float
+                });
+            }
+
+            var contact = root.AddComponent<VRCContactReceiver>();
+            contact.parameter = "contact";
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.That(contact.parameter, Is.EqualTo(expectedName));
+        }
+
+        [Test]
+        public void RemapsExactPhysBonePrefixNameInAnimatorControllers()
+        {
+            AssertControllerParameterAndTransitionAreRemapped("pb", "pb2");
+        }
+
+        [Test]
+        public void ExplicitAnimatorMappingTakesPrecedenceOverExactPhysBonePrefixMapping()
+        {
+            AssertControllerParameterAndTransitionAreRemapped(
+                "pb",
+                "explicit-target",
+                new ParameterConfig
+                {
+                    nameOrPrefix = "pb",
+                    remapTo = "explicit-target",
+                    syncType = ParameterSyncType.Bool
+                }
+            );
+        }
+
+        [TestCase("pbOther")]
+        [TestCase("pb2")]
+        public void DoesNotRemapNamesThatOnlyStartWithPhysBonePrefix(string parameterName)
+        {
+            AssertControllerParameterAndTransitionAreRemapped(parameterName, parameterName);
+        }
+
+        [TestCase("_IsPosed")]
+        [TestCase("_SenderType")]
+        [TestCase("_SenderLocalPositionX")]
+        [TestCase("_SenderLocalPositionY")]
+        [TestCase("_SenderLocalPositionZ")]
+        [TestCase("_SenderLossyScaleX")]
+        [TestCase("_SenderLossyScaleY")]
+        [TestCase("_SenderLossyScaleZ")]
+        [TestCase("_SenderVelocityX")]
+        [TestCase("_SenderVelocityY")]
+        [TestCase("_SenderVelocityZ")]
+        [TestCase("_SenderVelocityMagnitude")]
+        [TestCase("_PointSeparation")]
+        [TestCase("_ProximitySpeed")]
+        public void RemapsPhysBoneSuffixesInAnimatorControllers(string suffix)
+        {
+            var originalName = "pb" + suffix;
+            var remappedName = "pb2" + suffix;
+
+            AssertControllerParameterAndTransitionAreRemapped(originalName, remappedName);
+        }
+
+        [TestCase("NormalTag")]
+        [TestCase("tag with_spaces")]
+        [TestCase("")]
+        public void RemapsCollisionTagsInAnimatorControllers(string tag)
+        {
+            var originalName = "pb_CollisionTag_" + tag;
+            var remappedName = "pb2_CollisionTag_" + tag;
+
+            AssertControllerParameterAndTransitionAreRemapped(originalName, remappedName);
+        }
+
+        [TestCase("pb_CollisionTag")]
+        [TestCase("other_CollisionTag_NormalTag")]
+        public void DoesNotRemapUnrelatedCollisionTagNames(string parameterName)
+        {
+            AssertControllerParameterAndTransitionAreRemapped(parameterName, parameterName);
+        }
+
+        [Test]
+        public void ExplicitAnimatorMappingTakesPrecedenceOverCollisionTagPrefixMapping()
+        {
+            AssertControllerParameterAndTransitionAreRemapped(
+                "pb_CollisionTag_NormalTag",
+                "explicit-collision-tag",
+                new ParameterConfig
+                {
+                    nameOrPrefix = "pb_CollisionTag_NormalTag",
+                    remapTo = "explicit-collision-tag",
+                    syncType = ParameterSyncType.Bool
+                }
+            );
+        }
+
+        private void AssertControllerParameterAndTransitionAreRemapped(
+            string originalName,
+            string expectedName,
+            params ParameterConfig[] additionalMappings
+        )
+        {
+            var root = CreateRoot("avatar");
+            var parameters = root.AddComponent<ModularAvatarParameters>();
+            parameters.parameters = new List<ParameterConfig>
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "pb",
+                    remapTo = "pb2",
+                    isPrefix = true,
+                    syncType = ParameterSyncType.Float
+                }
+            };
+            parameters.parameters.AddRange(additionalMappings);
+
+            var controller = TrackObject(new AnimatorController
+            {
+                parameters = new[]
+                {
+                    new AnimatorControllerParameter
+                    {
+                        name = originalName,
+                        type = AnimatorControllerParameterType.Bool
+                    }
+                }
+            });
+            var stateMachine = TrackObject(new AnimatorStateMachine());
+            var initialState = TrackObject(stateMachine.AddState("Initial"));
+            var destinationState = TrackObject(stateMachine.AddState("Destination"));
+            stateMachine.defaultState = initialState;
+            var transition = TrackObject(initialState.AddTransition(destinationState));
+            transition.AddCondition(AnimatorConditionMode.If, 0, originalName);
+            controller.layers = new[]
+            {
+                new AnimatorControllerLayer
+                {
+                    name = "Parameter remap",
+                    defaultWeight = 1,
+                    stateMachine = stateMachine
+                }
+            };
+
+            var mergeAnimator = root.AddComponent<ModularAvatarMergeAnimator>();
+            mergeAnimator.animator = controller;
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            var outputController = FindFxController(root).animatorController as AnimatorController;
+            Assert.NotNull(outputController);
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain(expectedName));
+            if (originalName != expectedName)
+            {
+                Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Not.Contain(originalName));
+            }
+
+            var outputLayer = outputController.layers.Single(layer => layer.name == "Parameter remap");
+            var outputTransition = outputLayer.stateMachine.defaultState.transitions.Single();
+            Assert.That(
+                outputTransition.conditions.Select(condition => condition.parameter),
+                Is.EqualTo(new[] { expectedName })
+            );
+        }
+
         #if MA_VRCSDK3_AVATARS_3_10_3_OR_NEWER
         [Test]
         public void Remaps_PhysBone_And_Raycast()
