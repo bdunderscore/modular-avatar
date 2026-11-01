@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
+- [#2189] `MA Parameters` の接頭辞設定をContact ReceiverのAdvanced変数に対応
 
 ### Fixed
 
 ### Changed
+- [#2189] `VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更
+- [#2189] 接頭辞設定の場合、同名の単一パラメーターも名前変更されるように変更（Contact対応のため）
 
 ### Removed
 

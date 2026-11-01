@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
+- [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
 
 ### Fixed
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component
@@ -20,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2175] `Mesh Cutter` and `Shape Changer` (delete mode) had no effect on VRChat when driven by a condition
 
 ### Changed
+- [#2189] VRC Contact Receivers will now have their parameters renamed based on either a prefix or non-prefix parameter
+  rename entry.
+- [#2189] PhysBone prefix parameters will rename the parameter of the same name, as well as ones prefixed by that prefix.
 - [#2095] Reworked Reactive Components to use blend trees, improving animator performance and fixing issues where different
   RCs might respond at different times to the same trigger.
   - Compatibility note: Reactive Component response timing may be slightly different from prior versions.
