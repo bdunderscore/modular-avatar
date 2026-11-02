@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ### Changed
 - [#2180] `MA Global Collider` は、指を置き換える手段に訴える前に、VRChat Physbone コライダーのグローバルコリジョン機能を活用するようになりました。
@@ -20,6 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-beta.0] - [2026-11-02]
+
+### Added
+- [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
+- [#2189] `MA Parameters` の接頭辞設定をContact ReceiverのAdvanced変数に対応
+- [#2192] `MA Rename Collision Tags` に、collision tag用のパラメーターもリネームできるように変更
+
+### Changed
+- [#2189] `VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更
+- [#2189] 接頭辞設定の場合、同名の単一パラメーターも名前変更されるように変更（Contact対応のため）
+
+## [1.19.0-alpha.3] - [2026-10-28]
+
+### Fixed
+- [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 
 ## [1.19.0-alpha.2] - [2026-10-17]
 

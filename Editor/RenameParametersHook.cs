@@ -79,6 +79,9 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private const string DEFAULT_EXP_PARAMS_ASSET_GUID = "03a6d797deb62f0429471c4e17ea99a7";
 
+        private delegate bool ParameterRemapper(
+            (ParameterNamespace, string) parameter, out ParameterMapping mapping);
+
         private BuildContext _context;
 
         private readonly ImmutableList<string> PhysBoneSuffixes = ParameterPolicy.PhysBoneSuffixes;
@@ -92,8 +95,11 @@ namespace nadena.dev.modular_avatar.core.editor
             public List<Object> DefaultSources = new List<Object>();
             public ImmutableHashSet<float> ConflictingValues = ImmutableHashSet<float>.Empty;
             public ImmutableHashSet<ParameterSyncType> ConflictingSyncTypes = ImmutableHashSet<ParameterSyncType>.Empty;
+            public ImmutableHashSet<int> ConflictingBitWidths = ImmutableHashSet<int>.Empty;
+            public ImmutableHashSet<ParameterRepresentation> ConflictingRepresentations = ImmutableHashSet<ParameterRepresentation>.Empty;
+            public ImmutableHashSet<float> ConflictingLerpDurations = ImmutableHashSet<float>.Empty;
             
-            public bool TypeConflict, DefaultValueConflict;
+            public bool TypeConflict, DefaultValueConflict, BitWidthConflict, RepresentationConflict, CustomLerpDurationConflict;
             public long encounterOrder = encounterOrderCounter++;
 
             public VRCExpressionParameters.ValueType? ValueType
@@ -130,6 +136,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 ResolvedParameter.saved |= info.ResolvedParameter.saved;
                 ResolvedParameter.localOnly &= info.ResolvedParameter.localOnly;
+
+                MergeAdvancedOptions(info, true);
             }
 
             public void MergeChild(ParameterInfo info)
@@ -142,6 +150,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
                     ResolvedParameter.m_overrideAnimatorDefaults = info.ResolvedParameter.m_overrideAnimatorDefaults;
                 }
+
+                MergeAdvancedOptions(info, false);
             }
             
             void MergeCommon(ParameterInfo info)
@@ -163,11 +173,63 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 TypeConflict = TypeConflict || info.TypeConflict;
                 DefaultValueConflict = DefaultValueConflict || info.DefaultValueConflict;
+                BitWidthConflict = BitWidthConflict || info.BitWidthConflict;
+                RepresentationConflict = RepresentationConflict || info.RepresentationConflict;
+                CustomLerpDurationConflict = CustomLerpDurationConflict || info.CustomLerpDurationConflict;
                 
                 ConflictingValues = ConflictingValues.Union(info.ConflictingValues);
                 ConflictingSyncTypes = ConflictingSyncTypes.Union(info.ConflictingSyncTypes);
+                ConflictingBitWidths = ConflictingBitWidths.Union(info.ConflictingBitWidths);
+                ConflictingRepresentations = ConflictingRepresentations.Union(info.ConflictingRepresentations);
+                ConflictingLerpDurations = ConflictingLerpDurations.Union(info.ConflictingLerpDurations);
                 
                 encounterOrder = Math.Min(encounterOrder, info.encounterOrder);
+            }
+
+            void MergeAdvancedOptions(ParameterInfo info, bool detectConflicts)
+            {
+                var other = info.ResolvedParameter;
+
+                var clampedWidth = Math.Clamp(ResolvedParameter.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
+                var clampedOtherWidth = Math.Clamp(other.bitWidth, ParameterConfig.MIN_BIT_WIDTH, ParameterConfig.MAX_BIT_WIDTH);
+                if (ResolvedParameter.bitWidth == 0)
+                {
+                    ResolvedParameter.bitWidth = other.bitWidth;
+                }
+                else if (detectConflicts && other.bitWidth != 0 && clampedWidth != clampedOtherWidth)
+                {
+                    BitWidthConflict = true;
+                    ConflictingBitWidths = ConflictingBitWidths
+                        .Add(clampedWidth)
+                        .Add(clampedOtherWidth);
+                }
+
+                if (ResolvedParameter.representation == ParameterRepresentation.Default)
+                {
+                    ResolvedParameter.representation = other.representation;
+                }
+                else if (detectConflicts && other.representation != ParameterRepresentation.Default && ResolvedParameter.representation != other.representation)
+                {
+                    RepresentationConflict = true;
+                    ConflictingRepresentations = ConflictingRepresentations
+                        .Add(ResolvedParameter.representation)
+                        .Add(other.representation);
+                }
+
+                var clampedDuration = Math.Clamp(ResolvedParameter.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
+                var clampedOtherDuration = Math.Clamp(other.customLerpDuration, ParameterConfig.MIN_LERP_DURATION, ParameterConfig.MAX_LERP_DURATION);
+                if (!ResolvedParameter.useCustomLerpDuration)
+                {
+                    ResolvedParameter.useCustomLerpDuration = other.useCustomLerpDuration;
+                    ResolvedParameter.customLerpDuration = other.customLerpDuration;
+                }
+                else if (detectConflicts && other.useCustomLerpDuration && Math.Abs(clampedDuration - clampedOtherDuration) > ParameterConfig.VALUE_EPSILON)
+                {
+                    CustomLerpDurationConflict = true;
+                    ConflictingLerpDurations = ConflictingLerpDurations
+                        .Add(clampedDuration)
+                        .Add(clampedOtherDuration);
+                }
             }
         }
 
@@ -181,11 +243,19 @@ namespace nadena.dev.modular_avatar.core.editor
 
             SetExpressionParameters(avatar, syncParams);
 
+            var expressionDefaults = avatar.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Where(p => p.name != null)
+                .GroupBy(p => p.name)
+                .ToDictionary(g => g.Key, g => g.First().defaultValue);
+
             _context.PluginBuildContext.GetState<DefaultValues>().InitialValueOverrides
                 = syncParams.Where(p =>
                         p.Value.ResolvedParameter.HasDefaultValue &&
                         p.Value.ResolvedParameter.OverrideAnimatorDefaults)
-                    .ToImmutableDictionary(p => p.Key, p => p.Value.ResolvedParameter.defaultValue);
+                    .ToImmutableDictionary(p => p.Key, p =>
+                        expressionDefaults.TryGetValue(p.Key, out var expressionDefault)
+                            ? expressionDefault
+                            : p.Value.ResolvedParameter.defaultValue);
 
             // clean up all parameters objects before the ParameterAssignerPass runs
             foreach (var p in avatar.GetComponentsInChildren<ModularAvatarParameters>())
@@ -246,6 +316,45 @@ namespace nadena.dev.modular_avatar.core.editor
                     
                     BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.default_value_conflict", paramList.ToArray());
                 }
+
+                var isNumeric = param.ResolvedParameter.syncType switch
+                {
+                    ParameterSyncType.Float or ParameterSyncType.Int => true,
+                    _ => false,
+                };
+
+                if (isNumeric && param.BitWidthConflict)
+                {
+                    var w1 = param.ConflictingBitWidths.First();
+                    var w2 = param.ConflictingBitWidths.Skip(1).First();
+
+                    List<object> paramList = new List<object> { name, w1, w2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.bit_width_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.RepresentationConflict)
+                {
+                    var r1 = param.ConflictingRepresentations.First();
+                    var r2 = param.ConflictingRepresentations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, r1, r2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.representation_conflict", paramList.ToArray());
+                }
+
+                if (isNumeric && param.CustomLerpDurationConflict)
+                {
+                    var d1 = param.ConflictingLerpDurations.First();
+                    var d2 = param.ConflictingLerpDurations.Skip(1).First();
+                    
+                    List<object> paramList = new List<object> { name, d1, d2 };
+                    paramList.AddRange(param.TypeSources.Cast<object>());
+
+                    BuildReport.Log(ErrorSeverity.NonFatal, "error.rename_params.lerp_duration_conflict", paramList.ToArray());
+                }
                 
                 if (!knownParams.Contains(name) && param.ResolvedParameter.syncType != ParameterSyncType.NotSynced)
                 {
@@ -269,7 +378,9 @@ namespace nadena.dev.modular_avatar.core.editor
                     converted.networkSynced = !param.ResolvedParameter.localOnly;
                     converted.saved = param.ResolvedParameter.saved;
                     converted.defaultValue = param.ResolvedParameter.defaultValue;
-                    
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+                    ApplyAdvancedOptions(converted, param.ResolvedParameter);
+#endif
                     parameters.Add(converted);
                 }
             }
@@ -324,9 +435,43 @@ namespace nadena.dev.modular_avatar.core.editor
             newParameter.valueType = parameter.valueType;
             newParameter.networkSynced = parameter.networkSynced || !info.ResolvedParameter.localOnly;
             newParameter.saved = parameter.saved || info.ResolvedParameter.saved;
-            
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+            newParameter.bitWidth = parameter.bitWidth;
+            newParameter.flippedRepresentation = parameter.flippedRepresentation;
+            newParameter.useCustomLerpDuration = parameter.useCustomLerpDuration;
+            newParameter.customLerpDuration = parameter.customLerpDuration;
+            ApplyAdvancedOptions(newParameter, info.ResolvedParameter);
+#endif
+
             return newParameter;
         }
+
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
+        private static void ApplyAdvancedOptions(VRCExpressionParameters.Parameter target, ParameterConfig config)
+        {
+            if (target.valueType == VRCExpressionParameters.ValueType.Bool) return;
+
+            if (config.bitWidth != 0) target.bitWidth = (byte)Math.Clamp(config.bitWidth, VRCExpressionParameters.Parameter.MinBitWidth, VRCExpressionParameters.Parameter.MaxBitWidth);
+
+            if (config.representation != ParameterRepresentation.Default)
+            {
+                target.flippedRepresentation = target.valueType == VRCExpressionParameters.ValueType.Float
+                    ? config.representation == ParameterRepresentation.Unsigned
+                    : config.representation == ParameterRepresentation.Signed;
+            }
+
+            var syncType = target.valueType == VRCExpressionParameters.ValueType.Float
+                ? ParameterSyncType.Float
+                : ParameterSyncType.Int;
+            target.defaultValue = ParameterConfig.ResolveClampedValue(target.defaultValue, syncType, target.bitWidth, target.flippedRepresentation);
+
+            if (config.useCustomLerpDuration && float.IsFinite(config.customLerpDuration))
+            {
+                target.useCustomLerpDuration = true;
+                target.customLerpDuration = Math.Clamp(config.customLerpDuration, VRCExpressionParameters.Parameter.MinLerpDuration, VRCExpressionParameters.Parameter.MaxLerpDuration);
+            }
+        }
+#endif
 
         private ImmutableDictionary<string, ParameterInfo> WalkTree(
             GameObject obj
@@ -340,7 +485,8 @@ namespace nadena.dev.modular_avatar.core.editor
             var p = obj.GetComponent<ModularAvatarParameters>();
             if (p != null)
             {
-                rv = BuildReport.ReportingObject(p, () => CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true)));
+                rv = BuildReport.ReportingObject(p, () =>
+                    CollectParameters(p, paramInfo.GetParameterRemappingsAt(p, true).TryGetValue));
             }
 
             foreach (var merger in obj.GetComponents<ModularAvatarMergeAnimator>())
@@ -388,7 +534,13 @@ namespace nadena.dev.modular_avatar.core.editor
                         case VRCContactReceiver contact:
                         {
                             if (contact.parameter != null && paramInfo.GetParameterRemappingsAt(obj)
-                                    .TryGetValue((ParameterNamespace.Animator, contact.parameter), out var newVal))
+                                    .TryGetValue((ParameterNamespace.PhysBonesPrefix, contact.parameter),
+                                        out var newVal))
+                            {
+                                contact.parameter = newVal.ParameterName;
+                            }
+                            else if (contact.parameter != null && paramInfo.GetParameterRemappingsAt(obj)
+                                    .TryGetValue((ParameterNamespace.Animator, contact.parameter), out newVal))
                             {
                                 contact.parameter = newVal.ParameterName;
                             }
@@ -399,7 +551,12 @@ namespace nadena.dev.modular_avatar.core.editor
                         case IVirtualizeAnimatorController or IVirtualizeMotion:
                         {
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
-                            var remap = mappings.SelectMany(item =>
+                            var prefixMappings = mappings.Where(k => k.Key.Item1 == ParameterNamespace.PhysBonesPrefix)
+                                .ToDictionary(kvp => kvp.Key.Item2, kvp => kvp.Value);
+                            _context.PluginBuildContext.GetState<CollisionTagRenameMappings>().TryGetMap(
+                                obj, out var collisionTagMap);
+                            HashSet<string> reportedAmbiguousCollisionTagParameters = null;
+                            var staticMappings = mappings.SelectMany(item =>
                             {
                                 if (item.Key.Item1 == ParameterNamespace.Animator) return new[] { item };
 
@@ -411,11 +568,91 @@ namespace nadena.dev.modular_avatar.core.editor
                                 );
                             }).ToImmutableDictionary();
 
-                            if (animServices.ControllerContext.Controllers.TryGetValue(component, out var controller))
+                            bool RejectAmbiguousCollisionTagParameter(string parameterName)
+                            {
+                                const string collisionTagSeparator = "_CollisionTag_";
+                                var separatorIndex =
+                                    parameterName.IndexOf(collisionTagSeparator, StringComparison.Ordinal);
+                                if (separatorIndex < 0 ||
+                                    parameterName.IndexOf(
+                                        collisionTagSeparator, separatorIndex + 1,
+                                        StringComparison.Ordinal) < 0) return false;
+
+                                if ((reportedAmbiguousCollisionTagParameters ??= new HashSet<string>()).Add(
+                                        parameterName))
+                                {
+                                    BuildReport.LogFatal("error.rename_collision_tags.ambiguous_parameter",
+                                        parameterName, component);
+                                }
+
+                                return true;
+                            }
+                            ParameterRemapper remap =
+                                ((ParameterNamespace, string) parameter, out ParameterMapping mapping) =>
+                                {
+                                    mapping = new ParameterMapping(parameter.Item2);
+                                    if (parameter.Item1 != ParameterNamespace.Animator) return false;
+                                    if (RejectAmbiguousCollisionTagParameter(parameter.Item2)) return false;
+
+                                    if (staticMappings.TryGetValue(parameter, out mapping)) return true;
+                                    if (mappings.TryGetValue((ParameterNamespace.PhysBonesPrefix, parameter.Item2), out mapping))
+                                    {
+                                        return true;
+                                    }
+                                    
+                                    foreach (var kvp in prefixMappings)
+                                    {
+                                        var tagPrefix = kvp.Key + "_CollisionTag_";
+                                        if (parameter.Item2.StartsWith(tagPrefix, StringComparison.Ordinal))
+                                        {
+                                            var tag = parameter.Item2.Substring(tagPrefix.Length);
+                                            var remappedTag = tag;
+                                            if (collisionTagMap != null &&
+                                                collisionTagMap.TryGetValue(tag, out var mappedTag))
+                                            {
+                                                remappedTag = mappedTag;
+                                            }
+
+                                            var remappedParameter =
+                                                kvp.Value.ParameterName + "_CollisionTag_" + remappedTag;
+                                            if (RejectAmbiguousCollisionTagParameter(remappedParameter)) return false;
+
+                                            mapping = new ParameterMapping(remappedParameter, kvp.Value.IsHidden);
+                                            return true;
+                                        }
+                                    }
+
+                                    var separatorIndex =
+                                        parameter.Item2.IndexOf("_CollisionTag_", StringComparison.Ordinal);
+                                    if (separatorIndex < 0) return false;
+
+                                    var fallbackTag =
+                                        parameter.Item2.Substring(separatorIndex + "_CollisionTag_".Length);
+                                    if (collisionTagMap == null ||
+                                        !collisionTagMap.TryGetValue(fallbackTag, out var fallbackRemappedTag))
+                                        return false;
+
+                                    var fallbackRemappedParameter = parameter.Item2.Substring(0, separatorIndex) +
+                                                                    "_CollisionTag_" + fallbackRemappedTag;
+                                    if (RejectAmbiguousCollisionTagParameter(fallbackRemappedParameter)) return false;
+
+                                    mapping = new ParameterMapping(fallbackRemappedParameter);
+                                    return true;
+                                };
+
+                            if (component is IVirtualizeAnimatorController &&
+                                animServices.ControllerContext.Controllers.TryGetValue(component, out var controller))
                             {
                                 ProcessVirtualAnimatorController(controller, remap);
                             }
-
+                            else if (component is IVirtualizeMotion motion &&
+                                     animServices.ControllerContext.GetVirtualizedMotion(motion) is
+                                     {
+                                         /* non-null */
+                                     } virtualMotion)
+                            {
+                                ProcessVirtualMotion(virtualMotion, remap);
+                            }
                             break;
                         }
 
@@ -423,7 +660,7 @@ namespace nadena.dev.modular_avatar.core.editor
                         {
                             if (installer.menuToAppend != null && installer.enabled)
                             {
-                                ProcessMenuInstaller(installer, paramInfo.GetParameterRemappingsAt(obj));
+                                ProcessMenuInstaller(installer, paramInfo.GetParameterRemappingsAt(obj).TryGetValue);
                             }
 
                             break;
@@ -449,12 +686,13 @@ namespace nadena.dev.modular_avatar.core.editor
 
                             if (menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
                             {
+                                ParameterRemapper remapper = remaps.TryGetValue;
                                 _context.PostProcessControls.Add(menuItem, control =>
                                 {
-                                    control.parameter.name = remap(remaps, control.parameter.name);
+                                    control.parameter.name = remap(remapper, control.parameter.name);
                                     foreach (var subParam in control.subParameters)
                                     {
-                                        subParam.name = remap(remaps, subParam.name);
+                                        subParam.name = remap(remapper, subParam.name);
                                     }
                                 });
                             }
@@ -506,7 +744,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+            ParameterRemapper remaps)
         {
             Dictionary<VRCExpressionsMenu, VRCExpressionsMenu> remapped =
                 new Dictionary<VRCExpressionsMenu, VRCExpressionsMenu>();
@@ -524,9 +762,86 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void ProcessVirtualAnimatorController(VirtualAnimatorController controller,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remap)
+            ParameterRemapper remap)
         {
-            foreach (var node in controller.AllReachableNodes())
+            var orderedParameters = controller.Parameters.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToList();
+            Dictionary<string, AnimatorControllerParameterType> firstTypes = new();
+            HashSet<string> mixedTypeTargets = null;
+
+            foreach (var (name, parameter) in orderedParameters)
+            {
+                var newName = name;
+                if (remap((ParameterNamespace.Animator, name), out var newParam))
+                {
+                    newName = newParam.ParameterName;
+                }
+
+                if (!firstTypes.TryGetValue(newName, out var firstType))
+                {
+                    firstTypes.Add(newName, parameter.type);
+                }
+                else if (firstType != parameter.type)
+                {
+                    (mixedTypeTargets ??= new HashSet<string>()).Add(newName);
+                }
+            }
+
+            if (mixedTypeTargets != null)
+            {
+                var promotedParameters = controller.Parameters;
+                foreach (var (name, parameter) in orderedParameters)
+                {
+                    var newName = name;
+                    if (remap((ParameterNamespace.Animator, name), out var newParam))
+                    {
+                        newName = newParam.ParameterName;
+                    }
+
+                    if (!mixedTypeTargets.Contains(newName) || parameter.type == AnimatorControllerParameterType.Float)
+                    {
+                        continue;
+                    }
+
+                    promotedParameters = promotedParameters.SetItem(name, new AnimatorControllerParameter
+                    {
+                        name = name,
+                        type = AnimatorControllerParameterType.Float,
+                        defaultFloat = parameter.type switch
+                        {
+                            AnimatorControllerParameterType.Bool => parameter.defaultBool ? 1 : 0,
+                            AnimatorControllerParameterType.Int => parameter.defaultInt,
+                            _ => 0
+                        }
+                    });
+                }
+
+                controller.Parameters = promotedParameters;
+                orderedParameters = controller.Parameters.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToList();
+            }
+
+            ProcessVirtualMotion(controller, remap);
+
+            var newParameters = controller.Parameters.Clear();
+            foreach (var (name, parameter) in orderedParameters)
+            {
+                var newName = name;
+                if (remap((ParameterNamespace.Animator, name), out var newParam))
+                {
+                    newName = newParam.ParameterName;
+                }
+
+                if (!newParameters.ContainsKey(newName))
+                {
+                    newParameters = newParameters.SetItem(newName, parameter);
+                }
+            }
+
+            controller.Parameters = newParameters;
+        }
+
+        private void ProcessVirtualMotion(VirtualNode motion, ParameterRemapper remap)
+        {
+            foreach (var node in motion.AllReachableNodes())
             {
                 switch (node)
                 {
@@ -537,26 +852,10 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VirtualBlendTree bt: ProcessBlendtree(bt, remap); break;
                 }
             }
-
-            var newParameters = controller.Parameters.Clear();
-
-            foreach (var (name, parameter) in controller.Parameters)
-            {
-                if (remap.TryGetValue((ParameterNamespace.Animator, name), out var newParam))
-                {
-                    newParameters = newParameters.Add(newParam.ParameterName, parameter);
-                }
-                else
-                {
-                    newParameters = newParameters.Add(name, parameter);
-                }
-            }
-            
-            controller.Parameters = newParameters;
         }
 
         private void ProcessStateMachine(VirtualStateMachine vsm,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+            ParameterRemapper remaps)
         {
             foreach (var behavior in vsm.Behaviours)
             {
@@ -567,7 +866,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessState(VirtualState state, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessState(VirtualState state, ParameterRemapper remaps)
         {
             state.MirrorParameter = remap(remaps, state.MirrorParameter);
             state.TimeParameter = remap(remaps, state.TimeParameter);
@@ -584,33 +883,45 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private void ProcessClip(VirtualClip clip,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+            ParameterRemapper remaps)
         {
             var curveBindings = clip.GetFloatCurveBindings();
-
-            var bindingsToUpdate = new List<EditorCurveBinding>();
-            var newCurves = new List<AnimationCurve>();
+            List<(EditorCurveBinding source, EditorCurveBinding destination, AnimationCurve curve)> updates = null;
 
             foreach (var binding in curveBindings)
             {
                 if (binding.path != "" || binding.type != typeof(Animator)) continue;
-                if (remaps.TryGetValue((ParameterNamespace.Animator, binding.propertyName), out var newBinding))
+                if (remaps((ParameterNamespace.Animator, binding.propertyName), out var newBinding))
                 {
-                    var curCurve = clip.GetFloatCurve(binding);
-                    var newECB = new EditorCurveBinding
-                    {
-                        path = "",
-                        type = typeof(Animator),
-                        propertyName = newBinding.ParameterName
-                    };
-                    
-                    clip.SetFloatCurve(binding, null);
-                    clip.SetFloatCurve(newECB, curCurve);
+                    updates ??=
+                        new List<(EditorCurveBinding source, EditorCurveBinding destination, AnimationCurve curve)>();
+                    updates.Add((
+                        binding,
+                        new EditorCurveBinding
+                        {
+                            path = "",
+                            type = typeof(Animator),
+                            propertyName = newBinding.ParameterName
+                        },
+                        clip.GetFloatCurve(binding)
+                    ));
                 }
+            }
+
+            if (updates == null) return;
+
+            foreach (var (source, _, _) in updates)
+            {
+                clip.SetFloatCurve(source, null);
+            }
+
+            foreach (var (_, destination, curve) in updates)
+            {
+                clip.SetFloatCurve(destination, curve);
             }
         }
 
-        private void ProcessBlendtree(VirtualBlendTree blendTree, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessBlendtree(VirtualBlendTree blendTree, ParameterRemapper remaps)
         {
             blendTree.BlendParameter = remap(remaps, blendTree.BlendParameter);
             blendTree.BlendParameterY = remap(remaps, blendTree.BlendParameterY);
@@ -622,7 +933,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessDriver(VRCAvatarParameterDriver driver, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessDriver(VRCAvatarParameterDriver driver, ParameterRemapper remaps)
         {
             var parameters = driver.parameters;
             for (int i = 0; i < parameters.Count; i++)
@@ -635,7 +946,7 @@ namespace nadena.dev.modular_avatar.core.editor
             }
         }
 
-        private void ProcessTransition(VirtualTransitionBase t, ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps)
+        private void ProcessTransition(VirtualTransitionBase t, ParameterRemapper remaps)
         {
             bool dirty = false;
             var conditions = t.Conditions
@@ -649,7 +960,7 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
-            ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps
+            ParameterRemapper remaps
         )
         {
             var remapper = ParameterRenameMappings.Get(_context.PluginBuildContext);
@@ -661,8 +972,8 @@ namespace nadena.dev.modular_avatar.core.editor
                 if (param.isPrefix) continue;
                 
                 var remapTo = param.nameOrPrefix;
-                
-                if (remaps.TryGetValue((ParameterNamespace.Animator, param.nameOrPrefix), out var mapping))
+
+                if (remaps((ParameterNamespace.Animator, param.nameOrPrefix), out var mapping))
                 {
                     remapTo = mapping.ParameterName;
                 }
@@ -700,17 +1011,17 @@ namespace nadena.dev.modular_avatar.core.editor
         }
 
         // This is generic to simplify remapping parameter driver fields, some of which are 'object's.
-        private T remap<T>(ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps, T x)
+        private T remap<T>(ParameterRemapper remaps, T x)
             where T : class
         {
             bool tmp = false;
             return remap(remaps, x, ref tmp);
         }
 
-        private T remap<T>(ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps, T x, ref bool anyRemapped)
+        private T remap<T>(ParameterRemapper remaps, T x, ref bool anyRemapped)
             where T : class
         {
-            if (x is string s && remaps.TryGetValue((ParameterNamespace.Animator, s), out var newS))
+            if (x is string s && remaps((ParameterNamespace.Animator, s), out var newS))
             {
                 anyRemapped = true;
                 return (T) (object) newS.ParameterName;

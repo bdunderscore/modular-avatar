@@ -35,4 +35,12 @@
         <ui:Toggle binding-path="m_overrideAnimatorDefaults"
                    text="merge_parameter.ui.overrideAnimatorDefaults" class="ndmf-tr st-anim-only__hide"/>
     </ui:VisualElement>
+
+    <ui:VisualElement name="advanced-options" class="horizontal">
+        <ui:DropdownField name="f-representation" binding-path="representation"/>
+        <ui:DropdownField name="f-bit-width"/>
+        <ui:Toggle name="f-use-custom-lerp-duration" binding-path="useCustomLerpDuration"
+                   text="merge_parameter.ui.useCustomLerpDuration" class="ndmf-tr"/>
+        <ui:FloatField name="f-custom-lerp-duration" binding-path="customLerpDuration"/>
+    </ui:VisualElement>
 </ui:UXML>

@@ -79,7 +79,21 @@ namespace nadena.dev.modular_avatar.core.editor
             "_Squish",
             "_Hit",
             "_Ratio",
-            "_Distance"
+            "_Distance",
+            // Contacts parameters
+            "_SenderType",
+            "_SenderLocalPositionX",
+            "_SenderLocalPositionY",
+            "_SenderLocalPositionZ",
+            "_SenderLossyScaleX",
+            "_SenderLossyScaleY",
+            "_SenderLossyScaleZ",
+            "_SenderVelocityX",
+            "_SenderVelocityY",
+            "_SenderVelocityZ",
+            "_SenderVelocityMagnitude",
+            "_PointSeparation",
+            "_ProximitySpeed"
         }.ToImmutableList();
 
         public static ImmutableDictionary<string, DetectedParameter> ProbeParameters(GameObject root)

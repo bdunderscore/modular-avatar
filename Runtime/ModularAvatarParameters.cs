@@ -12,12 +12,22 @@ namespace nadena.dev.modular_avatar.core
     public struct ParameterConfig
     {
         internal const float VALUE_EPSILON = 0.000001f;
-        
+        internal const int MIN_BIT_WIDTH = 2;
+        internal const int MAX_BIT_WIDTH = 8;
+        internal const int DEFAULT_BIT_WIDTH = 8;
+        internal const float MIN_LERP_DURATION = 0f;
+        internal const float MAX_LERP_DURATION = 300f;
+
         public string nameOrPrefix;
         public string remapTo;
         public bool internalParameter, isPrefix;
         public ParameterSyncType syncType;
         public bool localOnly;
+
+        public int bitWidth;
+        public ParameterRepresentation representation;
+        public bool useCustomLerpDuration;
+        public float customLerpDuration;
 
         public float defaultValue;
         public bool saved;
@@ -41,6 +51,33 @@ namespace nadena.dev.modular_avatar.core
         }
 
         public bool HasDefaultValue => hasExplicitDefaultValue || Mathf.Abs(defaultValue) > VALUE_EPSILON;
+
+        internal static int ResolveBitWidth(int bitWidth)
+        {
+            return bitWidth == 0 ? DEFAULT_BIT_WIDTH : Mathf.Clamp(bitWidth, MIN_BIT_WIDTH, MAX_BIT_WIDTH);
+        }
+
+        internal static ParameterRepresentation ResolveRepresentation(ParameterRepresentation representation,
+            ParameterSyncType syncType)
+        {
+            if (representation != ParameterRepresentation.Default) return representation;
+
+            return syncType == ParameterSyncType.Float
+                ? ParameterRepresentation.Signed
+                : ParameterRepresentation.Unsigned;
+        }
+
+        internal static float ResolveClampedValue(float value, ParameterSyncType syncType, int bitWidth, bool flippedRepresentation)
+        {
+            return (syncType, flippedRepresentation) switch
+            {
+                (ParameterSyncType.Float, false) => Math.Clamp(value, -1f, 1f),
+                (ParameterSyncType.Float, true) => Math.Clamp(value, 0f, 1f),
+                (ParameterSyncType.Int, false) => Math.Clamp(value, 0, (1 << bitWidth) - 1f),
+                (ParameterSyncType.Int, true) => Math.Clamp(value, -(1 << (bitWidth - 1)),  (1 << (bitWidth - 1)) - 1f),
+                _ => value,
+            };
+        }
     }
 
     /**
@@ -53,6 +90,13 @@ namespace nadena.dev.modular_avatar.core
         Int,
         Float,
         Bool,
+    }
+
+    public enum ParameterRepresentation
+    {
+        Default,
+        Unsigned,
+        Signed,
     }
 
     [DisallowMultipleComponent]

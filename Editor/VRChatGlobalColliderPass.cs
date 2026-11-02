@@ -9,7 +9,7 @@ using nadena.dev.ndmf.vrchat;
 using UnityEngine;
 using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
 using Object = UnityEngine.Object;
-#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
 using VRC.SDKBase.Validation;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using VRC.Dynamics;
@@ -39,7 +39,7 @@ namespace nadena.dev.modular_avatar.core.editor
 			//suppress this option in their case. 
 			//Manual remaps run first 
 
-#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
 			//Checks for existing global colliders on the avatar. 
 			var existingVRCGlobalColliders = ctx.AvatarRootTransform.GetComponentsInChildren<VRCPhysBoneCollider>(true)
 				.Where(c => c.globalCollision != VRCPhysBone.AdvancedBool.False)
@@ -122,7 +122,7 @@ namespace nadena.dev.modular_avatar.core.editor
 				}
 				else
 				{
-#if MA_VRCSDK3_AVATARS_3_10_5_OR_NEWER
+#if MA_VRCSDK3_AVATARS_3_10_6_OR_NEWER
 					//Use VRC Physbone Colliders first
 					if (availableGlobalPBColliders > 0)
 					{
