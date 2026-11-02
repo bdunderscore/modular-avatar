@@ -126,7 +126,12 @@ namespace nadena.dev.modular_avatar.core.editor
 					//Use VRC Physbone Colliders first
 					if (availableGlobalPBColliders > 0)
 					{
-						var pbCollider = my.gameObject.AddComponent<VRCPhysBoneCollider>();
+						// Create an empty inside the target bone which will contain the collider. (Easier to verify in unit test)
+						var ColliderRoot = new GameObject($"MA_ColliderRoot_PhysCollider_{ColliderIndex}");
+						ColliderRoot.transform.SetParent(my.RootTransform, false);
+
+						// Create the physbone Collider
+						var pbCollider = ColliderRoot.AddComponent<VRCPhysBoneCollider>();
 						pbCollider.rootTransform = my.RootTransform;
 						pbCollider.shapeType = my.Height > 0f ? VRCPhysBoneColliderBase.ShapeType.Capsule : VRCPhysBoneColliderBase.ShapeType.Sphere;
 						pbCollider.radius = my.Radius;
