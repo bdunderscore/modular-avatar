@@ -140,6 +140,7 @@ namespace nadena.dev.modular_avatar.core.editor
 						pbCollider.rotation = my.Rotation;
 						pbCollider.globalCollision = VRCPhysBoneBase.AdvancedBool.True;
 						availableGlobalPBColliders--;
+						Object.DestroyImmediate(my);
 						continue;
 					}
 #endif
