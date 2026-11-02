@@ -140,8 +140,9 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
                     if (mami_condition != null && _menuItemPreviewCondition != null)
                     {
-                        mami_condition.InitialValue = _menuItemPreviewCondition.InitialValueForPreview(mami);
+                        mami_condition = _menuItemPreviewCondition.ConditionForPreview(mami, ForceMenuItems, _simulationInitialStates!);
                     }
+                    else
 #endif
 
                     if (mami_condition != null && ForceMenuItems != null &&

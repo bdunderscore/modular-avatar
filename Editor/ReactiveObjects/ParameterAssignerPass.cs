@@ -67,7 +67,6 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToDictionary(p => p.name);
 
             Dictionary<string, VRCExpressionParameters.Parameter> newParameters = new();
-            Dictionary<string, int> nextParamValue = new();
 
             Dictionary<string, List<ModularAvatarMenuItem>> _mamiByParam = new();
             foreach (var mami in context.AvatarRootTransform.GetComponentsInChildren<ModularAvatarMenuItem>(true))
@@ -95,107 +94,16 @@ namespace nadena.dev.modular_avatar.core.editor
 
             foreach (var (paramName, list) in _mamiByParam)
             {
-                // Assign automatic values first
-                int? defaultValue = null;
-                if (declaredParams.TryGetValue(paramName, out var p) && !Mathf.Approximately(0, p.defaultValue))
+                declaredParams.TryGetValue(paramName, out var declared);
+                var allocation = Allocate(paramName, list.Select(m => new MenuAssignment.Entry(m)).ToList(), declared);
+                foreach (var entry in allocation.Entries)
                 {
-                    defaultValue = (int) p.defaultValue;
+                    entry.Item.PortableControl.Value = entry.Value;
+                    entry.Item.isDefault = entry.isDefault;
                 }
-                else
-                {
-                    var floatDefault = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.PortableControl
-                        .Value;
-                    if (floatDefault.HasValue) defaultValue = (int) floatDefault.Value;
-
-                    if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
-                        // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 1
-                        // be the 'selected' default value (if this is default and automatic value)
-                        defaultValue = 1;
-                }
-
-                HashSet<int> usedValues = new();
-                if (defaultValue.HasValue) usedValues.Add(defaultValue.Value);
-
-                foreach (var item in list)
-                {
-                    if (!item.automaticValue)
-                    {
-                        usedValues.Add((int)item.PortableControl.Value);
-                        item.isDefault = defaultValue.HasValue && (int)item.PortableControl.Value == defaultValue;
-                    }
-                }
-
-                if (!defaultValue.HasValue)
-                {
-                    for (int i = 0; i < 256; i++)
-                    {
-                        if (!usedValues.Contains(i))
-                        {
-                            defaultValue = i;
-                            usedValues.Add(i);
-                            break;
-                        }
-                    }
-                }
-
-                var nextValue = 1;
-
-                var valueType = VRCExpressionParameters.ValueType.Bool;
-                var isSaved = false;
-                var isSynced = false;
-
-                foreach (var mami in list)
-                {
-                    var control = mami.PortableControl;
-                    if (mami.automaticValue)
-                    {
-                        if (mami.isDefault)
-                        {
-                            control.Value = defaultValue.GetValueOrDefault();
-                        }
-                        else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
-                        {
-                            // For a float or bool value, we don't really have a lot of good choices, so just set it to
-                            // 1
-                            control.Value = 1;
-                        }
-                        else
-                        {
-                            while (usedValues.Contains(nextValue) && nextValue < 256) nextValue++;
-
-                            if (nextValue >= 256)
-                            {
-                                BuildReport.LogFatal("error.parameter_assigner.value_out_of_range", paramName, mami);
-                                break;
-                            }
-
-                            control.Value = nextValue;
-                            usedValues.Add(nextValue);
-                        }
-                    }
-
-                    var newValueType = mami.ExpressionParametersValueType;
-                    if (valueType == VRCExpressionParameters.ValueType.Bool || newValueType == VRCExpressionParameters.ValueType.Float)
-                    {
-                        valueType = newValueType;
-                    }
-
-                    isSaved |= mami.isSaved;
-                    isSynced |= mami.isSynced;
-                }
-
-                if (!declaredParams.ContainsKey(paramName))
-                {
-                    var newParam = new VRCExpressionParameters.Parameter
-                    {
-                        name = paramName,
-                        valueType = valueType,
-                        saved = isSaved,
-                        defaultValue = defaultValue.GetValueOrDefault(),
-                        networkSynced = isSynced
-                    };
-                    newParameters[paramName] = newParam;
-                }
+                if (allocation.Overflow != null)
+                    BuildReport.LogFatal("error.parameter_assigner.value_out_of_range", paramName, allocation.Overflow);
+                if (allocation.Parameter != null) newParameters[paramName] = allocation.Parameter;
             }
 
             if (newParameters.Count > 0)
@@ -209,6 +117,146 @@ namespace nadena.dev.modular_avatar.core.editor
 
                 expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
             }
+        }
+
+        internal sealed class MenuAssignment
+        {
+            internal sealed class Entry
+            {
+                internal ModularAvatarMenuItem Item;
+                internal bool automaticValue, isDefault, isSaved, isSynced;
+                internal float Value;
+                internal VRCExpressionParameters.ValueType ExpressionParametersValueType =>
+                    Value < 0 || Mathf.Abs(Value - Mathf.Round(Value)) > 0.01f
+                        ? VRCExpressionParameters.ValueType.Float
+                        : Value > 1 ? VRCExpressionParameters.ValueType.Int : VRCExpressionParameters.ValueType.Bool;
+
+                internal Entry(ModularAvatarMenuItem item)
+                {
+                    Item = item;
+                    Value = item.PortableControl.Value;
+                    automaticValue = item.automaticValue;
+                    isDefault = item.isDefault;
+                    isSaved = item.isSaved;
+                    isSynced = item.isSynced;
+                }
+            }
+
+            internal List<Entry> Entries;
+            internal VRCExpressionParameters.Parameter? Parameter;
+            internal ModularAvatarMenuItem? Overflow;
+            internal float DefaultValue;
+
+            internal MenuAssignment(List<Entry> entries) { Entries = entries; }
+        }
+
+        // Operates on detached snapshots so previews and builds use exactly the same allocation rules.
+        internal static MenuAssignment Allocate(string paramName, List<MenuAssignment.Entry> list,
+            VRCExpressionParameters.Parameter? p)
+        {
+            var result = new MenuAssignment(list);
+            // Assign automatic values first
+            int? defaultValue = null;
+            if (p != null && !Mathf.Approximately(0, p.defaultValue))
+            {
+                defaultValue = (int) p.defaultValue;
+            }
+            else
+            {
+                var floatDefault = list.FirstOrDefault(m => m.isDefault && !m.automaticValue)?.Value;
+                if (floatDefault.HasValue) defaultValue = (int) floatDefault.Value;
+
+                if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
+                    // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 1
+                    // be the 'selected' default value (if this is default and automatic value)
+                    defaultValue = 1;
+            }
+
+            HashSet<int> usedValues = new();
+            if (defaultValue.HasValue) usedValues.Add(defaultValue.Value);
+
+            foreach (var item in list)
+            {
+                if (!item.automaticValue)
+                {
+                    usedValues.Add((int)item.Value);
+                    item.isDefault = defaultValue.HasValue && (int)item.Value == defaultValue;
+                }
+            }
+
+            if (!defaultValue.HasValue)
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    if (!usedValues.Contains(i))
+                    {
+                        defaultValue = i;
+                        usedValues.Add(i);
+                        break;
+                    }
+                }
+            }
+
+            var nextValue = 1;
+
+            var valueType = VRCExpressionParameters.ValueType.Bool;
+            var isSaved = false;
+            var isSynced = false;
+
+            foreach (var mami in list)
+            {
+                var control = mami;
+                if (mami.automaticValue)
+                {
+                    if (mami.isDefault)
+                    {
+                        control.Value = defaultValue.GetValueOrDefault();
+                    }
+                    else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
+                    {
+                        // For a float or bool value, we don't really have a lot of good choices, so just set it to
+                        // 1
+                        control.Value = 1;
+                    }
+                    else
+                    {
+                        while (usedValues.Contains(nextValue) && nextValue < 256) nextValue++;
+
+                        if (nextValue >= 256)
+                        {
+                            result.Overflow = mami.Item;
+                            break;
+                        }
+
+                        control.Value = nextValue;
+                        usedValues.Add(nextValue);
+                    }
+                }
+
+                var newValueType = mami.ExpressionParametersValueType;
+                if (valueType == VRCExpressionParameters.ValueType.Bool || newValueType == VRCExpressionParameters.ValueType.Float)
+                {
+                    valueType = newValueType;
+                }
+
+                isSaved |= mami.isSaved;
+                isSynced |= mami.isSynced;
+            }
+
+            if (p == null)
+            {
+                var newParam = new VRCExpressionParameters.Parameter
+                {
+                    name = paramName,
+                    valueType = valueType,
+                    saved = isSaved,
+                    defaultValue = defaultValue.GetValueOrDefault(),
+                    networkSynced = isSynced
+                };
+                result.Parameter = newParam;
+            }
+            result.DefaultValue = p?.defaultValue ?? defaultValue.GetValueOrDefault();
+            return result;
         }
 
         internal static ControlCondition? AssignMenuItemParameter(

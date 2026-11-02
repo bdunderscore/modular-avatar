@@ -293,8 +293,20 @@ namespace UnitTests.ReactiveComponent.ParameterAssignment
 
             var context = new nadena.dev.ndmf.BuildContext(root, null);
             
+            var allocation = ParameterAssignerPass.Allocate("test_parameter",
+                menuItems.Select(m => new ParameterAssignerPass.MenuAssignment.Entry(m)).ToList(), null);
+            var originalValues = menuItems.Select(m => m.Control.value).ToArray();
+            var repeatedAllocation = ParameterAssignerPass.Allocate("test_parameter",
+                menuItems.Select(m => new ParameterAssignerPass.MenuAssignment.Entry(m)).ToList(), null);
+            CollectionAssert.AreEqual(originalValues, menuItems.Select(m => m.Control.value));
+            CollectionAssert.AreEqual(allocation.Entries.Select(e => e.Value),
+                repeatedAllocation.Entries.Select(e => e.Value));
+
             new ParameterAssignerPass().TestExecute(context);
-            
+            CollectionAssert.AreEqual(allocation.Entries.Select(e => e.Value), menuItems.Select(m => m.Control.value));
+            CollectionAssert.AreEqual(allocation.Entries.Select(e => e.isDefault), menuItems.Select(m => m.isDefault));
+            Assert.AreEqual(allocation.Parameter!.defaultValue, avDesc.expressionParameters.parameters.Single().defaultValue);
+
             foreach (var (mami, expected) in menuItems.Zip(expectedAssignments, (m, e) => (m, e)))
             {
                 Assert.AreEqual(expected, mami.Control.value);

@@ -359,6 +359,10 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             }
 
             var prop = ParameterAssignerPass.AssignMenuItemParameter(mami, forceSimulation: true)?.Parameter;
+#if MA_VRCSDK3_AVATARS
+            if (prop != null)
+                prop = new MenuItemPreviewCondition(_lastComputeContext!).ParameterName(mami);
+#endif
             if (prop == null)
             {
                 elem.style.display = DisplayStyle.None;

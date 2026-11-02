@@ -1,13 +1,13 @@
 #nullable enable
-
 #if MA_VRCSDK3_AVATARS
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -15,96 +15,105 @@ namespace nadena.dev.modular_avatar.core.editor
     {
         private readonly ComputeContext _context;
         private readonly ParameterInfo _info;
+        private readonly Dictionary<GameObject, ImmutableDictionary<string, float?>> _maDefaults = new();
+        private readonly Dictionary<ModularAvatarMenuItem, string> _parameterNames = new();
+        private readonly Dictionary<GameObject, ILookup<string, ModularAvatarMenuItem>> _menuGroups = new();
+        private readonly Dictionary<GameObject, Dictionary<string, ProvidedParameter>> _parameters = new();
 
-        // avatar root => params
-        private readonly Dictionary<GameObject, Dictionary<string, float?>> _registeredParameters = new();
-
-        public MenuItemPreviewCondition(ComputeContext computeContext)
+        public MenuItemPreviewCondition(ComputeContext context)
         {
-            if (computeContext == null) throw new ArgumentNullException(nameof(computeContext));
-            _info = ParameterInfo.ForPreview(computeContext);
-            _context = computeContext;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _info = ParameterInfo.ForPreview(context);
         }
 
-        private Dictionary<string, float?> RegisteredParameters(GameObject obj)
+        internal string ParameterName(ModularAvatarMenuItem item)
         {
-            _context.ObservePath(obj.transform);
+            if (_parameterNames.TryGetValue(item, out var cachedName)) return cachedName;
+            var name = item.PortableControl.Parameter;
+            if (string.IsNullOrWhiteSpace(name)) return "___AutoProp/" + item.GetEntityId();
+            var mappings = _info.GetParameterRemappingsAt(item.gameObject);
+            name = mappings.TryGetValue((ParameterNamespace.Animator, name), out var mapping)
+                ? mapping.ParameterName : name;
+            _parameterNames[item] = name;
+            return name;
+        }
 
-            var root = RuntimeUtil.FindAvatarInParents(obj.transform)?.gameObject;
-            if (root == null) return new Dictionary<string, float?>();
-
-            if (_registeredParameters.TryGetValue(root, out var parameters))
-                return parameters;
-
-            parameters = new Dictionary<string, float?>();
-
-            // ParameterInfo observes the descriptor, but not its referenced parameter asset.
-            var descriptor = _context.GetComponent<VRCAvatarDescriptor>(root);
-            if (descriptor != null && descriptor.expressionParameters != null)
-                _context.Observe(descriptor.expressionParameters);
-
-            foreach (var param in _info.GetParametersForObject(root))
+        public ControlCondition? ConditionForPreview(ModularAvatarMenuItem item,
+            IDictionary<string, ModularAvatarMenuItem?>? overrides, Dictionary<string, float> initialStates)
+        {
+            _context.ObservePath(item.transform);
+            var root = RuntimeUtil.FindAvatarInParents(item.transform)?.gameObject;
+            if (root == null) return null;
+            var name = ParameterName(item);
+            if (!_menuGroups.TryGetValue(root, out var groups))
             {
-                if (param.Namespace == ParameterNamespace.Animator)
-                    parameters[param.EffectiveName] = param.DefaultValue;
+                groups = _context.GetComponentsInChildren<ModularAvatarMenuItem>(root, true)
+                    .Where(m => !_context.ObservePath(m.transform).TakeWhile(t => t.gameObject != root)
+                        .Any(t => _context.Observe(t.gameObject, go => go.CompareTag("EditorOnly"))))
+                    .Select(m => { _context.Observe(m); return m; })
+                    .ToLookup(ParameterName);
+                _menuGroups[root] = groups;
             }
-
-            // MA's explicit defaults override expression parameters. Traverse parents before children so an outer
-            // explicit default wins, while an unspecified outer default can inherit an inner one.
-            var explicitDefaults = new Dictionary<string, float>();
-            foreach (var component in _context.GetComponentsInChildren<ModularAvatarParameters>(root, true))
+            var entries = groups[name].Select(m => new ParameterAssignerPass.MenuAssignment.Entry(m)).ToList();
+            var entry = entries.FirstOrDefault(e => e.Item == item);
+            if (entry == null) return null;
+            // Simulate selection on detached entries; authoring values may be placeholders or duplicates.
+            ModularAvatarMenuItem? selected = null;
+            var hasSelectionOverride = overrides?.TryGetValue(name, out selected) == true;
+            if (hasSelectionOverride)
             {
-                if (_context.ObservePath(component.transform).TakeWhile(t => t.gameObject != root)
-                    .Any(t => _context.Observe(t.gameObject, go => go.CompareTag("EditorOnly"))))
-                    continue;
-
-                var configs = _context.Observe(component, c => c.parameters.ToArray(), Enumerable.SequenceEqual);
-                var remaps = _info.GetParameterRemappingsAt(component, true);
-                foreach (var config in configs)
+                foreach (var candidate in entries)
                 {
-                    if (config.isPrefix || !config.HasDefaultValue) continue;
-
-                    var name = config.nameOrPrefix;
-                    if (remaps.TryGetValue((ParameterNamespace.Animator, name), out var remap))
-                        name = remap.ParameterName;
-
-                    if (explicitDefaults.TryAdd(name, config.defaultValue))
-                        parameters[name] = config.defaultValue;
+                    candidate.isDefault = candidate.Item == selected;
+                    candidate.automaticValue = true;
                 }
             }
-
-            _registeredParameters[root] = parameters;
-            return parameters;
-        }
-
-        private bool TryGetRegisteredParam(ModularAvatarMenuItem mami, string paramName,
-            out float? defaultValue)
-        {
-            defaultValue = null;
-
-            if (string.IsNullOrWhiteSpace(mami.PortableControl.Parameter)) return false;
-
-            var remaps = _info.GetParameterRemappingsAt(mami.gameObject);
-
-            if (remaps.TryGetValue((ParameterNamespace.Animator, paramName), out var remap))
-                paramName = remap.ParameterName;
-
-            return RegisteredParameters(mami.gameObject).TryGetValue(paramName, out defaultValue);
-        }
-
-        public float InitialValueForPreview(ModularAvatarMenuItem mami)
-        {
-            _context.ObservePath(mami.transform);
-            var (paramName, value, automaticValue, isDefault) = _context.Observe(mami,
-                m => (m.PortableControl.Parameter, m.PortableControl.Value, m.automaticValue, m.isDefault));
-
-            if (!automaticValue && !string.IsNullOrWhiteSpace(paramName) &&
-                TryGetRegisteredParam(mami, paramName, out var defaultValue) && defaultValue.HasValue)
+            VRCExpressionParameters.Parameter? declared = null;
+            if (!hasSelectionOverride && !item.automaticValue &&
+                !string.IsNullOrWhiteSpace(item.PortableControl.Parameter))
             {
-                return defaultValue.Value;
+                if (!_parameters.TryGetValue(root, out var parameters))
+                {
+                    parameters = _info.GetParametersForObject(root)
+                        .Where(p => p.Namespace == ParameterNamespace.Animator)
+                        .ToDictionary(p => p.EffectiveName);
+                    _parameters[root] = parameters;
+                }
+                parameters.TryGetValue(name, out var parameter);
+                if (!_maDefaults.TryGetValue(root, out var defaults))
+                {
+                    defaults = RenameParametersHook.GetDefaultValuesForPreview(root, _context, _info);
+                    _maDefaults[root] = defaults;
+                }
+                var defaultValue = defaults.TryGetValue(name, out var maDefault) && maDefault.HasValue
+                    ? maDefault : parameter?.DefaultValue;
+                if (defaultValue.HasValue)
+                    declared = new VRCExpressionParameters.Parameter
+                    {
+                        name = name, defaultValue = defaultValue.Value,
+                        valueType = parameter?.ParameterType == AnimatorControllerParameterType.Float
+                            ? VRCExpressionParameters.ValueType.Float
+                            : parameter?.ParameterType == AnimatorControllerParameterType.Bool
+                                ? VRCExpressionParameters.ValueType.Bool : VRCExpressionParameters.ValueType.Int
+                    };
             }
-
-            return isDefault ? value : -999;
+            var allocation = ParameterAssignerPass.Allocate(name, entries, declared);
+            if (hasSelectionOverride)
+                return new ControlCondition
+                {
+                    Parameter = name, DebugName = item.gameObject.name, DebugReference = item,
+                    IsConstant = true, InitialValue = entry.isDefault ? 1 : 0,
+                    ParameterValueLo = 0.5f, ParameterValueHi = 1.5f
+                };
+            var initialValue = declared != null
+                ? allocation.DefaultValue : entry.isDefault ? entry.Value : -999;
+            initialStates[name] = initialValue;
+            return new ControlCondition
+            {
+                Parameter = name, DebugName = item.gameObject.name, DebugReference = item,
+                IsConstant = false, InitialValue = initialValue,
+                ParameterValueLo = entry.Value - 0.005f, ParameterValueHi = entry.Value + 0.005f
+            };
         }
     }
 }

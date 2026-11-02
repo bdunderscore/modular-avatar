@@ -11,6 +11,7 @@ using System.Text;
 using nadena.dev.modular_avatar.editor.ErrorReporting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -82,6 +83,34 @@ namespace nadena.dev.modular_avatar.core.editor
         private BuildContext _context;
 
         private readonly ImmutableList<string> PhysBoneSuffixes = ParameterPolicy.PhysBoneSuffixes;
+
+        // MA declarations override descriptor defaults during the build. Preview the same declaration
+        // scopes without changing objects or adding a global default priority to NDMF.
+        internal static ImmutableDictionary<string, float?> GetDefaultValuesForPreview(
+            GameObject root, ComputeContext context, ndmf.ParameterInfo parameterInfo)
+        {
+            foreach (var component in context.GetComponentsInChildren<ModularAvatarParameters>(root, true))
+            {
+                context.Observe(component);
+                context.ObservePath(component.transform);
+            }
+
+            ImmutableDictionary<string, ParameterInfo> CollectScope(GameObject obj)
+            {
+                var parameters = context.GetComponent<ModularAvatarParameters>(obj);
+                var local = parameters == null
+                    ? ImmutableDictionary<string, ParameterInfo>.Empty
+                    : CollectParameters(parameters, parameterInfo.GetParameterRemappingsAt(parameters, true));
+                var children = obj.transform.Cast<Transform>()
+                    .Where(child => !context.Observe(child.gameObject, go => go.CompareTag("EditorOnly")))
+                    .Select(child => CollectScope(child.gameObject));
+                return MergeParameterScopes(local, children);
+            }
+
+            return CollectScope(root).ToImmutableDictionary(pair => pair.Key,
+                pair => pair.Value.ResolvedParameter.HasDefaultValue
+                    ? (float?)pair.Value.ResolvedParameter.defaultValue : null);
+        }
         
         class ParameterInfo
         {
@@ -465,11 +494,18 @@ namespace nadena.dev.modular_avatar.core.editor
                 });
             }
 
-            var mergedChildParams = ImmutableDictionary<string, ParameterInfo>.Empty;
-            foreach (Transform child in obj.transform)
-            {
-                var childParams = WalkTree(child.gameObject);
+            return MergeParameterScopes(rv, obj.transform.Cast<Transform>().Select(child => WalkTree(child.gameObject)));
+        }
 
+        // Shared by build-time renaming and MA parameter introspection. Sibling declarations retain the first
+        // default, while a parent with no explicit default can inherit its child's default.
+        private static ImmutableDictionary<string, ParameterInfo> MergeParameterScopes(
+            ImmutableDictionary<string, ParameterInfo> localParameters,
+            IEnumerable<ImmutableDictionary<string, ParameterInfo>> childScopes)
+        {
+            var mergedChildParams = ImmutableDictionary<string, ParameterInfo>.Empty;
+            foreach (var childParams in childScopes)
+            {
                 foreach (var kvp in childParams)
                 {
                     var name = kvp.Key;
@@ -492,17 +528,17 @@ namespace nadena.dev.modular_avatar.core.editor
                 
                 info.ResolvedParameter.nameOrPrefix = name;
                 
-                if (rv.TryGetValue(name, out var priorInfo))
+                if (localParameters.TryGetValue(name, out var priorInfo))
                 {
                     priorInfo.MergeChild(info);
                 }
                 else
                 {
-                    rv = rv.SetItem(name, info);
+                    localParameters = localParameters.SetItem(name, info);
                 }
             }
 
-            return rv;
+            return localParameters;
         }
 
         private void ProcessMenuInstaller(ModularAvatarMenuInstaller installer,
@@ -648,12 +684,10 @@ namespace nadena.dev.modular_avatar.core.editor
             t.Conditions = conditions;
         }
 
-        private ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
+        private static ImmutableDictionary<string, ParameterInfo> CollectParameters(ModularAvatarParameters p,
             ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> remaps
         )
         {
-            var remapper = ParameterRenameMappings.Get(_context.PluginBuildContext);
-            
             ImmutableDictionary<string, ParameterInfo> parameterInfos = ImmutableDictionary<string, ParameterInfo>.Empty;
             
             foreach (var param in p.parameters)
