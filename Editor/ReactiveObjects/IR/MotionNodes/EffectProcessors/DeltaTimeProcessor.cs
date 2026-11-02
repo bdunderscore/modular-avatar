@@ -149,6 +149,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 t.SetDestination(dst);
                 t.Conditions = conditions;
                 t.ExitTime = null;
+                t.Duration = 0;
+                t.HasFixedDuration = true;
 
                 src.Transitions = src.Transitions.Add(t);
 
@@ -168,6 +170,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                         t.SetExitDestination();
                         t.Conditions = ImmutableList<AnimatorCondition>.Empty.Add(condition);
                         t.ExitTime = null;
+                        t.Duration = 0;
+                        t.HasFixedDuration = true;
                         state.Transitions = state.Transitions.Add(t);
                     }
                 }
