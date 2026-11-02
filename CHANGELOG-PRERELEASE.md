@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
 - [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
+- [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
 
 ### Fixed
 

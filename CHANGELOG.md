@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
 - [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
+- [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
 
 ### Fixed
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component

@@ -1,21 +1,31 @@
-﻿# Rename VRChat Collision Tags
+﻿---
+sidebar_label: Rename VRChat Collision Tags
+---
+
+# Rename VRChat Collision Tags
 
 The `MA Rename Collision Tags` component allows you to rename the collision tags used by the VRChat Contacts system
 to avoid name collisions with other components or gimmicks.
 
 ![Rename VRChat Collision Tags UI](rename-vrchat-collision-tags.png)
 
-## When should I use it?
+## When should I use it? {#when-should-i-use-it}
 
 You should use the `MA Rename Collision Tags` component when you have contacts that you don't want interfering with
 other user's avatars, or when you want to avoid name collisions with other components or gimmicks on your own avatar.
 You can also use it to configure multiple gimmicks to interact with each other by using the same tag names.
 
-## How do I use it?
+## How do I use it? {#how-do-i-use-it}
 
 Place a `MA Rename Collision Tags` component on any GameObject in your avatar, and then add the tags you want to rename.
 You can set them to be "auto rename" to have Modular Avatar automatically select a unique name for you, or you can
 manually set the name to whatever you want. Any tags on contacts under the same GameObject will be renamed accordingly.
+
+Within this component's hierarchy scope, animator parameters in animator controllers and standalone motions, such as
+the clips and blend trees used by `MA Merge Motion`, whose names match `prefix_CollisionTag_[tag]` are renamed as well.
+The `prefix_CollisionTag_` portion is preserved, while `[tag]` uses the same collision tag mapping, including automatic
+renames and renames applied by nested `MA Rename Collision Tags` components. Parameter names must contain exactly one
+`_CollisionTag_` delimiter. Names with two or more occurrences are ambiguous and report a build error.
 
 Note that placing the `MA Rename Collision Tags` component on a GameObject that is the parent of the `Root Transform`
 of a contact located elsewhere in the hierarchy will not rename the tags of that contact.

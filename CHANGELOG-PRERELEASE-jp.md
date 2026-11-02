@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
 - [#2189] `MA Parameters` の接頭辞設定をContact ReceiverのAdvanced変数に対応
+- [#2192] `MA Rename Collision Tags` に、collision tag用のパラメーターもリネームできるように変更
 
 ### Fixed
 
