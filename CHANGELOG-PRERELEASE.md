@@ -8,22 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
-- [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
-- [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
 
 ### Fixed
 
 ### Changed
-- [#2189] VRC Contact Receivers will now have their parameters renamed based on either a prefix or non-prefix parameter
-  rename entry.
-- [#2189] PhysBone prefix parameters will rename the parameter of the same name, as well as ones prefixed by that prefix.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.19.0-beta.0] - [2026-11-02]
+
+### Added
+- [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
+- [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
+- [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
+
+### Changed
+- [#2189] VRC Contact Receivers will now have their parameters renamed based on either a prefix or non-prefix parameter
+  rename entry.
+- [#2189] PhysBone prefix parameters will rename the parameter of the same name, as well as ones prefixed by that prefix.
 
 ## [1.19.0-alpha.3] - [2026-10-28]
 
