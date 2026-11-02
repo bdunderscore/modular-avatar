@@ -1,4 +1,4 @@
-{
+﻿{
   "boneproxy.foldout.advanced": "詳細設定",
   "boneproxy.target": "ターゲット",
   "menuinstall.help.hint_set_menu": "このプレハブは自動的にアバターの一番上のメニューに導入されます。不要な場合は別のメニューを指定するか、コンポーネントの有効状態を切ってください。",
@@ -506,5 +506,8 @@
   "error.rename_params.representation_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの数値表現フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された数値表現を採用します。",
   "error.rename_params.lerp_duration_conflict": "[MA-0030] 補間時間の競合",
   "error.rename_params.lerp_duration_conflict:description": "パラメータ {0} には複数の補間時間が指定されています: {1} != {2}",
-  "error.rename_params.lerp_duration_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの補間時間フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された補間時間を採用します。"
+  "error.rename_params.lerp_duration_conflict:hint": "予測不可能な動作を避けるため、MA Parametersコンポーネントの補間時間フィールドはパラメーター名毎に1つだけしか指定しないようにし、他のコンポーネントでは空白のままにしてください。複数の値が存在する場合、Modular Avatarは階層順で最初に指定された補間時間を採用します。",
+  "error.rename_collision_tags.ambiguous_parameter": "[MA-0031] 衝突タグ用パラメータ名が曖昧です",
+  "error.rename_collision_tags.ambiguous_parameter:description": "パラメータ {0} には `_CollisionTag_` が2つ以上含まれています。",
+  "error.rename_collision_tags.ambiguous_parameter:hint": "接頭辞またはタグから `_CollisionTag_` という文字列を削除してください。"
 }

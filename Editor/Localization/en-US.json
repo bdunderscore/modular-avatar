@@ -1,4 +1,4 @@
-{
+﻿{
   "test0.test_a": "test_a",
   "test0.test_b": "test_b",
   "boneproxy.foldout.advanced": "Advanced",
@@ -510,5 +510,8 @@
   "error.rename_params.representation_conflict:hint": "To avoid unpredictable behavior, leave the representation field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first representation specified in the hierarchy order.",
   "error.rename_params.lerp_duration_conflict": "[MA-0030] Lerp duration conflict",
   "error.rename_params.lerp_duration_conflict:description": "Parameter {0} has multiple lerp durations specified: {1} != {2}",
-  "error.rename_params.lerp_duration_conflict:hint": "To avoid unpredictable behavior, leave the lerp duration field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first lerp duration specified in the hierarchy order."
+  "error.rename_params.lerp_duration_conflict:hint": "To avoid unpredictable behavior, leave the lerp duration field blank in all but on MA Parameters component. If multiple values are present, Modular Avatar will select the first lerp duration specified in the hierarchy order.",
+  "error.rename_collision_tags.ambiguous_parameter": "[MA-0031] Ambiguous collision-tag parameter name",
+  "error.rename_collision_tags.ambiguous_parameter:description": "Parameter {0} contains two or more `_CollisionTag_` occurrences.",
+  "error.rename_collision_tags.ambiguous_parameter:hint": "Remove the literal `_CollisionTag_` from the prefix or tag."
 }

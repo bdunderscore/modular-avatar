@@ -10,6 +10,18 @@ using VRC.Dynamics;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
+  internal class CollisionTagRenameMappings
+  {
+    internal Dictionary<ModularAvatarRenameVRChatCollisionTags, Dictionary<string, string>> ComponentMaps = new();
+
+    internal bool TryGetMap(GameObject obj, out Dictionary<string, string> map)
+    {
+      map = null;
+      var controllingComponent = obj.GetComponent<ModularAvatarRenameVRChatCollisionTags>()
+                                 ?? obj.GetComponentInParent<ModularAvatarRenameVRChatCollisionTags>();
+      return controllingComponent != null && ComponentMaps.TryGetValue(controllingComponent, out map);
+    }
+  }
 
   [RunsOnPlatforms(WellKnownPlatforms.VRChatAvatar30)]
   internal class RenameCollisionTagsPass : Pass<RenameCollisionTagsPass>
@@ -23,7 +35,8 @@ namespace nadena.dev.modular_avatar.core.editor
       ndmf.BuildContext context
     )
     {
-      Dictionary<ModularAvatarRenameVRChatCollisionTags, Dictionary<string, string>> componentMap = new();
+      var componentMap = context.GetState<CollisionTagRenameMappings>().ComponentMaps;
+      componentMap.Clear();
 
       // Traverses in hierarchy order
       foreach (var renamer in context.AvatarRootObject
@@ -76,14 +89,9 @@ namespace nadena.dev.modular_avatar.core.editor
     protected override void Execute(ndmf.BuildContext context)
     {
       var avatarRoot = context.AvatarRootObject;
-
-      var contacts = avatarRoot.GetComponentsInChildren<ContactBase>(true);
-      
-      if (contacts.Length == 0) return;
-
       var contactToRenameMap = BuildRenameMap(context);
 
-      foreach (var contact in contacts)
+      foreach (var contact in avatarRoot.GetComponentsInChildren<ContactBase>(true))
       {
         BuildReport.ReportingObject(contact, () =>
         {

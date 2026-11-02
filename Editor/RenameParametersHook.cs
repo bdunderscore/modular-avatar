@@ -553,6 +553,9 @@ namespace nadena.dev.modular_avatar.core.editor
                             var mappings = paramInfo.GetParameterRemappingsAt(obj);
                             var prefixMappings = mappings.Where(k => k.Key.Item1 == ParameterNamespace.PhysBonesPrefix)
                                 .ToDictionary(kvp => kvp.Key.Item2, kvp => kvp.Value);
+                            _context.PluginBuildContext.GetState<CollisionTagRenameMappings>().TryGetMap(
+                                obj, out var collisionTagMap);
+                            HashSet<string> reportedAmbiguousCollisionTagParameters = null;
                             var staticMappings = mappings.SelectMany(item =>
                             {
                                 if (item.Key.Item1 == ParameterNamespace.Animator) return new[] { item };
@@ -564,11 +567,32 @@ namespace nadena.dev.modular_avatar.core.editor
                                     )
                                 );
                             }).ToImmutableDictionary();
+
+                            bool RejectAmbiguousCollisionTagParameter(string parameterName)
+                            {
+                                const string collisionTagSeparator = "_CollisionTag_";
+                                var separatorIndex =
+                                    parameterName.IndexOf(collisionTagSeparator, StringComparison.Ordinal);
+                                if (separatorIndex < 0 ||
+                                    parameterName.IndexOf(
+                                        collisionTagSeparator, separatorIndex + 1,
+                                        StringComparison.Ordinal) < 0) return false;
+
+                                if ((reportedAmbiguousCollisionTagParameters ??= new HashSet<string>()).Add(
+                                        parameterName))
+                                {
+                                    BuildReport.LogFatal("error.rename_collision_tags.ambiguous_parameter",
+                                        parameterName, component);
+                                }
+
+                                return true;
+                            }
                             ParameterRemapper remap =
                                 ((ParameterNamespace, string) parameter, out ParameterMapping mapping) =>
                                 {
                                     mapping = new ParameterMapping(parameter.Item2);
                                     if (parameter.Item1 != ParameterNamespace.Animator) return false;
+                                    if (RejectAmbiguousCollisionTagParameter(parameter.Item2)) return false;
 
                                     if (staticMappings.TryGetValue(parameter, out mapping)) return true;
                                     if (mappings.TryGetValue((ParameterNamespace.PhysBonesPrefix, parameter.Item2), out mapping))
@@ -579,23 +603,56 @@ namespace nadena.dev.modular_avatar.core.editor
                                     foreach (var kvp in prefixMappings)
                                     {
                                         var tagPrefix = kvp.Key + "_CollisionTag_";
-                                        if (parameter.Item2.StartsWith(tagPrefix))
+                                        if (parameter.Item2.StartsWith(tagPrefix, StringComparison.Ordinal))
                                         {
-                                            var suffix = parameter.Item2.Substring(tagPrefix.Length);
-                                            var newName = kvp.Value.ParameterName + "_CollisionTag_" + suffix;
-                                            mapping = new ParameterMapping(newName, kvp.Value.IsHidden);
+                                            var tag = parameter.Item2.Substring(tagPrefix.Length);
+                                            var remappedTag = tag;
+                                            if (collisionTagMap != null &&
+                                                collisionTagMap.TryGetValue(tag, out var mappedTag))
+                                            {
+                                                remappedTag = mappedTag;
+                                            }
+
+                                            var remappedParameter =
+                                                kvp.Value.ParameterName + "_CollisionTag_" + remappedTag;
+                                            if (RejectAmbiguousCollisionTagParameter(remappedParameter)) return false;
+
+                                            mapping = new ParameterMapping(remappedParameter, kvp.Value.IsHidden);
                                             return true;
                                         }
                                     }
 
-                                    return false;
+                                    var separatorIndex =
+                                        parameter.Item2.IndexOf("_CollisionTag_", StringComparison.Ordinal);
+                                    if (separatorIndex < 0) return false;
+
+                                    var fallbackTag =
+                                        parameter.Item2.Substring(separatorIndex + "_CollisionTag_".Length);
+                                    if (collisionTagMap == null ||
+                                        !collisionTagMap.TryGetValue(fallbackTag, out var fallbackRemappedTag))
+                                        return false;
+
+                                    var fallbackRemappedParameter = parameter.Item2.Substring(0, separatorIndex) +
+                                                                    "_CollisionTag_" + fallbackRemappedTag;
+                                    if (RejectAmbiguousCollisionTagParameter(fallbackRemappedParameter)) return false;
+
+                                    mapping = new ParameterMapping(fallbackRemappedParameter);
+                                    return true;
                                 };
 
-                            if (animServices.ControllerContext.Controllers.TryGetValue(component, out var controller))
+                            if (component is IVirtualizeAnimatorController &&
+                                animServices.ControllerContext.Controllers.TryGetValue(component, out var controller))
                             {
                                 ProcessVirtualAnimatorController(controller, remap);
                             }
-
+                            else if (component is IVirtualizeMotion motion &&
+                                     animServices.ControllerContext.GetVirtualizedMotion(motion) is
+                                     {
+                                         /* non-null */
+                                     } virtualMotion)
+                            {
+                                ProcessVirtualMotion(virtualMotion, remap);
+                            }
                             break;
                         }
 
@@ -707,7 +764,84 @@ namespace nadena.dev.modular_avatar.core.editor
         private void ProcessVirtualAnimatorController(VirtualAnimatorController controller,
             ParameterRemapper remap)
         {
-            foreach (var node in controller.AllReachableNodes())
+            var orderedParameters = controller.Parameters.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToList();
+            Dictionary<string, AnimatorControllerParameterType> firstTypes = new();
+            HashSet<string> mixedTypeTargets = null;
+
+            foreach (var (name, parameter) in orderedParameters)
+            {
+                var newName = name;
+                if (remap((ParameterNamespace.Animator, name), out var newParam))
+                {
+                    newName = newParam.ParameterName;
+                }
+
+                if (!firstTypes.TryGetValue(newName, out var firstType))
+                {
+                    firstTypes.Add(newName, parameter.type);
+                }
+                else if (firstType != parameter.type)
+                {
+                    (mixedTypeTargets ??= new HashSet<string>()).Add(newName);
+                }
+            }
+
+            if (mixedTypeTargets != null)
+            {
+                var promotedParameters = controller.Parameters;
+                foreach (var (name, parameter) in orderedParameters)
+                {
+                    var newName = name;
+                    if (remap((ParameterNamespace.Animator, name), out var newParam))
+                    {
+                        newName = newParam.ParameterName;
+                    }
+
+                    if (!mixedTypeTargets.Contains(newName) || parameter.type == AnimatorControllerParameterType.Float)
+                    {
+                        continue;
+                    }
+
+                    promotedParameters = promotedParameters.SetItem(name, new AnimatorControllerParameter
+                    {
+                        name = name,
+                        type = AnimatorControllerParameterType.Float,
+                        defaultFloat = parameter.type switch
+                        {
+                            AnimatorControllerParameterType.Bool => parameter.defaultBool ? 1 : 0,
+                            AnimatorControllerParameterType.Int => parameter.defaultInt,
+                            _ => 0
+                        }
+                    });
+                }
+
+                controller.Parameters = promotedParameters;
+                orderedParameters = controller.Parameters.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToList();
+            }
+
+            ProcessVirtualMotion(controller, remap);
+
+            var newParameters = controller.Parameters.Clear();
+            foreach (var (name, parameter) in orderedParameters)
+            {
+                var newName = name;
+                if (remap((ParameterNamespace.Animator, name), out var newParam))
+                {
+                    newName = newParam.ParameterName;
+                }
+
+                if (!newParameters.ContainsKey(newName))
+                {
+                    newParameters = newParameters.SetItem(newName, parameter);
+                }
+            }
+
+            controller.Parameters = newParameters;
+        }
+
+        private void ProcessVirtualMotion(VirtualNode motion, ParameterRemapper remap)
+        {
+            foreach (var node in motion.AllReachableNodes())
             {
                 switch (node)
                 {
@@ -718,22 +852,6 @@ namespace nadena.dev.modular_avatar.core.editor
                     case VirtualBlendTree bt: ProcessBlendtree(bt, remap); break;
                 }
             }
-
-            var newParameters = controller.Parameters.Clear();
-
-            foreach (var (name, parameter) in controller.Parameters)
-            {
-                if (remap((ParameterNamespace.Animator, name), out var newParam))
-                {
-                    newParameters = newParameters.Add(newParam.ParameterName, parameter);
-                }
-                else
-                {
-                    newParameters = newParameters.Add(name, parameter);
-                }
-            }
-            
-            controller.Parameters = newParameters;
         }
 
         private void ProcessStateMachine(VirtualStateMachine vsm,
@@ -768,26 +886,38 @@ namespace nadena.dev.modular_avatar.core.editor
             ParameterRemapper remaps)
         {
             var curveBindings = clip.GetFloatCurveBindings();
-
-            var bindingsToUpdate = new List<EditorCurveBinding>();
-            var newCurves = new List<AnimationCurve>();
+            List<(EditorCurveBinding source, EditorCurveBinding destination, AnimationCurve curve)> updates = null;
 
             foreach (var binding in curveBindings)
             {
                 if (binding.path != "" || binding.type != typeof(Animator)) continue;
                 if (remaps((ParameterNamespace.Animator, binding.propertyName), out var newBinding))
                 {
-                    var curCurve = clip.GetFloatCurve(binding);
-                    var newECB = new EditorCurveBinding
-                    {
-                        path = "",
-                        type = typeof(Animator),
-                        propertyName = newBinding.ParameterName
-                    };
-                    
-                    clip.SetFloatCurve(binding, null);
-                    clip.SetFloatCurve(newECB, curCurve);
+                    updates ??=
+                        new List<(EditorCurveBinding source, EditorCurveBinding destination, AnimationCurve curve)>();
+                    updates.Add((
+                        binding,
+                        new EditorCurveBinding
+                        {
+                            path = "",
+                            type = typeof(Animator),
+                            propertyName = newBinding.ParameterName
+                        },
+                        clip.GetFloatCurve(binding)
+                    ));
                 }
+            }
+
+            if (updates == null) return;
+
+            foreach (var (source, _, _) in updates)
+            {
+                clip.SetFloatCurve(source, null);
+            }
+
+            foreach (var (_, destination, curve) in updates)
+            {
+                clip.SetFloatCurve(destination, curve);
             }
         }
 

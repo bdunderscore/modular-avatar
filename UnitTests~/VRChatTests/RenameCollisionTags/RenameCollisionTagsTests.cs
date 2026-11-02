@@ -2,18 +2,25 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 using NUnit.Framework;
+using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
+using nadena.dev.modular_avatar.editor.ErrorReporting;
 
 using BuildContext = nadena.dev.ndmf.BuildContext;
+using ErrorReport = nadena.dev.ndmf.ErrorReport;
+using SimpleError = nadena.dev.ndmf.SimpleError;
 
 #endregion
 
@@ -670,6 +677,254 @@ namespace nadena.dev.modular_avatar.test.Tests.RenameCollisionTags
             Assert.That(contact.collisionTags.Count, Is.EqualTo(2));
             Assert.That(contact.collisionTags, Does.Contain("Z"));
             Assert.That(contact.collisionTags, Does.Contain("X"));
+        }
+
+        [Test]
+        public void AnimatorParametersUseContactCollisionTagMappings()
+        {
+            const string automaticTag = "Automatic_Tag";
+            const string manualTag = "Manual_Tag";
+            const string automaticParameter = "pb_CollisionTag_Automatic_Tag";
+            const string manualParameter = "pb_CollisionTag_Manual_Tag";
+            const string explicitParameter = "Explicit_Target";
+            var avatar = CreateRoot("avatar");
+            avatar.AddComponent<ModularAvatarParameters>().parameters = new List<ParameterConfig>
+            {
+                new()
+                {
+                    nameOrPrefix = "pb",
+                    remapTo = "pb2",
+                    isPrefix = true,
+                    syncType = ParameterSyncType.Float
+                },
+                new()
+                {
+                    nameOrPrefix = manualParameter,
+                    remapTo = explicitParameter,
+                    syncType = ParameterSyncType.Bool
+                }
+            };
+            avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>().configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = automaticTag, autoRename = true },
+                new() { name = manualTag, autoRename = false, renameTo = "Manual_Renamed" },
+                new() { name = "Duplicate_A", autoRename = false, renameTo = "Shared" },
+                new() { name = "Duplicate_B", autoRename = false, renameTo = "Shared" }
+            };
+
+            var contact = avatar.AddComponent<VRCContactReceiver>();
+            contact.collisionTags = new List<string> { automaticTag, manualTag };
+
+            var clip = TrackObject(new AnimationClip());
+            clip.SetCurve("", typeof(Animator), manualParameter, AnimationCurve.Constant(0, 1, 0));
+            var blendTree = TrackObject(new BlendTree
+            {
+                blendType = BlendTreeType.Direct,
+                blendParameter = automaticParameter,
+                children = new[]
+                {
+                    new ChildMotion { motion = clip, directBlendParameter = manualParameter, timeScale = 1 }
+                }
+            });
+            var controller = TrackObject(new AnimatorController
+            {
+                parameters = new[]
+                {
+                    new AnimatorControllerParameter { name = automaticParameter, type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = manualParameter, type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = "pb_CollisionTag_Duplicate_A", type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = "pb_CollisionTag_Duplicate_B", type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = "unrelated", type = AnimatorControllerParameterType.Bool }
+                }
+            });
+            var stateMachine = TrackObject(new AnimatorStateMachine());
+            var initialState = TrackObject(stateMachine.AddState("Initial"));
+            var destinationState = TrackObject(stateMachine.AddState("Destination"));
+            stateMachine.defaultState = initialState;
+            initialState.motion = blendTree;
+            initialState.AddTransition(destinationState).AddCondition(AnimatorConditionMode.If, 0, manualParameter);
+            var duplicateTransition = initialState.AddTransition(destinationState);
+            duplicateTransition.AddCondition(AnimatorConditionMode.If, 0, "pb_CollisionTag_Duplicate_A");
+            duplicateTransition.AddCondition(AnimatorConditionMode.If, 0, "pb_CollisionTag_Duplicate_B");
+            var driver = initialState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+            driver.parameters = new List<VRCAvatarParameterDriver.Parameter>
+            {
+                new() { name = manualParameter }
+            };
+            controller.layers = new[]
+            {
+                new AnimatorControllerLayer
+                {
+                    name = "Collision tags",
+                    defaultWeight = 1,
+                    stateMachine = stateMachine
+                }
+            };
+            avatar.AddComponent<ModularAvatarMergeAnimator>().animator = controller;
+
+            AvatarProcessor.ProcessAvatar(avatar);
+
+            var automaticRenamedTag = contact.collisionTags.Single(tag => tag.StartsWith(automaticTag + "$", StringComparison.Ordinal));
+            Assert.That(contact.collisionTags, Does.Contain("Manual_Renamed"));
+            Assert.IsTrue(Guid.TryParse(automaticRenamedTag[(automaticTag.Length + 1)..], out _));
+            var automaticRemappedParameter = "pb2_CollisionTag_" + automaticRenamedTag;
+            var duplicateRemappedParameter = "pb2_CollisionTag_Shared";
+            var outputController = FindFxController(avatar).animatorController as AnimatorController;
+            Assert.NotNull(outputController);
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain(automaticRemappedParameter));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain(explicitParameter));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain(duplicateRemappedParameter));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain("unrelated"));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Not.Contain(automaticParameter));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Not.Contain(manualParameter));
+
+            var outputState = outputController.layers.Single(layer => layer.name == "Collision tags").stateMachine.defaultState;
+            Assert.That(outputState.transitions[0].conditions.Single().parameter, Is.EqualTo(explicitParameter));
+            Assert.That(outputState.transitions[1].conditions.Select(condition => condition.parameter),
+                Is.EqualTo(new[] { duplicateRemappedParameter, duplicateRemappedParameter }));
+            var drivenParameters = outputState.behaviours.OfType<VRCAvatarParameterDriver>()
+                .SelectMany(parameterDriver => parameterDriver.parameters)
+                .Select(parameter => parameter.name)
+                .ToList();
+            Assert.That(drivenParameters, Does.Contain(explicitParameter));
+            Assert.That(drivenParameters, Does.Not.Contain(manualParameter));
+            var outputBlendTree = outputState.motion as BlendTree;
+            Assert.That(outputBlendTree.blendParameter, Is.EqualTo(automaticRemappedParameter));
+            Assert.That(outputBlendTree.children.Single().directBlendParameter, Is.EqualTo(explicitParameter));
+            Assert.That(
+                AnimationUtility.GetCurveBindings(outputBlendTree.children.Single().motion as AnimationClip)
+                    .Select(binding => binding.propertyName),
+                Is.EqualTo(new[] { explicitParameter })
+            );
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void AnimatorParametersUseNestedCollisionTagMappingsWithoutContacts(bool renamePrefix)
+        {
+            var avatar = CreateRoot("avatar");
+            if (renamePrefix)
+            {
+                avatar.AddComponent<ModularAvatarParameters>().parameters = new List<ParameterConfig>
+                {
+                    new()
+                    {
+                        nameOrPrefix = "pb",
+                        remapTo = "pb2",
+                        isPrefix = true,
+                        syncType = ParameterSyncType.Float
+                    }
+                };
+            }
+            avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>().configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Parent", autoRename = false, renameTo = "Child" }
+            };
+            var child = CreateChild(avatar, "child");
+            child.AddComponent<ModularAvatarRenameVRChatCollisionTags>().configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Tag", autoRename = false, renameTo = "Parent" }
+            };
+
+            var parameter = "pb_CollisionTag_Tag";
+            var controller = TrackObject(new AnimatorController
+            {
+                parameters = new[]
+                {
+                    new AnimatorControllerParameter { name = parameter, type = AnimatorControllerParameterType.Bool }
+                }
+            });
+            var stateMachine = TrackObject(new AnimatorStateMachine());
+            var initialState = TrackObject(stateMachine.AddState("Initial"));
+            var destinationState = TrackObject(stateMachine.AddState("Destination"));
+            stateMachine.defaultState = initialState;
+            initialState.AddTransition(destinationState).AddCondition(AnimatorConditionMode.If, 0, parameter);
+            controller.layers = new[]
+            {
+                new AnimatorControllerLayer
+                {
+                    name = "Nested collision tags",
+                    defaultWeight = 1,
+                    stateMachine = stateMachine
+                }
+            };
+            child.AddComponent<ModularAvatarMergeAnimator>().animator = controller;
+
+            AvatarProcessor.ProcessAvatar(avatar);
+
+            var expected = (renamePrefix ? "pb2" : "pb") + "_CollisionTag_Child";
+            var outputController = FindFxController(avatar).animatorController as AnimatorController;
+            Assert.NotNull(outputController);
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Contain(expected));
+            Assert.That(outputController.parameters.Select(parameter => parameter.name), Does.Not.Contain(parameter));
+            var outputState = outputController.layers.Single(layer => layer.name == "Nested collision tags").stateMachine.defaultState;
+            Assert.That(outputState.transitions.Single().conditions.Single().parameter, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void RejectsAmbiguousCollisionTagAnimatorParameters()
+        {
+            const string twoSeparators = "pb_CollisionTag_Tag_CollisionTag_Extra";
+            const string threeSeparators = "pb_CollisionTag_Tag_CollisionTag_Extra_CollisionTag_More";
+            const string overlappingSeparators = "pb_CollisionTag_CollisionTag_Tag";
+            const string outputAmbiguous = "pb2_CollisionTag_A_CollisionTag_B";
+            var avatar = CreateRoot("avatar");
+            avatar.AddComponent<ModularAvatarParameters>().parameters = new List<ParameterConfig>
+            {
+                new()
+                {
+                    nameOrPrefix = "pb",
+                    remapTo = "pb2",
+                    isPrefix = true,
+                    syncType = ParameterSyncType.Float
+                },
+                new()
+                {
+                    nameOrPrefix = twoSeparators,
+                    remapTo = "explicit",
+                    syncType = ParameterSyncType.Bool
+                }
+            };
+            avatar.AddComponent<ModularAvatarRenameVRChatCollisionTags>().configs = new List<RenameCollisionTagConfig>
+            {
+                new() { name = "Tag", autoRename = false, renameTo = "A_CollisionTag_B" }
+            };
+            var controller = TrackObject(new AnimatorController
+            {
+                parameters = new[]
+                {
+                    new AnimatorControllerParameter { name = twoSeparators, type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = overlappingSeparators, type = AnimatorControllerParameterType.Bool },
+                    new AnimatorControllerParameter { name = "pb_CollisionTag_Tag", type = AnimatorControllerParameterType.Bool }
+                }
+            });
+            var stateMachine = TrackObject(new AnimatorStateMachine());
+            var initialState = TrackObject(stateMachine.AddState("Initial"));
+            var destinationState = TrackObject(stateMachine.AddState("Destination"));
+            stateMachine.defaultState = initialState;
+            initialState.AddTransition(destinationState).AddCondition(AnimatorConditionMode.If, 0, threeSeparators);
+            controller.layers = new[]
+            {
+                new AnimatorControllerLayer
+                {
+                    name = "Ambiguous collision tags",
+                    defaultWeight = 1,
+                    stateMachine = stateMachine
+                }
+            };
+            avatar.AddComponent<ModularAvatarMergeAnimator>().animator = controller;
+
+            var errors = ErrorReport.CaptureErrors(() => AvatarProcessor.ProcessAvatar(avatar));
+            var ambiguousParameters = errors.Select(error => error.TheError)
+                .OfType<SimpleError>()
+                .Where(error => error.TitleKey == "error.rename_collision_tags.ambiguous_parameter")
+                .Select(error => error.DetailsSubst[0])
+                .ToList();
+
+            Assert.That(ambiguousParameters, Does.Contain(twoSeparators));
+            Assert.That(ambiguousParameters, Does.Contain(threeSeparators));
+            Assert.That(ambiguousParameters, Does.Contain(overlappingSeparators));
+            Assert.That(ambiguousParameters, Does.Contain(outputAmbiguous));
         }
     }
 }
