@@ -375,6 +375,7 @@ public (yet).
 - [#1776] Mesh Cutter components parented underneath a mesh, will ignore that mesh and its parents when considering
   whether they are constant-on.
     - This improves performance, and improves compatibility with non-VRChat platforms.
+- [#2180] `MA Global Collider` now takes advantage of VRChat Physbone colliders with global collision before resorting to finger theft.
 
 ## [1.14.4-beta.3] - [2025-10-27]
 
