@@ -507,6 +507,7 @@
   "error.rename_params.lerp_duration_conflict": "[MA-0030] 선형 보간 시간 충돌",
   "error.rename_params.lerp_duration_conflict:description": "파라미터 {0}에 서로 다른 선형 보간 시간이 지정되어 있습니다: {1} != {2}",
   "error.rename_params.lerp_duration_conflict:hint": "예측할 수 없는 동작을 방지하려면 동일한 파라미터의 선형 보간 시간은 MA Parameters 컴포넌트 하나에서만 지정하고, 나머지 컴포넌트에서는 비워 두세요. 여러 값이 있으면 Modular Avatar는 계층 구조 순서에서 처음 나오는 선형 보간 시간 설정을 사용합니다.",
+  "error.rename_collision_tags.ambiguous_parameter": "[MA-0031] 충돌 태그 파라미터 이름이 모호합니다",
   "error.rename_collision_tags.ambiguous_parameter:description": "파라미터 {0}에 `_CollisionTag_`가 두 번 이상 포함되어 있습니다.",
   "error.rename_collision_tags.ambiguous_parameter:hint": "접두사 또는 태그에서 `_CollisionTag_` 문자열을 제거하세요."
 }
