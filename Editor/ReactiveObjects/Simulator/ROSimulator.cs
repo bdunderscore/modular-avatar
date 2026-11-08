@@ -20,6 +20,14 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 {
     internal class ROSimulator : EditorWindow, IHasCustomMenu
     {
+        private static bool inAssemblyReload;
+
+        [InitializeOnLoadMethod]
+        private static void StaticInit()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += () => { inAssemblyReload = true; };
+        }
+        
         public static PublishedValue<ImmutableDictionary<string, float>?> PropertyOverrides =
             new(null, "ROSimulator.PropertyOverrides");
 
@@ -108,13 +116,11 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             Selection.selectionChanged -= SelectionChanged;
             EditorApplication.update -= PeriodicRefresh;
 
-            // Delay this to ensure that we don't try to change this value from within assembly reload callbacks
-            // (which generates a noisy exception)
-            EditorApplication.delayCall += () =>
+            if (!inAssemblyReload)
             {
                 PropertyOverrides.Value = null;
                 MenuItemOverrides.Value = null;
-            };
+            }
         }
         
         private void PeriodicRefresh()
