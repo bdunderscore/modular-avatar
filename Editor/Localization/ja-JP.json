@@ -49,7 +49,7 @@
   "merge_parameter.ui.synced": "同期する",
   "merge_parameter.ui.synced.tooltip": "有効にすると、このパラメーターは同期されます",
   "merge_parameter.ui.bitWidth.tooltip": "このパラメーターが表現可能な値の範囲・精度",
-  "merge_parameter.ui.representation.tooltip":"符号付きパラメーターは負の値を表現できます",
+  "merge_parameter.ui.representation.tooltip": "符号付きパラメーターは負の値を表現できます",
   "merge_parameter.ui.useCustomLerpDuration": "補間時間",
   "merge_parameter.ui.unregistered_foldout": "未登録パラメーター",
   "merge_parameter.ui.add_button": "追加",
