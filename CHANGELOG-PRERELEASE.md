@@ -8,18 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2204] Added a warning to the package export dialog when running a prerelease version that might contain new serialized data.
 
 ### Fixed
 
 ### Changed
-- [#2204] The version warning logic will now record the prior minor version as the minimum required, when running on a `x.y.0-prerelease` prerelease version.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.19.0-rc.0] - [2026-11-08]
+
+### Added
+- [#2204] Added a warning to the package export dialog when running a prerelease version that might contain new serialized data.
+
+### Changed
+- [#2204] The version warning logic will now record the prior minor version as the minimum required, when running on a `x.y.0-prerelease` prerelease version.
 
 ## [1.19.0-beta.1] - [2026-11-08]
 
