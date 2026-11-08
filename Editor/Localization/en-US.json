@@ -493,6 +493,7 @@
   "version_mismatch.close_unity": "Close Unity",
   "version_mismatch.ignore": "Ignore",
   "version_mismatch.at_your_own_risk": "(at your own risk)",
+  "version_mismatch.export_warning": "You are exporting a package from a prerelease version of Modular Avatar. This may result in incorrect behavior on the current stable version. Make sure you test your asset on the latest stable version.",
   "version_reset.window_title": "Reset Version Information",
   "version_reset.confirmation": "Are you sure you want to reset the minimum required version for these assets?",
   "version_reset.current_version": "Current version:",
