@@ -46,8 +46,68 @@ env:
   LIBRARY_CACHE_PREFIX: 'Library-v5'
 
 jobs:
+  changed-files:
+    name: Check whether Unity tests are needed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run-unity: ${{ steps.changes.outputs.run-unity || 'true' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'push' || github.event_name == 'pull_request_target'
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          # Inspect filenames only; never execute code from the PR.
+          allow-unsafe-pr-checkout: 'true'
+
+      - id: changes
+        name: Classify changed files
+        if: github.event_name == 'push' || github.event_name == 'pull_request_target'
+        shell: python {0}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          IS_PR: ${{ github.event_name == 'pull_request_target' }}
+        run: |
+          import os
+          import subprocess
+          from pathlib import PurePosixPath
+
+          def excluded(path):
+              parts = PurePosixPath(path).parts
+              return (
+                  (len(parts) == 3 and parts[:2] == ("Editor", "Localization") and path.endswith(".json"))
+                  or (len(parts) == 1 and path.endswith(".md"))
+                  or any(part.endswith("~") for part in parts[:-1])
+              )
+
+          # PRs compare against the merge base; pushes compare the complete before/after trees.
+          # Disable rename detection so moving a file out of a tested directory still runs Unity.
+          run_unity = True
+          base = os.environ["BASE_SHA"]
+          head = os.environ["HEAD_SHA"]
+          if base and base != "0" * 40:
+              try:
+                  subprocess.run(["git", "fetch", "--no-tags", "origin", base], check=True)
+                  revisions = [f"{base}...{head}"] if os.environ["IS_PR"] == "true" else [base, head]
+                  result = subprocess.check_output(
+                      ["git", "diff", "--no-renames", "--name-only", "-z", *revisions, "--"]
+                  )
+                  paths = result.decode("utf-8", errors="surrogateescape").split("\0")[:-1]
+                  run_unity = not all(excluded(path) for path in paths)
+              except subprocess.CalledProcessError:
+                  print("Unable to determine changed files; running Unity tests.")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"run-unity={str(run_unity).lower()}\n")
+          print("Running Unity tests." if run_unity else "Only excluded files changed; skipping Unity tests.")
+
   build-and-test:
     name: Unit tests
+    needs: changed-files
+    if: needs.changed-files.outputs.run-unity == 'true'
     strategy:
       fail-fast: false
       matrix:
