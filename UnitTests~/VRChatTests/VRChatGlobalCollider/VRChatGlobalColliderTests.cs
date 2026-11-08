@@ -6,17 +6,34 @@ using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDKBase.Validation;
+using VRC.SDK3.Dynamics.PhysBone.Components;
+using VRC.Dynamics;
+
 
 namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
 {
     public class VRChatGlobalColliderTests : TestBase
     {
+        public void AddExistingGlobalPhysCollider(GameObject root, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var pbObj = CreateChild(root, "Test_ExistingGlobalCollider_" + i);
+                var pb = pbObj.AddComponent<VRCPhysBoneCollider>();
+                pb.globalCollision = VRCPhysBoneBase.AdvancedBool.True;
+            }
+        }
+
         [Test]
         public void AutoRemapUpdatesDescriptor()
         {
             // Load preconfigured humanoid avatar prefab
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
+
+            // Add max VRC Physbone Colliders to the avatar so auto remap will use a descriptor collider instead of a PhysBone collider.
+            AddExistingGlobalPhysCollider(root, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR);
     
             // Add a single auto-mode global collider to the avatar root
             var colliderObj = CreateChild(root, "MyCollider");
@@ -59,6 +76,10 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_footL.state);
             Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_footR.state);
     
+            // Verify no physbone colliders were created by MA
+            var pbCollider = colliderObj.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("MA_ColliderRoot_PhysCollider_"));
+            Assert.Null(pbCollider, "No VRC PhysBone colliders should be created");
+
             // The pass creates MA_ColliderRoot and MA_ColliderTarget for finger colliders. Verify they were created
             var foundRoot = colliderObj.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("MA_ColliderRoot_FingerRingLeft_"));
             var foundTarget = colliderObj.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("MA_ColliderTarget_FingerRingLeft_"));
@@ -81,6 +102,68 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
     
             // The descriptor collider transform should be the ColliderTarget transform
             Assert.AreEqual(foundTarget, desc.collider_fingerRingL.transform);
+    
+            // The component should be removed from the hierarchy
+            Assert.AreEqual(0, root.GetComponentsInChildren<ModularAvatarGlobalCollider>(true).Length);
+        }
+
+        [Test]
+        public void AutoRemapUsesPhysboneCollider()
+        {
+            // Load preconfigured humanoid avatar prefab
+            var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
+            Assert.NotNull(root);
+    
+            // Add a single auto-mode global collider to the avatar root
+            var colliderObj = CreateChild(root, "MyCollider");
+            var comp = colliderObj.AddComponent<ModularAvatarGlobalCollider>();
+            comp.ManualRemap = false; // auto mode
+            comp.Radius = 0.123f;
+            comp.Height = 0.456f;
+            comp.Position = new Vector3(1f, 2f, 3f);
+            comp.Rotation = Quaternion.Euler(10f, 20f, 30f);
+    
+            // Run the pass (AnimatorServicesContext is not required for this pass)
+            var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
+            new VRChatGlobalColliderPass().TestExecute(buildContext);
+    
+            // Descriptor
+            var desc = root.GetComponent<VRCAvatarDescriptor>();
+            Assert.NotNull(desc, "Avatar prefab must have a VRCAvatarDescriptor");
+
+            // Verify physbone colliders were created
+            var pbCollider = colliderObj.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("MA_ColliderRoot_PhysCollider_"));
+            Assert.NotNull(pbCollider, "VRC PhysBone collider should be created");
+            var pb = pbCollider.GetComponentInChildren<VRCPhysBoneCollider>();
+
+            // Verify global collision is enabled
+            Assert.AreEqual(VRCPhysBoneBase.AdvancedBool.True, pb.globalCollision, "VRC PhysBone collider should have globalCollision enabled");
+
+            // Verify shape
+            Assert.AreEqual(0.123f, pb.radius, 1e-6f);
+            Assert.AreEqual(0.456f, pb.height, 1e-6f);
+
+            // Verify position
+            Assert.AreEqual(new Vector3(1f, 2f, 3f), pb.position);
+
+            // Verify rotations
+            Assert.Less(Quaternion.Angle(Quaternion.Euler(10f, 20f, 30f), pb.rotation), 0.001f);
+    
+            // Verify all other colliders remain in Automatic state. No Finger hijack should have happened.
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_head.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_torso.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_handL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_handR.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerRingL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerRingR.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerMiddleL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerMiddleR.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerLittleL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerLittleR.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerIndexL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_fingerIndexR.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_footL.state);
+            Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Automatic, desc.collider_footR.state);
     
             // The component should be removed from the hierarchy
             Assert.AreEqual(0, root.GetComponentsInChildren<ModularAvatarGlobalCollider>(true).Length);
@@ -156,6 +239,9 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
+
+            // Add max VRC Physbone Colliders to the avatar so we use hijacks here
+            AddExistingGlobalPhysCollider(root, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR);
     
             // Create separate GameObjects for each collider and attach the component to them
             var manualObj = CreateChild(root, "ManualColliderObj");
@@ -192,6 +278,9 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
+
+            // Add max VRC Physbone Colliders to the avatar so we use hijacks here
+            AddExistingGlobalPhysCollider(root, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR);
     
             // Manual claims FingerRingLeft
             var manualObj = CreateChild(root, "ManualColliderObj2");
@@ -229,6 +318,9 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
         {
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
+
+            // Add minus 1 max VRC Physbone Colliders so that the first auto remap will be a collider and the other two will be hijacks.
+            AddExistingGlobalPhysCollider(root, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR - 1);
     
             // Manual mappings
             var manualObj1 = CreateChild(root, "ManualColliderA");
@@ -262,6 +354,13 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             auto2.Height = 0.62f;
             auto2.RootTransform = autoObj2.transform;
     
+            var autoObj3 = CreateChild(root, "AutoColliderC");
+            var auto3 = autoObj3.AddComponent<ModularAvatarGlobalCollider>();
+            auto3.ManualRemap = false;
+            auto3.Radius = 0.53f;
+            auto3.Height = 0.63f;
+            auto3.RootTransform = autoObj3.transform;
+    
             var buildContext = new nadena.dev.ndmf.BuildContext(root, null);
             new VRChatGlobalColliderPass().TestExecute(buildContext);
     
@@ -273,12 +372,18 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_torso.state);
             Assert.AreEqual(0.55f, desc.collider_torso.radius, 1e-6f);
     
+            // First auto -> VRC Physbone Collider
+            var pbCollider = auto1.RootTransform.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("MA_ColliderRoot_PhysCollider_"));
+            Assert.NotNull(pbCollider, "VRC PhysBone collider should be created");
+            var pb = pbCollider.GetComponentInChildren<VRCPhysBoneCollider>();
+            Assert.AreEqual(0.51f, pb.radius, 1e-6f);
+
             // Autos should have taken next available finger colliders in priority order
-            // First auto -> FingerRingRight, second auto -> FingerMiddleLeft
+            // second auto -> FingerRingRight, third auto -> FingerMiddleLeft
             Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerRingR.state);
-            Assert.AreEqual(0.51f, desc.collider_fingerRingR.radius, 1e-6f);
+            Assert.AreEqual(0.52f, desc.collider_fingerRingR.radius, 1e-6f);
             Assert.AreEqual(VRCAvatarDescriptor.ColliderConfig.State.Custom, desc.collider_fingerMiddleL.state);
-            Assert.AreEqual(0.52f, desc.collider_fingerMiddleL.radius, 1e-6f);
+            Assert.AreEqual(0.53f, desc.collider_fingerMiddleL.radius, 1e-6f);
         }
     
         [TestCase(true)]
@@ -375,6 +480,15 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             var manualFingerObj = CreateChild(root, "ManualFingerObj");
             var manualFinger = manualFingerObj.AddComponent<ModularAvatarGlobalCollider>(); manualFinger.ManualRemap = true; manualFinger.ColliderToHijack = GlobalCollider.FingerRingLeft; manualFinger.Radius = 0.07f;
     
+            // add autos to fill vrc global collider slots (4 at time of writing) with predictable radii
+            for (int i = 0; i < AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR; i++)
+            {
+                var obj = CreateChild(root, "AutoFill_" + i);
+                var auto = obj.AddComponent<ModularAvatarGlobalCollider>();
+                auto.ManualRemap = false;
+                auto.Radius = 0.21f + i * 0.01f; // 0.21, 0.22, ...
+            }
+
             // Add autos to fill remaining finger slots (7 remaining), with predictable radii
             for (int i = 0; i < 7; i++)
             {
@@ -397,15 +511,29 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             Assert.AreEqual(0.05f, desc.collider_footL.radius, 1e-6f);
             Assert.AreEqual(0.06f, desc.collider_footR.radius, 1e-6f);
     
+            // Check vrc physbone collider radii
+            var pbColliders = root.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("MA_ColliderRoot_PhysCollider_")).Select(t => t.GetComponentInChildren<VRCPhysBoneCollider>()).ToArray();
+            Assert.AreEqual(AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR, pbColliders.Length, "Expected number of created VRC PhysBone colliders to match max global collider slots");
+            
+            // Sort before running assertions. SHOULDN'T be needed but I don't trust Unity...
+            pbColliders = pbColliders
+                .OrderBy(p => p.radius)
+                .ToArray();
+            for (int i = 0; i < pbColliders.Length; i++)
+            {
+                var expectedRadius = 0.21f + i * 0.01f;
+                Assert.AreEqual(expectedRadius, pbColliders[i].radius, 1e-6f);
+            }
+
             // Check finger radii mapping explicitly
             Assert.AreEqual(0.07f, desc.collider_fingerRingL.radius, 1e-6f); // manual
-            Assert.AreEqual(0.11f, desc.collider_fingerRingR.radius, 1e-6f); // auto 0
-            Assert.AreEqual(0.12f, desc.collider_fingerMiddleL.radius, 1e-6f); // auto 1
-            Assert.AreEqual(0.13f, desc.collider_fingerMiddleR.radius, 1e-6f); // auto 2
-            Assert.AreEqual(0.14f, desc.collider_fingerLittleL.radius, 1e-6f); // auto 3
-            Assert.AreEqual(0.15f, desc.collider_fingerLittleR.radius, 1e-6f); // auto 4
-            Assert.AreEqual(0.16f, desc.collider_fingerIndexL.radius, 1e-6f); // auto 5
-            Assert.AreEqual(0.17f, desc.collider_fingerIndexR.radius, 1e-6f); // auto 6
+            Assert.AreEqual(0.11f, desc.collider_fingerRingR.radius, 1e-6f); // auto
+            Assert.AreEqual(0.12f, desc.collider_fingerMiddleL.radius, 1e-6f); // auto
+            Assert.AreEqual(0.13f, desc.collider_fingerMiddleR.radius, 1e-6f); // auto
+            Assert.AreEqual(0.14f, desc.collider_fingerLittleL.radius, 1e-6f); // auto
+            Assert.AreEqual(0.15f, desc.collider_fingerLittleR.radius, 1e-6f); // auto
+            Assert.AreEqual(0.16f, desc.collider_fingerIndexL.radius, 1e-6f); // auto
+            Assert.AreEqual(0.17f, desc.collider_fingerIndexR.radius, 1e-6f); // auto
         }
     
         [Test]
@@ -436,8 +564,9 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
             var root = CreateCommonPrefab("ShapellAvatarVRC.prefab");
             Assert.NotNull(root);
     
-            // Add many autos to exhaust finger slots (9 autos -> 1 will fail)
-            for (int i = 0; i < 9; i++)
+            // Add max vrc global collider and many autos to exhaust slots (max colliders + 9 autos -> 1 will fail)
+            var ammount = AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR + 8 + 1;
+            for (int i = 0; i < ammount; i++)
             {
                 var obj = CreateChild(root, "AutoErrOnly_" + i);
                 var auto = obj.AddComponent<ModularAvatarGlobalCollider>();
@@ -463,6 +592,9 @@ namespace nadena.dev.modular_avatar.test.Tests.VRChatGlobalCollider
     
             var desc = root.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
             Assert.NotNull(desc);
+
+            // Add max VR Physbone Colliders to the avatar
+            AddExistingGlobalPhysCollider(root, AvatarValidation.MAX_AVD_GLOBAL_COLLIDERS_PER_AVATAR);
     
             // Prepare a custom shape on the descriptor for Torso
             var src = desc.collider_torso;
