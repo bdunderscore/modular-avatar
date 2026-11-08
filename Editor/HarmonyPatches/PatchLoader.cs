@@ -20,7 +20,8 @@ namespace nadena.dev.modular_avatar.core.editor.HarmonyPatches
             VRCSDKBuildInitiationHook.Patch,
             VRCExpressionMenuHangPatch.Patch,
 #endif
-            TMProPostProcessorDisabler.Patch
+            TMProPostProcessorDisabler.Patch,
+            ExportPrereleaseWarning.Patch
         };
 
         [InitializeOnLoadMethod]
