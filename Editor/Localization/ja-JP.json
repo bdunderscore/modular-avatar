@@ -489,6 +489,7 @@
   "version_mismatch.close_unity": "Unity を閉じる",
   "version_mismatch.ignore": "無視する",
   "version_mismatch.at_your_own_risk": "（自己責任で）",
+  "version_mismatch.export_warning": "Modular Avatar のプレリリース版からエクスポートしています。現行バージョンで正しい動作を保証できません。アセットの挙動を現行バージョンでご確認ください。",
   "version_reset.window_title": "バージョン情報をリセット",
   "version_reset.confirmation": "これらのアセットの必要最低バージョンをリセットしてもよろしいですか？",
   "version_reset.current_version": "現在のバージョン",
