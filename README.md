@@ -14,6 +14,7 @@ With Modular Avatar, adding a new outfit or gimmick to your avatar is as easy as
 
 https://user-images.githubusercontent.com/64174065/204167927-259062f7-0b1b-4ca8-9723-dfa7c96ce3f4.mp4
 
+
 Modular Avatar currently supports:
 
 * Merging prefab armatures into the parent avatar, as is often done to add outfits. MA minimizes the number of bones
