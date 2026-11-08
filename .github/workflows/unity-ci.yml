@@ -295,11 +295,13 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         continue-on-error: true
+        if: always()
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: "test-results~/coverage"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         continue-on-error: true
+        if: always()
         with:
           name: Test results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: "test-results~"
