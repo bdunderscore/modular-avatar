@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2204] 保存形式が変わっている可能性のあるプレリリース版を使っている場合、パッケージエクスポート画面に注意を追加。
 
 ### Fixed
 
 ### Changed
+- [#2204] バージョン違い判定は、`x.y.0-prerelease` などのバージョンの場合、前のマイナーバージョンを必須バージョンとして記録するようになった。
 
 ### Removed
 

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2204] Added a warning to the package export dialog when running a prerelease version that might contain new serialized data.
 - [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
 - [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2156] Fixed an issue where the position of child objects was not updated when pasting a value for `MA Scale Adjuster` in the Inspector
 
 ### Changed
+- [#2204] The version warning logic will now record the prior minor version as the minimum required, when running on a `x.y.0-prerelease` prerelease version.
 - [#2189] VRC Contact Receivers will now have their parameters renamed based on either a prefix or non-prefix parameter
   rename entry.
 - [#2189] PhysBone prefix parameters will rename the parameter of the same name, as well as ones prefixed by that prefix.

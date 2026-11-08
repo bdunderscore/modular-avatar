@@ -28,6 +28,17 @@ namespace nadena.dev.modular_avatar
         public static void SetCurrentVersion(string version)
         {
             var versionParts = version.Split('.');
+
+            if (versionParts.Length >= 3 && version.Contains("-") && versionParts[2].StartsWith("0-") &&
+                versionParts[1] != "0")
+            {
+                // First beta in a minor release series. We deliberately store the _prior_ minor version here,
+                // as it's not uncommon for asset creators to use betas, and we don't want to confuse users
+                // with upgrade reminders to future beta versions. We'll display a warning on the export dialog
+                // separately.
+                versionParts[1] = "" + (int.Parse(versionParts[1]) - 1);
+            }
+            
             var minimumVersion = versionParts.Length >= 2
                 ? $"{versionParts[0]}.{versionParts[1]}.0"
                 : version;
@@ -45,6 +56,19 @@ namespace nadena.dev.modular_avatar
             CompatCache.Clear();
         }
 
+        public bool IsPrerelease
+        {
+            get
+            {
+                if (UpdatedAtVersion == null) return false;
+
+                var versionParts = UpdatedAtVersion.Split('.');
+
+                return versionParts?.Length >= 3 && UpdatedAtVersion.Contains("-") &&
+                       versionParts[2].StartsWith("0-") && versionParts[1] != "0";
+            }
+        }
+        
         public bool IsCompatible
         {
             get
