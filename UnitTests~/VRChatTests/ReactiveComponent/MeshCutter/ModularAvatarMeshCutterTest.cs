@@ -13,6 +13,7 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using VRC.SDK3.Dynamics.Constraint.Components;
 using nadena.dev.ndmf;
+using VRC.SDK3.Avatars.Components;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 using Object = UnityEngine.Object;
 
@@ -436,6 +437,7 @@ namespace nadena.dev.modular_avatar.test.Tests
         public void Build_ConditionalMeshHide_LowersToNaNimationPropsAndInitializesBones()
         {
             var context = CreateContext(avatarRoot);
+            var descriptor = avatarRoot.GetComponent<VRCAvatarDescriptor>();
             var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
             controller.Parameters = controller.Parameters.Add("P", new AnimatorControllerParameter
@@ -445,7 +447,7 @@ namespace nadena.dev.modular_avatar.test.Tests
                 defaultFloat = 1f
             });
             var unityBackend = new UnityBlendTreeBackend(context, controller);
-            var backend = new VRChatBlendTreeBackend(controller, unityBackend);
+            var backend = new VRChatBlendTreeBackend(descriptor, controller, unityBackend);
             var selector = new VertexFilterByShape("Positive", 0.001f);
             var target = MeshSectionTarget.ForMask(meshRenderer, selector);
             var graph = new ReactionGraph();
@@ -524,10 +526,11 @@ namespace nadena.dev.modular_avatar.test.Tests
         public void Build_EmptyGraph_DoesNotInstallReactiveLayers()
         {
             var context = CreateContext(avatarRoot);
+            var descriptor = avatarRoot.GetComponent<VRCAvatarDescriptor>();
             var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
             var unityBackend = new UnityBlendTreeBackend(context, controller);
-            var backend = new VRChatBlendTreeBackend(controller, unityBackend);
+            var backend = new VRChatBlendTreeBackend(descriptor, controller, unityBackend);
             var graph = new ReactionGraph();
     
             backend.PreprocessGraph(graph);

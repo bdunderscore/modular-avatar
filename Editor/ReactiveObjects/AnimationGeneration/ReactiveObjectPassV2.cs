@@ -79,9 +79,10 @@ namespace nadena.dev.modular_avatar.core.editor
 #if MA_VRCSDK3_AVATARS
             if (context.PlatformProvider.QualifiedName == WellKnownPlatforms.VRChatAvatar30)
             {
+                var descriptor = context.AvatarRootObject.GetComponent<VRCAvatarDescriptor>();
                 var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
                 var innerBackend = new UnityBlendTreeBackend(context, controller);
-                backend = new VRChatBlendTreeBackend(controller, innerBackend);
+                backend = new VRChatBlendTreeBackend(descriptor, controller, innerBackend);
             }
 #endif
 
@@ -175,9 +176,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 return new ObjectActiveState(arg.ReferenceObject, ObjectActiveState.State.Active);
             }
 
-            graph.Parameters.EnsureParameter(arg.Parameter, 0);
-            // Non-default menu items use a preview sentinel, not a shared parameter default.
-            // A real initial value must win regardless of which menu item is visited first.
+            graph.Parameters.EnsureParameter(arg.Parameter, arg.InitialValue);
             if (arg.InitialValue != ControlCondition.UnselectedMenuItemInitialValue)
             {
                 graph.Parameters.SetParameterInitialValue(arg.Parameter, arg.InitialValue);

@@ -1,13 +1,12 @@
 #nullable enable
 
+#if MA_VRCSDK3_AVATARS
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
-
-#if MA_VRCSDK3_AVATARS
-using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using BuildReport = nadena.dev.modular_avatar.editor.ErrorReporting.BuildReport;
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -156,8 +155,8 @@ namespace nadena.dev.modular_avatar.core.editor
                         else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
                         {
                             // For a float or bool value, we don't really have a lot of good choices, so just set it to
-                            // 1
-                            control.Value = 1;
+                            // 1 or 0 - whichever it isn't currently.
+                            control.Value = defaultValue is 0 or null ? 1 : 0;
                         }
                         else
                         {

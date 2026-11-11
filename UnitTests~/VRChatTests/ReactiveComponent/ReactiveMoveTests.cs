@@ -425,6 +425,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
         )
         {
             var animator = root.GetComponent<Animator>() ?? root.AddComponent<Animator>();
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
             var context = new nadena.dev.ndmf.BuildContext(root, null,
                 PlatformRegistry.PlatformProviders[WellKnownPlatforms.VRChatAvatar30], true);
             var services = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
@@ -437,7 +438,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
             {
                 setupController?.Invoke(controller);
 
-                var backend = new VRChatBlendTreeBackend(controller, new UnityBlendTreeBackend(context, controller));
+                var backend = new VRChatBlendTreeBackend(descriptor, controller, new UnityBlendTreeBackend(context, controller));
                 backend.PreprocessGraph(graph);
                 ILBuild.Simplify(graph);
                 backend.Build(graph);
