@@ -7,12 +7,12 @@ using nadena.dev.modular_avatar.animation;
 using nadena.dev.modular_avatar.core.editor.rc.Actions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.Simulator;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 #if MA_VRCSDK3_AVATARS
-using nadena.dev.ndmf;
 using VRC.SDK3.Avatars.Components;
 #endif
 
@@ -29,6 +29,9 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ReadablePropertyExtension? _rpe;
 
         private readonly Dictionary<string, float> _simulationInitialStates;
+
+        private ParameterInfo? _previewParameterInfo;
+        private Dictionary<GameObject, Dictionary<string, ProvidedParameter>>? _previewParameters;
 
         public const string BlendshapePrefix = "blendShape.";
 
@@ -88,6 +91,49 @@ namespace nadena.dev.modular_avatar.core.editor
         {
             return GetActiveSelfProxy(obj);
         }
+
+        internal string ResolvePreviewParameterName(ModularAvatarMenuItem menuItem, string parameterName)
+        {
+            if (_context != null) return parameterName;
+
+            var remappings = PreviewParameterInfo.GetParameterRemappingsAt(menuItem.gameObject);
+            return remappings.TryGetValue((ParameterNamespace.Animator, parameterName), out var remapping)
+                ? remapping.ParameterName
+                : parameterName;
+        }
+
+        internal bool TryGetPreviewParameterDefault(ModularAvatarMenuItem menuItem, string parameterName,
+            out float defaultValue)
+        {
+            defaultValue = 0;
+            if (_context != null) return false;
+
+            var root = RuntimeUtil.FindAvatarInParents(menuItem.transform)?.gameObject;
+            if (root == null) return false;
+
+            var previewParameters = _previewParameters ??=
+                new Dictionary<GameObject, Dictionary<string, ProvidedParameter>>();
+            if (!previewParameters.TryGetValue(root, out var parameters))
+            {
+                parameters = new Dictionary<string, ProvidedParameter>();
+                foreach (var parameter in PreviewParameterInfo.GetParametersForObject(root))
+                {
+                    if (parameter.Namespace != ParameterNamespace.Animator) continue;
+                    parameters[parameter.EffectiveName] = parameter;
+                }
+
+                previewParameters[root] = parameters;
+            }
+
+            if (!parameters.TryGetValue(parameterName, out var providedParameter) ||
+                providedParameter.DefaultValue is not { } knownDefault) return false;
+
+            defaultValue = knownDefault;
+            return true;
+        }
+
+        private ParameterInfo PreviewParameterInfo =>
+            _previewParameterInfo ??= ParameterInfo.ForPreview(_computeContext);
 
         public struct AnalysisResult
         {

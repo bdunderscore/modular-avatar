@@ -347,13 +347,14 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
 
             BindOverrideToParameter("this-obj-override", analysis.GetGameObjectStateProperty(currentSelection), 1);
             currentSelection.TryGetComponent<ModularAvatarMenuItem>(out var mami);
-            BindOverrideToMenuItem("this-menu-override", mami);
+            BindOverrideToMenuItem("this-menu-override", mami, analysis);
         }
 
         private string _menuItemOverrideProperty = "";
         private ModularAvatarMenuItem? _menuItemOverrideTarget;
 
-        private void BindOverrideToMenuItem(string overrideElemName, ModularAvatarMenuItem? mami)
+        private void BindOverrideToMenuItem(string overrideElemName, ModularAvatarMenuItem? mami,
+            ReactiveObjectAnalyzer analysis)
         {
             var elem = e_debugInfo.Q<VisualElement>(overrideElemName);
             var soc = elem.Q<StateOverrideController>();
@@ -365,6 +366,7 @@ namespace nadena.dev.modular_avatar.core.editor.Simulator
             }
 
             var prop = ParameterAssignerPass.AssignMenuItemParameter(mami, forceSimulation: true)?.Parameter;
+            if (prop != null) prop = analysis.ResolvePreviewParameterName(mami, prop);
             if (prop == null)
             {
                 elem.style.display = DisplayStyle.None;
