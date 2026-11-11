@@ -25,10 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Graph
 
         internal void EnsureParameter(string name, float initialValue)
         {
-            if (!_parameterDefaults.ContainsKey(name))
-            {
-                _parameterDefaults.Add(name, initialValue);
-            }
+            _parameterDefaults.TryAdd(name, initialValue);
         }
 
         internal float GetParameterInitialValue(string name)

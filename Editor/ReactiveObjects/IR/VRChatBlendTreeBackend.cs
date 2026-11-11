@@ -25,6 +25,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         internal const string BaseLayerName = "MA/RC Base";
         internal const string ApplyLayerName = "MA/RC Apply";
 
+        private readonly VRCAvatarDescriptor _descriptor;
         private readonly UnityBlendTreeBackend _inner;
 
         internal VirtualBlendTree BaseBlendTree => _inner.BaseLayerTree;
@@ -52,10 +53,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         }
         
         public VRChatBlendTreeBackend(
+            VRCAvatarDescriptor descriptor,
             VirtualAnimatorController fxController,
             UnityBlendTreeBackend inner
         )
         {
+            _descriptor = descriptor;
             FX = fxController ?? throw new ArgumentNullException(nameof(fxController));
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _inner._effectProcessors.Add(new DeltaTimeProcessor(this));
@@ -64,6 +67,33 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public void PreprocessGraph(ReactionGraph graph)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
+
+            // Replace any unselected menu item parameters with the expression parameter values - or 0, if
+            // all else fails
+            var expParams = _descriptor.expressionParameters;
+            var parameters = graph.Parameters;
+            if (expParams != null && expParams.parameters != null)
+            {
+                foreach (var param in expParams.parameters)
+                {
+                    if (parameters.HasParameter(param.name) && Mathf.Approximately(
+                            parameters.GetParameterInitialValue(param.name),
+                            ControlCondition.UnselectedMenuItemInitialValue)
+                       )
+                    {
+                        parameters.SetParameterInitialValue(param.name, param.defaultValue);
+                    }
+                }
+            }
+
+            foreach (var p in parameters.ParameterDefaults.ToList())
+            {
+                if (Mathf.Approximately(p.Value, ControlCondition.UnselectedMenuItemInitialValue))
+                {
+                    parameters.SetParameterInitialValue(p.Key, 0);
+                }
+            }
+            
             // Audio handling requires the original semantic active-state actions. Do this before
             // the Unity backend imports externally animated object state.
             PreprocessControlledAudioSources(graph);

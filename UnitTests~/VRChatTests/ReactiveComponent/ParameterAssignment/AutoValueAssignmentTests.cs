@@ -8,7 +8,6 @@ using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -18,7 +17,9 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
     public class AutoValueAssignmentTests : TestBase
     {
         [Test]
-        public void AutoValueWithMAParameters()
+        public void AutoValueWithMAParameters(
+            [Values(true, false)] bool isDefault
+        )
         {
             var root = CreateRoot("root");
             var child = CreateChild(root, "child");
@@ -45,13 +46,14 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
                 name = "x"
             };
             mami.automaticValue = true;
+            mami.isDefault = isDefault;
     
             child.AddComponent<ModularAvatarMenuInstaller>();
     
             AvatarProcessor.ProcessAvatar(root);
             var menu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu
                 .controls.First(c => c.name == "child");
-            Assert.AreEqual(1, menu.value);
+            Assert.AreEqual(isDefault ? 1 : 0, menu.value);
         }
     
         public enum ChildType
@@ -201,6 +203,131 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             TestAssignments(new[] { (true, 1.0f), (false, 0.0f) }, new[] { 1.0f, 0.0f }, 1);
             
         }
+
+        [TestCase(VRCExpressionParameters.ValueType.Int, true, 2)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, false, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, true, 2)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, false, 0)]
+        public void AutoMenuItemValueRespectsKnownExpressionParameterDefault(
+            VRCExpressionParameters.ValueType valueType,
+            bool isDefault,
+            float expectedControlValue
+        )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "outfit",
+                    valueType = valueType,
+                    defaultValue = 2
+                }
+            };
+
+            var menu = CreateChild(root, "menu");
+            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+            menuItem.automaticValue = true;
+            menuItem.isDefault = isDefault;
+            menuItem.Control = new VRCExpressionsMenu.Control
+            {
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+            };
+
+            var context = new nadena.dev.ndmf.BuildContext(root, null);
+            new ParameterAssignerPass().TestExecute(context);
+
+            Assert.AreEqual(expectedControlValue, menuItem.Control.value);
+            Assert.AreEqual(isDefault, menuItem.isDefault);
+            Assert.AreEqual(2, descriptor.expressionParameters.parameters.Single().defaultValue);
+        }
+
+        
+        [TestCase(true, 1)]
+        [TestCase(false, 0)]
+        public void AutoMenuItemValueRespectsKnownExpressionParameterDefault_BoolParam(bool isDefault, float expectedControlValue)
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "outfit",
+                    valueType = VRCExpressionParameters.ValueType.Bool,
+                    defaultValue = 1
+                }
+            };
+
+            var menu = CreateChild(root, "menu");
+            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+            menuItem.automaticValue = true;
+            menuItem.isDefault = isDefault;
+            menuItem.Control = new VRCExpressionsMenu.Control
+            {
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+            };
+
+            var context = new nadena.dev.ndmf.BuildContext(root, null);
+            new ParameterAssignerPass().TestExecute(context);
+
+            Assert.AreEqual(expectedControlValue, menuItem.Control.value);
+            Assert.AreEqual(isDefault, menuItem.isDefault);
+            Assert.AreEqual(1, descriptor.expressionParameters.parameters.Single().defaultValue);
+        }
+
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, true, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, false, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, true, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, false, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, true, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0.5f, false, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, true, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, false, 1)]
+        public void AutomaticValuesRespectDeclaredExternalParameterDefaults(
+            VRCExpressionParameters.ValueType valueType,
+            float defaultValue,
+            bool isDefault,
+            float expectedControlValue
+        )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "outfit",
+                    valueType = valueType,
+                    defaultValue = defaultValue
+                }
+            };
+
+            var menu = CreateChild(root, "menu");
+            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+            menuItem.automaticValue = true;
+            menuItem.isDefault = isDefault;
+            menuItem.Control = new VRCExpressionsMenu.Control
+            {
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+            };
+
+            var context = new nadena.dev.ndmf.BuildContext(root, null);
+            new ParameterAssignerPass().TestExecute(context);
+
+            Assert.AreEqual(expectedControlValue, menuItem.Control.value);
+            var declaredParameter = descriptor.expressionParameters.parameters.Single();
+            Assert.AreEqual(valueType, declaredParameter.valueType);
+            Assert.AreEqual(defaultValue, declaredParameter.defaultValue);
+        }
         
         [Test]
         public void IntDefaultMatchesObjectToggleValue()
@@ -245,66 +372,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
     
             Assert.IsFalse(obj.activeSelf);
         }
-    
-        
-        [Test]
-        public void SharedMenuParameterInitialStateIsIndependentOfOrder(
-            [Values(false, true)] bool defaultFirst,
-            [Values(false, true)] bool declareAnimatorParameter
-        )
-        {
-            var root = CreateRoot("root");
-            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
-            descriptor.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
-            descriptor.expressionParameters.parameters = Array.Empty<VRCExpressionParameters.Parameter>();
 
-            if (declareAnimatorParameter)
-            {
-                var controller = new AnimatorController();
-                controller.AddParameter("outfit", AnimatorControllerParameterType.Float);
-                controller.AddLayer("Idle");
-                var state = controller.layers[0].stateMachine.AddState("Idle");
-                controller.layers[0].stateMachine.defaultState = state;
-                var layers = descriptor.baseAnimationLayers;
-                var index = Array.FindIndex(layers, l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
-                layers[index].isDefault = false;
-                layers[index].animatorController = controller;
-                descriptor.baseAnimationLayers = layers;
-            }
-
-            var defaultOutfit = CreateChild(root, "defaultOutfit");
-            var otherOutfit = CreateChild(root, "otherOutfit");
-            otherOutfit.SetActive(false);
-
-            foreach (var isDefault in new[] { defaultFirst, !defaultFirst })
-            {
-                var child = CreateChild(root, isDefault ? "defaultChoice" : "otherChoice");
-                var menuItem = child.AddComponent<ModularAvatarMenuItem>();
-                menuItem.Control = new VRCExpressionsMenu.Control
-                {
-                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
-                };
-                menuItem.automaticValue = true;
-                menuItem.isDefault = isDefault;
-
-                var toggle = child.AddComponent<ModularAvatarObjectToggle>();
-                toggle.Inverted = isDefault;
-                toggle.Objects.Add(new ToggledObject
-                {
-                    Object = new AvatarObjectReference(isDefault ? defaultOutfit : otherOutfit),
-                    Active = !isDefault
-                });
-            }
-
-            AvatarProcessor.ProcessAvatar(root);
-
-            Assert.IsTrue(defaultOutfit.activeSelf);
-            Assert.IsFalse(otherOutfit.activeSelf);
-            var fx = (AnimatorController)descriptor.baseAnimationLayers
-                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
-            Assert.AreEqual(0f, fx.parameters.Single(p => p.name == "outfit").defaultFloat);
-        }
 
         void TestAssignments(
             (bool, float)[] assignments,

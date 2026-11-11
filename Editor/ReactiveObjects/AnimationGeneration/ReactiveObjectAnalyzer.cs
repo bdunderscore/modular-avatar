@@ -11,6 +11,10 @@ using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
+#if MA_VRCSDK3_AVATARS
+using nadena.dev.ndmf;
+using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace nadena.dev.modular_avatar.core.editor
 {
@@ -24,7 +28,7 @@ namespace nadena.dev.modular_avatar.core.editor
         private readonly ndmf.BuildContext? _context;
         private readonly ReadablePropertyExtension? _rpe;
 
-        private readonly Dictionary<string, float>? _simulationInitialStates;
+        private readonly Dictionary<string, float> _simulationInitialStates;
 
         public const string BlendshapePrefix = "blendShape.";
 
@@ -47,7 +51,9 @@ namespace nadena.dev.modular_avatar.core.editor
             _computeContext = ComputeContext.NullContext;
             _context = context;
             _rpe = context.Extension<ReadablePropertyExtension>();
-            _simulationInitialStates = null;
+            _simulationInitialStates = new Dictionary<string, float>();
+
+            LoadAvatarParameters();
         }
 
         public ReactiveObjectAnalyzer(ComputeContext? computeContext = null)
@@ -56,6 +62,26 @@ namespace nadena.dev.modular_avatar.core.editor
             _context = null;
             _rpe = null;
             _simulationInitialStates = new();
+
+            LoadAvatarParameters();
+        }
+
+        private void LoadAvatarParameters()
+        {
+#if MA_VRCSDK3_AVATARS
+            // Load initial states from the expression parameters asset
+            var platform = _context?.PlatformProvider?.QualifiedName;
+            if (platform != null && platform != WellKnownPlatforms.VRChatAvatar30) return;
+
+            var expParams = _context?.AvatarRootObject?.GetComponent<VRCAvatarDescriptor>()?.expressionParameters;
+            if (expParams != null && expParams.parameters != null)
+            {
+                foreach (var param in expParams.parameters)
+                {
+                    _simulationInitialStates[param.name] = param.defaultValue;
+                }
+            }
+#endif
         }
 
         public string GetGameObjectStateProperty(GameObject obj)
