@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#2209] Fixed issues where `MA Menu Item` in Auto Value mode would not set the correct default state when the parameter was defined
   in VRC Expression Parameters.
+- [#2209] Fixed Reactive Component previews ignoring parameter-provider defaults and hierarchy-specific parameter names.
 - [#2182] Fixed incorrect non-animated states for Reactive Components sharing a menu parameter when a non-default menu item was processed first.
 - [#2149] Fixed incorrect label for traditional Chinese language in the language switcher
 - [#2153] Removed unnecessary logs displayed when adding the `MA PhysBone Blocker` component

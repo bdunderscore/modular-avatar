@@ -133,9 +133,20 @@ namespace nadena.dev.modular_avatar.core.editor
                 {
                     did_mami = true;
 
-                    _computeContext.Observe(mami, c => (c.PortableControl?.Parameter, c.PortableControl?.Type, c.PortableControl?.Value, c.isDefault));
-                    
+                    var menuState = _computeContext.Observe(mami, c =>
+                        (c.PortableControl?.Parameter, c.PortableControl?.Type, c.PortableControl?.Value, c.isDefault,
+                            c.automaticValue));
+
                     var mami_condition = ParameterAssignerPass.AssignMenuItemParameter(mami, _simulationInitialStates);
+                    if (mami_condition != null && _context == null)
+                    {
+                        mami_condition.Parameter = ResolvePreviewParameterName(mami, mami_condition.Parameter);
+                        if (!menuState.automaticValue &&
+                            TryGetPreviewParameterDefault(mami, mami_condition.Parameter, out var defaultValue))
+                        {
+                            mami_condition.InitialValue = defaultValue;
+                        }
+                    }
 
                     if (mami_condition != null && ForceMenuItems != null &&
                         ForceMenuItems.TryGetValue(mami_condition.Parameter, out var forcedMenuItem))
