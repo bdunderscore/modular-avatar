@@ -18,9 +18,16 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
 {
     public class ReactiveParameterDefaultsTests : TestBase
     {
-        [TestCase(true, 1)]
-        [TestCase(false, 0)]
-        public void WhenAutoParameterPresent_BoolExpressionParameterDefaultIsRetained(bool isDefault, float expectedControlValue)
+        [TestCase(0, true, 1, 1)]
+        [TestCase(0, false, 1, 0)]
+        [TestCase(1, true, 1, 1)]
+        [TestCase(1, false, 0, 1)]
+        public void WhenAutoParameterPresent_BoolExpressionParameterDefaultTracksAutomaticSelection(
+            float externalDefault,
+            bool isDefault,
+            float expectedControlValue,
+            float expectedParameterDefault
+        )
         {
             var root = CreateRoot("root");
             var descriptor = root.GetComponent<VRCAvatarDescriptor>();
@@ -31,7 +38,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
                 {
                     name = "outfit",
                     valueType = VRCExpressionParameters.ValueType.Bool,
-                    defaultValue = 1
+                    defaultValue = externalDefault
                 }
             };
 
@@ -59,10 +66,11 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
 
             Assert.AreEqual(expectedControlValue, menuItem.Control.value);
             Assert.AreEqual(isDefault, menuItem.isDefault);
-            Assert.AreEqual(1, descriptor.expressionParameters.parameters.Single().defaultValue);
+            Assert.AreEqual(expectedParameterDefault, descriptor.expressionParameters.parameters.Single().defaultValue);
             var fx = FindController(root, VRCAvatarDescriptor.AnimLayerType.FX);
             var controller = (AnimatorController)fx.animatorController;
-            Assert.AreEqual(1, controller.parameters.Single(p => p.name == "outfit").defaultFloat);
+            Assert.AreEqual(expectedParameterDefault, controller.parameters.Single(p => p.name == "outfit").defaultFloat);
+            Assert.AreEqual(!isDefault, mesh.activeSelf);
         }
 
         // repro of https://github.com/bdunderscore/modular-avatar/issues/2206

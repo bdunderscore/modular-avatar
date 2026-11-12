@@ -8,6 +8,7 @@ using nadena.dev.modular_avatar.test.Tests;
 using nadena.dev.modular_avatar.core;
 using nadena.dev.modular_avatar.core.editor;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -281,20 +282,21 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             Assert.AreEqual(1, descriptor.expressionParameters.parameters.Single().defaultValue);
         }
 
-        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, true, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, false, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 0, true, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 0, false, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 1, true, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 0)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 0.5f, false, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Int, 0, true, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Int, 0, false, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, false, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, false, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 0, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0.5f, false, 1, 0.5f)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, false, 1, 0)]
         public void AutomaticValuesRespectDeclaredExternalParameterDefaults(
             VRCExpressionParameters.ValueType valueType,
             float defaultValue,
             bool isDefault,
-            float expectedControlValue
+            float expectedControlValue,
+            float expectedParameterDefault
         )
         {
             var root = CreateRoot("root");
@@ -326,7 +328,64 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             Assert.AreEqual(expectedControlValue, menuItem.Control.value);
             var declaredParameter = descriptor.expressionParameters.parameters.Single();
             Assert.AreEqual(valueType, declaredParameter.valueType);
-            Assert.AreEqual(defaultValue, declaredParameter.defaultValue);
+            Assert.AreEqual(expectedParameterDefault, declaredParameter.defaultValue);
+        }
+
+        [Test]
+        public void AutomaticValueUpdatesPersistentExpressionParameterDefaultWithoutMutatingSource()
+        {
+            const string assetFolder = "Assets/ZZZ_Temp";
+            const string assetPath = assetFolder + "/ExpressionParameters.asset";
+
+            AssetDatabase.CreateFolder("Assets", "ZZZ_Temp");
+            try
+            {
+                var source = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+                source.parameters = new[]
+                {
+                    new VRCExpressionParameters.Parameter
+                    {
+                        name = "outfit",
+                        valueType = VRCExpressionParameters.ValueType.Bool,
+                        defaultValue = 0,
+                        saved = true,
+                        networkSynced = true
+                    }
+                };
+                AssetDatabase.CreateAsset(source, assetPath);
+
+                var root = CreateRoot("root");
+                var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+                descriptor.expressionParameters = source;
+
+                var menu = CreateChild(root, "menu");
+                var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+                menuItem.automaticValue = true;
+                menuItem.isDefault = true;
+                menuItem.Control = new VRCExpressionsMenu.Control
+                {
+                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+                };
+
+                var context = new nadena.dev.ndmf.BuildContext(root, null);
+                new ParameterAssignerPass().TestExecute(context);
+                TrackObject(descriptor.expressionParameters);
+
+                Assert.AreEqual(0, source.parameters.Single().defaultValue);
+                Assert.AreEqual(1, menuItem.Control.value);
+
+                var processedParameter = descriptor.expressionParameters.parameters.Single();
+                Assert.AreEqual("outfit", processedParameter.name);
+                Assert.AreEqual(VRCExpressionParameters.ValueType.Bool, processedParameter.valueType);
+                Assert.AreEqual(1, processedParameter.defaultValue);
+                Assert.IsTrue(processedParameter.saved);
+                Assert.IsTrue(processedParameter.networkSynced);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(assetFolder);
+            }
         }
         
         [Test]
