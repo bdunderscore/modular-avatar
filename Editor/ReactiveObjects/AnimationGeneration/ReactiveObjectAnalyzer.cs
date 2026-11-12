@@ -30,8 +30,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         private readonly Dictionary<string, float> _simulationInitialStates;
 
+#if MA_VRCSDK3_AVATARS
         private ParameterInfo? _previewParameterInfo;
         private Dictionary<GameObject, Dictionary<string, ProvidedParameter>>? _previewParameters;
+#endif
 
         public const string BlendshapePrefix = "blendShape.";
 
@@ -94,18 +96,23 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal string ResolvePreviewParameterName(ModularAvatarMenuItem menuItem, string parameterName)
         {
+#if MA_VRCSDK3_AVATARS
             if (_context != null) return parameterName;
 
             var remappings = PreviewParameterInfo.GetParameterRemappingsAt(menuItem.gameObject);
             return remappings.TryGetValue((ParameterNamespace.Animator, parameterName), out var remapping)
                 ? remapping.ParameterName
                 : parameterName;
+#else
+            return parameterName;
+#endif
         }
 
         internal bool TryGetPreviewParameterDefault(ModularAvatarMenuItem menuItem, string parameterName,
             out float defaultValue)
         {
             defaultValue = 0;
+#if MA_VRCSDK3_AVATARS
             if (_context != null) return false;
 
             var root = RuntimeUtil.FindAvatarInParents(menuItem.transform)?.gameObject;
@@ -130,10 +137,15 @@ namespace nadena.dev.modular_avatar.core.editor
 
             defaultValue = knownDefault;
             return true;
+#else
+            return false;
+#endif
         }
 
+#if MA_VRCSDK3_AVATARS
         private ParameterInfo PreviewParameterInfo =>
             _previewParameterInfo ??= ParameterInfo.ForPreview(_computeContext);
+#endif
 
         public struct AnalysisResult
         {
