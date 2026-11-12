@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#2209] `MA Menu Item` が自動価に設定されて、なおかつパラメーターが VRC Expressions Parameters で設定された場合、
-  間違ったデフォルト状態になる問題を修正。
-- [#2209] Reactive Components のプレビューが、パラメータープロバイダーのデフォルト値と階層ごとのパラメーター名を反映しない問題を修正。
 
 ### Changed
 
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0-rc.1] - [2026-11-12]
+
+### Fixed
+- [#2209] `MA Menu Item` が自動価に設定されて、なおかつパラメーターが VRC Expressions Parameters で設定された場合、
+  間違ったデフォルト状態になる問題を修正。
+- [#2209] Reactive Components のプレビューが、パラメータープロバイダーのデフォルト値と階層ごとのパラメーター名を反映しない問題を修正。
 
 ## [1.19.0-rc.0] - [2026-11-08]
 
