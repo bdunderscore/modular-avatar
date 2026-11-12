@@ -6,6 +6,7 @@ using System.Linq;
 using nadena.dev.modular_avatar.ui;
 using nadena.dev.ndmf;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -181,16 +182,22 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 outerbox.RemoveFromClassList("no-data");
             }
+            
+            var parameters = ParameterInfo.ForUI.GetParametersForObject(target)
+                .Where(p => p.BitUsage > 0)
+                .ToArray();
 
-            var orderedPlugins = ParameterInfo.ForUI.GetParametersForObject(target)
+            var orderedPlugins = parameters
                 .GroupBy(p => p.Plugin)
                 .Select(group => (group.Key, group.Sum(p => p.BitUsage)))
-                .Where((kv, index) => kv.Item2 > 0)
                 .OrderBy(group => group.Key.DisplayName)
                 .ToList();
 
+            var parameterLookup = parameters
+                .ToLookup(p => p.Plugin);
+
             var byPlugin = orderedPlugins
-                .Zip(Colors(), (kv, color) => (kv.Key.DisplayName, kv.Item2, kv.Key.ThemeColor ?? color))
+                .Zip(Colors(), (kv, color) => (kv.Key.DisplayName, kv.Item2, kv.Key.ThemeColor ?? color, parameterLookup[kv.Key]))
                 .ToList();
 
             int totalUsage = byPlugin.Sum(kv => kv.Item2);
@@ -206,17 +213,17 @@ namespace nadena.dev.modular_avatar.core.editor
             if (avatarTotalUsage > totalUsage)
             {
                 byPlugin.Add((Localization.S("ma_info.param_usage_ui.other_objects"), avatarTotalUsage - totalUsage,
-                    Color.gray));
+                    Color.gray, null));
             }
 
             var bits_template = Localization.S("ma_info.param_usage_ui.bits_template");
             byPlugin = byPlugin.Select((tuple, _) =>
-                (string.Format(bits_template, tuple.Item1, tuple.Item2), tuple.Item2, tuple.Item3)).ToList();
+                (string.Format(bits_template, tuple.Item1, tuple.Item2), tuple.Item2, tuple.Item3, tuple.Item4)).ToList();
 
             if (freeSpace > 0)
             {
                 var free_space_label = Localization.S("ma_info.param_usage_ui.free_space");
-                byPlugin.Add((string.Format(free_space_label, freeSpace), freeSpace, Color.white));
+                byPlugin.Add((string.Format(free_space_label, freeSpace), freeSpace, Color.white, null));
             }
 
             if (freeSpace < 0)
@@ -243,8 +250,11 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 child.RemoveFromHierarchy();
             }
-
-            foreach (var (label, usage, color) in byPlugin)
+            
+            var parameter_type_template = Localization.S("ma_info.param_usege_ui.parameter_type");
+            var parameter_is_name_deferred_template = Localization.S("ma_info.param_usage_ui.is_name_deferred");
+            
+            foreach (var (label, usage, color, providedParameters) in byPlugin)
             {
                 var colorBar = new VisualElement();
                 colorBar.style.backgroundColor = color;
@@ -266,9 +276,39 @@ namespace nadena.dev.modular_avatar.core.editor
                 icon_outer.Add(icon_inner);
                 icon_inner.style.backgroundColor = color;
 
-                var pluginLabel = new Label(label);
-                entry.Add(pluginLabel);
+                if (providedParameters != null) {
+                    var pluginFoldout = new Foldout {
+                        text = label,
+                        value = false
+                    };
+                    
+                    pluginFoldout.AddToClassList("ParameterFoldout");
+                    
+                    foreach (ProvidedParameter providedParameter in providedParameters) {
+                        var box = new Box();
+                        box.AddToClassList("ParameterBox");
+                        box.AddToClassList("unity-help-box");
+                        pluginFoldout.Add(box);
+                        
+                        var parameterNameLabel = new Label(providedParameter.EffectiveName);
+                        parameterNameLabel.AddToClassList("ParameterName");
+                        box.Add(parameterNameLabel);
 
+                        var details = new VisualElement();
+                        details.AddToClassList("ParameterDetails");
+                        box.Add(details);
+                        var sourceField = new ObjectField {value = providedParameter.Source};
+                        sourceField.SetEnabled(false);
+                        details.Add(sourceField);
+                        details.Add(new Label(string.Format(parameter_type_template, providedParameter.ParameterType, providedParameter.BitUsage)));
+                        details.Add(new Label(string.Format(parameter_is_name_deferred_template, providedParameter.IsNameDeferred)));
+                    }
+                    entry.Add(pluginFoldout);
+                } else {
+                    var pluginLabel = new Label(label);
+                    entry.Add(pluginLabel);
+                }
+                
                 entry.style.borderBottomColor = color;
                 entry.style.borderTopColor = color;
                 entry.style.borderLeftColor = color;

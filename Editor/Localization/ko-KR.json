@@ -320,6 +320,8 @@
   "ma_info.param_usage_ui.free_space": "사용 가능한 파라미터 용량 ({0} 비트)",
   "ma_info.param_usage_ui.exceeded_space": "초과한 파라미터 사용량 ({0} 비트)",
   "ma_info.param_usage_ui.bits_template": "{0} ({1} 비트 사용 중)",
+  "ma_info.param_usege_ui.parameter_type":  "type : {0} ({1} bits)",
+  "ma_info.param_usage_ui.is_name_deferred": "Auto rename : {0}",
   "ma_info.param_usage_ui.no_data": "[ 데이터 없음 ]",
   "reactive_object.inverse": "조건 반전",
   "reactive_object.config_heading": "설정",
