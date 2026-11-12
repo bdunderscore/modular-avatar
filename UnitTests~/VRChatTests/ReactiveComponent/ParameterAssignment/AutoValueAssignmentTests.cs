@@ -431,6 +431,76 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
     
             Assert.IsFalse(obj.activeSelf);
         }
+        
+        [TestCase(VRCExpressionParameters.ValueType.Bool, true)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, false)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, true)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, false)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, true)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, false)]
+        public void SharedExternalParameterDefaultFollowsAutomaticSelection(
+            VRCExpressionParameters.ValueType valueType,
+            bool automaticMenuFirst
+        )
+        {
+            const string assetFolder = "Assets/ZZZ_Temp";
+            const string assetPath = assetFolder + "/ExpressionParameters.asset";
+
+            AssetDatabase.CreateFolder("Assets", "ZZZ_Temp");
+            try
+            {
+                var source = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+                source.parameters = new[]
+                {
+                    new VRCExpressionParameters.Parameter
+                    {
+                        name = "outfit",
+                        valueType = valueType,
+                        defaultValue = 0,
+                    }
+                };
+                AssetDatabase.CreateAsset(source, assetPath);
+
+                var root = CreateRoot("root");
+                var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+                descriptor.expressionParameters = source;
+
+                ModularAvatarMenuItem automaticMenuItem = null;
+                ModularAvatarMenuItem manualMenuItem = null;
+                foreach (var automatic in new[] { automaticMenuFirst, !automaticMenuFirst })
+                {
+                    var menu = CreateChild(root, automatic ? "automatic" : "manual");
+                    var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+                    menuItem.automaticValue = automatic;
+                    menuItem.isDefault = automatic;
+                    menuItem.Control = new VRCExpressionsMenu.Control
+                    {
+                        type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                        value = 0,
+                        parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+                    };
+
+                    if (automatic) automaticMenuItem = menuItem;
+                    else manualMenuItem = menuItem;
+                }
+
+                var context = new nadena.dev.ndmf.BuildContext(root, null);
+                new ParameterAssignerPass().TestExecute(context);
+                TrackObject(descriptor.expressionParameters);
+
+                Assert.AreEqual(0, source.parameters.Single().defaultValue);
+                Assert.AreEqual(1, automaticMenuItem.Control.value);
+                Assert.IsTrue(automaticMenuItem.isDefault);
+                Assert.AreEqual(0, manualMenuItem.Control.value);
+                Assert.IsFalse(manualMenuItem.isDefault);
+                Assert.AreEqual(1, descriptor.expressionParameters.parameters.Single().defaultValue);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(assetFolder);
+            }
+        }
+
 
 
         void TestAssignments(

@@ -133,6 +133,8 @@ namespace nadena.dev.modular_avatar.core.editor
                     }
                 }
 
+                var allocatedDefaultForSelectedAutomatic = false;
+
                 if (!defaultValue.HasValue)
                 {
                     for (int i = 0; i < 256; i++)
@@ -144,8 +146,17 @@ namespace nadena.dev.modular_avatar.core.editor
                             break;
                         }
                     }
+
+                    allocatedDefaultForSelectedAutomatic = list.Any(m => m.automaticValue && m.isDefault);
                 }
 
+                if (allocatedDefaultForSelectedAutomatic
+                    && p != null
+                    && !Mathf.Approximately(p.defaultValue, defaultValue.GetValueOrDefault()))
+                {
+                    existingParameterDefaultUpdates ??= new Dictionary<string, float>();
+                    existingParameterDefaultUpdates[paramName] = defaultValue.GetValueOrDefault();
+                }
                 var nextValue = 1;
 
                 var valueType = VRCExpressionParameters.ValueType.Bool;
