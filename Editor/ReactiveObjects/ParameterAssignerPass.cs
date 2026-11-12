@@ -66,6 +66,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 .ToDictionary(p => p.name);
 
             Dictionary<string, VRCExpressionParameters.Parameter> newParameters = new();
+            Dictionary<string, float>? existingParameterDefaultUpdates = null;
             Dictionary<string, int> nextParamValue = new();
 
             Dictionary<string, List<ModularAvatarMenuItem>> _mamiByParam = new();
@@ -107,9 +108,17 @@ namespace nadena.dev.modular_avatar.core.editor
                     if (floatDefault.HasValue) defaultValue = (int) floatDefault.Value;
 
                     if (list.Count == 1 && list[0].isDefault && list[0].automaticValue)
+                    {
                         // If we have only a single entry, it's probably an on-off toggle, so we'll implicitly let 1
-                        // be the 'selected' default value (if this is default and automatic value)
+                        // be the 'selected' default value (if this is default and automatic value).
                         defaultValue = 1;
+
+                        if (p != null)
+                        {
+                            existingParameterDefaultUpdates ??= new Dictionary<string, float>();
+                            existingParameterDefaultUpdates[paramName] = defaultValue.Value;
+                        }
+                    }
                 }
 
                 HashSet<int> usedValues = new();
@@ -197,7 +206,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 }
             }
 
-            if (newParameters.Count > 0)
+            if (newParameters.Count > 0 || existingParameterDefaultUpdates != null)
             {
                 var expParams = context.AvatarDescriptor.expressionParameters;
                 if (!context.IsTemporaryAsset(expParams))
@@ -206,7 +215,22 @@ namespace nadena.dev.modular_avatar.core.editor
                     context.AvatarDescriptor.expressionParameters = expParams;
                 }
 
-                expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
+                if (existingParameterDefaultUpdates != null)
+                {
+                    foreach (var parameter in expParams.parameters)
+                    {
+                        if (existingParameterDefaultUpdates.TryGetValue(parameter.name, out var defaultValue))
+                        {
+                            parameter.defaultValue = defaultValue;
+                            existingParameterDefaultUpdates.Remove(parameter.name);
+                        }
+                    }
+                }
+
+                if (newParameters.Count > 0)
+                {
+                    expParams.parameters = expParams.parameters.Concat(newParameters.Values).ToArray();
+                }
             }
         }
 
