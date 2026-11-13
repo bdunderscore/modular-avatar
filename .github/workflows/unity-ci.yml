@@ -226,7 +226,7 @@ jobs:
             ${{ env.LIBRARY_CACHE_PREFIX }}-${{ steps.configure.outputs.unity_version }}-${{ matrix.sdk }}
             ${{ env.LIBRARY_CACHE_PREFIX }}-${{ steps.configure.outputs.unity_version }}
 
-      - uses: buildalon/unity-setup@30fcbcb56c10ea5d64298e970d952b8d29bc268b # v2.6.0
+      - uses: buildalon/unity-setup@18c7d51d061b76c0a24598b6d422e7e9b770d9bb # v3.0.4
         id: unity-setup
         if: needs.changed-files.outputs.run-unity == 'true'
         with:
