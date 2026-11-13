@@ -218,11 +218,15 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         {
             if (expression is ParameterExpression parameter)
             {
-                Parameters.EnsureParameter(parameter.ParameterName, 0);
+                // Only read values from FX if we didn't find them in expression parameters
                 if (_vac.Parameters.TryGetValue(parameter.ParameterName, out var existing))
                 {
                     var existingValue = AnimatorParameterValue(existing);
-                    Parameters.SetParameterInitialValue(parameter.ParameterName, existingValue);
+                    Parameters.EnsureParameter(parameter.ParameterName, existingValue);
+                }
+                else
+                {
+                    Parameters.EnsureParameter(parameter.ParameterName, 0);
                 }
 
                 return;

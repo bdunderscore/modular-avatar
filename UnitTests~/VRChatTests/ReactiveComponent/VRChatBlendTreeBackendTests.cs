@@ -95,7 +95,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
         }
 
         [Test]
-        public void ExistingFxDefault_TakesPrecedenceOverExpressionParameterDefault()
+        public void ExistingFxDefault_DoesNotTakePrecedenceOverExpressionParameterDefault()
         {
             var root = CreateRoot("root");
             AddMinimalAvatarComponents(root);
@@ -115,8 +115,8 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
                 });
             });
 
-            Assert.That(controller.Parameters["menu"].defaultFloat, Is.Zero);
-            Assert.That(target.activeSelf, Is.False);
+            Assert.That(controller.Parameters["menu"].defaultFloat, Is.EqualTo(1));
+            Assert.That(target.activeSelf, Is.True);
         }
 
         private VRCExpressionParameters CreateExpressionParameters(string name, float defaultValue)

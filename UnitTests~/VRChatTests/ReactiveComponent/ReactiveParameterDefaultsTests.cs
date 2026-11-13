@@ -136,8 +136,78 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
             Assert.AreEqual(1f, parameter.defaultFloat);
         }
 
+        // Case 3: https://github.com/bdunderscore/modular-avatar/issues/2206#issuecomment-6834137957
         [Test]
-        public void PreexistingFxDefaultOverridesExpressionParameterDefault()
+        public void WhenExpressionParametersAndFXDisagree_ExpParamsIsPreferred()
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "ParamTest",
+                    valueType = VRCExpressionParameters.ValueType.Bool,
+                    defaultValue = 1
+                }
+            };
+            SetFxController(descriptor, CreateFxController());
+
+            var menu = CreateChild(root, "Toggle");
+            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+            menuItem.automaticValue = false;
+            menuItem.isDefault = true;
+            menuItem.Control = new VRCExpressionsMenu.Control
+            {
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = "ParamTest" },
+                value = 1
+            };
+
+            var testOn = CreateChild(root, "TestOn");
+            testOn.tag = "EditorOnly";
+            var onController = CreateFxController();
+            onController.AddParameter(new AnimatorControllerParameter
+            {
+                name = "ParamTest",
+                type = AnimatorControllerParameterType.Bool,
+                defaultBool = true
+            });
+            testOn.AddComponent<ModularAvatarMergeAnimator>().animator = onController;
+
+            var testOff = CreateChild(root, "TestOff");
+            var offController = CreateFxController();
+            offController.AddParameter(new AnimatorControllerParameter
+            {
+                name = "ParamTest",
+                type = AnimatorControllerParameterType.Bool,
+                defaultBool = false
+            });
+            testOff.AddComponent<ModularAvatarMergeAnimator>().animator = offController;
+
+            var target = CreateChild(root, "Target");
+            var objectToggle = menu.AddComponent<ModularAvatarObjectToggle>();
+            objectToggle.Inverted = true;
+            objectToggle.Objects.Add(new ToggledObject
+            {
+                Object = new AvatarObjectReference(target),
+                Active = false
+            });
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            var fx = (AnimatorController)FindFxController(root).animatorController;
+            var parameter = fx.parameters.Single(p => p.name == "ParamTest");
+            Assert.IsTrue(target.activeSelf, "The default-on Object Toggle should leave its target enabled.");
+            Assert.AreEqual(1, descriptor.expressionParameters.parameters
+                .Single(p => p.name == "ParamTest").defaultValue);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, parameter.type);
+            Assert.AreEqual(1f, parameter.defaultFloat);
+        }
+
+        [Test]
+        public void PreexistingFxDefaultDoesNotOverrideExpressionParameterDefault()
         {
             var root = CreateRoot("root");
             var descriptor = root.GetComponent<VRCAvatarDescriptor>();
@@ -185,8 +255,8 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
 
             var fx = (AnimatorController)descriptor.baseAnimationLayers
                 .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
-            Assert.AreEqual(0f, fx.parameters.Single(p => p.name == "outfit").defaultFloat);
-            Assert.IsFalse(target.activeSelf);
+            Assert.AreEqual(1f, fx.parameters.Single(p => p.name == "outfit").defaultFloat);
+            Assert.IsTrue(target.activeSelf);
         }
 
         [Test]
