@@ -244,7 +244,7 @@ jobs:
 
       # Import the project separately. Unity 2022.3.6f1 can fail when the initial import and
       # test run happen in the same editor process.
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3.1.0
+      - uses: buildalon/unity-action@a9d19e1bc9e9881dae7e2fb33895384c22858e4c # v4.0.2
         name: Build project
         if: needs.changed-files.outputs.run-unity == 'true'
         continue-on-error: true
@@ -262,7 +262,7 @@ jobs:
             -debugCodeOptimization
             -overrideTextureCompression ForceUncompressed
       
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3.1.0
+      - uses: buildalon/unity-action@a9d19e1bc9e9881dae7e2fb33895384c22858e4c # v4.0.2
         name: EditMode UnitTests
         if: needs.changed-files.outputs.run-unity == 'true'
         with:
@@ -284,7 +284,7 @@ jobs:
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
             -overrideTextureCompression ForceUncompressed
 
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3.1.0
+      - uses: buildalon/unity-action@a9d19e1bc9e9881dae7e2fb33895384c22858e4c # v4.0.2
         name: PlayMode UnitTests
         if: ${{ needs.changed-files.outputs.run-unity == 'true' && (always()) }}
         with:
