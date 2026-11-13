@@ -451,7 +451,7 @@ namespace nadena.dev.modular_avatar.test.Tests
             var selector = new VertexFilterByShape("Positive", 0.001f);
             var target = MeshSectionTarget.ForMask(meshRenderer, selector);
             var graph = new ReactionGraph();
-            graph.Parameters.EnsureParameter("P", 0f);
+            graph.Parameters.EnsureParameter("P", 1f);
             graph.Parameters.EnsureParameter("Q", 0f);
             var conditionObjects = Enumerable.Range(0, 7)
                 .Select(index =>

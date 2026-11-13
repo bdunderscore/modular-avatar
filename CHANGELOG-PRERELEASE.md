@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2211] Made reactive component initial-state evaluation prioritize VRC Expression Parameter defaults over FX layer defaults when they disagree
 
 ### Changed
 

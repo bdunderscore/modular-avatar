@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2211] リアクティブコンポーネントの静止状態解決において、VRC Expression Parameters と FX レイヤーのパラメーター初期値が異なる場合、Expression Parametersの方を優先するように変更
 
 ### Changed
 
