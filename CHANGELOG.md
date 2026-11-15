@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
 
 ### Fixed
+- [#2218] Fixed a disabled `MA Menu Installer` still installing its menu.
 - [#2217] Fixed `MA Parameters` losing an explicit default when an implicit declaration of the same parameter was encountered first on a sibling object.
 - [#2209] Fixed issues where `MA Menu Item` in Auto Value mode would not set the correct default state when the parameter was defined
   in VRC Expression Parameters.
