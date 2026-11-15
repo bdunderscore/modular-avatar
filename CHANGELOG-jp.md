@@ -16,6 +16,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2192] `MA Rename Collision Tags` に、collision tag用のパラメーターもリネームできるように変更
 
 ### Fixed
+- [#2217] `MA Parameters` で、同じパラメーターのデフォルト値未指定の設定が兄弟オブジェクトで先に処理されると、明示的なデフォルト値が失われる問題を修正。
 - [#2209] `MA Menu Item` が自動価に設定されて、なおかつパラメーターが VRC Expressions Parameters で設定された場合、
   間違ったデフォルト状態になる問題を修正。
 - [#2209] Reactive Components のプレビューが、パラメータープロバイダーのデフォルト値と階層ごとのパラメーター名を反映しない問題を修正。

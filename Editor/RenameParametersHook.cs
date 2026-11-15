@@ -127,6 +127,12 @@ namespace nadena.dev.modular_avatar.core.editor
                 ResolvedParameter.m_overrideAnimatorDefaults =
                     (ResolvedParameter.m_overrideAnimatorDefaults && ResolvedParameter.HasDefaultValue) ||
                     (info.ResolvedParameter.m_overrideAnimatorDefaults && info.ResolvedParameter.HasDefaultValue);
+
+                if (!ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
+                {
+                    ResolvedParameter.defaultValue = info.ResolvedParameter.defaultValue;
+                    ResolvedParameter.hasExplicitDefaultValue = info.ResolvedParameter.hasExplicitDefaultValue;
+                }
                 
                 if (ResolvedParameter.HasDefaultValue && info.ResolvedParameter.HasDefaultValue)
                 {

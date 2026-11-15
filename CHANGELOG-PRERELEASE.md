@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2217] Fixed `MA Parameters` losing an explicit default when an implicit declaration of the same parameter was encountered first on a sibling object.
 - [#2217] Fixed some cases where Menu Item might be auto-assigned value 0, which can't be toggled off in VRChat.
 
 ### Changed

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2217] `MA Parameters` で、同じパラメーターのデフォルト値未指定の設定が兄弟オブジェクトで先に処理されると、明示的なデフォルト値が失われる問題を修正。
 
 ### Changed
 - [#2217] Menu Item が自動的に０の値を割り振られ、VRChat内でオフにできなくなってしまう不具合を修正。

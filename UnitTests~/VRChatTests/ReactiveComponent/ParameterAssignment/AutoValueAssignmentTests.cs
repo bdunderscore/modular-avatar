@@ -659,6 +659,39 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
                 .Single(p => p.name == "outfit").defaultValue);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ExplicitZeroMAParameterDefaultWinsWhenMergedWithImplicitSiblingDefault(
+            bool explicitParameterIsEncounteredFirst
+        )
+        {
+            var root = CreateRoot("root");
+
+            foreach (var isExplicit in new[] { explicitParameterIsEncounteredFirst, !explicitParameterIsEncounteredFirst })
+            {
+                var parameterHost = CreateChild(root, isExplicit ? "explicit parameter host" : "implicit parameter host");
+                parameterHost.AddComponent<ModularAvatarParameters>().parameters = new()
+                {
+                    new ParameterConfig
+                    {
+                        nameOrPrefix = "outfit",
+                        syncType = ParameterSyncType.Int,
+                        defaultValue = 0,
+                        hasExplicitDefaultValue = isExplicit,
+                    }
+                };
+            }
+
+            var menuHost = CreateChild(root, "menu host");
+            var (manualMenu, automaticMenu) = AddSharedParameterMenus(menuHost, "outfit");
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.AreEqual(1, manualMenu.Control.value);
+            Assert.AreEqual(2, automaticMenu.Control.value);
+            Assert.AreEqual(0, root.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Single(p => p.name == "outfit").defaultValue);
+        }
+
         [TestCase(true, 1)]
         [TestCase(false, 0)]
         public void UnnamedSingletonAutomaticMenuCreatesBoolParameter(bool isDefault, float expectedDefault)
