@@ -282,6 +282,8 @@ namespace nadena.dev.modular_avatar.core.editor.menu
             var menu = new VirtualMenu(avatar.expressionsMenu, context);
             foreach (var installer in avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
             {
+                // Installers on inactive objects are still installed; only a disabled component opts out.
+                if (!installer.enabled) continue;
                 menu.RegisterMenuInstaller(installer);
             }
 
