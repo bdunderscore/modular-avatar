@@ -60,11 +60,13 @@ namespace nadena.dev.modular_avatar.core.editor
             if (!context.AvatarDescriptor) return;
             
             var mappings = ParameterRenameMappings.Get(context);
+            // These entries were introduced by MA without a declared default. Their expression-asset zero is only
+            // a placeholder until menu control assignment determines the actual initial value.
+            var parametersWithoutDefault = context.GetState<DefaultValues>().ParametersWithoutDefault;
 
             var declaredParams = context.AvatarDescriptor.expressionParameters.parameters
                 .GroupBy(p => p.name).Select(l => l.First())
                 .ToDictionary(p => p.name);
-
             Dictionary<string, VRCExpressionParameters.Parameter> newParameters = new();
             Dictionary<string, float>? existingParameterDefaultUpdates = null;
             Dictionary<string, int> nextParamValue = new();
@@ -97,7 +99,10 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 // Assign automatic values first
                 int? defaultValue = null;
-                if (declaredParams.TryGetValue(paramName, out var p) && !Mathf.Approximately(0, p.defaultValue))
+                var parameterWasInsertedWithoutDefault = parametersWithoutDefault.Contains(paramName);
+                if (declaredParams.TryGetValue(paramName, out var p)
+                    && !parameterWasInsertedWithoutDefault
+                    && !Mathf.Approximately(0, p.defaultValue))
                 {
                     defaultValue = (int) p.defaultValue;
                 }
@@ -150,7 +155,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     allocatedDefaultForSelectedAutomatic = list.Any(m => m.automaticValue && m.isDefault);
                 }
 
-                if (allocatedDefaultForSelectedAutomatic
+                if ((parameterWasInsertedWithoutDefault || allocatedDefaultForSelectedAutomatic)
                     && p != null
                     && !Mathf.Approximately(p.defaultValue, defaultValue.GetValueOrDefault()))
                 {
@@ -174,9 +179,23 @@ namespace nadena.dev.modular_avatar.core.editor
                         }
                         else if (p != null && p.valueType != VRCExpressionParameters.ValueType.Int)
                         {
-                            // For a float or bool value, we don't really have a lot of good choices, so just set it to
-                            // 1 or 0 - whichever it isn't currently.
-                            control.Value = defaultValue is 0 or null ? 1 : 0;
+                            // For a float or bool value, we don't really have a lot of good choices.
+                            // If we have only one toggle, the only option is 1: A toggle for 0 in VRChat
+                            // can't be turned off.
+                            if (list.Count == 1)
+                            {
+                                control.Value = 1;
+                                // Since the control is non-default, this implies the expression params default
+                                // must be 0.
+                                existingParameterDefaultUpdates ??= new Dictionary<string, float>();
+                                existingParameterDefaultUpdates[paramName] = 0;
+                            }
+                            else
+                            {
+                                // If we have multiple controls, we assume it's a two-state toggle, and give
+                                // the non-default controls the opposite from the exp params default.
+                                control.Value = defaultValue is 0 or null ? 1 : 0;
+                            }
                         }
                         else
                         {

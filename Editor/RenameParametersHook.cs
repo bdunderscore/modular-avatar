@@ -73,6 +73,10 @@ namespace nadena.dev.modular_avatar.core.editor
     internal class DefaultValues
     {
         public ImmutableDictionary<string, float> InitialValueOverrides;
+
+        // Parameters introduced by MA without an explicit default starting value.
+        // ParameterAssignerPass replaces that placeholder with the menu-derived default later in this build.
+        public ImmutableHashSet<string> ParametersWithoutDefault = ImmutableHashSet<string>.Empty;
     }
 
     internal class RenameParametersHook
@@ -286,6 +290,7 @@ namespace nadena.dev.modular_avatar.core.editor
             _context.SaveAsset(expParams);
 
             var knownParams = expParams.parameters.Select(p => p.name).ToImmutableHashSet();
+            var parametersWithoutDefault = ImmutableHashSet.CreateBuilder<string>();
             var parameters = expParams.parameters
                 .Select(p => ResolveParameter(p, syncParams))
                 .ToList();
@@ -382,9 +387,17 @@ namespace nadena.dev.modular_avatar.core.editor
                     ApplyAdvancedOptions(converted, param.ResolvedParameter);
 #endif
                     parameters.Add(converted);
+
+                    // This name is already remapped; retain only MA-created parameters whose zero is a placeholder.
+                    if (!param.ResolvedParameter.HasDefaultValue)
+                    {
+                        parametersWithoutDefault.Add(name);
+                    }
                 }
             }
 
+            _context.PluginBuildContext.GetState<DefaultValues>().ParametersWithoutDefault =
+                parametersWithoutDefault.ToImmutable();
             expParams.parameters = parameters.ToArray();
 
             /*

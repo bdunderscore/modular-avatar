@@ -21,7 +21,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
         [TestCase(0, true, 1, 1)]
         [TestCase(0, false, 1, 0)]
         [TestCase(1, true, 1, 1)]
-        [TestCase(1, false, 0, 1)]
+        [TestCase(1, false, 1, 0)]
         public void WhenAutoParameterPresent_BoolExpressionParameterDefaultTracksAutomaticSelection(
             float externalDefault,
             bool isDefault,
