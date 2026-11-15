@@ -52,9 +52,10 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             child.AddComponent<ModularAvatarMenuInstaller>();
     
             AvatarProcessor.ProcessAvatar(root);
-            var menu = root.GetComponent<VRCAvatarDescriptor>().expressionsMenu
-                .controls.First(c => c.name == "child");
-            Assert.AreEqual(isDefault ? 1 : 0, menu.value);
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            var menu = descriptor.expressionsMenu.controls.First(c => c.name == "child");
+            Assert.AreEqual(1, menu.value);
+            Assert.AreEqual(isDefault ? 1 : 0, descriptor.expressionParameters.parameters.Single(p => p.name == "foo").defaultValue);
         }
     
         public enum ChildType
@@ -205,93 +206,22 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             
         }
 
-        [TestCase(VRCExpressionParameters.ValueType.Int, true, 2)]
-        [TestCase(VRCExpressionParameters.ValueType.Int, false, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, true, 2)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, false, 0)]
-        public void AutoMenuItemValueRespectsKnownExpressionParameterDefault(
-            VRCExpressionParameters.ValueType valueType,
-            bool isDefault,
-            float expectedControlValue
-        )
-        {
-            var root = CreateRoot("root");
-            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
-            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
-            descriptor.expressionParameters.parameters = new[]
-            {
-                new VRCExpressionParameters.Parameter
-                {
-                    name = "outfit",
-                    valueType = valueType,
-                    defaultValue = 2
-                }
-            };
-
-            var menu = CreateChild(root, "menu");
-            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
-            menuItem.automaticValue = true;
-            menuItem.isDefault = isDefault;
-            menuItem.Control = new VRCExpressionsMenu.Control
-            {
-                type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
-            };
-
-            var context = new nadena.dev.ndmf.BuildContext(root, null);
-            new ParameterAssignerPass().TestExecute(context);
-
-            Assert.AreEqual(expectedControlValue, menuItem.Control.value);
-            Assert.AreEqual(isDefault, menuItem.isDefault);
-            Assert.AreEqual(2, descriptor.expressionParameters.parameters.Single().defaultValue);
-        }
-
-        
-        [TestCase(true, 1)]
-        [TestCase(false, 0)]
-        public void AutoMenuItemValueRespectsKnownExpressionParameterDefault_BoolParam(bool isDefault, float expectedControlValue)
-        {
-            var root = CreateRoot("root");
-            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
-            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
-            descriptor.expressionParameters.parameters = new[]
-            {
-                new VRCExpressionParameters.Parameter
-                {
-                    name = "outfit",
-                    valueType = VRCExpressionParameters.ValueType.Bool,
-                    defaultValue = 1
-                }
-            };
-
-            var menu = CreateChild(root, "menu");
-            var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
-            menuItem.automaticValue = true;
-            menuItem.isDefault = isDefault;
-            menuItem.Control = new VRCExpressionsMenu.Control
-            {
-                type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
-            };
-
-            var context = new nadena.dev.ndmf.BuildContext(root, null);
-            new ParameterAssignerPass().TestExecute(context);
-
-            Assert.AreEqual(expectedControlValue, menuItem.Control.value);
-            Assert.AreEqual(isDefault, menuItem.isDefault);
-            Assert.AreEqual(1, descriptor.expressionParameters.parameters.Single().defaultValue);
-        }
-
         [TestCase(VRCExpressionParameters.ValueType.Bool, 0, true, 1, 1)]
         [TestCase(VRCExpressionParameters.ValueType.Bool, 0, false, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 1, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 1, false, 1, 0)]
         [TestCase(VRCExpressionParameters.ValueType.Float, 0, true, 1, 1)]
         [TestCase(VRCExpressionParameters.ValueType.Float, 0, false, 1, 0)]
         [TestCase(VRCExpressionParameters.ValueType.Float, 1, true, 1, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 0, 1)]
-        [TestCase(VRCExpressionParameters.ValueType.Float, 0.5f, false, 1, 0.5f)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0.5f, false, 1, 0)]
         [TestCase(VRCExpressionParameters.ValueType.Int, 0, true, 1, 1)]
         [TestCase(VRCExpressionParameters.ValueType.Int, 0, false, 1, 0)]
-        public void AutomaticValuesRespectDeclaredExternalParameterDefaults(
+        [TestCase(VRCExpressionParameters.ValueType.Int, 1, true, 1, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 1, false, 2, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 2, true, 2, 2)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 2, false, 1, 2)]
+        public void SingletonAutomaticValuesRespectDeclaredExternalParameterDefaults(
             VRCExpressionParameters.ValueType valueType,
             float defaultValue,
             bool isDefault,
@@ -326,6 +256,71 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             new ParameterAssignerPass().TestExecute(context);
 
             Assert.AreEqual(expectedControlValue, menuItem.Control.value);
+            Assert.AreEqual(isDefault, menuItem.isDefault);
+            var declaredParameter = descriptor.expressionParameters.parameters.Single();
+            Assert.AreEqual(valueType, declaredParameter.valueType);
+            Assert.AreEqual(expectedParameterDefault, declaredParameter.defaultValue);
+        }
+
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, true, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 0, false, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 1, true, 1, 0, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Bool, 1, false, 1, 0, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, true, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 0, false, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, true, 1, 0, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Float, 1, false, 1, 0, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, true, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 0, false, 0, 1, 0)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 1, true, 1, 2, 1)]
+        [TestCase(VRCExpressionParameters.ValueType.Int, 1, false, 1, 2, 1)]
+        public void TwoAutomaticTogglesRespectDeclaredExternalParameterDefault(
+            VRCExpressionParameters.ValueType valueType,
+            float defaultValue,
+            bool selectedMenuFirst,
+            float expectedSelectedValue,
+            float expectedUnselectedValue,
+            float expectedParameterDefault
+        )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = new[]
+            {
+                new VRCExpressionParameters.Parameter
+                {
+                    name = "outfit",
+                    valueType = valueType,
+                    defaultValue = defaultValue
+                }
+            };
+
+            ModularAvatarMenuItem selectedMenuItem = null;
+            ModularAvatarMenuItem unselectedMenuItem = null;
+            foreach (var selected in new[] { selectedMenuFirst, !selectedMenuFirst })
+            {
+                var menu = CreateChild(root, selected ? "selected" : "unselected");
+                var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+                menuItem.automaticValue = true;
+                menuItem.isDefault = selected;
+                menuItem.Control = new VRCExpressionsMenu.Control
+                {
+                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    parameter = new VRCExpressionsMenu.Control.Parameter { name = "outfit" }
+                };
+
+                if (selected) selectedMenuItem = menuItem;
+                else unselectedMenuItem = menuItem;
+            }
+
+            var context = new nadena.dev.ndmf.BuildContext(root, null);
+            new ParameterAssignerPass().TestExecute(context);
+
+            Assert.AreEqual(expectedSelectedValue, selectedMenuItem.Control.value);
+            Assert.IsTrue(selectedMenuItem.isDefault);
+            Assert.AreEqual(expectedUnselectedValue, unselectedMenuItem.Control.value);
+            Assert.IsFalse(unselectedMenuItem.isDefault);
             var declaredParameter = descriptor.expressionParameters.parameters.Single();
             Assert.AreEqual(valueType, declaredParameter.valueType);
             Assert.AreEqual(expectedParameterDefault, declaredParameter.defaultValue);
@@ -499,6 +494,407 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent.ParameterAssignment
             {
                 AssetDatabase.DeleteAsset(assetFolder);
             }
+        }
+
+
+        [TestCase(ParameterSyncType.Bool, VRCExpressionParameters.ValueType.Bool, 0)]
+        [TestCase(ParameterSyncType.Float, VRCExpressionParameters.ValueType.Float, 0)]
+        [TestCase(ParameterSyncType.Int, VRCExpressionParameters.ValueType.Int, 2)]
+        public void ImplicitMAParameterDefaultTracksSelectedManualMenuValue(
+            ParameterSyncType syncType,
+            VRCExpressionParameters.ValueType expectedValueType,
+            float expectedAutomaticValue
+        )
+        {
+            var result = ProcessSharedParameterMenus(syncType, parameterAlreadyExists: false, explicitDefault: null);
+
+            Assert.AreEqual(1, result.ManualMenu.Control.value);
+            Assert.IsTrue(result.ManualMenu.isDefault);
+            Assert.AreEqual(expectedAutomaticValue, result.AutomaticMenu.Control.value);
+            Assert.IsFalse(result.AutomaticMenu.isDefault);
+            Assert.AreEqual(expectedValueType, result.Parameter.valueType);
+            Assert.AreEqual(1, result.Parameter.defaultValue);
+        }
+
+        [TestCase(ParameterSyncType.Bool, VRCExpressionParameters.ValueType.Bool, 0)]
+        [TestCase(ParameterSyncType.Float, VRCExpressionParameters.ValueType.Float, 0)]
+        [TestCase(ParameterSyncType.Int, VRCExpressionParameters.ValueType.Int, 2)]
+        public void ExistingExpressionParameterDefaultIsNotOverriddenBySelectedManualMenuValue(
+            ParameterSyncType syncType,
+            VRCExpressionParameters.ValueType expectedValueType,
+            float expectedAutomaticValue
+        )
+        {
+            var result = ProcessSharedParameterMenus(syncType, parameterAlreadyExists: true, explicitDefault: null);
+
+            Assert.AreEqual(1, result.ManualMenu.Control.value);
+            Assert.AreEqual(expectedAutomaticValue, result.AutomaticMenu.Control.value);
+            Assert.AreEqual(expectedValueType, result.Parameter.valueType);
+            Assert.AreEqual(0, result.Parameter.defaultValue);
+        }
+
+        [Test]
+        public void PersistentExpressionParameterZeroDefaultIsNotOverriddenBySelectedManualMenuValue()
+        {
+            const string assetFolder = "Assets/ZZZ_Temp";
+            const string assetPath = assetFolder + "/ExpressionParameters.asset";
+
+            AssetDatabase.CreateFolder("Assets", "ZZZ_Temp");
+            try
+            {
+                var source = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+                source.parameters = new[]
+                {
+                    new VRCExpressionParameters.Parameter
+                    {
+                        name = "outfit",
+                        valueType = VRCExpressionParameters.ValueType.Bool,
+                        defaultValue = 0,
+                    }
+                };
+                AssetDatabase.CreateAsset(source, assetPath);
+
+                var root = CreateRoot("root");
+                var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+                descriptor.expressionParameters = source;
+                var parameterHost = CreateChild(root, "parameter host");
+                parameterHost.AddComponent<ModularAvatarParameters>().parameters = new()
+                {
+                    new ParameterConfig
+                    {
+                        nameOrPrefix = "outfit",
+                        syncType = ParameterSyncType.Bool,
+                    }
+                };
+                var (manualMenu, automaticMenu) = AddSharedParameterMenus(parameterHost, "outfit");
+
+                AvatarProcessor.ProcessAvatar(root);
+
+                Assert.AreEqual(0, source.parameters.Single().defaultValue);
+                Assert.AreEqual(1, manualMenu.Control.value);
+                Assert.AreEqual(0, automaticMenu.Control.value);
+                Assert.AreEqual(0, descriptor.expressionParameters.parameters.Single().defaultValue);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(assetFolder);
+            }
+        }
+
+        [TestCase(ParameterSyncType.Bool, VRCExpressionParameters.ValueType.Bool, 0)]
+        [TestCase(ParameterSyncType.Float, VRCExpressionParameters.ValueType.Float, 0)]
+        [TestCase(ParameterSyncType.Int, VRCExpressionParameters.ValueType.Int, 2)]
+        public void ExplicitZeroMAParameterDefaultIsNotOverriddenBySelectedManualMenuValue(
+            ParameterSyncType syncType,
+            VRCExpressionParameters.ValueType expectedValueType,
+            float expectedAutomaticValue
+        )
+        {
+            var result = ProcessSharedParameterMenus(syncType, parameterAlreadyExists: false, explicitDefault: 0);
+
+            Assert.AreEqual(1, result.ManualMenu.Control.value);
+            Assert.AreEqual(expectedAutomaticValue, result.AutomaticMenu.Control.value);
+            Assert.AreEqual(expectedValueType, result.Parameter.valueType);
+            Assert.AreEqual(0, result.Parameter.defaultValue);
+        }
+
+        [Test]
+        public void ImplicitInternalMAParameterDefaultTracksSelectedManualMenuValueAfterRemapping()
+        {
+            var root = CreateRoot("root");
+            var parameterHost = CreateChild(root, "parameter host");
+            parameterHost.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "outfit",
+                    syncType = ParameterSyncType.Bool,
+                    internalParameter = true,
+                }
+            };
+
+            var (manualMenu, automaticMenu) = AddSharedParameterMenus(parameterHost, "outfit");
+            AvatarProcessor.ProcessAvatar(root);
+
+            var assignedName = manualMenu.Control.parameter.name;
+            Assert.AreNotEqual("outfit", assignedName);
+            Assert.AreEqual(assignedName, automaticMenu.Control.parameter.name);
+            Assert.AreEqual(1, manualMenu.Control.value);
+            Assert.AreEqual(0, automaticMenu.Control.value);
+            Assert.AreEqual(1, root.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Single(p => p.name == assignedName).defaultValue);
+        }
+
+        [Test]
+        public void ExplicitMAParameterDefaultWinsWhenMergedWithImplicitDefault()
+        {
+            var root = CreateRoot("root");
+            var implicitParameterHost = CreateChild(root, "implicit parameter host");
+            implicitParameterHost.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "outfit",
+                    syncType = ParameterSyncType.Int,
+                }
+            };
+            var explicitParameterHost = CreateChild(implicitParameterHost, "explicit parameter host");
+            explicitParameterHost.AddComponent<ModularAvatarParameters>().parameters = new()
+            {
+                new ParameterConfig
+                {
+                    nameOrPrefix = "outfit",
+                    syncType = ParameterSyncType.Int,
+                    defaultValue = 2,
+                    hasExplicitDefaultValue = true,
+                }
+            };
+
+            var (manualMenu, automaticMenu) = AddSharedParameterMenus(explicitParameterHost, "outfit");
+            AvatarProcessor.ProcessAvatar(root);
+
+            Assert.AreEqual(1, manualMenu.Control.value);
+            Assert.AreEqual(3, automaticMenu.Control.value);
+            Assert.AreEqual(2, root.GetComponent<VRCAvatarDescriptor>().expressionParameters.parameters
+                .Single(p => p.name == "outfit").defaultValue);
+        }
+
+        [TestCase(true, 1)]
+        [TestCase(false, 0)]
+        public void UnnamedSingletonAutomaticMenuCreatesBoolParameter(bool isDefault, float expectedDefault)
+        {
+            var result = ProcessGeneratedMenuValues(
+                null,
+                (true, isDefault, 0)
+            );
+
+            Assert.AreEqual(VRCExpressionParameters.ValueType.Bool, result.Parameter.valueType);
+            Assert.AreEqual(1, result.MenuItems.Single().Control.value);
+            Assert.AreEqual(expectedDefault, result.Parameter.defaultValue);
+            Assert.AreEqual(result.Parameter.name, result.MenuItems.Single().Control.parameter.name);
+            Assert.That(result.Parameter.name, Does.StartWith(ParameterAssignerPass.AUTOMATIC_PARAMETER_PREFIX));
+        }
+
+        [TestCase(true, false, VRCExpressionParameters.ValueType.Bool, 0, 1)]
+        [TestCase(false, true, VRCExpressionParameters.ValueType.Bool, 1, 0)]
+        [TestCase(false, false, VRCExpressionParameters.ValueType.Int, 1, 2)]
+        public void TwoAutomaticMenusAllocateGeneratedParameterValues(
+            bool firstIsDefault,
+            bool secondIsDefault,
+            VRCExpressionParameters.ValueType expectedType,
+            float expectedFirstValue,
+            float expectedSecondValue
+        )
+        {
+            var result = ProcessGeneratedMenuValues(
+                "outfit",
+                (true, firstIsDefault, 0),
+                (true, secondIsDefault, 0)
+            );
+
+            AssertGeneratedParameter(
+                result,
+                expectedType,
+                0,
+                expectedFirstValue,
+                expectedSecondValue
+            );
+        }
+
+        [TestCase(true, 1, 0, 2, 0)]
+        [TestCase(false, 1, 2, 3, 0)]
+        public void ThreeAutomaticMenusAllocateGeneratedIntParameterValues(
+            bool hasSelectedMenu,
+            float expectedFirstValue,
+            float expectedSecondValue,
+            float expectedThirdValue,
+            float expectedDefault
+        )
+        {
+            var result = ProcessGeneratedMenuValues(
+                "outfit",
+                (true, false, 0),
+                (true, hasSelectedMenu, 0),
+                (true, false, 0)
+            );
+
+            AssertGeneratedParameter(
+                result,
+                VRCExpressionParameters.ValueType.Int,
+                expectedDefault,
+                expectedFirstValue,
+                expectedSecondValue,
+                expectedThirdValue
+            );
+        }
+
+        [Test]
+        public void ManualDefaultOneAndAutomaticMenuCreateGeneratedIntParameter()
+        {
+            var result = ProcessGeneratedMenuValues(
+                "outfit",
+                (false, true, 1),
+                (true, false, 0)
+            );
+
+            AssertGeneratedParameter(result, VRCExpressionParameters.ValueType.Int, 1, 1, 2);
+        }
+
+        [Test]
+        public void ManualFractionalMenuAndAutomaticDefaultCreateGeneratedFloatParameter()
+        {
+            var result = ProcessGeneratedMenuValues(
+                "outfit",
+                (false, false, 0.5f),
+                (true, true, 0)
+            );
+
+            AssertGeneratedParameter(result, VRCExpressionParameters.ValueType.Float, 1, 0.5f, 1);
+        }
+
+        private (
+            List<ModularAvatarMenuItem> MenuItems,
+            VRCExpressionParameters.Parameter Parameter
+        ) ProcessGeneratedMenuValues(
+            string? parameterName,
+            params (bool Automatic, bool IsDefault, float Value)[] controls
+        )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = Array.Empty<VRCExpressionParameters.Parameter>();
+
+            var menuItems = new List<ModularAvatarMenuItem>();
+            foreach (var (automatic, isDefault, value) in controls)
+            {
+                var menu = CreateChild(root, "menu" + menuItems.Count);
+                var menuItem = menu.AddComponent<ModularAvatarMenuItem>();
+                menuItem.Control = new VRCExpressionsMenu.Control
+                {
+                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    value = value,
+                    parameter = string.IsNullOrEmpty(parameterName)
+                        ? new VRCExpressionsMenu.Control.Parameter()
+                        : new VRCExpressionsMenu.Control.Parameter { name = parameterName },
+                };
+                menuItem.automaticValue = automatic;
+                menuItem.isDefault = isDefault;
+                if (string.IsNullOrEmpty(parameterName))
+                {
+                    var target = CreateChild(root, "target" + menuItems.Count);
+                    menu.AddComponent<ModularAvatarObjectToggle>().Objects.Add(new ToggledObject
+                    {
+                        Object = new AvatarObjectReference(target),
+                        Active = false
+                    });
+                }
+                menu.AddComponent<ModularAvatarMenuInstaller>();
+                menuItems.Add(menuItem);
+            }
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            return (menuItems, descriptor.expressionParameters.parameters.Single());
+        }
+
+        private static void AssertGeneratedParameter(
+            (List<ModularAvatarMenuItem> MenuItems, VRCExpressionParameters.Parameter Parameter) result,
+            VRCExpressionParameters.ValueType expectedType,
+            float expectedDefault,
+            params float[] expectedValues
+        )
+        {
+            Assert.AreEqual("outfit", result.Parameter.name);
+            Assert.AreEqual(expectedType, result.Parameter.valueType);
+            Assert.AreEqual(expectedDefault, result.Parameter.defaultValue);
+            CollectionAssert.AreEqual(expectedValues, result.MenuItems.Select(item => item.Control.value));
+            CollectionAssert.AreEqual(
+                Enumerable.Repeat("outfit", result.MenuItems.Count),
+                result.MenuItems.Select(item => item.Control.parameter.name)
+            );
+        }
+
+        private (ModularAvatarMenuItem ManualMenu, ModularAvatarMenuItem AutomaticMenu, VRCExpressionParameters.Parameter Parameter)
+            ProcessSharedParameterMenus(
+                ParameterSyncType syncType,
+                bool parameterAlreadyExists,
+                float? explicitDefault
+            )
+        {
+            var root = CreateRoot("root");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            descriptor.expressionParameters = TrackObject(ScriptableObject.CreateInstance<VRCExpressionParameters>());
+            descriptor.expressionParameters.parameters = parameterAlreadyExists
+                ? new[]
+                {
+                    new VRCExpressionParameters.Parameter
+                    {
+                        name = "outfit",
+                        valueType = ToExpressionParameterType(syncType),
+                        defaultValue = 0,
+                    }
+                }
+                : Array.Empty<VRCExpressionParameters.Parameter>();
+
+            var parameterHost = CreateChild(root, "parameter host");
+            var config = new ParameterConfig
+            {
+                nameOrPrefix = "outfit",
+                syncType = syncType,
+            };
+            if (explicitDefault.HasValue)
+            {
+                config.defaultValue = explicitDefault.Value;
+                config.hasExplicitDefaultValue = true;
+            }
+
+            parameterHost.AddComponent<ModularAvatarParameters>().parameters = new() { config };
+            var (manualMenu, automaticMenu) = AddSharedParameterMenus(parameterHost, "outfit");
+
+            AvatarProcessor.ProcessAvatar(root);
+
+            return (
+                manualMenu,
+                automaticMenu,
+                descriptor.expressionParameters.parameters.Single(p => p.name == "outfit")
+            );
+        }
+
+        private (ModularAvatarMenuItem ManualMenu, ModularAvatarMenuItem AutomaticMenu)
+            AddSharedParameterMenus(GameObject parent, string parameterName)
+        {
+            var manual = CreateChild(parent, "manual").AddComponent<ModularAvatarMenuItem>();
+            manual.Control = new VRCExpressionsMenu.Control
+            {
+                name = "manual",
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                value = 1,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = parameterName },
+            };
+            manual.isDefault = true;
+
+            var automatic = CreateChild(parent, "automatic").AddComponent<ModularAvatarMenuItem>();
+            automatic.Control = new VRCExpressionsMenu.Control
+            {
+                name = "automatic",
+                type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                parameter = new VRCExpressionsMenu.Control.Parameter { name = parameterName },
+            };
+            automatic.automaticValue = true;
+
+            parent.AddComponent<ModularAvatarMenuInstaller>();
+            return (manual, automatic);
+        }
+
+        private static VRCExpressionParameters.ValueType ToExpressionParameterType(ParameterSyncType syncType)
+        {
+            return syncType switch
+            {
+                ParameterSyncType.Bool => VRCExpressionParameters.ValueType.Bool,
+                ParameterSyncType.Int => VRCExpressionParameters.ValueType.Int,
+                _ => VRCExpressionParameters.ValueType.Float,
+            };
         }
 
 

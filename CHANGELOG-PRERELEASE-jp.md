@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#2217] Menu Item が自動的に０の値を割り振られ、VRChat内でオフにできなくなってしまう不具合を修正。
 
 ### Removed
 
