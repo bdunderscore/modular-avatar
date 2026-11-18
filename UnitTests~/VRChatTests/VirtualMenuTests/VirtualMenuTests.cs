@@ -598,6 +598,41 @@ namespace nadena.dev.modular_avatar.test.Tests.VirtualMenuTests
         }
     
         [Test]
+        public void disabledInstaller_isNotInstalled()
+        {
+            var menu_a = Create<VRCExpressionsMenu>();
+            menu_a.controls.Add(new VRCExpressionsMenu.Control()
+            {
+                name = "control",
+                parameter = new VRCExpressionsMenu.Control.Parameter()
+                {
+                    name = "p"
+                },
+                type = VRCExpressionsMenu.Control.ControlType.Toggle
+            });
+
+            var av_root = CreateRoot("avatar");
+
+            var node_enabled = CreateInstaller("enabled");
+            node_enabled.transform.SetParent(av_root.transform);
+            node_enabled.menuToAppend = menu_a;
+
+            var node_disabled = CreateInstaller("disabled");
+            node_disabled.transform.SetParent(av_root.transform);
+            node_disabled.menuToAppend = menu_a;
+            node_disabled.enabled = false;
+
+            var node_inactive = CreateInstaller("inactive");
+            node_inactive.transform.SetParent(av_root.transform);
+            node_inactive.menuToAppend = menu_a;
+            node_inactive.gameObject.SetActive(false);
+
+            var virtualMenu = VirtualMenu.ForAvatar(av_root.GetComponent<VRCAvatarDescriptor>());
+            virtualMenu.FreezeMenu();
+            Assert.AreEqual(2, virtualMenu.RootMenuNode.Controls.Count);
+        }
+
+        [Test]
         public void remapParams_isAppliedSeparatelyForEachDedup()
         {
             var menu_a = Create<VRCExpressionsMenu>();
