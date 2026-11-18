@@ -48,7 +48,7 @@ env:
 jobs:
   changed-files:
     name: Check whether Unity tests are needed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -118,7 +118,7 @@ jobs:
             sdk: vrcsdk
           - unity_major_version: "6000.5"
             sdk: vrcsdk
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       checks: write
       contents: read
