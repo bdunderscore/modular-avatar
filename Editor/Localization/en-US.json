@@ -272,6 +272,7 @@
   "menuitem.prop.source_override.tooltip": "If specified, this object will be used as the source for the contents of the submenu. Otherwise, children of this menu item will be used.",
   "menuitem.prop.is_default": "Is Default",
   "menuitem.prop.is_default.tooltip": "If true, this menu item will be selected when the avatar is initially loaded",
+  "menuitem.default_override_warning": "This menu item will override the parameter default for parameter {0} from {1} to {2}.\nIf you don't want this to happen, change the Is Default setting to match the parameter, or manually set a zero value for this menu item.",
   "menuitem.prop.is_saved": "Saved",
   "menuitem.prop.is_saved.tooltip": "If true, the value of this menu item will be saved when you change avatars or worlds.",
   "menuitem.prop.is_synced": "Synced",

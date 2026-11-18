@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
 - [#2189] Added support for advanced parameters on contact receivers via the MA Parameters prefix mechanism
 - [#2192] Added automatic animator parameter renaming to `MA Rename Collision Tags` for collision tag parameters
+- [#2219] Added a warning when `MA Menu Item` would override expression parameters defaults
 
 ### Fixed
 - [#2218] Fixed a disabled `MA Menu Installer` still installing its menu.
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2171] Fixed issue where `Vertex Filter - By Mask` broke with 3+-dimension UV channels
 - [#2175] `Mesh Cutter` and `Shape Changer` (delete mode) had no effect on VRChat when driven by a condition
 - [#2156] Fixed an issue where the position of child objects was not updated when pasting a value for `MA Scale Adjuster` in the Inspector
+- [#2219] Fixed some cases where parameter introspection APIs would not have the correct default value
 
 ### Changed
 - [#2204] The version warning logic will now record the prior minor version as the minimum required, when running on a `x.y.0-prerelease` prerelease version.

@@ -669,6 +669,21 @@ namespace nadena.dev.modular_avatar.core.editor
             }
 
             EditorGUILayout.EndHorizontal();
+            if (!_obj.isEditingMultipleObjects
+                && _obj.targetObject is ModularAvatarMenuItem menuItem
+                && MenuItemDefaultOverrideWarning.GetOverride(menuItem) is { } defaultOverride)
+            {
+                EditorGUILayout.HelpBox(
+                    string.Format(
+                        S("menuitem.default_override_warning"),
+                        defaultOverride.ParameterName,
+                        defaultOverride.PreviousDefaultValue,
+                        defaultOverride.NewDefaultValue
+                    ),
+                    MessageType.Warning
+                );
+            }
+
         }
         internal static void PropagateSavedState(IEnumerable<ModularAvatarMenuItem> siblings, bool value)
         {

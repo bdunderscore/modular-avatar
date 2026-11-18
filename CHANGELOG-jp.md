@@ -14,6 +14,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2188] `MA Parameters` でビット幅・符号の有無・補間時間を指定できる設定を追加
 - [#2189] `MA Parameters` の接頭辞設定をContact ReceiverのAdvanced変数に対応
 - [#2192] `MA Rename Collision Tags` に、collision tag用のパラメーターもリネームできるように変更
+- [#2219] `MA Menu Item` の影響で Expression Parameters の初期値が上書きされる場合に注意を追加
 
 ### Fixed
 - [#2218] 無効化した `MA Menu Installer` のメニューがインストールされてしまう問題を修正。
@@ -28,6 +29,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 - [#2171] `Vertex Filter - By Mask` が三次元以上のUVチャンネルでエラーを出す問題を修正
 - [#2175] VRChat 向けビルドで、条件付きの `Mesh Cutter` および `Shape Changer`（削除モード）が動作しない問題を修正
 - [#2156] `MA Scale Adjuster` の値をインスペクタで貼り付けた時に子オブジェクトの位置が更新されないのを修正
+- [#2219] Parameter Introspection API が提供する初期値情報が実際の初期値と違うバグを修正
 
 ### Changed
 - [#2189] `VRC Contact Receiver` の parameter は接頭辞設定の有無にかかわらずリネームされるように変更
