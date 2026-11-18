@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2219] `MA Menu Item` の影響で Expression Parameters の初期値が上書きされる場合に注意を追加
 
 ### Fixed
-- [#2218] 無効化した `MA Menu Installer` のメニューがインストールされてしまう問題を修正。
-- [#2219] Parameter Introspection API が提供する初期値情報が実際の初期値と違うバグを修正
 
 ### Changed
 
@@ -21,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.0] - [2026-11-18]
+
+### Added
+- [#2219] `MA Menu Item` の影響で Expression Parameters の初期値が上書きされる場合に注意を追加
+
+### Fixed
+- [#2218] 無効化した `MA Menu Installer` のメニューがインストールされてしまう問題を修正。
+- [#2219] Parameter Introspection API が提供する初期値情報が実際の初期値と違うバグを修正
 
 ## [1.19.0-rc.3] - [2026-11-15]
 

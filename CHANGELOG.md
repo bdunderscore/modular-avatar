@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.19.0] - [2026-11-18]
+
+### Added
 - [#2204] Added a warning to the package export dialog when running a prerelease version that might contain new serialized data.
 - [#2146] Added `MA Reactive Move`, which conditionally matches an object's world position, rotation, and scale to another object.
 - [#2188] Support "Advanced option" of ExpressionsParameter in `MA Parameters`
@@ -47,10 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - [#2146] Removed `UnityObjectIDHelper` from Modular Avatar's public API. This API was exposed accidentally, and caused
 frequent extension method conflicts; use the NDMF-exported version instead.
-
-### Security
-
-### Deprecated
 
 ## [1.18.7] - [2026-09-01]
 
