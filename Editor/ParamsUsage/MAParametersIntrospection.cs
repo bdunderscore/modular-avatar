@@ -42,7 +42,7 @@ namespace nadena.dev.modular_avatar.core.editor
                 ExpandTypeOnConflict = true,
                 WantSynced = _component.isSynced,
                 IsHidden = hidden,
-                DefaultValue = _component.isDefault ? _component.Control.value : null
+                DefaultValue = !_component.automaticValue && _component.isDefault ? _component.Control.value : null
             };
         }
     }
@@ -90,7 +90,7 @@ namespace nadena.dev.modular_avatar.core.editor
                     IsAnimatorOnly = animatorOnly,
                     WantSynced = !p.localOnly && !animatorOnly,
                     IsHidden = p.internalParameter,
-                    DefaultValue = p.defaultValue,
+                    DefaultValue = p.HasDefaultValue ? p.defaultValue : null,
                     NumericBitWidth = p.bitWidth != 0 ? p.bitWidth : null,
                     LerpDuration = p.useCustomLerpDuration ? p.customLerpDuration : null,
                 };

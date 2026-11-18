@@ -14,6 +14,7 @@
     "VRC.SDKBase",
     "UnityEngine.UI.Tests",
     "nadena.dev.ndmf",
+    "nadena.dev.ndmf.vrchat",
     "nadena.dev.ndmf.runtime"
   ],
   "includePlatforms": [
