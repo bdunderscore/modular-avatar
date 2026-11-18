@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#2219] Added a warning when `MA Menu Item` would override expression parameters defaults
 
 ### Fixed
 - [#2218] Fixed a disabled `MA Menu Installer` still installing its menu.
+- [#2219] Fixed some cases where parameter introspection APIs would not have the correct default value
 
 ### Changed
 
