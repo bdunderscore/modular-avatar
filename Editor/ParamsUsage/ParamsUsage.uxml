@@ -12,7 +12,7 @@
                 <ui:VisualElement name="UnusedSpace" style="width: auto; background-color: #eeeeee; flex-grow: 1;"/>
             </ui:VisualElement>
 
-            <ui:VisualElement name="Legend">
+            <ui:ScrollView name="Legend">
                 <ui:VisualElement class="retained">
                     <ui:VisualElement class="Entry" name="OtherObjects" style="display: none">
                         <ui:VisualElement class="IconOuter">
@@ -31,7 +31,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
 
-            </ui:VisualElement>
+            </ui:ScrollView>
 
             <ui:VisualElement name="Exceeded">
             </ui:VisualElement>
