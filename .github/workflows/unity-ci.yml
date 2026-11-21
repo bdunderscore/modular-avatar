@@ -114,8 +114,6 @@ jobs:
         sdk: [ vrcsdk, standalone ]
         testmode: [ All ]
         exclude:
-          - unity_major_version: "6000.0"
-            sdk: vrcsdk
           - unity_major_version: "6000.5"
             sdk: vrcsdk
     runs-on: ubuntu-24.04
@@ -137,7 +135,7 @@ jobs:
           if [ $unity_major_version = 2022 ]; then
             echo "unity_version=2022.3.6f1" >> $GITHUB_OUTPUT
           elif [ $unity_major_version = 6000.0 ]; then
-            echo "unity_version=6000.0.60f1" >> $GITHUB_OUTPUT
+            echo "unity_version=6000.0.67f1" >> $GITHUB_OUTPUT
           elif [ $unity_major_version = 6000.5 ]; then
             echo "unity_version=6000.5.9f1" >> $GITHUB_OUTPUT
           else

@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "com.vrchat.avatars": {
+      "version": "3.11.0-beta.1"
+    },
+    "nadena.dev.ndmf": {
+      "version": "1.15.0-beta.3"
+    }
+  },
+  "locked": {
+    "com.vrchat.avatars": {
+      "version": "3.11.0-beta.1",
+      "dependencies": {
+        "com.vrchat.base": "3.11.0-beta.1"
+      }
+    },
+    "com.vrchat.base": {
+      "version": "3.11.0-beta.1",
+      "dependencies": {}
+    },
+    "nadena.dev.ndmf": {
+      "version": "1.15.0-beta.3"
+    }
+  }
+}
