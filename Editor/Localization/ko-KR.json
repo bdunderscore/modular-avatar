@@ -268,6 +268,7 @@
   "menuitem.prop.source_override.tooltip": "지정한 오브젝트가 있으면 그 자식을, 없으면 현재 오브젝트의 자식을 메뉴로 사용합니다",
   "menuitem.prop.is_default": "기본값으로 설정",
   "menuitem.prop.is_default.tooltip": "활성화하면 아바타를 처음 불러올 때 이 메뉴 항목이 선택됩니다",
+  "menuitem.default_override_warning": "이 메뉴 항목은 파라미터 {0}의 기본값을 덮어씁니다({1} → {2}).\n이를 원하지 않으면 파라미터의 기본값에 맞게 ‘기본값으로 설정’ 옵션을 변경하거나, 이 메뉴 항목의 값을 직접 0으로 설정하세요.",
   "menuitem.prop.is_saved": "저장",
   "menuitem.prop.is_saved.tooltip": "활성화하면 아바타를 변경하거나 월드를 이동해도 이 값이 유지됩니다",
   "menuitem.prop.is_synced": "동기화",
