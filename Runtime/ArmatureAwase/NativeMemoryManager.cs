@@ -128,6 +128,14 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 throw new ArgumentOutOfRangeException();
             }
             
+            // Trial allocations can start past the end of the mask and are freed immediately afterwards. They were
+            // never marked as in use, so there are no bits to clear. Without this, the subtraction below would
+            // produce a negative length.
+            if (offset >= InUseMask.Array.Length)
+            {
+                return;
+            }
+
             // We perform trial creations of segments (and then immediately free them if they exceed the bounds of the
             // array). As such, we clamp the length, rather than throwing an exception.
             length = Math.Min(length, InUseMask.Array.Length - offset);
@@ -160,9 +168,14 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 throw new ObjectDisposedException(nameof(NativeMemoryManager));
             }
             
+            // AllocationMap reserves at least one slot for every segment, including an empty allocation. Check
+            // bounds against that reserved size; otherwise Allocate(0) can move the allocation map past the
+            // arrays and mask without resizing them.
+            var reservedLength = Math.Max(1, requested);
+
             var segment = _allocationMap.Allocate(requested);
 
-            if (segment.Offset + segment.Length > _allocatedLength)
+            if (segment.Offset + reservedLength > _allocatedLength)
             {
                 // Try defragmenting first.
 
@@ -175,10 +188,10 @@ namespace nadena.dev.modular_avatar.core.armature_lock
                 segment = _allocationMap.Allocate(requested);
             }
 
-            if (segment.Offset + segment.Length > _allocatedLength)
+            if (segment.Offset + reservedLength > _allocatedLength)
             {
                 // We're still using more space than we have allocated, so allocate some more memory now
-                ResizeNativeArrays(segment.Offset + segment.Length);
+                ResizeNativeArrays(segment.Offset + reservedLength);
             }
 
             SetInUseMask(segment.Offset, segment.Length, true);

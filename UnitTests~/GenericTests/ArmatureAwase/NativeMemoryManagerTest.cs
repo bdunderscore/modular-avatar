@@ -81,6 +81,40 @@ namespace nadena.dev.modular_avatar.test.ArmatureAwase
             mm.Dispose();
         }
     
+        [Test]
+        public void TestZeroLengthAllocations()
+        {
+            // Regression test for https://github.com/bdunderscore/modular-avatar/issues/2131
+            // AllocationMap reserves one slot for Allocate(0), but ISegment.Length is zero. The
+            // allocation map could grow past the arrays and in-use mask, and the next allocation
+            // would throw while freeing its trial segment.
+            var mm = new NativeMemoryManager();
+            var arr = mm.CreateArray<int>();
+
+            var s1 = mm.Allocate(4);
+            SetRange(arr, s1, 101);
+
+            for (var i = 0; i < 12; i++)
+            {
+                var empty = mm.Allocate(0);
+                Assert.AreEqual(0, empty.Length);
+            }
+
+            ISegment s2 = null;
+            Assert.DoesNotThrow(() => s2 = mm.Allocate(4));
+            Assert.AreEqual(4, s2.Length);
+
+            SetRange(arr, s2, 102);
+
+            AssertRange(arr, s1, 101);
+            AssertRange(arr, s2, 102);
+            AssertRange(mm.InUseMask, s1, true);
+            AssertRange(mm.InUseMask, s2, true);
+            Assert.AreEqual(mm.AllocatedLength, mm.InUseMask.Length);
+
+            mm.Dispose();
+        }
+
         private void SetRange<T>(NativeArray<T> arr, ISegment segment, T value) where T : unmanaged
         {
             for (int i = 0; i < segment.Length; i++)
