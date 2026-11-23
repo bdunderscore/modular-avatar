@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2131] `MA Move Independently` と `MA Scale Adjuster` のプレビューが更新されなくなることがある `ArgumentException: negative length` を修正しました。
 
 ### Changed
 

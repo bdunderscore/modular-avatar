@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2131] Fixed an `ArgumentException: negative length` that could prevent `MA Move Independently` and `MA Scale Adjuster` previews from updating.
 
 ### Changed
 
