@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#2227] Added debug feature to dump Reactive Component structure
 
 ### Fixed
-- [#2131] Fixed an `ArgumentException: negative length` that could prevent `MA Move Independently` and `MA Scale Adjuster` previews from updating.
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.19.1-beta.0] - [2026-11-24]
+
+### Added
+- [#2227] Added debug feature to dump Reactive Component structure
+
+### Fixed
+- [#2131] Fixed an `ArgumentException: negative length` that could prevent `MA Move Independently` and `MA Scale Adjuster` previews from updating.
 
 ## [1.19.0] - [2026-11-18]
 
