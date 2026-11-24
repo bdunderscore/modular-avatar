@@ -26,6 +26,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         
         private readonly VirtualAnimatorController _vac;
 
+        private readonly ReactiveDebugProbe _debugProbe;
+
         private ReactionParameters? __parameters;
 
         internal List<IEffectProcessor> _effectProcessors = new();
@@ -46,7 +48,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         public int Latency { get; private set; }
 
-        public UnityBlendTreeBackend(ndmf.BuildContext buildContext, VirtualAnimatorController vac)
+        public UnityBlendTreeBackend(ndmf.BuildContext buildContext, VirtualAnimatorController vac,
+            ReactiveDebugProbe? debugProbe = null)
         {
             _effectProcessors.Add(new SimplePropProcessor());
             
@@ -55,6 +58,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             ObjectPathRemapper = asc.ObjectPathRemapper;
             
             EmptyMotion = VirtualClip.Create("Empty");
+            _debugProbe = debugProbe ?? ReactiveDebugProbe.None;
             _vac = vac;
 
             AlwaysOnClip = VirtualClip.Create("Base");
@@ -84,9 +88,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             BaseLayerTree = baseBlendTree;
         }
 
-        private void Bake(IMotionNode root)
+        private void Bake(IMotionNode root, EffectGroup group)
         {
             var rootMotion = root.Bake(this);
+            _debugProbe.Offer("Effect group blend tree", group, rootMotion);
 
             RootTree.Children = RootTree.Children.Add(new VirtualBlendTree.VirtualChildMotion
             {
@@ -244,6 +249,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             RemoveRedundantAlreadyAppliedActions(graph);
 
             var graphs = OptimizeForBackend(graph);
+            _debugProbe.Offer("After OptimizeForBackend", graphs);
             foreach (var subgraph in graphs)
             {
                 var groups = AlignNodesTransform.CreateEffectGroups(_effectProcessors, subgraph);
@@ -253,9 +259,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 foreach (var group in aligned)
                 {
                     var motionNode = group.Emit(this);
-                    if (motionNode == null) continue;
+                    if (motionNode == null)
+                    {
+                        _debugProbe.Offer("Effect group blend tree", group, null);
+                        continue;
+                    }
+
                     CoalesceBranchesTransform.Apply(ref motionNode);
-                    Bake(motionNode);
+                    Bake(motionNode, group);
                 }
             }
 

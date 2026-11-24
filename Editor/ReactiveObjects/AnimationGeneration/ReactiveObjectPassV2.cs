@@ -69,6 +69,10 @@ namespace nadena.dev.modular_avatar.core.editor
 
         internal void Execute()
         {
+            using var debugProbe = ReactiveDebugProbe.Create();
+            debugProbe.ConfigurePlatform(context.PlatformProvider.QualifiedName);
+            debugProbe.Offer("Before RC processing", context.AvatarRootObject, asc);
+
             var analysis = new ReactiveObjectAnalyzer(context).Analyze(context.AvatarRootObject);
 
             if (analysis.Shapes.Count == 0) return;
@@ -81,7 +85,7 @@ namespace nadena.dev.modular_avatar.core.editor
             {
                 var descriptor = context.AvatarRootObject.GetComponent<VRCAvatarDescriptor>();
                 var controller = asc.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
-                var innerBackend = new UnityBlendTreeBackend(context, controller);
+                var innerBackend = new UnityBlendTreeBackend(context, controller, debugProbe);
                 backend = new VRChatBlendTreeBackend(descriptor, controller, innerBackend);
             }
 #endif
@@ -97,10 +101,14 @@ namespace nadena.dev.modular_avatar.core.editor
                 return;
             }
 
+            debugProbe.Offer("Before backend.PreprocessGraph", graph);
             backend.PreprocessGraph(graph);
+            debugProbe.Offer("Before ILBuild.Simplify", graph);
             ILBuild.Simplify(graph);
+            debugProbe.Offer("Before StaticProcessing.Apply", graph);
             StaticProcessing.Apply(graph);
 
+            debugProbe.Offer("Before backend.Build", graph);
             backend.Build(graph);
 
 #if MA_VRCSDK3_AVATARS

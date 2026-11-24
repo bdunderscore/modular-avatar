@@ -9,6 +9,7 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
+- [#2227] Reactive Component の構造を書き出すデバッグ機能を追加
 
 ### Fixed
 
