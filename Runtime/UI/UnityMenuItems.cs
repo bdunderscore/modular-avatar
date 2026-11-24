@@ -53,5 +53,15 @@
 
         internal const int TopMenu_SyncParameterSequenceDebugLogOrder = 1100;
 
+        internal const string TopMenu_ReactiveComponentDebugDump =
+            "Tools/Modular Avatar/Debug/Dump Reactive Component Build";
+
+        internal const int TopMenu_ReactiveComponentDebugDumpOrder = 1101;
+
+        internal const string TopMenu_ReconstructReactiveComponentAvatar =
+            "Tools/Modular Avatar/Debug/Reconstruct Reactive Component Avatar...";
+
+        internal const int TopMenu_ReconstructReactiveComponentAvatarOrder = 1102;
+
     }
 }
