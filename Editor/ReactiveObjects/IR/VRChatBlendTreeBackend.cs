@@ -24,6 +24,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
     {
         internal const string BaseLayerName = "MA/RC Base";
         internal const string ApplyLayerName = "MA/RC Apply";
+        private const string UpdateWhenOffscreenProperty = "m_UpdateWhenOffscreen";
+        private static readonly string[] ScaleProperties = { "m_LocalScale.x", "m_LocalScale.y", "m_LocalScale.z" };
 
         private readonly VRCAvatarDescriptor _descriptor;
         private readonly UnityBlendTreeBackend _inner;
@@ -141,6 +143,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                         group => group.Key,
                         group => group.SelectMany(pair => pair.Value).ToList());
 
+                if (plan.Count > 0)
+                {
+                    // Restore the renderer's original setting whenever no NaN branch is selected.
+                    var path = _inner.ObjectPathRemapper.GetVirtualPathForObject(renderer.gameObject);
+                    var binding = EditorCurveBinding.FloatCurve(path, typeof(SkinnedMeshRenderer), UpdateWhenOffscreenProperty);
+                    _inner.BaseLayerClip.SetFloatCurve(binding,
+                        AnimationCurve.Constant(0, 1, renderer.updateWhenOffscreen ? 1f : 0f));
+                }
                 AddInitialConstraints(generatedBonesByTarget, initiallyActiveEffects);
                 RemoveMeshSectionEffects(graph, targetSelectors.Keys, plannedTargets, generatedBonesByTarget);
             }
@@ -234,8 +244,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     if (effect is HideMeshSection hide && targets.Contains(hide.Target))
                     {
                         if (plannedTargets.Contains(hide.Target))
-                            replacementEffects.AddRange(CreateNaNimationFloatActions(
-                                hide.Target.Renderer,
+                            replacementEffects.Add(CreateNaNimationFloatActionGroup(
+                                hide.Target,
                                 generatedBones![hide.Target],
                                 hide.ShouldHide));
                         continue;
@@ -253,24 +263,28 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             }
         }
 
-        private static IEnumerable<IAction> CreateNaNimationFloatActions(
-            SkinnedMeshRenderer renderer,
-            IEnumerable<GameObject> bones,
+        private static IAction CreateNaNimationFloatActionGroup(
+            MeshSectionTarget target,
+            List<GameObject> bones,
             bool shouldHide)
         {
+            var actions = new List<IAction>(bones.Count * ScaleProperties.Length + (shouldHide ? 1 : 0));
+            var scale = shouldHide ? float.NaN : 1f;
             foreach (var bone in bones)
             {
-                foreach (var dimension in new[] { "x", "y", "z" })
+                foreach (var property in ScaleProperties)
                 {
-                    yield return new FloatPropAction(
-                        new PropertyTarget(bone.transform, $"m_LocalScale.{dimension}"),
-                        shouldHide ? float.NaN : 1f);
+                    actions.Add(new FloatPropAction(new PropertyTarget(bone.transform, property), scale));
                 }
             }
 
-            yield return new FloatPropAction(
-                new PropertyTarget(renderer, "m_UpdateWhenOffscreen"),
-                0f);
+            var offscreenTarget = new PropertyTarget(target.Renderer, UpdateWhenOffscreenProperty);
+            if (shouldHide)
+            {
+                actions.Add(new FloatPropAction(offscreenTarget, 0f));
+            }
+
+            return new TargetKeyOverride(target, actions, groupingKey: offscreenTarget);
         }
 
         private void AddInitialConstraints(
@@ -348,6 +362,11 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public void SetParameterInitialValue(string name, float value)
         {
             _inner.SetParameterInitialValue(name, value);
+        }
+
+        public void AddBaseStateBinding(string parameterName, float value)
+        {
+            _inner.AddBaseStateBinding(parameterName, value);
         }
 
 

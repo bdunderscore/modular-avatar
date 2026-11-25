@@ -13,6 +13,7 @@ using nadena.dev.ndmf.animator;
 using UnityEditor;
 using VRC.SDK3.Dynamics.Constraint.Components;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.platform;
 using VRC.SDK3.Avatars.Components;
 using AvatarProcessor = nadena.dev.ndmf.AvatarProcessor;
 using Object = UnityEngine.Object;
@@ -446,6 +447,11 @@ namespace nadena.dev.modular_avatar.test.Tests
                 type = AnimatorControllerParameterType.Float,
                 defaultFloat = 1f
             });
+            var animator = avatarRoot.GetComponent<Animator>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            animatorServices.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX] = controller;
+            animatorServices.ControllerContext.Controllers[animator] = controller;
+            var injectRO = context.ActivateExtensionContextRecursive<InjectROBaseLayer>();
             var unityBackend = new UnityBlendTreeBackend(context, controller);
             var backend = new VRChatBlendTreeBackend(descriptor, controller, unityBackend);
             var selector = new VertexFilterByShape("Positive", 0.001f);
@@ -475,53 +481,201 @@ namespace nadena.dev.modular_avatar.test.Tests
             graph.AddNode(new ReactionNode(
                 new ParameterExpression("Q"),
                 HideMeshSection.Retain(target)));
+            meshRenderer.updateWhenOffscreen = true;
+
     
             backend.PreprocessGraph(graph);
             ILBuild.Simplify(graph);
             nadena.dev.modular_avatar.core.editor.rc.StaticProcessing.StaticProcessing.Apply(graph);
             backend.Build(graph);
+            var baseState = injectRO.Layer!.StateMachine!.AddState("Base");
+            baseState.Motion = backend.BaseBlendTree;
+            injectRO.Layer.StateMachine.DefaultState = baseState;
     
-            var effects = graph.Nodes.SelectMany(node => node.Effects).ToList();
-            Assert.That(effects, Is.Not.Empty);
-            Assert.IsFalse(effects.OfType<HideMeshSection>().Any());
-    
+            var clips = unityBackend.RootTree.AllReachableNodes().OfType<VirtualClip>().ToList();
+            var rendererPath = unityBackend.ObjectPathRemapper.GetVirtualPathForObject(meshRenderer.gameObject);
+            var offscreenBinding = EditorCurveBinding.FloatCurve(
+                rendererPath, typeof(SkinnedMeshRenderer), "m_UpdateWhenOffscreen");
+            var offscreenClips = clips.Where(clip => clip.GetFloatCurve(offscreenBinding) != null).ToArray();
+            Assert.That(offscreenClips, Is.Not.Empty);
+
             var generatedBones = avatarRoot.GetComponentsInChildren<Transform>()
                 .Where(transform => transform.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix))
                 .ToList();
             Assert.That(generatedBones, Is.Not.Empty);
-    
+
             foreach (var bone in generatedBones)
             {
+                var path = unityBackend.ObjectPathRemapper.GetVirtualPathForObject(bone.gameObject);
                 foreach (var axis in new[] { "x", "y", "z" })
                 {
-                    var scaleActions = effects.OfType<FloatPropAction>().Where(action =>
-                        action.Prop.TargetObject == bone &&
-                        action.Prop.PropertyName == $"m_LocalScale.{axis}").ToList();
-                    Assert.AreEqual(2, scaleActions.Count);
-                    Assert.IsTrue(scaleActions.Any(action => float.IsNaN(action.Value)));
-                    Assert.IsTrue(scaleActions.Any(action => action.Value == 1f),
-                        "Retain actions must lower to an explicit normal scale so later rules can cancel a hide.");
+                    var binding = EditorCurveBinding.FloatCurve(path, typeof(Transform), $"m_LocalScale.{axis}");
+                    var hideClips = clips.Where(clip =>
+                        clip.GetFloatCurve(binding) is { } curve && float.IsNaN(curve[0].value));
+                    CollectionAssert.AreEquivalent(offscreenClips, hideClips,
+                        "The offscreen setting and NaN scale must be written by the same clips.");
+                    Assert.IsTrue(clips.Any(clip => clip.GetFloatCurve(binding)?.Evaluate(0f) == 1f),
+                        "Retain actions must restore scale so later rules can cancel a hide.");
                 }
-    
+
                 var constraints = bone.GetComponents<VRCScaleConstraint>();
                 Assert.AreEqual(1, constraints.Length, "A default-on hide must add exactly one initialization constraint.");
                 var constraint = constraints.Single();
                 Assert.AreSame(bone, constraint.Sources.Single().SourceTransform);
                 Assert.IsTrue(float.IsNaN(constraint.Sources.Single().Weight));
                 Assert.IsTrue(float.IsNaN(constraint.GlobalWeight));
-    
-                var path = unityBackend.ObjectPathRemapper.GetVirtualPathForObject(bone.gameObject);
+
                 AssertZeroBaseCurve(unityBackend, path, "IsActive");
                 AssertZeroBaseCurve(unityBackend, path, "GlobalWeight");
             }
-    
-            var updateOffscreenActions = effects.OfType<FloatPropAction>().Where(action =>
-                action.Prop.TargetObject == meshRenderer &&
-                action.Prop.PropertyName == "m_UpdateWhenOffscreen").ToList();
-            Assert.AreEqual(2, updateOffscreenActions.Count);
-            Assert.IsTrue(updateOffscreenActions.All(action => action.Value == 0f));
+
+            Assert.IsTrue(offscreenClips.All(clip => clip.GetFloatCurve(offscreenBinding).Evaluate(0f) == 0f));
+            Assert.IsFalse(meshRenderer.updateWhenOffscreen);
+            var updateOffscreenCurve = unityBackend.BaseLayerClip.GetFloatCurve(offscreenBinding);
+            Assert.IsNotNull(updateOffscreenCurve);
+            Assert.AreEqual(1f, updateOffscreenCurve.Evaluate(0f),
+                "The base layer must retain the renderer's pre-build offscreen-update setting.");
+
+            context.DeactivateAllExtensionContexts();
+            animator.Rebind();
+
+            animator.SetFloat("Q", 1f);
+            StepAnimator(animator);
+            Assert.IsTrue(meshRenderer.updateWhenOffscreen,
+                "A selected retain must restore the renderer's authored offscreen-update setting.");
+            Assert.That(generatedBones.Select(bone => bone.localScale),
+                Is.All.EqualTo(Vector3.one),
+                "A selected retain must restore the NaNimated bones' normal scale.");
+
+            animator.SetFloat("Q", 0f);
+            StepAnimator(animator);
+            Assert.IsFalse(meshRenderer.updateWhenOffscreen,
+                "A selected hide must disable offscreen updates.");
+            Assert.That(generatedBones.Select(bone => bone.localScale),
+                Is.All.Matches<Vector3>(scale =>
+                    float.IsNaN(scale.x) && float.IsNaN(scale.y) && float.IsNaN(scale.z)),
+                "A selected hide must apply NaN scale to the NaNimated bones.");
+
+            animator.SetFloat("Q", 1f);
+            StepAnimator(animator);
+            Assert.IsTrue(meshRenderer.updateWhenOffscreen,
+                "A later retain must restore the renderer's authored offscreen-update setting.");
+            Assert.That(generatedBones.Select(bone => bone.localScale),
+                Is.All.EqualTo(Vector3.one),
+                "A later retain must restore the NaNimated bones' normal scale.");
         }
-    
+
+        [Test]
+        public void Build_IndependentMeshSections_KeepOffscreenUpdatesDisabledDuringSameFrameSwap()
+        {
+            var context = CreateContext(avatarRoot);
+            var descriptor = avatarRoot.GetComponent<VRCAvatarDescriptor>();
+            var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
+            var animator = avatarRoot.GetComponent<Animator>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            animatorServices.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX] = controller;
+            animatorServices.ControllerContext.Controllers[animator] = controller;
+            var injectRO = context.ActivateExtensionContextRecursive<InjectROBaseLayer>();
+            var unityBackend = new UnityBlendTreeBackend(context, controller);
+            var backend = new VRChatBlendTreeBackend(descriptor, controller, unityBackend);
+            var firstTarget = MeshSectionTarget.ForMask(meshRenderer, new VertexFilterByShape("Positive", 0.001f));
+            var secondTarget = MeshSectionTarget.ForMask(meshRenderer, new VertexFilterByShape("Negative", 0.001f));
+            var graph = new ReactionGraph();
+            graph.Parameters.EnsureParameter("HideFirst", 1f);
+            graph.Parameters.EnsureParameter("HideSecondFirst", 0f);
+            graph.Parameters.EnsureParameter("RetainSecond", 1f);
+            graph.Parameters.EnsureParameter("HideSecondLast", 0f);
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("HideFirst"),
+                new HideMeshSection(firstTarget, new VertexFilterByShape("Positive", 0.001f))));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("HideSecondFirst"),
+                new HideMeshSection(secondTarget, new VertexFilterByShape("Negative", 0.001f))));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("RetainSecond"),
+                HideMeshSection.Retain(secondTarget)));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("HideSecondLast"),
+                new HideMeshSection(secondTarget, new VertexFilterByShape("Negative", 0.001f))));
+            meshRenderer.updateWhenOffscreen = true;
+
+            backend.PreprocessGraph(graph);
+            ILBuild.Simplify(graph);
+            nadena.dev.modular_avatar.core.editor.rc.StaticProcessing.StaticProcessing.Apply(graph);
+            backend.Build(graph);
+            var baseState = injectRO.Layer!.StateMachine!.AddState("Base");
+            baseState.Motion = backend.BaseBlendTree;
+            injectRO.Layer.StateMachine.DefaultState = baseState;
+
+            var generatedBones = avatarRoot.GetComponentsInChildren<Transform>()
+                .Where(transform => transform.name.StartsWith(NaNimationFilter.NaNimatedBonePrefix))
+                .ToList();
+            Assert.AreEqual(2, generatedBones.Count);
+
+            context.DeactivateAllExtensionContexts();
+            animator.Rebind();
+            StepAnimator(animator);
+
+            Assert.IsFalse(meshRenderer.updateWhenOffscreen,
+                "The initially hidden section must disable offscreen updates.");
+            var initiallyHiddenBone = generatedBones.Single(bone => float.IsNaN(bone.localScale.x));
+            var initiallyVisibleBone = generatedBones.Single(bone => bone.localScale == Vector3.one);
+
+            animator.SetFloat("HideFirst", 0f);
+            animator.SetFloat("HideSecondFirst", 1f);
+            animator.SetFloat("RetainSecond", 0f);
+            animator.SetFloat("HideSecondLast", 0f);
+            for (var frame = 0; frame < 30; frame++)
+            {
+                animator.Update(1f / 60f);
+                Assert.IsFalse(meshRenderer.updateWhenOffscreen,
+                    $"Offscreen updates must remain disabled during same-frame swap (frame {frame}).");
+            }
+
+            Assert.AreEqual(Vector3.one, initiallyHiddenBone.localScale,
+                "The first section must be released after its hide condition clears.");
+            Assert.IsTrue(float.IsNaN(initiallyVisibleBone.localScale.x),
+                "The second section must hide after its hide condition is selected.");
+        }
+
+        [Test]
+        public void Build_ConditionalMeshHide_DefaultRetainPreservesOffscreenBaseCurve()
+        {
+            var context = CreateContext(avatarRoot);
+            var descriptor = avatarRoot.GetComponent<VRCAvatarDescriptor>();
+            var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var controller = VirtualAnimatorController.Create(animatorServices.ControllerContext.CloneContext);
+            var unityBackend = new UnityBlendTreeBackend(context, controller);
+            var backend = new VRChatBlendTreeBackend(descriptor, controller, unityBackend);
+            var selector = new VertexFilterByShape("Positive", 0.001f);
+            var target = MeshSectionTarget.ForMask(meshRenderer, selector);
+            var graph = new ReactionGraph();
+            graph.Parameters.EnsureParameter("Hide", 0f);
+            graph.Parameters.EnsureParameter("Retain", 1f);
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("Hide"),
+                new HideMeshSection(target, selector)));
+            graph.AddNode(new ReactionNode(
+                new ParameterExpression("Retain"),
+                HideMeshSection.Retain(target)));
+            meshRenderer.updateWhenOffscreen = true;
+
+            backend.PreprocessGraph(graph);
+            ILBuild.Simplify(graph);
+            nadena.dev.modular_avatar.core.editor.rc.StaticProcessing.StaticProcessing.Apply(graph);
+            backend.Build(graph);
+
+            Assert.IsTrue(meshRenderer.updateWhenOffscreen,
+                "A selected retain must not change the renderer's offscreen-update setting.");
+            var rendererPath = unityBackend.ObjectPathRemapper.GetVirtualPathForObject(meshRenderer.gameObject);
+            var updateOffscreenCurve = unityBackend.BaseLayerClip.GetFloatCurve(
+                EditorCurveBinding.FloatCurve(rendererPath, typeof(SkinnedMeshRenderer), "m_UpdateWhenOffscreen"));
+            Assert.IsNotNull(updateOffscreenCurve);
+            Assert.AreEqual(1f, updateOffscreenCurve.Evaluate(0f),
+                "The base layer must restore the renderer's pre-build offscreen-update setting after a hide.");
+        }
+
         [Test]
         public void Build_EmptyGraph_DoesNotInstallReactiveLayers()
         {
@@ -543,6 +697,12 @@ namespace nadena.dev.modular_avatar.test.Tests
                 layer.Name == VRChatBlendTreeBackend.ApplyLayerName));
         }
     
+        private static void StepAnimator(Animator animator)
+        {
+            for (var frame = 0; frame < 30; frame++)
+                animator.Update(1f / 60f);
+        }
+
         private static void AssertZeroBaseCurve(UnityBlendTreeBackend backend, string path, string property)
         {
             var curve = backend.BaseLayerClip.GetFloatCurve(

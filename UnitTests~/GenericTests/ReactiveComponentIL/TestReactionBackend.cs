@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using nadena.dev.modular_avatar.core.editor.rc;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 
@@ -7,7 +8,8 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
     internal sealed class TestReactionBackend : IReactionBackend
     {
         private ReactionParameters _parameters;
-    
+        internal Dictionary<string, float> BaseStateBindings { get; } = new();
+
         internal TestReactionBackend(ReactionParameters parameters)
         {
             _parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
@@ -32,6 +34,11 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
         public void SetParameterInitialValue(string name, float value)
         {
             _parameters.SetParameterInitialValue(name, value);
+        }
+
+        public void AddBaseStateBinding(string parameterName, float value)
+        {
+            BaseStateBindings[parameterName] = value;
         }
     
         public void Build(ReactionGraph graph)

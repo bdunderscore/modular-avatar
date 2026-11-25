@@ -107,6 +107,71 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
             Assert.IsTrue(objB.activeSelf,
                 "The downstream observer must see A's computed initial active state");
         }
+
+        [Test]
+        public void Build_ObservedDrivenFlag_UsesBaseClipToReset()
+        {
+            var target = CreateChild(_root, "target");
+            var observer = CreateChild(_root, "observer");
+            observer.SetActive(false);
+            var graph = new ReactionGraph();
+
+            // Three drivers keep NotDriven from being inlined.
+            for (var i = 0; i < 3; i++)
+            {
+                var parameter = $"Driver{i}";
+                graph.Parameters.EnsureParameter(parameter, i == 0 ? 1f : 0f);
+                graph.AddNode(new ReactionNode(new ParameterExpression(parameter),
+                    new DriveActiveState(target, i != 0)));
+            }
+            graph.AddNode(new ReactionNode(new ObjectActiveState(target, ObjectActiveState.State.NotDriven),
+                new DriveActiveState(observer, true)));
+
+            Build(graph);
+
+            var flag = _vac.Parameters.Keys.Single(name => name.Contains("ObjDriven/target"));
+            Assert.AreEqual(1f, _vac.Parameters[flag].defaultFloat);
+            Assert.IsFalse(observer.activeSelf);
+            var binding = EditorCurveBinding.FloatCurve("", typeof(Animator), flag);
+            Assert.AreEqual(0f, _blendTreeBackend.BaseLayerClip.GetFloatCurve(binding)?.Evaluate(0f));
+            var applyCurves = _blendTreeBackend.RootTree.AllReachableNodes().OfType<VirtualClip>()
+                .Select(clip => clip.GetFloatCurve(binding)).Where(curve => curve != null).ToList();
+            Assert.That(applyCurves, Is.Not.Empty);
+            Assert.That(applyCurves.All(curve => curve.Evaluate(0f) == 1f), Is.True,
+                "Only the base clip should reset the driven flag.");
+
+            var animator = _root.GetComponent<Animator>() ?? _root.AddComponent<Animator>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            _asc.ControllerContext.Controllers[animator] = _vac;
+            AddLayer(int.MinValue, "Base", _blendTreeBackend.BaseLayerTree);
+            AddLayer(1, "Apply", _blendTreeBackend.RootTree);
+            _context.DeactivateAllExtensionContexts();
+            animator.Rebind();
+
+            AssertDrivenState(true);
+            animator.SetFloat("Driver1", 1f);
+            animator.SetFloat("Driver0", 0f);
+            AssertDrivenState(true);
+            animator.SetFloat("Driver1", 0f);
+            AssertDrivenState(false);
+            animator.SetFloat("Driver2", 1f);
+            AssertDrivenState(true);
+
+            void AddLayer(int priority, string name, VirtualMotion motion)
+            {
+                var layer = _vac.AddLayer(new LayerPriority(priority), name);
+                layer.DefaultWeight = 1f;
+                layer.StateMachine.DefaultState = layer.StateMachine.AddState(name, motion: motion);
+            }
+
+            void AssertDrivenState(bool driven)
+            {
+                // Allow delayed parameters and the observer to settle.
+                for (var i = 0; i < 30; i++) animator.Update(1f / 60f);
+                Assert.AreEqual(driven ? 1f : 0f, animator.GetFloat(flag));
+                Assert.AreEqual(!driven, observer.activeSelf);
+            }
+        }
     
         [Test]
         public void Build_InactiveObjectDrivenByExternalParamWithDefault_StartsActive()

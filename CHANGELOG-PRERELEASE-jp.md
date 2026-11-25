@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2229] リアクティブコンポーネントが生成するアニメーターがものすごく重くなる問題を修正
 
 ### Changed
 

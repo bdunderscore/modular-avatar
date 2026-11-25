@@ -9,11 +9,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
     internal sealed class TargetKeyOverride : IAction
     {
         public object TargetKey { get; }
+        // Connects actions for timing alignment without changing which actions compete for priority.
+        internal object GroupingKey { get; }
         internal ImmutableArray<IAction> Actions { get; }
 
-        internal TargetKeyOverride(object targetKey, IReadOnlyList<IAction> actions)
+        internal TargetKeyOverride(object targetKey, IReadOnlyList<IAction> actions, object? groupingKey = null)
         {
             TargetKey = targetKey;
+            GroupingKey = groupingKey ?? targetKey;
             Actions = actions.ToImmutableArray();
         }
 
@@ -21,6 +24,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
         {
             if (other is not TargetKeyOverride overrideAction
                 || !Equals(TargetKey, overrideAction.TargetKey)
+                || !Equals(GroupingKey, overrideAction.GroupingKey)
                 || Actions.Length != overrideAction.Actions.Length)
             {
                 return false;
@@ -41,7 +45,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
 
         private bool Equals(TargetKeyOverride other)
         {
-            if (!Equals(TargetKey, other.TargetKey) || Actions.Length != other.Actions.Length) return false;
+            if (!Equals(TargetKey, other.TargetKey) || !Equals(GroupingKey, other.GroupingKey)
+                || Actions.Length != other.Actions.Length) return false;
 
             for (var i = 0; i < Actions.Length; i++)
             {
@@ -60,6 +65,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Actions
         {
             var hash = new HashCode();
             hash.Add(TargetKey);
+            hash.Add(GroupingKey);
             foreach (var action in Actions) hash.Add(action);
             return hash.ToHashCode();
         }

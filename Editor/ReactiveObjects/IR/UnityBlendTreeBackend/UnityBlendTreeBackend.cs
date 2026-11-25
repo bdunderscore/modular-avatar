@@ -8,6 +8,7 @@ using nadena.dev.modular_avatar.core.editor.rc.Conditions;
 using nadena.dev.modular_avatar.core.editor.rc.Graph;
 using nadena.dev.modular_avatar.core.editor.rc.Transformations;
 using nadena.dev.ndmf.animator;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         private readonly ReactiveDebugProbe _debugProbe;
 
         private ReactionParameters? __parameters;
+        private List<(string Name, float Value)>? _parameterBaseBindings;
 
         internal List<IEffectProcessor> _effectProcessors = new();
 
@@ -114,6 +116,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         public void SetParameterInitialValue(string name, float value)
         {
             Parameters.SetParameterInitialValue(name, value);
+        }
+
+        public void AddBaseStateBinding(string parameterName, float value)
+        {
+            // Defer curve creation until unused internal parameters have been pruned.
+            (_parameterBaseBindings ??= new()).Add((parameterName, value));
         }
 
         public IDisposable LatencyScope(int frames)
@@ -293,6 +301,18 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             AssertDecomposed(graph);
 
             graph.Parameters.PruneOrphanedInternalParameters(graph);
+
+            if (_parameterBaseBindings is { } bindings)
+            {
+                foreach (var (name, value) in bindings)
+                {
+                    if (!graph.Parameters.HasParameter(name)) continue;
+                    BaseLayerClip.SetFloatCurve(EditorCurveBinding.FloatCurve("", typeof(Animator), name),
+                        AnimationCurve.Constant(0, 1, value));
+                }
+
+                _parameterBaseBindings = null;
+            }
 
             return SplitIntoSubgraphsTransform.Apply(graph);
         }

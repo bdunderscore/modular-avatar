@@ -36,6 +36,14 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         void SetParameterInitialValue(string name, float value);
 
         /// <summary>
+        ///     Registers an animator parameter base-state binding. This does not change the
+        ///     parameter's initial value.
+        /// </summary>
+        /// <param name="parameterName">The animator parameter name.</param>
+        /// <param name="value">The value to bind in the base state.</param>
+        void AddBaseStateBinding(string parameterName, float value);
+
+        /// <summary>
         ///     Lowers a reaction graph into the backend's output representation.
         /// </summary>
         /// <param name="graph">The reaction graph to build.</param>
