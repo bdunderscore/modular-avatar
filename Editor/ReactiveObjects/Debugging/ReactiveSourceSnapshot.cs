@@ -17,7 +17,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 {
     internal static class ReactiveSourceSnapshot
     {
-        internal static JObject Capture(GameObject avatarRoot, AnimatorServicesContext animatorServices, ReactiveDebugJson codec)
+        internal static JObject Capture(GameObject avatarRoot, AnimatorServicesContext animatorServices, ReactiveDebugJson codec,
+            Action<string, Exception>? reportCaptureError = null)
         {
             var input = new JObject
             {
@@ -35,7 +36,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             foreach (var transform in avatarRoot.GetComponentsInChildren<Transform>(true))
             foreach (var component in transform.GetComponents<Component>())
                 if (component != null && closure.Components.Contains(component))
-                    DescribeComponent(component, codec, closure.RequiredBlendshapes);
+                    DescribeComponent(component, codec, closure.RequiredBlendshapes, reportCaptureError);
             CaptureParameters(avatarRoot, animatorServices, codec, input, citedParameters);
             foreach (var asset in codec.Assets.OfType<JObject>()) asset["source"] = true;
             return input;
@@ -194,7 +195,8 @@ namespace nadena.dev.modular_avatar.core.editor.rc
         }
 
         private static void DescribeComponent(Component component, ReactiveDebugJson codec,
-            IReadOnlyDictionary<SkinnedMeshRenderer, HashSet<string>> requiredBlendshapes)
+            IReadOnlyDictionary<SkinnedMeshRenderer, HashSet<string>> requiredBlendshapes,
+            Action<string, Exception>? reportCaptureError)
         {
             var id = codec.ObjectId(component);
             var record = codec.Components.OfType<JObject>().First(c => c.Value<int>("id") == id);
@@ -218,6 +220,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                     catch (Exception exception)
                     {
                         record["selectorCaptureError"] = "SelectorCaptureFailed";
+                        reportCaptureError?.Invoke("Mesh cutter selector capture", exception);
                         Debug.LogWarning($"Unable to capture the mesh selector for {cutter.name}: {exception.Message}");
                     }
                     break;

@@ -45,6 +45,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 ["formatVersion"] = 2,
                 ["stages"] = new JArray(),
                 ["effectGroups"] = new JArray(),
+                ["errors"] = new JArray(),
             };
 
             private bool _disposed;
@@ -58,12 +59,13 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             internal override void Offer(string stage, GameObject avatarRoot, AnimatorServicesContext animatorServices)
             {
-                Capture(() => _dump["input"] = ReactiveSourceSnapshot.Capture(avatarRoot, animatorServices, _json));
+                Capture(stage, () => _dump["input"] = ReactiveSourceSnapshot.Capture(avatarRoot, animatorServices, _json,
+                    (operation, exception) => RecordCaptureError($"{stage}: {operation}", exception)));
             }
 
             internal override void Offer(string stage, ReactionGraph graph)
             {
-                Capture(() => ((JArray)_dump["stages"]!).Add(new JObject
+                Capture(stage, () => ((JArray)_dump["stages"]!).Add(new JObject
                 {
                     ["name"] = stage,
                     ["graphs"] = new JArray(ReactiveDebugGraphSnapshot.SerializeGraph(graph, _json)),
@@ -72,7 +74,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             internal override void Offer(string stage, IReadOnlyList<ReactionGraph> graphs)
             {
-                Capture(() =>
+                Capture(stage, () =>
                 {
                     var serializedGraphs = new JArray();
                     foreach (var graph in graphs)
@@ -90,7 +92,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
             internal override void Offer(string stage, EffectGroup group, VirtualMotion? motion)
             {
-                Capture(() =>
+                Capture(stage, () =>
                 {
                     var record = ReactiveDebugGraphSnapshot.SerializeEffectGroup(group, motion, _json,
                         ref _nextMotionId);
@@ -98,7 +100,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 });
             }
 
-            private static void Capture(Action action)
+            private void Capture(string operation, Action action)
             {
                 try
                 {
@@ -106,8 +108,21 @@ namespace nadena.dev.modular_avatar.core.editor.rc
                 }
                 catch (Exception exception)
                 {
+                    RecordCaptureError(operation, exception);
                     Debug.LogWarning($"Failed to capture reactive component debug data: {exception}");
                 }
+            }
+
+            private void RecordCaptureError(string operation, Exception exception)
+            {
+                ((JArray)_dump["errors"]!).Add(new JObject
+                {
+                    ["operation"] = operation,
+                    ["code"] = "CaptureFailed",
+                    ["exceptionType"] = exception.GetType().Name,
+                    // Exception messages may contain source component data. The Unity Console retains those details.
+                    ["message"] = "Capture failed. See the Unity Console for details.",
+                });
             }
 
             public override void Dispose()

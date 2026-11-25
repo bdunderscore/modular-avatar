@@ -97,9 +97,12 @@ namespace nadena.dev.modular_avatar.core.editor.rc
 
         private static JObject Validate(JObject document)
         {
-            RequireExactFields(document, "dump", "formatVersion", "input", "stages", "effectGroups");
+            RequireOnlyFields(document, "dump", "formatVersion", "input", "stages", "effectGroups", "errors");
+            foreach (var required in new[] { "formatVersion", "input", "stages", "effectGroups" })
+                if (document.Property(required) == null) throw new InvalidDataException($"dump is missing required field '{required}'");
             if (document.Value<int?>("formatVersion") != FormatVersion)
                 throw new InvalidDataException($"Unsupported reactive debug dump format version '{document["formatVersion"]}'");
+            if (document.Property("errors") != null) ValidateErrors(RequiredArray(document, "errors"));
             var input = document["input"] as JObject ?? throw new InvalidDataException("Dump is missing input");
             RequireOnlyFields(input, "input", "platform", "avatarName", "objects", "components", "assets",
                 "animatorParameters", "expressionParameters", "activeStateAnimations", "selectorPartitions",
@@ -299,6 +302,21 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             {
                 if (document[section] is not JArray records) throw new InvalidDataException($"Missing required array '{section}'");
                 ValidatePropertyData(records, knownIds, true);
+            }
+        }
+
+        private static void ValidateErrors(JArray errors)
+        {
+            foreach (var token in errors)
+            {
+                var error = token as JObject ?? throw new InvalidDataException("Dump error record must be an object");
+                RequireExactFields(error, "dump error", "operation", "code", "exceptionType", "message");
+                _ = RequiredNonEmptyString(error, "operation", "Dump error");
+                if (RequiredString(error, "code") != "CaptureFailed")
+                    throw new InvalidDataException($"Unsupported dump error code '{error["code"]}'");
+                _ = RequiredNonEmptyString(error, "exceptionType", "Dump error");
+                if (RequiredString(error, "message") != "Capture failed. See the Unity Console for details.")
+                    throw new InvalidDataException("Unexpected dump error message");
             }
         }
 
