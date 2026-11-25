@@ -14,7 +14,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
     ///     true:
     ///     1. They contain the same (non-constant) ObjectActiveState target
     ///     2. They contain a ParameterCondition for the same parameter name
-    ///     3. They have the same target for their action
+    ///     3. Their actions share a target or an explicit timing grouping key
     /// </summary>
     internal static class SplitIntoSubgraphsTransform
     {
@@ -53,10 +53,28 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                 .GroupBy(x => x.param, x => x.Key)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            var actionToNodes = graph.Nodes
-                .SelectMany((n, idx) => n.Effects.Select(effect => (idx, effect.TargetKey)))
-                .GroupBy(x => x.TargetKey, x => x.idx)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            var actionToNodes = new Dictionary<object, List<int>>();
+            for (var i = 0; i < nodeCount; i++)
+            {
+                foreach (var effect in graph.Nodes[i].Effects)
+                {
+                    var targetKey = effect.TargetKey;
+                    AddActionKey(targetKey, i);
+                    if (effect is TargetKeyOverride action && !Equals(targetKey, action.GroupingKey))
+                        AddActionKey(action.GroupingKey, i);
+                }
+            }
+
+            void AddActionKey(object key, int nodeIndex)
+            {
+                if (!actionToNodes.TryGetValue(key, out var nodes))
+                {
+                    nodes = new List<int>();
+                    actionToNodes.Add(key, nodes);
+                }
+
+                nodes.Add(nodeIndex);
+            }
 
             // Build disjoint sets connecting nodes sharing any key
             var parent = new int[nodeCount];

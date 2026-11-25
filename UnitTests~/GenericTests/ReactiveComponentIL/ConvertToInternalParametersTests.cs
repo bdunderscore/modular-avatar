@@ -303,7 +303,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
         }
     
         [Test]
-        public void NotDrivenWithDriver_TracksDriverAndAddsReset()
+        public void NotDrivenWithDriver_TracksDriver()
         {
             var obj = CreateChild(_root, "obj");
             var driverCondition = new ParameterExpression("driver");
@@ -322,37 +322,8 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
             var driven = graph.Nodes[1].Effects.OfType<DriveInternalParameter>()
                 .Single(effect => effect.ParameterName == drivenParameter);
             Assert.IsTrue(driven.State);
-    
-            var resetNode = graph.Nodes.Last();
-            Assert.AreEqual(new NotNode(driverCondition), resetNode.Expression);
-            var reset = (DriveInternalParameter)resetNode.Effects.Single();
-            Assert.AreEqual(drivenParameter, reset.ParameterName);
-            Assert.IsFalse(reset.State);
         }
-    
-        [Test]
-        public void NotDrivenWithMultipleDrivers_ResetWhenNeitherDriverApplies()
-        {
-            var obj = CreateChild(_root, "obj");
-            var firstDriver = new ParameterExpression("first");
-            var secondDriver = new ParameterExpression("second");
-            var graph = new ReactionGraph();
-            graph.AddNode(new ReactionNode(
-                new ObjectActiveState(obj, ObjectActiveState.State.NotDriven),
-                new NullAction(new object())
-            ));
-            graph.AddNode(new ReactionNode(firstDriver, new DriveActiveState(obj, true)));
-            graph.AddNode(new ReactionNode(secondDriver, new DriveActiveState(obj, false)));
-    
-            ConvertAndSimplify(graph);
-    
-            var resetNode = graph.Nodes.Last();
-            Assert.AreEqual(new NotNode(new OrNode(firstDriver, secondDriver)), resetNode.Expression);
-            var reset = (DriveInternalParameter)resetNode.Effects.Single();
-            Assert.IsTrue(reset.ParameterName.Contains("ObjDriven/obj"));
-            Assert.IsFalse(reset.State);
-        }
-    
+
         [Test]
         public void ConvertToInternal_CreatesMultiEffectNodes_DecomposeProducesValidSingleEffectNodes()
         {
@@ -365,16 +336,15 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponentIL
     
             ConvertAndSimplify(graph);
     
-            Assert.AreEqual(2, graph.Nodes.Count, "ConvertToInternal adds the not-driven reset node");
             Assert.AreEqual(3, graph.Nodes[0].Effects.Count,
                 "Node should carry active-state and driven-state internal parameter effects");
     
             DecomposeTransform.Apply(graph);
     
-            Assert.AreEqual(4, graph.Nodes.Count, "One node per effect after decomposition");
+            Assert.AreEqual(3, graph.Nodes.Count, "One node per effect after decomposition");
             Assert.IsTrue(graph.Nodes.All(n => n.Effects.Count == 1), "All nodes must be single-effect");
             Assert.AreEqual(1, graph.Nodes.Count(n => n.Effects[0] is DriveActiveState));
-            Assert.AreEqual(3, graph.Nodes.Count(n => n.Effects[0] is DriveInternalParameter));
+            Assert.AreEqual(2, graph.Nodes.Count(n => n.Effects[0] is DriveInternalParameter));
             CollectionAssert.AreEqual(
                 Enumerable.Range(0, graph.Nodes.Count).ToList(),
                 graph.Nodes.Select(node => node.Priority).ToList());

@@ -118,6 +118,7 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             switch (targetKey)
             {
                 case MaterialSlotTarget:
+                case MeshSectionTarget:
                 case InternalParameterTarget:
                 case ObjectActiveTarget:
                 case ParameterTarget:

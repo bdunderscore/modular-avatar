@@ -20,7 +20,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
             // Map each object to a unique internal parameter name
             var objectToParameter = new Dictionary<GameObject, string>();
             var objectToDrivenParameter = new Dictionary<GameObject, string>();
-            var driverConditions = new Dictionary<GameObject, List<IExpression>>();
 
             // First pass: create parameters for all objects that are either:
             // 1. Referenced in ObjectActiveState expressions
@@ -37,12 +36,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                     {
                         EnsureParameter(das.Target, objectToParameter, backend);
                         EnsureDrivenParameter(das.Target, objectToDrivenParameter, backend);
-                        if (!driverConditions.TryGetValue(das.Target, out var conditions))
-                        {
-                            conditions = new List<IExpression>();
-                            driverConditions[das.Target] = conditions;
-                        }
-                        conditions.Add(node.Expression.DeepClone());
                     }
                 }
             }
@@ -64,17 +57,6 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
                         node.Effects.Add(new DriveInternalParameter(objectToDrivenParameter[das.Target], true));
                     }
                 }
-            }
-
-            foreach (var (obj, conditions) in driverConditions)
-            {
-                var resetCondition = ReplaceObjectActiveStates(
-                    new NotNode(new OrNode(conditions.ToArray())),
-                    objectToParameter,
-                    objectToDrivenParameter);
-                graph.Nodes.Add(new ReactionNode(
-                    resetCondition,
-                    new DriveInternalParameter(objectToDrivenParameter[obj], false)));
             }
         }
 
@@ -119,7 +101,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc.Transformations
         {
             if (!objectToDrivenParameter.ContainsKey(obj))
             {
-                objectToDrivenParameter[obj] = backend.AddUniqueParameter($"ObjDriven/{obj.name}", 0);
+                var parameter = backend.AddUniqueParameter($"ObjDriven/{obj.name}", 0);
+                objectToDrivenParameter[obj] = parameter;
+                // Reset the driven flag when no apply-layer rule writes it.
+                backend.AddBaseStateBinding(parameter, 0);
             }
         }
         private static IExpression ReplaceObjectActiveStates(

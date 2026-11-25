@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#2229] Fixed an issue which could result in pathologicaly poor performance for Reactive Component animators.
 
 ### Changed
 

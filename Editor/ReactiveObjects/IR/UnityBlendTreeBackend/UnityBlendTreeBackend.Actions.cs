@@ -79,8 +79,10 @@ namespace nadena.dev.modular_avatar.core.editor.rc
             switch (property.propertyType)
             {
                 case SerializedPropertyType.Boolean:
-                    BaseLayerClip.SetFloatCurve(binding.Value,
-                        AnimationCurve.Constant(0, 1, property.boolValue ? 1 : 0));
+                    // Multiple effect groups can write the same boolean; keep its original base value.
+                    if (BaseLayerClip.GetFloatCurve(binding.Value) == null)
+                        BaseLayerClip.SetFloatCurve(binding.Value,
+                            AnimationCurve.Constant(0, 1, property.boolValue ? 1 : 0));
                     if (startsActive)
                     {
                         property.boolValue = action.Value != 0;
