@@ -260,6 +260,49 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
         }
 
         [Test]
+        public void EnabledProbe_RecordsSourceCaptureFailureAndContinues()
+        {
+            var root = CreateToggleAvatar(out _);
+            ReactiveDebugDump.Enabled = true;
+            var before = DumpFiles();
+            var context = CreateContext(root, WellKnownPlatforms.VRChatAvatar30);
+            var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+            var fxController = animatorServices.ControllerContext.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
+            var originalParameters = fxController.Parameters;
+            fxController.Parameters = originalParameters.SetItem("outfit",
+                new AnimatorControllerParameter { name = "outfit", type = (AnimatorControllerParameterType)int.MaxValue });
+            var expected = new InvalidOperationException("expected production failure");
+
+            try
+            {
+                var observed = Assert.Catch<InvalidOperationException>(() =>
+                {
+                    using var probe = ReactiveDebugProbe.Create();
+                    probe.Offer("Before RC processing", root, animatorServices);
+                    var graph = new ReactionGraph();
+                    graph.AddNode(new ReactionNode(new Constant(true), new DriveInternalParameter("after-source-failure", true)));
+                    probe.Offer("After failed source capture", graph);
+                    throw expected;
+                });
+                Assert.That(observed, Is.SameAs(expected), "Probe disposal must not replace the production exception.");
+            }
+            finally
+            {
+                fxController.Parameters = originalParameters;
+                context.DeactivateAllExtensionContexts();
+            }
+
+            var dump = ReadNewDump(before);
+            Assert.That(dump["input"], Is.Null);
+            var error = dump["errors"]!.Values<JObject>().Single();
+            Assert.That(error.Value<string>("operation"), Is.EqualTo("Before RC processing"));
+            Assert.That(error.Value<string>("code"), Is.EqualTo("CaptureFailed"));
+            Assert.That(error.Value<string>("exceptionType"), Is.EqualTo(nameof(ArgumentOutOfRangeException)));
+            Assert.That(dump["stages"]!.Values<JObject>().Select(stage => stage.Value<string>("name")),
+                Does.Contain("After failed source capture"));
+        }
+
+        [Test]
         public void DirectPass_CapturesInitialMenuParameterSourcesBeforeSentinelResolution()
         {
             var dump = CaptureInitialParameterMatrix(out _);
@@ -420,6 +463,7 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
                     unsafeGraph.AddNode(new ReactionNode(new Constant(true), unsafeAction));
                     probe.Offer("Unsafe property stage", unsafeGraph);
                 }
+                probe.Offer("Post-failure material-slot stage", validGraph);
             }
             finally
             {
@@ -429,7 +473,14 @@ namespace nadena.dev.modular_avatar.test.ReactiveComponent
             var dump = ReadNewDump(before);
             Assert.That(dump["input"], Is.Not.Null, "A failed graph snapshot must not discard prior valid input.");
             Assert.That(dump["stages"]!.Values<JObject>().Select(stage => stage.Value<string>("name")),
-                Does.Contain("Known material-slot stage").And.Not.Contain("Unsafe property stage"));
+                Does.Contain("Known material-slot stage").And.Not.Contain("Unsafe property stage")
+                    .And.Contain("Post-failure material-slot stage"));
+            var errors = dump["errors"]!.Values<JObject>().ToList();
+            Assert.That(errors, Is.Not.Empty, "Every failed capture must be recorded in the dump.");
+            Assert.That(errors.All(error =>
+                error.Value<string>("operation") == "Unsafe property stage"
+                && error.Value<string>("code") == "CaptureFailed"
+                && error.Value<string>("exceptionType") == nameof(NotSupportedException)), Is.True);
             Assert.That(dump.ToString(Formatting.None), Does.Not.Contain("privateSentinelProperty")
                 .And.Not.Contain("otherPrivateSentinelProperty")
                 .And.Not.Contain("12345.678")
