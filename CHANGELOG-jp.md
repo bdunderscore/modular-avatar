@@ -9,11 +9,8 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ## [Unreleased]
 
 ### Added
-- [#2227] Reactive Component の構造を書き出すデバッグ機能を追加
 
 ### Fixed
-- [#2229] リアクティブコンポーネントが生成するアニメーターがものすごく重くなる問題を修正
-- [#2131] `MA Move Independently` と `MA Scale Adjuster` のプレビューが更新されなくなることがある `ArgumentException: negative length` を修正しました。
 
 ### Changed
 
@@ -22,6 +19,15 @@ Modular Avatarの主な変更点をこのファイルで記録しています。
 ### Security
 
 ### Deprecated
+
+## [1.19.1] - [2026-11-25]
+
+### Added
+- [#2227] Reactive Component の構造を書き出すデバッグ機能を追加
+
+### Fixed
+- [#2229] リアクティブコンポーネントが生成するアニメーターがものすごく重くなる問題を修正
+- [#2131] `MA Move Independently` と `MA Scale Adjuster` のプレビューが更新されなくなることがある `ArgumentException: negative length` を修正しました。
 
 ## [1.19.0] - [2026-11-18]
 
