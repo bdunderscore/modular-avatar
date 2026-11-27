@@ -5341,10 +5341,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/docusaurus@npm:^2.0.9":
-  version: 2.0.9
-  resolution: "@tsconfig/docusaurus@npm:2.0.9"
-  checksum: 10c0/a7ab5fc9d0688b3b2e44414df66ef55ebcbf48eaf9221ac876e1efe48a9ef60f4b2e284147e3e82c29d26620debd3ca33dabc201440e655fca4a6d059c173552
+"@tsconfig/docusaurus@npm:^2.0.10":
+  version: 2.0.10
+  resolution: "@tsconfig/docusaurus@npm:2.0.10"
+  checksum: 10c0/4eecb70d6d505aa62eb4ee2f4199e2270c157154a624be1b70399a4e771e781c2c3650eafd49a7525df9b5d6e64ecaefc4bfc6fa9298495e7464c2b21d14e0dd
   languageName: node
   linkType: hard
 
@@ -10992,7 +10992,7 @@ __metadata:
     "@docusaurus/module-type-aliases": "npm:^3.10.2"
     "@docusaurus/preset-classic": "npm:^3.10.2"
     "@mdx-js/react": "npm:^3.1.1"
-    "@tsconfig/docusaurus": "npm:^2.0.9"
+    "@tsconfig/docusaurus": "npm:^2.0.10"
     "@types/react": "npm:^19.3.0"
     clsx: "npm:^2.1.1"
     prism-react-renderer: "npm:^2.4.1"
