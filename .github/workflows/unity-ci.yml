@@ -233,7 +233,7 @@ jobs:
           cache-installation: true
           hub-version: '3.19.5'
           
-      - uses: buildalon/activate-unity-license@e0d245d0787b7b9931b56ccbde3b508f6b70f1af # v2.2.2
+      - uses: buildalon/activate-unity-license@38058846eff1bd04b5b2a5a05239d61be2af2352 # v3.0.3
         if: needs.changed-files.outputs.run-unity == 'true'
         with:
           license: 'Personal' # Choose license type to use [ Personal, Professional, Floating ]
